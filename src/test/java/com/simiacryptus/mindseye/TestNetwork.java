@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ import java.util.zip.GZIPInputStream;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,16 +34,37 @@ public class TestNetwork {
   private static final Logger log = LoggerFactory.getLogger(TestCIFAR.class);
   
   @Test
+  public void testDenseLinearLayer() throws Exception {
+    NDArray input = new NDArray(2);
+    NDArray output = new NDArray(1);
+    DenseLinearLayer testLayer = new DenseLinearLayer(input.dim(), output.getDims());
+    testLayer.weights.set(new int[]{input.index(0),0}, 1);
+    testLayer.weights.set(new int[]{input.index(1),0}, 1);
+    input.set(0, 1);
+    input.set(1, 0);
+    double rms = testLayer.eval(input).err(output);
+    Assert.assertEquals(rms, 1., 0.001);
+    testLayer.eval(input).learn(1, output);
+    rms = testLayer.eval(input).err(output);
+    Assert.assertEquals(rms, 0., 0.001);
+  }
+  
+  @Test
   public void test() throws Exception {
     log.info("Starting");
     List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
     
     DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28,28).dim(), new int[]{10});
+    final Random r = new Random();
+    Arrays.parallelSetAll(l1.weights.data, i->0.001 * r.nextGaussian());
     logRms(buffer, l1);
-    buffer.stream().forEach(o->{
-      l1.eval(o.data).learn(0.001, toOut(o.label));
-    });
-    logRms(buffer, l1);
+    for(int i=0;i<100;i++)
+    {
+      buffer.stream().forEach(o->{
+        l1.eval(o.data).learn(0.05, toOut(o.label));
+      });
+      logRms(buffer, l1);
+    }
 
     report(buffer);
   }

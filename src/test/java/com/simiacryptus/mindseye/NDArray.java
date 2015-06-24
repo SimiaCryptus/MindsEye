@@ -22,6 +22,11 @@ public class NDArray {
     this.data = new double[dim(dims)];
   }
 
+  public NDArray(int[] dims, double[] data) {
+    this(dims);
+    Arrays.parallelSetAll(this.data, i->data[i]);
+  }
+
   public static int dim(int... dims) {
     return IntStream.of(dims).reduce((a,b)->a*b).getAsInt();
   }
@@ -31,7 +36,12 @@ public class NDArray {
   }
   
   public void set(int[] coords, double value) {
-    data[index(coords)] = value;
+    int index = index(coords);
+    set(index, value);
+  }
+
+  public void set(int index, double value) {
+    data[index] = value;
   }
 
   public int index(int... coords) {
@@ -48,6 +58,14 @@ public class NDArray {
 
   public int dim() {
     return data.length;
+  }
+
+  public void add(int[] coords, double value) {
+    add(index(coords), value);
+  }
+
+  public void add(int index, double value) {
+    data[index] += value;
   }
   
 }
