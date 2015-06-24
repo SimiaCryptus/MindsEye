@@ -22,8 +22,11 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestCIFAR {
+  private static final Logger log = LoggerFactory.getLogger(TestCIFAR.class);
   
   @Test
   public void test() throws Exception {
@@ -39,7 +42,7 @@ public class TestCIFAR {
     tarStream(path, name)
         .flatMap(in -> BinaryChunkIterator.toStream(new BinaryChunkIterator(new DataInputStream(in), 3073)))
         .map(this::toImage)
-        .sorted(Comparator.comparing(img->img.name))
+        .sorted(Comparator.comparing(img->img.label))
         .map(this::toInlineImage)
         .forEach(out::println);
     out.println("</body></html>");
@@ -75,7 +78,7 @@ public class TestCIFAR {
     });
   }
   
-  public LabeledImage toImage(byte[] b) {
+  public LabeledObject<BufferedImage> toImage(byte[] b) {
     BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++)
     {
@@ -88,18 +91,18 @@ public class TestCIFAR {
         img.setRGB(x, y, c);
       }
     }
-    return new LabeledImage(img, Arrays.toString(new byte[]{b[0]}));
+    return new LabeledObject<BufferedImage>(img, Arrays.toString(new byte[]{b[0]}));
   }
   
-  public String toInlineImage(LabeledImage img) {
+  public String toInlineImage(LabeledObject<BufferedImage> img) {
     ByteArrayOutputStream b = new ByteArrayOutputStream();
     try {
-      ImageIO.write(img.img, "PNG", b);
+      ImageIO.write(img.data, "PNG", b);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
     byte[] byteArray = b.toByteArray();
     String encode = Base64.getEncoder().encodeToString(byteArray);
-    return "<img src=\"data:image/png;base64," + encode + "\" alt=\""+img.name+"\" />";
+    return "<img src=\"data:image/png;base64," + encode + "\" alt=\""+img.label+"\" />";
   }
 }

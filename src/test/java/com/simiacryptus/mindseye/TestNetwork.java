@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -26,24 +28,43 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestMNIST {
+public class TestNetwork {
   private static final Logger log = LoggerFactory.getLogger(TestCIFAR.class);
-
+  
   @Test
   public void test() throws Exception {
     
+    log.info("Hello world");
+    
+    List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
+
+    report(buffer);
+  }
+
+  private void report(List<LabeledObject<NDArray>> buffer) throws FileNotFoundException, IOException {
     File outDir = new File("reports");
     outDir.mkdirs();
-    File report = new File(outDir, this.getClass().getSimpleName()+".html");
+    StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+    File report = new File(outDir, caller.getClassName()+ "_" + caller.getLineNumber() + ".html");
     PrintStream out = new PrintStream(new FileOutputStream(report));
-    String path = "C:/Users/Andrew Charneski/Downloads";
     out.println("<html><head></head><body>");
-    Stream<BufferedImage> imgStream = binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
+    buffer.stream()
+        .sorted(Comparator.comparing(img -> img.label))
+        .map(x->x.<BufferedImage>map(this::toImage))
+        .map(this::toInlineImage)
+        .forEach(out::println);
+    out.println("</body></html>");
+    out.close();
+    Desktop.getDesktop().browse(report.toURI());
+  }
+
+  private Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
+    String path = "C:/Users/Andrew Charneski/Downloads";
+    Stream<NDArray> imgStream = binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
     Stream<byte[]> labelStream = binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
     
-    
-    Stream<LabeledObject<BufferedImage>> merged = BinaryChunkIterator.toStream(new Iterator<LabeledObject<BufferedImage>>() {
-      Iterator<BufferedImage> imgItr = imgStream.iterator();
+    Stream<LabeledObject<NDArray>> merged = BinaryChunkIterator.toStream(new Iterator<LabeledObject<NDArray>>() {
+      Iterator<NDArray> imgItr = imgStream.iterator();
       Iterator<byte[]> labelItr = labelStream.iterator();
       
       @Override
@@ -52,21 +73,11 @@ public class TestMNIST {
       }
       
       @Override
-      public LabeledObject<BufferedImage> next() {
-        return new LabeledObject<BufferedImage>(imgItr.next(), Arrays.toString(labelItr.next()));
+      public LabeledObject<NDArray> next() {
+        return new LabeledObject<NDArray>(imgItr.next(), Arrays.toString(labelItr.next()));
       }
-    },100);
-    
-    
-    merged
-        .collect(Collectors.toList())
-        .stream()
-        .sorted(Comparator.comparing(img -> img.label))
-        .map(this::toInlineImage)
-        .forEach(out::println);
-    out.println("</body></html>");
-    out.close();
-    Desktop.getDesktop().browse(report.toURI());
+    }, 100).limit(1000);
+    return merged;
   }
   
   public static Stream<byte[]> binaryStream(String path, String name, int skip, int recordSize) throws IOException {
@@ -79,13 +90,25 @@ public class TestMNIST {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
   
-  public BufferedImage toImage(byte[] b) {
+  public NDArray toImage(byte[] b) {
+    NDArray ndArray = new NDArray(28,28);
+    for (int x = 0; x < 28; x++)
+    {
+      for (int y = 0; y < 28; y++)
+      {
+        ndArray.set(new int[]{x, y}, b[x + y * 28]);
+      }
+    }
+    return ndArray;
+  }
+  
+  public BufferedImage toImage(NDArray ndArray) {
     BufferedImage img = new BufferedImage(28, 28, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < 28; x++)
     {
       for (int y = 0; y < 28; y++)
       {
-        img.setRGB(x, y, b[x + y * 28] * 0x00010101);
+        img.setRGB(x, y, ((int)ndArray.get(x,y)) * 0x00010101);
       }
     }
     return img;
