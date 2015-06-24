@@ -43,8 +43,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     return new NNResult(output) {
       @Override
       public void feedback(NDArray data, FeedbackContext ctx) {
-        double[] delta = ctx.invertFeedback(weightGradient, data.data);
-        ctx.adjust(ConvolutionSynapseLayer.this, kernel, delta);
+        ctx.adjust(ConvolutionSynapseLayer.this, kernel, ctx.invertFeedback(weightGradient, data.data));
         if (inObj.isAlive()) {
           inObj.feedback(new NDArray(inputDims, ctx.invertFeedback(inputGradient, data.data)), ctx);
         }

@@ -40,17 +40,17 @@ public class TestNetwork {
       NDArray inputSize = new NDArray(28, 28);
       final Random r = new Random();
       
-      layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3)
+      layers.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 3)
         .fillWeights(() -> 0.001 * r.nextGaussian()));
       layers.add(new SigmoidActivationLayer());
       
-      layers.add(new MaxSubsampleLayer(2, 2, 1));
+      layers.add(new MaxSubsampleLayer(3, 3, 1));
 
       layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2)
         .fillWeights(() -> 0.001 * r.nextGaussian()));
       layers.add(new SigmoidActivationLayer());
       
-      layers.add(new MaxSubsampleLayer(4, 4, 1, 1));
+      layers.add(new MaxSubsampleLayer(3, 3, 1, 1));
       
       layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
         .fillWeights(() -> 0.001 * r.nextGaussian()));

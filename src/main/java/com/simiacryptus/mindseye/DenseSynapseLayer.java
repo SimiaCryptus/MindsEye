@@ -37,8 +37,7 @@ public class DenseSynapseLayer extends NNLayer {
     return new NNResult(output) {
       @Override
       public void feedback(NDArray data, FeedbackContext ctx) {
-        double[] weightDelta = ctx.invertFeedback(weightGradient, data.data);
-        ctx.adjust(DenseSynapseLayer.this, weights, weightDelta);
+        ctx.adjust(DenseSynapseLayer.this, weights, ctx.invertFeedback(weightGradient, data.data));
         if (inObj.isAlive()) {
           inObj.feedback(new NDArray(inputDims, ctx.invertFeedback(inputGradient, data.data)), ctx);
         }

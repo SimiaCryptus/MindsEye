@@ -7,8 +7,9 @@ import org.jblas.DoubleMatrix;
 public class FeedbackContext {
 
   public double[] invertFeedback(final NDArray gradient, double[] delta) {
+    int[] dims = gradient.getDims();
     return org.jblas.Solve.solveLeastSquares(
-        new DoubleMatrix(gradient.getDims()[0], gradient.getDims()[1], gradient.data).transpose(),
+        new DoubleMatrix(dims[0], dims[1], gradient.data).transpose(),
         new DoubleMatrix(delta.length, 1, delta)).data;
   }
 
