@@ -33,12 +33,33 @@ public class TestNetwork {
   
   @Test
   public void test() throws Exception {
-    
-    log.info("Hello world");
-    
+    log.info("Starting");
     List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
+    
+    DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28,28).dim(), new int[]{10});
+    logRms(buffer, l1);
+    buffer.stream().forEach(o->{
+      l1.eval(o.data).learn(0.001, toOut(o.label));
+    });
+    logRms(buffer, l1);
 
     report(buffer);
+  }
+
+  private void logRms(List<LabeledObject<NDArray>> buffer, DenseLinearLayer l1) {
+    double rms = buffer.stream().mapToDouble(o->l1.eval(o.data).err(toOut(o.label))).average().getAsDouble();
+    log.info("RMS Error: {}", rms);
+  }
+
+  private NDArray toOut(String label) {
+    NDArray ndArray = new NDArray(10);
+    for(int i=0;i<10;i++)
+    {
+      if(label.equals("["+i+"]")){
+        ndArray.set(new int[]{i}, 1);
+      }
+    }
+    return ndArray;
   }
 
   private void report(List<LabeledObject<NDArray>> buffer) throws FileNotFoundException, IOException {
