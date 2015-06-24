@@ -1,7 +1,10 @@
 package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
+import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
@@ -62,6 +65,11 @@ public class ConvolutionSynapseLayer extends NNLayer {
         return true;
       }
     };
+  }
+
+  public ConvolutionSynapseLayer fillWeights(DoubleSupplier f) {
+    Arrays.parallelSetAll(kernel.data, i->f.getAsDouble());
+    return this;
   }
   
 }

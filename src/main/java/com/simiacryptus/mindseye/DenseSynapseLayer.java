@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
+import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
 import org.jblas.DoubleMatrix;
@@ -56,6 +57,11 @@ public class DenseSynapseLayer extends NNLayer {
         return true;
       }
     };
+  }
+
+  public DenseSynapseLayer fillWeights(DoubleSupplier f) {
+    Arrays.parallelSetAll(weights.data, i->f.getAsDouble());
+    return this;
   }
   
 }

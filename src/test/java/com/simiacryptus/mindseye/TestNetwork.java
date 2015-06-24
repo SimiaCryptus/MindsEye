@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
@@ -30,6 +31,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestNetwork {
+  public static final class Network extends NNLayer {
+    
+    private List<NNLayer> layers = new ArrayList<NNLayer>();
+    
+    public Network() {
+      super();
+      NDArray inputSize = new NDArray(28, 28);
+      final Random r = new Random();
+      
+      layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3)
+        .fillWeights(() -> 0.001 * r.nextGaussian()));
+      layers.add(new SigmoidActivationLayer());
+      
+      layers.add(new MaxSubsampleLayer(2, 2, 1));
+
+      layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2)
+        .fillWeights(() -> 0.001 * r.nextGaussian()));
+      layers.add(new SigmoidActivationLayer());
+      
+      layers.add(new MaxSubsampleLayer(4, 4, 1, 1));
+      
+      layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
+        .fillWeights(() -> 0.001 * r.nextGaussian()));
+      layers.add(new SigmoidActivationLayer());
+    }
+    
+    @Override
+    public NNResult eval(NNResult array) {
+      NNResult r = array;
+      for(NNLayer l : layers) r = l.eval(r);
+      return r;
+    }
+  }
+  
   private static final Logger log = LoggerFactory.getLogger(TestNetwork.class);
   
   @Test
@@ -62,35 +97,15 @@ public class TestNetwork {
   public void test() throws Exception {
     log.info("Starting");
     
-    NNLayer net = new NNLayer() {
-      ConvolutionSynapseLayer convolution1 = new ConvolutionSynapseLayer(new int[]{3,3},3);
-      MaxSubsampleLayer subsample1 = new MaxSubsampleLayer(2,2,1);
-      NDArray convOutputSize = subsample1.eval(convolution1.eval(new NDArray(28,28))).data;
-      DenseSynapseLayer dense1 = new DenseSynapseLayer(convOutputSize.dim(), new int[] { 10 });
-      SigmoidActivationLayer activation1 = new SigmoidActivationLayer();
-      {
-        final Random r = new Random();
-        Arrays.parallelSetAll(convolution1.kernel.data, i -> 0.001 * r.nextGaussian());
-        Arrays.parallelSetAll(dense1.weights.data, i -> 0.001 * r.nextGaussian());
-      }
-      
-      @Override
-      public NNResult eval(NNResult array) {
-        NNResult r = convolution1.eval(array);
-        r = subsample1.eval(r);
-        r = activation1.eval(r);
-        r = dense1.eval(r);
-        return r;
-      }
-    };
+    NNLayer net = new Network();
     
     List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
     double prevRms = buffer.parallelStream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
     log.info("Initial RMS Error: {}", prevRms);
     double learningRate = 0.1;
-    double adaptivity = 1.5;
+    double adaptivity = 1.1;
     double decayBias = 1.5;
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 1000; i++)
     {
       double currentRate = learningRate;
       buffer.parallelStream().forEach(o -> {
@@ -98,8 +113,9 @@ public class TestNetwork {
       });
       double rms = buffer.parallelStream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
       log.info("RMS Error: {}; Learning Rate: {}", rms, currentRate);
-      if(rms < prevRms) learningRate *= adaptivity;
-      else learningRate /= Math.pow(adaptivity,decayBias);
+      if (rms < prevRms)
+        learningRate *= adaptivity;
+      else learningRate /= Math.pow(adaptivity, decayBias);
       prevRms = rms;
     }
     
