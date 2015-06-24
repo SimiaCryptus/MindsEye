@@ -33,10 +33,11 @@ public class MaxSubsampleLayer extends NNLayer {
     HashMap<Coords, Coords> gradientMap = new HashMap<NDArray.Coords, NDArray.Coords>();
     output.coordStream().forEach(o -> {
       int[] i = new NDArray(kernelDims).coordStream()
-          .map(k -> IntStream.range(0, k.length).map(idx -> k[idx] + kernelDims[idx] * o[idx]).toArray())
+          .map(k -> IntStream.range(0, k.coords.length).map(idx -> k.coords[idx] + kernelDims[idx] * o.coords[idx]).toArray())
           .sorted(Comparator.comparing(inputCoords -> input.get(inputCoords))).findFirst().get();
-      gradientMap.put(new Coords(o), new Coords(i));
-      output.add(o, input.get(i));
+      Coords inputCoord = new Coords(input.index(i), i);
+      gradientMap.put(o, inputCoord);
+      output.add(o, input.get(inputCoord));
     });
     return new NNResult(output) {
       @Override

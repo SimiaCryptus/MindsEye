@@ -32,7 +32,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     final NDArray weightGradient = new NDArray(kernel.dim(), output.dim());
     new NDArray(kernelDims).coordStream().forEach(k -> {
       output.coordStream().forEach(o -> {
-        int[] i = IntStream.range(0, k.length).map(idx -> k[idx] + o[idx]).toArray();
+        int[] i = IntStream.range(0, k.coords.length).map(idx -> k.coords[idx] + o.coords[idx]).toArray();
         double a = kernel.get(k);
         double b = input.get(i);
         inputGradient.add(new int[] { input.index(i), output.index(o) }, a);

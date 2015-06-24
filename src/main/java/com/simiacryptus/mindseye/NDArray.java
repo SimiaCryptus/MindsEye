@@ -9,9 +9,11 @@ public class NDArray {
 
   public static class Coords {
     public final int[] coords;
+    public final int index;
     
-    public Coords(int[] coords) {
+    public Coords(int index, int[] coords) {
       super();
+      this.index = index;
       this.coords = coords;
     }
     
@@ -65,22 +67,38 @@ public class NDArray {
   public static int dim(int... dims) {
     return IntStream.of(dims).reduce((a,b)->a*b).getAsInt();
   }
-  
+
+  public double get(Coords coords) {
+    return data[coords.index];
+  }
+
   public double get(int... coords) {
     return data[index(coords)];
   }
   
   public void set(int[] coords, double value) {
-    int index = index(coords);
-    set(index, value);
+    set(index(coords), value);
+  }
+
+  public void set(Coords coords, double value) {
+    set(coords.index, value);
   }
 
   public void set(int index, double value) {
     data[index] = value;
   }
 
+  public int index(Coords coords) {
+    return coords.index;
+  }
+
   public int index(int... coords) {
-    return IntStream.range(0, skips.length).map(i->skips[i]*coords[i]).sum();
+    int v = 0;
+    for(int i=0;i<skips.length;i++) {
+      v += skips[i]*coords[i];
+    }
+    return v;
+    //return IntStream.range(0, skips.length).map(i->skips[i]*coords[i]).sum();
   }
 
   public int[] getDims() {
@@ -95,6 +113,10 @@ public class NDArray {
     return data.length;
   }
 
+  public void add(Coords coords, double value) {
+    add(coords.index, value);
+  }
+
   public void add(int[] coords, double value) {
     add(index(coords), value);
   }
@@ -103,8 +125,8 @@ public class NDArray {
     data[index] += value;
   }
 
-  public Stream<int[]> coordStream() {
-    return BinaryChunkIterator.toStream(new Iterator<int[]>() {
+  public Stream<Coords> coordStream() {
+    return BinaryChunkIterator.toStream(new Iterator<Coords>() {
 
       int[] val = new int[dims.length];
       int cnt;
@@ -115,7 +137,7 @@ public class NDArray {
       }
 
       @Override
-      public int[] next() {
+      public Coords next() {
         int[] last = Arrays.copyOf(val, val.length);
         for(int i=0;i<dims.length;i++)
         {
@@ -123,8 +145,7 @@ public class NDArray {
           else break;
         }
         assert(index(last) == cnt);
-        cnt++;
-        return last;
+        return new Coords(cnt++, last);
       }
     }, dim());
   }
