@@ -35,18 +35,28 @@ public class TestNetwork {
   
   @Test
   public void testDenseLinearLayer() throws Exception {
-    NDArray input = new NDArray(2);
-    NDArray output = new NDArray(1);
+    NDArray input = new NDArray(3);
+    NDArray output = new NDArray(2);
     DenseLinearLayer testLayer = new DenseLinearLayer(input.dim(), output.getDims());
-    testLayer.weights.set(new int[]{input.index(0),0}, 1);
-    testLayer.weights.set(new int[]{input.index(1),0}, 1);
+    testLayer.weights.set(new int[] { input.index(0), output.index(0) }, 1);
+    testLayer.weights.set(new int[] { input.index(0), output.index(1) }, 1);
+    testLayer.weights.set(new int[] { input.index(1), output.index(0) }, 1);
+    testLayer.weights.set(new int[] { input.index(1), output.index(1) }, 1);
+    testLayer.weights.set(new int[] { input.index(2), output.index(0) }, 1);
+    testLayer.weights.set(new int[] { input.index(2), output.index(1) }, 1);
     input.set(0, 1);
-    input.set(1, 0);
+    input.set(1, 2);
+    input.set(2, -1);
+    output.set(0, 1);
+    output.set(1, -1);
     double rms = testLayer.eval(input).err(output);
-    Assert.assertEquals(rms, 1., 0.001);
-    testLayer.eval(input).learn(1, output);
-    rms = testLayer.eval(input).err(output);
-    Assert.assertEquals(rms, 0., 0.001);
+    log.info("RMS Error: {}", rms);
+    for(int i=0;i<10;i++)
+    {
+      testLayer.eval(input).learn(.3, output);
+      rms = testLayer.eval(input).err(output);
+      log.info("RMS Error: {}", rms);
+    }
   }
   
   @Test
@@ -54,54 +64,54 @@ public class TestNetwork {
     log.info("Starting");
     List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
     
-    DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28,28).dim(), new int[]{10});
+    DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28, 28).dim(), new int[] { 10 });
     final Random r = new Random();
-    Arrays.parallelSetAll(l1.weights.data, i->0.001 * r.nextGaussian());
+    Arrays.parallelSetAll(l1.weights.data, i -> 0.001 * r.nextGaussian());
     logRms(buffer, l1);
-    for(int i=0;i<100;i++)
+    for (int i = 0; i < 100; i++)
     {
-      buffer.stream().forEach(o->{
+      buffer.stream().forEach(o -> {
         l1.eval(o.data).learn(0.05, toOut(o.label));
       });
       logRms(buffer, l1);
     }
-
+    
     report(buffer);
   }
-
+  
   private void logRms(List<LabeledObject<NDArray>> buffer, DenseLinearLayer l1) {
-    double rms = buffer.stream().mapToDouble(o->l1.eval(o.data).err(toOut(o.label))).average().getAsDouble();
+    double rms = buffer.stream().mapToDouble(o -> l1.eval(o.data).err(toOut(o.label))).average().getAsDouble();
     log.info("RMS Error: {}", rms);
   }
-
+  
   private NDArray toOut(String label) {
     NDArray ndArray = new NDArray(10);
-    for(int i=0;i<10;i++)
+    for (int i = 0; i < 10; i++)
     {
-      if(label.equals("["+i+"]")){
-        ndArray.set(new int[]{i}, 1);
+      if (label.equals("[" + i + "]")) {
+        ndArray.set(new int[] { i }, 1);
       }
     }
     return ndArray;
   }
-
+  
   private void report(List<LabeledObject<NDArray>> buffer) throws FileNotFoundException, IOException {
     File outDir = new File("reports");
     outDir.mkdirs();
     StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
-    File report = new File(outDir, caller.getClassName()+ "_" + caller.getLineNumber() + ".html");
+    File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
     buffer.stream()
         .sorted(Comparator.comparing(img -> img.label))
-        .map(x->x.<BufferedImage>map(this::toImage))
+        .map(x -> x.<BufferedImage> map(this::toImage))
         .map(this::toInlineImage)
         .forEach(out::println);
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());
   }
-
+  
   private Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
     String path = "C:/Users/Andrew Charneski/Downloads";
     Stream<NDArray> imgStream = binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
@@ -135,12 +145,12 @@ public class TestNetwork {
   }
   
   public NDArray toImage(byte[] b) {
-    NDArray ndArray = new NDArray(28,28);
+    NDArray ndArray = new NDArray(28, 28);
     for (int x = 0; x < 28; x++)
     {
       for (int y = 0; y < 28; y++)
       {
-        ndArray.set(new int[]{x, y}, b[x + y * 28]);
+        ndArray.set(new int[] { x, y }, b[x + y * 28]);
       }
     }
     return ndArray;
@@ -152,7 +162,7 @@ public class TestNetwork {
     {
       for (int y = 0; y < 28; y++)
       {
-        img.setRGB(x, y, ((int)ndArray.get(x,y)) * 0x00010101);
+        img.setRGB(x, y, ((int) ndArray.get(x, y)) * 0x00010101);
       }
     }
     return img;

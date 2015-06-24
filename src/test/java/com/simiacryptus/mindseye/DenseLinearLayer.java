@@ -42,11 +42,11 @@ public class DenseLinearLayer extends NNLayer {
       @Override
       public void feedback(NDArray data) {
         DoubleMatrix inputDelta = org.jblas.Solve.solveLeastSquares(
-            new DoubleMatrix(output.dim(), input.dim(), inputGradient.data), 
-            new DoubleMatrix(1, data.dim(), data.data));
+            new DoubleMatrix(input.dim(), output.dim(), inputGradient.data).transpose(), 
+            new DoubleMatrix(data.dim(), 1, data.data));
         DoubleMatrix weightDelta = org.jblas.Solve.solveLeastSquares(
-            new DoubleMatrix(output.dim(), weights.dim(), weightGradient.data), 
-            new DoubleMatrix(1, data.dim(), data.data));
+            new DoubleMatrix(weights.dim(), output.dim(), weightGradient.data).transpose(), 
+            new DoubleMatrix(data.dim(), 1, data.data));
         IntStream.range(0, weights.dim()).forEach(i->{
           weights.add(i, weightDelta.data[i]);
         });
