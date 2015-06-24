@@ -1,6 +1,5 @@
 package com.simiacryptus.mindseye;
 
-import java.awt.image.BufferedImage;
 import java.util.function.Function;
 
 public class LabeledObject<T> {

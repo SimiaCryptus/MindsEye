@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestMNIST {
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TestCIFAR.class);
 
   @Test
