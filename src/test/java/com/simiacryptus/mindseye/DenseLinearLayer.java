@@ -31,10 +31,6 @@ public class DenseLinearLayer extends NNLayer {
         double b = input.data[i];
         inputGradient.add(new int[] { i, o }, a);
         weightGradient.add(new int[] { weights.index(i, o), o }, b);
-//        if(0. != b)
-//        {
-//          log.debug("yay");
-//        }
         output.add(o, b * a);
       });
     });

@@ -66,10 +66,14 @@ public class TestNetwork {
     
     DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28, 28).dim(), new int[] { 20 });
     DenseLinearLayer l2 = new DenseLinearLayer(20, new int[] { 10 });
+    SigmoidActivationLayer a1 = new SigmoidActivationLayer();
     NNLayer net = new NNLayer(){
       @Override
       public NNResult eval(NNResult array) {
-        return l2.eval(l1.eval(array));
+        NNResult r = l1.eval(array);
+        r = a1.eval(r);
+        r = l2.eval(r);
+        return r;
       }
     };
 
