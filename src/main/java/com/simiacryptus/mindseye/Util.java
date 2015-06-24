@@ -8,39 +8,10 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public final class BinaryChunkIterator implements Iterator<byte[]> {
-  
-  
-  private DataInputStream in;
-  private int recordSize;
-
-  public BinaryChunkIterator(DataInputStream in, int recordSize){
-    super();
-    this.in = in;
-    this.recordSize = recordSize;
-  }
-  
-  @Override
-  public boolean hasNext() {
-    try {
-      return 0<in.available();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  @Override
-  public byte[] next() {
-    assert(hasNext());
-    try {
-      return read(in, recordSize);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
+public class Util {
 
   public static <T> Stream<T> toStream(Iterator<T> iterator) {
-    return toStream(iterator, 0);
+    return Util.toStream(iterator, 0);
   }
 
   public static <T> Stream<T> toStream(Iterator<T> iterator, int size) {
@@ -59,8 +30,5 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
     }
     return b;
   }
-
-  public Stream<byte[]> toStream() {
-    return toStream(this);
-  }
+  
 }

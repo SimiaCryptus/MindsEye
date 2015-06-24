@@ -42,7 +42,7 @@ public class NDArray {
     
   }
   
-  final double[] data;
+  public final double[] data;
   private final int[] skips;
   private final int[] dims;
 
@@ -126,7 +126,7 @@ public class NDArray {
   }
 
   public Stream<Coords> coordStream() {
-    return BinaryChunkIterator.toStream(new Iterator<Coords>() {
+    return Util.toStream(new Iterator<Coords>() {
 
       int[] val = new int[dims.length];
       int cnt;

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
 import java.util.function.DoubleSupplier;
@@ -6,6 +6,11 @@ import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.simiacryptus.mindseye.FeedbackContext;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.NNLayer;
+import com.simiacryptus.mindseye.NNResult;
 
 public class ConvolutionSynapseLayer extends NNLayer {
   @SuppressWarnings("unused")

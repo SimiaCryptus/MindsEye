@@ -43,7 +43,7 @@ public class TestMNIST {
     Stream<byte[]> labelStream = binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
     
     
-    Stream<LabeledObject<BufferedImage>> merged = BinaryChunkIterator.toStream(new Iterator<LabeledObject<BufferedImage>>() {
+    Stream<LabeledObject<BufferedImage>> merged = Util.toStream(new Iterator<LabeledObject<BufferedImage>>() {
       Iterator<BufferedImage> imgItr = imgStream.iterator();
       Iterator<byte[]> labelItr = labelStream.iterator();
       

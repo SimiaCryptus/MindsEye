@@ -41,7 +41,7 @@ public class TestCIFAR {
     String path = "C:/Users/Andrew Charneski/Downloads";
     String name = "cifar-10-binary.tar.gz";
     tarStream(path, name)
-        .flatMap(in -> BinaryChunkIterator.toStream(new BinaryChunkIterator(new DataInputStream(in), 3073)))
+        .flatMap(in -> Util.toStream(new BinaryChunkIterator(new DataInputStream(in), 3073)))
         .map(this::toImage)
         .sorted(Comparator.comparing(img->img.label))
         .map(this::toInlineImage)
@@ -52,7 +52,7 @@ public class TestCIFAR {
   }
 
   private Stream<BoundedInputStream> tarStream(String path, String name) throws IOException {
-    return BinaryChunkIterator.toStream(new Iterator<BoundedInputStream>() {
+    return Util.toStream(new Iterator<BoundedInputStream>() {
       FileInputStream f = new FileInputStream(new File(path, name));
       TarArchiveInputStream tar = new TarArchiveInputStream(new GZIPInputStream(f));
       

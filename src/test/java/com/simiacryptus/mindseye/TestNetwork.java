@@ -30,6 +30,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
+import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
+
 public class TestNetwork {
   public static final class Network extends NNLayer {
     
@@ -155,7 +160,7 @@ public class TestNetwork {
     Stream<NDArray> imgStream = binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
     Stream<byte[]> labelStream = binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
     
-    Stream<LabeledObject<NDArray>> merged = BinaryChunkIterator.toStream(new Iterator<LabeledObject<NDArray>>() {
+    Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
       Iterator<NDArray> imgItr = imgStream.iterator();
       Iterator<byte[]> labelItr = labelStream.iterator();
       
