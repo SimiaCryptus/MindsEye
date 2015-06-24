@@ -2,11 +2,8 @@ package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
 import java.util.function.DoubleSupplier;
-import java.util.function.IntSupplier;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,19 +42,11 @@ public class ConvolutionSynapseLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(NDArray data) {
-        DoubleMatrix weightDelta = org.jblas.Solve.solveLeastSquares(
-            new DoubleMatrix(kernel.dim(), output.dim(), weightGradient.data).transpose(),
-            new DoubleMatrix(data.dim(), 1, data.data));
-        IntStream.range(0, kernel.dim()).forEach(i -> {
-          kernel.add(i, weightDelta.data[i]);
-        });
-        
+      public void feedback(NDArray data, FeedbackContext ctx) {
+        double[] delta = ctx.invertFeedback(weightGradient, data.data);
+        ctx.adjust(ConvolutionSynapseLayer.this, kernel, delta);
         if (inObj.isAlive()) {
-          DoubleMatrix inputDelta = org.jblas.Solve.solveLeastSquares(
-              new DoubleMatrix(input.dim(), output.dim(), inputGradient.data).transpose(),
-              new DoubleMatrix(data.dim(), 1, data.data));
-          inObj.feedback(new NDArray(inputDims, inputDelta.data));
+          inObj.feedback(new NDArray(inputDims, ctx.invertFeedback(inputGradient, data.data)), ctx);
         }
       }
       

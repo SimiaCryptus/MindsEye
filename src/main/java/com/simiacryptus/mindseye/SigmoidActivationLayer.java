@@ -31,13 +31,13 @@ public class SigmoidActivationLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(NDArray data) {
+      public void feedback(NDArray data, FeedbackContext ctx) {
         if (inObj.isAlive()) {
           NDArray next = new NDArray(data.getDims());
           IntStream.range(0, next.dim()).forEach(i -> {
             next.set(i, data.data[i] / inputGradient.data[i]);
           });
-          inObj.feedback(next);
+          inObj.feedback(next, ctx);
         }
       }
       

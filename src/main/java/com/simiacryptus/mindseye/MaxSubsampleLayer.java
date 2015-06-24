@@ -3,10 +3,8 @@ package com.simiacryptus.mindseye;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +39,11 @@ public class MaxSubsampleLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(NDArray data) {
+      public void feedback(NDArray data, FeedbackContext ctx) {
         if (inObj.isAlive()) {
           NDArray backSignal = new NDArray(inputDims);
           gradientMap.entrySet().forEach(e->backSignal.add(e.getValue().coords, data.get(e.getKey().coords)));
-          inObj.feedback(backSignal);
+          inObj.feedback(backSignal, ctx);
         }
       }
       
