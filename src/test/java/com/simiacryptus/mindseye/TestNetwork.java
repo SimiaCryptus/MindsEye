@@ -64,23 +64,32 @@ public class TestNetwork {
     log.info("Starting");
     List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
     
-    DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28, 28).dim(), new int[] { 10 });
+    DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28, 28).dim(), new int[] { 20 });
+    DenseLinearLayer l2 = new DenseLinearLayer(20, new int[] { 10 });
+    NNLayer net = new NNLayer(){
+      @Override
+      public NNResult eval(NNResult array) {
+        return l2.eval(l1.eval(array));
+      }
+    };
+
     final Random r = new Random();
     Arrays.parallelSetAll(l1.weights.data, i -> 0.001 * r.nextGaussian());
-    logRms(buffer, l1);
+    Arrays.parallelSetAll(l2.weights.data, i -> 0.001 * r.nextGaussian());
+    logRms(buffer, net);
     for (int i = 0; i < 100; i++)
     {
       buffer.stream().forEach(o -> {
-        l1.eval(o.data).learn(0.05, toOut(o.label));
+        net.eval(o.data).learn(0.05, toOut(o.label));
       });
-      logRms(buffer, l1);
+      logRms(buffer, net);
     }
     
     report(buffer);
   }
-  
-  private void logRms(List<LabeledObject<NDArray>> buffer, DenseLinearLayer l1) {
-    double rms = buffer.stream().mapToDouble(o -> l1.eval(o.data).err(toOut(o.label))).average().getAsDouble();
+
+  private void logRms(List<LabeledObject<NDArray>> buffer, NNLayer net) {
+    double rms = buffer.stream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
     log.info("RMS Error: {}", rms);
   }
   
