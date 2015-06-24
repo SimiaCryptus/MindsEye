@@ -79,7 +79,7 @@ public class TestNetwork {
     final Random r = new Random();
     Arrays.parallelSetAll(l1.kernel.data, i -> 0.001 * r.nextGaussian());
     Arrays.parallelSetAll(l2.weights.data, i -> 0.001 * r.nextGaussian());
-    double prevRms = buffer.stream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
+    double prevRms = buffer.parallelStream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
     log.info("Initial RMS Error: {}", prevRms);
     double learningRate = 0.1;
     double adaptivity = 1.5;
@@ -87,10 +87,10 @@ public class TestNetwork {
     for (int i = 0; i < 100; i++)
     {
       double currentRate = learningRate;
-      buffer.stream().forEach(o -> {
+      buffer.parallelStream().forEach(o -> {
         net.eval(o.data).learn(currentRate, toOut(o.label));
       });
-      double rms = buffer.stream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
+      double rms = buffer.parallelStream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
       log.info("RMS Error: {}; Learning Rate: {}", rms, currentRate);
       if(rms < prevRms) learningRate *= adaptivity;
       else learningRate /= Math.pow(adaptivity,decayBias);
