@@ -7,14 +7,14 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DenseLinearLayer extends NNLayer {
+public class DenseSynapseLayer extends NNLayer {
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(DenseLinearLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
   
   private final int[] outputDims;
   public final NDArray weights;
   
-  public DenseLinearLayer(int inputs, int[] outputDims) {
+  public DenseSynapseLayer(int inputs, int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
   }
@@ -37,16 +37,23 @@ public class DenseLinearLayer extends NNLayer {
     return new NNResult(output) {
       @Override
       public void feedback(NDArray data) {
-        DoubleMatrix inputDelta = org.jblas.Solve.solveLeastSquares(
-            new DoubleMatrix(input.dim(), output.dim(), inputGradient.data).transpose(), 
-            new DoubleMatrix(data.dim(), 1, data.data));
         DoubleMatrix weightDelta = org.jblas.Solve.solveLeastSquares(
             new DoubleMatrix(weights.dim(), output.dim(), weightGradient.data).transpose(), 
             new DoubleMatrix(data.dim(), 1, data.data));
         IntStream.range(0, weights.dim()).forEach(i->{
           weights.add(i, weightDelta.data[i]);
         });
-        inObj.feedback(new NDArray(inputDims, inputDelta.data));
+
+        if (inObj.isAlive()) {
+          DoubleMatrix inputDelta = org.jblas.Solve.solveLeastSquares(
+              new DoubleMatrix(input.dim(), output.dim(), inputGradient.data).transpose(),
+              new DoubleMatrix(data.dim(), 1, data.data));
+          inObj.feedback(new NDArray(inputDims, inputDelta.data));
+        }
+      }
+      
+      public boolean isAlive() {
+        return true;
       }
     };
   }

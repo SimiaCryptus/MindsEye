@@ -13,6 +13,10 @@ public class NNResult {
     this.data = data;
   }
   
+  public boolean isAlive() {
+    return false;
+  }
+  
   public void feedback(NDArray data) {
   }
 

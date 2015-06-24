@@ -31,13 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestNetwork {
-  private static final Logger log = LoggerFactory.getLogger(TestCIFAR.class);
+  private static final Logger log = LoggerFactory.getLogger(TestNetwork.class);
   
   @Test
   public void testDenseLinearLayer() throws Exception {
     NDArray input = new NDArray(3);
     NDArray output = new NDArray(2);
-    DenseLinearLayer testLayer = new DenseLinearLayer(input.dim(), output.getDims());
+    DenseSynapseLayer testLayer = new DenseSynapseLayer(input.dim(), output.getDims());
     testLayer.weights.set(new int[] { input.index(0), output.index(0) }, 1);
     testLayer.weights.set(new int[] { input.index(0), output.index(1) }, 1);
     testLayer.weights.set(new int[] { input.index(1), output.index(0) }, 1);
@@ -51,7 +51,7 @@ public class TestNetwork {
     output.set(1, -1);
     double rms = testLayer.eval(input).err(output);
     log.info("RMS Error: {}", rms);
-    for(int i=0;i<10;i++)
+    for (int i = 0; i < 10; i++)
     {
       testLayer.eval(input).learn(.3, output);
       rms = testLayer.eval(input).err(output);
@@ -63,11 +63,11 @@ public class TestNetwork {
   public void test() throws Exception {
     log.info("Starting");
     List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
-    
-    DenseLinearLayer l1 = new DenseLinearLayer(new NDArray(28, 28).dim(), new int[] { 20 });
-    DenseLinearLayer l2 = new DenseLinearLayer(20, new int[] { 10 });
+    ConvolutionSynapseLayer l1 = new ConvolutionSynapseLayer(new int[]{3,3},1);
+    NDArray convOutputSize = l1.eval(new NDArray(28,28)).data;
+    DenseSynapseLayer l2 = new DenseSynapseLayer(convOutputSize.dim(), new int[] { 10 });
     SigmoidActivationLayer a1 = new SigmoidActivationLayer();
-    NNLayer net = new NNLayer(){
+    NNLayer net = new NNLayer() {
       @Override
       public NNResult eval(NNResult array) {
         NNResult r = l1.eval(array);
@@ -76,25 +76,29 @@ public class TestNetwork {
         return r;
       }
     };
-
+    
     final Random r = new Random();
-    Arrays.parallelSetAll(l1.weights.data, i -> 0.001 * r.nextGaussian());
+    Arrays.parallelSetAll(l1.kernel.data, i -> 0.001 * r.nextGaussian());
     Arrays.parallelSetAll(l2.weights.data, i -> 0.001 * r.nextGaussian());
-    logRms(buffer, net);
+    double prevRms = buffer.stream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
+    log.info("Initial RMS Error: {}", prevRms);
+    double learningRate = 0.1;
+    double adaptivity = 1.5;
+    double decayBias = 1.5;
     for (int i = 0; i < 100; i++)
     {
+      double currentRate = learningRate;
       buffer.stream().forEach(o -> {
-        net.eval(o.data).learn(0.05, toOut(o.label));
+        net.eval(o.data).learn(currentRate, toOut(o.label));
       });
-      logRms(buffer, net);
+      double rms = buffer.stream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
+      log.info("RMS Error: {}; Learning Rate: {}", rms, currentRate);
+      if(rms < prevRms) learningRate *= adaptivity;
+      else learningRate /= Math.pow(adaptivity,decayBias);
+      prevRms = rms;
     }
     
     report(buffer);
-  }
-
-  private void logRms(List<LabeledObject<NDArray>> buffer, NNLayer net) {
-    double rms = buffer.stream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
-    log.info("RMS Error: {}", rms);
   }
   
   private NDArray toOut(String label) {

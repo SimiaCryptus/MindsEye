@@ -1,7 +1,9 @@
 package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class NDArray {
 
@@ -66,6 +68,32 @@ public class NDArray {
 
   public void add(int index, double value) {
     data[index] += value;
+  }
+
+  public Stream<int[]> coordStream() {
+    return BinaryChunkIterator.toStream(new Iterator<int[]>() {
+
+      int[] val = new int[dims.length];
+      int cnt;
+      
+      @Override
+      public boolean hasNext() {
+        return cnt < dim();
+      }
+
+      @Override
+      public int[] next() {
+        int[] last = Arrays.copyOf(val, val.length);
+        for(int i=0;i<dims.length;i++)
+        {
+          if(++val[i] >= dims[i]) val[i] = 0;
+          else break;
+        }
+        assert(index(last) == cnt);
+        cnt++;
+        return last;
+      }
+    }, dim());
   }
   
 }
