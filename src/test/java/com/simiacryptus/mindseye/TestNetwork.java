@@ -61,24 +61,30 @@ public class TestNetwork {
   @Test
   public void test() throws Exception {
     log.info("Starting");
-    List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
-    ConvolutionSynapseLayer l1 = new ConvolutionSynapseLayer(new int[]{3,3},1);
-    NDArray convOutputSize = l1.eval(new NDArray(28,28)).data;
-    DenseSynapseLayer l2 = new DenseSynapseLayer(convOutputSize.dim(), new int[] { 10 });
-    SigmoidActivationLayer a1 = new SigmoidActivationLayer();
+    
     NNLayer net = new NNLayer() {
+      ConvolutionSynapseLayer convolution1 = new ConvolutionSynapseLayer(new int[]{3,3},3);
+      MaxSubsampleLayer subsample1 = new MaxSubsampleLayer(2,2,1);
+      NDArray convOutputSize = subsample1.eval(convolution1.eval(new NDArray(28,28))).data;
+      DenseSynapseLayer dense1 = new DenseSynapseLayer(convOutputSize.dim(), new int[] { 10 });
+      SigmoidActivationLayer activation1 = new SigmoidActivationLayer();
+      {
+        final Random r = new Random();
+        Arrays.parallelSetAll(convolution1.kernel.data, i -> 0.001 * r.nextGaussian());
+        Arrays.parallelSetAll(dense1.weights.data, i -> 0.001 * r.nextGaussian());
+      }
+      
       @Override
       public NNResult eval(NNResult array) {
-        NNResult r = l1.eval(array);
-        r = a1.eval(r);
-        r = l2.eval(r);
+        NNResult r = convolution1.eval(array);
+        r = subsample1.eval(r);
+        r = activation1.eval(r);
+        r = dense1.eval(r);
         return r;
       }
     };
     
-    final Random r = new Random();
-    Arrays.parallelSetAll(l1.kernel.data, i -> 0.001 * r.nextGaussian());
-    Arrays.parallelSetAll(l2.weights.data, i -> 0.001 * r.nextGaussian());
+    List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
     double prevRms = buffer.parallelStream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
     log.info("Initial RMS Error: {}", prevRms);
     double learningRate = 0.1;

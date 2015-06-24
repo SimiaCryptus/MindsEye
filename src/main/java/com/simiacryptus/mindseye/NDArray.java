@@ -7,6 +7,39 @@ import java.util.stream.Stream;
 
 public class NDArray {
 
+  public static class Coords {
+    public final int[] coords;
+    
+    public Coords(int[] coords) {
+      super();
+      this.coords = coords;
+    }
+    
+    @Override
+    public String toString() {
+      return Arrays.toString(coords);
+    }
+    
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + Arrays.hashCode(coords);
+      return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (obj == null) return false;
+      if (getClass() != obj.getClass()) return false;
+      Coords other = (Coords) obj;
+      if (!Arrays.equals(coords, other.coords)) return false;
+      return true;
+    }
+    
+  }
+  
   final double[] data;
   private final int[] skips;
   private final int[] dims;
