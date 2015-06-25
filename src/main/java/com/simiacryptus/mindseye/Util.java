@@ -2,7 +2,12 @@ package com.simiacryptus.mindseye;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -29,6 +34,12 @@ public class Util {
       pos += read;
     }
     return b;
+  }
+
+  public static <T> List<T> shuffle(List<T> buffer, Random random) {
+    ArrayList<T> list = new ArrayList<T>(buffer);
+    Collections.shuffle(list);
+    return list;
   }
   
 }

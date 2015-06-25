@@ -15,6 +15,7 @@ public class FeedbackContext {
 
   public void adjust(NNLayer layer, NDArray weightArray, double[] weightDelta) {
     IntStream.range(0, weightArray.dim()).forEach(i->{
+      //weightArray.add(i, weightDelta[i] * Math.random());
       weightArray.add(i, weightDelta[i]);
     });
   }

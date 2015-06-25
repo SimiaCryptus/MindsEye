@@ -26,16 +26,21 @@ import java.util.zip.GZIPInputStream;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 
-public class TestNetwork {
+public class TestNetworkDev {
+  public static final Random random = new Random();
+  
   public static final class Network extends NNLayer {
     
     private List<NNLayer> layers = new ArrayList<NNLayer>();
@@ -43,60 +48,42 @@ public class TestNetwork {
     public Network() {
       super();
       NDArray inputSize = new NDArray(28, 28);
-      final Random r = new Random();
       
-      layers.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 3)
-        .fillWeights(() -> 0.001 * r.nextGaussian()));
+      // layers.add(new NormalizerLayer(inputSize.getDims()));
+      
+      layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3)
+          .fillWeights(() -> 0.001 * random.nextGaussian()));
+      layers.add(new MaxSubsampleLayer(4, 4, 1));
+      layers.add(new BiasLayer(eval(inputSize).data.getDims()));
       layers.add(new SigmoidActivationLayer());
       
-      layers.add(new MaxSubsampleLayer(3, 3, 1));
+       layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2)
+       .fillWeights(() -> 0.001 * random.nextGaussian()));
+       layers.add(new MaxSubsampleLayer(2, 2, 1, 1));
+       layers.add(new BiasLayer(eval(inputSize).data.getDims()));
+       layers.add(new SigmoidActivationLayer());
+      
+//      layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 16 })
+//      .fillWeights(() -> 0.001 * random.nextGaussian()));
+//      layers.add(new SigmoidActivationLayer());
 
-      layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2)
-        .fillWeights(() -> 0.001 * r.nextGaussian()));
-      layers.add(new SigmoidActivationLayer());
-      
-      layers.add(new MaxSubsampleLayer(3, 3, 1, 1));
-      
       layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
-        .fillWeights(() -> 0.001 * r.nextGaussian()));
-      layers.add(new SigmoidActivationLayer());
+          .fillWeights(() -> 0.001 * random.nextGaussian()));
+//      layers.add(new BiasLayer(eval(inputSize).data.getDims()));
+      layers.add(new SoftmaxActivationLayer());
     }
     
     @Override
     public NNResult eval(NNResult array) {
       NNResult r = array;
-      for(NNLayer l : layers) r = l.eval(r);
+      for (NNLayer l : layers)
+        r = l.eval(r);
       return r;
     }
   }
   
-  private static final Logger log = LoggerFactory.getLogger(TestNetwork.class);
+  private static final Logger log = LoggerFactory.getLogger(TestNetworkDev.class);
   
-  @Test
-  public void testDenseLinearLayer() throws Exception {
-    NDArray input = new NDArray(3);
-    NDArray output = new NDArray(2);
-    DenseSynapseLayer testLayer = new DenseSynapseLayer(input.dim(), output.getDims());
-    testLayer.weights.set(new int[] { input.index(0), output.index(0) }, 1);
-    testLayer.weights.set(new int[] { input.index(0), output.index(1) }, 1);
-    testLayer.weights.set(new int[] { input.index(1), output.index(0) }, 1);
-    testLayer.weights.set(new int[] { input.index(1), output.index(1) }, 1);
-    testLayer.weights.set(new int[] { input.index(2), output.index(0) }, 1);
-    testLayer.weights.set(new int[] { input.index(2), output.index(1) }, 1);
-    input.set(0, 1);
-    input.set(1, 2);
-    input.set(2, -1);
-    output.set(0, 1);
-    output.set(1, -1);
-    double rms = testLayer.eval(input).err(output);
-    log.info("RMS Error: {}", rms);
-    for (int i = 0; i < 10; i++)
-    {
-      testLayer.eval(input).learn(.3, output);
-      rms = testLayer.eval(input).err(output);
-      log.info("RMS Error: {}", rms);
-    }
-  }
   
   @Test
   public void test() throws Exception {
@@ -105,18 +92,26 @@ public class TestNetwork {
     NNLayer net = new Network();
     
     List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
-    double prevRms = buffer.parallelStream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
+    double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();
     log.info("Initial RMS Error: {}", prevRms);
     double learningRate = 0.1;
     double adaptivity = 1.1;
     double decayBias = 1.5;
     for (int i = 0; i < 1000; i++)
     {
+      if (i < 5) {
+        learningRate = 0.2;
+      } else if (i < 50) {
+        learningRate = 0.01;
+      } else {
+        learningRate = 0.0001;
+      }
+      
       double currentRate = learningRate;
-      buffer.parallelStream().forEach(o -> {
+      Util.shuffle(buffer, random).parallelStream().limit(100).forEach(o -> {
         net.eval(o.data).learn(currentRate, toOut(o.label));
       });
-      double rms = buffer.parallelStream().mapToDouble(o1 -> net.eval(o1.data).err(toOut(o1.label))).average().getAsDouble();
+      double rms = Util.shuffle(buffer, random).parallelStream().limit(10).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();
       log.info("RMS Error: {}; Learning Rate: {}", rms, currentRate);
       if (rms < prevRms)
         learningRate *= adaptivity;
@@ -127,15 +122,14 @@ public class TestNetwork {
     report(buffer);
   }
   
-  private NDArray toOut(String label) {
-    NDArray ndArray = new NDArray(10);
+  private int toOut(String label) {
     for (int i = 0; i < 10; i++)
     {
       if (label.equals("[" + i + "]")) {
-        ndArray.set(new int[] { i }, 1);
+        return i;
       }
     }
-    return ndArray;
+    throw new RuntimeException();
   }
   
   private void report(List<LabeledObject<NDArray>> buffer) throws FileNotFoundException, IOException {
@@ -173,7 +167,7 @@ public class TestNetwork {
       public LabeledObject<NDArray> next() {
         return new LabeledObject<NDArray>(imgItr.next(), Arrays.toString(labelItr.next()));
       }
-    }, 100).limit(1000);
+    }, 100).limit(10000);
     return merged;
   }
   

@@ -32,7 +32,8 @@ public class SigmoidActivationLayer extends NNLayer {
       assert(0.0001<Math.abs(d));
       double f = 1./enx1;
       inputGradient.add(new int[] { i }, d);
-      output.set(i, f);
+      output.set(i, f-0.5);
+      //output.set(i, f);
     });
     return new NNResult(output) {
       @Override

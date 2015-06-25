@@ -8,11 +8,11 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.Coordinate;
 import com.simiacryptus.mindseye.FeedbackContext;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
 import com.simiacryptus.mindseye.NNResult;
-import com.simiacryptus.mindseye.NDArray.Coords;
 
 public class MaxSubsampleLayer extends NNLayer {
   @SuppressWarnings("unused")
@@ -32,12 +32,12 @@ public class MaxSubsampleLayer extends NNLayer {
         i -> inputDims[i] / kernelDims[i]
         ).toArray();
     final NDArray output = new NDArray(newDims);
-    HashMap<Coords, Coords> gradientMap = new HashMap<NDArray.Coords, NDArray.Coords>();
+    HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
     output.coordStream().forEach(o -> {
       int[] i = new NDArray(kernelDims).coordStream()
           .map(k -> IntStream.range(0, k.coords.length).map(idx -> k.coords[idx] + kernelDims[idx] * o.coords[idx]).toArray())
           .sorted(Comparator.comparing(inputCoords -> input.get(inputCoords))).findFirst().get();
-      Coords inputCoord = new Coords(input.index(i), i);
+      Coordinate inputCoord = new Coordinate(input.index(i), i);
       gradientMap.put(o, inputCoord);
       output.add(o, input.get(inputCoord));
     });

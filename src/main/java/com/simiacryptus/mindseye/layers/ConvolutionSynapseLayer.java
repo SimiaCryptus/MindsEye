@@ -7,6 +7,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.Coordinate;
 import com.simiacryptus.mindseye.FeedbackContext;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
@@ -37,7 +38,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     final NDArray weightGradient = new NDArray(kernel.dim(), output.dim());
     new NDArray(kernelDims).coordStream().forEach(k -> {
       output.coordStream().forEach(o -> {
-        int[] i = IntStream.range(0, k.coords.length).map(idx -> k.coords[idx] + o.coords[idx]).toArray();
+        int[] i = Coordinate.add(k.coords,o.coords);
         double a = kernel.get(k);
         double b = input.get(i);
         inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
