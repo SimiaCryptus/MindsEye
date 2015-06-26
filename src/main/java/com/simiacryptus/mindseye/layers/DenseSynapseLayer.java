@@ -18,6 +18,8 @@ public class DenseSynapseLayer extends NNLayer {
   
   private final int[] outputDims;
   public final NDArray weights;
+
+  private boolean frozen = false;
   
   public DenseSynapseLayer(int inputs, int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
@@ -29,33 +31,40 @@ public class DenseSynapseLayer extends NNLayer {
     final int[] inputDims = input.getDims();
     final NDArray output = new NDArray(outputDims);
     final NDArray inputGradient = new NDArray(input.dim(), output.dim());
-    final NDArray weightGradient = new NDArray(weights.dim(), output.dim());
+    final NDArray weightGradient = this.frozen?null:new NDArray(weights.dim(), output.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, output.dim()).forEach(o -> {
         double a = weights.get(i, o);
         double b = input.data[i];
         inputGradient.add(new int[] { i, o }, a);
-        weightGradient.add(new int[] { weights.index(i, o), o }, b);
+        if(null!=weightGradient) weightGradient.add(new int[] { weights.index(i, o), o }, b);
         output.add(o, b * a);
       });
     });
     return new NNResult(output) {
       @Override
       public void feedback(NDArray data, FeedbackContext ctx) {
-        ctx.adjust(DenseSynapseLayer.this, weights, ctx.invertFeedback(weightGradient, data.data));
+        if(null!=weightGradient) {
+          ctx.adjust(DenseSynapseLayer.this, weights, ctx.invertFeedback(weightGradient, data.data));
+        }
         if (inObj.isAlive()) {
           inObj.feedback(new NDArray(inputDims, ctx.invertFeedback(inputGradient, data.data)), ctx);
         }
       }
       
       public boolean isAlive() {
-        return true;
+        return null!=weightGradient||inObj.isAlive();
       }
     };
   }
 
   public DenseSynapseLayer fillWeights(DoubleSupplier f) {
     Arrays.parallelSetAll(weights.data, i->f.getAsDouble());
+    return this;
+  }
+
+  public DenseSynapseLayer freeze() {
+    this.frozen = true;
     return this;
   }
   
