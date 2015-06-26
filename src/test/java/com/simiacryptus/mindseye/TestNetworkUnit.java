@@ -133,14 +133,14 @@ public class TestNetworkUnit {
       
       @Override
       protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
-        l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
-        return super.mutate(l);
-        // return l;
+        //l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+        //return super.mutate(l);
+        return l;
       }
       
       @Override
       public double getRate(int iteration) {
-        return 0.05;
+        return 0.005;
       }
       
     }
@@ -178,7 +178,7 @@ public class TestNetworkUnit {
       
       @Override
       public double getRate(int iteration) {
-        return 0.02;
+        return 0.001;
       }
       
     }
@@ -218,13 +218,13 @@ public class TestNetworkUnit {
       
       @Override
       public double getRate(int iteration) {
-        return 0.1;
+        return 0.01;
       }
       
     }
-//        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
-//        .add(new BiasLayer(midSize))
-//        .add(new SigmoidActivationLayer())
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
+        .add(new BiasLayer(midSize))
+        .add(new SigmoidActivationLayer())
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())

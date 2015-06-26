@@ -16,7 +16,7 @@ public class FeedbackContext {
         new DoubleMatrix(delta.length, 1, delta)).data;
   }
   
-  public double quantum = 0.01;
+  public double quantum = 0.;
   
   public void adjust(NNLayer layer, NDArray weightArray, double[] weightDelta) {
     // highpass(weightDelta, 0.4);

@@ -3,11 +3,7 @@ package com.simiacryptus.mindseye;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.ToDoubleBiFunction;
-import java.util.function.ToDoubleFunction;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import org.codehaus.groovy.classgen.ReturnAdder;
 
 public class NDArray {
   

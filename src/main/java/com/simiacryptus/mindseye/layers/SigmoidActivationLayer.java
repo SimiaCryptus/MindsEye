@@ -24,17 +24,14 @@ public class SigmoidActivationLayer extends NNLayer {
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       double x = input.data[i];
-      double enx = Math.exp(-x);
-      double enx1 = 1 + enx;
-      double minDeriv = 0.0000001;
-      double d = Math.max(enx / enx1*enx1, minDeriv);
+      double f = 1 / (1 + Math.exp(-x));
+      double minDeriv = 0.01;
+      double d = Math.max(f*(1-f), minDeriv);
       if(!Double.isFinite(d)) d = minDeriv;
       assert(Double.isFinite(d));
-      assert(0.0001<Math.abs(d));
-      double f = 1./enx1;
+      assert(minDeriv<=Math.abs(d));
       inputGradient.add(new int[] { i }, 2*d);
-      output.set(i, 2*(f-0.5));
-      //output.set(i, f);
+      output.set(i, 2*f-1);
     });
     return new NNResult(output) {
       @Override

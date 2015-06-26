@@ -1,7 +1,5 @@
 package com.simiacryptus.mindseye.layers;
 
-import java.util.stream.DoubleStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
