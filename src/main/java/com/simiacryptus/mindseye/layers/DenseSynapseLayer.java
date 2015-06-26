@@ -58,7 +58,15 @@ public class DenseSynapseLayer extends NNLayer {
     };
   }
 
-  public DenseSynapseLayer fillWeights(DoubleSupplier f) {
+  public DenseSynapseLayer addWeights(DoubleSupplier f) {
+    for(int i=0;i<weights.data.length;i++)
+    {
+      weights.data[i] = f.getAsDouble();
+    }
+    return this;
+  }
+
+  public DenseSynapseLayer setWeights(DoubleSupplier f) {
     Arrays.parallelSetAll(weights.data, i->f.getAsDouble());
     return this;
   }

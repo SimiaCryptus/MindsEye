@@ -38,10 +38,10 @@ public class PipelineNetwork extends NNLayer {
       TestNetworkUnit.log.info("RMS Error: {}", rms);
       for (int i = 0; i < maxIterations; i++)
       {
-        rms = 0;
         if(shouldMutate(i,rms)){
           mutate();
         }
+        rms = 0;
         for (int j = 0; j < samples.length; j++) {
           NDArray input = samples[j][0];
           NDArray output = samples[j][1];
@@ -72,6 +72,7 @@ public class PipelineNetwork extends NNLayer {
     }
     else
     {
+      lastRms = rms;
       return false;
     }
   }

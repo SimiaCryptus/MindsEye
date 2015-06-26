@@ -68,7 +68,7 @@ public class TestNetworkDev {
 //      layers.add(new SigmoidActivationLayer());
 
       layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
-          .fillWeights(() -> 0.001 * random.nextGaussian()));
+          .addWeights(() -> 0.001 * random.nextGaussian()));
 //      layers.add(new BiasLayer(eval(inputSize).data.getDims()));
       layers.add(new SoftmaxActivationLayer());
     }
