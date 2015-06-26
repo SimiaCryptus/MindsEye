@@ -64,7 +64,15 @@ public class DenseSynapseLayer extends NNLayer {
   }
 
   public DenseSynapseLayer freeze() {
-    this.frozen = true;
+    return freeze(true);
+  }
+
+  public DenseSynapseLayer thaw() {
+    return freeze(false);
+  }
+
+  public DenseSynapseLayer freeze(boolean b) {
+    this.frozen = b;
     return this;
   }
   

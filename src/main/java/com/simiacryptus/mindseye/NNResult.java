@@ -26,15 +26,23 @@ public class NNResult {
   }
 
   public final void learn(double d, NDArray out) {
+    feedback(delta(d, out));
+  }
+
+  public NDArray delta(double d, NDArray out) {
     NDArray delta = new NDArray(data.getDims());
     Arrays.parallelSetAll(delta.data, i->(out.data[i] - NNResult.this.data.data[i]) * d);
-    feedback(delta);
+    return delta;
   }
 
   public final void learn(double d, int k) {
+    feedback(delta(d, k));
+  }
+
+  public NDArray delta(double d, int k) {
     NDArray delta = new NDArray(data.getDims());
     Arrays.parallelSetAll(delta.data, i->((i==k?1.:0.)-(NNResult.this.data.data[i])) * d);
-    feedback(delta);
+    return delta;
   }
 
   public double errMisclassification(int k) {

@@ -2,11 +2,14 @@ package com.simiacryptus.mindseye;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
+import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 
 public class PipelineNetwork extends NNLayer {
   private List<NNLayer> layers = new ArrayList<NNLayer>();
-  {
-  }
+  private double quantum = 0.001;
+  private double lastRms = Double.MAX_VALUE;
   
   @Override
   public NNResult eval(NNResult array) {
@@ -36,13 +39,19 @@ public class PipelineNetwork extends NNLayer {
       for (int i = 0; i < maxIterations; i++)
       {
         rms = 0;
+        if(shouldMutate(i,rms)){
+          mutate();
+        }
         for (int j = 0; j < samples.length; j++) {
           NDArray input = samples[j][0];
           NDArray output = samples[j][1];
           double rate = getRate(i);
           NNResult eval = net.eval(input);
           rms += eval.errRms(output);
-          eval.learn(rate, output);
+          NDArray delta = eval.delta(rate, output);
+          FeedbackContext ctx = new FeedbackContext();
+          ctx.quantum = getQuantum();
+          eval.feedback(delta, ctx);
         }
         rms /= samples.length;
         TestNetworkUnit.log.info("RMS Error: {}", rms);
@@ -53,11 +62,36 @@ public class PipelineNetwork extends NNLayer {
       }
     }
   }
+
+  protected boolean shouldMutate(int i, double rms) {
+    //boolean r = (i%100)==0 && Math.random()<0.5;
+    boolean r = (i%10)==0 && (lastRms * .9) < rms;
+    if(r) {
+      lastRms = rms;
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  protected void mutate() {
+    layers.stream()
+    .filter(l->(l instanceof DenseSynapseLayer))
+    .map(l->(DenseSynapseLayer)l)
+    .forEach(l->mutate(l));
+  }
+
+  protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
+    return l.freeze(new Random().nextBoolean());
+  }
   
-  private double rate = 0.01;
+  private double rate = 0.00001;
   
   public double getRate(int iteration) {
-    return rate;
+    double exp = Math.exp(Math.random()*Math.random()*4)/2;
+    return rate * exp;
   }
   
   public double getRate() {
@@ -66,6 +100,15 @@ public class PipelineNetwork extends NNLayer {
   
   public PipelineNetwork setRate(double rate) {
     this.rate = rate;
+    return this;
+  }
+
+  public double getQuantum() {
+    return quantum;
+  }
+
+  public PipelineNetwork setQuantum(double quantum) {
+    this.quantum = quantum;
     return this;
   }
   
