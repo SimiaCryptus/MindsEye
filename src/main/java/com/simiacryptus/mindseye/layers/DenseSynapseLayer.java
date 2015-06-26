@@ -61,7 +61,7 @@ public class DenseSynapseLayer extends NNLayer {
   public DenseSynapseLayer addWeights(DoubleSupplier f) {
     for(int i=0;i<weights.data.length;i++)
     {
-      weights.data[i] = f.getAsDouble();
+      weights.data[i] += f.getAsDouble();
     }
     return this;
   }

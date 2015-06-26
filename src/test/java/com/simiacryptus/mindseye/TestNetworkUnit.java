@@ -120,35 +120,115 @@ public class TestNetworkUnit {
   @Test
   public void test_BasicNN_XOR() throws Exception {
     int[] inputSize = new int[] { 2 };
-    int[] midSize = new int[] { 12 };
+    int[] midSize = new int[] { 2 };
     int[] outSize = new int[] { 1 };
     NDArray[][] samples = new NDArray[][] {
         // XOR:
-        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 0.5 }) },
-        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0.5 }) },
-        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0 }) },
-        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) }
+        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1 }) },
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1 }) }
     };
     new PipelineNetwork() {
       
       @Override
       protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
-        l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random()*4)/2);
+        l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
         return super.mutate(l);
+        // return l;
       }
-
+      
       @Override
       public double getRate(int iteration) {
-        return 0.001;
+        return 0.05;
       }
       
     }
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(midSize))
         .add(new SigmoidActivationLayer())
+        
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
-        .setRate(0.0001).setQuantum(0.0001)
+        .add(new SigmoidActivationLayer())
+        .setRate(0.0001).setQuantum(0.)
+        .test(samples, 100000, 0.01, 1);
+  }
+  
+  @Test
+  public void test_BasicNN_OR() throws Exception {
+    int[] inputSize = new int[] { 2 };
+    int[] midSize = new int[] { 2 };
+    int[] outSize = new int[] { 1 };
+    NDArray[][] samples = new NDArray[][] {
+        // XOR:
+        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1 }) },
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1 }) }
+    };
+    new PipelineNetwork() {
+      
+      @Override
+      protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
+        l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+        return l;
+        //return super.mutate(l);
+      }
+      
+      @Override
+      public double getRate(int iteration) {
+        return 0.02;
+      }
+      
+    }
+        // Becomes unstable if these are added:
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
+        .add(new BiasLayer(midSize))
+        .add(new SigmoidActivationLayer())
+        
+        // Works okay:
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
+        .add(new BiasLayer(outSize))
+        .add(new SigmoidActivationLayer())
+        .setQuantum(0.)
+        .test(samples, 100000, 0.01, 1);
+  }
+  
+  @Test
+  public void test_BasicNN_AND() throws Exception {
+    int[] inputSize = new int[] { 2 };
+    int[] midSize = new int[] { 2 };
+    int[] outSize = new int[] { 1 };
+    NDArray[][] samples = new NDArray[][] {
+        // XOR:
+        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1 }) },
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1 }) }
+    };
+    new PipelineNetwork() {
+      
+      @Override
+      protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
+        l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+        return super.mutate(l);
+        // return l;
+      }
+      
+      @Override
+      public double getRate(int iteration) {
+        return 0.1;
+      }
+      
+    }
+//        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
+//        .add(new BiasLayer(midSize))
+//        .add(new SigmoidActivationLayer())
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
+        .add(new BiasLayer(outSize))
+        .add(new SigmoidActivationLayer())
+        .setQuantum(0.)
         .test(samples, 100000, 0.01, 1);
   }
   

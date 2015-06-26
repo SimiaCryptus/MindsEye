@@ -20,7 +20,7 @@ public class FeedbackContext {
   
   public void adjust(NNLayer layer, NDArray weightArray, double[] weightDelta) {
     // highpass(weightDelta, 0.4);
-    if (quantum > 0.) quantize2(weightDelta, quantum);
+    if (quantum > 0.) quantize(weightDelta, quantum);
     IntStream.range(0, weightArray.dim()).forEach(i -> {
       // weightArray.add(i, weightDelta[i] * Math.random());
         weightArray.add(i, weightDelta[i]);
@@ -52,7 +52,7 @@ public class FeedbackContext {
       if(0.+value == 0.) continue;
       double abs = Math.abs(value);
       int sign = value < 0 ? -1 : 1;
-      int quanta = new PoissonDistribution(abs/quantum).sample();
+      int quanta = new PoissonDistribution(abs/quantum,100).sample();
       weightDelta[i] = (quanta * quantum * sign);
     }
   }
