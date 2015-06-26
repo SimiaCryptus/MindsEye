@@ -21,40 +21,49 @@ public class PipelineNetwork extends NNLayer {
     return this;
   }
   
-  public void test(NDArray[][] samples, int maxIterations, double convergence) {
-    PipelineNetwork net = this;
-    double rms = 0;
-    for (int i = 0; i < samples.length; i++) {
-      NDArray input = samples[i][0];
-      NDArray output = samples[i][1];
-      rms += net.eval(input).errRms(output);
-    }
-    TestNetworkUnit.log.info("RMS Error: {}", rms);
-    for (int i = 0; i < maxIterations; i++)
+  public void test(NDArray[][] samples, int maxIterations, double convergence, int trials) {
+    for (int epoch = 0; epoch < trials; epoch++)
     {
-      rms = 0;
-      for (int j = 0; j < samples.length; j++) {
-        NDArray input = samples[j][0];
-        NDArray output = samples[j][1];
-        double rate = getRate(i);
-        net.eval(input).learn(rate, output);
+      PipelineNetwork net = this;
+      double rms = 0;
+      for (int i = 0; i < samples.length; i++) {
+        NDArray input = samples[i][0];
+        NDArray output = samples[i][1];
         rms += net.eval(input).errRms(output);
       }
+      rms /= samples.length;
       TestNetworkUnit.log.info("RMS Error: {}", rms);
-      if(rms<convergence) return;
+      for (int i = 0; i < maxIterations; i++)
+      {
+        rms = 0;
+        for (int j = 0; j < samples.length; j++) {
+          NDArray input = samples[j][0];
+          NDArray output = samples[j][1];
+          double rate = getRate(i);
+          NNResult eval = net.eval(input);
+          rms += eval.errRms(output);
+          eval.learn(rate, output);
+        }
+        rms /= samples.length;
+        TestNetworkUnit.log.info("RMS Error: {}", rms);
+        if (rms < convergence) break;
+      }
+      if (rms >= convergence) {
+        throw new RuntimeException("Failed in trial " + epoch);
+      }
     }
-    throw new AssertionError();
   }
-
+  
   private double rate = 0.01;
+  
   public double getRate(int iteration) {
     return rate;
   }
-
+  
   public double getRate() {
     return rate;
   }
-
+  
   public PipelineNetwork setRate(double rate) {
     this.rate = rate;
     return this;
