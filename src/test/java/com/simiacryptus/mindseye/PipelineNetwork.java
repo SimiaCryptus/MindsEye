@@ -68,7 +68,7 @@ public class PipelineNetwork extends NNLayer {
   protected boolean shouldMutate(int i, double rms) {
     //boolean r = (i%100)==0 && Math.random()<0.5;
     if((i%100)==0) {
-      boolean r = (lastRms * .9) < rms;
+      boolean r = (lastRms * .95) < rms;
       lastRms = rms;
       return r;
     }
@@ -86,7 +86,7 @@ public class PipelineNetwork extends NNLayer {
 
   protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
     Random random = new Random();
-    l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 5) / 4);
+    l.addWeights(() -> 0.005 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
     //return l.freeze(new Random().nextBoolean());
     return l;
   }

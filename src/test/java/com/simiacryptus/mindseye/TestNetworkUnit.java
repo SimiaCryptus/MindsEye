@@ -72,8 +72,8 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
-        .setRate(0.001)
-        .test(samples, 1000, 0.1, 100);
+        .setRate(0.01)
+        .test(samples, 100000, 0.1, 100);
   }
   
   @Test
@@ -95,7 +95,7 @@ public class TestNetworkUnit {
         .setRate(0.0001)
         .test(samples, 100000, 0.1, 10);
   }
-  
+
   @Test
   public void test_BasicNN_XOR() throws Exception {
     int[] inputSize = new int[] { 2 };
@@ -116,8 +116,36 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
-        .setRate(0.001).setVerbose(true).setQuantum(.0001)
+        .setRate(0.001)
         .test(samples, 100000, 0.01, 10);
+  }
+
+  @Test
+  public void test_BasicNN_XOR_3layer() throws Exception {
+    int[] inputSize = new int[] { 2 };
+    int[] midSize = new int[] { 8 };
+    int[] outSize = new int[] { 1 };
+    NDArray[][] samples = new NDArray[][] {
+        // XOR:
+        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1 }) },
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1 }) }
+    };
+    new PipelineNetwork()
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
+    .add(new BiasLayer(midSize))
+    .add(new SigmoidActivationLayer())
+  
+//    .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
+//    .add(new BiasLayer(midSize))
+//    .add(new SigmoidActivationLayer())
+        
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
+    .add(new BiasLayer(outSize))
+    .add(new SigmoidActivationLayer())
+    .setRate(0.001).setVerbose(true)
+    .test(samples, 100000, 0.01, 10);
   }
   
   @Test
@@ -149,7 +177,7 @@ public class TestNetworkUnit {
   @Test
   public void test_BasicNN_AND() throws Exception {
     int[] inputSize = new int[] { 2 };
-    int[] midSize = new int[] { 2 };
+    int[] midSize = new int[] { 3 };
     int[] outSize = new int[] { 1 };
     NDArray[][] samples = new NDArray[][] {
         // XOR:
@@ -166,6 +194,7 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
+        .setRate(0.001)
         .test(samples, 100000, 0.01, 10);
   }
   
