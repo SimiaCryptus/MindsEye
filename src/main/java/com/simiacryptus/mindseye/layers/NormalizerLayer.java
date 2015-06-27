@@ -5,7 +5,6 @@ import java.util.stream.DoubleStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.FeedbackContext;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
 import com.simiacryptus.mindseye.NNResult;
@@ -37,10 +36,10 @@ public class NormalizerLayer extends NNLayer {
     });
     return new NNResult(scaled) {
       @Override
-      public void feedback(NDArray data, FeedbackContext ctx) {
+      public void feedback(NDArray data) {
         if(inObj.isAlive())
         {
-          inObj.feedback(data.map((v,i)->v*avg), ctx);
+          inObj.feedback(data.map((v,i)->v*avg));
         }
       }
       

@@ -3,7 +3,6 @@ package com.simiacryptus.mindseye.layers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.FeedbackContext;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
 import com.simiacryptus.mindseye.NNResult;
@@ -24,14 +23,14 @@ public class BiasLayer extends NNLayer {
     });
     return new NNResult(translated) {
       @Override
-      public void feedback(NDArray data, FeedbackContext ctx) {
+      public void feedback(NDArray data) {
         for(int i=0;i<bias.length;i++)
         {
           bias[i] += data.data[i];
         }
         if(inObj.isAlive())
         {
-          inObj.feedback(data, ctx);
+          inObj.feedback(data);
         }
       }
       

@@ -72,7 +72,7 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
-        .setRate(0.01)
+        .setRate(0.001)
         .test(samples, 100000, 0.1, 100);
   }
   
@@ -116,7 +116,7 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
-        .setRate(0.001).setVerbose(true)
+        .setRate(0.0001).setVerbose(true)
         .test(samples, 100000, 0.01, 10);
   }
   
@@ -139,7 +139,7 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
-        .setRate(0.0001).setVerbose(true)
+        .setRate(0.001).setVerbose(true)
         .test(samples, 100000, 0.01, 10);
   }
   

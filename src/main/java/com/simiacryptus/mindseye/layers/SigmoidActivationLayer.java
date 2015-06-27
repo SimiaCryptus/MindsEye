@@ -5,7 +5,6 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.FeedbackContext;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
 import com.simiacryptus.mindseye.NNResult;
@@ -35,13 +34,13 @@ public class SigmoidActivationLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(NDArray data, FeedbackContext ctx) {
+      public void feedback(NDArray data) {
         if (inObj.isAlive()) {
           NDArray next = new NDArray(data.getDims());
           IntStream.range(0, next.dim()).forEach(i -> {
             next.set(i, data.data[i] / inputGradient.data[i]);
           });
-          inObj.feedback(next, ctx);
+          inObj.feedback(next);
         }
       }
       

@@ -1,7 +1,5 @@
 package com.simiacryptus.mindseye;
 
-import java.util.Random;
-
 import java.util.stream.IntStream;
 
 import org.junit.Test;

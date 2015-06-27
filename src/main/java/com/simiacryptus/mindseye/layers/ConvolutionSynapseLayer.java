@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
+import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Coordinate;
-import com.simiacryptus.mindseye.FeedbackContext;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
 import com.simiacryptus.mindseye.NNResult;
@@ -48,10 +48,19 @@ public class ConvolutionSynapseLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(NDArray data, FeedbackContext ctx) {
-        ctx.adjust(ConvolutionSynapseLayer.this, kernel, ctx.invertFeedback(weightGradient, data.data));
+      public void feedback(NDArray data) {
+        int dim = kernel.dim();
+        for(int i=0;i<dim;i++){
+          double[] delta = data.data;
+          kernel.add(i, org.jblas.Solve.solveLeastSquares(
+          new DoubleMatrix(weightGradient.getDims()[0], weightGradient.getDims()[1], weightGradient.data).transpose(),
+          new DoubleMatrix(delta.length, 1, delta)).data[i]);
+        }
         if (inObj.isAlive()) {
-          inObj.feedback(new NDArray(inputDims, ctx.invertFeedback(inputGradient, data.data)), ctx);
+          double[] delta = data.data;
+          inObj.feedback(new NDArray(inputDims, org.jblas.Solve.solveLeastSquares(
+          new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
+          new DoubleMatrix(delta.length, 1, delta)).data));
         }
       }
       

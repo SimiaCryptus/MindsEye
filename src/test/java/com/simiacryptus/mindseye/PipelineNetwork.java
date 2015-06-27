@@ -48,8 +48,7 @@ public class PipelineNetwork extends NNLayer {
           NNResult eval = net.eval(input);
           rms += eval.errRms(output);
           NDArray delta = eval.delta(rate, output);
-          FeedbackContext ctx = new FeedbackContext();
-          eval.feedback(delta, ctx);
+          eval.feedback(delta);
         }
         rms /= samples.length;
         if (rms < convergence) break;

@@ -18,11 +18,8 @@ public class NNResult {
     return false;
   }
   
-  public void feedback(NDArray data, FeedbackContext ctx) {
-  }
-
-  public final void feedback(NDArray data) {
-    feedback(data, new FeedbackContext());
+  public void feedback(NDArray data) {
+    feedback(data);
   }
 
   public final void learn(double d, NDArray out) {

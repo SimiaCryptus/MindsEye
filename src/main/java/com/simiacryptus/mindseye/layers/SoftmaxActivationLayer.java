@@ -2,10 +2,10 @@ package com.simiacryptus.mindseye.layers;
 
 import java.util.stream.IntStream;
 
+import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.FeedbackContext;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
 import com.simiacryptus.mindseye.NNResult;
@@ -38,9 +38,12 @@ public class SoftmaxActivationLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(NDArray data, FeedbackContext ctx) {
+      public void feedback(NDArray data) {
         if (inObj.isAlive()) {
-          inObj.feedback(new NDArray(data.getDims(), ctx.invertFeedback(inputGradient, data.data)), ctx);
+          double[] delta = data.data;
+          inObj.feedback(new NDArray(data.getDims(), org.jblas.Solve.solveLeastSquares(
+          new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
+          new DoubleMatrix(delta.length, 1, delta)).data));
         }
       }
       
