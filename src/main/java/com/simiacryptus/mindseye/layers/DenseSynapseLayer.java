@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
-import com.simiacryptus.mindseye.NNResult;
+import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
+import com.simiacryptus.mindseye.learning.DeltaMomentumBuffer;
+import com.simiacryptus.mindseye.learning.NNResult;
 
 public class DenseSynapseLayer extends NNLayer {
   @SuppressWarnings("unused")
@@ -18,10 +20,11 @@ public class DenseSynapseLayer extends NNLayer {
   
   private final int[] outputDims;
   public final NDArray weights;
-  private boolean frozen = false;
   private DeltaInversionBuffer deltaBuffer;
-  double backpropPruning = 0.2;
+  private boolean frozen = false;
+  private double backpropPruning = 0.;
   private double momentumDecay = 0.9;
+  private double mass = 1.;
   
   public DenseSynapseLayer(int inputs, int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
@@ -52,7 +55,9 @@ public class DenseSynapseLayer extends NNLayer {
             deltaBuffer = new DeltaInversionBuffer(1, new DeltaMomentumBuffer(weights).setDecay(momentumDecay));
           }
           if (null != weightGradient) {
-            deltaBuffer.feed(weightGradient, data.data);
+            double[] feedback = Arrays.copyOf(data.data, data.data.length);
+            for(int i=0;i<feedback.length;i++) feedback[i] /= mass;
+            deltaBuffer.feed(weightGradient, feedback);
           }
           if (inObj.isAlive()) {
             double[] delta = data.data;
@@ -107,6 +112,24 @@ public class DenseSynapseLayer extends NNLayer {
 
   public DenseSynapseLayer setMomentumDecay(double momentumDecay) {
     this.momentumDecay = momentumDecay;
+    return this;
+  }
+
+  public double getBackpropPruning() {
+    return backpropPruning;
+  }
+
+  public DenseSynapseLayer setBackpropPruning(double backpropPruning) {
+    this.backpropPruning = backpropPruning;
+    return this;
+  }
+
+  public double getMass() {
+    return mass;
+  }
+
+  public DenseSynapseLayer setMass(double mass) {
+    this.mass = mass;
     return this;
   }
   

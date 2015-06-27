@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.data;
 
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
@@ -25,6 +25,10 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.simiacryptus.mindseye.BinaryChunkIterator;
+import com.simiacryptus.mindseye.LabeledObject;
+import com.simiacryptus.mindseye.Util;
 
 public class TestMNIST {
   @SuppressWarnings("unused")

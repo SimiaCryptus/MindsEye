@@ -1,6 +1,7 @@
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.learning;
 
 import com.simiacryptus.mindseye.NDArray;
+
 
 public class DeltaMomentumBuffer implements DeltaBuffer {
 

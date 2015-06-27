@@ -4,11 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.test.TestNetworkUnit;
 
 public class PipelineNetwork extends NNLayer {
+  static final Logger log = LoggerFactory.getLogger(TestNetworkUnit.class);
+
   private List<NNLayer> layers = new ArrayList<NNLayer>();
   private double lastRms = Double.MAX_VALUE;
+  private boolean verbose = false;
+  private int timesSinceImprovement = 0;
+  int improvementStaleThreshold = 20;
   
   @Override
   public NNResult eval(NNResult array) {
@@ -34,7 +44,7 @@ public class PipelineNetwork extends NNLayer {
         rms += net.eval(input).errRms(output);
       }
       rms /= samples.length;
-      TestNetworkUnit.log.info("RMS Error: {}", rms);
+      log.info("RMS Error: {}", rms);
       for (int i = 0; i < maxIterations; i++)
       {
         if(shouldMutate(i,rms)){
@@ -52,18 +62,14 @@ public class PipelineNetwork extends NNLayer {
         }
         rms /= samples.length;
         if (rms < convergence) break;
-        if(isVerbose()) TestNetworkUnit.log.info("RMS Error: {}", rms);
+        if(isVerbose()) log.info("RMS Error: {}", rms);
       }
-      TestNetworkUnit.log.info("RMS Error: {}", rms);
+      log.info("RMS Error: {}", rms);
       if (rms >= convergence) {
         throw new RuntimeException("Failed in trial " + epoch);
       }
     }
   }
-  private boolean verbose = false;
-
-  private int timesSinceImprovement = 0;
-  int improvementStaleThreshold = 5;
   
   protected boolean shouldMutate(int i, double rms) {
     boolean improved = (lastRms * 1.) < rms;
@@ -86,7 +92,7 @@ public class PipelineNetwork extends NNLayer {
 
   protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
     Random random = new Random();
-    l.addWeights(() -> 0.005 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    l.addWeights(() -> 0.1 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
     return l;
   }
   

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.test.dev;
 
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
@@ -29,6 +29,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.BinaryChunkIterator;
+import com.simiacryptus.mindseye.LabeledObject;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.NNLayer;
+import com.simiacryptus.mindseye.PipelineNetwork;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;

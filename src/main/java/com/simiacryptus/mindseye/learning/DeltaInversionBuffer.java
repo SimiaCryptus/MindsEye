@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.learning;
 
 import org.jblas.DoubleMatrix;
 

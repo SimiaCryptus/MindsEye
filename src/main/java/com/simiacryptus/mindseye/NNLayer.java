@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye;
 
+import com.simiacryptus.mindseye.learning.NNResult;
+
 /**
  * Nonlinear Network Layer (aka Neural Network Layer)
  * 

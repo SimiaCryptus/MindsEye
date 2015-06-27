@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
-import com.simiacryptus.mindseye.NNResult;
+import com.simiacryptus.mindseye.learning.NNResult;
 
 public class BiasLayer extends NNLayer {
   @SuppressWarnings("unused")
