@@ -20,11 +20,12 @@ public class FeedbackContext {
   
   public void adjust(NNLayer layer, NDArray weightArray, double[] weightDelta) {
     // highpass(weightDelta, 0.4);
-    if (quantum > 0.) quantize(weightDelta, quantum);
-    IntStream.range(0, weightArray.dim()).forEach(i -> {
+    //if (quantum > 0.) quantize(weightDelta, quantum);
+    int dim = weightArray.dim();
+    for(int i=0;i<dim;i++){
       // weightArray.add(i, weightDelta[i] * Math.random());
-        weightArray.add(i, weightDelta[i]);
-      });
+      weightArray.add(i, weightDelta[i]);
+    }
   }
   
   private static void quantize(double[] weightDelta, double quantum) {

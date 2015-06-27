@@ -54,14 +54,16 @@ public class PipelineNetwork extends NNLayer {
           eval.feedback(delta, ctx);
         }
         rms /= samples.length;
-        TestNetworkUnit.log.info("RMS Error: {}", rms);
         if (rms < convergence) break;
+        if(isVerbose()) TestNetworkUnit.log.info("RMS Error: {}", rms);
       }
+      TestNetworkUnit.log.info("RMS Error: {}", rms);
       if (rms >= convergence) {
         throw new RuntimeException("Failed in trial " + epoch);
       }
     }
   }
+  private boolean verbose = false;
 
   protected boolean shouldMutate(int i, double rms) {
     //boolean r = (i%100)==0 && Math.random()<0.5;
@@ -85,7 +87,10 @@ public class PipelineNetwork extends NNLayer {
   }
 
   protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
-    return l.freeze(new Random().nextBoolean());
+    Random random = new Random();
+    l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    //return l.freeze(new Random().nextBoolean());
+    return l;
   }
   
   private double rate = 0.00001;
@@ -110,6 +115,15 @@ public class PipelineNetwork extends NNLayer {
 
   public PipelineNetwork setQuantum(double quantum) {
     this.quantum = quantum;
+    return this;
+  }
+
+  public boolean isVerbose() {
+    return verbose;
+  }
+
+  public PipelineNetwork setVerbose(boolean verbose) {
+    this.verbose = verbose;
     return this;
   }
   
