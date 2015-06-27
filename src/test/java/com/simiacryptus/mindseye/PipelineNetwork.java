@@ -86,7 +86,8 @@ public class PipelineNetwork extends NNLayer {
 
   protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
     Random random = new Random();
-    l.addWeights(() -> 0.005 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    //l.addWeights(() -> 0.001 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    l.addWeights(() -> 0.01 * random.nextGaussian());
     //return l.freeze(new Random().nextBoolean());
     return l;
   }

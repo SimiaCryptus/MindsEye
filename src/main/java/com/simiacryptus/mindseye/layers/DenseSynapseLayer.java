@@ -27,11 +27,6 @@ public class DenseSynapseLayer extends NNLayer {
   private double[] bufferWeightSignal;
   private int bufferWeightPos = 0;
   
-  private NDArray bufferFeedbackGradient;
-  private double[] bufferFeedbackSignal;
-  private List<NNResult> bufferFeedbackNext = new ArrayList<NNResult>();
-  private int bufferFeedbackPos = 0;
-  
   
   
   public DenseSynapseLayer(int inputs, int[] outputDims) {
@@ -63,7 +58,7 @@ public class DenseSynapseLayer extends NNLayer {
               int inx = weights.dim();
               int outx = output.dim();
               int endx = output.dim();
-              while (endx < inx)
+              while (endx < (2*inx))
                 endx += outx;
               bufferWeightGradient = new NDArray(inx, endx);
               bufferWeightSignal = new double[endx];
@@ -79,58 +74,14 @@ public class DenseSynapseLayer extends NNLayer {
             }
             if (bufferWeightPos >= bufferWeightGradient.getDims()[1]) {
               double[] inverted = ctx.invertFeedback(bufferWeightGradient, bufferWeightSignal);
-              bufferWeightPos=0;
-              while(bufferWeightPos < bufferWeightGradient.getDims()[1]) {
-                double[] chunk = new double[weights.dim()];
-                for (int i = 0; i < chunk.length; i++)
-                {
-                  chunk[i] = inverted[bufferWeightPos++];
-                }
-                ctx.adjust(DenseSynapseLayer.this, weights, chunk);
-              }
+              assert(inverted.length == weights.dim());
+              ctx.adjust(DenseSynapseLayer.this, weights, inverted);
               bufferWeightPos=0;
             }
           }
           if (inObj.isAlive()) {
-            if (0 == bufferFeedbackPos) {
-              int inx = input.dim();
-              int outx = output.dim();
-              int endx = output.dim();
-              while (endx < inx)
-                endx += outx;
-              bufferFeedbackGradient = new NDArray(inx, endx);
-              bufferFeedbackSignal = new double[endx];
-            }
-            assert(bufferFeedbackPos < bufferFeedbackGradient.getDims()[1]);
-            for (int i = 0; i < output.dim(); i++)
-            {
-              for (int j = 0; j < input.dim(); j++)
-              {
-                bufferFeedbackGradient.set(new int[] { j, bufferFeedbackPos }, inputGradient.get(j, i));
-              }
-              bufferFeedbackSignal[bufferFeedbackPos] = data.data[i];
-              bufferFeedbackPos++;
-            }
-            assert(bufferFeedbackPos > 0);
-            bufferFeedbackNext.add(inObj);
-            if (bufferFeedbackPos >= bufferFeedbackGradient.getDims()[1]) {
-              double[] inverted = ctx.invertFeedback(bufferFeedbackGradient, bufferFeedbackSignal);
-              assert(inverted.length == bufferFeedbackGradient.getDims()[0]);
-              bufferFeedbackPos=0;
-              while(bufferFeedbackPos < inverted.length) {
-                NNResult predecessor = bufferFeedbackNext.remove(0);
-                double[] chunk = new double[predecessor.data.dim()];
-                for (int i = 0; i < chunk.length; i++)
-                {
-                  chunk[i] = inverted[bufferFeedbackPos++];
-                }
-                predecessor.feedback(new NDArray(predecessor.data.getDims(), chunk));
-              }
-              bufferFeedbackPos=0;
-              bufferFeedbackNext.clear();
-            }
-            assert(bufferFeedbackPos < bufferFeedbackGradient.getDims()[0]);
-            assert(bufferFeedbackPos >= 0);
+            double[] inverted = ctx.invertFeedback(inputGradient, data.data);
+            inObj.feedback(new NDArray(inObj.data.getDims(), inverted));
           }
         }
         

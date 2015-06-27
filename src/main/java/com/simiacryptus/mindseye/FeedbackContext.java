@@ -10,6 +10,8 @@ import org.jblas.DoubleMatrix;
 public class FeedbackContext {
   
   public double[] invertFeedback(final NDArray gradient, double[] delta) {
+    double[] mcdelta = Arrays.copyOf(delta, delta.length);
+    for(int i=0;i<mcdelta.length;i++) mcdelta[i] *= Math.random();
     int[] dims = gradient.getDims();
     return org.jblas.Solve.solveLeastSquares(
         new DoubleMatrix(dims[0], dims[1], gradient.data).transpose(),
