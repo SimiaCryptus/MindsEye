@@ -1,6 +1,8 @@
 package com.simiacryptus.mindseye.layers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
@@ -18,8 +20,11 @@ public class DenseSynapseLayer extends NNLayer {
   
   private final int[] outputDims;
   public final NDArray weights;
-
   private boolean frozen = false;
+  private NDArray bufferGradient;
+  private double[] bufferFeedback;
+  private List<NNResult> predecessors = new ArrayList<NNResult>();
+  private int bufferPos = 0;
   
   public DenseSynapseLayer(int inputs, int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
@@ -48,9 +53,46 @@ public class DenseSynapseLayer extends NNLayer {
           double[] invertFeedback = ctx.invertFeedback(weightGradient, data.data);
           ctx.adjust(DenseSynapseLayer.this, weights, invertFeedback);
         }
-        if (inObj.isAlive()) {
-          inObj.feedback(new NDArray(inputDims, ctx.invertFeedback(inputGradient, data.data)), ctx);
+        synchronized (DenseSynapseLayer.this) {
+          if (inObj.isAlive()) {
+            
+            if (0 == bufferPos) {
+              int inx = input.dim();
+              int outx = output.dim();
+              int endx = output.dim();
+              while (endx < inx)
+                endx += outx;
+              bufferGradient = new NDArray(inx, endx);
+              bufferFeedback = new double[endx];
+            }
+            for (int i = 0; i < output.dim(); i++)
+            {
+              for (int j = 0; j < input.dim(); j++)
+              {
+                bufferGradient.set(new int[] { j, bufferPos }, inputGradient.get(j, i));
+              }
+              bufferFeedback[bufferPos] = data.data[i];
+              bufferPos++;
+            }
+            predecessors.add(inObj);
+            if (bufferPos >= bufferGradient.getDims()[1]) {
+              double[] inverted = ctx.invertFeedback(bufferGradient, bufferFeedback);
+              bufferPos=0;
+              for (NNResult predecessor : predecessors) {
+                double[] feedbackChunk = new double[predecessor.data.dim()];
+                for (int i = 0; i < output.dim(); i++)
+                {
+                  feedbackChunk[i] = inverted[bufferPos++];
+                }
+                predecessor.feedback(new NDArray(predecessor.data.getDims(), feedbackChunk));
+              }
+              bufferPos=0;
+              predecessors.clear();
+              //inObj.feedback(inverted, ctx);
+            }
+          }
         }
+        
       }
       
       public boolean isAlive() {

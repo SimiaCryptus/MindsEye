@@ -72,8 +72,8 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
-        .setRate(0.1)
-        .test(samples, 1000, 0.01, 100);
+        .setRate(0.001)
+        .test(samples, 1000, 0.1, 100);
   }
   
   @Test
@@ -92,8 +92,8 @@ public class TestNetworkUnit {
         .add(new SigmoidActivationLayer())
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
-        .setRate(0.01)
-        .test(samples, 100000, 0.01, 10);
+        .setRate(0.0001)
+        .test(samples, 100000, 0.1, 10);
   }
   
   @Test
@@ -108,21 +108,7 @@ public class TestNetworkUnit {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1 }) }
     };
-    new PipelineNetwork() {
-//      
-//      @Override
-//      protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
-//        //l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
-//        //return super.mutate(l);
-//        return l;
-//      }
-//      
-//      @Override
-//      public double getRate(int iteration) {
-//        return 0.005;
-//      }
-      
-    }
+    new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(midSize))
         .add(new SigmoidActivationLayer())
@@ -130,9 +116,8 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
-//        .setRate(0.0001).setQuantum(0.)
-        .setVerbose(true)
-        .test(samples, 100000, 0.01, 1);
+        .setRate(0.001).setVerbose(true).setQuantum(.0001)
+        .test(samples, 100000, 0.01, 10);
   }
   
   @Test
@@ -157,6 +142,7 @@ public class TestNetworkUnit {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
+        .setRate(0.001)
         .test(samples, 100000, 0.01, 10);
   }
   

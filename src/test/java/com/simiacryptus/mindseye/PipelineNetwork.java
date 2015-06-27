@@ -67,14 +67,13 @@ public class PipelineNetwork extends NNLayer {
 
   protected boolean shouldMutate(int i, double rms) {
     //boolean r = (i%100)==0 && Math.random()<0.5;
-    boolean r = (i%10)==0 && (lastRms * .9) < rms;
-    if(r) {
+    if((i%100)==0) {
+      boolean r = (lastRms * .9) < rms;
       lastRms = rms;
-      return true;
+      return r;
     }
     else
     {
-      lastRms = rms;
       return false;
     }
   }
@@ -82,13 +81,12 @@ public class PipelineNetwork extends NNLayer {
   protected void mutate() {
     layers.stream()
     .filter(l->(l instanceof DenseSynapseLayer))
-    .map(l->(DenseSynapseLayer)l)
-    .forEach(l->mutate(l));
+    .forEach(l->mutate((DenseSynapseLayer)l));
   }
 
   protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
     Random random = new Random();
-    l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    l.addWeights(() -> 0.05 * random.nextGaussian() * Math.exp(Math.random() * 5) / 4);
     //return l.freeze(new Random().nextBoolean());
     return l;
   }
