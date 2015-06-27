@@ -20,6 +20,7 @@ public class DenseSynapseLayer extends NNLayer {
   
   private final int[] outputDims;
   public final NDArray weights;
+  public final NDArray momentum;
   private boolean frozen = false;
   
   
@@ -32,6 +33,7 @@ public class DenseSynapseLayer extends NNLayer {
   public DenseSynapseLayer(int inputs, int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
+    this.momentum = new NDArray(inputs, NDArray.dim(outputDims));
   }
   
   public NNResult eval(final NNResult inObj) {
@@ -75,7 +77,10 @@ public class DenseSynapseLayer extends NNLayer {
             if (bufferWeightPos >= bufferWeightGradient.getDims()[1]) {
               double[] inverted = ctx.invertFeedback(bufferWeightGradient, bufferWeightSignal);
               assert(inverted.length == weights.dim());
-              ctx.adjust(DenseSynapseLayer.this, weights, inverted);
+              
+              ctx.adjust(DenseSynapseLayer.this, momentum, inverted);
+              momentum.scale(0.8);
+              ctx.adjust(DenseSynapseLayer.this, weights, momentum.data);
               bufferWeightPos=0;
             }
           }

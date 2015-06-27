@@ -8,7 +8,6 @@ import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 
 public class PipelineNetwork extends NNLayer {
   private List<NNLayer> layers = new ArrayList<NNLayer>();
-  private double quantum = 0.001;
   private double lastRms = Double.MAX_VALUE;
   
   @Override
@@ -50,7 +49,6 @@ public class PipelineNetwork extends NNLayer {
           rms += eval.errRms(output);
           NDArray delta = eval.delta(rate, output);
           FeedbackContext ctx = new FeedbackContext();
-          ctx.quantum = getQuantum();
           eval.feedback(delta, ctx);
         }
         rms /= samples.length;
@@ -65,15 +63,18 @@ public class PipelineNetwork extends NNLayer {
   }
   private boolean verbose = false;
 
+  private int timesSinceImprovement = 0;
+  int improvementStaleThreshold = 5;
+  
   protected boolean shouldMutate(int i, double rms) {
-    //boolean r = (i%100)==0 && Math.random()<0.5;
-    if((i%100)==0) {
-      boolean r = (lastRms * .95) < rms;
-      lastRms = rms;
-      return r;
+    boolean improved = (lastRms * 1.) < rms;
+    lastRms = rms;
+    if(improved) {
+      return timesSinceImprovement++>improvementStaleThreshold;
     }
     else
     {
+      timesSinceImprovement = 0;
       return false;
     }
   }
@@ -86,9 +87,7 @@ public class PipelineNetwork extends NNLayer {
 
   protected DenseSynapseLayer mutate(DenseSynapseLayer l) {
     Random random = new Random();
-    //l.addWeights(() -> 0.001 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
-    l.addWeights(() -> 0.01 * random.nextGaussian());
-    //return l.freeze(new Random().nextBoolean());
+    l.addWeights(() -> 0.005 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
     return l;
   }
   
@@ -105,15 +104,6 @@ public class PipelineNetwork extends NNLayer {
   
   public PipelineNetwork setRate(double rate) {
     this.rate = rate;
-    return this;
-  }
-
-  public double getQuantum() {
-    return quantum;
-  }
-
-  public PipelineNetwork setQuantum(double quantum) {
-    this.quantum = quantum;
     return this;
   }
 

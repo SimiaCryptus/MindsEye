@@ -159,5 +159,12 @@ public class NDArray {
     assert (Double.isFinite(v));
     return v;
   }
+
+  public void scale(double d) {
+    for (int i = 0; i < data.length; i++)
+    {
+      data[i] *= d;
+    }
+  }
   
 }
