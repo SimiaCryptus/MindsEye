@@ -101,6 +101,7 @@ public class DenseSynapseLayer extends NNLayer {
               bufferFeedbackGradient = new NDArray(inx, endx);
               bufferFeedbackSignal = new double[endx];
             }
+            assert(bufferFeedbackPos < bufferFeedbackGradient.getDims()[1]);
             for (int i = 0; i < output.dim(); i++)
             {
               for (int j = 0; j < input.dim(); j++)
@@ -110,13 +111,16 @@ public class DenseSynapseLayer extends NNLayer {
               bufferFeedbackSignal[bufferFeedbackPos] = data.data[i];
               bufferFeedbackPos++;
             }
+            assert(bufferFeedbackPos > 0);
             bufferFeedbackNext.add(inObj);
             if (bufferFeedbackPos >= bufferFeedbackGradient.getDims()[1]) {
               double[] inverted = ctx.invertFeedback(bufferFeedbackGradient, bufferFeedbackSignal);
+              assert(inverted.length == bufferFeedbackGradient.getDims()[0]);
               bufferFeedbackPos=0;
-              for (NNResult predecessor : bufferFeedbackNext) {
+              while(bufferFeedbackPos < inverted.length) {
+                NNResult predecessor = bufferFeedbackNext.remove(0);
                 double[] chunk = new double[predecessor.data.dim()];
-                for (int i = 0; i < output.dim(); i++)
+                for (int i = 0; i < chunk.length; i++)
                 {
                   chunk[i] = inverted[bufferFeedbackPos++];
                 }
@@ -125,6 +129,8 @@ public class DenseSynapseLayer extends NNLayer {
               bufferFeedbackPos=0;
               bufferFeedbackNext.clear();
             }
+            assert(bufferFeedbackPos < bufferFeedbackGradient.getDims()[0]);
+            assert(bufferFeedbackPos >= 0);
           }
         }
         

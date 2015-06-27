@@ -39,10 +39,18 @@ public class NNResult {
     feedback(delta(d, k));
   }
 
-  public NDArray delta(double d, int k) {
+  public NDArray ideal(int k) {
     NDArray delta = new NDArray(data.getDims());
-    Arrays.parallelSetAll(delta.data, i->((i==k?1.:0.)-(NNResult.this.data.data[i])) * d);
+    Arrays.parallelSetAll(delta.data, i->i==k?1.:0.);
     return delta;
+  }
+
+  public NDArray delta(double d, int k) {
+    return delta(d, ideal(k));
+  }
+
+  public double errRms(int k) {
+    return errRms(ideal(k));
   }
 
   public double errMisclassification(int k) {

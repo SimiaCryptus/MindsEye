@@ -41,9 +41,7 @@ import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 public class TestNetworkDev {
   public static final Random random = new Random();
   
-  public static final class Network extends NNLayer {
-    
-    private List<NNLayer> layers = new ArrayList<NNLayer>();
+  public static final class Network extends PipelineNetwork {
     
     public Network() {
       super();
@@ -51,39 +49,33 @@ public class TestNetworkDev {
       
       // layers.add(new NormalizerLayer(inputSize.getDims()));
       
-      layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3)
+      add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3)
           .fillWeights(() -> 0.001 * random.nextGaussian()));
-      layers.add(new MaxSubsampleLayer(4, 4, 1));
-      layers.add(new BiasLayer(eval(inputSize).data.getDims()));
-      layers.add(new SigmoidActivationLayer());
+      add(new MaxSubsampleLayer(4, 4, 1));
+      add(new BiasLayer(eval(inputSize).data.getDims()));
+      add(new SigmoidActivationLayer());
       
-       layers.add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2)
-       .fillWeights(() -> 0.001 * random.nextGaussian()));
-       layers.add(new MaxSubsampleLayer(2, 2, 1, 1));
-       layers.add(new BiasLayer(eval(inputSize).data.getDims()));
-       layers.add(new SigmoidActivationLayer());
+      add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2)
+          .fillWeights(() -> 0.001 * random.nextGaussian()));
+      add(new MaxSubsampleLayer(2, 2, 1, 1));
+      add(new BiasLayer(eval(inputSize).data.getDims()));
+      add(new SigmoidActivationLayer());
       
-//      layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 16 })
-//      .fillWeights(() -> 0.001 * random.nextGaussian()));
-//      layers.add(new SigmoidActivationLayer());
-
-      layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
+      // layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 16 })
+      // .fillWeights(() -> 0.001 * random.nextGaussian()));
+      // layers.add(new SigmoidActivationLayer());
+      
+      add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
           .addWeights(() -> 0.001 * random.nextGaussian()));
-//      layers.add(new BiasLayer(eval(inputSize).data.getDims()));
-      layers.add(new SoftmaxActivationLayer());
+      add(new BiasLayer(eval(inputSize).data.getDims()));
+      // layers.add(new BiasLayer(eval(inputSize).data.getDims()));
+      add(new SigmoidActivationLayer());
+      //add(new SoftmaxActivationLayer());
     }
     
-    @Override
-    public NNResult eval(NNResult array) {
-      NNResult r = array;
-      for (NNLayer l : layers)
-        r = l.eval(r);
-      return r;
-    }
   }
   
   private static final Logger log = LoggerFactory.getLogger(TestNetworkDev.class);
-  
   
   @Test
   public void test() throws Exception {
@@ -111,7 +103,8 @@ public class TestNetworkDev {
       Util.shuffle(buffer, random).parallelStream().limit(100).forEach(o -> {
         net.eval(o.data).learn(currentRate, toOut(o.label));
       });
-      double rms = Util.shuffle(buffer, random).parallelStream().limit(10).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();
+      double rms = Util.shuffle(buffer, random).parallelStream().limit(10).mapToDouble(o1 -> net.eval(o1.data).errRms(toOut(o1.label))).average()
+          .getAsDouble();
       log.info("RMS Error: {}; Learning Rate: {}", rms, currentRate);
       if (rms < prevRms)
         learningRate *= adaptivity;
@@ -125,9 +118,7 @@ public class TestNetworkDev {
   private int toOut(String label) {
     for (int i = 0; i < 10; i++)
     {
-      if (label.equals("[" + i + "]")) {
-        return i;
-      }
+      if (label.equals("[" + i + "]")) { return i; }
     }
     throw new RuntimeException();
   }
