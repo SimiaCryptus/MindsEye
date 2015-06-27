@@ -13,7 +13,7 @@ public class FeedbackContext {
     int[] dims = gradient.getDims();
     return org.jblas.Solve.solveLeastSquares(
         new DoubleMatrix(dims[0], dims[1], gradient.data).transpose(),
-        new DoubleMatrix(delta.length, 1, delta)).data;
+        new DoubleMatrix(delta.length, 1, delta)).transpose().data;
   }
   
   public double quantum = 0.;
