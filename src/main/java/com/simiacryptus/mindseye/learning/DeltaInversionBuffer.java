@@ -5,52 +5,53 @@ import org.jblas.DoubleMatrix;
 import com.simiacryptus.mindseye.NDArray;
 
 public class DeltaInversionBuffer {
-  
-  private final double minInversionRatio;
-  private final DeltaBuffer sink;
-  
-  private NDArray gradientBuffer;
-  private double[] signalBuffer;
+
   private int bufferPos = 0;
-  
-  public DeltaInversionBuffer(double minInversionRatio, DeltaBuffer sink) {
+  private NDArray gradientBuffer;
+
+  private final double minInversionRatio;
+  private double[] signalBuffer;
+  private final DeltaBuffer sink;
+
+  public DeltaInversionBuffer(final double minInversionRatio, final DeltaBuffer sink) {
     this.sink = sink;
     this.minInversionRatio = minInversionRatio;
   }
-  
-  public int length() {
-    return sink.length();
-  }
-  
-  public void feed(NDArray weightGradient, double[] data) {
-    if (0 == bufferPos) {
-      int inx = length();
-      int outx = data.length;
+
+  public void feed(final NDArray weightGradient, final double[] data) {
+    if (0 == this.bufferPos) {
+      final int inx = length();
+      final int outx = data.length;
       int endx = data.length;
-      while (endx < minInversionRatio * inx)
+      while (endx < this.minInversionRatio * inx) {
         endx += outx;
-      gradientBuffer = new NDArray(inx, endx);
-      signalBuffer = new double[endx];
+      }
+      this.gradientBuffer = new NDArray(inx, endx);
+      this.signalBuffer = new double[endx];
     }
     for (int i = 0; i < data.length; i++)
     {
       for (int j = 0; j < length(); j++)
       {
-        gradientBuffer.set(new int[] { j, bufferPos }, weightGradient.get(j, i));
+        this.gradientBuffer.set(new int[] { j, this.bufferPos }, weightGradient.get(j, i));
       }
-      signalBuffer[bufferPos] = data[i];
-      bufferPos++;
+      this.signalBuffer[this.bufferPos] = data[i];
+      this.bufferPos++;
     }
-    if (bufferPos >= gradientBuffer.getDims()[1]) {
-      final NDArray gradient = gradientBuffer;
-      int[] dims = gradient.getDims();
-      double[] inverted = org.jblas.Solve.solveLeastSquares(
+    if (this.bufferPos >= this.gradientBuffer.getDims()[1]) {
+      final NDArray gradient = this.gradientBuffer;
+      final int[] dims = gradient.getDims();
+      final double[] inverted = org.jblas.Solve.solveLeastSquares(
           new DoubleMatrix(gradient.getDims()[0], dims[1], gradient.data).transpose(),
-          new DoubleMatrix(signalBuffer.length, 1, signalBuffer)).data;
-      assert (inverted.length == length());
-      sink.feed(inverted);
-      bufferPos = 0;
+          new DoubleMatrix(this.signalBuffer.length, 1, this.signalBuffer)).data;
+      assert inverted.length == length();
+      this.sink.feed(inverted);
+      this.bufferPos = 0;
     }
   }
-  
+
+  public int length() {
+    return this.sink.length();
+  }
+
 }
