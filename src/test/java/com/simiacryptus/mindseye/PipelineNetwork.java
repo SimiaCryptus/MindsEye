@@ -36,39 +36,45 @@ public class PipelineNetwork extends NNLayer {
   public void test(NDArray[][] samples, int maxIterations, double convergence, int trials) {
     for (int epoch = 0; epoch < trials; epoch++)
     {
-      PipelineNetwork net = this;
-      double rms = 0;
-      for (int i = 0; i < samples.length; i++) {
-        NDArray input = samples[i][0];
-        NDArray output = samples[i][1];
-        rms += net.eval(input).errRms(output);
-      }
-      rms /= samples.length;
-      log.info("RMS Error: {}", rms);
-      for (int i = 0; i < maxIterations; i++)
-      {
-        if(shouldMutate(i,rms)){
-          mutate();
-        }
-        rms = 0;
-        for (int j = 0; j < samples.length; j++) {
-          NDArray input = samples[j][0];
-          NDArray output = samples[j][1];
-          double rate = getRate(i);
-          NNResult eval = net.eval(input);
-          rms += eval.errRms(output);
-          NDArray delta = eval.delta(rate, output);
-          eval.feedback(delta);
-        }
-        rms /= samples.length;
-        if (rms < convergence) break;
-        if(isVerbose()) log.info("RMS Error: {}", rms);
-      }
+      // BUG: The previous network's state ensures future trials succeed immediately. 
+      double rms = train(samples, maxIterations, convergence);
       log.info("RMS Error: {}", rms);
       if (rms >= convergence) {
         throw new RuntimeException("Failed in trial " + epoch);
       }
     }
+  }
+
+  protected double train(NDArray[][] samples, int maxIterations, double convergence) {
+    PipelineNetwork net = this;
+    double rms = 0;
+    for (int i = 0; i < samples.length; i++) {
+      NDArray input = samples[i][0];
+      NDArray output = samples[i][1];
+      rms += net.eval(input).errRms(output);
+    }
+    rms /= samples.length;
+    log.info("RMS Error: {}", rms);
+    for (int i = 0; i < maxIterations; i++)
+    {
+      if(shouldMutate(i,rms)){
+        mutate();
+      }
+      rms = 0;
+      for (int j = 0; j < samples.length; j++) {
+        NDArray input = samples[j][0];
+        NDArray output = samples[j][1];
+        double rate = getRate(i);
+        NNResult eval = net.eval(input);
+        rms += eval.errRms(output);
+        NDArray delta = eval.delta(rate, output);
+        eval.feedback(delta);
+      }
+      rms /= samples.length;
+      if (rms < convergence) break;
+      if(isVerbose()) log.info("RMS Error: {}", rms);
+    }
+    return rms;
   }
   
   protected boolean shouldMutate(int i, double rms) {

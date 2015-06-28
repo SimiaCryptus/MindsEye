@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNLayer;
 import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
-import com.simiacryptus.mindseye.learning.DeltaMomentumBuffer;
+import com.simiacryptus.mindseye.learning.DeltaMassMomentumBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class DenseSynapseLayer extends NNLayer {
+public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSynapseLayer> {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
   
@@ -23,12 +23,14 @@ public class DenseSynapseLayer extends NNLayer {
   private DeltaInversionBuffer deltaBuffer;
   private boolean frozen = false;
   private double backpropPruning = 0.;
-  private double momentumDecay = 0.9;
-  private double mass = 1.;
+
+  private DeltaMassMomentumBuffer massMomentum;
   
   public DenseSynapseLayer(int inputs, int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
+    this.massMomentum = new DeltaMassMomentumBuffer(weights);
+    this.deltaBuffer = new DeltaInversionBuffer(1, massMomentum);
   }
   
   public NNResult eval(final NNResult inObj) {
@@ -50,14 +52,8 @@ public class DenseSynapseLayer extends NNLayer {
       @Override
       public void feedback(NDArray data) {
         synchronized (DenseSynapseLayer.this) {
-          if(null == deltaBuffer)
-          {
-            deltaBuffer = new DeltaInversionBuffer(1, new DeltaMomentumBuffer(weights).setDecay(momentumDecay));
-          }
           if (null != weightGradient) {
-            double[] feedback = Arrays.copyOf(data.data, data.data.length);
-            for(int i=0;i<feedback.length;i++) feedback[i] /= mass;
-            deltaBuffer.feed(weightGradient, feedback);
+            deltaBuffer.feed(weightGradient, data.data);
           }
           if (inObj.isAlive()) {
             double[] delta = data.data;
@@ -105,31 +101,31 @@ public class DenseSynapseLayer extends NNLayer {
     this.frozen = b;
     return this;
   }
-
-  public double getMomentumDecay() {
-    return momentumDecay;
-  }
-
-  public DenseSynapseLayer setMomentumDecay(double momentumDecay) {
-    this.momentumDecay = momentumDecay;
-    return this;
-  }
-
+  
   public double getBackpropPruning() {
     return backpropPruning;
   }
-
+  
   public DenseSynapseLayer setBackpropPruning(double backpropPruning) {
     this.backpropPruning = backpropPruning;
     return this;
   }
 
+  public double getMomentumDecay() {
+    return massMomentum.getMomentumDecay();  
+  }
+
+  public DenseSynapseLayer setMomentumDecay(double momentumDecay) {
+    massMomentum.setMomentumDecay(momentumDecay);
+    return this;
+  }
+
   public double getMass() {
-    return mass;
+    return massMomentum.getMass();
   }
 
   public DenseSynapseLayer setMass(double mass) {
-    this.mass = mass;
+    massMomentum.setMass(mass);
     return this;
   }
   
