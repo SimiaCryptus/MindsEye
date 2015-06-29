@@ -1,7 +1,6 @@
 package com.simiacryptus.mindseye.learning;
 
 import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.layers.MassParameters;
 
 public class DeltaMassMomentumBuffer implements DeltaBuffer, MassParameters<DeltaMassMomentumBuffer> {
   

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.DoubleSupplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -37,6 +38,13 @@ public class Util {
   
   public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), false);
+  }
+
+  public static void add(final DoubleSupplier f, double[] data) {
+    for (int i = 0; i < data.length; i++)
+    {
+      data[i] += f.getAsDouble();
+    }
   }
 
 }

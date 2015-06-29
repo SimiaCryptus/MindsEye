@@ -11,6 +11,7 @@ import com.simiacryptus.mindseye.PipelineNetwork;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 
 public class TestNetworkUnit {
   static final Logger log = LoggerFactory.getLogger(TestNetworkUnit.class);
@@ -58,6 +59,30 @@ public class TestNetworkUnit {
     .add(new BiasLayer(outSize))
     .add(new SigmoidActivationLayer())
     .setRate(0.0001)
+    .test(samples, 100000, 0.01, 10);
+  }
+
+  @Test
+  public void test_BasicNN_AND_Softmax() throws Exception {
+    final int[] midSize = new int[] { 2 };
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 1, -1 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 1, -1 }) },
+        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, -1 }) },
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1, 1 }) }
+    };
+    new PipelineNetwork()
+//    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * TestNetworkUnit.random.nextGaussian()))
+//    .add(new BiasLayer(midSize))
+//    .add(new SigmoidActivationLayer())
+
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * TestNetworkUnit.random.nextGaussian()))
+    .add(new BiasLayer(outSize).setMass(2))
+    .add(new SigmoidActivationLayer())
+    //.add(new SoftmaxActivationLayer())
+    .setRate(0.0001).setVerbose(true)
     .test(samples, 100000, 0.01, 10);
   }
 

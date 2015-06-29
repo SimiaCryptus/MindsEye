@@ -15,12 +15,11 @@ import com.simiacryptus.mindseye.test.TestNetworkUnit;
 public class PipelineNetwork extends NNLayer {
   static final Logger log = LoggerFactory.getLogger(TestNetworkUnit.class);
   
-  int improvementStaleThreshold = 20;
+  private int improvementStaleThreshold = 20;
   private double lastRms = Double.MAX_VALUE;
   private List<NNLayer> layers = new ArrayList<NNLayer>();
   private double rate = 0.00001;
   private int timesSinceImprovement = 0;
-
   private boolean verbose = false;
 
   public PipelineNetwork add(final NNLayer layer) {

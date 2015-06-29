@@ -9,8 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentumBuffer;
+import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSynapseLayer> {
@@ -22,8 +24,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   private boolean frozen = false;
   private DeltaMassMomentumBuffer massMomentum;
   private final int[] outputDims;
-  
-  public final NDArray weights;
+  private final NDArray weights;
 
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
@@ -33,10 +34,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   }
 
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
-    for (int i = 0; i < this.weights.data.length; i++)
-    {
-      this.weights.data[i] += f.getAsDouble();
-    }
+    Util.add(f, this.weights.data);
     return this;
   }
 
@@ -57,6 +55,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
         output.add(o, b * a);
       });
     });
+    
     return new NNResult(output) {
       
       @Override

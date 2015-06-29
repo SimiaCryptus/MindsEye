@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentumBuffer;
+import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
 
