@@ -26,7 +26,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   private final int[] outputDims;
   private boolean verbose = false;
   
-  private final NDArray weights;
+  public final NDArray weights;
 
   protected DenseSynapseLayer() {
     super();

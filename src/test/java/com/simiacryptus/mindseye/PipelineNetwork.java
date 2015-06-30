@@ -19,7 +19,7 @@ public class PipelineNetwork extends NNLayer {
   
   private int improvementStaleThreshold = 20;
   private List<NNLayer> layers = new ArrayList<NNLayer>();
-  private double mutationAmount = 0.1;
+  private double mutationAmount = 0.5;
   private double rate = 0.00001;
   private boolean verbose = false;
   
@@ -54,14 +54,20 @@ public class PipelineNetwork extends NNLayer {
   }
   
   protected BiasLayer mutate(final BiasLayer l, final double amount) {
-    final Random random = new Random();
-    l.addWeights(() -> amount * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+//    final Random random = new Random();
+//    l.addWeights(() -> amount * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
     return l;
   }
   
   protected DenseSynapseLayer mutate(final DenseSynapseLayer l, final double amount) {
     final Random random = new Random();
-    l.addWeights(() -> amount * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    double[] a = l.weights.data;
+    for(int i=0;i<a.length;i++)
+    {
+      if(random.nextDouble() < amount/2) {
+        a[i] *= -1;
+      }
+    }
     return l;
   }
   
@@ -95,16 +101,20 @@ public class PipelineNetwork extends NNLayer {
     final Kryo kryo = new Kryo();
     for (int epoch = 0; epoch < trials; epoch++)
     {
-      // BUG: The previous network's state ensures future trials succeed immediately.
-      final double rms = kryo.copy(this).mutate(1.).train(samples, maxIterations, convergence);
+      PipelineNetwork student = kryo.copy(this).mutate(1.);
+      final double rms = student.train(samples, maxIterations, convergence);
       if (isVerbose()) {
         log.info("Final RMS Error: {}", rms);
       }
-      if (!Double.isFinite(rms) || rms >= convergence) throw new RuntimeException("Failed in trial " + epoch);
+      if (!Double.isFinite(rms) || rms >= convergence) {
+        log.info(String.format("Failed to converge in trial %s; Best RMS=%s: %s", epoch, rms, student));
+        throw new RuntimeException("Failed in trial " + epoch);
+      }
     }
   }
   
   protected double train(final NDArray[][] samples, final int maxIterations, final double convergence) {
+    long startMs = System.currentTimeMillis();
     PipelineNetwork net = this;
     PipelineNetwork best = net;
     int timesSinceImprovement = 0;
@@ -120,7 +130,10 @@ public class PipelineNetwork extends NNLayer {
     if (net.isVerbose()) {
       log.info("Starting RMS Error: {}", rms);
     }
-    for (int i = 0; i < maxIterations; i++)
+    int totalIterations=0;
+    int lessons = 1;
+    int generations = maxIterations / lessons;
+    for (int i = 0; i < generations; i++)
     {
       boolean mutated = false;
       boolean shouldMutate;
@@ -143,8 +156,9 @@ public class PipelineNetwork extends NNLayer {
       }
       rms = 0;
       int count = 0;
-      for (int rep = 0; rep < 1; rep++)
+      for (int rep = 0; rep < lessons; rep++)
         for (final NDArray[] sample : samples) {
+          totalIterations++;
           final NDArray input = sample[0];
           final NDArray output = sample[1];
           final double rate = net.getRate(i);
@@ -173,6 +187,7 @@ public class PipelineNetwork extends NNLayer {
         log.info(String.format("RMS Error: %s", rms));
       }
     }
+    log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis()-startMs)/1000., totalIterations));
     return rms;
   }
 
