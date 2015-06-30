@@ -2,7 +2,9 @@ package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.ToDoubleBiFunction;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class NDArray {
@@ -174,6 +176,29 @@ public class NDArray {
     }
     assert Double.isFinite(v);
     return v;
+  }
+
+  @Override
+  public String toString() {
+    return toString(new int[]{});
+  }
+
+  private int[] _add(int[] base, int... extra) {
+    int[] copy = Arrays.copyOf(base, base.length+extra.length);
+    for(int i=0;i<extra.length;i++) copy[i+base.length] = extra[i];
+    return copy;
+  }
+
+  private String toString(int... coords) {
+    if(coords.length == dims.length)
+    {
+      return Double.toString(get(coords));
+    } else {
+      Optional<String> str = IntStream.range(0, dims[coords.length]).mapToObj(i->{
+        return toString(_add(coords, i));
+      }).reduce((a,b)->a+","+b);
+      return "{ " + str.get() + " }";
+    }
   }
   
 }

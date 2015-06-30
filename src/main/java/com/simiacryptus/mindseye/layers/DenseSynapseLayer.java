@@ -16,7 +16,6 @@ import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSynapseLayer> {
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
 
   private double backpropPruning = 0.;
@@ -25,6 +24,8 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   private DeltaMassMomentumBuffer massMomentum;
   private final int[] outputDims;
   private final NDArray weights;
+
+  private boolean verbose = false;
   
   protected DenseSynapseLayer() {
     super();
@@ -61,7 +62,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
         output.add(o, b * a);
       });
     });
-    
+    if(isVerbose()) log.debug(String.format("Feed forward: %s * %s => %s", inObj.data, weights, output));
     return new NNResult(output) {
       
       @Override
@@ -139,6 +140,15 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   
   public DenseSynapseLayer thaw() {
     return freeze(false);
+  }
+
+  public DenseSynapseLayer setVerbose(boolean verbose) {
+    this.verbose = verbose;
+    return this;
+  }
+
+  private boolean isVerbose() {
+    return verbose;
   }
 
 }

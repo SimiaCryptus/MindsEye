@@ -1,10 +1,17 @@
 package com.simiacryptus.mindseye.learning;
 
+import java.util.Arrays;
+
 import org.jblas.DoubleMatrix;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 
 public class DeltaInversionBuffer {
+  private static final Logger log = LoggerFactory.getLogger(DeltaInversionBuffer.class);
+  public static boolean DEBUG = false;
 
   private int bufferPos = 0;
   private NDArray gradientBuffer;
@@ -26,6 +33,7 @@ public class DeltaInversionBuffer {
   }
 
   public void feed(final NDArray weightGradient, final double[] data) {
+    if(DEBUG) log.debug(String.format("Input: %s & %s", weightGradient, Arrays.toString(data)));
     if (0 == this.bufferPos) {
       final int inx = length();
       final int outx = data.length;
@@ -33,6 +41,7 @@ public class DeltaInversionBuffer {
       while (endx < this.minInversionRatio * inx) {
         endx += outx;
       }
+      if(DEBUG) log.debug(String.format("Initialized with %s rows for %s weights and %s signal values", endx, inx, outx));
       this.gradientBuffer = new NDArray(inx, endx);
       this.signalBuffer = new double[endx];
     }
@@ -51,6 +60,7 @@ public class DeltaInversionBuffer {
       final double[] inverted = org.jblas.Solve.solveLeastSquares(
           new DoubleMatrix(gradient.getDims()[0], dims[1], gradient.data).transpose(),
           new DoubleMatrix(this.signalBuffer.length, 1, this.signalBuffer)).data;
+      if(DEBUG) log.debug(String.format("Processing feedback inversion to produce deltas: ", Arrays.toString(inverted)));
       assert inverted.length == length();
       this.sink.feed(inverted);
       this.bufferPos = 0;

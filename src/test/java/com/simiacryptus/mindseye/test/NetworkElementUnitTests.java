@@ -12,6 +12,7 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
 
 public class NetworkElementUnitTests {
   static final Logger log = LoggerFactory.getLogger(NetworkElementUnitTests.class);
@@ -60,6 +61,7 @@ public class NetworkElementUnitTests {
 
   @Test
   public void denseSynapseLayer_train() throws Exception {
+    DeltaInversionBuffer.DEBUG = true;
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
