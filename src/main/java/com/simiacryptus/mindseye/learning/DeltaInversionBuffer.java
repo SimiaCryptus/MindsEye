@@ -7,33 +7,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 
 public class DeltaInversionBuffer {
-  private static final Logger log = LoggerFactory.getLogger(DeltaInversionBuffer.class);
   public static boolean DEBUG = false;
-
+  private static final Logger log = LoggerFactory.getLogger(DeltaInversionBuffer.class);
+  
   private int bufferPos = 0;
   private NDArray gradientBuffer;
-
+  
   private final double minInversionRatio;
   private double[] signalBuffer;
   private final DeltaBuffer sink;
-
   
   protected DeltaInversionBuffer() {
     super();
-    minInversionRatio = 0;
-    sink = null;
+    this.minInversionRatio = 0;
+    this.sink = null;
   }
-
+  
   public DeltaInversionBuffer(final double minInversionRatio, final DeltaBuffer sink) {
     this.sink = sink;
     this.minInversionRatio = minInversionRatio;
   }
-
+  
   public void feed(final NDArray weightGradient, final double[] data) {
-    if(DEBUG) log.debug(String.format("Input: %s & %s", weightGradient, Arrays.toString(data)));
+    if (DeltaInversionBuffer.DEBUG) {
+      DeltaInversionBuffer.log.debug(String.format("Input: %s & %s", weightGradient, Arrays.toString(data)));
+    }
     if (0 == this.bufferPos) {
       final int inx = length();
       final int outx = data.length;
@@ -41,7 +41,9 @@ public class DeltaInversionBuffer {
       while (endx < this.minInversionRatio * inx) {
         endx += outx;
       }
-      if(DEBUG) log.debug(String.format("Initialized with %s rows for %s weights and %s signal values", endx, inx, outx));
+      if (DeltaInversionBuffer.DEBUG) {
+        DeltaInversionBuffer.log.debug(String.format("Initialized with %s rows for %s weights and %s signal values", endx, inx, outx));
+      }
       this.gradientBuffer = new NDArray(inx, endx);
       this.signalBuffer = new double[endx];
     }
@@ -60,15 +62,17 @@ public class DeltaInversionBuffer {
       final double[] inverted = org.jblas.Solve.solveLeastSquares(
           new DoubleMatrix(gradient.getDims()[0], dims[1], gradient.data).transpose(),
           new DoubleMatrix(this.signalBuffer.length, 1, this.signalBuffer)).data;
-      if(DEBUG) log.debug(String.format("Processing feedback inversion to produce deltas: %s", Arrays.toString(inverted)));
+      if (DeltaInversionBuffer.DEBUG) {
+        DeltaInversionBuffer.log.debug(String.format("Processing feedback inversion to produce deltas: %s", Arrays.toString(inverted)));
+      }
       assert inverted.length == length();
       this.sink.feed(inverted);
       this.bufferPos = 0;
     }
   }
-
+  
   public int length() {
     return this.sink.length();
   }
-
+  
 }

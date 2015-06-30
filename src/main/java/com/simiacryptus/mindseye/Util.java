@@ -14,7 +14,14 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Util {
-  
+
+  public static void add(final DoubleSupplier f, final double[] data) {
+    for (int i = 0; i < data.length; i++)
+    {
+      data[i] += f.getAsDouble();
+    }
+  }
+
   public static byte[] read(final DataInputStream i, final int s) throws IOException {
     final byte[] b = new byte[s];
     int pos = 0;
@@ -25,13 +32,13 @@ public class Util {
     }
     return b;
   }
-  
+
   public static <T> List<T> shuffle(final List<T> buffer, final Random random) {
     final ArrayList<T> list = new ArrayList<T>(buffer);
     Collections.shuffle(list);
     return list;
   }
-  
+
   public static <T> Stream<T> toStream(final Iterator<T> iterator) {
     return Util.toStream(iterator, 0);
   }
@@ -39,12 +46,5 @@ public class Util {
   public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), false);
   }
-
-  public static void add(final DoubleSupplier f, double[] data) {
-    for (int i = 0; i < data.length; i++)
-    {
-      data[i] += f.getAsDouble();
-    }
-  }
-
+  
 }

@@ -10,13 +10,13 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class SoftmaxActivationLayer extends NNLayer {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
-  
+
   public SoftmaxActivationLayer() {
   }
-  
+
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -30,7 +30,7 @@ public class SoftmaxActivationLayer extends NNLayer {
         if (i == j) {
           inputGradient.add(new int[] { i, j }, (1 - exp.data[i]) * exp.data[i]);
         } else {
-          inputGradient.add(new int[] { i, j }, -exp.data[i]*exp.data[j]);
+          inputGradient.add(new int[] { i, j }, -exp.data[i] * exp.data[j]);
         }
       });
     });
@@ -44,12 +44,12 @@ public class SoftmaxActivationLayer extends NNLayer {
               new DoubleMatrix(delta.length, 1, delta)).data));
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return true;
       }
     };
   }
-  
+
 }

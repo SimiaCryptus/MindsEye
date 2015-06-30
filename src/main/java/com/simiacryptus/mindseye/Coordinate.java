@@ -10,17 +10,17 @@ public class Coordinate {
     }
     return r;
   }
-  
+
   public final int[] coords;
-
+  
   public final int index;
-
+  
   public Coordinate(final int index, final int[] coords) {
     super();
     this.index = index;
     this.coords = coords;
   }
-
+  
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) return true;
@@ -30,7 +30,7 @@ public class Coordinate {
     if (!Arrays.equals(this.coords, other.coords)) return false;
     return true;
   }
-
+  
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -38,10 +38,10 @@ public class Coordinate {
     result = prime * result + Arrays.hashCode(this.coords);
     return result;
   }
-
+  
   @Override
   public String toString() {
     return Arrays.toString(this.coords);
   }
-
+  
 }

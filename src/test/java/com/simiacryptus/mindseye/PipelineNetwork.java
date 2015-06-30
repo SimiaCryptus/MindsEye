@@ -15,20 +15,20 @@ import com.simiacryptus.mindseye.test.SimpleNetworkTests;
 
 public class PipelineNetwork extends NNLayer {
   static final Logger log = LoggerFactory.getLogger(SimpleNetworkTests.class);
-  
+
   private int improvementStaleThreshold = 20;
   private double lastRms = Double.MAX_VALUE;
   private List<NNLayer> layers = new ArrayList<NNLayer>();
+  private double mutationAmount = 0.1;
   private double rate = 0.00001;
   private int timesSinceImprovement = 0;
   private boolean verbose = false;
-  private double mutationAmount = 0.1;
-
+  
   public PipelineNetwork add(final NNLayer layer) {
     this.layers.add(layer);
     return this;
   }
-
+  
   @Override
   public NNResult eval(final NNResult array) {
     NNResult r = array;
@@ -36,6 +36,10 @@ public class PipelineNetwork extends NNLayer {
       r = l.eval(r);
     }
     return r;
+  }
+
+  public double getMutationAmount() {
+    return this.mutationAmount;
   }
   
   public double getRate() {
@@ -45,24 +49,30 @@ public class PipelineNetwork extends NNLayer {
   public double getRate(final int iteration) {
     return this.rate;
   }
-  
+
   public boolean isVerbose() {
     return this.verbose;
   }
   
-  protected void mutate(double amount) {
-    log.debug(String.format("Mutating %s by %s", this, amount));
-    this.layers.stream()
-        .filter(l -> (l instanceof DenseSynapseLayer))
-        .forEach(l -> mutate((DenseSynapseLayer) l, amount));
-  }
-
-  protected DenseSynapseLayer mutate(final DenseSynapseLayer l, double amount) {
+  protected DenseSynapseLayer mutate(final DenseSynapseLayer l, final double amount) {
     final Random random = new Random();
     l.addWeights(() -> amount * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
     return l;
   }
-
+  
+  protected PipelineNetwork mutate(final double amount) {
+    PipelineNetwork.log.debug(String.format("Mutating %s by %s", this, amount));
+    this.layers.stream()
+    .filter(l -> (l instanceof DenseSynapseLayer))
+    .forEach(l -> mutate((DenseSynapseLayer) l, amount));
+    return this;
+  }
+  
+  public PipelineNetwork setMutationAmount(final double mutationAmount) {
+    this.mutationAmount = mutationAmount;
+    return this;
+  }
+  
   public PipelineNetwork setRate(final double rate) {
     this.rate = rate;
     return this;
@@ -78,20 +88,22 @@ public class PipelineNetwork extends NNLayer {
     this.lastRms = rms;
     if (improved)
       return this.timesSinceImprovement++ > this.improvementStaleThreshold;
-      else
-      {
-        this.timesSinceImprovement = 0;
-        return false;
-      }
+    else
+    {
+      this.timesSinceImprovement = 0;
+      return false;
+    }
   }
   
   public void test(final NDArray[][] samples, final int maxIterations, final double convergence, final int trials) {
-    Kryo kryo = new Kryo();
+    final Kryo kryo = new Kryo();
     for (int epoch = 0; epoch < trials; epoch++)
     {
       // BUG: The previous network's state ensures future trials succeed immediately.
-      final double rms = kryo.copy(this).train(samples, maxIterations, convergence);
-      if (isVerbose()) log.info("Final RMS Error: {}", rms);
+      final double rms = kryo.copy(this).mutate(1.).train(samples, maxIterations, convergence);
+      if (isVerbose()) {
+        PipelineNetwork.log.info("Final RMS Error: {}", rms);
+      }
       if (!Double.isFinite(rms) || rms >= convergence) throw new RuntimeException("Failed in trial " + epoch);
     }
   }
@@ -105,7 +117,9 @@ public class PipelineNetwork extends NNLayer {
       rms += net.eval(input).errRms(output);
     }
     rms /= samples.length;
-    if (isVerbose()) log.info("Starting RMS Error: {}", rms);
+    if (isVerbose()) {
+      PipelineNetwork.log.info("Starting RMS Error: {}", rms);
+    }
     for (int i = 0; i < maxIterations; i++)
     {
       if (shouldMutate(i, rms)) {
@@ -117,13 +131,12 @@ public class PipelineNetwork extends NNLayer {
         final NDArray output = sample[1];
         final double rate = getRate(i);
         final NNResult eval = net.eval(input);
-        double trialRms = eval.errRms(output);
+        final double trialRms = eval.errRms(output);
         rms += trialRms;
         final NDArray delta = eval.delta(rate, output);
         eval.feedback(delta);
         if (isVerbose()) {
-          double verifiedRms = net.eval(input).errRms(output);
-          assert(verifiedRms < trialRms) : "A marginal local improvement was expected";
+          // assert(net.eval(input).errRms(output) < trialRms) : "A marginal local improvement was expected";
         }
       }
       rms /= samples.length;
@@ -131,19 +144,10 @@ public class PipelineNetwork extends NNLayer {
         break;
       }
       if (isVerbose()) {
-        log.info(String.format("RMS Error: %s", rms));
+        PipelineNetwork.log.info(String.format("RMS Error: %s", rms));
       }
     }
     return rms;
   }
-
-  public double getMutationAmount() {
-    return mutationAmount;
-  }
-
-  public PipelineNetwork setMutationAmount(double mutationAmount) {
-    this.mutationAmount = mutationAmount;
-    return this;
-  }
-
+  
 }

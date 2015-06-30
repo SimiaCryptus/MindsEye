@@ -17,34 +17,34 @@ import com.simiacryptus.mindseye.learning.NNResult;
 
 public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSynapseLayer> {
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
-
+  
   private double backpropPruning = 0.;
   private DeltaInversionBuffer deltaBuffer;
   private boolean frozen = false;
   private DeltaMassMomentumBuffer massMomentum;
   private final int[] outputDims;
-  private final NDArray weights;
-
   private boolean verbose = false;
   
+  private final NDArray weights;
+
   protected DenseSynapseLayer() {
     super();
-    outputDims = null;
-    weights = null;
+    this.outputDims = null;
+    this.weights = null;
   }
-
+  
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
     this.massMomentum = new DeltaMassMomentumBuffer(this.weights);
     this.deltaBuffer = new DeltaInversionBuffer(0, this.massMomentum);
   }
-
+  
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.weights.data);
     return this;
   }
-
+  
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -62,9 +62,11 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
         output.add(o, b * a);
       });
     });
-    if(isVerbose()) log.debug(String.format("Feed forward: %s * %s => %s", inObj.data, weights, output));
+    if (isVerbose()) {
+      DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj.data, this.weights, output));
+    }
     return new NNResult(output) {
-      
+
       @Override
       public void feedback(final NDArray data) {
         synchronized (DenseSynapseLayer.this) {
@@ -85,51 +87,60 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
           }
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return null != weightGradient || inObj.isAlive();
       }
     };
   }
-
+  
   public DenseSynapseLayer freeze() {
     return freeze(true);
   }
-
+  
   public DenseSynapseLayer freeze(final boolean b) {
     this.frozen = b;
     return this;
   }
-
+  
   public double getBackpropPruning() {
     return this.backpropPruning;
   }
-
+  
   @Override
   public double getMass() {
     return this.massMomentum.getMass();
   }
-
+  
   @Override
   public double getMomentumDecay() {
     return this.massMomentum.getMomentumDecay();
+  }
+  
+  private boolean isVerbose() {
+    return this.verbose;
   }
 
   public DenseSynapseLayer setBackpropPruning(final double backpropPruning) {
     this.backpropPruning = backpropPruning;
     return this;
   }
-  
+
   @Override
   public DenseSynapseLayer setMass(final double mass) {
     this.massMomentum.setMass(mass);
     return this;
   }
-  
+
   @Override
   public DenseSynapseLayer setMomentumDecay(final double momentumDecay) {
     this.massMomentum.setMomentumDecay(momentumDecay);
+    return this;
+  }
+
+  public DenseSynapseLayer setVerbose(final boolean verbose) {
+    this.verbose = verbose;
     return this;
   }
   
@@ -141,14 +152,5 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   public DenseSynapseLayer thaw() {
     return freeze(false);
   }
-
-  public DenseSynapseLayer setVerbose(boolean verbose) {
-    this.verbose = verbose;
-    return this;
-  }
-
-  private boolean isVerbose() {
-    return verbose;
-  }
-
+  
 }

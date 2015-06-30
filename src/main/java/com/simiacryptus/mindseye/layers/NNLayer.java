@@ -9,11 +9,11 @@ import com.simiacryptus.mindseye.learning.NNResult;
  * @author Andrew Charneski
  */
 public abstract class NNLayer {
-  
+
   public final NNResult eval(final NDArray array) {
     return eval(new NNResult(array));
   }
-  
+
   public abstract NNResult eval(NNResult array);
-  
+
 }

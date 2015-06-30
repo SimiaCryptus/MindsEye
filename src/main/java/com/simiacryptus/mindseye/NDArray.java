@@ -8,11 +8,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class NDArray {
-  
+
   public interface UnivariateFunction {
     double apply(double v);
   }
-  
+
   public static int dim(final int... dims) {
     int total = 1;
     for (final int dim : dims) {
@@ -20,24 +20,24 @@ public class NDArray {
     }
     return total;
   }
-  
+
   public final double[] data;
-  
+
   private final int[] dims;
-  
+
   private final int[] skips;
-  
+
   protected NDArray() {
     super();
-    data = null;
-    skips = null;
-    dims = null;
+    this.data = null;
+    this.skips = null;
+    this.dims = null;
   }
-  
+
   public NDArray(final int... dims) {
     this(dims, new double[NDArray.dim(dims)]);
   }
-  
+
   public NDArray(final int[] dims, final double[] data) {
     this.dims = Arrays.copyOf(dims, dims.length);
     this.skips = new int[dims.length];
@@ -53,31 +53,39 @@ public class NDArray {
     assert 0 < data.length;
     this.data = data;// Arrays.copyOf(data, data.length);
   }
-  
+
+  private int[] _add(final int[] base, final int... extra) {
+    final int[] copy = Arrays.copyOf(base, base.length + extra.length);
+    for (int i = 0; i < extra.length; i++) {
+      copy[i + base.length] = extra[i];
+    }
+    return copy;
+  }
+
   public void add(final Coordinate coords, final double value) {
     add(coords.index, value);
   }
-  
+
   public void add(final int index, final double value) {
     assert Double.isFinite(value);
     this.data[index] += value;
   }
-  
+
   public void add(final int[] coords, final double value) {
     add(index(coords), value);
   }
-  
+
   public Stream<Coordinate> coordStream() {
     return Util.toStream(new Iterator<Coordinate>() {
-      
+
       int cnt;
       int[] val = new int[NDArray.this.dims.length];
-      
+
       @Override
       public boolean hasNext() {
         return this.cnt < dim();
       }
-      
+
       @Override
       public Coordinate next() {
         final int[] last = Arrays.copyOf(this.val, this.val.length);
@@ -94,35 +102,35 @@ public class NDArray {
       }
     }, dim());
   }
-  
+
   public int dim() {
     return this.data.length;
   }
-  
+
   public double get(final Coordinate coords) {
     final double v = this.data[coords.index];
     assert Double.isFinite(v);
     return v;
   }
-  
+
   public double get(final int... coords) {
     final double v = this.data[index(coords)];
     assert Double.isFinite(v);
     return v;
   }
-  
+
   public double[] getData() {
     return this.data;
   }
-  
+
   public int[] getDims() {
     return this.dims;
   }
-  
+
   public int index(final Coordinate coords) {
     return coords.index;
   }
-  
+
   public int index(final int... coords) {
     int v = 0;
     for (int i = 0; i < this.skips.length; i++) {
@@ -131,11 +139,11 @@ public class NDArray {
     return v;
     // return IntStream.range(0, skips.length).map(i->skips[i]*coords[i]).sum();
   }
-  
+
   public NDArray map(final ToDoubleBiFunction<Double, Coordinate> f) {
     return new NDArray(this.dims, coordStream().mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
   }
-  
+
   public NDArray map(final UnivariateFunction f) {
     Arrays.parallelSetAll(this.data, i -> {
       final double x = this.data[i];
@@ -146,24 +154,24 @@ public class NDArray {
     });
     return this;
   }
-  
+
   public void scale(final double d) {
     for (int i = 0; i < this.data.length; i++)
     {
       this.data[i] *= d;
     }
   }
-  
+
   public void set(final Coordinate coords, final double value) {
     assert Double.isFinite(value);
     set(coords.index, value);
   }
-  
+
   public void set(final int index, final double value) {
     assert Double.isFinite(value);
     this.data[index] = value;
   }
-  
+
   public void set(final int[] coords, final double value) {
     assert Double.isFinite(value);
     set(index(coords), value);
@@ -177,28 +185,21 @@ public class NDArray {
     assert Double.isFinite(v);
     return v;
   }
-
+  
   @Override
   public String toString() {
-    return toString(new int[]{});
+    return toString(new int[] {});
   }
-
-  private int[] _add(int[] base, int... extra) {
-    int[] copy = Arrays.copyOf(base, base.length+extra.length);
-    for(int i=0;i<extra.length;i++) copy[i+base.length] = extra[i];
-    return copy;
-  }
-
-  private String toString(int... coords) {
-    if(coords.length == dims.length)
-    {
+  
+  private String toString(final int... coords) {
+    if (coords.length == this.dims.length)
       return Double.toString(get(coords));
-    } else {
-      Optional<String> str = IntStream.range(0, dims[coords.length]).mapToObj(i->{
+    else {
+      final Optional<String> str = IntStream.range(0, this.dims[coords.length]).mapToObj(i -> {
         return toString(_add(coords, i));
-      }).reduce((a,b)->a+","+b);
+      }).reduce((a, b) -> a + "," + b);
       return "{ " + str.get() + " }";
     }
   }
-  
+
 }

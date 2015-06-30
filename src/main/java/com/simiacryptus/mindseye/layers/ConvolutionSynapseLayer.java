@@ -15,16 +15,16 @@ import com.simiacryptus.mindseye.learning.NNResult;
 public class ConvolutionSynapseLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
-
+  
   public final NDArray kernel;
-
+  
   public ConvolutionSynapseLayer(final int[] kernelDims, final int bandwidth) {
-
+    
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
   }
-
+  
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -63,17 +63,17 @@ public class ConvolutionSynapseLayer extends NNLayer {
               new DoubleMatrix(delta.length, 1, delta)).data));
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return true;
       }
     };
   }
-  
+
   public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.kernel.data, i -> f.getAsDouble());
     return this;
   }
-
+  
 }
