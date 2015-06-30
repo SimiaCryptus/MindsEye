@@ -7,15 +7,19 @@ public class DeltaMassMomentumBuffer implements DeltaBuffer, MassParameters<Delt
   private double decay = 0.9;
   private double mass = 1.;
   private double[] momentum;
-  private double[] values;
+  private DeltaBuffer values;
 
   public DeltaMassMomentumBuffer() {
     super();
   }
-  
+
   public DeltaMassMomentumBuffer(final double[] values) {
+    this(new DeltaMemoryWriter(values));
+  }
+
+  public DeltaMassMomentumBuffer(final DeltaBuffer values) {
     this.values = values;
-    this.momentum = new double[values.length];
+    this.momentum = new double[values.length()];
   }
 
   public DeltaMassMomentumBuffer(final NDArray values) {
@@ -26,9 +30,11 @@ public class DeltaMassMomentumBuffer implements DeltaBuffer, MassParameters<Delt
   public void feed(final double[] data) {
 
     final int dim = length();
+    double[] v = new double[data.length];
     for (int i = 0; i < dim; i++) {
-      this.values[i] += this.momentum[i] = this.decay * this.momentum[i] + data[i] / this.mass;
+      v[i] += this.momentum[i] = this.decay * this.momentum[i] + data[i] / this.mass;
     }
+    this.values.feed(v);
   }
 
   @Override
@@ -43,7 +49,7 @@ public class DeltaMassMomentumBuffer implements DeltaBuffer, MassParameters<Delt
 
   @Override
   public int length() {
-    return this.values.length;
+    return this.momentum.length;
   }
 
   @Override

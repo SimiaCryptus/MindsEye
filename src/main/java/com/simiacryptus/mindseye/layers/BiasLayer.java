@@ -1,10 +1,15 @@
 package com.simiacryptus.mindseye.layers;
 
+import java.util.Arrays;
+import java.util.function.DoubleSupplier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentumBuffer;
+import com.simiacryptus.mindseye.learning.DeltaNormalizer;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -24,7 +29,7 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
   
   public BiasLayer(final int[] outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
-    this.deltaBuffer = new DeltaMassMomentumBuffer(this.bias);
+    this.deltaBuffer = new DeltaMassMomentumBuffer(new DeltaNormalizer(this.bias));
   }
   
   @Override
@@ -35,10 +40,7 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
     return new NNResult(translated) {
       @Override
       public void feedback(final NDArray data) {
-        for (int i = 0; i < BiasLayer.this.bias.length; i++)
-        {
-          BiasLayer.this.bias[i] += data.data[i];
-        }
+        deltaBuffer.feed(data.data);
         if (inObj.isAlive())
         {
           inObj.feedback(data);
@@ -72,6 +74,17 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
   public BiasLayer setMomentumDecay(final double momentumDecay) {
     this.deltaBuffer.setMomentumDecay(momentumDecay);
     return this;
+  }
+
+
+  public BiasLayer addWeights(final DoubleSupplier f) {
+    Util.add(f, bias);
+    return this;
+  }
+
+  @Override
+  public String toString() {
+    return "BiasLayer " + Arrays.toString(bias);
   }
 
 }

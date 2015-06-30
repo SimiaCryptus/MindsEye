@@ -12,6 +12,7 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentumBuffer;
+import com.simiacryptus.mindseye.learning.DeltaNormalizer;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -36,7 +37,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
-    this.massMomentum = new DeltaMassMomentumBuffer(this.weights);
+    this.massMomentum = new DeltaMassMomentumBuffer(new DeltaNormalizer(this.weights));
     this.deltaBuffer = new DeltaInversionBuffer(0, this.massMomentum);
   }
   
@@ -152,5 +153,11 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   public DenseSynapseLayer thaw() {
     return freeze(false);
   }
+
+  @Override
+  public String toString() {
+    return "DenseSynapseLayer [weights=" + weights + "]";
+  }
+
   
 }
