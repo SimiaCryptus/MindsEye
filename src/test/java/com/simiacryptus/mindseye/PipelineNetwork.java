@@ -22,6 +22,7 @@ public class PipelineNetwork extends NNLayer {
   private double rate = 0.00001;
   private int timesSinceImprovement = 0;
   private boolean verbose = false;
+  private double mutationAmount = 0.1;
 
   public PipelineNetwork add(final NNLayer layer) {
     this.layers.add(layer);
@@ -42,23 +43,23 @@ public class PipelineNetwork extends NNLayer {
   }
 
   public double getRate(final int iteration) {
-    final double exp = Math.exp(Math.random() * Math.random() * 4) / 2;
-    return this.rate * exp;
+    return this.rate;
   }
   
   public boolean isVerbose() {
     return this.verbose;
   }
   
-  protected void mutate() {
+  protected void mutate(double amount) {
+    log.debug(String.format("Mutating %s by %s", this, amount));
     this.layers.stream()
         .filter(l -> (l instanceof DenseSynapseLayer))
-        .forEach(l -> mutate((DenseSynapseLayer) l));
+        .forEach(l -> mutate((DenseSynapseLayer) l, amount));
   }
 
-  protected DenseSynapseLayer mutate(final DenseSynapseLayer l) {
+  protected DenseSynapseLayer mutate(final DenseSynapseLayer l, double amount) {
     final Random random = new Random();
-    l.addWeights(() -> 0.1 * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    l.addWeights(() -> amount * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
     return l;
   }
 
@@ -108,7 +109,7 @@ public class PipelineNetwork extends NNLayer {
     for (int i = 0; i < maxIterations; i++)
     {
       if (shouldMutate(i, rms)) {
-        mutate();
+        mutate(getMutationAmount());
       }
       rms = 0;
       for (final NDArray[] sample : samples) {
@@ -116,19 +117,33 @@ public class PipelineNetwork extends NNLayer {
         final NDArray output = sample[1];
         final double rate = getRate(i);
         final NNResult eval = net.eval(input);
-        rms += eval.errRms(output);
+        double trialRms = eval.errRms(output);
+        rms += trialRms;
         final NDArray delta = eval.delta(rate, output);
         eval.feedback(delta);
+        if (isVerbose()) {
+          double verifiedRms = net.eval(input).errRms(output);
+          assert(verifiedRms < trialRms) : "A marginal local improvement was expected";
+        }
       }
       rms /= samples.length;
       if (rms < convergence) {
         break;
       }
       if (isVerbose()) {
-        log.info("RMS Error: {}", rms);
+        log.info(String.format("RMS Error: %s", rms));
       }
     }
     return rms;
+  }
+
+  public double getMutationAmount() {
+    return mutationAmount;
+  }
+
+  public PipelineNetwork setMutationAmount(double mutationAmount) {
+    this.mutationAmount = mutationAmount;
+    return this;
   }
 
 }

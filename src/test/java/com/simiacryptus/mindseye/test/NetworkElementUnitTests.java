@@ -61,7 +61,8 @@ public class NetworkElementUnitTests {
 
   @Test
   public void denseSynapseLayer_train() throws Exception {
-    DeltaInversionBuffer.DEBUG = true;
+    boolean verbose = false;
+    DeltaInversionBuffer.DEBUG = verbose;
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
@@ -69,10 +70,10 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) }
     };
-    new PipelineNetwork()
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
-    .setRate(0.1).setVerbose(true)
-    .test(samples, 1000, 0.1, 100);
+    for(int i=0;i<1000;i++) new PipelineNetwork()
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.).setVerbose(verbose))
+    .setRate(0.1).setVerbose(verbose)
+    .test(samples, 1000, 0.1, 1);
   }
 
   @Test
