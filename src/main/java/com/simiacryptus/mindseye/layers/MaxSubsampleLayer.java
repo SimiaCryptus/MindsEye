@@ -18,6 +18,10 @@ public class MaxSubsampleLayer extends NNLayer {
   
   private int[] kernelDims;
   
+  protected MaxSubsampleLayer() {
+    super();
+  }
+
   public MaxSubsampleLayer(final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
