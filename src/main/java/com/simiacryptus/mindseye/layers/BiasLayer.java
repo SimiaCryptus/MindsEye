@@ -16,6 +16,12 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
   private final double[] bias;
   private final DeltaMassMomentumBuffer deltaBuffer;
 
+  protected BiasLayer() {
+    super();
+    this.bias = null;
+    this.deltaBuffer = null;
+  }
+
   public BiasLayer(final int[] outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
     this.deltaBuffer = new DeltaMassMomentumBuffer(this.bias);

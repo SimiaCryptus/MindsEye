@@ -13,6 +13,13 @@ public class DeltaInversionBuffer {
   private double[] signalBuffer;
   private final DeltaBuffer sink;
 
+  
+  protected DeltaInversionBuffer() {
+    super();
+    minInversionRatio = 0;
+    sink = null;
+  }
+
   public DeltaInversionBuffer(final double minInversionRatio, final DeltaBuffer sink) {
     this.sink = sink;
     this.minInversionRatio = minInversionRatio;

@@ -7,13 +7,14 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
-import com.simiacryptus.mindseye.test.TestNetworkUnit;
+import com.simiacryptus.mindseye.test.SimpleNetworkTests;
 
 public class PipelineNetwork extends NNLayer {
-  static final Logger log = LoggerFactory.getLogger(TestNetworkUnit.class);
+  static final Logger log = LoggerFactory.getLogger(SimpleNetworkTests.class);
   
   private int improvementStaleThreshold = 20;
   private double lastRms = Double.MAX_VALUE;
@@ -84,12 +85,13 @@ public class PipelineNetwork extends NNLayer {
   }
   
   public void test(final NDArray[][] samples, final int maxIterations, final double convergence, final int trials) {
+    Kryo kryo = new Kryo();
     for (int epoch = 0; epoch < trials; epoch++)
     {
       // BUG: The previous network's state ensures future trials succeed immediately.
-      final double rms = train(samples, maxIterations, convergence);
-      PipelineNetwork.log.info("RMS Error: {}", rms);
-      if (rms >= convergence) throw new RuntimeException("Failed in trial " + epoch);
+      final double rms = kryo.copy(this).train(samples, maxIterations, convergence);
+      if (isVerbose()) log.info("Final RMS Error: {}", rms);
+      if (!Double.isFinite(rms) || rms >= convergence) throw new RuntimeException("Failed in trial " + epoch);
     }
   }
   
@@ -102,7 +104,7 @@ public class PipelineNetwork extends NNLayer {
       rms += net.eval(input).errRms(output);
     }
     rms /= samples.length;
-    PipelineNetwork.log.info("RMS Error: {}", rms);
+    if (isVerbose()) log.info("Starting RMS Error: {}", rms);
     for (int i = 0; i < maxIterations; i++)
     {
       if (shouldMutate(i, rms)) {
@@ -123,7 +125,7 @@ public class PipelineNetwork extends NNLayer {
         break;
       }
       if (isVerbose()) {
-        PipelineNetwork.log.info("RMS Error: {}", rms);
+        log.info("RMS Error: {}", rms);
       }
     }
     return rms;

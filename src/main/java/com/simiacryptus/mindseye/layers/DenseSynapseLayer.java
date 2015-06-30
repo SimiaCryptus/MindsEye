@@ -25,12 +25,18 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   private DeltaMassMomentumBuffer massMomentum;
   private final int[] outputDims;
   private final NDArray weights;
+  
+  protected DenseSynapseLayer() {
+    super();
+    outputDims = null;
+    weights = null;
+  }
 
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
     this.massMomentum = new DeltaMassMomentumBuffer(this.weights);
-    this.deltaBuffer = new DeltaInversionBuffer(1, this.massMomentum);
+    this.deltaBuffer = new DeltaInversionBuffer(0, this.massMomentum);
   }
 
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {

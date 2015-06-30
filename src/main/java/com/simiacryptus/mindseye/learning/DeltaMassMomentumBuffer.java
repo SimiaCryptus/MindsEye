@@ -9,6 +9,10 @@ public class DeltaMassMomentumBuffer implements DeltaBuffer, MassParameters<Delt
   private double[] momentum;
   private double[] values;
   
+  public DeltaMassMomentumBuffer() {
+    super();
+  }
+
   public DeltaMassMomentumBuffer(final double[] values) {
     this.values = values;
     this.momentum = new double[values.length];
