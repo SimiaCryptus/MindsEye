@@ -27,7 +27,7 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1, 1 }) }
     };
     new PipelineNetwork()
-        .add(new BiasLayer(inputSize))
+        .add(new BiasLayer(inputSize).setMomentumDecay(0.))
         .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.1, 100);
   }
@@ -40,9 +40,9 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1, 1 }) }
     };
     new PipelineNetwork()
-        .add(new BiasLayer(inputSize))
+        .add(new BiasLayer(inputSize).setMomentumDecay(0.))
         .setRate(0.1).setVerbose(false)
-        .test(samples, 1000, 0.1, 100);
+        .test(samples, 1000, 0.01, 100);
   }
   
   @Test
@@ -53,7 +53,7 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 1, -1 }) }
     };
     new PipelineNetwork()
-        .add(new BiasLayer(inputSize))
+        .add(new BiasLayer(inputSize).setMomentumDecay(0.))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.1, 100);
@@ -70,7 +70,7 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) }
     };
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
       new PipelineNetwork()
           .add(
               new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.)

@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.test;
 
 import java.util.Random;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ public class SimpleNetworkTests {
   }
   
   @Test
+  @Ignore
   public void test_BasicNN_AND_Softmax() throws Exception {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
@@ -139,7 +141,7 @@ public class SimpleNetworkTests {
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
         
-        .setRate(0.0001).setMutationAmount(1.).setVerbose(true)
+        .setRate(0.0001).setMutationAmount(1.)//.setVerbose(true)
         .test(samples, 100000, 0.01, 10);
   }
   
@@ -169,7 +171,7 @@ public class SimpleNetworkTests {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.9))
         .add(new BiasLayer(outSize).setMomentumDecay(0.9))
         .add(new SigmoidActivationLayer())
-        .setRate(0.0001).setVerbose(true)
+        .setRate(0.0001)//.setVerbose(true)
         .test(samples, 100000, 0.01, 10);
   }
   
@@ -203,7 +205,7 @@ public class SimpleNetworkTests {
     new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
-        .setRate(0.01)
+        .setRate(0.01).setMutationAmount(0.3)
         .test(samples, 10000, 0.01, 100);
     
     new PipelineNetwork()

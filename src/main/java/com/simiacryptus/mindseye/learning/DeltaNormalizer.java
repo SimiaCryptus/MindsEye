@@ -26,17 +26,26 @@ public class DeltaNormalizer implements DeltaBuffer {
     this(values.data);
   }
   
+  private boolean enabled = false;
+  
   @Override
   public void feed(final double[] data) {
     
     final int dim = length();
     double[] v = new double[data.length];
     for (int i = 0; i < dim; i++) {
-      double before = Math.log(Math.abs(values[i]) / alpha) * beta;
-      double after = Math.log(Math.abs(values[i] + data[i]) / alpha) * beta;
-      double f = before>after?1:Math.min(Math.abs(1. / (Math.exp(after) - Math.exp(before))), 1.);
-      assert Double.isFinite(f);
-      assert f <= 1.0;
+      double f;
+      if (enabled) {
+        double before = Math.log(Math.abs(values[i]) / alpha) * beta;
+        double after = Math.log(Math.abs(values[i] + data[i]) / alpha) * beta;
+        f = before > after ? 1 : Math.min(Math.abs(1. / (Math.exp(after) - Math.exp(before))), 1.);
+        assert Double.isFinite(f);
+        assert f <= 1.0;
+      }
+      else
+      {
+        f = 1.;
+      }
       v[i] += f * data[i];
     }
     this.sink.feed(v);
@@ -62,6 +71,15 @@ public class DeltaNormalizer implements DeltaBuffer {
   
   public DeltaNormalizer setBeta(double beta) {
     this.beta = beta;
+    return this;
+  }
+  
+  public boolean isEnabled() {
+    return enabled;
+  }
+  
+  public DeltaNormalizer setEnabled(boolean enabled) {
+    this.enabled = enabled;
     return this;
   }
   

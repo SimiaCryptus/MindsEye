@@ -15,7 +15,7 @@ import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.test.SimpleNetworkTests;
 
 public class PipelineNetwork extends NNLayer {
-  static final Logger log = LoggerFactory.getLogger(SimpleNetworkTests.class);
+  static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
   
   private int improvementStaleThreshold = 20;
   private List<NNLayer> layers = new ArrayList<NNLayer>();
@@ -66,7 +66,7 @@ public class PipelineNetwork extends NNLayer {
   }
   
   protected PipelineNetwork mutate(final double amount) {
-    log.debug(String.format("Mutating %s by %s", this, amount));
+    if(verbose) log.debug(String.format("Mutating %s by %s", this, amount));
     this.layers.stream()
         .filter(l -> (l instanceof DenseSynapseLayer))
         .forEach(l -> mutate((DenseSynapseLayer) l, amount));
@@ -143,7 +143,7 @@ public class PipelineNetwork extends NNLayer {
       }
       rms = 0;
       int count = 0;
-      for (int rep = 0; rep < 1000; rep++)
+      for (int rep = 0; rep < 1; rep++)
         for (final NDArray[] sample : samples) {
           final NDArray input = sample[0];
           final NDArray output = sample[1];
@@ -162,7 +162,7 @@ public class PipelineNetwork extends NNLayer {
       if (mutated) {
         double improvement = bestRms - rms;
         if (improvement <= 0) {
-          log.debug("Discarding " + net);
+          if(verbose) log.debug("Discarding " + net);
           net = best;
           rms = bestRms;
           //log.debug("Restored rms: " + bestRms);
