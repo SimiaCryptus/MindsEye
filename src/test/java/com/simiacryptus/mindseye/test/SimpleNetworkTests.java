@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.test;
 
 import java.util.Random;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,7 @@ public class SimpleNetworkTests {
         .test(samples, 100000, 0.01, 10);
   }
   
+  @Ignore
   @Test
   public void test_BasicNN_XOR_Softmax() throws Exception {
     final int[] midSize = new int[] { 2 };
@@ -75,9 +77,8 @@ public class SimpleNetworkTests {
     };
     new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
-        .add(new BiasLayer(outSize).setMass(2))
         .add(new SoftmaxActivationLayer())
-        .setRate(0.001)
+        .setVerbose(true)
         .test(samples, 100000, 0.01, 10);
   }
   

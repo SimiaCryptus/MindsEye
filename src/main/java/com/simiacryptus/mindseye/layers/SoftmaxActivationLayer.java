@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.layers;
 
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
 import org.jblas.DoubleMatrix;
@@ -38,7 +39,8 @@ public class SoftmaxActivationLayer extends NNLayer {
       @Override
       public void feedback(final NDArray data) {
         if (inObj.isAlive()) {
-          final double[] delta = data.data;
+          final double[] delta = Arrays.copyOf(data.data, data.data.length);
+          for(int i=0;i<delta.length;i++) if(delta[i] < 0) delta[i] = 0;
           inObj.feedback(new NDArray(data.getDims(), org.jblas.Solve.solveLeastSquares(
               new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
               new DoubleMatrix(delta.length, 1, delta)).data));
