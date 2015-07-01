@@ -2,27 +2,27 @@ package com.simiacryptus.mindseye.learning;
 
 import com.simiacryptus.mindseye.NDArray;
 
-public class DeltaMassMomentumBuffer implements DeltaBuffer, MassParameters<DeltaMassMomentumBuffer> {
+public class DeltaMassMomentum implements DeltaSink, MassParameters<DeltaMassMomentum> {
 
   private double decay = 0.9;
   private double mass = 1.;
   private double[] momentum;
-  private DeltaBuffer values;
+  private DeltaSink values;
 
-  public DeltaMassMomentumBuffer() {
+  public DeltaMassMomentum() {
     super();
   }
 
-  public DeltaMassMomentumBuffer(final double[] values) {
+  public DeltaMassMomentum(final double[] values) {
     this(new DeltaMemoryWriter(values));
   }
 
-  public DeltaMassMomentumBuffer(final DeltaBuffer values) {
+  public DeltaMassMomentum(final DeltaSink values) {
     this.values = values;
     this.momentum = new double[values.length()];
   }
 
-  public DeltaMassMomentumBuffer(final NDArray values) {
+  public DeltaMassMomentum(final NDArray values) {
     this(values.data);
   }
 
@@ -53,13 +53,13 @@ public class DeltaMassMomentumBuffer implements DeltaBuffer, MassParameters<Delt
   }
 
   @Override
-  public DeltaMassMomentumBuffer setMass(final double mass) {
+  public DeltaMassMomentum setMass(final double mass) {
     this.mass = mass;
     return this;
   }
 
   @Override
-  public DeltaMassMomentumBuffer setMomentumDecay(final double momentumDecay) {
+  public DeltaMassMomentum setMomentumDecay(final double momentumDecay) {
     this.decay = momentumDecay;
     return this;
   }

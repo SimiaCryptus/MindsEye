@@ -2,7 +2,7 @@ package com.simiacryptus.mindseye.learning;
 
 import com.simiacryptus.mindseye.NDArray;
 
-public class DeltaMemoryWriter implements DeltaBuffer {
+public class DeltaMemoryWriter implements DeltaSink {
 
   private double[] values;
 

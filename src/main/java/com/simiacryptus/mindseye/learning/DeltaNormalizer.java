@@ -2,9 +2,9 @@ package com.simiacryptus.mindseye.learning;
 
 import com.simiacryptus.mindseye.NDArray;
 
-public class DeltaNormalizer implements DeltaBuffer {
+public class DeltaNormalizer implements DeltaSink {
   
-  private DeltaBuffer sink;
+  private DeltaSink sink;
   private double[] values;
   private double alpha = 2.;
   private double beta = 4.;
@@ -17,7 +17,7 @@ public class DeltaNormalizer implements DeltaBuffer {
     this(new DeltaMemoryWriter(values), values);
   }
   
-  public DeltaNormalizer(final DeltaBuffer sink, final double[] values) {
+  public DeltaNormalizer(final DeltaSink sink, final double[] values) {
     this.sink = sink;
     this.values = values;
   }

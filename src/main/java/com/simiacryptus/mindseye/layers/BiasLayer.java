@@ -8,18 +8,21 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.learning.DeltaMassMomentumBuffer;
-import com.simiacryptus.mindseye.learning.DeltaNormalizer;
+import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
+import com.simiacryptus.mindseye.learning.DeltaMemoryBufferWriter;
+import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
+public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, DeltaTransaction {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
   
-  private final double[] bias;
-  private final DeltaMassMomentumBuffer deltaBuffer;
+  public final double[] bias;
+  private final DeltaMassMomentum deltaBuffer;
+
+  private DeltaMemoryBufferWriter writer;
   
   protected BiasLayer() {
     super();
@@ -29,7 +32,8 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
   
   public BiasLayer(final int[] outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
-    this.deltaBuffer = new DeltaMassMomentumBuffer(new DeltaNormalizer(this.bias));
+    this.writer = new DeltaMemoryBufferWriter(this.bias);
+    this.deltaBuffer = new DeltaMassMomentum(writer);
   }
   
   @Override
@@ -85,6 +89,11 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer> {
   @Override
   public String toString() {
     return "BiasLayer " + Arrays.toString(bias);
+  }
+
+  @Override
+  public void write() {
+    writer.write();
   }
 
 }

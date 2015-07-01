@@ -17,7 +17,7 @@ public class DeltaInversionBuffer {
   
   private final double minInversionRatio;
   private double[] signalBuffer;
-  private final DeltaBuffer sink;
+  private final DeltaSink sink;
   
   protected DeltaInversionBuffer() {
     super();
@@ -25,7 +25,7 @@ public class DeltaInversionBuffer {
     this.sink = null;
   }
   
-  public DeltaInversionBuffer(final double minInversionRatio, final DeltaBuffer sink) {
+  public DeltaInversionBuffer(final double minInversionRatio, final DeltaSink sink) {
     this.sink = sink;
     this.minInversionRatio = minInversionRatio;
   }

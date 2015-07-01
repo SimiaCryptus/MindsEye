@@ -22,7 +22,7 @@ public class NetworkElementUnitTests {
   public static final Random random = new Random();
   
   @Test
-  public void bias_bias() throws Exception {
+  public void bias_feedback() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
@@ -30,6 +30,7 @@ public class NetworkElementUnitTests {
     };
     new PipelineNetwork()
         .add(new BiasLayer(inputSize).setMomentumDecay(0.))
+        .add(new BiasLayer(inputSize).setMomentumDecay(0.).setMass(Double.POSITIVE_INFINITY))
         .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.1, 100);
   }

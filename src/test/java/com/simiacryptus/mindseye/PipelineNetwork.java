@@ -11,8 +11,8 @@ import com.esotericsoftware.kryo.Kryo;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
-import com.simiacryptus.mindseye.test.SimpleNetworkTests;
 
 public class PipelineNetwork extends NNLayer {
   static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
@@ -20,7 +20,7 @@ public class PipelineNetwork extends NNLayer {
   private int improvementStaleThreshold = 20;
   private List<NNLayer> layers = new ArrayList<NNLayer>();
   private double mutationAmount = 0.5;
-  private double rate = 0.00001;
+  private double rate = 0.1;
   private boolean verbose = false;
   
   public PipelineNetwork add(final NNLayer layer) {
@@ -45,17 +45,19 @@ public class PipelineNetwork extends NNLayer {
     return this.rate;
   }
   
-  public double getRate(final int iteration) {
-    return this.rate;
-  }
-  
   public boolean isVerbose() {
     return this.verbose;
   }
   
   protected BiasLayer mutate(final BiasLayer l, final double amount) {
-//    final Random random = new Random();
-//    l.addWeights(() -> amount * random.nextGaussian() * Math.exp(Math.random() * 4) / 2);
+    final Random random = new Random();
+    double[] a = l.bias;
+    for(int i=0;i<a.length;i++)
+    {
+      if(random.nextDouble() < amount) {
+        a[i] = random.nextGaussian();
+      }
+    }
     return l;
   }
   
@@ -64,8 +66,8 @@ public class PipelineNetwork extends NNLayer {
     double[] a = l.weights.data;
     for(int i=0;i<a.length;i++)
     {
-      if(random.nextDouble() < amount/2) {
-        a[i] *= -1;
+      if(random.nextDouble() < amount) {
+        a[i] = random.nextGaussian();
       }
     }
     return l;
@@ -131,9 +133,9 @@ public class PipelineNetwork extends NNLayer {
       log.info("Starting RMS Error: {}", rms);
     }
     int totalIterations=0;
-    int lessons = 1;
+    int lessons = 5;
     int generations = maxIterations / lessons;
-    for (int i = 0; i < generations; i++)
+    for (int generation = 0; generation < generations; generation++)
     {
       boolean mutated = false;
       boolean shouldMutate;
@@ -150,36 +152,51 @@ public class PipelineNetwork extends NNLayer {
         shouldMutate = false;
       }
       if (shouldMutate) {
-        //net = new Kryo().copy(net);
         mutated = true;
         net.mutate(net.getMutationAmount());
       }
       rms = 0;
       int count = 0;
-      for (int rep = 0; rep < lessons; rep++)
-        for (final NDArray[] sample : samples) {
-          totalIterations++;
-          final NDArray input = sample[0];
-          final NDArray output = sample[1];
-          final double rate = net.getRate(i);
-          final NNResult eval = net.eval(input);
-          final double trialRms = eval.errRms(output);
-          rms += trialRms;
-          count++;
-          final NDArray delta = eval.delta(rate, output);
-          eval.feedback(delta);
-          if (net.isVerbose()) {
-            // assert(net.eval(input).errRms(output) < trialRms) : "A marginal local improvement was expected";
-          }
+      double lastRms = Double.NaN;
+      double rate = net.rate;
+      for (int schoolDay = 0; schoolDay < lessons; schoolDay++) {
+        double thisRms = 0;
+        for (int lesson = 0; lesson < lessons; lesson++) {
+          thisRms += net.trainSet(samples, rate);
         }
+        thisRms /= lessons;
+        if(Double.isFinite(lastRms)) {
+          double expectedImprovement = lastRms * net.rate/(10+totalIterations);
+          double improvement = lastRms - thisRms;
+          if(0. == improvement) {
+            if(verbose) log.debug("Null improvement: " + net);
+            if(verbose) log.debug(String.format("Discarding %s rms: %s", rms, net));
+            net = best;
+            rms = bestRms;
+            break;
+          }
+          double idealRate = rate * expectedImprovement / improvement;
+          double critical = 10;
+          if(idealRate > critical) idealRate = critical;
+          else if(idealRate < -critical) idealRate = -critical;
+          double prevRate = rate;
+          if(verbose) log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
+          rate += 0.1 * (idealRate-rate);
+          if(verbose) log.debug(String.format("Rate %s -> %s", prevRate, rate));
+        }
+        totalIterations += samples.length;
+        count += samples.length;
+        rms += thisRms * lessons;
+        lastRms = thisRms;
+        net.writeDeltas();
+      }
       rms /= count;
       if (mutated) {
         double improvement = bestRms - rms;
         if (improvement <= 0) {
-          if(verbose) log.debug("Discarding " + net);
+          if(verbose) log.debug(String.format("Discarding %s rms: %s", rms, net));
           net = best;
           rms = bestRms;
-          //log.debug("Restored rms: " + bestRms);
         }
       }
       if (rms < convergence) break;
@@ -188,6 +205,27 @@ public class PipelineNetwork extends NNLayer {
       }
     }
     log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis()-startMs)/1000., totalIterations));
+    return rms;
+  }
+
+  private void writeDeltas() {
+    for(NNLayer l : layers) {
+      if(l instanceof DeltaTransaction) ((DeltaTransaction)l).write();
+    }
+  }
+
+  private double trainSet(final NDArray[][] samples, final double rate) {
+    setRate(rate);
+    double rms = 0;
+    for (final NDArray[] sample : samples) {
+      final NDArray input = sample[0];
+      final NDArray output = sample[1];
+      final NNResult eval = this.eval(input);
+      final double trialRms = eval.errRms(output);
+      rms += trialRms;
+      final NDArray delta = eval.delta(rate, output);
+      eval.feedback(delta);
+    }
     return rms;
   }
 

@@ -11,22 +11,25 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
-import com.simiacryptus.mindseye.learning.DeltaMassMomentumBuffer;
-import com.simiacryptus.mindseye.learning.DeltaNormalizer;
+import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
+import com.simiacryptus.mindseye.learning.DeltaMemoryBufferWriter;
+import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSynapseLayer> {
+public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSynapseLayer>, DeltaTransaction {
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
   
   private double backpropPruning = 0.;
   private DeltaInversionBuffer deltaBuffer;
   private boolean frozen = false;
-  private DeltaMassMomentumBuffer massMomentum;
+  private DeltaMassMomentum massMomentum;
   private final int[] outputDims;
   private boolean verbose = false;
   
   public final NDArray weights;
+
+  private DeltaMemoryBufferWriter writer;
 
   protected DenseSynapseLayer() {
     super();
@@ -37,7 +40,8 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
-    this.massMomentum = new DeltaMassMomentumBuffer(new DeltaNormalizer(this.weights));
+    this.writer = new DeltaMemoryBufferWriter(this.weights);
+    this.massMomentum = new DeltaMassMomentum(writer);
     this.deltaBuffer = new DeltaInversionBuffer(1, this.massMomentum);
   }
   
@@ -60,7 +64,8 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
         if (null != weightGradient) {
           weightGradient.add(new int[] { this.weights.index(i, o), o }, b);
         }
-        output.add(o, b * a);
+        double value = b * a;
+        if(Double.isFinite(value)) output.add(o, value);
       });
     });
     if (isVerbose()) {
@@ -157,6 +162,11 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   @Override
   public String toString() {
     return "DenseSynapseLayer [weights=" + weights + "]";
+  }
+
+  @Override
+  public void write() {
+    writer.write();
   }
 
   
