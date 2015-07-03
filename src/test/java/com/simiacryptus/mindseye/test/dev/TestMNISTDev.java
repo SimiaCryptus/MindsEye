@@ -38,26 +38,25 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 
-public class TestNetworkDev {
-  public static final class Network extends PipelineNetwork {
+public class TestMNISTDev {
+  public static class Network extends PipelineNetwork {
+    final NDArray inputSize = new NDArray(28, 28);
     
     public Network() {
       super();
-      final NDArray inputSize = new NDArray(28, 28);
       
       // layers.add(new NormalizerLayer(inputSize.getDims()));
       
       add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3)
-          .fillWeights(() -> 0.001 * TestNetworkDev.random.nextGaussian()));
+          .fillWeights(() -> 0.001 * TestMNISTDev.random.nextGaussian()));
       add(new MaxSubsampleLayer(4, 4, 1));
       add(new BiasLayer(eval(inputSize).data.getDims()));
       add(new SigmoidActivationLayer());
       
       add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2)
-          .fillWeights(() -> 0.001 * TestNetworkDev.random.nextGaussian()));
+          .fillWeights(() -> 0.001 * TestMNISTDev.random.nextGaussian()));
       add(new MaxSubsampleLayer(2, 2, 1, 1));
       add(new BiasLayer(eval(inputSize).data.getDims()));
       add(new SigmoidActivationLayer());
@@ -67,7 +66,7 @@ public class TestNetworkDev {
       // layers.add(new SigmoidActivationLayer());
       
       add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
-          .addWeights(() -> 0.001 * TestNetworkDev.random.nextGaussian()));
+          .addWeights(() -> 0.001 * TestMNISTDev.random.nextGaussian()));
       add(new BiasLayer(eval(inputSize).data.getDims()));
       // layers.add(new BiasLayer(eval(inputSize).data.getDims()));
       add(new SigmoidActivationLayer());
@@ -76,21 +75,21 @@ public class TestNetworkDev {
     
   }
   
-  private static final Logger log = LoggerFactory.getLogger(TestNetworkDev.class);
+  private static final Logger log = LoggerFactory.getLogger(TestMNISTDev.class);
   
   public static final Random random = new Random();
   
   public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
     final DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(new File(path, name))));
     in.skip(skip);
-    return TestNetworkDev.toIterator(new BinaryChunkIterator(in, recordSize));
+    return TestMNISTDev.toIterator(new BinaryChunkIterator(in, recordSize));
   }
   
   public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
   
-  private void report(final List<LabeledObject<NDArray>> buffer) throws FileNotFoundException, IOException {
+  private void report(final List<LabeledObject<NDArray>> buffer, Network net) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
@@ -99,8 +98,7 @@ public class TestNetworkDev {
     out.println("<html><head></head><body>");
     buffer.stream()
         .sorted(Comparator.comparing(img -> img.label))
-        .map(x -> x.<BufferedImage> map(this::toImage))
-        .map(this::toInlineImage)
+        .map(x -> "<p>" + toInlineImage(x.<BufferedImage> map(this::toImage)) + net.eval(x.data).data.toString() + "</p>")
         .forEach(out::println);
     out.println("</body></html>");
     out.close();
@@ -109,45 +107,32 @@ public class TestNetworkDev {
   
   @Test
   public void test() throws Exception {
-    TestNetworkDev.log.info("Starting");
-    
-    final NNLayer net = new Network();
-    
+    TestMNISTDev.log.info("Starting");
+    Network net = getNetwork();
     final List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
-    double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();
-    TestNetworkDev.log.info("Initial RMS Error: {}", prevRms);
-    double learningRate = 0.1;
-    final double adaptivity = 1.1;
-    final double decayBias = 1.5;
-    for (int i = 0; i < 1000; i++)
+    NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(100)
+        .map(o -> new NDArray[]{o.data, toOutNDArray(toOut(o.label), 10)})
+        .toArray(i2->new NDArray[i2][]);
+    net = (Network) net.setVerbose(true).test(data, 10000, 0.01, 1);
     {
-      if (i < 5) {
-        learningRate = 0.2;
-      } else if (i < 50) {
-        learningRate = 0.01;
-      } else {
-        learningRate = 0.0001;
-      }
-      
-      final double currentRate = learningRate;
-      Util.shuffle(buffer, TestNetworkDev.random).parallelStream().limit(100).forEach(o -> {
-        net.eval(o.data).learn(currentRate, toOut(o.label));
-      });
-      final double rms = Util.shuffle(buffer, TestNetworkDev.random).parallelStream().limit(10).mapToDouble(o1 -> net.eval(o1.data).errRms(toOut(o1.label)))
-          .average()
-          .getAsDouble();
-      TestNetworkDev.log.info("RMS Error: {}; Learning Rate: {}", rms, currentRate);
-      if (rms < prevRms) {
-        learningRate *= adaptivity;
-      } else {
-        learningRate /= Math.pow(adaptivity, decayBias);
-      }
-      prevRms = rms;
+      Network net2 = net;
+      double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();
+      TestMNISTDev.log.info("Tested RMS Error: {}", prevRms);
     }
-    
-    report(buffer);
+    report(buffer, net);
+  }
+
+  protected Network getNetwork() {
+    Network net = new Network();
+    return net;
   }
   
+  private NDArray toOutNDArray(int out, int max) {
+    NDArray ndArray = new NDArray(max);
+    ndArray.set(out, 1);
+    return ndArray;
+  }
+
   public NDArray toImage(final byte[] b) {
     final NDArray ndArray = new NDArray(28, 28);
     for (int x = 0; x < 28; x++)
@@ -194,8 +179,8 @@ public class TestNetworkDev {
   
   private Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
     final String path = "C:/Users/Andrew Charneski/Downloads";
-    final Stream<NDArray> imgStream = TestNetworkDev.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
-    final Stream<byte[]> labelStream = TestNetworkDev.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
+    final Stream<NDArray> imgStream = TestMNISTDev.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
+    final Stream<byte[]> labelStream = TestMNISTDev.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
     
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
       Iterator<NDArray> imgItr = imgStream.iterator();

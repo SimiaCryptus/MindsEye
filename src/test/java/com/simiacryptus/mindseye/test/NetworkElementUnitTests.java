@@ -78,8 +78,8 @@ public class NetworkElementUnitTests {
           .add(
               new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.)
                   .setVerbose(verbose))
-          .setRate(0.1).setVerbose(verbose)
-          .test(samples, 1000, 0.1, 1);
+          .setVerbose(verbose)
+          .test(samples, 10000, 0.1, 1);
     }
   }
 

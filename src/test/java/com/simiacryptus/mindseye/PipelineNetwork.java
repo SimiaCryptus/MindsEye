@@ -3,6 +3,8 @@ package com.simiacryptus.mindseye;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ public class PipelineNetwork extends NNLayer {
   static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
   
   private int improvementStaleThreshold = 20;
-  private List<NNLayer> layers = new ArrayList<NNLayer>();
+  protected List<NNLayer> layers = new ArrayList<NNLayer>();
   private double mutationAmount = 0.5;
   private double rate = 0.1;
   private boolean verbose = false;
@@ -99,8 +101,9 @@ public class PipelineNetwork extends NNLayer {
     return this;
   }
   
-  public void test(final NDArray[][] samples, final int maxIterations, final double convergence, final int trials) {
+  public PipelineNetwork test(final NDArray[][] samples, final int maxIterations, final double convergence, final int trials) {
     final Kryo kryo = new Kryo();
+    PipelineNetwork lastGood = null;
     for (int epoch = 0; epoch < trials; epoch++)
     {
       PipelineNetwork student = kryo.copy(this).mutate(1.);
@@ -111,8 +114,11 @@ public class PipelineNetwork extends NNLayer {
       if (!Double.isFinite(rms) || rms >= convergence) {
         log.info(String.format("Failed to converge in trial %s; Best RMS=%s: %s", epoch, rms, student));
         throw new RuntimeException("Failed in trial " + epoch);
+      } else {
+        lastGood = student;
       }
     }
+    return lastGood;
   }
   
   protected double train(final NDArray[][] samples, final int maxIterations, final double convergence) {
@@ -188,7 +194,6 @@ public class PipelineNetwork extends NNLayer {
         count += samples.length;
         rms += thisRms * lessons;
         lastRms = thisRms;
-        net.writeDeltas();
       }
       rms /= count;
       if (mutated) {
@@ -216,16 +221,16 @@ public class PipelineNetwork extends NNLayer {
 
   private double trainSet(final NDArray[][] samples, final double rate) {
     setRate(rate);
-    double rms = 0;
-    for (final NDArray[] sample : samples) {
+    double rms = Stream.of(samples).parallel().mapToDouble(sample->{
       final NDArray input = sample[0];
       final NDArray output = sample[1];
       final NNResult eval = this.eval(input);
       final double trialRms = eval.errRms(output);
-      rms += trialRms;
       final NDArray delta = eval.delta(rate, output);
       eval.feedback(delta);
-    }
+      return trialRms;
+    }).sum();
+    writeDeltas();
     return rms;
   }
 
