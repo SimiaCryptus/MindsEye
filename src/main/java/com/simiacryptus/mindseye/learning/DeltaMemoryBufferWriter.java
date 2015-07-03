@@ -34,6 +34,7 @@ public class DeltaMemoryBufferWriter implements DeltaSink, DeltaTransaction {
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       this.values[i] += buffer[i];
+      if(Double.isNaN(this.values[i])) this.values[i] = 0;
       buffer[i] = 0;
     }
   }

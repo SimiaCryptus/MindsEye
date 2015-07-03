@@ -30,7 +30,7 @@ public class DeltaInversionBuffer {
     this.minInversionRatio = minInversionRatio;
   }
   
-  public void feed(final NDArray weightGradient, final double[] data) {
+  public synchronized void feed(final NDArray weightGradient, final double[] data) {
     if (DeltaInversionBuffer.DEBUG) {
       DeltaInversionBuffer.log.debug(String.format("Input: %s & %s", weightGradient, Arrays.toString(data)));
     }

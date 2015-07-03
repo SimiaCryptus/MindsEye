@@ -110,7 +110,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     final NDArray input = inObj.data;
     final NDArray output = new NDArray(this.outputDims);
     final NDArray inputGradient = new NDArray(input.dim(), output.dim());
-    final NDArray weightGradient = null != _weightGradient ? _weightGradient : this.frozen ? null : new NDArray(this.weights.dim(), output.dim());
+    final NDArray weightGradient = null != _weightGradient ? null : this.frozen ? null : new NDArray(this.weights.dim(), output.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, output.dim()).forEach(o -> {
         final double a = this.weights.get(i, o);

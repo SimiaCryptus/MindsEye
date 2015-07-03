@@ -135,7 +135,7 @@ public class SimpleNetworkTests {
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
         
-        .setRate(0.0001).setMutationAmount(0.1).setVerbose(true)
+        .setRate(0.0001).setMutationAmount(0.1)
         .test(samples, 10000, 0.01, 10);
   }
   
@@ -198,20 +198,17 @@ public class SimpleNetworkTests {
     new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
-        .setRate(0.01).setMutationAmount(0.3)
-        .test(samples, 10000, 0.01, 100);
+        .test(samples, 10000, 0.01, 10);
     
     new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
-        .setRate(0.01)
-        .test(samples, 10000, 0.01, 100);
+        .test(samples, 10000, 0.01, 10);
     
     new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .setRate(0.01)
-        .test(samples, 10000, 0.01, 100);
+        .test(samples, 10000, 0.01, 10);
   }
   
   @Test
@@ -226,7 +223,7 @@ public class SimpleNetworkTests {
     new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
         .setRate(0.1)
-        .test(samples, 1000, 0.01, 100);
+        .test(samples, 10000, 0.01, 100);
   }
   
 }
