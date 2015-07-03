@@ -98,7 +98,7 @@ public class TestMNISTDev {
     out.println("<html><head></head><body>");
     buffer.stream()
         .sorted(Comparator.comparing(img -> img.label))
-        .map(x -> "<p>" + toInlineImage(x.<BufferedImage> map(this::toImage)) + net.eval(x.data).data.toString() + "</p>")
+        .map(x -> "<p>" + toInlineImage(x.<BufferedImage> map(TestMNISTDev::toImage)) + net.eval(x.data).data.toString() + "</p>")
         .forEach(out::println);
     out.println("</body></html>");
     out.close();
@@ -127,13 +127,13 @@ public class TestMNISTDev {
     return net;
   }
   
-  private NDArray toOutNDArray(int out, int max) {
+  public static NDArray toOutNDArray(int out, int max) {
     NDArray ndArray = new NDArray(max);
     ndArray.set(out, 1);
     return ndArray;
   }
 
-  public NDArray toImage(final byte[] b) {
+  public static NDArray toImage(final byte[] b) {
     final NDArray ndArray = new NDArray(28, 28);
     for (int x = 0; x < 28; x++)
     {
@@ -145,11 +145,24 @@ public class TestMNISTDev {
     return ndArray;
   }
   
-  public BufferedImage toImage(final NDArray ndArray) {
-    final BufferedImage img = new BufferedImage(28, 28, BufferedImage.TYPE_INT_RGB);
-    for (int x = 0; x < 28; x++)
+  public static NDArray toNDArray(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight());
+    for (int x = 0; x < img.getWidth(); x++)
     {
-      for (int y = 0; y < 28; y++)
+      for (int y = 0; y < img.getHeight(); y++)
+      {
+        a.set(new int[]{x, y}, img.getRGB(x, y) &0xFF);
+      }
+    }
+    return a;
+  }
+  
+  public static BufferedImage toImage(final NDArray ndArray) {
+    int[] dims = ndArray.getDims();
+    final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
+    for (int x = 0; x < img.getWidth(); x++)
+    {
+      for (int y = 0; y < img.getHeight(); y++)
       {
         img.setRGB(x, y, (int) ndArray.get(x, y) * 0x00010101);
       }
@@ -157,7 +170,11 @@ public class TestMNISTDev {
     return img;
   }
   
-  public String toInlineImage(final LabeledObject<BufferedImage> img) {
+  public static String toInlineImage(final BufferedImage img, String alt) {
+    return toInlineImage(new LabeledObject<BufferedImage>(img, alt));
+  }
+  
+  public static String toInlineImage(final LabeledObject<BufferedImage> img) {
     final ByteArrayOutputStream b = new ByteArrayOutputStream();
     try {
       ImageIO.write(img.data, "PNG", b);
@@ -169,7 +186,7 @@ public class TestMNISTDev {
     return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
   }
   
-  private int toOut(final String label) {
+  public static int toOut(final String label) {
     for (int i = 0; i < 10; i++)
     {
       if (label.equals("[" + i + "]")) return i;
@@ -177,9 +194,9 @@ public class TestMNISTDev {
     throw new RuntimeException();
   }
   
-  private Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
+  public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
     final String path = "C:/Users/Andrew Charneski/Downloads";
-    final Stream<NDArray> imgStream = TestMNISTDev.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
+    final Stream<NDArray> imgStream = TestMNISTDev.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(TestMNISTDev::toImage);
     final Stream<byte[]> labelStream = TestMNISTDev.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
     
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
