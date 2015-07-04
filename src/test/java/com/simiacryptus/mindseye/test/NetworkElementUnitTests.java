@@ -31,7 +31,6 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize).setMomentumDecay(0.))
         .add(new BiasLayer(inputSize).setMomentumDecay(0.).setMass(Double.POSITIVE_INFINITY))
-        .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.1, 100);
   }
   
@@ -44,7 +43,6 @@ public class NetworkElementUnitTests {
     };
     new PipelineNetwork()
         .add(new BiasLayer(inputSize).setMomentumDecay(0.))
-        .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.01, 100);
   }
   
@@ -58,7 +56,6 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize).setMomentumDecay(0.))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.1, 100);
   }
   
@@ -78,7 +75,6 @@ public class NetworkElementUnitTests {
           .add(
               new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.)
                   .setVerbose(verbose))
-          .setVerbose(verbose)
           .test(samples, 10000, 0.1, 1);
     }
   }
@@ -99,7 +95,6 @@ public class NetworkElementUnitTests {
               .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
               .setMomentumDecay(0.)
               .setVerbose(verbose))
-          .setRate(0.1).setVerbose(verbose)
           .test(samples, 1000, 0.1, 1);
     }
   }
@@ -120,7 +115,6 @@ public class NetworkElementUnitTests {
               .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
               .setMomentumDecay(0.)
               .setVerbose(verbose))
-          .setRate(0.1).setVerbose(verbose)
           .test(samples, 1000, 0.1, 1);
     }
   }
@@ -138,7 +132,6 @@ public class NetworkElementUnitTests {
       new PipelineNetwork()
           .add(new BiasLayer(inputSize))
           .add(new MaxSubsampleLayer(2))
-          .setRate(0.1).setVerbose(verbose)
           .test(samples, 1000, 0.1, 1);
     }
   }
@@ -153,7 +146,6 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
         .add(new SigmoidActivationLayer())
-        .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.1, 100);
   }
   
@@ -167,7 +159,6 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
         .add(new SoftmaxActivationLayer())
-        .setRate(0.1).setVerbose(false)
         .test(samples, 1000, 0.1, 100);
   }
   
