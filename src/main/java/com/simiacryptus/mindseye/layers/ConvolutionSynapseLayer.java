@@ -24,6 +24,8 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   private DeltaMassMomentum massMomentum;
   private DeltaInversionBuffer deltaBuffer;
   private boolean verbose = false;
+
+  private boolean frozen = false;
   
   protected ConvolutionSynapseLayer() {
     super();
@@ -49,22 +51,21 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
         ).toArray();
     final NDArray output = new NDArray(newDims);
     final NDArray inputGradient = new NDArray(input.dim(), output.dim());
-    final NDArray weightGradient = new NDArray(this.kernel.dim(), output.dim());
+    final NDArray weightGradient = frozen?null:new NDArray(this.kernel.dim(), output.dim());
     new NDArray(kernelDims).coordStream().forEach(k -> {
       output.coordStream().forEach(o -> {
         final int[] i = Coordinate.add(k.coords, o.coords);
         final double a = this.kernel.get(k);
         final double b = input.get(i);
         inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
-        weightGradient.add(new int[] { this.kernel.index(k), output.index(o) }, b);
+        if (null != weightGradient) weightGradient.add(new int[] { this.kernel.index(k), output.index(o) }, b);
         output.add(o, b * a);
       });
     });
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data) {
-        final int dim = ConvolutionSynapseLayer.this.kernel.dim();
-        for (int i = 0; i < dim; i++) {
+        if (null != weightGradient) {
           ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
         }
         if (inObj.isAlive()) {
@@ -122,5 +123,23 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   public ConvolutionSynapseLayer setVerbose(boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  
+  public ConvolutionSynapseLayer freeze() {
+    return freeze(true);
+  }
+  
+  public ConvolutionSynapseLayer freeze(final boolean b) {
+    this.frozen = b;
+    return this;
+  }
+
+  public boolean isFrozen() {
+    return frozen;
+  }
+
+  public void setFrozen(boolean frozen) {
+    this.frozen = frozen;
   }
 }

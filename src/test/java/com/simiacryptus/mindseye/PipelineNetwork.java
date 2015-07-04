@@ -121,7 +121,7 @@ public class PipelineNetwork extends NNLayer {
     return lastGood;
   }
   
-  protected double train(final NDArray[][] samples, final int maxIterations, final double convergence) {
+  public double train(final NDArray[][] samples, final int maxIterations, final double minRms) {
     long startMs = System.currentTimeMillis();
     PipelineNetwork net = this;
     PipelineNetwork best = net;
@@ -204,7 +204,7 @@ public class PipelineNetwork extends NNLayer {
           rms = bestRms;
         }
       }
-      if (rms < convergence) break;
+      if (rms < minRms) break;
       if (net.isVerbose()) {
         log.info(String.format("RMS Error: %s", rms));
       }

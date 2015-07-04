@@ -49,6 +49,7 @@ public class ImageNetworkDev {
     convolution.kernel.set(new int[]{0,2,0}, 1);
     convolution.kernel.set(new int[]{1,1,0}, 1);
     convolution.kernel.set(new int[]{2,0,0}, 1);
+    convolution.freeze();
     
     PipelineNetwork net = new PipelineNetwork()
         .add(convolution);
@@ -56,9 +57,20 @@ public class ImageNetworkDev {
     
     Stream<BufferedImage[]> buffer = data.stream().map(obj->{
       NNResult output = net.eval(obj.data);
+      BiasLayer bias = new BiasLayer(inputSize);
+      PipelineNetwork invnet = new PipelineNetwork()
+        .add(bias)
+        .add(convolution);
+      invnet.setVerbose(true).train(new NDArray[][]{{obj.data, obj.data}}, 10000, 0.00001);
+
+      NNResult recovered = bias.eval(obj.data);
+      NNResult tested = net.eval(recovered.data);
+      
       return new BufferedImage[]{
           TestMNISTDev.toImage(obj.data),
-          TestMNISTDev.toImage(new NDArray(outSize, output.data.data))
+          TestMNISTDev.toImage(new NDArray(outSize, output.data.data)),
+          TestMNISTDev.toImage(new NDArray(inputSize, recovered.data.data)),
+          TestMNISTDev.toImage(new NDArray(outSize, tested.data.data))
       };
     });
     
@@ -69,7 +81,7 @@ public class ImageNetworkDev {
     final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
-    buffer.map(x -> "<p>" + TestMNISTDev.toInlineImage(x[0], "original") + TestMNISTDev.toInlineImage(x[1], "forward") + "</p>")
+    buffer.map(x -> "<p>" + Stream.of(x).map(o->TestMNISTDev.toInlineImage(o, "")).reduce((a, b)->a+b) + "</p>")
         .forEach(out::println);
     out.println("</body></html>");
     out.close();
