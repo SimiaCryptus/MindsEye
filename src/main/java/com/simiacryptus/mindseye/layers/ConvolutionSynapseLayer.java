@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
@@ -41,6 +42,8 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     this.deltaBuffer = new DeltaInversionBuffer(1, this.massMomentum);
   }
   
+  NDArray _inputGradient;
+
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -50,29 +53,45 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
         i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1
         ).toArray();
     final NDArray output = new NDArray(newDims);
-    final NDArray inputGradient = new NDArray(input.dim(), output.dim());
-    final NDArray weightGradient = frozen?null:new NDArray(this.kernel.dim(), output.dim());
+    final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
+    final NDArray weightGradient = this.frozen ? null : new NDArray(this.kernel.dim(), output.dim());
     new NDArray(kernelDims).coordStream().forEach(k -> {
       output.coordStream().forEach(o -> {
         final int[] i = Coordinate.add(k.coords, o.coords);
         final double a = this.kernel.get(k);
         final double b = input.get(i);
-        inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
-        if (null != weightGradient) weightGradient.add(new int[] { this.kernel.index(k), output.index(o) }, b);
+        if(null != inputGradient) 
+        {
+          inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
+        }
+        if (null != weightGradient) {
+          weightGradient.add(new int[] { this.kernel.index(k), output.index(o) }, b);
+        }
         output.add(o, b * a);
       });
     });
+    if (null != inputGradient) {
+      _inputGradient = inputGradient;
+    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data) {
-        if (null != weightGradient) {
+        if (null != inputGradient) {
           ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
         }
         if (inObj.isAlive()) {
           final double[] delta = data.data;
-          inObj.feedback(new NDArray(inputDims, org.jblas.Solve.solveLeastSquares(
-              new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
-              new DoubleMatrix(delta.length, 1, delta)).data));
+          DoubleMatrix pseudoinverse;
+          try {
+            pseudoinverse = DenseSynapseLayer.inverseCache.get(_inputGradient);
+          } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+          }
+          final double[] inverted = pseudoinverse.mmul(new DoubleMatrix(delta.length, 1, delta)).data;
+//          double[] inverted = org.jblas.Solve.solveLeastSquares(
+//              new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
+//              new DoubleMatrix(delta.length, 1, delta)).data;
+          inObj.feedback(new NDArray(inputDims, inverted));
         }
       }
       

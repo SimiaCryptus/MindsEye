@@ -29,6 +29,8 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     
     private DenseSynapseResult(NDArray data, NDArray inputGradient, NDArray weightGradient, NNResult inObj) {
       super(data);
+      if(null == inputGradient) throw new IllegalArgumentException();
+      //if(null == weightGradient) throw new IllegalArgumentException();
       this.inputGradient = inputGradient;
       this.weightGradient = weightGradient;
       this.inObj = inObj;
@@ -103,19 +105,21 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     }
   });
   
-  NDArray _weightGradient;
+  NDArray _inputGradient;
   
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
     final NDArray output = new NDArray(this.outputDims);
-    final NDArray inputGradient = new NDArray(input.dim(), output.dim());
-    final NDArray weightGradient = null != _weightGradient ? null : this.frozen ? null : new NDArray(this.weights.dim(), output.dim());
+    final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
+    final NDArray weightGradient = this.frozen ? null : new NDArray(this.weights.dim(), output.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, output.dim()).forEach(o -> {
         final double a = this.weights.get(i, o);
         final double b = input.data[i];
-        inputGradient.add(new int[] { i, o }, a);
+        if (null != inputGradient) {
+          inputGradient.add(new int[] { i, o }, a);
+        }
         if (null != weightGradient) {
           weightGradient.add(new int[] { this.weights.index(i, o), o }, b);
         }
@@ -123,13 +127,13 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
         if (Double.isFinite(value)) output.add(o, value);
       });
     });
-    if (null != weightGradient) {
-      _weightGradient = weightGradient;
+    if (null != inputGradient) {
+      _inputGradient = inputGradient;
     }
     if (isVerbose()) {
       DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj.data, this.weights, output));
     }
-    return new DenseSynapseResult(output, inputGradient, weightGradient, inObj);
+    return new DenseSynapseResult(output, _inputGradient, weightGradient, inObj);
   }
   
   public DenseSynapseLayer freeze() {
@@ -197,7 +201,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   
   @Override
   public void write() {
-    _weightGradient = null;
+    _inputGradient = null;
     writer.write();
   }
 

@@ -202,4 +202,24 @@ public class NDArray {
     }
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + Arrays.hashCode(data);
+    result = prime * result + Arrays.hashCode(dims);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    NDArray other = (NDArray) obj;
+    if (!Arrays.equals(data, other.data)) return false;
+    if (!Arrays.equals(dims, other.dims)) return false;
+    return true;
+  }
+  
 }
