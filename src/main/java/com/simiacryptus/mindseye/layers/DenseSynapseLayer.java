@@ -9,9 +9,6 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
@@ -46,7 +43,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
           final double[] delta = data.data;
           DoubleMatrix pseudoinverse;
           try {
-            pseudoinverse = inverseCache.get(inputGradient);
+            pseudoinverse = NDArray.inverseCache.get(inputGradient);
           } catch (ExecutionException e) {
             throw new RuntimeException(e);
           }
@@ -74,7 +71,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   private DeltaMassMomentum massMomentum;
   private final int[] outputDims;
   private boolean verbose = false;
-  
+  NDArray _inputGradient;
   public final NDArray weights;
   
   private DeltaMemoryBufferWriter writer;
@@ -97,15 +94,6 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     Util.add(f, this.weights.data);
     return this;
   }
-  
-  public static final LoadingCache<NDArray, DoubleMatrix> inverseCache = CacheBuilder.newBuilder().weakKeys().build(new CacheLoader<NDArray, DoubleMatrix>() {
-    @Override
-    public DoubleMatrix load(NDArray key) throws Exception {
-      return org.jblas.Solve.pinv(asMatrix(key));
-    }
-  });
-  
-  NDArray _inputGradient;
   
   @Override
   public NNResult eval(final NNResult inObj) {

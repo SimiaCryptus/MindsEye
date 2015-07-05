@@ -27,10 +27,9 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   private DeltaMassMomentum massMomentum;
   private DeltaInversionBuffer deltaBuffer;
   private boolean verbose = false;
-
   private boolean frozen = false;
-
   private DeltaMemoryBufferWriter writer;
+  NDArray _inputGradient;
   
   protected ConvolutionSynapseLayer() {
     super();
@@ -46,8 +45,6 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     this.massMomentum = new DeltaMassMomentum(this.writer);
     this.deltaBuffer = new DeltaInversionBuffer(1, this.massMomentum);
   }
-  
-  NDArray _inputGradient;
 
   @Override
   public NNResult eval(final NNResult inObj) {
@@ -88,14 +85,11 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
           final double[] delta = data.data;
           DoubleMatrix pseudoinverse;
           try {
-            pseudoinverse = DenseSynapseLayer.inverseCache.get(_inputGradient);
+            pseudoinverse = NDArray.inverseCache.get(_inputGradient);
           } catch (ExecutionException e) {
             throw new RuntimeException(e);
           }
           final double[] inverted = pseudoinverse.mmul(new DoubleMatrix(delta.length, 1, delta)).data;
-//          double[] inverted = org.jblas.Solve.solveLeastSquares(
-//              new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
-//              new DoubleMatrix(delta.length, 1, delta)).data;
           inObj.feedback(new NDArray(inputDims, inverted));
         }
       }

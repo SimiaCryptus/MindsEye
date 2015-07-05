@@ -14,6 +14,7 @@ import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class PipelineNetwork extends NNLayer {
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
   
   protected List<NNLayer> layers = new ArrayList<NNLayer>();
@@ -78,7 +79,7 @@ public class PipelineNetwork extends NNLayer {
   }
 
   public Trainer trainer(NDArray[][] samples) {
-    return new Trainer(this, samples);
+    return new Trainer().add(this, samples);
   }
   
 }

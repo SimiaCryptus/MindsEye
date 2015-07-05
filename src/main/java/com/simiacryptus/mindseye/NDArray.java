@@ -7,6 +7,14 @@ import java.util.function.ToDoubleBiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.jblas.DoubleMatrix;
+import org.jblas.Solve;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+
 public class NDArray {
 
   public interface UnivariateFunction {
@@ -26,6 +34,13 @@ public class NDArray {
   private final int[] dims;
 
   private final int[] skips;
+
+  public static final LoadingCache<NDArray, DoubleMatrix> inverseCache = CacheBuilder.newBuilder().weakKeys().build(new CacheLoader<NDArray, DoubleMatrix>() {
+    @Override
+    public DoubleMatrix load(NDArray key) throws Exception {
+      return org.jblas.Solve.pinv(DenseSynapseLayer.asMatrix(key));
+    }
+  });
 
   protected NDArray() {
     super();

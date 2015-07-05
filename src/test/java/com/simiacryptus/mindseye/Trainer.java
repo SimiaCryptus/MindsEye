@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -10,26 +12,33 @@ import com.simiacryptus.mindseye.learning.NNResult;
 
 public class Trainer {
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
-  private PipelineNetwork net;
-  private NDArray[][] trainingData;
   private double mutationAmount = 0.5;
   int improvementStaleThreshold = 20;
   double dynamicRate = 0.1;
-  double staticRate = 0.1;
+  double staticRate = 1.;
   private boolean verbose = false;
-
-  public Trainer(PipelineNetwork net, final NDArray[][] trainingData) {
-    this.net = net;
-    this.trainingData = trainingData;
+  private List<SupervisedTrainingParameters> net = new ArrayList<>();
+  
+  public Trainer() {
   }
 
+  public Trainer add(SupervisedTrainingParameters params) {
+    this.net.add(params);
+    return this;
+  }
+
+  public Trainer add(PipelineNetwork net, NDArray[][] data) {
+    return add(new SupervisedTrainingParameters(net, data));
+  }
+  
+  @SuppressWarnings("unchecked")
   public double train(final int maxIterations, final double minRms) {
     long startMs = System.currentTimeMillis();
-    PipelineNetwork best = net;
+    Object best = net;
     int timesSinceImprovement = 0;
     double bestRms = Double.MAX_VALUE;
     double rms = Double.MAX_VALUE;
-    int totalIterations=0;
+    int totalIterations = 0;
     int lessons = 5;
     int generations = maxIterations / lessons;
     for (int generation = 0; generation < generations; generation++)
@@ -40,7 +49,7 @@ public class Trainer {
         shouldMutate = timesSinceImprovement++ > improvementStaleThreshold;
       else
       {
-        if(isVerbose()) {
+        if (isVerbose()) {
           log.debug(String.format("New best RMS %s > %s", rms, bestRms));
         }
         best = new Kryo().copy(net);
@@ -51,8 +60,8 @@ public class Trainer {
       if (shouldMutate) {
         mutated = true;
         double mutationAmount = getMutationAmount();
-        if(verbose) log.debug(String.format("Mutating %s by %s", this, mutationAmount));
-        net.mutate(mutationAmount);
+        if (verbose) log.debug(String.format("Mutating %s by %s", net, mutationAmount));
+        net.stream().forEach(x -> x.getNet().mutate(mutationAmount));
       }
       rms = 0;
       int count = 0;
@@ -63,27 +72,25 @@ public class Trainer {
           thisRms += trainSet();
         }
         thisRms /= lessons;
-        if(Double.isFinite(lastRms)) {
-          double expectedImprovement = lastRms * staticRate/(10+totalIterations);
+        if (Double.isFinite(lastRms)) {
+          double expectedImprovement = lastRms * staticRate / (50 + totalIterations);
           double improvement = lastRms - thisRms;
-          if(0. == improvement) {
-            if(isVerbose()) log.debug("Null improvement: " + net);
-            if(isVerbose()) log.debug(String.format("Discarding %s rms: %s", rms, net));
-            net = best;
+          if (0. == improvement) {
+            if (isVerbose()) log.debug("Null improvement: " + net);
+            if (isVerbose()) log.debug(String.format("Discarding %s rms: %s", rms, net));
+            net = (List<SupervisedTrainingParameters>) best;
             rms = bestRms;
             break;
           }
           double idealRate = dynamicRate * expectedImprovement / improvement;
-          double critical = 10;
-          if(idealRate > critical) idealRate = critical;
-          else if(idealRate < -critical) idealRate = -critical;
           double prevRate = dynamicRate;
-          if(isVerbose()) log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
-          dynamicRate += 0.1 * (idealRate-dynamicRate);
-          if(isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
+          if (isVerbose())
+            log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
+          dynamicRate += Math.max(Math.min(0.1 * (idealRate - dynamicRate), 1.), -1);
+          if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
         }
-        totalIterations += trainingData.length;
-        count += trainingData.length;
+        totalIterations += 1;
+        count += 1;
         rms += thisRms * lessons;
         lastRms = thisRms;
       }
@@ -91,8 +98,8 @@ public class Trainer {
       if (mutated) {
         double improvement = bestRms - rms;
         if (improvement <= 0) {
-          if(isVerbose()) log.debug(String.format("Discarding %s rms: %s", rms, net));
-          net = best;
+          if (isVerbose()) log.debug(String.format("Discarding %s rms: %s", rms, net));
+          net = (List<SupervisedTrainingParameters>) best;
           rms = bestRms;
         }
       }
@@ -101,17 +108,18 @@ public class Trainer {
         log.info(String.format("RMS Error: %s", rms));
       }
     }
-    log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis()-startMs)/1000., totalIterations));
+    log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis() - startMs) / 1000., totalIterations));
     return rms;
   }
-
-  public PipelineNetwork test(final int maxIterations, final double convergence, final int trials) {
+  
+  public void test(final int maxIterations, final double convergence, final int trials) {
     final Kryo kryo = new Kryo();
-    PipelineNetwork lastGood = null;
-    PipelineNetwork masterCopy = net;
+    List<SupervisedTrainingParameters> lastGood = null;
+    List<SupervisedTrainingParameters> masterCopy = net;
     for (int epoch = 0; epoch < trials; epoch++)
     {
-      net = kryo.copy(masterCopy).mutate(1.);
+      net = kryo.copy(masterCopy);
+      net.stream().forEach(x -> x.getNet().mutate(1.));
       final double rms = train(maxIterations, convergence);
       
       if (isVerbose()) {
@@ -125,24 +133,23 @@ public class Trainer {
       }
     }
     net = lastGood;
-    return lastGood;
   }
-
+  
   public double trainSet() {
-    double rms = Stream.of(trainingData).parallel().mapToDouble(sample->{
+    double rms = net.stream().flatMapToDouble(params -> Stream.of(params.getTrainingData()).parallel().mapToDouble(sample -> {
       final NDArray input = sample[0];
       final NDArray output = sample[1];
-      final NNResult eval = net.eval(input);
+      final NNResult eval = params.getNet().eval(input);
       final double trialRms = eval.errRms(output);
       final NDArray delta = eval.delta(dynamicRate, output);
       eval.feedback(delta);
       return trialRms;
-    }).sum();
-    net.writeDeltas();
-    if(verbose) log.debug(String.format("Trained Iteration RMS: %s with rate %s", rms, dynamicRate));
+    })).average().getAsDouble();
+    net.stream().forEach(params -> params.getNet().writeDeltas());
+    if (verbose) log.debug(String.format("Trained Iteration RMS: %s with rate %s", rms, dynamicRate));
     return rms;
   }
-
+  
   public double getMutationAmount() {
     return this.mutationAmount;
   }
@@ -156,7 +163,7 @@ public class Trainer {
     this.staticRate = rate;
     return this;
   }
-
+  
   public boolean isVerbose() {
     return this.verbose;
   }
