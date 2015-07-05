@@ -113,7 +113,8 @@ public class TestMNISTDev {
     NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(100)
         .map(o -> new NDArray[]{o.data, toOutNDArray(toOut(o.label), 10)})
         .toArray(i2->new NDArray[i2][]);
-    net = (Network) net.test(data, 10000, 0.01, 1);
+    final NDArray[][] samples = data;
+    net = (Network) net.trainer(samples).test(10000, 0.01, 1);
     {
       Network net2 = net;
       double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();

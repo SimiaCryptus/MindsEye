@@ -4,7 +4,7 @@ import com.simiacryptus.mindseye.NDArray;
 
 public class DeltaMassMomentum implements DeltaSink, MassParameters<DeltaMassMomentum> {
 
-  private double decay = 0.9;
+  private double decay = 0.;
   private double mass = 1.;
   private double[] momentum;
   private DeltaSink values;

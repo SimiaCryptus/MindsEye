@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.test;
 
 import java.util.Random;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +30,9 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1, 1 }) }
     };
     new PipelineNetwork()
-        .add(new BiasLayer(inputSize).setMomentumDecay(0.))
-        .add(new BiasLayer(inputSize).setMomentumDecay(0.).setMass(Double.POSITIVE_INFINITY))
-        .test(samples, 1000, 0.1, 100);
+        .add(new BiasLayer(inputSize))
+        .add(new BiasLayer(inputSize).setMass(Double.POSITIVE_INFINITY))
+        .trainer(samples).setRate(10.).test(1000, 0.1, 100);
   }
   
   @Test
@@ -41,9 +42,9 @@ public class NetworkElementUnitTests {
     final NDArray[][] samples = new NDArray[][] {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1, 1 }) }
     };
-    new PipelineNetwork()
-        .add(new BiasLayer(inputSize).setMomentumDecay(0.))
-        .test(samples, 1000, 0.01, 100);
+    new PipelineNetwork() //
+        .add(new BiasLayer(inputSize).setMomentumDecay(0.)) //
+        .trainer(samples).setRate(5.).test(1000, 0.01, 100);
   }
   
   @Test
@@ -56,7 +57,7 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize).setMomentumDecay(0.))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .test(samples, 1000, 0.1, 100);
+        .trainer(samples).setRate(5.).test(1000, 0.1, 100);
   }
   
   @Test
@@ -72,13 +73,11 @@ public class NetworkElementUnitTests {
     };
     for (int i = 0; i < 100; i++) {
       new PipelineNetwork()
-          .add(
-              new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.)
-                  .setVerbose(verbose))
-          .test(samples, 10000, 0.1, 1);
+          .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)
+              .setVerbose(verbose)).trainer(samples).test(10000, 0.1, 1);
     }
   }
-
+  
   @Test
   public void convolutionSynapseLayer_train() throws Exception {
     final boolean verbose = false;
@@ -90,15 +89,14 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) }
     };
     for (int i = 0; i < 100; i++) {
-      new PipelineNetwork()
-          .add(new ConvolutionSynapseLayer(inputSize, 1)
-              .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
-              .setMomentumDecay(0.)
-              .setVerbose(verbose))
-          .test(samples, 1000, 0.1, 1);
+      new PipelineNetwork() //
+          .add(new ConvolutionSynapseLayer(inputSize, 1) //
+              .setMomentumDecay(0.) //
+              .setVerbose(verbose)) //
+          .trainer(samples).setRate(5.).setVerbose(verbose).test(1000, 0.1, 1);
     }
   }
-
+  
   @Test
   public void convolutionSynapseLayer_feedback() throws Exception {
     final boolean verbose = false;
@@ -113,9 +111,8 @@ public class NetworkElementUnitTests {
           .add(new BiasLayer(inputSize))
           .add(new ConvolutionSynapseLayer(inputSize, 1)
               .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
-              .setMomentumDecay(0.)
               .setVerbose(verbose))
-          .test(samples, 1000, 0.1, 1);
+          .trainer(samples).setRate(1.).test(1000, 0.1, 1);
     }
   }
   
@@ -132,7 +129,7 @@ public class NetworkElementUnitTests {
       new PipelineNetwork()
           .add(new BiasLayer(inputSize))
           .add(new MaxSubsampleLayer(2))
-          .test(samples, 1000, 0.1, 1);
+          .trainer(samples).setRate(1.).test(1000, 0.1, 1);
     }
   }
   
@@ -146,10 +143,11 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
         .add(new SigmoidActivationLayer())
-        .test(samples, 1000, 0.1, 100);
+        .trainer(samples).setRate(1.).test(1000, 0.1, 100);
   }
   
   @Test
+  @Ignore
   public void softmaxActivationLayer_feedback() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
@@ -159,7 +157,8 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
         .add(new SoftmaxActivationLayer())
-        .test(samples, 1000, 0.1, 100);
+        .trainer(samples)
+        .setRate(1.).test(1000, 0.1, 100);
   }
   
 }

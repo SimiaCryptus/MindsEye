@@ -55,7 +55,7 @@ public class ImageNetworkDev {
       PipelineNetwork invnet = new PipelineNetwork()
         .add(bias)
         .add(convolution);
-      invnet.train(new NDArray[][]{{obj.data, obj.data}}, 10000, 0.00001);
+      invnet.trainer(new NDArray[][]{{obj.data, obj.data}}).setVerbose(true).train(10000, 0.000001);
 
       NNResult recovered = bias.eval(obj.data);
       NNResult tested = net.eval(recovered.data);

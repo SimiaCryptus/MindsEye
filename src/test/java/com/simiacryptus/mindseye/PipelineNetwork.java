@@ -44,8 +44,8 @@ public class PipelineNetwork extends NNLayer {
     return l;
   }
   
+  static final Random random = new Random(System.nanoTime());
   protected DenseSynapseLayer mutate(final DenseSynapseLayer l, final double amount) {
-    final Random random = new Random();
     double[] a = l.weights.data;
     for(int i=0;i<a.length;i++)
     {
@@ -77,12 +77,8 @@ public class PipelineNetwork extends NNLayer {
     return "PipelineNetwork [" + layers + "]";
   }
 
-  public double train(final NDArray[][] samples, final int maxIterations, final double minRms) {
-    return new Trainer().train(samples, maxIterations, minRms, this);
-  }
-
-  public PipelineNetwork test(final NDArray[][] samples, final int maxIterations, final double minRms, int loops) {
-    return new Trainer().test(samples, maxIterations, minRms, loops, this);
+  public Trainer trainer(NDArray[][] samples) {
+    return new Trainer(this, samples);
   }
   
 }

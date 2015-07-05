@@ -14,10 +14,12 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
+import com.simiacryptus.mindseye.learning.DeltaMemoryBufferWriter;
+import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<ConvolutionSynapseLayer> {
+public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<ConvolutionSynapseLayer>, DeltaTransaction {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
   
@@ -27,6 +29,8 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   private boolean verbose = false;
 
   private boolean frozen = false;
+
+  private DeltaMemoryBufferWriter writer;
   
   protected ConvolutionSynapseLayer() {
     super();
@@ -38,7 +42,8 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
-    this.massMomentum = new DeltaMassMomentum(this.kernel);
+    this.writer = new DeltaMemoryBufferWriter(this.kernel);
+    this.massMomentum = new DeltaMassMomentum(this.writer);
     this.deltaBuffer = new DeltaInversionBuffer(1, this.massMomentum);
   }
   
@@ -160,5 +165,11 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
 
   public void setFrozen(boolean frozen) {
     this.frozen = frozen;
+  }
+  
+  @Override
+  public void write() {
+    _inputGradient = null;
+    writer.write();
   }
 }
