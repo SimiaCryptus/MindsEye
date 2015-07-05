@@ -78,7 +78,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data) {
-        if (null != inputGradient) {
+        if (null != weightGradient) {
           ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
         }
         if (inObj.isAlive()) {
@@ -163,6 +163,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   
   @Override
   public void write() {
+    if(isFrozen()) return;
     _inputGradient = null;
     writer.write();
   }

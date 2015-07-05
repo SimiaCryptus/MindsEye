@@ -13,7 +13,7 @@ import com.simiacryptus.mindseye.learning.NNResult;
 public class Trainer {
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
   private double mutationAmount = 0.5;
-  int improvementStaleThreshold = 20;
+  private int improvementStaleThreshold = 20;
   double dynamicRate = 0.1;
   double staticRate = 1.;
   private boolean verbose = false;
@@ -45,7 +45,7 @@ public class Trainer {
     {
       boolean mutated = false;
       boolean shouldMutate;
-      if (bestRms <= rms)
+      if (!Double.isFinite(rms) || bestRms <= rms)
         shouldMutate = timesSinceImprovement++ > improvementStaleThreshold;
       else
       {
@@ -79,7 +79,8 @@ public class Trainer {
             if (isVerbose()) log.debug("Null improvement: " + net);
             if (isVerbose()) log.debug(String.format("Discarding %s rms: %s", rms, net));
             net = (List<SupervisedTrainingParameters>) best;
-            rms = bestRms;
+            rms = 0;
+            count = 0;
             break;
           }
           double idealRate = dynamicRate * expectedImprovement / improvement;
@@ -90,7 +91,7 @@ public class Trainer {
           if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
         }
         totalIterations += 1;
-        count += 1;
+        count += lessons;
         rms += thisRms * lessons;
         lastRms = thisRms;
       }
@@ -98,7 +99,7 @@ public class Trainer {
       if (mutated) {
         double improvement = bestRms - rms;
         if (improvement <= 0) {
-          if (isVerbose()) log.debug(String.format("Discarding %s rms: %s", rms, net));
+          if (isVerbose()) log.debug(String.format("Discarding %s rms, best = %s", rms, bestRms));
           net = (List<SupervisedTrainingParameters>) best;
           rms = bestRms;
         }
@@ -170,6 +171,15 @@ public class Trainer {
   
   public Trainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+
+  public int getImprovementStaleThreshold() {
+    return improvementStaleThreshold;
+  }
+
+  public Trainer setImprovementStaleThreshold(int improvementStaleThreshold) {
+    this.improvementStaleThreshold = improvementStaleThreshold;
     return this;
   }
 }

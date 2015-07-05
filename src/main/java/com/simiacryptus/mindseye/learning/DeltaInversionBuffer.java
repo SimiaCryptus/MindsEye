@@ -31,6 +31,8 @@ public class DeltaInversionBuffer {
   }
   
   public synchronized void feed(final NDArray weightGradient, final double[] data) {
+    if(null == weightGradient) throw new IllegalArgumentException();
+    if(null == data) throw new IllegalArgumentException();
     if (DeltaInversionBuffer.DEBUG) {
       DeltaInversionBuffer.log.debug(String.format("Input: %s & %s", weightGradient, Arrays.toString(data)));
     }
