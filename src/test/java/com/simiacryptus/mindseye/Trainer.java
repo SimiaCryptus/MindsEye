@@ -74,7 +74,7 @@ public class Trainer {
 
         if (Double.isFinite(lastRms)) {
           if (0. == lastRms - lessonRms) {
-            if (isVerbose()) log.debug(String.format("Discarding null improvement %s rms, best = %s", thisRms, best.getSecond()));
+            mutate();
             net = best.getFirst();
             thisRms = best.getSecond();
             timesSinceImprovement = 0;
@@ -115,11 +115,18 @@ public class Trainer {
   
   public void maybeMutate() {
     if (timesSinceImprovement-Math.min(timeSinceMutation,timesSinceImprovement) > improvementStaleThreshold) {
-      timeSinceMutation = timesSinceImprovement;
-      double mutationAmount = getMutationAmount();
-      if (verbose) log.debug(String.format("Mutating %s by %s", net, mutationAmount));
-      net.stream().forEach(x -> x.getNet().mutate(mutationAmount));
+      mutate();
     }
+  }
+
+  public void mutate() {
+    mutate(getMutationAmount());
+  }
+
+  public void mutate(double mutationAmount) {
+    timeSinceMutation = timesSinceImprovement;
+    if (verbose) log.debug(String.format("Mutating %s by %s", net, mutationAmount));
+    net.stream().forEach(x -> x.getNet().mutate(mutationAmount));
   }
 
   public void updateBest(double rms) {
@@ -202,5 +209,13 @@ public class Trainer {
   public Trainer setImprovementStaleThreshold(int improvementStaleThreshold) {
     this.improvementStaleThreshold = improvementStaleThreshold;
     return this;
+  }
+
+  public Tuple2<List<SupervisedTrainingParameters>,Double> getBest() {
+    return best;
+  }
+
+  public void setBest(Tuple2<List<SupervisedTrainingParameters>,Double> best) {
+    this.best = best;
   }
 }

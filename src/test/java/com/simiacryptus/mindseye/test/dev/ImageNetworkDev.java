@@ -44,11 +44,11 @@ public class ImageNetworkDev {
     convolution.kernel.set(new int[] { 2, 0, 0 }, 1);
     convolution.freeze();
     
-    PipelineNetwork net = new PipelineNetwork()
+    PipelineNetwork forwardConvolutionNet = new PipelineNetwork()
         .add(convolution);
     
     Stream<BufferedImage[]> buffer = data.stream().map(obj -> {
-      NNResult output = net.eval(obj.data);
+      NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zero = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       Trainer trainer = new Trainer();
@@ -63,12 +63,14 @@ public class ImageNetworkDev {
           new NDArray[][] { { zero, zero } });
       
       trainer.setMutationAmount(0.05)
-          .setImprovementStaleThreshold(Integer.MAX_VALUE).setRate(10.)
+          //.setImprovementStaleThreshold(Integer.MAX_VALUE)
+          .setRate(10.)
           .setVerbose(true)
           .train(10000, 0.000001);
       
+      bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(obj.data);
-      NNResult tested = net.eval(recovered.data);
+      NNResult tested = forwardConvolutionNet.eval(recovered.data);
       
       return new BufferedImage[] {
           TestMNISTDev.toImage(obj.data),

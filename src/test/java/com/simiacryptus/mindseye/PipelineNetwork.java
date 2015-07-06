@@ -81,5 +81,9 @@ public class PipelineNetwork extends NNLayer {
   public Trainer trainer(NDArray[][] samples) {
     return new Trainer().add(this, samples);
   }
+
+  public NNLayer get(int i) {
+    return layers.get(i);
+  }
   
 }
