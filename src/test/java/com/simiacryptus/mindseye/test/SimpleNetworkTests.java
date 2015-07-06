@@ -128,7 +128,8 @@ public class SimpleNetworkTests {
             .addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian())
             .setMomentumDecay(0.5))
         .add(new BiasLayer(outSize))
-        .add(new SigmoidActivationLayer()).trainer(samples).test(10000, 0.01, 10);
+        .add(new SigmoidActivationLayer())
+        .trainer(samples).setRate(20.).test(10000, 0.01, 10);
   }
   
   @Test
@@ -144,19 +145,22 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1 }) }
     };
     new PipelineNetwork()
-        .add(
-            new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).setMass(5.)
-                .setMomentumDecay(0.5))
+        
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setMass(5.).setMomentumDecay(0.5))
         .add(new BiasLayer(midSize).setMass(5.).setMomentumDecay(0.5))
         .add(new SigmoidActivationLayer())
-        .add(
-            new DenseSynapseLayer(NDArray.dim(midSize), midSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.8)
-                .setMass(2.))
+        
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize).setMomentumDecay(0.8).setMass(2.))
         .add(new BiasLayer(midSize).setMomentumDecay(0.8).setMass(2.))
         .add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).setMomentumDecay(0.9))
-        .add(new BiasLayer(outSize).setMomentumDecay(0.9))
-        .add(new SigmoidActivationLayer()).trainer(samples).test(100000, 0.01, 10);
+        
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setMomentumDecay(0.))
+        .add(new BiasLayer(outSize).setMomentumDecay(0.))
+        .add(new SigmoidActivationLayer())
+        
+        .trainer(samples).setRate(30.)
+        //.setVerbose(true)
+        .test(10000, 0.01, 10);
   }
   
   @Test
@@ -172,7 +176,7 @@ public class SimpleNetworkTests {
     new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).setMass(5.).setMomentumDecay(0.5))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .trainer(samples).setRate(30.).test(10000, 0.1, 10);
+        .trainer(samples).setRate(20.).test(10000, 0.1, 10);
   }
   
   @Test
