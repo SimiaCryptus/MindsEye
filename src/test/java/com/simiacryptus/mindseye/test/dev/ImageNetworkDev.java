@@ -64,9 +64,9 @@ public class ImageNetworkDev {
           new NDArray[][] { { zero, zero } })
           .setWeight(100));
       
-      trainer.setMutationAmount(0.02)
+      trainer.setMutationAmount(0.0)
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
-          .setRate(5.)
+          .setRate(0.001)
           .setVerbose(true)
           .train(500, 0.01);
       
