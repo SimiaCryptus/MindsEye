@@ -174,9 +174,9 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) }
     };
     new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).setMass(5.).setMomentumDecay(0.5))
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .trainer(samples).setRate(20.).test(10000, 0.1, 10);
+        .trainer(samples).setMutationAmount(0).setRate(10.).setVerbose(true).test(10000, 0.1, 10);
   }
   
   @Test
