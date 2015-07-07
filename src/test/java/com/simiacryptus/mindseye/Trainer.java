@@ -49,7 +49,7 @@ public class Trainer {
     for (int generation = 0; generation < generations; generation++)
     {
       double rms = update(totalIterations, lessons);
-      maybeRevertToBest(rms);
+      rms = maybeRevertToBest(rms);
       totalIterations += lessons * lessons;
       if (rms < minRms) {
         log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis() - startMs) / 1000., totalIterations));
@@ -100,7 +100,7 @@ public class Trainer {
     if (null != best && (timeSinceImprovement() > improvementStaleThreshold * 10 || thisRms > 2. * best.getSecond())) {
       if (best.getSecond() <= thisRms) {
         if (isVerbose()) log.debug(String.format("Discarding %s rms, best = %s", thisRms, best.getSecond()));
-        net = best.getFirst();
+        net = new Kryo().copy(best.getFirst());
         thisRms = best.getSecond();
         lastImprovementGeneration = currentGeneration;
       }
@@ -133,7 +133,7 @@ public class Trainer {
         log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
       }
       dynamicRate += 0.1 * (Math.max(Math.min(idealRate, 1.), 0) - dynamicRate);
-      dynamicRate = 0.01;
+      dynamicRate = 0.1;
       if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
     }
   }
@@ -249,7 +249,4 @@ public class Trainer {
     return best;
   }
   
-  public void setBest(Tuple2<List<SupervisedTrainingParameters>, Double> best) {
-    this.best = best;
-  }
 }
