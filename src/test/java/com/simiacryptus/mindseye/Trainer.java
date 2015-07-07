@@ -43,16 +43,13 @@ public class Trainer {
   
   public double train(final int maxIterations, final double minRms) {
     long startMs = System.currentTimeMillis();
-    int totalIterations = 0;
-    int lessons = 10;
-    int generations = maxIterations / (lessons*lessons);
-    for (int generation = 0; generation < generations; generation++)
+    currentGeneration = 0;
+    while (maxIterations > currentGeneration)
     {
-      double rms = update(totalIterations, lessons);
+      double rms = update(10, 10);
       rms = maybeRevertToBest(rms);
-      totalIterations += lessons * lessons;
       if (rms < minRms) {
-        log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis() - startMs) / 1000., totalIterations));
+        log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis() - startMs) / 1000., currentGeneration));
         return rms;
       }
       if (isVerbose()) {
@@ -62,16 +59,15 @@ public class Trainer {
     return best.getSecond();
   }
   
-  public double update(int totalIterations, int lessons) {
-    double rms;
-    rms = 0;
+  public double update(int lessons, int steps) {
     double lastRms = Double.NaN;
+    double dayBest = Double.MAX_VALUE;
     for (int schoolDay = 0; schoolDay < lessons; schoolDay++) {
-      double thisRms = 0;
-      double dayBest = Double.MAX_VALUE;
-      for (int lesson = 0; lesson < lessons; lesson++) {
+      double lessonRms = lastRms;
+      for (int lesson = 0; lesson < steps; lesson++) {
         double[] rms1 = trainSet();
-        double lessonRms = DoubleStream.of(rms1).sum();
+        lessonRms = DoubleStream.of(rms1).sum();
+        updateBest(lessonRms);
         if(lessonRms < dayBest)
         {
           if(dayBest < Double.MAX_VALUE) lastLocalImprovementGeneration = currentGeneration;
@@ -79,30 +75,25 @@ public class Trainer {
         }
         if (verbose)
         {
-          log.debug(String.format("Trained Iteration %s RMS: %s (%s) with rate %s", totalIterations++, lessonRms, Arrays.toString(rms1), dynamicRate));
+          log.debug(String.format("Trained Iteration %s RMS: %s (%s) with rate %s", currentGeneration, lessonRms, Arrays.toString(rms1), dynamicRate));
         }
-        updateBest(lessonRms);
-        thisRms += lessonRms;
       }
-      thisRms /= lessons;
       if (Double.isFinite(lastRms)) {
-        updateRate(lastRms, thisRms);
+        updateRate(lastRms, lessonRms);
       }
-      maybeMutate();
-      lastRms = thisRms;
-      rms += thisRms;
+      lastRms = lessonRms;
     }
-    rms /= lessons;
-    return rms;
+    return lastRms;
   }
   
   public double maybeRevertToBest(double thisRms) {
-    if (null != best && (timeSinceImprovement() > improvementStaleThreshold * 10 || thisRms > 2. * best.getSecond())) {
+    if (null != best && (timeSinceLocalImprovement() > improvementStaleThreshold || thisRms > 2. * best.getSecond())) {
       if (best.getSecond() <= thisRms) {
         if (isVerbose()) log.debug(String.format("Discarding %s rms, best = %s", thisRms, best.getSecond()));
         net = new Kryo().copy(best.getFirst());
         thisRms = best.getSecond();
         lastImprovementGeneration = currentGeneration;
+        mutate();
       }
     }
     return thisRms;
@@ -117,37 +108,16 @@ public class Trainer {
   }
   
   public void updateRate(double lastRms, double thisRms) {
-    if (0. == lastRms - thisRms) {
-      if (verbose)
-      {
-        log.debug("Resetting learning rate");
-      }
-//      mutate();
-//      dynamicRate = 1;
-    } else {
-      double improvement = lastRms - thisRms;
-      double expectedImprovement = lastRms * staticRate / 50;// (50 + totalIterations);
-      double idealRate = dynamicRate * expectedImprovement / improvement;
-      double prevRate = dynamicRate;
-      if (isVerbose()) {
-        log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
-      }
-      dynamicRate += 0.1 * (Math.max(Math.min(idealRate, 1.), -1) - dynamicRate);
-      //dynamicRate = 0.1;
-      if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
+    double improvement = lastRms - thisRms;
+    double expectedImprovement = lastRms * staticRate / 50;// (50 + totalIterations);
+    double idealRate = dynamicRate * expectedImprovement / improvement;
+    double prevRate = dynamicRate;
+    if (isVerbose()) {
+      log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
     }
-  }
-  
-  public boolean maybeMutate() {
-    // If we have recently done a mutation, wait threshold amount of time until next mutation
-    // If we have recently improved, wait threshold amount of time until next mutation
-    if (Math.min(timeSinceLocalImprovement(), timeSinceMutation()) > improvementStaleThreshold) {
-      mutate();
-      return true;
-    }
-    else{
-      return false;
-    }
+    dynamicRate += 0.1 * (Math.max(Math.min(idealRate, 1.), -1) - dynamicRate);
+    //dynamicRate = 0.1;
+    if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
   }
   
   public int timeSinceMutation() {
