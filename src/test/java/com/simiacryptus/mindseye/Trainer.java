@@ -22,22 +22,21 @@ public class Trainer {
   double staticRate = 1.;
   private boolean verbose = false;
   private List<SupervisedTrainingParameters> net = new ArrayList<>();
-  private Tuple2<List<SupervisedTrainingParameters>,Double> best = null;
+  private Tuple2<List<SupervisedTrainingParameters>, Double> best = null;
+  int timesSinceImprovement = 0;
   
   public Trainer() {
   }
-
+  
   public Trainer add(SupervisedTrainingParameters params) {
     this.net.add(params);
     return this;
   }
-
+  
   public Trainer add(PipelineNetwork net, NDArray[][] data) {
     return add(new SupervisedTrainingParameters(net, data));
   }
   
-  int timesSinceImprovement = 0;
-
   public double train(final int maxIterations, final double minRms) {
     long startMs = System.currentTimeMillis();
     int totalIterations = 0;
@@ -47,7 +46,7 @@ public class Trainer {
     {
       maybeMutate();
       double rms = update(totalIterations, lessons);
-      totalIterations += lessons*lessons;
+      totalIterations += lessons * lessons;
       if (rms < minRms) {
         log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis() - startMs) / 1000., totalIterations));
         return rms;
@@ -58,7 +57,7 @@ public class Trainer {
     }
     return best.getSecond();
   }
-
+  
   public double update(int totalIterations, int lessons) {
     double rms;
     rms = 0;
@@ -68,10 +67,11 @@ public class Trainer {
       double thisRms = 0;
       for (int lesson = 0; lesson < lessons; lesson++) {
         double[] rms1 = trainSet();
-        if (verbose) log.debug(String.format("Trained Iteration %s RMS: %s with rate %s: %n%s", totalIterations++, Arrays.toString(rms1), dynamicRate, net.get(0).getNet()));
+        if (verbose)
+          log.debug(String.format("Trained Iteration %s RMS: %s with rate %s: %n%s", totalIterations++, Arrays.toString(rms1), dynamicRate, net.get(0).getNet()));
         double lessonRms = DoubleStream.of(rms1).average().getAsDouble();
         updateBest(lessonRms);
-
+        
         if (Double.isFinite(lastRms)) {
           if (0. == lastRms - lessonRms) {
             mutate();
@@ -86,7 +86,7 @@ public class Trainer {
         thisRms += lessonRms;
       }
       thisRms /= lessons;
-      if (null != best && (timesSinceImprovement > improvementStaleThreshold*2 || thisRms > 2. * best.getSecond())) {
+      if (null != best && (timesSinceImprovement > improvementStaleThreshold * 2 || thisRms > 2. * best.getSecond())) {
         if (best.getSecond() <= thisRms) {
           if (isVerbose()) log.debug(String.format("Discarding %s rms, best = %s", thisRms, best.getSecond()));
           net = best.getFirst();
@@ -100,41 +100,42 @@ public class Trainer {
     rms /= count;
     return rms;
   }
-
+  
   public void updateRate(double lastRms, double thisRms) {
     double improvement = lastRms - thisRms;
-    double expectedImprovement = lastRms * staticRate / 50;//(50 + totalIterations);
+    double expectedImprovement = lastRms * staticRate / 50;// (50 + totalIterations);
     double idealRate = dynamicRate * expectedImprovement / improvement;
     double prevRate = dynamicRate;
-    if (isVerbose()) log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
-    dynamicRate += 0.01 * (Math.max(Math.min(idealRate, 1.), -1) - dynamicRate);
+    if (isVerbose())
+      log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
+    dynamicRate += 0.1 * (Math.max(Math.min(idealRate, 1.), -1) - dynamicRate);
     if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
   }
-
+  
   int timeSinceMutation = 0;
   
   public void maybeMutate() {
-    if (timesSinceImprovement-Math.min(timeSinceMutation,timesSinceImprovement) > improvementStaleThreshold) {
+    if (timesSinceImprovement - Math.min(timeSinceMutation, timesSinceImprovement) > improvementStaleThreshold) {
       mutate();
     }
   }
-
+  
   public void mutate() {
     mutate(getMutationAmount());
   }
-
+  
   public void mutate(double mutationAmount) {
     timeSinceMutation = timesSinceImprovement;
     if (verbose) log.debug(String.format("Mutating %s by %s", net, mutationAmount));
     net.stream().forEach(x -> x.getNet().mutate(mutationAmount));
   }
-
+  
   public void updateBest(double rms) {
     if (!Double.isFinite(rms) || (null != best && best.getSecond() <= rms)) {
       timesSinceImprovement++;
     } else {
       if (isVerbose()) {
-        log.debug(String.format("New best RMS %s > %s", rms, null==best?"null":best.getSecond()));
+        log.debug(String.format("New best RMS %s > %s", rms, null == best ? "null" : best.getSecond()));
       }
       best = new Tuple2<List<SupervisedTrainingParameters>, Double>(new Kryo().copy(net), rms);
       timesSinceImprovement = 0;
@@ -172,7 +173,7 @@ public class Trainer {
       final double trialRms = eval.errRms(output);
       final NDArray delta = eval.delta(dynamicRate * params.getWeight(), output);
       eval.feedback(delta);
-      assert(Double.isFinite(trialRms));
+      assert (Double.isFinite(trialRms));
       return trialRms;
     }).average().getAsDouble()).toArray();
     net.stream().forEach(params -> params.getNet().writeDeltas());
@@ -201,21 +202,21 @@ public class Trainer {
     this.verbose = verbose;
     return this;
   }
-
+  
   public int getImprovementStaleThreshold() {
     return improvementStaleThreshold;
   }
-
+  
   public Trainer setImprovementStaleThreshold(int improvementStaleThreshold) {
     this.improvementStaleThreshold = improvementStaleThreshold;
     return this;
   }
-
-  public Tuple2<List<SupervisedTrainingParameters>,Double> getBest() {
+  
+  public Tuple2<List<SupervisedTrainingParameters>, Double> getBest() {
     return best;
   }
-
-  public void setBest(Tuple2<List<SupervisedTrainingParameters>,Double> best) {
+  
+  public void setBest(Tuple2<List<SupervisedTrainingParameters>, Double> best) {
     this.best = best;
   }
 }

@@ -51,7 +51,7 @@ public class ImageNetworkDev {
     Stream<BufferedImage[]> buffer = data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zero = new NDArray(inputSize);
-      BiasLayer bias = new BiasLayer(inputSize).setHalflife(3).setSampling(0.5);
+      BiasLayer bias = new BiasLayer(inputSize).setHalflife(3).setSampling(0.1);
       Trainer trainer = new Trainer();
       
       //convolution.setVerbose(true);
@@ -63,11 +63,11 @@ public class ImageNetworkDev {
         trainer.add(new SupervisedTrainingParameters(
             new PipelineNetwork().add(bias), 
             new NDArray[][] { { zero, zero } })
-            .setWeight(0.1));
+            .setWeight(0.01));
       
       trainer.setMutationAmount(0.2)
           //.setImprovementStaleThreshold(Integer.MAX_VALUE)
-          .setRate(10.)
+          .setRate(50.)
           .setVerbose(true)
           .train(1000, 0.000001);
       
