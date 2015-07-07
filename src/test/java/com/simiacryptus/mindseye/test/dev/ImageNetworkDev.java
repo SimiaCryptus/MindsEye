@@ -1,6 +1,8 @@
 package com.simiacryptus.mindseye.test.dev;
 
 import java.awt.Desktop;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,8 +33,8 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    final int[] inputSize = new int[] { 70, 20 };
-    int[] kernelSize = new int[] { 3, 3 };
+    final int[] inputSize = new int[] { 700, 200 };
+    int[] kernelSize = new int[] { 5, 5 };
     final int[] outSize = new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1 };
     
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
@@ -40,9 +42,11 @@ public class ImageNetworkDev {
     data.add(new LabeledObject<NDArray>(TestMNISTDev.toNDArray(render(inputSize, "Hello World")), ""));
     
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
-    convolution.kernel.set(new int[] { 0, 2, 0 }, 1);
-    convolution.kernel.set(new int[] { 1, 1, 0 }, 1);
-    convolution.kernel.set(new int[] { 2, 0, 0 }, 1);
+    convolution.kernel.set(new int[] { 0, 4, 0 }, 0.5);
+    convolution.kernel.set(new int[] { 1, 3, 0 }, 0.75);
+    convolution.kernel.set(new int[] { 2, 2, 0 }, 1);
+    convolution.kernel.set(new int[] { 3, 1, 0 }, 0.75);
+    convolution.kernel.set(new int[] { 4, 0, 0 }, 0.5);
     convolution.freeze();
     
     PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
@@ -50,7 +54,7 @@ public class ImageNetworkDev {
     Stream<BufferedImage[]> buffer = data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zero = new NDArray(inputSize);
-      BiasLayer bias = new BiasLayer(inputSize).setSampling(0.05);
+      BiasLayer bias = new BiasLayer(inputSize).setSampling(0.01);
       Trainer trainer = new Trainer();
       
       // convolution.setVerbose(true);
@@ -62,13 +66,13 @@ public class ImageNetworkDev {
       trainer.add(new SupervisedTrainingParameters(
           new PipelineNetwork().add(bias),
           new NDArray[][] { { zero, zero } })
-          .setWeight(100));
+          .setWeight(10));
       
       trainer.setMutationAmount(0.0)
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
-          .setRate(0.001)
+          .setRate(1.)
           .setVerbose(true)
-          .train(500, 0.01);
+          .train(100, 0.01);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(obj.data);
@@ -97,8 +101,17 @@ public class ImageNetworkDev {
   }
   
   private BufferedImage render(final int[] inputSize, String string) {
+    Random r = new Random();
     BufferedImage img = new BufferedImage(inputSize[0], inputSize[1], BufferedImage.TYPE_INT_RGB);
-    img.createGraphics().drawString(string, 0, 13);
+    Graphics2D g = img.createGraphics();
+    for(int i=0;i<20;i++)
+    {
+      int size = (int) (24 + 32 * r.nextGaussian());
+      int x = (int) (250 + 350 * r.nextGaussian());
+      int y = (int) (130 + 130 * r.nextGaussian());
+      g.setFont(g.getFont().deriveFont(Font.PLAIN, size));
+      g.drawString(string, x, y);
+    }
     return img;
   }
   

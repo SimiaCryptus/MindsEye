@@ -29,7 +29,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   private boolean verbose = false;
   private boolean frozen = false;
   private DeltaFlushBuffer flush;
-  NDArray _inputGradient;
+//  NDArray _inputGradient;
   
   protected ConvolutionSynapseLayer() {
     super();
@@ -56,26 +56,26 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
         i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1
         ).toArray();
     final NDArray output = new NDArray(newDims);
-    final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
+    //final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
     final NDArray weightGradient = this.frozen ? null : new NDArray(this.kernel.dim(), output.dim());
     new NDArray(kernelDims).coordStream().forEach(k -> {
       output.coordStream().forEach(o -> {
         final int[] i = Coordinate.add(k.coords, o.coords);
         final double a = this.kernel.get(k);
         final double b = input.get(i);
-        if(null != inputGradient) 
-        {
-          inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
-        }
+//        if(null != inputGradient) 
+//        {
+//          inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
+//        }
         if (null != weightGradient) {
           weightGradient.add(new int[] { this.kernel.index(k), output.index(o) }, b);
         }
         output.add(o, b * a);
       });
     });
-    if (null != inputGradient) {
-      _inputGradient = inputGradient;
-    }
+//    if (null != inputGradient) {
+//      _inputGradient = inputGradient;
+//    }
     if (isVerbose()) {
       log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj.data, this.kernel, output));
     }
@@ -86,17 +86,17 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
           ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
         }
         if (inObj.isAlive()) {
-          final double[] delta = data.data;
-          DoubleMatrix pseudoinverse;
-          try {
-            pseudoinverse = NDArray.inverseCache.get(_inputGradient);
-          } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-          }
-          final double[] inverted = pseudoinverse.mmul(new DoubleMatrix(delta.length, 1, delta)).data;
-          NDArray backprop = new NDArray(inputDims, inverted);
+          NDArray backprop = new NDArray(inputDims);
+          
+          new NDArray(kernelDims).coordStream().forEach(k -> {
+            output.coordStream().forEach(o -> {
+              final int[] i = Coordinate.add(k.coords, o.coords);
+              final double a = kernel.get(k);
+              backprop.set(i, a==0.?data.get(o):data.get(o)/a);
+            });
+          });
           if (isVerbose()) {
-            log.debug(String.format("Feed back: %s * %s %n\t=> %s", data, pseudoinverse, backprop));
+            log.debug(String.format("Feed back: %s * -1 %n\t=> %s", data, backprop));
           }
           inObj.feedback(backprop);
         }
@@ -172,7 +172,6 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   @Override
   public void write() {
     if(isFrozen()) return;
-    _inputGradient = null;
     flush.write();
   }
 

@@ -38,10 +38,13 @@ public class NDArray {
   public static final LoadingCache<NDArray, DoubleMatrix> inverseCache = CacheBuilder.newBuilder().weakKeys().build(new CacheLoader<NDArray, DoubleMatrix>() {
     @Override
     public DoubleMatrix load(NDArray key) throws Exception {
-      DoubleMatrix inv = DenseSynapseLayer.asMatrix(key).transpose();
-      for(int i=0;i<inv.length;i++) if(inv.data[i] != 0.) inv.data[i] = 1./inv.data[i];
-      return inv;
-      //return org.jblas.Solve.pinv(DenseSynapseLayer.asMatrix(key));
+      if(key.dim() > 200) {
+        DoubleMatrix inv = DenseSynapseLayer.asMatrix(key).transpose();
+        for(int i=0;i<inv.length;i++) if(inv.data[i] != 0.) inv.data[i] = 1./inv.data[i];
+        return inv;
+      } else {
+        return org.jblas.Solve.pinv(DenseSynapseLayer.asMatrix(key));
+      }
     }
   });
 
