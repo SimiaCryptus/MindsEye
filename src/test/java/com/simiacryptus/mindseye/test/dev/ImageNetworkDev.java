@@ -63,13 +63,13 @@ public class ImageNetworkDev {
         trainer.add(new SupervisedTrainingParameters(
             new PipelineNetwork().add(bias), 
             new NDArray[][] { { zero, zero } })
-            .setWeight(1));
+            .setWeight(100));
       
-      trainer.setMutationAmount(0.05)
+      trainer.setMutationAmount(0.02)
           //.setImprovementStaleThreshold(Integer.MAX_VALUE)
           .setRate(5.)
           .setVerbose(true)
-          .train(10000, 0.01);
+          .train(500, 0.01);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(obj.data);

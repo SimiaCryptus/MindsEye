@@ -46,7 +46,7 @@ public class Trainer {
     currentGeneration = 0;
     while (maxIterations > currentGeneration)
     {
-      double rms = update(10, 10);
+      double rms = update(40, 5);
       rms = maybeRevertToBest(rms);
       if (rms < minRms) {
         log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis() - startMs) / 1000., currentGeneration));
@@ -70,7 +70,11 @@ public class Trainer {
         updateBest(lessonRms);
         if(lessonRms < dayBest)
         {
-          if(dayBest < Double.MAX_VALUE) lastLocalImprovementGeneration = currentGeneration;
+          if(dayBest < Double.MAX_VALUE) 
+          {
+            if (isVerbose()) log.debug(String.format("Local Best %s -> %s", dayBest, lessonRms));
+            lastLocalImprovementGeneration = currentGeneration;
+          }
           dayBest = lessonRms;
         }
         if (verbose)
@@ -87,13 +91,14 @@ public class Trainer {
   }
   
   public double maybeRevertToBest(double thisRms) {
-    if (null != best && (timeSinceLocalImprovement() > improvementStaleThreshold || thisRms > 2. * best.getSecond())) {
+    if (null != best && timeSinceLocalImprovement() > improvementStaleThreshold) {
       if (best.getSecond() <= thisRms) {
         if (isVerbose()) log.debug(String.format("Discarding %s rms, best = %s", thisRms, best.getSecond()));
         net = new Kryo().copy(best.getFirst());
         thisRms = best.getSecond();
         lastImprovementGeneration = currentGeneration;
         mutate();
+        dynamicRate = Math.abs(dynamicRate);
       }
     }
     return thisRms;
@@ -109,7 +114,7 @@ public class Trainer {
   
   public void updateRate(double lastRms, double thisRms) {
     double improvement = lastRms - thisRms;
-    double expectedImprovement = lastRms * staticRate / 50;// (50 + totalIterations);
+    double expectedImprovement = lastRms * staticRate / 100.;// (50 + totalIterations);
     double idealRate = dynamicRate * expectedImprovement / improvement;
     double prevRate = dynamicRate;
     if (isVerbose()) {
