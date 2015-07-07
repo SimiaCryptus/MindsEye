@@ -31,13 +31,13 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    final int[] inputSize = new int[] { 28, 28 };
+    final int[] inputSize = new int[] { 70, 20 };
     int[] kernelSize = new int[] { 3, 3 };
     final int[] outSize = new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1 };
     
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
     List<LabeledObject<NDArray>> data = new ArrayList<>();
-    data.add(new LabeledObject<NDArray>(TestMNISTDev.toNDArray(render(inputSize, "Hello")), ""));
+    data.add(new LabeledObject<NDArray>(TestMNISTDev.toNDArray(render(inputSize, "Hello World")), ""));
     
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
     convolution.kernel.set(new int[] { 0, 2, 0 }, 1);
@@ -45,8 +45,7 @@ public class ImageNetworkDev {
     convolution.kernel.set(new int[] { 2, 0, 0 }, 1);
     convolution.freeze();
     
-    PipelineNetwork forwardConvolutionNet = new PipelineNetwork()
-        .add(convolution);
+    PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
     
     Stream<BufferedImage[]> buffer = data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
@@ -54,19 +53,19 @@ public class ImageNetworkDev {
       BiasLayer bias = new BiasLayer(inputSize).setHalflife(3).setSampling(0.2);
       Trainer trainer = new Trainer();
       
-      //convolution.setVerbose(true);
+      // convolution.setVerbose(true);
       trainer.add(new PipelineNetwork()
           .add(bias)
           .add(convolution),
           new NDArray[][] { { obj.data, obj.data } });
       
-        trainer.add(new SupervisedTrainingParameters(
-            new PipelineNetwork().add(bias), 
-            new NDArray[][] { { zero, zero } })
-            .setWeight(100));
+      trainer.add(new SupervisedTrainingParameters(
+          new PipelineNetwork().add(bias),
+          new NDArray[][] { { zero, zero } })
+          .setWeight(100));
       
       trainer.setMutationAmount(0.02)
-          //.setImprovementStaleThreshold(Integer.MAX_VALUE)
+          // .setImprovementStaleThreshold(Integer.MAX_VALUE)
           .setRate(5.)
           .setVerbose(true)
           .train(500, 0.01);
@@ -82,7 +81,7 @@ public class ImageNetworkDev {
           TestMNISTDev.toImage(new NDArray(outSize, tested.data.data))
       };
     });
-    
+  
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
