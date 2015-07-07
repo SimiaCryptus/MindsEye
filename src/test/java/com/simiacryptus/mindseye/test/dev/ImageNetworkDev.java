@@ -50,7 +50,7 @@ public class ImageNetworkDev {
     Stream<BufferedImage[]> buffer = data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zero = new NDArray(inputSize);
-      BiasLayer bias = new BiasLayer(inputSize).setHalflife(3).setSampling(0.2);
+      BiasLayer bias = new BiasLayer(inputSize).setSampling(0.05);
       Trainer trainer = new Trainer();
       
       // convolution.setVerbose(true);
