@@ -35,7 +35,7 @@ public class DeltaMassMomentum implements DeltaSink, MassParameters<DeltaMassMom
     for (int i = 0; i < dim; i++) {
       v[i] += this.momentum[i] = this.decay * this.momentum[i] + data[i] / this.mass;
     }
-    normalizationFactor += this.decay * normalizationFactor + 1;
+    normalizationFactor = this.decay * normalizationFactor + 1;
     double[] x = new double[v.length];
     for (int i = 0; i < dim; i++) {
       x[i] = v[i] / normalizationFactor;
