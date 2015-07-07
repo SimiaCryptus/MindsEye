@@ -122,8 +122,8 @@ public class Trainer {
       {
         log.debug("Resetting learning rate");
       }
-      mutate();
-      dynamicRate = 1;
+//      mutate();
+//      dynamicRate = 1;
     } else {
       double improvement = lastRms - thisRms;
       double expectedImprovement = lastRms * staticRate / 50;// (50 + totalIterations);
@@ -132,8 +132,8 @@ public class Trainer {
       if (isVerbose()) {
         log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
       }
-      dynamicRate += 0.1 * (Math.max(Math.min(idealRate, 1.), 0) - dynamicRate);
-      dynamicRate = 0.1;
+      dynamicRate += 0.1 * (Math.max(Math.min(idealRate, 1.), -1) - dynamicRate);
+      //dynamicRate = 0.1;
       if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
     }
   }
