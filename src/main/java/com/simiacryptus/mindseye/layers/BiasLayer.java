@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
-import com.simiacryptus.mindseye.learning.DeltaMemoryBufferWriter;
+import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
+import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
+import com.simiacryptus.mindseye.learning.DeltaStochasticSampler;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
@@ -22,7 +24,9 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
   public final double[] bias;
   private final DeltaMassMomentum deltaBuffer;
 
-  private DeltaMemoryBufferWriter writer;
+  private DeltaFlushBuffer flush;
+
+  private DeltaStochasticSampler sampler;
   
   protected BiasLayer() {
     super();
@@ -32,8 +36,10 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
   
   public BiasLayer(final int[] outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
-    this.writer = new DeltaMemoryBufferWriter(this.bias);
+    DeltaMemoryWriter writer = new DeltaMemoryWriter(this.bias);
     this.deltaBuffer = new DeltaMassMomentum(writer);
+    this.flush = new DeltaFlushBuffer(this.deltaBuffer);
+    this.sampler = new DeltaStochasticSampler(this.flush);
   }
   
   @Override
@@ -44,7 +50,7 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
     return new NNResult(translated) {
       @Override
       public void feedback(final NDArray data) {
-        deltaBuffer.feed(data.data);
+        sampler.feed(data.data);
         if (inObj.isAlive())
         {
           inObj.feedback(data);
@@ -93,7 +99,16 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
 
   @Override
   public void write() {
-    writer.write();
+    flush.write();
+  }
+
+  public BiasLayer setHalflife(final double halflife) {
+    return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
+  }
+
+  public BiasLayer setSampling(double sampling) {
+    this.sampler.setSampling(sampling);
+    return this;
   }
 
 }

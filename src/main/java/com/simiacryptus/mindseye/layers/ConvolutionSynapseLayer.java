@@ -14,13 +14,13 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
-import com.simiacryptus.mindseye.learning.DeltaMemoryBufferWriter;
+import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
+import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<ConvolutionSynapseLayer>, DeltaTransaction {
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
   
   public final NDArray kernel;
@@ -28,7 +28,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   private DeltaInversionBuffer deltaBuffer;
   private boolean verbose = false;
   private boolean frozen = false;
-  private DeltaMemoryBufferWriter writer;
+  private DeltaFlushBuffer flush;
   NDArray _inputGradient;
   
   protected ConvolutionSynapseLayer() {
@@ -41,9 +41,10 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
-    this.writer = new DeltaMemoryBufferWriter(this.kernel);
-    this.massMomentum = new DeltaMassMomentum(this.writer);
-    this.deltaBuffer = new DeltaInversionBuffer(1, this.massMomentum);
+    DeltaMemoryWriter writer = new DeltaMemoryWriter(this.kernel);
+    this.massMomentum = new DeltaMassMomentum(writer);
+    this.flush = new DeltaFlushBuffer(this.massMomentum);
+    this.deltaBuffer = new DeltaInversionBuffer(0, this.flush);
   }
 
   @Override
@@ -75,6 +76,9 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     if (null != inputGradient) {
       _inputGradient = inputGradient;
     }
+    if (isVerbose()) {
+      log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj.data, this.kernel, output));
+    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data) {
@@ -90,13 +94,17 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
             throw new RuntimeException(e);
           }
           final double[] inverted = pseudoinverse.mmul(new DoubleMatrix(delta.length, 1, delta)).data;
-          inObj.feedback(new NDArray(inputDims, inverted));
+          NDArray backprop = new NDArray(inputDims, inverted);
+          if (isVerbose()) {
+            log.debug(String.format("Feed back: %s * %s %n\t=> %s", data, pseudoinverse, backprop));
+          }
+          inObj.feedback(backprop);
         }
       }
       
       @Override
       public boolean isAlive() {
-        return true;
+        return !frozen || inObj.isAlive();
       }
     };
   }
@@ -165,6 +173,10 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   public void write() {
     if(isFrozen()) return;
     _inputGradient = null;
-    writer.write();
+    flush.write();
+  }
+
+  public ConvolutionSynapseLayer setHalflife(final double halflife) {
+    return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
   }
 }

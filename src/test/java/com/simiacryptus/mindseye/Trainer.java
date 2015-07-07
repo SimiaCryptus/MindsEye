@@ -170,7 +170,7 @@ public class Trainer {
       final NDArray output = sample[1];
       final NNResult eval = params.getNet().eval(input);
       final double trialRms = eval.errRms(output);
-      final NDArray delta = eval.delta(dynamicRate, output);
+      final NDArray delta = eval.delta(dynamicRate * params.getWeight(), output);
       eval.feedback(delta);
       assert(Double.isFinite(trialRms));
       return trialRms;

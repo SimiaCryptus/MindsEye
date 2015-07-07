@@ -24,6 +24,7 @@ public class DeltaMemoryWriter implements DeltaSink {
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       this.values[i] += data[i];
+      if(!Double.isFinite(this.values[i])) this.values[i] = 0;
     }
   }
 

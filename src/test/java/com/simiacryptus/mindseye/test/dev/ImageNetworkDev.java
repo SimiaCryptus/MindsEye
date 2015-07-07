@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.PipelineNetwork;
+import com.simiacryptus.mindseye.SupervisedTrainingParameters;
 import com.simiacryptus.mindseye.Trainer;
 import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
@@ -50,23 +51,25 @@ public class ImageNetworkDev {
     Stream<BufferedImage[]> buffer = data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zero = new NDArray(inputSize);
-      BiasLayer bias = new BiasLayer(inputSize);
+      BiasLayer bias = new BiasLayer(inputSize).setHalflife(3).setSampling(0.5);
       Trainer trainer = new Trainer();
       
+      //convolution.setVerbose(true);
       trainer.add(new PipelineNetwork()
           .add(bias)
           .add(convolution),
           new NDArray[][] { { obj.data, obj.data } });
       
-      trainer.add(new PipelineNetwork()
-          .add(bias),
-          new NDArray[][] { { zero, zero } });
+        trainer.add(new SupervisedTrainingParameters(
+            new PipelineNetwork().add(bias), 
+            new NDArray[][] { { zero, zero } })
+            .setWeight(0.1));
       
-      trainer.setMutationAmount(0.05)
+      trainer.setMutationAmount(0.2)
           //.setImprovementStaleThreshold(Integer.MAX_VALUE)
           .setRate(10.)
           .setVerbose(true)
-          .train(10000, 0.000001);
+          .train(1000, 0.000001);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(obj.data);

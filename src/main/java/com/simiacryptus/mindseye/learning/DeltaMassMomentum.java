@@ -7,6 +7,7 @@ public class DeltaMassMomentum implements DeltaSink, MassParameters<DeltaMassMom
   private double decay = 0.;
   private double mass = 1.;
   private double[] momentum;
+  private double normalizationFactor = 0;
   private DeltaSink values;
 
   public DeltaMassMomentum() {
@@ -34,7 +35,12 @@ public class DeltaMassMomentum implements DeltaSink, MassParameters<DeltaMassMom
     for (int i = 0; i < dim; i++) {
       v[i] += this.momentum[i] = this.decay * this.momentum[i] + data[i] / this.mass;
     }
-    this.values.feed(v);
+    normalizationFactor += this.decay * normalizationFactor + 1;
+    double[] x = new double[v.length];
+    for (int i = 0; i < dim; i++) {
+      x[i] = v[i] / normalizationFactor;
+    }
+    this.values.feed(x);
   }
 
   @Override
@@ -62,6 +68,10 @@ public class DeltaMassMomentum implements DeltaSink, MassParameters<DeltaMassMom
   public DeltaMassMomentum setMomentumDecay(final double momentumDecay) {
     this.decay = momentumDecay;
     return this;
+  }
+
+  public DeltaMassMomentum setHalflife(final double halflife) {
+    return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
   }
   
 }

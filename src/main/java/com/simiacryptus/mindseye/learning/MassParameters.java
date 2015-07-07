@@ -9,5 +9,6 @@ public interface MassParameters<T> {
   public T setMass(double mass);
 
   public T setMomentumDecay(double momentumDecay);
+  public T setHalflife(final double halflife);
 
 }
