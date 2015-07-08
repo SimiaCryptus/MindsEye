@@ -94,9 +94,10 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
           
           new NDArray(kernelDims).coordStream().forEach(k -> {
             output.coordStream().forEach(o -> {
-              final int[] i = Coordinate.add(k.coords, o.coords);
+              final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, o.coords), 0, inputDims.length);
+              //final int[] i = Coordinate.add(k.coords, o.coords);
               final double a = kernel.get(k);
-              backprop.set(i, a==0.?data.get(o):data.get(o)/a);
+              backprop.add(i, a==0.?data.get(o):data.get(o)/a);
             });
           });
           if (isVerbose()) {

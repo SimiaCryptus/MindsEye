@@ -39,9 +39,9 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
     //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
-    //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
+    NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
     final int[] inputSize = inputImage.getDims();
@@ -88,7 +88,7 @@ public class ImageNetworkDev {
           .setLoopA(1)
           .setLoopB(1)
           .setRateAdaptionRate(0.)
-          .setDynamicRate(1.)
+          .setDynamicRate(.01)
           .train(1, 0.01);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
