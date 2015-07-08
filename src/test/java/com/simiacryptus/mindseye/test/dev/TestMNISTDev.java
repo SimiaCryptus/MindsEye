@@ -114,7 +114,7 @@ public class TestMNISTDev {
         .map(o -> new NDArray[]{o.data, toOutNDArray(toOut(o.label), 10)})
         .toArray(i2->new NDArray[i2][]);
     final NDArray[][] samples = data;
-    net.trainer(samples).test(10000, 0.01, 1);
+    net.trainer(samples).verifyConvergence(10000, 0.01, 1);
     {
       Network net2 = net;
       double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();

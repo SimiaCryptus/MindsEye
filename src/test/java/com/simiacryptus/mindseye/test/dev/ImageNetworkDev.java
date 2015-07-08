@@ -82,7 +82,7 @@ public class ImageNetworkDev {
       
       trainer.setMutationAmount(0.01)
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
-          .setRate(1.)
+          .setStaticRate(1.)
           .setVerbose(true)
           .train(100, 0.01);
       
