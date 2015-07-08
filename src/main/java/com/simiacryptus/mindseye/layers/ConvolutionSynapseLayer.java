@@ -92,14 +92,16 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
         if (inObj.isAlive()) {
           NDArray backprop = new NDArray(inputDims);
           
-          new NDArray(kernelDims).coordStream().forEach(k -> {
-            output.coordStream().forEach(outputCoord -> {
-              final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, outputCoord.coords), 0, inputDims.length);
+          new NDArray(kernelDims).coordStream().forEach(kernelCoord -> {
+            errorSignal.coordStream()
+            .filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==kernelCoord.coords[i]))
+            .forEach(errorCoord -> {
+              final int[] i = Arrays.copyOfRange(Coordinate.add(kernelCoord.coords, errorCoord.coords), 0, inputDims.length);
               //final int[] i = Coordinate.add(k.coords, o.coords);
-              final double kernelValue = kernel.get(k);
-              double errorValue = errorSignal.get(outputCoord);
+              final double kernelValue = kernel.get(kernelCoord);
               if(0. != kernelValue)
               {
+                double errorValue = errorSignal.get(errorCoord);
                 backprop.add(i, errorValue/kernelValue);
               }
             });

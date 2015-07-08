@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.test.dev.ImageNetworkDev;
+import com.simiacryptus.mindseye.test.dev.TestMNISTDev;
 
 public class Trainer {
   private static final Logger log = LoggerFactory.getLogger(Trainer.class);
@@ -186,6 +188,15 @@ public class Trainer {
       final NNResult eval = params.getNet().eval(input);
       final double trialError = eval.errRms(output) * params.getWeight();
       final NDArray delta = eval.delta(dynamicRate * params.getWeight(), output);
+      try {
+        ImageNetworkDev.report(ImageNetworkDev.imageHtml(
+            TestMNISTDev.toImage(new NDArray(new int[]{output.getDims()[0],output.getDims()[1],output.getDims()[2]}, output.data)),
+            TestMNISTDev.toImage(new NDArray(new int[]{eval.data.getDims()[0],eval.data.getDims()[1],eval.data.getDims()[2]}, eval.data.data)),
+            TestMNISTDev.toImage(new NDArray(new int[]{delta.getDims()[0],delta.getDims()[1],delta.getDims()[2]}, delta.data))
+            ));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
       eval.feedback(delta);
       assert (Double.isFinite(trialError));
       return trialError;

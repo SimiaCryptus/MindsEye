@@ -39,8 +39,8 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
-    //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
+    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
     //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
@@ -65,7 +65,8 @@ public class ImageNetworkDev {
     
     report(data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
-      NDArray zero = new NDArray(inputSize);
+      NDArray zeroInput = new NDArray(inputSize);
+      NDArray zeroOutput = new NDArray(outSize);
       BiasLayer bias = new BiasLayer(inputSize).setSampling(1.);
       Trainer trainer = new Trainer();
       
@@ -73,11 +74,11 @@ public class ImageNetworkDev {
       trainer.add(new PipelineNetwork()
           .add(bias)
           .add(convolution),
-          new NDArray[][] { { zero, obj.data } });
+          new NDArray[][] { { zeroInput, output.data } });
       
 //      trainer.add(new SupervisedTrainingParameters(
 //          new PipelineNetwork().add(bias),
-//          new NDArray[][] { { zero, zero } })
+//          new NDArray[][] { { zeroInput, zeroOutput } })
 //          .setWeight(10));
       
       trainer
@@ -92,8 +93,8 @@ public class ImageNetworkDev {
           .train(1, 0.01);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
-      NNResult recovered = bias.eval(zero);
-      NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(zero);
+      NNResult recovered = bias.eval(zeroInput);
+      NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(zeroInput);
       
       return imageHtml(
           TestMNISTDev.toImage(obj.data),
@@ -105,15 +106,15 @@ public class ImageNetworkDev {
     
   }
 
-  public String imageHtml(BufferedImage... imgArray) {
+  public static String imageHtml(BufferedImage... imgArray) {
     return Stream.of(imgArray).map(img -> TestMNISTDev.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
   }
 
-  public void report(String... fragments) throws FileNotFoundException, IOException {
+  public static void report(String... fragments) throws FileNotFoundException, IOException {
     report(Stream.of(fragments));
   }
 
-  public void report(Stream<String> fragments) throws FileNotFoundException, IOException {
+  public static void report(Stream<String> fragments) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
