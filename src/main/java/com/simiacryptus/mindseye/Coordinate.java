@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 public class Coordinate {
   public static int[] add(final int[] a, final int[] b) {
-    final int[] r = new int[a.length];
+    final int[] r = new int[Math.max(a.length, b.length)];
     for (int i = 0; i < r.length; i++) {
-      r[i] = a[i] + b[i];
+      r[i] = (a.length<=i?0:a[i]) + (b.length<=i?0:b[i]);
     }
     return r;
   }

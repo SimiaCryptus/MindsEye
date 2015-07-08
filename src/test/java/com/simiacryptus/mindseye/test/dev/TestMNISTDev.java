@@ -180,7 +180,7 @@ public class TestMNISTDev {
       for (int y = 0; y < img.getHeight(); y++)
       {
         if(ndArray.getDims()[2]==1) {
-          img.setRGB(x, y, (int) (ndArray.get(x, y, 0) * 0x010101));
+          img.setRGB(x, y, (int) (((int)ndArray.get(x, y, 0)&0xFF) * 0x010101));
         } else {
           img.setRGB(x, y, (int) (ndArray.get(x, y, 0) + ((int)ndArray.get(x, y, 1)<<8) + ((int)ndArray.get(x, y, 2)<<16)));
         }

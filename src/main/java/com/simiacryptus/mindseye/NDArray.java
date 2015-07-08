@@ -87,7 +87,7 @@ public class NDArray {
     add(coords.index, value);
   }
 
-  public void add(final int index, final double value) {
+  public synchronized void add(final int index, final double value) {
     assert Double.isFinite(value);
     this.data[index] += value;
   }
@@ -99,7 +99,7 @@ public class NDArray {
   public Stream<Coordinate> coordStream() {
     return Util.toStream(new Iterator<Coordinate>() {
 
-      int cnt;
+      int cnt = 0;
       int[] val = new int[NDArray.this.dims.length];
 
       @Override
@@ -110,7 +110,7 @@ public class NDArray {
       @Override
       public Coordinate next() {
         final int[] last = Arrays.copyOf(this.val, this.val.length);
-        for (int i = 0; i < NDArray.this.dims.length; i++)
+        for (int i = 0; i < val.length; i++)
         {
           if (++this.val[i] >= NDArray.this.dims[i]) {
             this.val[i] = 0;
@@ -118,8 +118,9 @@ public class NDArray {
             break;
           }
         }
-        assert index(last) == this.cnt;
-        return new Coordinate(this.cnt++, last);
+        int index = this.cnt++;
+        assert index(last) == index;
+        return new Coordinate(index, last);
       }
     }, dim());
   }
@@ -135,6 +136,8 @@ public class NDArray {
   }
 
   public double get(final int... coords) {
+    //assert IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
+    assert coords.length==dims.length;
     final double v = this.data[index(coords)];
     assert Double.isFinite(v);
     return v;
@@ -153,7 +156,7 @@ public class NDArray {
   }
 
   public int index(final int... coords) {
-    assert IntStream.range(skips.length,coords.length).allMatch(i->coords[i]==0);
+    assert IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     int v = 0;
     for (int i = 0; i < this.skips.length; i++) {
       v += this.skips[i] * coords[i];

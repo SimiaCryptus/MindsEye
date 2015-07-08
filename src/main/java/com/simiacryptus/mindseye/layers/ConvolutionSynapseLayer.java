@@ -52,23 +52,27 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     final NDArray input = inObj.data;
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();
+    assert(inputDims.length+1 == kernelDims.length);
     final int[] newDims = IntStream.range(0, kernelDims.length).map(
-        i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1
+        i -> (i == kernelDims.length - 1) ? kernelDims[i] : (inputDims[i] - kernelDims[i] + 1)
         ).toArray();
     final NDArray output = new NDArray(newDims);
     //final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
     final NDArray weightGradient = this.frozen ? null : new NDArray(this.kernel.dim(), output.dim());
-    new NDArray(kernelDims).coordStream().forEach(k -> {
-      output.coordStream().forEach(o -> {
-        final int[] i = Coordinate.add(k.coords, o.coords);
+    this.kernel.coordStream().forEach(k -> {
+      output.coordStream()
+      .filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==k.coords[i]))
+      .forEach(o -> {
+        final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, o.coords), 0, inputDims.length);
         final double a = this.kernel.get(k);
         final double b = input.get(i);
+        //if(Math.random()<0.00001) log.debug(String.format("%s += %s * %s", o, k, Arrays.toString(i)));
 //        if(null != inputGradient) 
 //        {
 //          inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
 //        }
         if (null != weightGradient) {
-          weightGradient.add(new int[] { this.kernel.index(k), output.index(o) }, b);
+          weightGradient.add(new int[] { k.index, o.index }, b);
         }
         output.add(o, b * a);
       });

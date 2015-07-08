@@ -37,8 +37,8 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
-    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
+    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
     final int[] inputSize = inputImage.getDims();
@@ -50,12 +50,12 @@ public class ImageNetworkDev {
     data.add(new LabeledObject<NDArray>(inputImage, ""));
     
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
-    convolution.kernel.set(new int[] { 0, 4, 0, 0 }, 0.5);
-    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.75);
-    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 1);
+    convolution.kernel.set(new int[] { 0, 4, 0, 0 }, 0.125);
+    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.25);
+    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 0.25);
     //convolution.kernel.set(new int[] { 3, 3, 0, 0 }, 1);
-    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.75);
-    convolution.kernel.set(new int[] { 4, 0, 0, 0 }, 0.5);
+    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.25);
+    convolution.kernel.set(new int[] { 4, 0, 0, 0 }, 0.125);
     convolution.freeze();
     
     PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
