@@ -39,8 +39,8 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
-    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
+    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
     //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
@@ -53,12 +53,12 @@ public class ImageNetworkDev {
     data.add(new LabeledObject<NDArray>(inputImage, ""));
     
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
-//    convolution.kernel.set(new int[] { 0, 4, 0, 0 }, 0.125);
-//    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.25);
-    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 1);
+    convolution.kernel.set(new int[] { 0, 4, 0, 0 }, 0.125);
+    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.25);
+    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, .25);
     //convolution.kernel.set(new int[] { 3, 3, 0, 0 }, 1);
-//    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.25);
-//    convolution.kernel.set(new int[] { 4, 0, 0, 0 }, 0.125);
+    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.25);
+    convolution.kernel.set(new int[] { 4, 0, 0, 0 }, 0.125);
     convolution.freeze();
     
     PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
@@ -84,13 +84,13 @@ public class ImageNetworkDev {
       trainer
           .setMutationAmount(0.0)
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
-          .setStaticRate(1.)
+          .setStaticRate(50.)
           .setVerbose(true)
           .setLoopA(1)
           .setLoopB(1)
-          .setRateAdaptionRate(0.)
-          .setDynamicRate(1.)
-          .train(1, 0.01);
+          .setRateAdaptionRate(0.5)
+          .setDynamicRate(0.05)
+          .train(100, 0.01);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(zeroInput);

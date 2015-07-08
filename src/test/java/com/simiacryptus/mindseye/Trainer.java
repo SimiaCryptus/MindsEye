@@ -63,7 +63,7 @@ public class Trainer {
         log.info(String.format("Error: %s", error));
       }
     }
-    return null==best?null:best.getSecond();
+    return null == best ? null : best.getSecond();
   }
   
   private double update() {
@@ -75,9 +75,9 @@ public class Trainer {
         double[] errorArray = trainSet();
         thisError = DoubleStream.of(errorArray).sum();
         updateBest(thisError);
-        if(thisError < localBest)
+        if (thisError < localBest)
         {
-          if(localBest < Double.MAX_VALUE) 
+          if (localBest < Double.MAX_VALUE)
           {
             if (isVerbose()) log.debug(String.format("Local Best %s -> %s", localBest, thisError));
             lastLocalImprovementGeneration = currentGeneration;
@@ -110,11 +110,11 @@ public class Trainer {
     }
     return thisError;
   }
-
+  
   public int timeSinceLocalImprovement() {
     return currentGeneration - lastLocalImprovementGeneration;
   }
-
+  
   public int timeSinceImprovement() {
     return currentGeneration - lastImprovementGeneration;
   }
@@ -127,7 +127,7 @@ public class Trainer {
     if (isVerbose()) {
       log.debug(String.format("Ideal Rate: %s (target %s change, actual %s with %s rate)", idealRate, expectedImprovement, improvement, prevRate));
     }
-    if(Double.isFinite(idealRate)) {
+    if (Double.isFinite(idealRate)) {
       dynamicRate += rateAdaptionRate * (Math.max(Math.min(idealRate, maxDynamicRate), minDynamicRate) - dynamicRate);
     }
     if (isVerbose()) log.debug(String.format("Rate %s -> %s", prevRate, dynamicRate));
@@ -188,19 +188,19 @@ public class Trainer {
       final NNResult eval = params.getNet().eval(input);
       final double trialError = eval.errRms(output) * params.getWeight();
       final NDArray delta = eval.delta(dynamicRate * params.getWeight(), output);
-      try {
-        ImageNetworkDev.report(ImageNetworkDev.imageHtml(
-            TestMNISTDev.toImage(new NDArray(new int[]{output.getDims()[0],output.getDims()[1],output.getDims()[2]}, output.data)),
-            TestMNISTDev.toImage(new NDArray(new int[]{eval.data.getDims()[0],eval.data.getDims()[1],eval.data.getDims()[2]}, eval.data.data)),
-            TestMNISTDev.toImage(new NDArray(new int[]{delta.getDims()[0],delta.getDims()[1],delta.getDims()[2]}, delta.data))
-            ));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      eval.feedback(delta);
-      assert (Double.isFinite(trialError));
-      return trialError;
-    }).average().getAsDouble()).toArray();
+      // try {
+      // ImageNetworkDev.report(ImageNetworkDev.imageHtml(
+      // TestMNISTDev.toImage(new NDArray(new int[]{output.getDims()[0],output.getDims()[1],output.getDims()[2]}, output.data)),
+      // TestMNISTDev.toImage(new NDArray(new int[]{eval.data.getDims()[0],eval.data.getDims()[1],eval.data.getDims()[2]}, eval.data.data)),
+      // TestMNISTDev.toImage(new NDArray(new int[]{delta.getDims()[0],delta.getDims()[1],delta.getDims()[2]}, delta.data))
+      // ));
+      // } catch (Exception e) {
+      // e.printStackTrace();
+      // }
+        eval.feedback(delta);
+        assert (Double.isFinite(trialError));
+        return trialError;
+      }).average().getAsDouble()).toArray();
     currentNetworks.stream().forEach(params -> params.getNet().writeDeltas());
     return error;
   }
@@ -240,56 +240,56 @@ public class Trainer {
   public Tuple2<List<SupervisedTrainingParameters>, Double> getBest() {
     return best;
   }
-
+  
   public double getDynamicRate() {
     return dynamicRate;
   }
-
+  
   public Trainer setDynamicRate(double dynamicRate) {
     this.dynamicRate = dynamicRate;
     return this;
   }
-
+  
   public double getRateAdaptionRate() {
     return rateAdaptionRate;
   }
-
+  
   public Trainer setRateAdaptionRate(double rateAdaptionRate) {
     this.rateAdaptionRate = rateAdaptionRate;
     return this;
   }
-
+  
   public double getMaxDynamicRate() {
     return maxDynamicRate;
   }
-
+  
   public Trainer setMaxDynamicRate(double maxDynamicRate) {
     this.maxDynamicRate = maxDynamicRate;
     return this;
   }
-
+  
   public int getMinDynamicRate() {
     return minDynamicRate;
   }
-
+  
   public Trainer setMinDynamicRate(int minDynamicRate) {
     this.minDynamicRate = minDynamicRate;
     return this;
   }
-
+  
   public int getLoopA() {
     return loopA;
   }
-
+  
   public Trainer setLoopA(int loopA) {
     this.loopA = loopA;
     return this;
   }
-
+  
   public int getLoopB() {
     return loopB;
   }
-
+  
   public Trainer setLoopB(int loopB) {
     this.loopB = loopB;
     return this;
