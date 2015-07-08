@@ -7,7 +7,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,7 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
     
     NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
     //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
@@ -60,10 +63,10 @@ public class ImageNetworkDev {
     
     PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
     
-    Stream<BufferedImage[]> buffer = data.stream().map(obj -> {
+    report(data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zero = new NDArray(inputSize);
-      BiasLayer bias = new BiasLayer(inputSize).setSampling(0.01);
+      BiasLayer bias = new BiasLayer(inputSize).setSampling(0.1);
       Trainer trainer = new Trainer();
       
       // convolution.setVerbose(true);
@@ -77,46 +80,45 @@ public class ImageNetworkDev {
           new NDArray[][] { { zero, zero } })
           .setWeight(10));
       
-      trainer.setMutationAmount(0.0)
+      trainer.setMutationAmount(0.01)
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
           .setRate(1.)
           .setVerbose(true)
-          .train(0, 0.01);
+          .train(100, 0.01);
       
-      bias = (BiasLayer) ((null==trainer.getBest())?null:trainer.getBest().getFirst().get(0).getNet().get(0));
-      NNResult recovered = null==bias?new NNResult(obj.data) {
-        @Override
-        public boolean isAlive() {
-          return false;
-        }
-        
-        @Override
-        public void feedback(NDArray data) {
-          // Do nothing
-        }
-      }:bias.eval(obj.data);
+      bias = (BiasLayer) ((null==trainer.getBest())?bias:trainer.getBest().getFirst().get(0).getNet().get(0));
+      NNResult recovered = bias.eval(obj.data);
       NNResult tested = forwardConvolutionNet.eval(recovered.data);
       
-      return new BufferedImage[] {
+      return imageHtml(
           TestMNISTDev.toImage(obj.data),
           TestMNISTDev.toImage(new NDArray(outSize, output.data.data)),
           TestMNISTDev.toImage(new NDArray(inputSize, recovered.data.data)),
           TestMNISTDev.toImage(new NDArray(outSize, tested.data.data))
-      };
-    });
-  
+      );
+    }));
+    
+  }
+
+  public String imageHtml(BufferedImage... imgArray) {
+    return Stream.of(imgArray).map(img -> TestMNISTDev.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
+  }
+
+  public void report(String... fragments) throws FileNotFoundException, IOException {
+    report(Stream.of(fragments));
+  }
+
+  public void report(Stream<String> fragments) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
     final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
-    buffer.map(x -> "<p>" + Stream.of(x).map(o -> TestMNISTDev.toInlineImage(o, "")).reduce((a, b) -> a + b).get() + "</p>")
-        .forEach(out::println);
+    fragments.forEach(out::println);
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());
-    
   }
 
   public static BufferedImage scale(BufferedImage img, double scale) {
