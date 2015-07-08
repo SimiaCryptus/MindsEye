@@ -85,23 +85,27 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data) {
+      public void feedback(final NDArray errorSignal) {
         if (null != weightGradient) {
-          ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
+          ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, errorSignal.data);
         }
         if (inObj.isAlive()) {
           NDArray backprop = new NDArray(inputDims);
           
           new NDArray(kernelDims).coordStream().forEach(k -> {
-            output.coordStream().forEach(o -> {
-              final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, o.coords), 0, inputDims.length);
+            output.coordStream().forEach(outputCoord -> {
+              final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, outputCoord.coords), 0, inputDims.length);
               //final int[] i = Coordinate.add(k.coords, o.coords);
-              final double a = kernel.get(k);
-              backprop.add(i, a==0.?data.get(o):data.get(o)/a);
+              final double kernelValue = kernel.get(k);
+              double errorValue = errorSignal.get(outputCoord);
+              if(0. != kernelValue)
+              {
+                backprop.add(i, errorValue/kernelValue);
+              }
             });
           });
           if (isVerbose()) {
-            log.debug(String.format("Feed back: %s * -1 %n\t=> %s", data, backprop));
+            log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
           }
           inObj.feedback(backprop);
         }
