@@ -73,7 +73,7 @@ public class ImageNetworkDev {
       trainer.add(new PipelineNetwork()
           .add(bias)
           .add(convolution),
-          new NDArray[][] { { obj.data, obj.data } });
+          new NDArray[][] { { zero, obj.data } });
       
       trainer.add(new SupervisedTrainingParameters(
           new PipelineNetwork().add(bias),
@@ -87,8 +87,8 @@ public class ImageNetworkDev {
           .train(100, 0.01);
       
       bias = (BiasLayer) ((null==trainer.getBest())?bias:trainer.getBest().getFirst().get(0).getNet().get(0));
-      NNResult recovered = bias.eval(obj.data);
-      NNResult tested = forwardConvolutionNet.eval(recovered.data);
+      NNResult recovered = bias.eval(zero);
+      NNResult tested = forwardConvolutionNet.eval(zero);
       
       return imageHtml(
           TestMNISTDev.toImage(obj.data),
