@@ -91,9 +91,9 @@ public class ImageNetworkDev {
           .setDynamicRate(1.)
           .train(1, 0.01);
       
-      bias = (BiasLayer) ((null==trainer.getBest())?bias:trainer.getBest().getFirst().get(0).getNet().get(0));
+      bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(zero);
-      NNResult tested = forwardConvolutionNet.eval(zero);
+      NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(zero);
       
       return imageHtml(
           TestMNISTDev.toImage(obj.data),
