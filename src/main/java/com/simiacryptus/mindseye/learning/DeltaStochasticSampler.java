@@ -25,7 +25,7 @@ public class DeltaStochasticSampler implements DeltaSink {
 
   @Override
   public void feed(final double[] data) {
-
+    assert(data.length==length());
     final int dim = length();
     double[] v = new double[data.length];
     for (int i = 0; i < dim; i++) {

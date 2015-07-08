@@ -153,6 +153,7 @@ public class NDArray {
   }
 
   public int index(final int... coords) {
+    assert IntStream.range(skips.length,coords.length).allMatch(i->coords[i]==0);
     int v = 0;
     for (int i = 0; i < this.skips.length; i++) {
       v += this.skips[i] * coords[i];
@@ -218,7 +219,7 @@ public class NDArray {
     else {
       final Optional<String> str = IntStream.range(0, this.dims[coords.length]).mapToObj(i -> {
         return toString(_add(coords, i));
-      }).reduce((a, b) -> a + "," + b);
+      }).limit(10).reduce((a, b) -> a + "," + b);
       return "{ " + str.get() + " }";
     }
   }

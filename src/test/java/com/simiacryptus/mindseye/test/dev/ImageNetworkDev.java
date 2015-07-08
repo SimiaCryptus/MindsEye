@@ -3,6 +3,8 @@ package com.simiacryptus.mindseye.test.dev;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -33,20 +37,25 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    final int[] inputSize = new int[] { 700, 200 };
-    int[] kernelSize = new int[] { 5, 5 };
-    final int[] outSize = new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1 };
+    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{300,300}, "Hello World"));
+    
+    
+    final int[] inputSize = inputImage.getDims();
+    int[] kernelSize = new int[] { 5, 5, 1 };
+    final int[] outSize = new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1, inputSize[2] - kernelSize[2] + 1 };
     
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
     List<LabeledObject<NDArray>> data = new ArrayList<>();
-    data.add(new LabeledObject<NDArray>(TestMNISTDev.toNDArray(render(inputSize, "Hello World")), ""));
+    data.add(new LabeledObject<NDArray>(inputImage, ""));
     
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
-    convolution.kernel.set(new int[] { 0, 4, 0 }, 0.5);
-    convolution.kernel.set(new int[] { 1, 3, 0 }, 0.75);
-    convolution.kernel.set(new int[] { 2, 2, 0 }, 1);
-    convolution.kernel.set(new int[] { 3, 1, 0 }, 0.75);
-    convolution.kernel.set(new int[] { 4, 0, 0 }, 0.5);
+    convolution.kernel.set(new int[] { 0, 4, 0, 0 }, 0.5);
+    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.75);
+    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 1);
+    //convolution.kernel.set(new int[] { 3, 3, 0, 0 }, 1);
+    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.75);
+    convolution.kernel.set(new int[] { 4, 0, 0, 0 }, 0.5);
     convolution.freeze();
     
     PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
@@ -72,10 +81,20 @@ public class ImageNetworkDev {
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
           .setRate(1.)
           .setVerbose(true)
-          .train(100, 0.01);
+          .train(0, 0.01);
       
-      bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
-      NNResult recovered = bias.eval(obj.data);
+      bias = (BiasLayer) ((null==trainer.getBest())?null:trainer.getBest().getFirst().get(0).getNet().get(0));
+      NNResult recovered = null==bias?new NNResult(obj.data) {
+        @Override
+        public boolean isAlive() {
+          return false;
+        }
+        
+        @Override
+        public void feedback(NDArray data) {
+          // Do nothing
+        }
+      }:bias.eval(obj.data);
       NNResult tested = forwardConvolutionNet.eval(recovered.data);
       
       return new BufferedImage[] {
@@ -98,6 +117,18 @@ public class ImageNetworkDev {
     out.close();
     Desktop.getDesktop().browse(report.toURI());
     
+  }
+
+  public static BufferedImage scale(BufferedImage img, double scale) {
+    int w = img.getWidth();
+    int h = img.getHeight();
+    BufferedImage after = new BufferedImage((int)(w*scale), (int)(h*scale), BufferedImage.TYPE_INT_ARGB);
+    AffineTransform at = new AffineTransform();
+    at.scale(scale, scale);
+    AffineTransformOp scaleOp = 
+       new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+    img = scaleOp.filter(img, after);
+    return img;
   }
   
   private BufferedImage render(final int[] inputSize, String string) {

@@ -41,12 +41,12 @@ public class Trainer {
     return add(new SupervisedTrainingParameters(net, data));
   }
   
-  public double train(final int maxIterations, final double minRms) {
+  public Double train(final int maxIterations, final double minRms) {
     long startMs = System.currentTimeMillis();
     currentGeneration = 0;
     while (maxIterations > currentGeneration)
     {
-      double rms = update(40, 5);
+      double rms = update(5, 5);
       rms = maybeRevertToBest(rms);
       if (rms < minRms) {
         log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", rms, (System.currentTimeMillis() - startMs) / 1000., currentGeneration));
@@ -56,7 +56,7 @@ public class Trainer {
         log.info(String.format("RMS Error: %s", rms));
       }
     }
-    return best.getSecond();
+    return null==best?null:best.getSecond();
   }
   
   public double update(int lessons, int steps) {

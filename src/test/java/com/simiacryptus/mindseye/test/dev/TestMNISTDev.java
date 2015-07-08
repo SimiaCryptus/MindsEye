@@ -146,13 +146,27 @@ public class TestMNISTDev {
     return ndArray;
   }
   
-  public static NDArray toNDArray(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight());
+  public static NDArray toNDArray1(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
     for (int x = 0; x < img.getWidth(); x++)
     {
       for (int y = 0; y < img.getHeight(); y++)
       {
-        a.set(new int[]{x, y}, img.getRGB(x, y) &0xFF);
+        a.set(new int[]{x, y, 0}, img.getRGB(x, y) &0xFF);
+      }
+    }
+    return a;
+  }
+  
+  public static NDArray toNDArray3(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
+    for (int x = 0; x < img.getWidth(); x++)
+    {
+      for (int y = 0; y < img.getHeight(); y++)
+      {
+        a.set(new int[]{x, y, 0}, img.getRGB(x, y) &0xFF);
+        a.set(new int[]{x, y, 1}, img.getRGB(x, y)>>8 &0xFF);
+        a.set(new int[]{x, y, 2}, img.getRGB(x, y)>>16 &0x0FF);
       }
     }
     return a;
@@ -165,7 +179,11 @@ public class TestMNISTDev {
     {
       for (int y = 0; y < img.getHeight(); y++)
       {
-        img.setRGB(x, y, (int) ndArray.get(x, y) * 0x00010101);
+        if(ndArray.getDims()[2]==1) {
+          img.setRGB(x, y, (int) (ndArray.get(x, y, 0) * 0x010101));
+        } else {
+          img.setRGB(x, y, (int) (ndArray.get(x, y, 0) + ((int)ndArray.get(x, y, 1)<<8) + ((int)ndArray.get(x, y, 2)<<16)));
+        }
       }
     }
     return img;
