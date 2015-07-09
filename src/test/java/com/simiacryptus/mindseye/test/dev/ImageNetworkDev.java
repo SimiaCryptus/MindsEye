@@ -67,7 +67,7 @@ public class ImageNetworkDev {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zeroInput = new NDArray(inputSize);
       NDArray zeroOutput = new NDArray(outSize);
-      BiasLayer bias = new BiasLayer(inputSize).setSampling(.5);
+      BiasLayer bias = new BiasLayer(inputSize).setSampling(1.);
       Trainer trainer = new Trainer();
       
       // convolution.setVerbose(true);
@@ -75,23 +75,23 @@ public class ImageNetworkDev {
           .add(bias)
           .add(convolution),
           new NDArray[][] { { zeroInput, output.data } });
-      
-      trainer.add(new SupervisedTrainingParameters(
-          new PipelineNetwork().add(bias),
-          new NDArray[][] { { zeroInput, zeroInput } })
-          .setWeight(.1));
+//      
+//      trainer.add(new SupervisedTrainingParameters(
+//          new PipelineNetwork().add(bias),
+//          new NDArray[][] { { zeroInput, zeroInput } })
+//          .setWeight(.1));
       
       trainer
           .setMutationAmount(0.0)
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
           .setStaticRate(50.)
           .setVerbose(true)
-          .setLoopA(5)
+          .setLoopA(10)
           .setLoopB(1)
-          .setRateAdaptionRate(0.5)
-          .setDynamicRate(0.05)
-          .setMaxDynamicRate(0.2)
-          .train(20, 2.8);
+          .setRateAdaptionRate(0.3)
+          .setDynamicRate(0.01)
+          .setMaxDynamicRate(0.5)
+          .train(100, 0.1);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(zeroInput);

@@ -5,6 +5,7 @@ import groovy.lang.Tuple2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
@@ -73,7 +74,7 @@ public class Trainer {
       double thisError = lastError;
       for (int iterationB = 0; iterationB < loopB; iterationB++) {
         double[] errorArray = trainSet();
-        thisError = DoubleStream.of(errorArray).sum();
+        thisError = DoubleStream.of(errorArray).reduce((a,b)->a*b).getAsDouble();
         updateBest(thisError);
         if (thisError < localBest)
         {
@@ -182,27 +183,42 @@ public class Trainer {
   }
   
   public double[] trainSet() {
-    double[] error = currentNetworks.stream().mapToDouble(params -> Stream.of(params.getTrainingData()).parallel().mapToDouble(sample -> {
+    List<List<NNResult>> results = currentNetworks.stream().map(params -> Stream.of(params.getTrainingData()).parallel().map(sample -> {
       final NDArray input = sample[0];
       final NDArray output = sample[1];
       final NNResult eval = params.getNet().eval(input);
-      final double trialError = eval.errRms(output) * params.getWeight();
-      final NDArray delta = eval.delta(dynamicRate * params.getWeight(), output);
-      // try {
-      // ImageNetworkDev.report(ImageNetworkDev.imageHtml(
-      // TestMNISTDev.toImage(new NDArray(new int[]{output.getDims()[0],output.getDims()[1],output.getDims()[2]}, output.data)),
-      // TestMNISTDev.toImage(new NDArray(new int[]{eval.data.getDims()[0],eval.data.getDims()[1],eval.data.getDims()[2]}, eval.data.data)),
-      // TestMNISTDev.toImage(new NDArray(new int[]{delta.getDims()[0],delta.getDims()[1],delta.getDims()[2]}, delta.data))
-      // ));
-      // } catch (Exception e) {
-      // e.printStackTrace();
-      // }
+      return eval;
+    }).collect(Collectors.toList())).collect(Collectors.toList());
+    
+    final List<List<Double>> rms2 = new ArrayList<>();
+    for(int network=0;network<currentNetworks.size();network++){
+      List<NNResult> netresults = results.get(network);
+      final List<Double> rms = new ArrayList<>();
+      SupervisedTrainingParameters currentNet = currentNetworks.get(network);
+      for(int sample=0;sample<netresults.size();sample++){
+        NNResult eval = netresults.get(sample);
+        NDArray output = currentNet.getTrainingData()[sample][1];
+        double errRms = eval.errRms(output);
+        rms.add(0.==errRms?1:errRms);
+      }
+      rms2.add(rms);
+    }
+    double[] rmsList = rms2.stream().map(r->r.stream().mapToDouble(x->x).average().getAsDouble()).mapToDouble(x->x).toArray();
+    double product = DoubleStream.of(rmsList).reduce((a,b)->a*b).getAsDouble();
+    for(int network=0;network<currentNetworks.size();network++){
+      List<NNResult> netresults = results.get(network);
+      SupervisedTrainingParameters currentNet = currentNetworks.get(network);
+      for(int sample=0;sample<netresults.size();sample++){
+        NNResult eval = netresults.get(sample);
+        NDArray output = currentNet.getTrainingData()[sample][1];
+        NDArray delta = eval.delta(dynamicRate * currentNet.getWeight(), output);
+        double factor = rmsList[network] / product;
+        delta.scale(factor);
         eval.feedback(delta);
-        assert (Double.isFinite(trialError));
-        return trialError;
-      }).average().getAsDouble()).toArray();
+      }
+    }
     currentNetworks.stream().forEach(params -> params.getNet().writeDeltas());
-    return error;
+    return rmsList;
   }
   
   public double getMutationAmount() {
