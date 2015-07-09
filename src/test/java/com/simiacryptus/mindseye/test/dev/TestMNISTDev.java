@@ -180,15 +180,24 @@ public class TestMNISTDev {
       for (int y = 0; y < img.getHeight(); y++)
       {
         if(ndArray.getDims()[2]==1) {
-          img.setRGB(x, y, (int) (((int)ndArray.get(x, y, 0)&0xFF) * 0x010101));
+          double value = ndArray.get(x, y, 0);
+          int asByte = ((int)bounds(value)&0xFF);
+          img.setRGB(x, y, (int) (asByte * 0x010101));
         } else {
-          img.setRGB(x, y, (int) (ndArray.get(x, y, 0) + ((int)ndArray.get(x, y, 1)<<8) + ((int)ndArray.get(x, y, 2)<<16)));
+          double red = bounds(ndArray.get(x, y, 0));
+          double green = bounds(ndArray.get(x, y, 1));
+          double blue = bounds(ndArray.get(x, y, 2));
+          img.setRGB(x, y, (int) (red + ((int)green<<8) + ((int)blue<<16)));
         }
       }
     }
     return img;
   }
   
+  private static double bounds(double value) {
+    return value<0?0:value>0xFF?0xFF:value;
+  }
+
   public static String toInlineImage(final BufferedImage img, String alt) {
     return toInlineImage(new LabeledObject<BufferedImage>(img, alt));
   }
