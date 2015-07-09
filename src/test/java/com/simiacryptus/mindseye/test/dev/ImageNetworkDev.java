@@ -39,8 +39,8 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
-    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{240,200}, "Hello World"));
+    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{240,200}, "Hello World"));
     //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
@@ -55,18 +55,18 @@ public class ImageNetworkDev {
     data.add(new LabeledObject<NDArray>(inputImage, ""));
 
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
-    convolution.kernel.set(new int[] { 0, 4, 0, 0 }, 0.125);
-    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.25);
+    convolution.kernel.set(new int[] { 0, 3, 0, 0 }, 0.25);
+    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.125);
     convolution.kernel.set(new int[] { 2, 2, 0, 0 }, .25);
     //convolution.kernel.set(new int[] { 3, 3, 0, 0 }, 1);
-    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.25);
-    convolution.kernel.set(new int[] { 4, 0, 0, 0 }, 0.125);
+    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.125);
+    convolution.kernel.set(new int[] { 3, 0, 0, 0 }, 0.25);
     convolution.freeze();
 
     ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(kernelSize2, 1);
     convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, 1);
-    convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, -1);
-    convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, -1);
+    convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 1);
+    convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 1);
     convolution2.kernel.set(new int[] { 1, 1, 0, 0 }, 1);
     convolution2.freeze();
     
@@ -77,7 +77,7 @@ public class ImageNetworkDev {
       NDArray zeroInput = new NDArray(inputSize);
       NDArray zeroOutput = new NDArray(outSize);
       NDArray zeroOutput2 = new NDArray(outSize2);
-      BiasLayer bias = new BiasLayer(inputSize);//.setHalflife(2);//.setSampling(0.8);
+      BiasLayer bias = new BiasLayer(inputSize).setHalflife(3).setSampling(1);
       Trainer trainer = new Trainer();
       
       // convolution.setVerbose(true);
@@ -89,7 +89,7 @@ public class ImageNetworkDev {
 //      trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
 //          .add(bias)
 //          .add(convolution2), new NDArray[][] { { zeroInput, zeroOutput2 } })
-//          .setWeight(2.));
+//          .setWeight(0.2));
       
       
       
@@ -97,17 +97,17 @@ public class ImageNetworkDev {
 //      trainer.add(new SupervisedTrainingParameters(
 //          new PipelineNetwork().add(bias),
 //          new NDArray[][] { { zeroInput, zeroInput } })
-//          .setWeight(1));
+//          .setWeight(0.5));
       
       trainer
           .setMutationAmount(0.0)
           // .setImprovementStaleThreshold(Integer.MAX_VALUE)
           .setStaticRate(50.)
           .setVerbose(true)
-          .setLoopA(1)
+          .setLoopA(5)
           .setLoopB(1)
           .setRateAdaptionRate(0.3)
-          .setDynamicRate(0.02)
+          .setDynamicRate(0.005)
           .setMaxDynamicRate(0.5)
           .train(100, 0.0001);
 
