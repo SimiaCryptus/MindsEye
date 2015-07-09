@@ -97,6 +97,10 @@ public class NDArray {
   }
 
   public Stream<Coordinate> coordStream() {
+    return coordStream(false);
+  }
+
+  public Stream<Coordinate> coordStream(boolean paralell) {
     return Util.toStream(new Iterator<Coordinate>() {
 
       int cnt = 0;
@@ -119,10 +123,10 @@ public class NDArray {
           }
         }
         int index = this.cnt++;
-        assert index(last) == index;
+        //assert index(last) == index;
         return new Coordinate(index, last);
       }
-    }, dim());
+    }, dim(), paralell);
   }
 
   public int dim() {
@@ -156,7 +160,6 @@ public class NDArray {
   }
 
   public int index(final int... coords) {
-    assert IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     int v = 0;
     for (int i = 0; i < this.skips.length; i++) {
       v += this.skips[i] * coords[i];
@@ -166,7 +169,7 @@ public class NDArray {
   }
 
   public NDArray map(final ToDoubleBiFunction<Double, Coordinate> f) {
-    return new NDArray(this.dims, coordStream().mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
+    return new NDArray(this.dims, coordStream(false).mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
   }
 
   public NDArray map(final UnivariateFunction f) {

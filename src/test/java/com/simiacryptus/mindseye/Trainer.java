@@ -187,33 +187,34 @@ public class Trainer {
       final NDArray input = sample[0];
       final NDArray output = sample[1];
       final NNResult eval = params.getNet().eval(input);
+      assert(eval.data.dim()==output.dim());
       return eval;
     }).collect(Collectors.toList())).collect(Collectors.toList());
     
     final List<List<Double>> rms2 = new ArrayList<>();
     for(int network=0;network<currentNetworks.size();network++){
       List<NNResult> netresults = results.get(network);
-      final List<Double> rms = new ArrayList<>();
       SupervisedTrainingParameters currentNet = currentNetworks.get(network);
+      final List<Double> rms = new ArrayList<>();
       for(int sample=0;sample<netresults.size();sample++){
         NNResult eval = netresults.get(sample);
         NDArray output = currentNet.getTrainingData()[sample][1];
-        double errRms = eval.errRms(output);
-        rms.add(0.==errRms?1:errRms);
+        double errRms = Math.pow(eval.errRms(output), currentNet.getWeight());
+        rms.add(errRms);
       }
       rms2.add(rms);
     }
-    double[] rmsList = rms2.stream().map(r->r.stream().mapToDouble(x->x).average().getAsDouble()).mapToDouble(x->x).toArray();
-    double product = DoubleStream.of(rmsList).reduce((a,b)->a*b).getAsDouble();
+    double[] rmsList = rms2.stream().map(r->r.stream().mapToDouble(x->x).filter(Double::isFinite).filter(x->0<x).average().orElse(1)).mapToDouble(x->x).toArray();
+    double product = DoubleStream.of(rmsList).filter(x->0!=x).reduce((a,b)->a*b).getAsDouble();
     for(int network=0;network<currentNetworks.size();network++){
       List<NNResult> netresults = results.get(network);
       SupervisedTrainingParameters currentNet = currentNetworks.get(network);
       for(int sample=0;sample<netresults.size();sample++){
         NNResult eval = netresults.get(sample);
         NDArray output = currentNet.getTrainingData()[sample][1];
-        NDArray delta = eval.delta(dynamicRate * currentNet.getWeight(), output);
-        double factor = rmsList[network] / product;
-        delta.scale(factor);
+        NDArray delta = eval.delta(dynamicRate, output);
+        double factor = rmsList[network] / (product * currentNet.getWeight());
+        if(Double.isFinite(factor)) delta.scale(factor);
         eval.feedback(delta);
       }
     }

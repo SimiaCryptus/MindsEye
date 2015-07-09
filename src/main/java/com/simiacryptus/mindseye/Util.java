@@ -44,7 +44,11 @@ public class Util {
   }
   
   public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size) {
-    return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), false);
+    return toStream(iterator, size, false);
+  }
+
+  public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size, boolean parallel) {
+    return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
   
 }

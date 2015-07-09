@@ -21,7 +21,7 @@ public abstract class NNResult {
   }
   
   public final NDArray delta(final double d, final NDArray out) {
-    assert(Arrays.equals(this.data.getDims(), out.getDims()));
+    assert(this.data.dim() == out.dim());
     final NDArray delta = new NDArray(this.data.getDims());
     Arrays.parallelSetAll(delta.data, i -> (out.data[i] - NNResult.this.data.data[i]) * d);
     return delta;

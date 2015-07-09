@@ -1,8 +1,11 @@
 package com.simiacryptus.mindseye.learning;
 
+import java.util.Random;
+
 import com.simiacryptus.mindseye.NDArray;
 
 public class DeltaStochasticSampler implements DeltaSink {
+  public static final Random random = new Random(System.nanoTime());
 
   private DeltaSink values;
   private double sampling = 1;
@@ -29,7 +32,7 @@ public class DeltaStochasticSampler implements DeltaSink {
     final int dim = length();
     double[] v = new double[data.length];
     for (int i = 0; i < dim; i++) {
-      if(Math.random() < sampling) 
+      if(random.nextDouble() < sampling) 
       {
         v[i] = data[i];
       }

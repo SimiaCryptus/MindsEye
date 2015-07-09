@@ -30,6 +30,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   private boolean frozen = false;
   private DeltaFlushBuffer flush;
 //  NDArray _inputGradient;
+  private boolean paralell = false;
   
   protected ConvolutionSynapseLayer() {
     super();
@@ -59,9 +60,9 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     final NDArray output = new NDArray(newDims);
     //final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
     final NDArray weightGradient = this.frozen ? null : new NDArray(this.kernel.dim(), output.dim());
-    this.kernel.coordStream().forEach(k -> {
-      output.coordStream()
-      .filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==k.coords[i]))
+    this.kernel.coordStream(paralell).forEach(k -> {
+      output.coordStream(paralell)
+      //.filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==k.coords[i]))
       .forEach(o -> {
         final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, o.coords), 0, inputDims.length);
         final double a = this.kernel.get(k);
@@ -92,9 +93,9 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
         if (inObj.isAlive()) {
           NDArray backprop = new NDArray(inputDims);
           
-          new NDArray(kernelDims).coordStream().forEach(kernelCoord -> {
-            errorSignal.coordStream()
-            .filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==kernelCoord.coords[i]))
+          new NDArray(kernelDims).coordStream(paralell).parallel().forEach(kernelCoord -> {
+            errorSignal.coordStream(paralell)
+            //.filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==kernelCoord.coords[i]))
             .forEach(errorCoord -> {
               final int[] i = Arrays.copyOfRange(Coordinate.add(kernelCoord.coords, errorCoord.coords), 0, inputDims.length);
               //final int[] i = Coordinate.add(k.coords, o.coords);
@@ -188,5 +189,14 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
 
   public ConvolutionSynapseLayer setHalflife(final double halflife) {
     return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
+  }
+
+  public boolean isParalell() {
+    return paralell;
+  }
+
+  public ConvolutionSynapseLayer setParalell(boolean parallel) {
+    this.paralell = parallel;
+    return this;
   }
 }
