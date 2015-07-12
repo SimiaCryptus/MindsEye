@@ -6,7 +6,7 @@
 
 appender("FILE", RollingFileAppender) {
   encoder(PatternLayoutEncoder) {
-      pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+      pattern = "%d{HH:mm:ss.SSS} %logger{36} - %msg%n"
   }
   rollingPolicy(TimeBasedRollingPolicy) {
     fileNamePattern = "logs/log-%d{HH-mm}.log.zip"

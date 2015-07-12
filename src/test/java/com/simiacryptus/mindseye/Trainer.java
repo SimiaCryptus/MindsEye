@@ -35,7 +35,7 @@ public class Trainer {
   private double maxDynamicRate = 1.;
   private double minDynamicRate = 0;
   private int loopA = 5;
-  private int loopB = 5;
+  private int loopB = 1;
   
   public Trainer() {
   }
@@ -87,7 +87,7 @@ public class Trainer {
         }
         if (verbose)
         {
-          log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s", currentGeneration, thisError, Arrays.toString(errorArray), dynamicRate));
+          log.debug(String.format("Trained %s Iteration %s Error: %s (%s) with rate %s", Integer.toHexString(System.identityHashCode(currentNetworks)), currentGeneration, thisError, Arrays.toString(errorArray), dynamicRate));
         }
       }
       if (Double.isFinite(lastError)) {
@@ -101,7 +101,10 @@ public class Trainer {
   public double maybeRevertToBest(double thisError) {
     if (null != best && timeSinceLocalImprovement() > improvementStaleThreshold) {
       if (best.getSecond() <= thisError) {
-        if (isVerbose()) log.debug(String.format("Discarding %s error, best = %s", thisError, best.getSecond()));
+        if (isVerbose()) {
+          log.debug(String.format("Discarding %s error, best = %s", thisError, best.getSecond()));
+          log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
+        }
         currentNetworks = new Kryo().copy(best.getFirst());
         thisError = best.getSecond();
         lastImprovementGeneration = currentGeneration;
@@ -122,7 +125,7 @@ public class Trainer {
   
   public void updateRate(double lastError, double thisError) {
     double improvement = lastError - thisError;
-    double expectedImprovement = lastError * staticRate / (50 + currentGeneration);
+    double expectedImprovement = lastError * (3-lastError) * staticRate;// / (50 + currentGeneration);
     double idealRate = dynamicRate * expectedImprovement / improvement;
     double prevRate = dynamicRate;
     if (isVerbose()) {
@@ -153,6 +156,7 @@ public class Trainer {
     if (Double.isFinite(error) && (null == best || best.getSecond() > error)) {
       if (isVerbose()) {
         log.debug(String.format("New best Error %s > %s", error, null == best ? "null" : best.getSecond()));
+        log.debug(String.format("Best: %s", currentNetworks.get(0).getNet()));
       }
       best = new Tuple2<List<SupervisedTrainingParameters>, Double>(new Kryo().copy(currentNetworks), error);
       lastImprovementGeneration = currentGeneration;
@@ -166,7 +170,7 @@ public class Trainer {
     for (int epoch = 0; epoch < trials; epoch++)
     {
       currentNetworks = kryo.copy(masterCopy);
-      currentNetworks.stream().forEach(x -> x.getNet().mutate(1.));
+      currentNetworks.stream().forEach(x -> x.getNet().mutate(initialMutationAmount));
       final double error = train(maxIterations, minError);
       
       if (isVerbose()) {
@@ -181,16 +185,19 @@ public class Trainer {
     }
     currentNetworks = lastGood;
   }
+  double initialMutationAmount = 1.;
   
   public double[] trainSet() {
-    List<List<NNResult>> results = currentNetworks.stream().map(params -> Stream.of(params.getTrainingData()).parallel().map(sample -> {
-      final NDArray input = sample[0];
-      final NDArray output = sample[1];
-      final NNResult eval = params.getNet().eval(input);
-      assert(eval.data.dim()==output.dim());
-      return eval;
-    }).collect(Collectors.toList())).collect(Collectors.toList());
-    
+    List<List<NNResult>> results = currentNetworks.stream().map(params -> Stream.of(params.getTrainingData())
+        .parallel()
+        .map(sample -> {
+          final NDArray input = sample[0];
+          final NDArray output = sample[1];
+          final NNResult eval = params.getNet().eval(input);
+          assert (eval.data.dim() == output.dim());
+          return eval;
+        }).collect(Collectors.toList())).collect(Collectors.toList());
+  
     final List<List<Double>> rms2 = new ArrayList<>();
     for(int network=0;network<currentNetworks.size();network++){
       List<NNResult> netresults = results.get(network);

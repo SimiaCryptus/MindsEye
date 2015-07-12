@@ -10,8 +10,8 @@ import com.simiacryptus.mindseye.learning.NNResult;
 
 public class SigmoidActivationLayer extends NNLayer {
   
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
+  double feedbackAttenuation = 0;
   
   public SigmoidActivationLayer() {
   }
@@ -34,18 +34,28 @@ public class SigmoidActivationLayer extends NNLayer {
       inputGradient.add(new int[] { i }, 2 * d);
       output.set(i, 2 * f - 1);
     });
+    if (isVerbose()) {
+      log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
+    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data) {
+        NDArray passback = null;
         if (inObj.isAlive()) {
-          final NDArray next = new NDArray(data.getDims());
+          NDArray next = new NDArray(data.getDims());
+          passback = next;
           IntStream.range(0, next.dim()).forEach(i -> {
             if(Double.isFinite(inputGradient.data[i]) && 0 != inputGradient.data[i]) {
-              next.set(i, data.data[i] / inputGradient.data[i]);
+              double f = (output.data[i]<0==data.data[i]<0)?(1-Math.abs(output.data[i])):1;
+              f = Math.pow(f, feedbackAttenuation);
+              next.set(i, f * data.data[i] / inputGradient.data[i]);
             }
           });
-          inObj.feedback(next);
         }
+        if (isVerbose()) {
+          log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
+        }
+        inObj.feedback(passback);
       }
       
       @Override
@@ -54,5 +64,15 @@ public class SigmoidActivationLayer extends NNLayer {
       }
     };
   }
-  
+
+  public boolean isVerbose() {
+    return verbose;
+  }
+
+  public SigmoidActivationLayer setVerbose(boolean verbose) {
+    this.verbose = verbose;
+    return this;
+  }
+
+  private boolean verbose;
 }

@@ -35,6 +35,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     
     @Override
     public void feedback(final NDArray data) {
+      NDArray passback = null;
       synchronized (DenseSynapseLayer.this) {
         if (null != weightGradient) {
           DenseSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
@@ -52,8 +53,15 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
           for (int i = 0; i < mcdelta.length; i++) {
             mcdelta[i] *= Math.random() < DenseSynapseLayer.this.backpropPruning ? 0 : 1;
           }
-          inObj.feedback(new NDArray(inObj.data.getDims(), mcdelta));
+          passback = new NDArray(inObj.data.getDims(), mcdelta);
         }
+      }
+      if(null != passback)
+      {
+        inObj.feedback(passback);
+      }
+      if (isVerbose()) {
+        DenseSynapseLayer.log.debug(String.format("Feed back: %s => %s", data, passback));
       }
     }
     

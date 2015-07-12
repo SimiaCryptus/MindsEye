@@ -3,10 +3,12 @@ package com.simiacryptus.mindseye;
 public class SupervisedTrainingParameters {
   private double weight = 1;
   private PipelineNetwork net;
-  private NDArray[][] trainingData;
+  private final NDArray[][] trainingData;
   
   protected SupervisedTrainingParameters() {
     super();
+    this.net = null;
+    this.trainingData = null;
   }
 
   public SupervisedTrainingParameters(PipelineNetwork net, NDArray[][] trainingData) {
@@ -22,7 +24,7 @@ public class SupervisedTrainingParameters {
     this.net = net;
   }
   
-  public NDArray[][] getTrainingData() {
+  public final NDArray[][] getTrainingData() {
     return trainingData;
   }
 

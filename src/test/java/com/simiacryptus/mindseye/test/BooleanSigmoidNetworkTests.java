@@ -25,14 +25,14 @@ public class BooleanSigmoidNetworkTests {
     final NDArray[][] samples = getTrainingData(gate);
     test(samples);
   }
-
+  
   @Test
   public void test_BasicNN_AND() throws Exception {
     BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
     final NDArray[][] samples = getTrainingData(gate);
     test(samples);
   }
-
+  
   @Test
   public void test_BasicNN_OR() throws Exception {
     BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
@@ -44,28 +44,38 @@ public class BooleanSigmoidNetworkTests {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
+    boolean verbose = true;
     new PipelineNetwork()
         
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)
-            .setHalflife(5)
-            .setMass(3.))
-        .add(new BiasLayer(midSize)
-            .setHalflife(5)
-            .setMass(3.)
+            .setHalflife(3)
+            .setMass(5.))
+         .add(new BiasLayer(midSize)
+         .setHalflife(3)
+         .setMass(5.)
+         )
+        .add(new SigmoidActivationLayer())
+        
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)
+        // .setVerbose(verbose)
         )
-        .add(new SigmoidActivationLayer())
-        
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-        .add(new BiasLayer(outSize))
-        .add(new SigmoidActivationLayer())
-        
+        .add(new BiasLayer(outSize).setMass(3.))
+        .add(new SigmoidActivationLayer()
+        // .setVerbose(verbose)
+        )
+        .setMutationAmplitude(2)
         .trainer(samples)
-        .setVerbose(true)
-        .setStaticRate(20.)
+        .setMutationAmount(1.)
+        .setVerbose(verbose)
+        .setStaticRate(5.)
         .setDynamicRate(0.01)
-        .setMaxDynamicRate(1.)
+        .setMaxDynamicRate(0.1)
         .setMinDynamicRate(0.)
-        .verifyConvergence(10000, 0.01, 10);
+        .setImprovementStaleThreshold(5)
+        .setLoopA(5)
+        .setLoopB(2)
+        
+        .verifyConvergence(10000, 0.01, 1);
   }
   
   public NDArray[][] getTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {
@@ -83,5 +93,5 @@ public class BooleanSigmoidNetworkTests {
       samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].data));
     return samples;
   }
-
+  
 }
