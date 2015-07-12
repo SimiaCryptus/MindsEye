@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.simiacryptus.mindseye.learning.NNResult;
-import com.simiacryptus.mindseye.test.dev.ImageNetworkDev;
-import com.simiacryptus.mindseye.test.dev.TestMNISTDev;
 
 public class Trainer {
   private static final Logger log = LoggerFactory.getLogger(Trainer.class);
@@ -26,7 +24,6 @@ public class Trainer {
   private boolean verbose = false;
   private List<SupervisedTrainingParameters> currentNetworks = new ArrayList<>();
   private Tuple2<List<SupervisedTrainingParameters>, Double> best = null;
-  // int timesSinceImprovement = 0;
   private int currentGeneration = 0;
   private int lastImprovementGeneration = 0;
   private int lastMutationGeneration = 0;

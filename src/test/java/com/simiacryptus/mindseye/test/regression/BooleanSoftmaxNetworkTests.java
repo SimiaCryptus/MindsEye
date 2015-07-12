@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test;
+package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Random;
 import java.util.function.BiFunction;

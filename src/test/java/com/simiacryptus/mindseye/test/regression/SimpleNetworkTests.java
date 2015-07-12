@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test;
+package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Random;
 
@@ -63,7 +63,6 @@ public class SimpleNetworkTests {
   }
 
   @Test
-  @Ignore
   public void test_BasicNN_XOR_3layer() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] midSize = new int[] { 4 };

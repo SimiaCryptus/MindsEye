@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test;
+package com.simiacryptus.mindseye.test.dev;
 
 import java.util.stream.IntStream;
 

@@ -3,7 +3,6 @@ package com.simiacryptus.mindseye.layers;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class SoftmaxActivationLayer extends NNLayer {
         } else {
           value = -(exp.data[i] * exp.data[j]);
         }
-        if(Double.isFinite(value)) inputGradient.add(new int[] { i, j }, value);
+        if (Double.isFinite(value)) inputGradient.add(new int[] { i, j }, value);
       });
     });
     
@@ -49,22 +48,15 @@ public class SoftmaxActivationLayer extends NNLayer {
           for (int i = 0; i < delta.length; i++)
             if (delta[i] < 0) delta[i] = 0;
           
-          
-//          NDArray passback = new NDArray(data.getDims(), org.jblas.Solve.solveLeastSquares(
-//              new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
-//              new DoubleMatrix(delta.length, 1, delta)).data);
-          
           NDArray passback = new NDArray(data.getDims());
           IntStream.range(0, input.dim()).forEach(iinput -> {
             IntStream.range(0, output.dim()).forEach(ioutput -> {
               double value = inputGradient.get(new int[] { iinput, ioutput });
-              if(Double.isFinite(value) && 0 != value) {
-                passback.add(iinput, delta[ioutput] / Math.max(value, 0.00001));
+              if (Double.isFinite(value) && 0 != value) {
+                passback.add(iinput, delta[ioutput] / value);
               }
             });
           });
-
-          
           
           if (isVerbose()) {
             log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
@@ -80,15 +72,14 @@ public class SoftmaxActivationLayer extends NNLayer {
     };
   }
   
-
   public boolean isVerbose() {
     return verbose;
   }
-
+  
   public SoftmaxActivationLayer setVerbose(boolean verbose) {
     this.verbose = verbose;
     return this;
   }
-
+  
   private boolean verbose;
 }

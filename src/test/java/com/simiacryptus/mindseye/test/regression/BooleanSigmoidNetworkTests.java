@@ -1,10 +1,9 @@
-package com.simiacryptus.mindseye.test;
+package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
