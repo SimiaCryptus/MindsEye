@@ -21,23 +21,26 @@ public class BooleanSigmoidNetworkTests {
   
   @Test
   public void test_BasicNN_XOR() throws Exception {
-    final NDArray[][] samples = getSigmoidalGateTrainingData((a, b) -> a != b);
-    test2LayerSigmoidalNet(samples);
+    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
+    final NDArray[][] samples = getTrainingData(gate);
+    test(samples);
   }
 
   @Test
   public void test_BasicNN_AND() throws Exception {
-    final NDArray[][] samples = getSigmoidalGateTrainingData((a, b) -> a && b);
-    test2LayerSigmoidalNet(samples);
+    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
+    final NDArray[][] samples = getTrainingData(gate);
+    test(samples);
   }
 
   @Test
   public void test_BasicNN_OR() throws Exception {
-    final NDArray[][] samples = getSigmoidalGateTrainingData((a, b) -> a || b);
-    test2LayerSigmoidalNet(samples);
+    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
+    final NDArray[][] samples = getTrainingData(gate);
+    test(samples);
   }
   
-  public void test2LayerSigmoidalNet(final NDArray[][] samples) {
+  public void test(final NDArray[][] samples) {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
@@ -65,7 +68,7 @@ public class BooleanSigmoidNetworkTests {
         .verifyConvergence(10000, 0.01, 10);
   }
   
-  public NDArray[][] getSigmoidalGateTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {
+  public NDArray[][] getTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     Function<double[], double[]> fn = v -> new double[] { gate.apply(v[0] == 1, v[1] == 1) ? 1 : -1 };

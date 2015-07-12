@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.test;
 
 import java.util.Random;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,7 @@ public class SimpleNetworkTests {
   }
 
   @Test
+  @Ignore
   public void test_BasicNN_XOR_3layer() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] midSize = new int[] { 4 };

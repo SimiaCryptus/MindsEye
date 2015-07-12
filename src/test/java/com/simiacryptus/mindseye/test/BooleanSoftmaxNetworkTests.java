@@ -20,11 +20,21 @@ public class BooleanSoftmaxNetworkTests {
   
   public static final Random random = new Random();
   
-  
-  // @Ignore
   @Test
-  public void test_BasicNN_XOR_Softmax() throws Exception {
-    final NDArray[][] samples = getSoftmaxGateTrainingData((a, b) -> a && b);
+  public void test_AND() throws Exception {
+    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
+    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
+    test(samples);
+  }
+  
+  @Test
+  public void test_XOR() throws Exception {
+    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
+    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
+    test(samples);
+  }
+
+  public void test(final NDArray[][] samples) {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
