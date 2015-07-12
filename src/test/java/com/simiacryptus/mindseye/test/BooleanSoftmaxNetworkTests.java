@@ -42,31 +42,35 @@ public class BooleanSoftmaxNetworkTests {
   }
 
   public void test(final NDArray[][] samples) {
-    final int[] midSize = new int[] { 2 };
+    final int[] midSize = new int[] { 4 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     new PipelineNetwork()
         
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-        .add(new BiasLayer(inputSize))
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)
+            .setHalflife(4)
+            .setMass(5.))
+        .add(new BiasLayer(midSize)
+            .setHalflife(4)
+            .setMass(5.))
         .add(new SigmoidActivationLayer())
         
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize))
-        .add(new SoftmaxActivationLayer().setVerbose(true))
+        .add(new SoftmaxActivationLayer().setVerbose(false))
         
         .setMutationAmplitude(3)
         .trainer(samples)
-        .setMutationAmount(.1)
-        .setVerbose(true)
-        .setStaticRate(0.1)
-        .setDynamicRate(0.001)
-        .setMaxDynamicRate(0.1)
-        .setMinDynamicRate(0.)
-        .setImprovementStaleThreshold(5)
+        .setMutationAmount(.2)
+        .setVerbose(false)
+        .setStaticRate(1.)
+        .setDynamicRate(0.01)
+        .setMaxDynamicRate(1.)
+        .setMinDynamicRate(0)
+        .setImprovementStaleThreshold(10)
         .setLoopA(5)
-        .setLoopB(5)
-        .verifyConvergence(10000, 0.01, 1);
+        .setLoopB(2)
+        .verifyConvergence(100000, 0.01, 1);
   }
   
   public NDArray[][] getSoftmaxGateTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {

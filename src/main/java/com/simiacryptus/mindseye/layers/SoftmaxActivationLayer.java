@@ -30,9 +30,9 @@ public class SoftmaxActivationLayer extends NNLayer {
       IntStream.range(0, output.dim()).forEach(j -> {
         double value = 0;
         if (i == j) {
-          value = (exp.data[i] * (sum - exp.data[i])) / (sum * sum);
+          value = (exp.data[i] * (sum - exp.data[i]));
         } else {
-          value = -(exp.data[i] * exp.data[j]) / (sum * sum);
+          value = -(exp.data[i] * exp.data[j]);
         }
         if(Double.isFinite(value)) inputGradient.add(new int[] { i, j }, value);
       });
