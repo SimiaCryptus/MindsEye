@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.test;
 
 import java.util.Random;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,18 +146,18 @@ public class NetworkElementUnitTests {
   }
   
   @Test
-  @Ignore
   public void softmaxActivationLayer_feedback() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.1, 0.9 }) }
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0., 1. }) }
     };
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
         .add(new SoftmaxActivationLayer())
         .trainer(samples)
-        .setStaticRate(1.).verifyConvergence(1000, 0.1, 100);
+        .setStaticRate(1.)
+        .verifyConvergence(1000, 0.1, 100);
   }
   
 }

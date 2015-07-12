@@ -40,10 +40,7 @@ public class SigmoidActivationLayer extends NNLayer {
         if (inObj.isAlive()) {
           final NDArray next = new NDArray(data.getDims());
           IntStream.range(0, next.dim()).forEach(i -> {
-            if((data.data[i]<0)==(inObj.data.data[i]<0))
-            {
-              next.set(i, data.data[i]);
-            } else {
+            if(Double.isFinite(inputGradient.data[i]) && 0 != inputGradient.data[i]) {
               next.set(i, data.data[i] / inputGradient.data[i]);
             }
           });

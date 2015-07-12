@@ -8,7 +8,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
-import org.jblas.Solve;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

@@ -33,7 +33,7 @@ public class Trainer {
   private int lastLocalImprovementGeneration = 0;
   private double rateAdaptionRate = 0.1;
   private double maxDynamicRate = 1.;
-  private int minDynamicRate = 0;
+  private double minDynamicRate = 0;
   private int loopA = 5;
   private int loopB = 5;
   
@@ -122,7 +122,7 @@ public class Trainer {
   
   public void updateRate(double lastError, double thisError) {
     double improvement = lastError - thisError;
-    double expectedImprovement = lastError * staticRate / 100.;// (50 + totalIterations);
+    double expectedImprovement = lastError * staticRate / (50 + currentGeneration);
     double idealRate = dynamicRate * expectedImprovement / improvement;
     double prevRate = dynamicRate;
     if (isVerbose()) {
@@ -199,8 +199,8 @@ public class Trainer {
       for(int sample=0;sample<netresults.size();sample++){
         NNResult eval = netresults.get(sample);
         NDArray output = currentNet.getTrainingData()[sample][1];
-        double errRms = Math.pow(eval.errRms(output), currentNet.getWeight());
-        rms.add(errRms);
+        double err = eval.errRms(output);
+        rms.add(Math.pow(err, currentNet.getWeight()));
       }
       rms2.add(rms);
     }
@@ -285,11 +285,11 @@ public class Trainer {
     return this;
   }
   
-  public int getMinDynamicRate() {
+  public double getMinDynamicRate() {
     return minDynamicRate;
   }
   
-  public Trainer setMinDynamicRate(int minDynamicRate) {
+  public Trainer setMinDynamicRate(double minDynamicRate) {
     this.minDynamicRate = minDynamicRate;
     return this;
   }

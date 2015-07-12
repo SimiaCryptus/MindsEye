@@ -20,10 +20,10 @@ public abstract class NNResult {
     return delta(d, ideal(k));
   }
   
-  public final NDArray delta(final double d, final NDArray out) {
-    assert(this.data.dim() == out.dim());
+  public final NDArray delta(final double scale, final NDArray target) {
+    assert(this.data.dim() == target.dim());
     final NDArray delta = new NDArray(this.data.getDims());
-    Arrays.parallelSetAll(delta.data, i -> (out.data[i] - NNResult.this.data.data[i]) * d);
+    Arrays.parallelSetAll(delta.data, i -> (target.data[i] - NNResult.this.data.data[i]) * scale);
     return delta;
   }
 

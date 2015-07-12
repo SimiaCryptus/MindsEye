@@ -16,15 +16,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import javax.imageio.ImageIO;
-
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.PipelineNetwork;
-import com.simiacryptus.mindseye.SupervisedTrainingParameters;
 import com.simiacryptus.mindseye.Trainer;
 import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
@@ -39,13 +36,13 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
     //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{240,200}, "Hello World"));
-    //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
+    NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
     final int[] inputSize = inputImage.getDims();
-    int[] kernelSize = new int[] { 5, 5, 1 };
+    int[] kernelSize = new int[] { 3, 3, 1 };
     int[] kernelSize2 = new int[] { 2, 2, 1 };
     final int[] outSize = outsize(inputSize, kernelSize);
     final int[] outSize2 = outsize(inputSize, kernelSize2);
@@ -55,12 +52,15 @@ public class ImageNetworkDev {
     data.add(new LabeledObject<NDArray>(inputImage, ""));
 
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
-    convolution.kernel.set(new int[] { 0, 3, 0, 0 }, 0.25);
-    convolution.kernel.set(new int[] { 1, 3, 0, 0 }, 0.125);
-    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, .25);
-    //convolution.kernel.set(new int[] { 3, 3, 0, 0 }, 1);
-    convolution.kernel.set(new int[] { 3, 1, 0, 0 }, 0.125);
-    convolution.kernel.set(new int[] { 3, 0, 0, 0 }, 0.25);
+    convolution.kernel.set(new int[] { 0, 0, 0, 0 }, -1);
+    convolution.kernel.set(new int[] { 0, 1, 0, 0 }, 1.);
+    convolution.kernel.set(new int[] { 0, 2, 0, 0 }, -1.);
+    convolution.kernel.set(new int[] { 1, 0, 0, 0 }, 1.);
+    convolution.kernel.set(new int[] { 1, 1, 0, 0 }, 0.);
+    convolution.kernel.set(new int[] { 1, 2, 0, 0 }, 1.);
+    convolution.kernel.set(new int[] { 2, 0, 0, 0 }, -1.);
+    convolution.kernel.set(new int[] { 2, 1, 0, 0 }, 1.);
+    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, -1.);
     convolution.freeze();
 
     ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(kernelSize2, 1);
@@ -89,9 +89,7 @@ public class ImageNetworkDev {
 //      trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
 //          .add(bias)
 //          .add(convolution2), new NDArray[][] { { zeroInput, zeroOutput2 } })
-//          .setWeight(0.2));
-      
-      
+//          .setWeight(-0.3));
       
 //      //
 //      trainer.add(new SupervisedTrainingParameters(
