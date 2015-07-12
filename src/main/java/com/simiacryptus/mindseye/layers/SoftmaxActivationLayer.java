@@ -59,7 +59,7 @@ public class SoftmaxActivationLayer extends NNLayer {
             IntStream.range(0, output.dim()).forEach(ioutput -> {
               double value = inputGradient.get(new int[] { iinput, ioutput });
               if(Double.isFinite(value) && 0 != value) {
-                passback.add(iinput, delta[ioutput] / value);
+                passback.add(iinput, delta[ioutput] / Math.max(value, 0.00001));
               }
             });
           });
