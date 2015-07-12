@@ -184,6 +184,7 @@ public class Trainer {
       }
     }
     currentNetworks = lastGood;
+    log.info("Final result: " + currentNetworks.get(0).getNet());
   }
   double initialMutationAmount = 1.;
   

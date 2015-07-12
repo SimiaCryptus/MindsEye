@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +45,11 @@ public class BooleanSigmoidNetworkTests {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    boolean verbose = true;
+    boolean verbose = false;
     new PipelineNetwork()
         
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)
-            .setHalflife(3)
+            .setHalflife(4)
             .setMass(5.))
          .add(new BiasLayer(midSize)
          .setHalflife(3)
@@ -59,13 +60,13 @@ public class BooleanSigmoidNetworkTests {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)
         // .setVerbose(verbose)
         )
-        .add(new BiasLayer(outSize).setMass(3.))
+        .add(new BiasLayer(outSize).setMass(2.))
         .add(new SigmoidActivationLayer()
         // .setVerbose(verbose)
         )
-        .setMutationAmplitude(2)
+        .setMutationAmplitude(3)
         .trainer(samples)
-        .setMutationAmount(1.)
+        .setMutationAmount(.1)
         .setVerbose(verbose)
         .setStaticRate(5.)
         .setDynamicRate(0.01)
@@ -73,7 +74,7 @@ public class BooleanSigmoidNetworkTests {
         .setMinDynamicRate(0.)
         .setImprovementStaleThreshold(5)
         .setLoopA(5)
-        .setLoopB(2)
+        .setLoopB(5)
         
         .verifyConvergence(10000, 0.01, 1);
   }
