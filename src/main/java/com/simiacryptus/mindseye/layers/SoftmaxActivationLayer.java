@@ -12,7 +12,6 @@ import com.simiacryptus.mindseye.learning.NNResult;
 
 public class SoftmaxActivationLayer extends NNLayer {
   
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
   
   public SoftmaxActivationLayer() {
@@ -31,7 +30,7 @@ public class SoftmaxActivationLayer extends NNLayer {
       IntStream.range(0, output.dim()).forEach(j -> {
         double value = 0;
         if (i == j) {
-          value = -(exp.data[i] * (exp.data[i] - sum)) / (sum * sum);
+          value = (exp.data[i] * (sum - exp.data[i])) / (sum * sum);
         } else {
           value = -(exp.data[i] * exp.data[j]) / (sum * sum);
         }
@@ -39,6 +38,9 @@ public class SoftmaxActivationLayer extends NNLayer {
       });
     });
     
+    if (isVerbose()) {
+      log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
+    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data) {
@@ -46,9 +48,28 @@ public class SoftmaxActivationLayer extends NNLayer {
           final double[] delta = Arrays.copyOf(data.data, data.data.length);
           for (int i = 0; i < delta.length; i++)
             if (delta[i] < 0) delta[i] = 0;
-          inObj.feedback(new NDArray(data.getDims(), org.jblas.Solve.solveLeastSquares(
-              new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
-              new DoubleMatrix(delta.length, 1, delta)).data));
+          
+          
+//          NDArray passback = new NDArray(data.getDims(), org.jblas.Solve.solveLeastSquares(
+//              new DoubleMatrix(inputGradient.getDims()[0], inputGradient.getDims()[1], inputGradient.data).transpose(),
+//              new DoubleMatrix(delta.length, 1, delta)).data);
+          
+          NDArray passback = new NDArray(data.getDims());
+          IntStream.range(0, input.dim()).forEach(iinput -> {
+            IntStream.range(0, output.dim()).forEach(ioutput -> {
+              double value = inputGradient.get(new int[] { iinput, ioutput });
+              if(Double.isFinite(value) && 0 != value) {
+                passback.add(iinput, delta[ioutput] / value);
+              }
+            });
+          });
+
+          
+          
+          if (isVerbose()) {
+            log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
+          }
+          inObj.feedback(passback);
         }
       }
       
@@ -59,4 +80,15 @@ public class SoftmaxActivationLayer extends NNLayer {
     };
   }
   
+
+  public boolean isVerbose() {
+    return verbose;
+  }
+
+  public SoftmaxActivationLayer setVerbose(boolean verbose) {
+    this.verbose = verbose;
+    return this;
+  }
+
+  private boolean verbose;
 }

@@ -53,7 +53,7 @@ public class BooleanSoftmaxNetworkTests {
         
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize))
-        .add(new SoftmaxActivationLayer())
+        .add(new SoftmaxActivationLayer().setVerbose(true))
         
         .setMutationAmplitude(3)
         .trainer(samples)

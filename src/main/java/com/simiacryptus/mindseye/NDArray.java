@@ -172,14 +172,15 @@ public class NDArray {
   }
 
   public NDArray map(final UnivariateFunction f) {
-    Arrays.parallelSetAll(this.data, i -> {
-      final double x = this.data[i];
+    double[] cpy = new double[data.length];
+    for(int i=0;i<data.length;i++) {
+      final double x = data[i];
       assert Double.isFinite(x);
       final double v = f.apply(x);
       assert Double.isFinite(v);
-      return v;
-    });
-    return this;
+      cpy[i] = v;
+    };
+    return new NDArray(dims, cpy);
   }
 
   public void scale(final double d) {
