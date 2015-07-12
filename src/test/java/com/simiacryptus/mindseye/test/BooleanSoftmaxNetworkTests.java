@@ -19,10 +19,17 @@ public class BooleanSoftmaxNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSoftmaxNetworkTests.class);
   
   public static final Random random = new Random();
-  
+
   @Test
   public void test_AND() throws Exception {
     BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
+    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
+    test(samples);
+  }
+
+  @Test
+  public void test_OR() throws Exception {
+    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
     final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
     test(samples);
   }
@@ -48,9 +55,17 @@ public class BooleanSoftmaxNetworkTests {
         .add(new BiasLayer(outSize))
         .add(new SoftmaxActivationLayer())
         
+        .setMutationAmplitude(3)
         .trainer(samples)
+        .setMutationAmount(.1)
         .setVerbose(true)
-        .setMaxDynamicRate(100)
+        .setStaticRate(5.)
+        .setDynamicRate(0.01)
+        .setMaxDynamicRate(0.1)
+        .setMinDynamicRate(0.)
+        .setImprovementStaleThreshold(5)
+        .setLoopA(5)
+        .setLoopB(5)
         .verifyConvergence(10000, 0.01, 1);
   }
   
