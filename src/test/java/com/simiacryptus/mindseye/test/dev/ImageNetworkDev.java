@@ -41,7 +41,7 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
     
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-     NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
     // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     

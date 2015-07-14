@@ -13,6 +13,7 @@ public class MaxEntLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   double feedbackAttenuation = 1;
   private double factor = -1;
+  private boolean reverse = false;
   
   public MaxEntLayer() {
   }
@@ -30,7 +31,7 @@ public class MaxEntLayer extends NNLayer {
       final double x = (sign*input.data[i])/(0==sum?1:sum);
       double l = 0==x?0:Math.log(x);
       final double f = factor*x * l;
-      double d = factor*(1+sign*l);
+      double d = (reverse?1:-1)*factor*(1+sign*l);
       assert Double.isFinite(d);
       inputGradient.add(new int[] { i }, d);
       output.add(0, f);
@@ -81,6 +82,15 @@ public class MaxEntLayer extends NNLayer {
 
   public MaxEntLayer setFactor(double factor) {
     this.factor = factor;
+    return this;
+  }
+
+  public boolean isReverse() {
+    return reverse;
+  }
+
+  public MaxEntLayer setReverse(boolean reverse) {
+    this.reverse = reverse;
     return this;
   }
 
