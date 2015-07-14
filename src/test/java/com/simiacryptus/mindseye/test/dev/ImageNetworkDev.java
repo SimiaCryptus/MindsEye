@@ -39,8 +39,8 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
-    //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{200,200}, "Hello World"));
+    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
+    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{200,200}, "Hello World"));
     //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     
@@ -80,37 +80,49 @@ public class ImageNetworkDev {
       NDArray zeroInput = new NDArray(inputSize);
       NDArray zeroOutput = new NDArray(outSize);
       NDArray zeroOutput2 = new NDArray(outSize2);
-      BiasLayer bias = new BiasLayer(inputSize).setHalflife(3).setSampling(1);
+      BiasLayer bias = new BiasLayer(inputSize);
       Trainer trainer = new Trainer();
       
       // convolution.setVerbose(true);
       trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
       .add(bias)
       .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
-      
+//      
 //      trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
 //          .add(bias)
 //          .add(convolution2), new NDArray[][] { { zeroInput, zeroOutput2 } })
-//          .setWeight(.5));
+//          .setWeight(-.2));
+//      
 
-
-      
 //      trainer.add(new SupervisedTrainingParameters(
-//          new PipelineNetwork().add(bias),
-//          new NDArray[][] { { zeroInput, zeroInput } })
-//          .setWeight(0.05));
+//            new PipelineNetwork().add(bias),
+//            new NDArray[][] { { zeroInput, zeroInput } }) 
+//        {
+//
+//          
+//          @Override
+//          public NDArray getIdeal(NNResult eval, NDArray preset) {
+//            NDArray retVal = preset.copy();
+//            for(int i=0;i<retVal.dim();i++){
+//              if(eval.data.data[i] > -1) retVal.data[i] = eval.data.data[i];
+//            }
+//            return retVal;
+//          }
+//          
+//        }
+//        .setWeight(1));
       
       trainer
           .setMutationAmount(0.1)
-          // .setImprovementStaleThreshold(Integer.MAX_VALUE)
-          .setStaticRate(0.1)
+          .setImprovementStaleThreshold(1)
+          .setStaticRate(0.05)
           .setVerbose(true)
-          .setLoopA(5)
+          .setLoopA(10)
           .setLoopB(1)
-          .setRateAdaptionRate(0.3)
+          .setRateAdaptionRate(0.5)
           .setDynamicRate(0.005)
           .setMaxDynamicRate(1.)
-          .setMinDynamicRate(0.0001)
+          .setMinDynamicRate(0.001)
           .train(100, 0.0001);
 
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);

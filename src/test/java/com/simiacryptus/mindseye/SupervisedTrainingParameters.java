@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye;
 
+import com.simiacryptus.mindseye.learning.NNResult;
+
 public class SupervisedTrainingParameters {
   private double weight = 1;
   private PipelineNetwork net;
@@ -35,5 +37,9 @@ public class SupervisedTrainingParameters {
   public SupervisedTrainingParameters setWeight(double weight) {
     this.weight = weight;
     return this;
+  }
+
+  public NDArray getIdeal(NNResult eval, NDArray preset) {
+    return preset;
   }
 }

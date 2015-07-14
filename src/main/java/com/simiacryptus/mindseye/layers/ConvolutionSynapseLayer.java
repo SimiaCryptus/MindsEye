@@ -103,7 +103,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
               if(0. != kernelValue)
               {
                 double errorValue = errorSignal.get(errorCoord);
-                backprop.add(i, errorValue/kernelValue);
+                backprop.add(i, errorValue*kernelValue);
               }
             });
           });

@@ -184,11 +184,12 @@ public class NDArray {
     return new NDArray(dims, cpy);
   }
 
-  public void scale(final double d) {
+  public NDArray scale(final double d) {
     for (int i = 0; i < this.data.length; i++)
     {
       this.data[i] *= d;
     }
+    return this;
   }
 
   public void set(final Coordinate coords, final double value) {
@@ -257,6 +258,10 @@ public class NDArray {
       this.data[i] = data[i];
     }
     return this;
+  }
+
+  public NDArray copy() {
+    return new NDArray(Arrays.copyOf(dims, dims.length), Arrays.copyOf(data, data.length));
   }
   
 }

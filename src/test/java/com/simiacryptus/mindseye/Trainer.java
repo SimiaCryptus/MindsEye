@@ -103,7 +103,7 @@ public class Trainer {
           log.debug(String.format("Discarding %s error, best = %s", thisError, best.getSecond()));
           //log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
         }
-        currentNetworks = new Kryo().copy(best.getFirst());
+        currentNetworks = Util.kryo().copy(best.getFirst());
         thisError = best.getSecond();
         lastImprovementGeneration = currentGeneration;
         mutate();
@@ -156,13 +156,13 @@ public class Trainer {
         log.debug(String.format("New best Error %s > %s", error, null == best ? "null" : best.getSecond()));
         //log.debug(String.format("Best: %s", currentNetworks.get(0).getNet()));
       }
-      best = new Tuple2<List<SupervisedTrainingParameters>, Double>(new Kryo().copy(currentNetworks), error);
+      best = new Tuple2<List<SupervisedTrainingParameters>, Double>(Util.kryo().copy(currentNetworks), error);
       lastImprovementGeneration = currentGeneration;
     }
   }
-  
+
   public void verifyConvergence(final int maxIterations, final double minError, final int trials) {
-    final Kryo kryo = new Kryo();
+    final Kryo kryo = Util.kryo();
     List<SupervisedTrainingParameters> lastGood = null;
     List<SupervisedTrainingParameters> masterCopy = currentNetworks;
     for (int epoch = 0; epoch < trials; epoch++)
@@ -206,7 +206,7 @@ public class Trainer {
       final List<Double> rms = new ArrayList<>();
       for(int sample=0;sample<netresults.size();sample++){
         NNResult eval = netresults.get(sample);
-        NDArray output = currentNet.getTrainingData()[sample][1];
+        NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
         double err = eval.errRms(output);
         rms.add(Math.pow(err, currentNet.getWeight()));
       }
@@ -220,8 +220,8 @@ public class Trainer {
       SupervisedTrainingParameters currentNet = currentNetworks.get(network);
       for(int sample=0;sample<netresults.size();sample++){
         NNResult eval = netresults.get(sample);
-        NDArray output = currentNet.getTrainingData()[sample][1];
-        NDArray delta = eval.delta(dynamicRate, output);
+        NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
+        NDArray delta = eval.delta(output).scale(dynamicRate);
         double factor = currentNet.getWeight();// * product / rmsList[network];
         if(Double.isFinite(factor)) delta.scale(factor);
         eval.feedback(delta);

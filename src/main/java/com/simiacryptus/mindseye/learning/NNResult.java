@@ -16,14 +16,14 @@ public abstract class NNResult {
     this.data = data;
   }
   
-  public final NDArray delta(final double d, final int k) {
-    return delta(d, ideal(k));
+  public final NDArray delta(final int k) {
+    return delta(ideal(k));
   }
   
-  public final NDArray delta(final double scale, final NDArray target) {
+  public final NDArray delta(final NDArray target) {
     assert(this.data.dim() == target.dim());
     final NDArray delta = new NDArray(this.data.getDims());
-    Arrays.parallelSetAll(delta.data, i -> (target.data[i] - NNResult.this.data.data[i]) * scale);
+    Arrays.parallelSetAll(delta.data, i -> (target.data[i] - NNResult.this.data.data[i]));
     return delta;
   }
 
@@ -37,9 +37,12 @@ public abstract class NNResult {
   }
 
   public final double errRms(final NDArray out) {
-    final double[] mapToDouble = IntStream.range(0, this.data.dim()).mapToDouble(i -> Math.pow(NNResult.this.data.data[i] - out.data[i], 2.)).toArray();
-    final double sum = DoubleStream.of(mapToDouble).average().getAsDouble();
-    return Math.sqrt(sum);
+    double sum = 0;
+    for(int i=0;i<data.dim();i++){
+      double diff = NNResult.this.data.data[i] - out.data[i];
+      sum += diff*diff;
+    }
+    return Math.sqrt(sum/data.dim());
   }
 
   public abstract void feedback(final NDArray data);
@@ -53,11 +56,11 @@ public abstract class NNResult {
   public abstract boolean isAlive();
 
   public final void learn(final double d, final int k) {
-    feedback(delta(d, k));
+    feedback(delta(k).scale(d));
   }
 
   public final void learn(final double d, final NDArray out) {
-    feedback(delta(d, out));
+    feedback(delta(out).scale(d));
   }
   
 }
