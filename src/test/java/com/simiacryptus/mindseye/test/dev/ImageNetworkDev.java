@@ -41,8 +41,8 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
     
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    // NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{200,200}, "Hello World"));
+     NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    //NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
     // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     NNLayer convolution = blur_3x4();
@@ -54,10 +54,6 @@ public class ImageNetworkDev {
     
     PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
     
-    // NNLayer convolution2 = edge1();
-    // final int[] outSize2 = convolution2.eval(new NDArray(inputSize)).data.getDims();
-    // NDArray zeroOutput2 = new NDArray(outSize2);
-    
     report(data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zeroInput = new NDArray(inputSize);
@@ -68,11 +64,6 @@ public class ImageNetworkDev {
           .add(bias)
           .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
       
-      // trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
-      // .add(bias)
-      // .add(convolution2), new NDArray[][] { { zeroInput, zeroOutput2 } })
-      // .setWeight(.2));
-      
       trainer.add(new SupervisedTrainingParameters(
           new PipelineNetwork().add(bias),
           new NDArray[][] { { zeroInput, zeroInput } })
@@ -81,12 +72,16 @@ public class ImageNetworkDev {
         public NDArray getIdeal(NNResult eval, NDArray preset) {
           NDArray retVal = preset.copy();
           for (int i = 0; i < retVal.dim(); i++) {
-            if (eval.data.data[i] > -0) retVal.data[i] = eval.data.data[i];
+            if (eval.data.data[i] > -5) retVal.data[i] = eval.data.data[i];
           }
           return retVal;
         }
       }
           .setWeight(1));
+      
+      trainer.add(new SupervisedTrainingParameters(
+          new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer()),
+          new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(1));
       
       trainer
           .setMutationAmount(0.1)
@@ -110,8 +105,8 @@ public class ImageNetworkDev {
           TestMNISTDev.toImage(new NDArray(outSize, output.data.data)),
           TestMNISTDev.toImage(new NDArray(inputSize, recovered.data.data)),
           TestMNISTDev.toImage(new NDArray(outSize, tested.data.data))
-      );
-    }));
+        );
+      }));
     
   }
   

@@ -8,31 +8,32 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class SigmoidActivationLayer extends NNLayer {
+public class MaxEntLayer extends NNLayer {
   
-  private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   double feedbackAttenuation = 1;
+  private double factor = -1;
   
-  public SigmoidActivationLayer() {
+  public MaxEntLayer() {
   }
   
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
-    final NDArray output = new NDArray(inObj.data.getDims());
+    final NDArray output = new NDArray(1);
+    
+    double sum = input.map(x->x*x).sum();
+    
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
-      final double x = input.data[i];
-      final double f = 1 / (1 + Math.exp(-x));
-      final double minDeriv = 0.000001;
-      double d = Math.max(f * (1 - f), minDeriv);
-      if (!Double.isFinite(d)) {
-        d = minDeriv;
-      }
+      double sign = Math.signum(input.data[i]);
+      final double x = (sign*input.data[i])/(0==sum?1:sum);
+      double l = 0==x?0:Math.log(x);
+      final double f = factor*x * l;
+      double d = factor*(1+sign*l);
       assert Double.isFinite(d);
-      assert minDeriv <= Math.abs(d);
-      inputGradient.add(new int[] { i }, 2 * d);
-      output.set(i, 2 * f - 1);
+      inputGradient.add(new int[] { i }, d);
+      output.add(0, f);
     });
     if (isVerbose()) {
       log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
@@ -42,13 +43,15 @@ public class SigmoidActivationLayer extends NNLayer {
       public void feedback(final NDArray data) {
         NDArray passback = null;
         if (inObj.isAlive()) {
-          NDArray next = new NDArray(data.getDims());
+          NDArray next = new NDArray(input.getDims());
           passback = next;
-          IntStream.range(0, next.dim()).forEach(i -> {
+          for(int i=0;i<next.data.length;i++){
             if(Double.isFinite(inputGradient.data[i]) && 0 != inputGradient.data[i]) {
-              next.set(i, output.data[i] * data.data[i] * inputGradient.data[i]);
+              //double f = output.data[0];
+              //f = Math.pow(f, feedbackAttenuation);
+              next.set(i, data.data[0] * inputGradient.data[i]);
             }
-          });
+          }
         }
         if (isVerbose()) {
           log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
@@ -67,8 +70,17 @@ public class SigmoidActivationLayer extends NNLayer {
     return verbose;
   }
 
-  public SigmoidActivationLayer setVerbose(boolean verbose) {
+  public MaxEntLayer setVerbose(boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+
+  public double getFactor() {
+    return factor;
+  }
+
+  public MaxEntLayer setFactor(double factor) {
+    this.factor = factor;
     return this;
   }
 
