@@ -72,7 +72,7 @@ public class ImageNetworkDev {
         public NDArray getIdeal(NNResult eval, NDArray preset) {
           NDArray retVal = preset.copy();
           for (int i = 0; i < retVal.dim(); i++) {
-            if (eval.data.data[i] > -5) retVal.data[i] = eval.data.data[i];
+            if (eval.data.data[i] > -2) retVal.data[i] = eval.data.data[i];
           }
           return retVal;
         }
@@ -80,7 +80,7 @@ public class ImageNetworkDev {
           .setWeight(1));
       
       trainer.add(new SupervisedTrainingParameters(
-          new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer()),
+          new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(-1)),
           new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(1));
       
       trainer
@@ -132,7 +132,7 @@ public class ImageNetworkDev {
   
   public NNLayer blur_3x4() {
     PipelineNetwork net = new PipelineNetwork();
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
       net.add(blur_3());
     }
@@ -141,15 +141,15 @@ public class ImageNetworkDev {
   
   public NNLayer blur_3() {
     ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3, 1 }, 1);
-    convolution.kernel.set(new int[] { 0, 0, 0, 0 }, 0.2);
+    convolution.kernel.set(new int[] { 0, 0, 0, 0 }, 0.333);
     convolution.kernel.set(new int[] { 0, 1, 0, 0 }, 0);
     convolution.kernel.set(new int[] { 0, 2, 0, 0 }, 0);
     convolution.kernel.set(new int[] { 1, 0, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 1, 1, 0, 0 }, 0.6);
+    convolution.kernel.set(new int[] { 1, 1, 0, 0 }, 0.333);
     convolution.kernel.set(new int[] { 1, 2, 0, 0 }, 0.);
     convolution.kernel.set(new int[] { 2, 0, 0, 0 }, 0.);
     convolution.kernel.set(new int[] { 2, 1, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 0.2);
+    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 0.333);
     convolution.freeze();
     return convolution;
   }
