@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.Trainer;
 import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.SupervisedTrainingParameters;
 
@@ -39,78 +40,53 @@ public class ImageNetworkDev {
   @Test
   public void testDeconvolution() throws Exception {
     
-    //NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")),.5));
-    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{200,200}, "Hello World"));
-    //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
+    // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
+    NDArray inputImage = TestMNISTDev.toNDArray3(scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    // NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[]{200,200}, "Hello World"));
+    // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
+    NNLayer convolution = blur_3x4();
     
     final int[] inputSize = inputImage.getDims();
-    int[] kernelSize = new int[] { 3, 3, 1 };
-    int[] kernelSize2 = new int[] { 2, 2, 1 };
-    final int[] outSize = outsize(inputSize, kernelSize);
-    final int[] outSize2 = outsize(inputSize, kernelSize2);
-    
-    // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
     List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, ""));
-
-    ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(kernelSize, 1);
-    convolution.kernel.set(new int[] { 0, 0, 0, 0 }, 0.2);
-    convolution.kernel.set(new int[] { 0, 1, 0, 0 }, 0);
-    convolution.kernel.set(new int[] { 0, 2, 0, 0 }, 0);
-    convolution.kernel.set(new int[] { 1, 0, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 1, 1, 0, 0 }, 0.6);
-    convolution.kernel.set(new int[] { 1, 2, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 2, 0, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 2, 1, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 0.2);
-    convolution.freeze();
-
-    ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(kernelSize2, 1);
-    convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, -1);
-    convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 1);
-    convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 1);
-    convolution2.kernel.set(new int[] { 1, 1, 0, 0 }, -1);
-    convolution2.freeze();
     
     PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
+    
+    // NNLayer convolution2 = edge1();
+    // final int[] outSize2 = convolution2.eval(new NDArray(inputSize)).data.getDims();
+    // NDArray zeroOutput2 = new NDArray(outSize2);
     
     report(data.stream().map(obj -> {
       NNResult output = forwardConvolutionNet.eval(obj.data);
       NDArray zeroInput = new NDArray(inputSize);
-      NDArray zeroOutput = new NDArray(outSize);
-      NDArray zeroOutput2 = new NDArray(outSize2);
       BiasLayer bias = new BiasLayer(inputSize);
       Trainer trainer = new Trainer();
       
-      // convolution.setVerbose(true);
       trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
-      .add(bias)
-      .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
-//      
-//      trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
-//          .add(bias)
-//          .add(convolution2), new NDArray[][] { { zeroInput, zeroOutput2 } })
-//          .setWeight(-.2));
-//      
-
-//      trainer.add(new SupervisedTrainingParameters(
-//            new PipelineNetwork().add(bias),
-//            new NDArray[][] { { zeroInput, zeroInput } }) 
-//        {
-//
-//          
-//          @Override
-//          public NDArray getIdeal(NNResult eval, NDArray preset) {
-//            NDArray retVal = preset.copy();
-//            for(int i=0;i<retVal.dim();i++){
-//              if(eval.data.data[i] > -1) retVal.data[i] = eval.data.data[i];
-//            }
-//            return retVal;
-//          }
-//          
-//        }
-//        .setWeight(1));
+          .add(bias)
+          .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
+      
+      // trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
+      // .add(bias)
+      // .add(convolution2), new NDArray[][] { { zeroInput, zeroOutput2 } })
+      // .setWeight(.2));
+      
+      trainer.add(new SupervisedTrainingParameters(
+          new PipelineNetwork().add(bias),
+          new NDArray[][] { { zeroInput, zeroInput } })
+      {
+        @Override
+        public NDArray getIdeal(NNResult eval, NDArray preset) {
+          NDArray retVal = preset.copy();
+          for (int i = 0; i < retVal.dim(); i++) {
+            if (eval.data.data[i] > -0) retVal.data[i] = eval.data.data[i];
+          }
+          return retVal;
+        }
+      }
+          .setWeight(1));
       
       trainer
           .setMutationAmount(0.1)
@@ -124,7 +100,7 @@ public class ImageNetworkDev {
           .setMaxDynamicRate(1.)
           .setMinDynamicRate(0.001)
           .train(100, 0.0001);
-
+      
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(zeroInput);
       NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(zeroInput);
@@ -138,20 +114,64 @@ public class ImageNetworkDev {
     }));
     
   }
-
+  
+  public NNLayer edge1() {
+    ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
+    convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, -1);
+    convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 1);
+    convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 1);
+    convolution2.kernel.set(new int[] { 1, 1, 0, 0 }, -1);
+    convolution2.freeze();
+    return convolution2;
+  }
+  
+  public NNLayer blur1() {
+    ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
+    convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, 0.25);
+    convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 0.25);
+    convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 0.25);
+    convolution2.kernel.set(new int[] { 1, 1, 0, 0 }, 0.25);
+    convolution2.freeze();
+    return convolution2;
+  }
+  
+  public NNLayer blur_3x4() {
+    PipelineNetwork net = new PipelineNetwork();
+    for (int i = 0; i < 4; i++)
+    {
+      net.add(blur_3());
+    }
+    return net;
+  }
+  
+  public NNLayer blur_3() {
+    ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3, 1 }, 1);
+    convolution.kernel.set(new int[] { 0, 0, 0, 0 }, 0.2);
+    convolution.kernel.set(new int[] { 0, 1, 0, 0 }, 0);
+    convolution.kernel.set(new int[] { 0, 2, 0, 0 }, 0);
+    convolution.kernel.set(new int[] { 1, 0, 0, 0 }, 0.);
+    convolution.kernel.set(new int[] { 1, 1, 0, 0 }, 0.6);
+    convolution.kernel.set(new int[] { 1, 2, 0, 0 }, 0.);
+    convolution.kernel.set(new int[] { 2, 0, 0, 0 }, 0.);
+    convolution.kernel.set(new int[] { 2, 1, 0, 0 }, 0.);
+    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 0.2);
+    convolution.freeze();
+    return convolution;
+  }
+  
   public int[] outsize(final int[] inputSize, int[] kernelSize) {
     final int[] outSize = new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1, inputSize[2] - kernelSize[2] + 1 };
     return outSize;
   }
-
+  
   public static String imageHtml(BufferedImage... imgArray) {
     return Stream.of(imgArray).map(img -> TestMNISTDev.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
   }
-
+  
   public static void report(String... fragments) throws FileNotFoundException, IOException {
     report(Stream.of(fragments));
   }
-
+  
   public static void report(Stream<String> fragments) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
@@ -164,28 +184,29 @@ public class ImageNetworkDev {
     out.close();
     Desktop.getDesktop().browse(report.toURI());
   }
-
+  
   public static BufferedImage scale(BufferedImage img, double scale) {
     int w = img.getWidth();
     int h = img.getHeight();
-    BufferedImage after = new BufferedImage((int)(w*scale), (int)(h*scale), BufferedImage.TYPE_INT_ARGB);
+    BufferedImage after = new BufferedImage((int) (w * scale), (int) (h * scale), BufferedImage.TYPE_INT_ARGB);
     AffineTransform at = new AffineTransform();
     at.scale(scale, scale);
-    AffineTransformOp scaleOp = 
-       new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+    AffineTransformOp scaleOp =
+        new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
     img = scaleOp.filter(img, after);
     return img;
   }
   
+  @SuppressWarnings("unused")
   private BufferedImage render(final int[] inputSize, String string) {
     Random r = new Random();
     BufferedImage img = new BufferedImage(inputSize[0], inputSize[1], BufferedImage.TYPE_INT_RGB);
     Graphics2D g = img.createGraphics();
-    for(int i=0;i<20;i++)
+    for (int i = 0; i < 20; i++)
     {
       int size = (int) (24 + 32 * r.nextGaussian());
-      int x = (int) ((inputSize[0]/2) * (1+r.nextGaussian()));
-      int y = (int) ((inputSize[1]/2) * (1+r.nextGaussian()));
+      int x = (int) ((inputSize[0] / 2) * (1 + r.nextGaussian()));
+      int y = (int) ((inputSize[1] / 2) * (1 + r.nextGaussian()));
       g.setFont(g.getFont().deriveFont(Font.PLAIN, size));
       g.drawString(string, x, y);
     }

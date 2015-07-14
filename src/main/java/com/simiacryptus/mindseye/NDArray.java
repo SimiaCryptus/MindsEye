@@ -141,7 +141,7 @@ public class NDArray {
 
   public double get(final int... coords) {
     //assert IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
-    assert coords.length==dims.length;
+    //assert coords.length==dims.length;
     final double v = this.data[index(coords)];
     assert Double.isFinite(v);
     return v;
@@ -161,7 +161,7 @@ public class NDArray {
 
   public int index(final int... coords) {
     int v = 0;
-    for (int i = 0; i < this.skips.length; i++) {
+    for (int i = 0; i < this.skips.length && i < coords.length; i++) {
       v += this.skips[i] * coords[i];
     }
     return v;

@@ -53,7 +53,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     final NDArray input = inObj.data;
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();
-    assert(inputDims.length+1 == kernelDims.length);
+    //assert(inputDims.length+1 == kernelDims.length);
     final int[] newDims = IntStream.range(0, kernelDims.length).map(
         i -> (i == kernelDims.length - 1) ? kernelDims[i] : (inputDims[i] - kernelDims[i] + 1)
         ).toArray();
