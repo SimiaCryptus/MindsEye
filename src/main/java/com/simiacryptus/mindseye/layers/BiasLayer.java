@@ -111,4 +111,19 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
     return this;
   }
 
+  private boolean frozen = false;
+  public boolean isFrozen() {
+    return frozen;
+  }
+
+  public boolean setFrozen(boolean frozen) {
+    this.frozen = frozen;
+    return true;
+  }
+
+  public NNLayer set(double[] ds) {
+    for(int i=0;i<ds.length;i++) bias[i] = ds[i];
+    return this;
+  }
+
 }

@@ -92,7 +92,7 @@ public class SimpleNetworkTests {
         // .setVerbose(true)
         .verifyConvergence(10000, 0.01, 10);
   }
-  
+
   @Test
   public void test_LinearNN() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -114,6 +114,28 @@ public class SimpleNetworkTests {
         .setStaticRate(10.)
         //.setVerbose(true)
         .verifyConvergence(10000, 0.1, 10);
+  }
+
+  @Test
+  public void test_DualSigmoid() throws Exception {
+    final int[] inputSize = new int[] { 1 };
+    final int[] midSize = new int[] { 2 };
+    final int[] outSize = new int[] { 1 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { -1 }), new NDArray(outSize, new double[] { 0 }) },
+        { new NDArray(inputSize, new double[] { 0 }), new NDArray(outSize, new double[] { .2 }) },
+        { new NDArray(inputSize, new double[] { 1 }), new NDArray(outSize, new double[] { 0 }) }
+    };
+    new PipelineNetwork()
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(new double[]{1,1}).freeze())
+        .add(new BiasLayer(midSize).set(new double[]{-1,1}))
+        .add(new SigmoidActivationLayer())
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[]{1,-1}).freeze())
+        .trainer(samples)
+        .setMutationAmount(0)
+        .setStaticRate(10.)
+        .setVerbose(true)
+        .verifyConvergence(1000, 0.1, 10);
   }
   
   @Test

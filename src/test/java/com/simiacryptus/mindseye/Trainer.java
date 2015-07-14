@@ -71,7 +71,8 @@ public class Trainer {
       double thisError = lastError;
       for (int iterationB = 0; iterationB < loopB; iterationB++) {
         double[] errorArray = trainSet();
-        thisError = DoubleStream.of(errorArray).reduce((a,b)->a*b).getAsDouble();
+        double geometricMean = Math.exp(DoubleStream.of(errorArray).filter(x->0!=x).map(Math::log).average().getAsDouble());
+        thisError = Math.pow(geometricMean, 1/currentNetworks.stream().mapToDouble(p->p.getWeight()).sum());
         updateBest(thisError);
         if (thisError < localBest)
         {
@@ -100,7 +101,7 @@ public class Trainer {
       if (best.getSecond() <= thisError) {
         if (isVerbose()) {
           log.debug(String.format("Discarding %s error, best = %s", thisError, best.getSecond()));
-          log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
+          //log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
         }
         currentNetworks = new Kryo().copy(best.getFirst());
         thisError = best.getSecond();
@@ -122,7 +123,7 @@ public class Trainer {
   
   public void updateRate(double lastError, double thisError) {
     double improvement = lastError - thisError;
-    double expectedImprovement = lastError * (3-lastError) * staticRate;// / (50 + currentGeneration);
+    double expectedImprovement = lastError * staticRate;// / (50 + currentGeneration);
     double idealRate = dynamicRate * expectedImprovement / improvement;
     double prevRate = dynamicRate;
     if (isVerbose()) {
@@ -153,7 +154,7 @@ public class Trainer {
     if (Double.isFinite(error) && (null == best || best.getSecond() > error)) {
       if (isVerbose()) {
         log.debug(String.format("New best Error %s > %s", error, null == best ? "null" : best.getSecond()));
-        log.debug(String.format("Best: %s", currentNetworks.get(0).getNet()));
+        //log.debug(String.format("Best: %s", currentNetworks.get(0).getNet()));
       }
       best = new Tuple2<List<SupervisedTrainingParameters>, Double>(new Kryo().copy(currentNetworks), error);
       lastImprovementGeneration = currentGeneration;
@@ -197,9 +198,11 @@ public class Trainer {
         }).collect(Collectors.toList())).collect(Collectors.toList());
   
     final List<List<Double>> rms2 = new ArrayList<>();
+    //double totalWeight = 0;
     for(int network=0;network<currentNetworks.size();network++){
       List<NNResult> netresults = results.get(network);
       SupervisedTrainingParameters currentNet = currentNetworks.get(network);
+      //totalWeight += currentNet.getWeight();
       final List<Double> rms = new ArrayList<>();
       for(int sample=0;sample<netresults.size();sample++){
         NNResult eval = netresults.get(sample);
@@ -210,7 +213,8 @@ public class Trainer {
       rms2.add(rms);
     }
     double[] rmsList = rms2.stream().map(r->r.stream().mapToDouble(x->x).filter(Double::isFinite).filter(x->0<x).average().orElse(1)).mapToDouble(x->x).toArray();
-    double product = DoubleStream.of(rmsList).filter(x->0!=x).reduce((a,b)->a*b).getAsDouble();
+//    double product = DoubleStream.of(rmsList).filter(x->0!=x).reduce((a,b)->a*b).getAsDouble();
+//    double geometricMean = DoubleStream.of(rmsList).filter(x->0!=x).reduce((a,b)->a*b).getAsDouble();
     for(int network=0;network<currentNetworks.size();network++){
       List<NNResult> netresults = results.get(network);
       SupervisedTrainingParameters currentNet = currentNetworks.get(network);
@@ -218,7 +222,7 @@ public class Trainer {
         NNResult eval = netresults.get(sample);
         NDArray output = currentNet.getTrainingData()[sample][1];
         NDArray delta = eval.delta(dynamicRate, output);
-        double factor = rmsList[network] / (product * currentNet.getWeight());
+        double factor = currentNet.getWeight();// * product / rmsList[network];
         if(Double.isFinite(factor)) delta.scale(factor);
         eval.feedback(delta);
       }

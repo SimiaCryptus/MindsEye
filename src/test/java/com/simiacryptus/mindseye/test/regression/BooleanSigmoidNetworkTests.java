@@ -75,7 +75,7 @@ public class BooleanSigmoidNetworkTests {
         .setLoopA(5)
         .setLoopB(5)
         
-        .verifyConvergence(10000, 0.01, 1);
+        .verifyConvergence(100000, 0.01, 1);
   }
   
   public NDArray[][] getTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {

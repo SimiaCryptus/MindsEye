@@ -48,7 +48,7 @@ public class SigmoidActivationLayer extends NNLayer {
             if(Double.isFinite(inputGradient.data[i]) && 0 != inputGradient.data[i]) {
               double f = (output.data[i]<0==data.data[i]<0)?(1-Math.abs(output.data[i])):1;
               f = Math.pow(f, feedbackAttenuation);
-              next.set(i, f * data.data[i] / inputGradient.data[i]);
+              next.set(i, f * data.data[i] * inputGradient.data[i]);
             }
           });
         }

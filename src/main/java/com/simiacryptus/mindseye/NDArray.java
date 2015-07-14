@@ -13,6 +13,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.NNLayer;
 
 public class NDArray {
 
@@ -37,9 +38,9 @@ public class NDArray {
   public static final LoadingCache<NDArray, DoubleMatrix> inverseCache = CacheBuilder.newBuilder().weakKeys().build(new CacheLoader<NDArray, DoubleMatrix>() {
     @Override
     public DoubleMatrix load(NDArray key) throws Exception {
-      if(key.dim() > 200) {
+      if(key.dim() > 0) {
         DoubleMatrix inv = DenseSynapseLayer.asMatrix(key).transpose();
-        for(int i=0;i<inv.length;i++) if(inv.data[i] != 0.) inv.data[i] = 1./inv.data[i];
+        //for(int i=0;i<inv.length;i++) if(inv.data[i] != 0.) inv.data[i] = 1./inv.data[i];
         return inv;
       } else {
         return org.jblas.Solve.pinv(DenseSynapseLayer.asMatrix(key));
@@ -248,6 +249,14 @@ public class NDArray {
     if (!Arrays.equals(data, other.data)) return false;
     if (!Arrays.equals(dims, other.dims)) return false;
     return true;
+  }
+
+  public NDArray set(double[] data) {
+    for (int i = 0; i < this.data.length; i++)
+    {
+      this.data[i] = data[i];
+    }
+    return this;
   }
   
 }

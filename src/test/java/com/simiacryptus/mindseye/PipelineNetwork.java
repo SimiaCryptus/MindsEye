@@ -63,11 +63,15 @@ public class PipelineNetwork extends NNLayer {
 
   protected PipelineNetwork mutate(final double amount) {
     this.layers.stream()
-    .filter(l -> (l instanceof DenseSynapseLayer))
-    .forEach(l -> mutate((DenseSynapseLayer) l, amount));
+        .filter(l -> (l instanceof DenseSynapseLayer))
+        .map(l -> (DenseSynapseLayer) l)
+        .filter(l -> !l.isFrozen())
+        .forEach(l -> mutate(l, amount));
     this.layers.stream()
-    .filter(l -> (l instanceof BiasLayer))
-    .forEach(l -> mutate((BiasLayer) l, amount));
+        .filter(l -> (l instanceof BiasLayer))
+        .map(l -> (BiasLayer) l)
+        .filter(l -> !l.isFrozen())
+        .forEach(l -> mutate(l, amount));
     return this;
   }
   

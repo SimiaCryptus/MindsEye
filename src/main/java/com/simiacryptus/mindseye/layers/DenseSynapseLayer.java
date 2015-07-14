@@ -220,4 +220,13 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   public DenseSynapseLayer setHalflife(final double halflife) {
     return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
   }
+
+  public DenseSynapseLayer setWeights(double[] data) {
+    weights.set(data);
+    return this;
+  }
+
+  public boolean isFrozen() {
+    return frozen;
+  }
 }
