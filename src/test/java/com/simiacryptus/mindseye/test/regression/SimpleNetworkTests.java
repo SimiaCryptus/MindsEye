@@ -34,7 +34,7 @@ public class SimpleNetworkTests {
         .add(new SigmoidActivationLayer())
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
         .add(new BiasLayer(outSize))
-        .trainer(samples).setStaticRate(30.).setVerbose(true).verifyConvergence(10000, 0.1, 10);
+        .trainer(samples).setStaticRate(30.).verifyConvergence(10000, 0.1, 10);
   }
   
   @Test
@@ -99,7 +99,7 @@ public class SimpleNetworkTests {
     final int[] midSize = new int[] { 3 };
     final int[] outSize = new int[] { 1 };
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { .99 }) },
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 0.5 }) },
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) }
@@ -110,7 +110,7 @@ public class SimpleNetworkTests {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize))
         .trainer(samples)
-        .setMutationAmount(0)
+        .setMutationAmount(0.3)
         .setStaticRate(10.)
         //.setVerbose(true)
         .verifyConvergence(10000, 0.1, 10);
@@ -134,7 +134,6 @@ public class SimpleNetworkTests {
         .trainer(samples)
         .setMutationAmount(0)
         .setStaticRate(10.)
-        .setVerbose(true)
         .verifyConvergence(1000, 0.1, 10);
   }
   

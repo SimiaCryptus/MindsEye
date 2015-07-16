@@ -17,6 +17,7 @@ import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.GradientDescentBuffer;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -25,7 +26,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   
   public final NDArray kernel;
   private DeltaMassMomentum massMomentum;
-  private DeltaInversionBuffer deltaBuffer;
+  private GradientDescentBuffer deltaBuffer;
   private boolean verbose = false;
   private boolean frozen = false;
   private DeltaFlushBuffer flush;
@@ -45,7 +46,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     DeltaMemoryWriter writer = new DeltaMemoryWriter(this.kernel);
     this.massMomentum = new DeltaMassMomentum(writer);
     this.flush = new DeltaFlushBuffer(this.massMomentum);
-    this.deltaBuffer = new DeltaInversionBuffer(0, this.flush);
+    this.deltaBuffer = new GradientDescentBuffer(0, this.flush);
   }
 
   @Override

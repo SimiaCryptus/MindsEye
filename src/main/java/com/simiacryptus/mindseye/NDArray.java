@@ -12,7 +12,6 @@ import org.jblas.DoubleMatrix;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
 public class NDArray {
@@ -39,11 +38,9 @@ public class NDArray {
     @Override
     public DoubleMatrix load(NDArray key) throws Exception {
       if(key.dim() > 0) {
-        DoubleMatrix inv = DenseSynapseLayer.asMatrix(key).transpose();
-        //for(int i=0;i<inv.length;i++) if(inv.data[i] != 0.) inv.data[i] = 1./inv.data[i];
-        return inv;
+        return key.asMatrix().transpose();
       } else {
-        return org.jblas.Solve.pinv(DenseSynapseLayer.asMatrix(key));
+        return org.jblas.Solve.pinv(key.asMatrix());
       }
     }
   });
@@ -262,6 +259,10 @@ public class NDArray {
 
   public NDArray copy() {
     return new NDArray(Arrays.copyOf(dims, dims.length), Arrays.copyOf(data, data.length));
+  }
+
+  public DoubleMatrix asMatrix() {
+    return new DoubleMatrix(dims[0], dims[1], data).transpose();
   }
   
 }

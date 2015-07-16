@@ -55,8 +55,8 @@ public class NetworkElementUnitTests {
     };
     new PipelineNetwork()
         .add(new BiasLayer(inputSize).setMomentumDecay(0.))
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .trainer(samples).setStaticRate(5.).verifyConvergence(1000, 0.1, 100);
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
+        .trainer(samples).setVerbose(true).setStaticRate(10.).verifyConvergence(10000, 0.1, 100);
   }
   
   @Test
@@ -92,7 +92,9 @@ public class NetworkElementUnitTests {
           .add(new ConvolutionSynapseLayer(inputSize, 1) //
               .setMomentumDecay(0.) //
               .setVerbose(verbose)) //
-          .trainer(samples).setStaticRate(5.).setVerbose(verbose).verifyConvergence(1000, 0.1, 1);
+          .trainer(samples)
+          .setStaticRate(5.).setVerbose(verbose)
+          .verifyConvergence(1000, 0.1, 1);
     }
   }
   
@@ -105,13 +107,14 @@ public class NetworkElementUnitTests {
     final NDArray[][] samples = new NDArray[][] {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 1 }) }
     };
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 5; i++) {
       new PipelineNetwork()
           .add(new BiasLayer(inputSize))
           .add(new ConvolutionSynapseLayer(inputSize, 1)
               .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
-              .setVerbose(verbose))
-          .trainer(samples).setStaticRate(1.).verifyConvergence(1000, 0.1, 1);
+              .setVerbose(verbose)
+              .freeze())
+          .trainer(samples).setVerbose(true).setStaticRate(10.).verifyConvergence(10000, 0.1, 1);
     }
   }
   
@@ -137,12 +140,14 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 1, -1 }) }
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, -.9 }) }
     };
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
-        .add(new SigmoidActivationLayer())
-        .trainer(samples).setStaticRate(1.).verifyConvergence(1000, 0.1, 100);
+        .add(new SigmoidActivationLayer().setVerbose(true))
+        .trainer(samples)
+        .setStaticRate(10.).setVerbose(true)
+        .verifyConvergence(1000, 0.1, 100);
   }
   
   @Test

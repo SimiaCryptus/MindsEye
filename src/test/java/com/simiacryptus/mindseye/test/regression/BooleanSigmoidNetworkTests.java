@@ -44,36 +44,27 @@ public class BooleanSigmoidNetworkTests {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    boolean verbose = false;
+    boolean verbose = true;
     new PipelineNetwork()
         
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)
-            .setHalflife(4)
-            .setMass(5.))
-         .add(new BiasLayer(midSize)
-         .setHalflife(3)
-         .setMass(5.)
-         )
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+         .add(new BiasLayer(midSize))
         .add(new SigmoidActivationLayer())
         
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)
-        // .setVerbose(verbose)
-        )
-        .add(new BiasLayer(outSize).setMass(2.))
-        .add(new SigmoidActivationLayer()
-        // .setVerbose(verbose)
-        )
-        .setMutationAmplitude(3)
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+        .add(new BiasLayer(outSize))
+        .add(new SigmoidActivationLayer())
+        .setMutationAmplitude(5)
         .trainer(samples)
-        .setMutationAmount(.1)
+        .setMutationAmount(1)
         .setVerbose(verbose)
         .setStaticRate(5.)
         .setDynamicRate(0.01)
-        .setMaxDynamicRate(0.1)
+        .setMaxDynamicRate(1.)
         .setMinDynamicRate(0.)
         .setImprovementStaleThreshold(5)
         .setLoopA(5)
-        .setLoopB(5)
+        .setLoopB(2)
         
         .verifyConvergence(100000, 0.01, 1);
   }

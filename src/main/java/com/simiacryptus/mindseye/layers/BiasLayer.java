@@ -11,7 +11,7 @@ import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
-import com.simiacryptus.mindseye.learning.DeltaStochasticSampler;
+import com.simiacryptus.mindseye.learning.DeltaSampler;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
@@ -26,7 +26,7 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
 
   private DeltaFlushBuffer flush;
 
-  private DeltaStochasticSampler sampler;
+  private DeltaSampler sampler;
   
   protected BiasLayer() {
     super();
@@ -39,7 +39,7 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
     DeltaMemoryWriter writer = new DeltaMemoryWriter(this.bias);
     this.deltaBuffer = new DeltaMassMomentum(writer);
     this.flush = new DeltaFlushBuffer(this.deltaBuffer);
-    this.sampler = new DeltaStochasticSampler(this.flush);
+    this.sampler = new DeltaSampler(this.flush);
   }
   
   @Override

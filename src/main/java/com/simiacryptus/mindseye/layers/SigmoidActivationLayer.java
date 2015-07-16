@@ -46,7 +46,7 @@ public class SigmoidActivationLayer extends NNLayer {
           passback = next;
           IntStream.range(0, next.dim()).forEach(i -> {
             if(Double.isFinite(inputGradient.data[i]) && 0 != inputGradient.data[i]) {
-              next.set(i, output.data[i] * data.data[i] * inputGradient.data[i]);
+              next.set(i, data.data[i] * inputGradient.data[i]);
             }
           });
         }

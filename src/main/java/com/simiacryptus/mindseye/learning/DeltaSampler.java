@@ -4,25 +4,25 @@ import java.util.Random;
 
 import com.simiacryptus.mindseye.NDArray;
 
-public class DeltaStochasticSampler implements DeltaSink {
+public class DeltaSampler implements DeltaSink {
   public static final Random random = new Random(System.nanoTime());
 
   private DeltaSink values;
   private double sampling = 1;
 
-  public DeltaStochasticSampler() {
+  public DeltaSampler() {
     super();
   }
 
-  public DeltaStochasticSampler(final double[] values) {
+  public DeltaSampler(final double[] values) {
     this(new DeltaMemoryWriter(values));
   }
 
-  public DeltaStochasticSampler(final DeltaSink values) {
+  public DeltaSampler(final DeltaSink values) {
     this.values = values;
   }
 
-  public DeltaStochasticSampler(final NDArray values) {
+  public DeltaSampler(final NDArray values) {
     this(new DeltaMemoryWriter(values));
   }
 
@@ -49,7 +49,7 @@ public class DeltaStochasticSampler implements DeltaSink {
     return sampling;
   }
 
-  public DeltaStochasticSampler setSampling(double sampling) {
+  public DeltaSampler setSampling(double sampling) {
     this.sampling = sampling;
     return this;
   }

@@ -15,6 +15,7 @@ import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.GradientDescentBuffer;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -74,7 +75,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
   
   private double backpropPruning = 0.;
-  private DeltaInversionBuffer deltaBuffer;
+  private GradientDescentBuffer deltaBuffer;
   private boolean frozen = false;
   private DeltaMassMomentum massMomentum;
   private final int[] outputDims;
@@ -95,7 +96,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
     this.writer = new DeltaFlushBuffer(this.weights);
     this.massMomentum = new DeltaMassMomentum(writer);
-    this.deltaBuffer = new DeltaInversionBuffer(0, this.massMomentum);
+    this.deltaBuffer = new GradientDescentBuffer(0, this.massMomentum);
   }
   
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
@@ -206,17 +207,6 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     return dims;
   }
   
-  public static DoubleMatrix asMatrix(NDArray key) {
-    DoubleMatrix asMatrix;
-    {
-      int x = key.getDims()[0];
-      int y = key.getDims()[1];
-      asMatrix = new DoubleMatrix(x, y, key.data).transpose();
-    }
-    return asMatrix;
-  }
-  
-
   public DenseSynapseLayer setHalflife(final double halflife) {
     return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
   }

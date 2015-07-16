@@ -64,24 +64,24 @@ public class ImageNetworkDev {
           .add(bias)
           .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
       
-      trainer.add(new SupervisedTrainingParameters(
-          new PipelineNetwork().add(bias),
-          new NDArray[][] { { zeroInput, zeroInput } })
-      {
-        @Override
-        public NDArray getIdeal(NNResult eval, NDArray preset) {
-          NDArray retVal = preset.copy();
-          for (int i = 0; i < retVal.dim(); i++) {
-            if (eval.data.data[i] > -2) retVal.data[i] = eval.data.data[i];
-          }
-          return retVal;
-        }
-      }
-          .setWeight(1));
-      
-      trainer.add(new SupervisedTrainingParameters(
-          new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(-1)),
-          new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(1));
+//      trainer.add(new SupervisedTrainingParameters(
+//          new PipelineNetwork().add(bias),
+//          new NDArray[][] { { zeroInput, zeroInput } })
+//      {
+//        @Override
+//        public NDArray getIdeal(NNResult eval, NDArray preset) {
+//          NDArray retVal = preset.copy();
+//          for (int i = 0; i < retVal.dim(); i++) {
+//            if (eval.data.data[i] > -2) retVal.data[i] = eval.data.data[i];
+//          }
+//          return retVal;
+//        }
+//      }
+//          .setWeight(1));
+//      
+//      trainer.add(new SupervisedTrainingParameters(
+//          new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1)),
+//          new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(1));
       
       trainer
           .setMutationAmount(0.1)

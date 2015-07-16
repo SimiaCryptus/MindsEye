@@ -60,22 +60,30 @@ public class Util {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
   
+  private static final ThreadLocal<Kryo> threadKryo = new ThreadLocal<Kryo>(){
+    
+    @Override
+    protected Kryo initialValue() {
+      Kryo kryo = new KryoReflectionFactorySupport() {
+        
+        @Override
+        public Serializer<?> getDefaultSerializer(@SuppressWarnings("rawtypes") final Class clazz) {
+          if (EnumSet.class.isAssignableFrom(clazz)) {
+            return new EnumSetSerializer();
+          }
+          if (EnumMap.class.isAssignableFrom(clazz)) {
+            return new EnumMapSerializer();
+          }
+          return super.getDefaultSerializer(clazz);
+        }
+        
+      };
+      return kryo;
+    }
+    
+  };
   public static Kryo kryo() {
-    Kryo kryo = new KryoReflectionFactorySupport() {
-      
-      @Override
-      public Serializer<?> getDefaultSerializer(@SuppressWarnings("rawtypes") final Class clazz) {
-        if (EnumSet.class.isAssignableFrom(clazz)) {
-        return new EnumSetSerializer();
-        }
-        if (EnumMap.class.isAssignableFrom(clazz)) {
-        return new EnumMapSerializer();
-        }
-        return super.getDefaultSerializer(clazz);
-      }
-      
-    };
-    return kryo;
+    return threadKryo.get();
   }
   
 }
