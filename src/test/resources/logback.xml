@@ -6,7 +6,17 @@
     </encoder>
   </appender>
 
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender"> 
+    <encoder>
+      <pattern>\(%F:%line\) %msg%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    	<fileNamePattern>logs/log-%d{HH-mm}.log</fileNamePattern>
+    </rollingPolicy>
+  </appender>
+
   <root level="debug">
     <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
   </root>
 </configuration>

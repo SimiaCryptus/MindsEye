@@ -17,7 +17,7 @@ import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
-import com.simiacryptus.mindseye.learning.GradientDescentBuffer;
+import com.simiacryptus.mindseye.learning.GradientDescentAccumulator;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -26,7 +26,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   
   public final NDArray kernel;
   private DeltaMassMomentum massMomentum;
-  private GradientDescentBuffer deltaBuffer;
+  private GradientDescentAccumulator deltaBuffer;
   private boolean verbose = false;
   private boolean frozen = false;
   private DeltaFlushBuffer flush;
@@ -46,7 +46,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     DeltaMemoryWriter writer = new DeltaMemoryWriter(this.kernel);
     this.massMomentum = new DeltaMassMomentum(writer);
     this.flush = new DeltaFlushBuffer(this.massMomentum);
-    this.deltaBuffer = new GradientDescentBuffer(0, this.flush);
+    this.deltaBuffer = new GradientDescentAccumulator(this.flush);
   }
 
   @Override
@@ -54,34 +54,21 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     final NDArray input = inObj.data;
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();
-    //assert(inputDims.length+1 == kernelDims.length);
     final int[] newDims = IntStream.range(0, kernelDims.length).map(
-        i -> (i == kernelDims.length - 1) ? kernelDims[i] : (inputDims[i] - kernelDims[i] + 1)
-        ).toArray();
+        i -> (i == kernelDims.length - 1) ? kernelDims[i] : (inputDims[i] - kernelDims[i] + 1)).toArray();
     final NDArray output = new NDArray(newDims);
-    //final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
     final NDArray weightGradient = this.frozen ? null : new NDArray(this.kernel.dim(), output.dim());
     this.kernel.coordStream(paralell).forEach(k -> {
-      output.coordStream(paralell)
-      //.filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==k.coords[i]))
-      .forEach(o -> {
-        final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, o.coords), 0, inputDims.length);
+      output.coordStream(paralell).forEach(o -> {
         final double a = this.kernel.get(k);
+        final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, o.coords), 0, inputDims.length);
         final double b = input.get(i);
-        //if(Math.random()<0.00001) log.debug(String.format("%s += %s * %s", o, k, Arrays.toString(i)));
-//        if(null != inputGradient) 
-//        {
-//          inputGradient.add(new int[] { input.index(i), output.index(o) }, a);
-//        }
         if (null != weightGradient) {
           weightGradient.add(new int[] { k.index, o.index }, b);
         }
         output.add(o, b * a);
       });
     });
-//    if (null != inputGradient) {
-//      _inputGradient = inputGradient;
-//    }
     if (isVerbose()) {
       log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj.data, this.kernel, output));
     }

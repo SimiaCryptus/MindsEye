@@ -1,8 +1,12 @@
 package com.simiacryptus.mindseye;
 
+import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -14,9 +18,16 @@ import java.util.Spliterators;
 import java.util.function.DoubleSupplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.zip.GZIPInputStream;
+
+import javax.imageio.ImageIO;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
+import com.simiacryptus.mindseye.data.BinaryChunkIterator;
+import com.simiacryptus.mindseye.data.LabeledObject;
 
 import de.javakaffee.kryoserializers.EnumMapSerializer;
 import de.javakaffee.kryoserializers.EnumSetSerializer;
@@ -84,6 +95,98 @@ public class Util {
   };
   public static Kryo kryo() {
     return threadKryo.get();
+  }
+
+  public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+    return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
+  }
+
+  public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
+    final DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(new File(path, name))));
+    in.skip(skip);
+    return toIterator(new BinaryChunkIterator(in, recordSize));
+  }
+
+  public static NDArray toImage(final byte[] b) {
+    final NDArray ndArray = new NDArray(28, 28);
+    for (int x = 0; x < 28; x++)
+    {
+      for (int y = 0; y < 28; y++)
+      {
+        ndArray.set(new int[] { x, y }, b[x + y * 28]);
+      }
+    }
+    return ndArray;
+  }
+
+  public static NDArray toNDArrayBW(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
+    for (int x = 0; x < img.getWidth(); x++)
+    {
+      for (int y = 0; y < img.getHeight(); y++)
+      {
+        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
+      }
+    }
+    return a;
+  }
+
+  public static NDArray toNDArrayRGB(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
+    for (int x = 0; x < img.getWidth(); x++)
+    {
+      for (int y = 0; y < img.getHeight(); y++)
+      {
+        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
+        a.set(new int[] { x, y, 1 }, img.getRGB(x, y) >> 8 & 0xFF);
+        a.set(new int[] { x, y, 2 }, img.getRGB(x, y) >> 16 & 0x0FF);
+      }
+    }
+    return a;
+  }
+
+  public static BufferedImage toImage(final NDArray ndArray) {
+    int[] dims = ndArray.getDims();
+    final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
+    for (int x = 0; x < img.getWidth(); x++)
+    {
+      for (int y = 0; y < img.getHeight(); y++)
+      {
+        if (ndArray.getDims()[2] == 1) {
+          double value = ndArray.get(x, y, 0);
+          int asByte = ((int) Util.bounds(value) & 0xFF);
+          img.setRGB(x, y, (int) (asByte * 0x010101));
+        } else {
+          double red = Util.bounds(ndArray.get(x, y, 0));
+          double green = Util.bounds(ndArray.get(x, y, 1));
+          double blue = Util.bounds(ndArray.get(x, y, 2));
+          img.setRGB(x, y, (int) (red + ((int) green << 8) + ((int) blue << 16)));
+        }
+      }
+    }
+    return img;
+  }
+
+  public static String toInlineImage(final BufferedImage img, String alt) {
+    return Util.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
+  }
+
+  public static String toInlineImage(final LabeledObject<BufferedImage> img) {
+    final ByteArrayOutputStream b = new ByteArrayOutputStream();
+    try {
+      ImageIO.write(img.data, "PNG", b);
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    }
+    final byte[] byteArray = b.toByteArray();
+    final String encode = Base64.getEncoder().encodeToString(byteArray);
+    return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
+  }
+
+  public static double bounds(double value) {
+    int max = 0xFF;
+    int min = 0;
+    return value < min ? min : value > max ? max : value;
   }
   
 }

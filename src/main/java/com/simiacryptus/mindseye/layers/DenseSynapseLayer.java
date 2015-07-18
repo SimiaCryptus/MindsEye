@@ -11,11 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
-import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
+import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
-import com.simiacryptus.mindseye.learning.GradientDescentBuffer;
+import com.simiacryptus.mindseye.learning.GradientDescentAccumulator;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -37,25 +36,23 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     @Override
     public void feedback(final NDArray data) {
       NDArray passback = null;
-      synchronized (DenseSynapseLayer.this) {
-        if (null != weightGradient) {
-          DenseSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
+      if (null != weightGradient) {
+        DenseSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
+      }
+      if (inObj.isAlive()) {
+        final double[] delta = data.data;
+        DoubleMatrix pseudoinverse;
+        try {
+          pseudoinverse = NDArray.inverseCache.get(inputGradient);
+        } catch (ExecutionException e) {
+          throw new RuntimeException(e);
         }
-        if (inObj.isAlive()) {
-          final double[] delta = data.data;
-          DoubleMatrix pseudoinverse;
-          try {
-            pseudoinverse = NDArray.inverseCache.get(inputGradient);
-          } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-          }
-          final double[] inverted = pseudoinverse.mmul(new DoubleMatrix(delta.length, 1, delta)).data;
-          final double[] mcdelta = Arrays.copyOf(inverted, inverted.length);
-          for (int i = 0; i < mcdelta.length; i++) {
-            mcdelta[i] *= Math.random() < DenseSynapseLayer.this.backpropPruning ? 0 : 1;
-          }
-          passback = new NDArray(inObj.data.getDims(), mcdelta);
+        final double[] inverted = pseudoinverse.mmul(new DoubleMatrix(delta.length, 1, delta)).data;
+        final double[] mcdelta = Arrays.copyOf(inverted, inverted.length);
+        for (int i = 0; i < mcdelta.length; i++) {
+          mcdelta[i] *= Math.random() < DenseSynapseLayer.this.backpropPruning ? 0 : 1;
         }
+        passback = new NDArray(inObj.data.getDims(), mcdelta);
       }
       if(null != passback)
       {
@@ -75,12 +72,12 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
   
   private double backpropPruning = 0.;
-  private GradientDescentBuffer deltaBuffer;
+  private GradientDescentAccumulator deltaBuffer;
   private boolean frozen = false;
   private DeltaMassMomentum massMomentum;
   private final int[] outputDims;
   private boolean verbose = false;
-  NDArray _inputGradient;
+  private NDArray _inputGradient;
   public final NDArray weights;
   
   private DeltaFlushBuffer writer;
@@ -96,7 +93,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
     this.writer = new DeltaFlushBuffer(this.weights);
     this.massMomentum = new DeltaMassMomentum(writer);
-    this.deltaBuffer = new GradientDescentBuffer(0, this.massMomentum);
+    this.deltaBuffer = new GradientDescentAccumulator(this.massMomentum);
   }
   
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {

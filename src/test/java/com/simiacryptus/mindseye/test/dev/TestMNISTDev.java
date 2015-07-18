@@ -39,6 +39,7 @@ import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 
 public class TestMNISTDev {
   public static class Network extends PipelineNetwork {
@@ -49,7 +50,7 @@ public class TestMNISTDev {
       
       // layers.add(new NormalizerLayer(inputSize.getDims()));
       
-      add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3)
+      add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 2)
           .fillWeights(() -> 0.001 * TestMNISTDev.random.nextGaussian()));
       add(new MaxSubsampleLayer(4, 4, 1));
       add(new BiasLayer(eval(inputSize).data.getDims()));
@@ -61,16 +62,15 @@ public class TestMNISTDev {
       add(new BiasLayer(eval(inputSize).data.getDims()));
       add(new SigmoidActivationLayer());
       
-      // layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 16 })
-      // .fillWeights(() -> 0.001 * random.nextGaussian()));
-      // layers.add(new SigmoidActivationLayer());
+       layers.add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 16 }));
+       add(new BiasLayer(eval(inputSize).data.getDims()));
+       layers.add(new SigmoidActivationLayer());
       
-      add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 })
-          .addWeights(() -> 0.001 * TestMNISTDev.random.nextGaussian()));
+      add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 }));
       add(new BiasLayer(eval(inputSize).data.getDims()));
       // layers.add(new BiasLayer(eval(inputSize).data.getDims()));
-      add(new SigmoidActivationLayer());
-      // add(new SoftmaxActivationLayer());
+      //add(new SigmoidActivationLayer());
+      add(new SoftmaxActivationLayer());
     }
     
   }
@@ -110,11 +110,14 @@ public class TestMNISTDev {
     TestMNISTDev.log.info("Starting");
     Network net = getNetwork();
     final List<LabeledObject<NDArray>> buffer = trainingDataStream().collect(Collectors.toList());
-    NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(100)
+    NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(1000)
         .map(o -> new NDArray[]{o.data, toOutNDArray(toOut(o.label), 10)})
         .toArray(i2->new NDArray[i2][]);
-    final NDArray[][] samples = data;
-    net.trainer(samples).verifyConvergence(10000, 0.01, 1);
+    net.trainer(data)
+      .setDynamicRate(0.05)
+      .setImprovementStaleThreshold(5).setLoopA(5).setLoopB(1).setStaticRate(10.)
+      .setMutationAmount(5.).setVerbose(true)
+      .verifyConvergence(10000, 0.01, 1);
     {
       Network net2 = net;
       double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(toOut(o1.label))).average().getAsDouble();
@@ -124,8 +127,7 @@ public class TestMNISTDev {
   }
 
   protected Network getNetwork() {
-    Network net = new Network();
-    return net;
+    return new Network();
   }
   
   public static NDArray toOutNDArray(int out, int max) {

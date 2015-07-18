@@ -107,15 +107,13 @@ public class NetworkElementUnitTests {
     final NDArray[][] samples = new NDArray[][] {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 1 }) }
     };
-    for (int i = 0; i < 5; i++) {
-      new PipelineNetwork()
-          .add(new BiasLayer(inputSize))
-          .add(new ConvolutionSynapseLayer(inputSize, 1)
-              .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
-              .setVerbose(verbose)
-              .freeze())
-          .trainer(samples).setVerbose(true).setStaticRate(10.).verifyConvergence(10000, 0.1, 1);
-    }
+    new PipelineNetwork()
+        .add(new BiasLayer(inputSize))
+        .add(new ConvolutionSynapseLayer(inputSize, 1)
+            .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
+            .setVerbose(verbose)
+            .freeze())
+        .trainer(samples).setVerbose(true).setStaticRate(10.).verifyConvergence(10000, 0.1, 10);
   }
   
   @Test

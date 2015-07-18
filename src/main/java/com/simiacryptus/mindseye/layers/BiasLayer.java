@@ -23,6 +23,7 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
   
   public final double[] bias;
   private final DeltaMassMomentum deltaBuffer;
+  private boolean verbose = false;
 
   private DeltaFlushBuffer flush;
 
@@ -47,9 +48,15 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
     final NDArray translated = inObj.data.map((v, i) -> {
       return v + this.bias[i.index];
     });
+    if (isVerbose()) {
+      log.debug(String.format("Feed forward: %s => %s", inObj.data, translated));
+    }
     return new NNResult(translated) {
       @Override
       public void feedback(final NDArray data) {
+        if (isVerbose()) {
+          log.debug(String.format("Feed back: %s", data));
+        }
         sampler.feed(data.data);
         if (inObj.isAlive())
         {
@@ -123,6 +130,15 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
 
   public NNLayer set(double[] ds) {
     for(int i=0;i<ds.length;i++) bias[i] = ds[i];
+    return this;
+  }
+
+  public boolean isVerbose() {
+    return verbose;
+  }
+
+  public BiasLayer setVerbose(boolean verbose) {
+    this.verbose = verbose;
     return this;
   }
 

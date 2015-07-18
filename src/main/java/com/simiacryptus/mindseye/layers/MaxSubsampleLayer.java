@@ -38,7 +38,7 @@ public class MaxSubsampleLayer extends NNLayer {
     final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
     output.coordStream(false).forEach(o -> {
       final int[] i = new NDArray(this.kernelDims).coordStream(false)
-          .map(kernelCoord -> addCoordinates(o, kernelCoord))
+          .map(kernelCoord -> Coordinate.add(o.coords, kernelCoord.coords))
           .sorted(Comparator.comparing(inputCoords -> input.get(inputCoords))).findFirst().get();
       final Coordinate inputCoord = new Coordinate(input.index(i), i);
       gradientMap.put(o, inputCoord);
@@ -59,9 +59,5 @@ public class MaxSubsampleLayer extends NNLayer {
         return true;
       }
     };
-  }
-
-  private int[] addCoordinates(Coordinate o, Coordinate kernelCoord) {
-    return IntStream.range(0, kernelCoord.coords.length).map(idx -> kernelCoord.coords[idx] + this.kernelDims[idx] * o.coords[idx]).toArray();
   }
 }

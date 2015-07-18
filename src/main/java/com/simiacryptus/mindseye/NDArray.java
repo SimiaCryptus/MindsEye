@@ -2,8 +2,10 @@ package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.ToDoubleBiFunction;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -222,9 +224,14 @@ public class NDArray {
     if (coords.length == this.dims.length)
       return Double.toString(get(coords));
     else {
-      final Optional<String> str = IntStream.range(0, this.dims[coords.length]).mapToObj(i -> {
+      List<String> list = IntStream.range(0, this.dims[coords.length]).mapToObj(i -> {
         return toString(_add(coords, i));
-      }).limit(10).reduce((a, b) -> a + "," + b);
+      }).collect(Collectors.toList());
+      if(list.size() > 10) {
+        list = list.subList(0, 8);
+        list.add("...");
+      }
+      final Optional<String> str = list.stream().limit(10).reduce((a, b) -> a + "," + b);
       return "{ " + str.get() + " }";
     }
   }
