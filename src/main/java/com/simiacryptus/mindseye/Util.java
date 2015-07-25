@@ -188,5 +188,12 @@ public class Util {
     int min = 0;
     return value < min ? min : value > max ? max : value;
   }
+
+  public static double geomMean(double[] error) {
+    double sumLog =0;
+    for(int i=0;i<error.length;i++)
+      sumLog += Math.log(error[i]);
+    return Math.exp(sumLog/error.length);
+  }
   
 }

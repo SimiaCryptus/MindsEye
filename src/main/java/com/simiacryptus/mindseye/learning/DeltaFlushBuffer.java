@@ -8,6 +8,7 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
 
   private final DeltaSink values;
   private final double[] buffer;
+  private boolean reset = false;
 
   protected DeltaFlushBuffer() {
     super();
@@ -26,15 +27,23 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
 
   @Override
   public void feed(final double[] data) {
+    if (reset) {
+      reset = false;
+      Arrays.fill(buffer, 0);
+    }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       this.buffer[i] += data[i];
     }
   }
 
-  public void write() {
-    this.values.feed(buffer);
-    Arrays.fill(buffer, 0);
+  public void write(double factor) {
+    double[] cpy = new double[buffer.length];
+    for (int i = 0; i < buffer.length; i++) {
+      cpy[i] = buffer[i] * factor;
+    }
+    this.values.feed(cpy);
+    reset = true;
   }
 
   @Override

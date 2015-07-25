@@ -18,15 +18,12 @@ import com.simiacryptus.mindseye.learning.NNResult;
 
 public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, DeltaTransaction {
   
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
   
   public final double[] bias;
   private final DeltaMassMomentum deltaBuffer;
   private boolean verbose = false;
-
   private DeltaFlushBuffer flush;
-
   private DeltaSampler sampler;
   
   protected BiasLayer() {
@@ -38,8 +35,8 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
   public BiasLayer(final int[] outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
     DeltaMemoryWriter writer = new DeltaMemoryWriter(this.bias);
-    this.deltaBuffer = new DeltaMassMomentum(writer);
-    this.flush = new DeltaFlushBuffer(this.deltaBuffer);
+    this.flush = new DeltaFlushBuffer(writer);
+    this.deltaBuffer = new DeltaMassMomentum(this.flush);
     this.sampler = new DeltaSampler(this.flush);
   }
   
@@ -105,8 +102,8 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
   }
 
   @Override
-  public void write() {
-    flush.write();
+  public void write(double factor) {
+    flush.write(factor);
   }
 
   public BiasLayer setHalflife(final double halflife) {

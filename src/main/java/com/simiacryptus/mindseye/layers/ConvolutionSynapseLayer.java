@@ -170,9 +170,9 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
   }
   
   @Override
-  public void write() {
+  public void write(double factor) {
     if(isFrozen()) return;
-    flush.write();
+    flush.write(factor);
   }
 
   public ConvolutionSynapseLayer setHalflife(final double halflife) {

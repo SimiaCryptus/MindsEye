@@ -8,7 +8,7 @@ public class DeltaSampler implements DeltaSink {
   public static final Random random = new Random(System.nanoTime());
 
   private DeltaSink values;
-  private double sampling = 1;
+  private double sampling = 2.;
 
   public DeltaSampler() {
     super();

@@ -13,9 +13,9 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.PipelineNetwork;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.data.LabeledObject;
+import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class MNIST {
   

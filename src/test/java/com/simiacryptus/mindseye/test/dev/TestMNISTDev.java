@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.PipelineNetwork;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.data.BinaryChunkIterator;
 import com.simiacryptus.mindseye.data.LabeledObject;
@@ -40,6 +39,7 @@ import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class TestMNISTDev {
   public static class Network extends PipelineNetwork {
@@ -115,7 +115,7 @@ public class TestMNISTDev {
         .toArray(i2->new NDArray[i2][]);
     net.trainer(data)
       .setDynamicRate(0.05)
-      .setImprovementStaleThreshold(5).setLoopA(5).setLoopB(1).setStaticRate(10.)
+      .setImprovementStaleThreshold(5).setStaticRate(10.)
       .setMutationAmount(5.).setVerbose(true)
       .verifyConvergence(10000, 0.01, 1);
     {

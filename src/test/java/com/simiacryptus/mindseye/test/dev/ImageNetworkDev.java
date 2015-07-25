@@ -23,14 +23,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.PipelineNetwork;
-import com.simiacryptus.mindseye.Trainer;
 import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
-import com.simiacryptus.mindseye.SupervisedTrainingParameters;
+import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.SupervisedTrainingParameters;
+import com.simiacryptus.mindseye.training.Trainer;
 
 public class ImageNetworkDev {
   static final Logger log = LoggerFactory.getLogger(ImageNetworkDev.class);
@@ -88,8 +88,6 @@ public class ImageNetworkDev {
           .setImprovementStaleThreshold(1)
           .setStaticRate(0.05)
           .setVerbose(true)
-          .setLoopA(10)
-          .setLoopB(1)
           .setRateAdaptionRate(0.5)
           .setDynamicRate(0.005)
           .setMaxDynamicRate(1.)

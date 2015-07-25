@@ -10,14 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.PipelineNetwork;
-import com.simiacryptus.mindseye.Trainer;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.Trainer;
 
 public class SimpleMNIST {
   private static final Logger log = LoggerFactory.getLogger(SimpleMNIST.class);
@@ -51,23 +51,21 @@ public class SimpleMNIST {
 
   public Trainer getTrainer(PipelineNetwork net, NDArray[][] data) {
     return net.trainer(data)
-        .setDynamicRate(1)
+        .setDynamicRate(0.001)
         .setImprovementStaleThreshold(5)
-        .setLoopA(5)
-        .setLoopB(2)
-        .setStaticRate(10.)
-        .setMutationAmount(5.)
-        .setVerbose(true);
+        .setStaticRate(0.01)
+        .setMutationAmount(0.2)
+        .setVerbose(verbose>0);
   }
   
   final NDArray inputSize = new NDArray(28, 28);
-  boolean verbose = true;
+  int verbose = 1;
   
   protected PipelineNetwork getNetwork() {
     PipelineNetwork net = new PipelineNetwork();
-    net.add(new DenseSynapseLayer(net.eval(inputSize).data.dim(), new int[] { 10 }).setVerbose(verbose));
-    net.add(new BiasLayer(net.eval(inputSize).data.getDims()).setVerbose(verbose));
-    net.add(new SigmoidActivationLayer().setVerbose(verbose));
+    net.add(new DenseSynapseLayer(net.eval(inputSize).data.dim(), new int[] { 10 }).setVerbose(verbose>1));
+    net.add(new BiasLayer(net.eval(inputSize).data.getDims()).setVerbose(verbose>1));
+    //net.add(new SigmoidActivationLayer().setVerbose(verbose));
     //net.add(new SoftmaxActivationLayer().setVerbose(verbose));
     return net;
   }

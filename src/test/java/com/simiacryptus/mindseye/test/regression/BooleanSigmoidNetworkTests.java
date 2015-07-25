@@ -9,10 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.PipelineNetwork;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class BooleanSigmoidNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSigmoidNetworkTests.class);
@@ -63,8 +63,6 @@ public class BooleanSigmoidNetworkTests {
         .setMaxDynamicRate(1.)
         .setMinDynamicRate(0.)
         .setImprovementStaleThreshold(5)
-        .setLoopA(5)
-        .setLoopB(2)
         
         .verifyConvergence(100000, 0.01, 1);
   }

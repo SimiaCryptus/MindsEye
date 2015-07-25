@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.training;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
@@ -84,10 +85,10 @@ public class PipelineNetwork extends NNLayer {
     return new Trainer().add(this, samples);
   }
   
-  void writeDeltas() {
+  void writeDeltas(double factor) {
     for (final NNLayer l : this.layers) {
       if (l instanceof DeltaTransaction) {
-        ((DeltaTransaction) l).write();
+        ((DeltaTransaction) l).write(factor);
       }
     }
   }

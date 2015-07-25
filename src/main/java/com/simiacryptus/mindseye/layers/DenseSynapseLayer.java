@@ -194,9 +194,9 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   }
   
   @Override
-  public void write() {
+  public void write(double factor) {
     _inputGradient = null;
-    writer.write();
+    writer.write(factor);
   }
 
   public static int[] transpose(int[] dims2) {
