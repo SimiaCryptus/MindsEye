@@ -69,7 +69,7 @@ public class Trainer {
   }
 
   public void verifyConvergence(int maxIter, double convergence, int reps) {
-    long succeesses = IntStream.range(0, reps).filter(i->{
+    long succeesses = IntStream.range(0, reps).parallel().filter(i->{
       Double error = Util.kryo().copy(macroTrainer).setMaxIterations(maxIter).setStopError(convergence).train();
       boolean hasConverged = error <= convergence;
       if(!hasConverged) {

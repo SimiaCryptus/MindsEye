@@ -44,7 +44,7 @@ public class BooleanSigmoidNetworkTests {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    boolean verbose = true;
+    boolean verbose = false;
     new PipelineNetwork()
         
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
@@ -57,12 +57,13 @@ public class BooleanSigmoidNetworkTests {
         .setMutationAmplitude(5)
         .trainer(samples)
         .setMutationAmount(1)
+        .setStaticRate(0.75)
         .setVerbose(verbose)
-        .setStaticRate(0.5)
-        .setDynamicRate(0.01)
-        .setMaxDynamicRate(1.)
-        .setMinDynamicRate(0.)
-        .setImprovementStaleThreshold(5)
+        //.setStaticRate(0.5)
+        //.setDynamicRate(0.01)
+        //.setMaxDynamicRate(1.)
+        //.setMinDynamicRate(0.)
+        //.setImprovementStaleThreshold(5)
         
         .verifyConvergence(10000, 0.01, 10);
   }
