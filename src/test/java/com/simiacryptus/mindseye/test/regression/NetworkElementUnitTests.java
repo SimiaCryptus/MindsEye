@@ -56,7 +56,7 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize).setMomentumDecay(0.))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .trainer(samples).setVerbose(true).setStaticRate(10.).verifyConvergence(10000, 0.1, 100);
+        .trainer(samples).setStaticRate(1.).verifyConvergence(10000, 0.1, 100);
   }
   
   @Test
@@ -70,11 +70,9 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) }
     };
-    for (int i = 0; i < 100; i++) {
-      new PipelineNetwork()
-          .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)
-              .setVerbose(verbose)).trainer(samples).verifyConvergence(10000, 0.1, 1);
-    }
+    new PipelineNetwork()
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)
+            .setVerbose(verbose)).trainer(samples).setStaticRate(.25).setMutationAmount(1).verifyConvergence(10000, 0.1, 100);
   }
   
   @Test
@@ -87,15 +85,13 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0 }) },
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) }
     };
-    for (int i = 0; i < 100; i++) {
-      new PipelineNetwork() //
-          .add(new ConvolutionSynapseLayer(inputSize, 1) //
-              .setMomentumDecay(0.) //
-              .setVerbose(verbose)) //
-          .trainer(samples)
-          .setStaticRate(5.).setVerbose(verbose)
-          .verifyConvergence(1000, 0.1, 1);
-    }
+    new PipelineNetwork() //
+        .add(new ConvolutionSynapseLayer(inputSize, 1) //
+            .setVerbose(verbose)) //
+        .trainer(samples)
+        .setStaticRate(.5).setVerbose(verbose)
+        .setMinDynamicRate(0).setMaxDynamicRate(0.5)
+        .verifyConvergence(1000, 0.1, 100);
   }
   
   @Test
@@ -125,12 +121,10 @@ public class NetworkElementUnitTests {
     final NDArray[][] samples = new NDArray[][] {
         { new NDArray(inputSize, new double[] { 0, -1 }), new NDArray(outSize, new double[] { 1 }) }
     };
-    for (int i = 0; i < 100; i++) {
-      new PipelineNetwork()
-          .add(new BiasLayer(inputSize))
-          .add(new MaxSubsampleLayer(2))
-          .trainer(samples).setStaticRate(1.).verifyConvergence(1000, 0.1, 1);
-    }
+    new PipelineNetwork()
+        .add(new BiasLayer(inputSize))
+        .add(new MaxSubsampleLayer(2))
+        .trainer(samples).setVerbose(verbose).setStaticRate(0.5).setMinDynamicRate(0).setMaxDynamicRate(0.5).verifyConvergence(1000, 0.1, 100);
   }
   
   @Test

@@ -12,7 +12,6 @@ public class MacroTrainer {
   private int currentGeneration = 0;
   private final DynamicRateTrainer inner;
   private int maxIterations = 1000;
-  private double mutationAmount = 0.2;
   private double stopError = 0.1;
   private boolean verbose = false;
 
@@ -25,8 +24,14 @@ public class MacroTrainer {
   }
   
   public boolean continueTraining() {
-    if(maxIterations < this.currentGeneration) return false;
-    if(inner.error() < stopError) return false;
+    if(maxIterations < this.currentGeneration) {
+      if(verbose) log.debug("Reached max iterations: " + this.currentGeneration);
+      return false;
+    }
+    if(inner.error() < stopError) {
+      if(verbose) log.debug("Reached convergence: " + inner.error());
+      return false;
+    }
     return true;
   }
 
@@ -38,10 +43,6 @@ public class MacroTrainer {
     return maxIterations;
   }
 
-  public double getMutationAmount() {
-    return this.mutationAmount;
-  }
-
   public double getStopError() {
     return stopError;
   }
@@ -50,9 +51,6 @@ public class MacroTrainer {
     return this.verbose;
   }
 
-  public void mutate() {
-    mutate(getMutationAmount());
-  }
   public void mutate(final double mutationAmount) {
     if (this.verbose) {
       MacroTrainer.log.debug(String.format("Mutating %s by %s", this.inner, mutationAmount));
@@ -66,7 +64,7 @@ public class MacroTrainer {
   }
 
   public MacroTrainer setMutationAmount(final double mutationAmount) {
-    this.mutationAmount = mutationAmount;
+    inner.setMutationFactor(mutationAmount);
     return this;
   }
 

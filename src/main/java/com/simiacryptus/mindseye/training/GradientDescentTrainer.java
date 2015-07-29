@@ -2,11 +2,18 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.DoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.optim.MaxEval;
+import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
+import org.apache.commons.math3.optim.univariate.SearchInterval;
+import org.apache.commons.math3.optim.univariate.UnivariateObjectiveFunction;
+import org.apache.commons.math3.optim.univariate.BrentOptimizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,73 +77,28 @@ public class GradientDescentTrainer {
     return this.error;
   }
 
-  public synchronized double trainLineSearch() {
+  public synchronized double trainLineSearch(double min, double max) {
     learn(evalTrainingData());
-    
-    double phi = (Math.sqrt(5)-1)/2;
-    
-    double errOuterA = Util.geomMean(calcError(evalTrainingData()));
-    double posOuterA = 0;
-    log.debug(String.format("Evaluating initial position, error %s", errOuterA));
-    
-    
-    double posOuterB = 0.5;
-    double currentPos = 0;
-    double errOuterB;
-    do {
-      posOuterB *= 2;
-      if(posOuterB > 1000) {
-        currentPos = updatePos(currentPos, 0);
-        log.debug(String.format("Undefined outer bounds"));
-        return Double.POSITIVE_INFINITY;
+    UnivariateFunction f = new UnivariateFunction() {
+      
+      double pos = 0;
+      @Override
+      public double value(double x) {
+        double diff = x - pos;
+        currentNetworks.stream().forEach(params -> params.getNet().writeDeltas(diff));
+        pos += diff;
+        return Util.geomMean(calcError(evalTrainingData()));
       }
-      currentPos = updatePos(currentPos, posOuterB);
-      errOuterB = Util.geomMean(calcError(evalTrainingData()));
-      log.debug(String.format("Evaluating initial outer %s, error %s", currentPos, errOuterB));
-    } while(errOuterB <= errOuterA);
+    };
     
-    double windowStopSize = 0.001;
-    
-    double posInnerA = posOuterB + phi * (posOuterA - posOuterB);
-    currentPos = updatePos(currentPos, posInnerA);
-    double errInnerA = Util.geomMean(calcError(evalTrainingData()));
-    log.debug(String.format("Evaluating initial inner A: %s, error %s", posInnerA, errInnerA));
-
-    double posInnerB = posOuterA + phi * (posOuterB - posOuterA);
-    currentPos = updatePos(currentPos, posInnerB);
-    double errInnerB = Util.geomMean(calcError(evalTrainingData()));
-    log.debug(String.format("Evaluating initial inner B: %s, error %s", posInnerB, errInnerB));
-
-    while(Math.abs(posOuterA - posOuterB) > windowStopSize) {
-      if(errInnerA < errInnerB) {
-        posOuterB = posInnerB;
-        errOuterB = errInnerB;
-        
-        posInnerB = posOuterB - phi * (posOuterB - posOuterA);
-        currentPos = updatePos(currentPos, posInnerB);
-        errInnerB = Util.geomMean(calcError(evalTrainingData()));
-        log.debug(String.format("Evaluating new inner B: %s, error %s; pos=%s,%s,%s", posInnerB, errInnerB, posOuterA, posInnerA, posOuterB));
-      } else {
-        posOuterA = posInnerA;
-        errOuterA = errInnerA;
-        
-        posInnerA = posOuterA - phi * (posOuterA - posOuterB);
-        currentPos = updatePos(currentPos, posInnerA);
-        errInnerA = Util.geomMean(calcError(evalTrainingData()));
-        log.debug(String.format("Evaluating new inner A: %s, error %s; pos=%s,%s,%s", posInnerA, errInnerA, posOuterA, posInnerB, posOuterB));
-      }
-    }
-
+    double optimalRate = new BrentOptimizer(1e-8, 1e-10).optimize(new MaxEval(200),
+        new UnivariateObjectiveFunction(f),
+        GoalType.MINIMIZE,
+        new SearchInterval(min, max)).getPoint();
+    f.value(optimalRate);
     this.error = calcError(evalTrainingData());
-    log.debug(String.format("Terminated at position: %s, error %s", currentPos, this.error));
-    return currentPos;
-  }
-
-  public double updatePos(double currentPos, double nextPos) {
-    double diff = nextPos - currentPos;
-    this.currentNetworks.stream().forEach(params -> params.getNet().writeDeltas(diff));
-    currentPos += diff;
-    return currentPos;
+    if(verbose) log.debug(String.format("Terminated at position: %s, error %s", optimalRate, this.error));
+    return optimalRate;
   }
 
   protected void learn(final List<List<NNResult>> results) {

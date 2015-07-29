@@ -61,10 +61,10 @@ public class BooleanSoftmaxNetworkTests {
         
         .setMutationAmplitude(3)
         .trainer(samples)
-        .setMutationAmount(.2)
+        .setMutationAmount(.5)
         .setVerbose(false)
-        .setStaticRate(1.)
-        .setDynamicRate(0.01)
+        .setStaticRate(.5)
+        .setDynamicRate(0.1)
         .setMaxDynamicRate(1.)
         .setMinDynamicRate(0)
         .setImprovementStaleThreshold(10)

@@ -35,10 +35,12 @@ public class DynamicRateTrainer {
 
   int lastCalibratedIteration = Integer.MIN_VALUE;
   int currentIteration = 0;
+
+  private double mutationFactor = .5;
   
   public DynamicRateTrainer train() {
     if(lastCalibratedIteration < (currentIteration++ - 50)){
-      log.debug("Recalibrating learning rate due to interation schedule");
+      if(verbose) log.debug("Recalibrating learning rate due to interation schedule");
       calibrate();
     }
     double lastError = inner.current.error();
@@ -46,7 +48,7 @@ public class DynamicRateTrainer {
     double resultError = inner.current.error();
     if(resultError > lastError)
     {
-      log.debug("Recalibrating learning rate due to non-descending step");
+      if(verbose) log.debug("Recalibrating learning rate due to non-descending step");
       calibrate();
     }
     //updateRate(lastError, resultError);
@@ -54,15 +56,21 @@ public class DynamicRateTrainer {
   }
 
   public void calibrate() {
-    double currentRate = inner.current.getRate();
-    double adjustment = inner.current.trainLineSearch();
-    if(Double.isFinite(adjustment))
+    double max = 10000;
+    double overflow = 1000;
+    double localMin = inner.current.trainLineSearch(0, max);
+    inner.updateBest();
+    if(overflow > localMin)
     {
-      inner.current.setRate(currentRate * adjustment);
+      double adjustment = rate * localMin;
+      double newRate = inner.current.getRate() * adjustment;
+      newRate = Math.max(Math.min(newRate, maxRate), minRate);
+      if(verbose) log.debug(String.format("Adjusting rate by %s: %s", adjustment, newRate));
+      inner.current.setRate(newRate);
     } else {
-      log.debug("Local Optimum reach - gradient not useful. Now for mutation-based random search!");
+      if(verbose) log.debug("Local Optimum reach - gradient not useful. Now for mutation-based random search!");
       inner.revert();
-      inner.current.mutate(0.2);
+      inner.current.mutate(getMutationFactor());
     }
     lastCalibratedIteration = currentIteration;
   }
@@ -127,6 +135,14 @@ public class DynamicRateTrainer {
   public DynamicRateTrainer setMaxRate(double maxRate) {
     this.maxRate = maxRate;
     return this;
+  }
+
+  public double getMutationFactor() {
+    return mutationFactor;
+  }
+
+  public void setMutationFactor(double mutationRate) {
+    this.mutationFactor = mutationRate;
   }
 
 }

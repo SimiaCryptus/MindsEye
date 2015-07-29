@@ -5,10 +5,17 @@ import groovy.lang.Tuple2;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.esotericsoftware.minlog.Log;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.test.regression.NetworkElementUnitTests;
 
 public class Trainer {
+  static final Logger log = LoggerFactory.getLogger(Trainer.class);
+
   MacroTrainer macroTrainer = new MacroTrainer();
 
   public Trainer add(SupervisedTrainingParameters params) {
@@ -35,7 +42,7 @@ public class Trainer {
   }
 
   public Trainer setVerbose(boolean b) {
-    macroTrainer.setVerbose(true);
+    macroTrainer.setVerbose(b);
     return this;
   }
 
@@ -45,7 +52,7 @@ public class Trainer {
   }
 
   public Trainer setDynamicRate(double d) {
-    macroTrainer.getInner().setRate(d);
+    macroTrainer.getInner().inner.current.setRate(d);
     return this;
   }
 
@@ -70,7 +77,12 @@ public class Trainer {
 
   public void verifyConvergence(int maxIter, double convergence, int reps) {
     if(!IntStream.range(0, reps).allMatch(i->{
-      return Util.kryo().copy(macroTrainer).setMaxIterations(maxIter).setStopError(convergence).train() <= convergence;
+      Double error = Util.kryo().copy(macroTrainer).setMaxIterations(maxIter).setStopError(convergence).train();
+      boolean hasConverged = error <= convergence;
+      if(!hasConverged) {
+        log.debug("Not Converged");
+      }
+      return hasConverged;
     })) throw new RuntimeException();
   }
   

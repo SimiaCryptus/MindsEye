@@ -58,7 +58,7 @@ public class BooleanSigmoidNetworkTests {
         .trainer(samples)
         .setMutationAmount(1)
         .setVerbose(verbose)
-        .setStaticRate(5.)
+        .setStaticRate(0.5)
         .setDynamicRate(0.01)
         .setMaxDynamicRate(1.)
         .setMinDynamicRate(0.)
