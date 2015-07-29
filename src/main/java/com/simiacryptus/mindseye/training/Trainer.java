@@ -70,10 +70,15 @@ public class Trainer {
 
   public void verifyConvergence(int maxIter, double convergence, int reps) {
     long succeesses = IntStream.range(0, reps).parallel().filter(i->{
-      Double error = Util.kryo().copy(macroTrainer).setMaxIterations(maxIter).setStopError(convergence).train();
-      boolean hasConverged = error <= convergence;
-      if(!hasConverged) {
-        log.debug("Not Converged");
+      boolean hasConverged = false;
+      try {
+        Double error = Util.kryo().copy(macroTrainer).setMaxIterations(maxIter).setStopError(convergence).train();
+        hasConverged = error <= convergence;
+        if (!hasConverged) {
+          log.debug("Not Converged");
+        }
+      } catch (Throwable e) {
+        log.debug("Not Converged", e);
       }
       return hasConverged;
     }).count();
