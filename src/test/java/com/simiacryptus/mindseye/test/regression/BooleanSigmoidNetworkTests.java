@@ -64,7 +64,7 @@ public class BooleanSigmoidNetworkTests {
         .setMinDynamicRate(0.)
         .setImprovementStaleThreshold(5)
         
-        .verifyConvergence(100000, 0.01, 1);
+        .verifyConvergence(10000, 0.01, 10);
   }
   
   public NDArray[][] getTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {

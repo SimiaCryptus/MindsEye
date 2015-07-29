@@ -70,7 +70,7 @@ public class BooleanSoftmaxNetworkTests {
         .setMinDynamicRate(1e-9)
         .setImprovementStaleThreshold(10)
 
-        .verifyConvergence(10000, 0.01, 1);
+        .verifyConvergence(1000, 0.01, 10);
   }
   
   public NDArray[][] getSoftmaxGateTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {
