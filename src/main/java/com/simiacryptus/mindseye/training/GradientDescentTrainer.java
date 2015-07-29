@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class GradientDescentTrainer {
@@ -160,8 +161,17 @@ public class GradientDescentTrainer {
 
   public double error() {
     if(null==error) return Double.MAX_VALUE;
-    final double geometricMean = Math.exp(DoubleStream.of(error).filter(x -> 0 != x).map(Math::log).average().getAsDouble());
+    final double geometricMean = Math.exp(DoubleStream.of(error).filter(x -> 0 != x).map(Math::log).average().orElse(Double.MAX_VALUE));
     return Math.pow(geometricMean, 1 / currentNetworks.stream().mapToDouble(p -> p.getWeight()).sum());
+  }
+
+  public GradientDescentTrainer copy() {
+    return this;
+  }
+
+  public GradientDescentTrainer clearMomentum() {
+    this.currentNetworks.forEach(x->x.getNet().clearMomentum());
+    return this;
   }
 
 }

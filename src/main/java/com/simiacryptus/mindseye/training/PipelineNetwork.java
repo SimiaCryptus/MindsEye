@@ -12,6 +12,7 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class PipelineNetwork extends NNLayer {
@@ -99,6 +100,11 @@ public class PipelineNetwork extends NNLayer {
 
   public PipelineNetwork setMutationAmplitude(double mutationAmplitude) {
     this.mutationAmplitude = mutationAmplitude;
+    return this;
+  }
+
+  public PipelineNetwork clearMomentum() {
+    layers.stream().filter(a->a instanceof MassParameters<?>).map(a->(MassParameters<?>)a).forEach(a->a.setMomentumDecay(0));
     return this;
   }
 

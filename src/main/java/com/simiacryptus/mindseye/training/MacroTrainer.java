@@ -75,6 +75,7 @@ public class MacroTrainer {
 
   public MacroTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    inner.setVerbose(true);
     return this;
   }
 

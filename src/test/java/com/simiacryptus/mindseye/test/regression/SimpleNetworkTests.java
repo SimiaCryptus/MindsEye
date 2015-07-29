@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Random;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +87,8 @@ public class SimpleNetworkTests {
         .add(new BiasLayer(outSize).setMomentumDecay(0.))
         .add(new SigmoidActivationLayer())
         
-        .trainer(samples).setStaticRate(.5)
+        .trainer(samples)
+        .setStaticRate(.5)
         // .setVerbose(true)
         .verifyConvergence(10000, 0.01, 10);
   }

@@ -8,10 +8,8 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.esotericsoftware.minlog.Log;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.test.regression.NetworkElementUnitTests;
 
 public class Trainer {
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
@@ -43,11 +41,6 @@ public class Trainer {
 
   public Trainer setVerbose(boolean b) {
     macroTrainer.setVerbose(b);
-    return this;
-  }
-
-  public Trainer setRateAdaptionRate(double d) {
-    macroTrainer.getInner().setRateAdaptionRate(d);
     return this;
   }
 

@@ -58,18 +58,19 @@ public class BooleanSoftmaxNetworkTests {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize))
         .add(new SoftmaxActivationLayer().setVerbose(false))
+
         
         .setMutationAmplitude(3)
         .trainer(samples)
-        .setMutationAmount(.5)
-        .setVerbose(false)
+        .setMutationAmount(1)
+        //.setVerbose(true)
         .setStaticRate(.5)
-        .setDynamicRate(0.1)
-        .setMaxDynamicRate(1.)
-        .setMinDynamicRate(0)
+        .setDynamicRate(0.5)
+        .setMaxDynamicRate(5000)
+        .setMinDynamicRate(1e-9)
         .setImprovementStaleThreshold(10)
 
-        .verifyConvergence(100000, 0.01, 1);
+        .verifyConvergence(10000, 0.01, 1);
   }
   
   public NDArray[][] getSoftmaxGateTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {

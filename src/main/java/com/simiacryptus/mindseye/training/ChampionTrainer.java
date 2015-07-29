@@ -11,7 +11,7 @@ public class ChampionTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(ChampionTrainer.class);
   
-  public GradientDescentTrainer best = null;
+  public GradientDescentTrainer best = new GradientDescentTrainer();
   public GradientDescentTrainer current = null;
   private boolean verbose = false;
 

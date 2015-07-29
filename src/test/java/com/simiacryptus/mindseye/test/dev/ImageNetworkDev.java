@@ -84,11 +84,10 @@ public class ImageNetworkDev {
 //          new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(1));
       
       trainer
-          .setMutationAmount(0.1)
-          .setImprovementStaleThreshold(1)
-          .setStaticRate(0.05)
-          .setVerbose(true)
-          .setRateAdaptionRate(0.5)
+      .setMutationAmount(0.1)
+      .setImprovementStaleThreshold(1)
+      .setStaticRate(0.05)
+      .setVerbose(true)
           .setDynamicRate(0.005)
           .setMaxDynamicRate(1.)
           .setMinDynamicRate(0.001)
