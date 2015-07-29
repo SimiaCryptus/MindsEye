@@ -58,7 +58,7 @@ public class SimpleNetworkTests {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
-        .trainer(samples).setStaticRate(0.5).verifyConvergence(100000, 0.01, 10);
+        .trainer(samples).setStaticRate(0.5).verifyConvergence(10000, 0.01, 10);
   }
 
   @Test
