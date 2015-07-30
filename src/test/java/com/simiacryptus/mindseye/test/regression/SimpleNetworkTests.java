@@ -99,21 +99,23 @@ public class SimpleNetworkTests {
     final int[] midSize = new int[] { 3 };
     final int[] outSize = new int[] { 1 };
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { .99 }) },
-        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 0.5 }) },
-        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0 }) },
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0 }) },
+        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { -1 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) }
     };
     new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setMass(10).setHalflife(4))
         .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setMass(5).setHalflife(2))
         .add(new BiasLayer(outSize))
         .trainer(samples)
-        .setMutationAmount(0.3)
+        .setMaxDynamicRate(100)
+        .setMinDynamicRate(1e-6)
+        .setMutationAmount(0.5)
         .setStaticRate(0.5)
-        //.setVerbose(true)
-        .verifyConvergence(10000, 0.1, 10);
+        .setVerbose(true)
+        .verifyConvergence(10000, 0.1, 100);
   }
 
   @Test

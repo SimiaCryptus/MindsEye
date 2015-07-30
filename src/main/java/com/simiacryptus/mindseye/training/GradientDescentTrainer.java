@@ -78,7 +78,9 @@ public class GradientDescentTrainer {
     return this.error;
   }
 
-  public synchronized double trainLineSearch(double min, double max) {
+  public synchronized double trainLineSearch() {
+    double min = 0;
+    double max = 5000;
     learn(evalTrainingData());
     UnivariateFunction f = new UnivariateFunction() {
       
@@ -91,6 +93,18 @@ public class GradientDescentTrainer {
         return Util.geomMean(calcError(evalTrainingData()));
       }
     };
+    
+    double last = f.value(0);
+    for(double i=1;i<max;i*=1.5)
+    {
+      double x=f.value(i);
+      if(last < x){
+        max = i;
+        break;
+      } else {
+        last = x;
+      }
+    }
     
     double optimalRate = new BrentOptimizer(1e-8, 1e-10).optimize(new MaxEval(200),
         new UnivariateObjectiveFunction(f),

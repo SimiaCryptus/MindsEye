@@ -66,7 +66,7 @@ public class BooleanSoftmaxNetworkTests {
         //.setVerbose(true)
         .setStaticRate(.5)
         .setDynamicRate(0.5)
-        .setMaxDynamicRate(5000)
+        .setMaxDynamicRate(500)
         .setMinDynamicRate(1e-9)
         .setImprovementStaleThreshold(10)
 

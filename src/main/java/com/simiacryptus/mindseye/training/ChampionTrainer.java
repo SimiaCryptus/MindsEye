@@ -41,6 +41,7 @@ public class ChampionTrainer {
 
   public ChampionTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    this.current.setVerbose(true);
     return this;
   }
 
@@ -51,7 +52,7 @@ public class ChampionTrainer {
     if (this.verbose)
     {
       ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s in %.03fs",
-          current.error(), Arrays.toString(current.error), current.getRate()),  (System.currentTimeMillis() - startMs) / 1000.);
+          current.error(), Arrays.toString(current.error), current.getRate(),  (System.currentTimeMillis() - startMs) / 1000.));
     }
     return this.current.error();
   }

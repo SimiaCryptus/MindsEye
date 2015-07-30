@@ -15,7 +15,7 @@ public class DynamicRateTrainer {
   private double minRate = 1e-10;
   private double mutationFactor = .5;
   private double rate = 1.;
-  private int recalibrationInterval = 50;
+  private int recalibrationInterval = 10;
   private boolean verbose = false;
   
   public DynamicRateTrainer() {
@@ -27,7 +27,7 @@ public class DynamicRateTrainer {
   }
   
   public void calibrate() {
-    final double localMin = this.inner.current.copy().clearMomentum().trainLineSearch(0, 10000);
+    final double localMin = this.inner.current.copy().clearMomentum().trainLineSearch();
     final double adjustment = this.rate * localMin;
     final double newRate = this.inner.current.getRate() * adjustment;
     if (this.maxRate > newRate && this.minRate < newRate)
@@ -98,6 +98,7 @@ public class DynamicRateTrainer {
   
   public DynamicRateTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    this.inner.setVerbose(true);
     return this;
   }
   
