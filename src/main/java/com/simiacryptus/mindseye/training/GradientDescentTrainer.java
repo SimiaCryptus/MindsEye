@@ -132,12 +132,12 @@ public class GradientDescentTrainer {
     }).toArray();
     
     
-    final PowellOptimizer optim=new PowellOptimizer(1e-4,1e-8);
+    final PowellOptimizer optim=new PowellOptimizer(1e-3,1e-3);
     PointValuePair x = optim.optimize(
         GoalType.MINIMIZE,
         new ObjectiveFunction(f),
         new InitialGuess(lowerBounds),
-        new MaxEval(100)//,
+        new MaxEval(1000)//,
         //new SimpleBounds(lowerBounds, upperBounds)
         );
     double optimalRate = x.getValue();

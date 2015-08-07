@@ -28,10 +28,10 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) }
     };
     new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize))
         .add(new BiasLayer(inputSize))
         .add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
         .add(new BiasLayer(outSize))
         .trainer(samples).setStaticRate(5).verifyConvergence(10000, 0.1, 10);
   }
