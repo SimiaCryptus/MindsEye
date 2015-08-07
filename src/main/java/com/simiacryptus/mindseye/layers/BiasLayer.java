@@ -139,4 +139,14 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
     return this;
   }
 
+  @Override
+  public void setRate(double rate) {
+    this.deltaBuffer.setMass(1./rate);
+  }
+
+  @Override
+  public double getRate() {
+    return 1./this.deltaBuffer.getMass();
+  }
+
 }

@@ -216,4 +216,14 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   public boolean isFrozen() {
     return frozen;
   }
+
+  @Override
+  public void setRate(double rate) {
+    this.massMomentum.setMass(1./rate);
+  }
+
+  @Override
+  public double getRate() {
+    return 1./this.massMomentum.getMass();
+  }
 }

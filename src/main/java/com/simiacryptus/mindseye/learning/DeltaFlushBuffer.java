@@ -33,7 +33,7 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      this.buffer[i] += data[i];
+      this.buffer[i] += data[i] * rate;
     }
   }
 
@@ -50,5 +50,15 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
   public int length() {
     return this.values.length();
   }
+  
+  public double getRate() {
+    return rate;
+  }
+
+  public void setRate(double rate) {
+    this.rate = rate;
+  }
+
+  private double rate = 1.;
   
 }

@@ -187,4 +187,14 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     this.paralell = parallel;
     return this;
   }
+
+  @Override
+  public void setRate(double rate) {
+    this.massMomentum.setMass(1./rate);
+  }
+
+  @Override
+  public double getRate() {
+    return 1./this.massMomentum.getMass();
+  }
 }

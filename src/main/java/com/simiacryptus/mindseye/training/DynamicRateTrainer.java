@@ -1,7 +1,13 @@
 package com.simiacryptus.mindseye.training;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.simiacryptus.mindseye.learning.DeltaTransaction;
 
 public class DynamicRateTrainer {
   
@@ -27,15 +33,20 @@ public class DynamicRateTrainer {
   }
   
   public void calibrate() {
-    final double localMin = this.inner.current.copy().clearMomentum().trainLineSearch();
-    final double adjustment = this.rate * localMin;
-    final double newRate = this.inner.current.getRate() * adjustment;
-    if (this.maxRate > newRate && this.minRate < newRate)
+    List<DeltaTransaction> deltaObjs = this.inner.current.currentNetworks.stream()
+        .flatMap(n->n.getNet().layers.stream())
+        .filter(l->l instanceof DeltaTransaction)
+        .map(l->(DeltaTransaction)l)
+        .distinct().collect(Collectors.toList());
+    final double[] localMin = this.inner.current.copy().clearMomentum().trainLineSearch(deltaObjs.size());
+    final double[] adjustment = DoubleStream.of(localMin).map(x->x*this.rate).toArray();
+    final double[] newRate = DoubleStream.of(adjustment).map(x->x*this.inner.current.getRate()).toArray();
+    if (DoubleStream.of(newRate).anyMatch(r->this.maxRate > r && this.minRate < r))
     {
       if (this.verbose) {
         DynamicRateTrainer.log.debug(String.format("Adjusting rate by %s: %s", adjustment, newRate));
       }
-      this.inner.current.setRate(newRate);
+      for(int i=0;i<deltaObjs.size();i++)deltaObjs.get(i).setRate(newRate[i]);
       this.inner.train();
       this.inner.updateBest();
       this.lastCalibratedIteration = this.currentIteration;

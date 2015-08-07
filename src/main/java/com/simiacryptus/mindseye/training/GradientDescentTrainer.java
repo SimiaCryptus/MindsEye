@@ -1,23 +1,35 @@
 package com.simiacryptus.mindseye.training;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.optim.InitialGuess;
 import org.apache.commons.math3.optim.MaxEval;
+import org.apache.commons.math3.optim.MaxIter;
+import org.apache.commons.math3.optim.PointValuePair;
+import org.apache.commons.math3.optim.SimpleBounds;
+import org.apache.commons.math3.optim.SimpleValueChecker;
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
+import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
+import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.PowellOptimizer;
 import org.apache.commons.math3.optim.univariate.BrentOptimizer;
 import org.apache.commons.math3.optim.univariate.SearchInterval;
 import org.apache.commons.math3.optim.univariate.UnivariateObjectiveFunction;
+import org.apache.commons.math3.util.DoubleArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class GradientDescentTrainer {
@@ -76,42 +88,63 @@ public class GradientDescentTrainer {
     return this.error;
   }
 
-  public synchronized double trainLineSearch() {
-    double min = 0;
-    double max = 5000;
+  public synchronized double[] trainLineSearch(int dims) {
     learn(evalTrainingData());
-    UnivariateFunction f = new UnivariateFunction() {
-      
-      double pos = 0;
+    double[] lowerBounds = new double[dims];
+    double[] one = DoubleStream.generate(()->1.).limit(dims).toArray();
+    MultivariateFunction f = new MultivariateFunction() {
+      double[] pos = new double[dims];
       @Override
-      public double value(double x) {
-        double diff = x - pos;
-        currentNetworks.stream().forEach(params -> params.getNet().writeDeltas(diff));
-        pos += diff;
+      public double value(double x[]) {
+        double[] diff = new double[x.length];
+        for (int i = 0; i < diff.length; i++) diff[i] = x[i] - pos[i];
+        List<DeltaTransaction> deltaObjs = currentNetworks.stream()
+            .flatMap(n->n.getNet().layers.stream())
+            .filter(l->l instanceof DeltaTransaction)
+            .map(l->(DeltaTransaction)l)
+            .distinct().collect(Collectors.toList());
+        for (int i = 0; i < diff.length; i++) deltaObjs.get(i).write(diff[i]);
+        for (int i = 0; i < diff.length; i++) pos[i] += diff[i];
         return Util.geomMean(calcError(evalTrainingData()));
       }
     };
-    
-    double last = f.value(0);
-    for(double i=1;i<max;i*=1.5)
-    {
-      double x=f.value(i);
-      if(last < x){
-        max = i;
-        break;
-      } else {
-        last = x;
+    double f_lower = f.value(lowerBounds);
+    double[] upperBounds = IntStream.range(0, dims).mapToDouble(new IntToDoubleFunction() {
+      double min = 0;
+      double max = 5000;
+      @Override
+      public double applyAsDouble(int dim) {
+        double last = f_lower;
+        for(double i=1.;i<max;i*=1.5)
+        {
+          double[] pt = Arrays.copyOf(lowerBounds, lowerBounds.length);
+          pt[dim] = i;
+          double x=f.value(pt);
+          if(last < x){
+            max = i;
+            break;
+          } else {
+            last = x;
+          }
+        }
+        return last;
       }
-    }
+    }).toArray();
     
-    double optimalRate = new BrentOptimizer(1e-8, 1e-10).optimize(new MaxEval(200),
-        new UnivariateObjectiveFunction(f),
+    
+    final PowellOptimizer optim=new PowellOptimizer(1e-4,1e-8);
+    PointValuePair x = optim.optimize(
         GoalType.MINIMIZE,
-        new SearchInterval(min, max)).getPoint();
-    f.value(optimalRate);
+        new ObjectiveFunction(f),
+        new InitialGuess(lowerBounds),
+        new MaxEval(100)//,
+        //new SimpleBounds(lowerBounds, upperBounds)
+        );
+    double optimalRate = x.getValue();
+    f.value(x.getKey());
     this.error = calcError(evalTrainingData());
     if(verbose) log.debug(String.format("Terminated at position: %s, error %s", optimalRate, this.error));
-    return optimalRate;
+    return x.getKey();
   }
 
   protected void learn(final List<List<NNResult>> results) {
