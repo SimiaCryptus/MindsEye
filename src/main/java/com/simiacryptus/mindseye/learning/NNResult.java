@@ -23,12 +23,12 @@ public abstract class NNResult {
   public final NDArray delta(final NDArray target) {
     assert(this.data.dim() == target.dim());
     final NDArray delta = new NDArray(this.data.getDims());
-    Arrays.parallelSetAll(delta.data, i -> (target.data[i] - NNResult.this.data.data[i]));
+    Arrays.parallelSetAll(delta.getData(), i -> (target.getData()[i] - NNResult.this.data.getData()[i]));
     return delta;
   }
 
   public final double errMisclassification(final int k) {
-    final int prediction = IntStream.range(0, this.data.dim()).mapToObj(i -> i).sorted(Comparator.comparing(i -> this.data.data[i])).findFirst().get();
+    final int prediction = IntStream.range(0, this.data.dim()).mapToObj(i -> i).sorted(Comparator.comparing(i -> this.data.getData()[i])).findFirst().get();
     return k == prediction ? 0 : 1;
   }
 
@@ -39,7 +39,7 @@ public abstract class NNResult {
   public final double errRms(final NDArray out) {
     double sum = 0;
     for(int i=0;i<data.dim();i++){
-      double diff = NNResult.this.data.data[i] - out.data[i];
+      double diff = NNResult.this.data.getData()[i] - out.getData()[i];
       sum += diff*diff;
     }
     return Math.sqrt(sum/data.dim());
@@ -49,7 +49,7 @@ public abstract class NNResult {
 
   public final NDArray ideal(final int k) {
     final NDArray delta = new NDArray(this.data.getDims());
-    Arrays.parallelSetAll(delta.data, i -> i == k ? 1. : 0.);
+    Arrays.parallelSetAll(delta.getData(), i -> i == k ? 1. : 0.);
     return delta;
   }
 

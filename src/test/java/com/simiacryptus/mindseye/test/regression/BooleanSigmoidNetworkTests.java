@@ -71,7 +71,7 @@ public class BooleanSigmoidNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), null }
     };
     for (int i = 0; i < samples.length; i++)
-      samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].data));
+      samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].getData()));
     return samples;
   }
   

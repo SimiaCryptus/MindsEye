@@ -27,8 +27,8 @@ public class MaxEntLayer extends NNLayer {
     
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
-      double sign = Math.signum(input.data[i]);
-      final double x = (sign*input.data[i])/(0==sum?1:sum);
+      double sign = Math.signum(input.getData()[i]);
+      final double x = (sign*input.getData()[i])/(0==sum?1:sum);
       double l = 0==x?0:Math.log(x);
       final double f = factor*x * l;
       double d = (reverse?1:-1)*factor*(1+sign*l);
@@ -46,11 +46,11 @@ public class MaxEntLayer extends NNLayer {
         if (inObj.isAlive()) {
           NDArray next = new NDArray(input.getDims());
           passback = next;
-          for(int i=0;i<next.data.length;i++){
-            if(Double.isFinite(inputGradient.data[i]) && 0 != inputGradient.data[i]) {
+          for(int i=0;i<next.getData().length;i++){
+            if(Double.isFinite(inputGradient.getData()[i]) && 0 != inputGradient.getData()[i]) {
               //double f = output.data[0];
               //f = Math.pow(f, feedbackAttenuation);
-              next.set(i, data.data[0] * inputGradient.data[i]);
+              next.set(i, data.getData()[0] * inputGradient.getData()[i]);
             }
           }
         }

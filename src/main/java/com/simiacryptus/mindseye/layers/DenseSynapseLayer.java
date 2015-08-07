@@ -37,10 +37,10 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     public void feedback(final NDArray data) {
       NDArray passback = null;
       if (null != weightGradient) {
-        DenseSynapseLayer.this.deltaBuffer.feed(weightGradient, data.data);
+        DenseSynapseLayer.this.deltaBuffer.feed(weightGradient, data.getData());
       }
       if (inObj.isAlive()) {
-        final double[] delta = data.data;
+        final double[] delta = data.getData();
         DoubleMatrix pseudoinverse;
         try {
           pseudoinverse = NDArray.inverseCache.get(inputGradient);
@@ -97,7 +97,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   }
   
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.weights.data);
+    Util.add(f, this.weights.getData());
     return this;
   }
   
@@ -110,7 +110,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, output.dim()).forEach(o -> {
         final double a = this.weights.get(i, o);
-        final double b = input.data[i];
+        final double b = input.getData()[i];
         if (null != inputGradient) {
           inputGradient.add(new int[] { i, o }, a);
         }
@@ -180,7 +180,7 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   }
   
   public DenseSynapseLayer setWeights(final DoubleSupplier f) {
-    Arrays.parallelSetAll(this.weights.data, i -> f.getAsDouble());
+    Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;
   }
   

@@ -22,7 +22,7 @@ public class SigmoidActivationLayer extends NNLayer {
     final NDArray output = new NDArray(inObj.data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
-      final double x = input.data[i];
+      final double x = input.getData()[i];
       final double f = 1 / (1 + Math.exp(-x));
       final double minDeriv = 0.000001;
       double d = Math.max(f * (1 - f), minDeriv);
@@ -45,8 +45,8 @@ public class SigmoidActivationLayer extends NNLayer {
           NDArray next = new NDArray(data.getDims());
           passback = next;
           IntStream.range(0, next.dim()).forEach(i -> {
-            if(Double.isFinite(inputGradient.data[i]) && 0 != inputGradient.data[i]) {
-              next.set(i, data.data[i] * inputGradient.data[i]);
+            if(Double.isFinite(inputGradient.getData()[i]) && 0 != inputGradient.getData()[i]) {
+              next.set(i, data.getData()[i] * inputGradient.getData()[i]);
             }
           });
         }

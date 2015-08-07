@@ -23,7 +23,7 @@ public class DeltaNormalizer implements DeltaSink {
   }
   
   public DeltaNormalizer(final NDArray values) {
-    this(values.data);
+    this(values.getData());
   }
   
   private boolean enabled = false;

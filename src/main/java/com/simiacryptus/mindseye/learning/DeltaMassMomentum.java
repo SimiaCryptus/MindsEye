@@ -24,7 +24,7 @@ public class DeltaMassMomentum implements DeltaSink, MassParameters<DeltaMassMom
   }
 
   public DeltaMassMomentum(final NDArray values) {
-    this(values.data);
+    this(values.getData());
   }
 
   @Override

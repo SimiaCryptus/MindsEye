@@ -54,7 +54,7 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
         if (isVerbose()) {
           log.debug(String.format("Feed back: %s", data));
         }
-        sampler.feed(data.data);
+        sampler.feed(data.getData());
         if (inObj.isAlive())
         {
           inObj.feedback(data);

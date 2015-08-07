@@ -30,7 +30,7 @@ public class GradientDescentAccumulator {
       GradientDescentAccumulator.log.debug(String.format("Input: %s & %s", weightGradient, Arrays.toString(data)));
     }
     DoubleMatrix matrixA = new DoubleMatrix(data.length, 1, data);
-    DoubleMatrix matrixB = new DoubleMatrix(weightGradient.getDims()[0], weightGradient.getDims()[1], weightGradient.data);
+    DoubleMatrix matrixB = new DoubleMatrix(weightGradient.getDims()[0], weightGradient.getDims()[1], weightGradient.getData());
     double[] inverted = matrixB.mmul(matrixA).data;
     if (GradientDescentAccumulator.DEBUG) {
       log.debug(String.format("Processing feedback inversion to produce deltas: %s", Arrays.toString(inverted)));

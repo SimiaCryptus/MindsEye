@@ -124,7 +124,12 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
         .add(new MaxSubsampleLayer(2))
-        .trainer(samples).setVerbose(verbose).setStaticRate(0.5).setMinDynamicRate(0).setMaxDynamicRate(0.5).verifyConvergence(1000, 0.1, 100);
+        .trainer(samples)
+        .setVerbose(verbose)
+//        .setStaticRate(0.5)
+//        .setMinDynamicRate(0)
+//        .setMaxDynamicRate(0.5)
+        .verifyConvergence(1000, 0.1, 100);
   }
   
   @Test
@@ -136,9 +141,12 @@ public class NetworkElementUnitTests {
     };
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
-        .add(new SigmoidActivationLayer().setVerbose(true))
+        .add(new SigmoidActivationLayer()
+        //.setVerbose(true)
+        )
         .trainer(samples)
-        .setStaticRate(10.).setVerbose(true)
+        .setStaticRate(10.)
+        //.setVerbose(true)
         .verifyConvergence(1000, 0.1, 100);
   }
   
@@ -153,8 +161,7 @@ public class NetworkElementUnitTests {
         .add(new BiasLayer(inputSize))
         .add(new SoftmaxActivationLayer())
         .trainer(samples)
-        .setStaticRate(1.)
-        .verifyConvergence(1000, 0.1, 100);
+        .verifyConvergence(10000, 0.1, 100);
   }
   
 }

@@ -53,7 +53,7 @@ public class PipelineNetwork extends NNLayer {
   }
 
   protected DenseSynapseLayer mutate(final DenseSynapseLayer l, final double amount) {
-    final double[] a = l.weights.data;
+    final double[] a = l.weights.getData();
     for (int i = 0; i < a.length; i++)
     {
       if (PipelineNetwork.random.nextDouble() < amount) {

@@ -62,7 +62,7 @@ public class DeltaInversionBuffer {
       final NDArray gradient = this.gradientBuffer;
       final int[] dims = gradient.getDims();
       final double[] inverted = org.jblas.Solve.solveLeastSquares(
-          new DoubleMatrix(gradient.getDims()[0], dims[1], gradient.data).transpose(),
+          new DoubleMatrix(gradient.getDims()[0], dims[1], gradient.getData()).transpose(),
           new DoubleMatrix(this.signalBuffer.length, 1, this.signalBuffer)).data;
       if (DeltaInversionBuffer.DEBUG) {
         DeltaInversionBuffer.log.debug(String.format("Processing feedback inversion to produce deltas: %s", Arrays.toString(inverted)));

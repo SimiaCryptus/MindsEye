@@ -99,9 +99,9 @@ public class ImageNetworkDev {
       
       return imageHtml(
           TestMNISTDev.toImage(obj.data),
-          TestMNISTDev.toImage(new NDArray(outSize, output.data.data)),
-          TestMNISTDev.toImage(new NDArray(inputSize, recovered.data.data)),
-          TestMNISTDev.toImage(new NDArray(outSize, tested.data.data))
+          TestMNISTDev.toImage(new NDArray(outSize, output.data.getData())),
+          TestMNISTDev.toImage(new NDArray(inputSize, recovered.data.getData())),
+          TestMNISTDev.toImage(new NDArray(outSize, tested.data.getData()))
         );
       }));
     

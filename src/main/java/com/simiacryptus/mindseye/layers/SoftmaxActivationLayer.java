@@ -29,9 +29,9 @@ public class SoftmaxActivationLayer extends NNLayer {
       IntStream.range(0, output.dim()).forEach(j -> {
         double value = 0;
         if (i == j) {
-          value = (exp.data[i] * (sum - exp.data[i]));
+          value = (exp.getData()[i] * (sum - exp.getData()[i]));
         } else {
-          value = -(exp.data[i] * exp.data[j]);
+          value = -(exp.getData()[i] * exp.getData()[j]);
         }
         if (Double.isFinite(value)) inputGradient.add(new int[] { i, j }, value);
       });
@@ -44,7 +44,7 @@ public class SoftmaxActivationLayer extends NNLayer {
       @Override
       public void feedback(final NDArray data) {
         if (inObj.isAlive()) {
-          final double[] delta = Arrays.copyOf(data.data, data.data.length);
+          final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           for (int i = 0; i < delta.length; i++)
             if (delta[i] < 0) delta[i] = 0;
           

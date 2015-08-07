@@ -15,7 +15,7 @@ public class DeltaMemoryWriter implements DeltaSink {
   }
 
   public DeltaMemoryWriter(final NDArray values) {
-    this(values.data);
+    this(values.getData());
   }
 
   @Override

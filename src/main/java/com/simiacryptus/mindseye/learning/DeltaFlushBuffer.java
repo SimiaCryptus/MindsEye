@@ -22,7 +22,7 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
   }
 
   public DeltaFlushBuffer(final NDArray values) {
-    this(new DeltaMemoryWriter(values.data));
+    this(new DeltaMemoryWriter(values.getData()));
   }
 
   @Override

@@ -4,11 +4,15 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.Coordinate;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
@@ -57,17 +61,12 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     final int[] newDims = IntStream.range(0, kernelDims.length).map(
         i -> (i == kernelDims.length - 1) ? kernelDims[i] : (inputDims[i] - kernelDims[i] + 1)).toArray();
     final NDArray output = new NDArray(newDims);
-    final NDArray weightGradient = this.frozen ? null : new NDArray(this.kernel.dim(), output.dim());
-    this.kernel.coordStream(paralell).forEach(k -> {
-      output.coordStream(paralell).forEach(o -> {
-        final double a = this.kernel.get(k);
-        final int[] i = Arrays.copyOfRange(Coordinate.add(k.coords, o.coords), 0, inputDims.length);
-        final double b = input.get(i);
-        if (null != weightGradient) {
-          weightGradient.add(new int[] { k.index, o.index }, b);
-        }
-        output.add(o, b * a);
-      });
+    Arrays.stream(getIndexMap(kernel, input, output)).forEach(array->{
+      assert Double.isFinite(this.kernel.getData()[array[0]]);
+      assert Double.isFinite(input.getData()[array[1]]);
+    });
+    Arrays.stream(getIndexMap(kernel, input, output)).forEach(array->{
+      output.add(array[2], input.getData()[array[1]] * this.kernel.getData()[array[0]]);
     });
     if (isVerbose()) {
       log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj.data, this.kernel, output));
@@ -75,25 +74,23 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray errorSignal) {
-        if (null != weightGradient) {
-          ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, errorSignal.data);
+        if (!frozen) {
+          final NDArray weightGradient = new NDArray(kernel.dim(), output.dim());
+          Arrays.stream(getIndexMap(kernel, input, output)).forEach(array->{
+            weightGradient.add(array[3], input.getData()[array[1]]);
+          });
+          ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, errorSignal.getData());
         }
         if (inObj.isAlive()) {
           NDArray backprop = new NDArray(inputDims);
           
-          new NDArray(kernelDims).coordStream(paralell).parallel().forEach(kernelCoord -> {
-            errorSignal.coordStream(paralell)
-            //.filter(o->IntStream.range(inputDims.length, o.coords.length).allMatch(i->o.coords[i]==kernelCoord.coords[i]))
-            .forEach(errorCoord -> {
-              final int[] i = Arrays.copyOfRange(Coordinate.add(kernelCoord.coords, errorCoord.coords), 0, inputDims.length);
-              //final int[] i = Coordinate.add(k.coords, o.coords);
-              final double kernelValue = kernel.get(kernelCoord);
-              if(0. != kernelValue)
-              {
-                double errorValue = errorSignal.get(errorCoord);
-                backprop.add(i, errorValue*kernelValue);
-              }
-            });
+          Arrays.stream(getIndexMap(kernel, input, output)).forEach(array->{
+            final double kernelValue = kernel.get(array[0]);
+            if(0. != kernelValue)
+            {
+              double errorValue = errorSignal.get(array[2]);
+              backprop.add(array[1], errorValue*kernelValue);
+            }
           });
           if (isVerbose()) {
             log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
@@ -108,14 +105,85 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
       }
     };
   }
+
+  public static final class IndexMapKey {
+    int[] kernel;
+    int[] input;
+    int[] output;
+    public IndexMapKey(int[] kernel, int[] input, int[] output) {
+      super();
+      this.kernel = kernel;
+      this.input = input;
+      this.output = output;
+    }
+    public IndexMapKey(NDArray kernel, NDArray input, NDArray output) {
+      super();
+      this.kernel = kernel.getDims();
+      this.input = input.getDims();
+      this.output = output.getDims();
+    }
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + Arrays.hashCode(input);
+      result = prime * result + Arrays.hashCode(kernel);
+      result = prime * result + Arrays.hashCode(output);
+      return result;
+    }
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (obj == null) return false;
+      if (getClass() != obj.getClass()) return false;
+      IndexMapKey other = (IndexMapKey) obj;
+      if (!Arrays.equals(input, other.input)) return false;
+      if (!Arrays.equals(kernel, other.kernel)) return false;
+      if (!Arrays.equals(output, other.output)) return false;
+      return true;
+    }
+  }
+  
+  public static final LoadingCache<IndexMapKey, int[][]> indexMapCache = CacheBuilder.newBuilder().build(new CacheLoader<IndexMapKey, int[][]>(){
+    @Override
+    public int[][] load(IndexMapKey key) throws Exception {
+      NDArray kernel = new NDArray(key.kernel);
+      return kernel.coordStream(false).flatMap(k -> {
+        NDArray output = new NDArray(key.output);
+        return output.coordStream(false).map(o -> {
+          NDArray input = new NDArray(key.input);
+          NDArray gradientSize = new NDArray(kernel.dim(), output.dim());
+          int[] inputCoords = Coordinate.add(k.coords, o.coords);
+          for(int d=0;d<input.getDims().length;d++){
+            if(inputCoords[d]<0) return null;
+            if(inputCoords[d]>=input.getDims()[d]) return null;
+          }
+          int input_index = input.index(inputCoords);
+          return new int[]{ 
+              k.index, 
+              input_index, 
+              o.index,
+              gradientSize.index(k.index, o.index)
+            };
+        });
+      }).filter(x->null!=x).toArray(i->new int[i][]);
+    }});
+  
+  public static int[][] getIndexMap(NDArray kernel, final NDArray input, final NDArray output) {
+    try {
+      return indexMapCache.get(new IndexMapKey(kernel, input, output));
+    } catch (ExecutionException e) {
+      throw new RuntimeException(e);
+    }
+  }
   
   public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {
-    Arrays.parallelSetAll(this.kernel.data, i -> f.getAsDouble());
+    Arrays.parallelSetAll(this.kernel.getData(), i -> f.getAsDouble());
     return this;
   }
   
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, kernel.data);
+    Util.add(f, kernel.getData());
     return this;
   }
   

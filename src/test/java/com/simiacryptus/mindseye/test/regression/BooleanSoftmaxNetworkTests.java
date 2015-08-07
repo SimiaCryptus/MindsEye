@@ -56,7 +56,7 @@ public class BooleanSoftmaxNetworkTests {
         .add(new SoftmaxActivationLayer().setVerbose(false))
 
         .trainer(samples)
-        .setVerbose(true)
+        //.setVerbose(true)
         .verifyConvergence(10000, 0.01, 10);
   }
   
@@ -75,7 +75,7 @@ public class BooleanSoftmaxNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), null }
     };
     for (int i = 0; i < samples.length; i++)
-      samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].data));
+      samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].getData()));
     return samples;
   }
   
