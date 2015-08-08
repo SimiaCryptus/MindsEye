@@ -20,6 +20,7 @@ import org.apache.commons.math3.optim.SimpleBounds;
 import org.apache.commons.math3.optim.SimpleValueChecker;
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
 import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
+import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.CMAESOptimizer;
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.PowellOptimizer;
 import org.apache.commons.math3.optim.univariate.BrentOptimizer;
@@ -139,8 +140,14 @@ public class GradientDescentTrainer {
       }
     }).toArray();
     
+    PointValuePair x;
     //PointValuePair x = cmaes(f, one, dims, lowerBounds, upperBounds);
-    PointValuePair x = powell(f, one);
+    if(2 <= dims) {
+      x = bobyqa(f, one, dims, lowerBounds, upperBounds);
+    } else {
+      x = powell(f, one);
+    }
+    //PointValuePair x = powell(f, one);
     f.value(x.getKey());
     this.error = calcError(evalTrainingData());
     if (verbose) log.debug(String.format("Terminated at position: %s (%s), error %s", Arrays.toString(x.getKey()), x.getValue(), this.error));
@@ -166,6 +173,19 @@ public class GradientDescentTrainer {
         new SimpleBounds(lowerBounds, upperBounds),
         new CMAESOptimizer.PopulationSize(1),
         new CMAESOptimizer.Sigma(DoubleStream.generate(() -> 1e-1).limit(dims).toArray()),
+        new MaxEval(1000)
+        );
+    return x;
+  }
+
+  public PointValuePair bobyqa(MultivariateFunction f, double[] one, int dims, double[] lowerBounds, double[] upperBounds) {
+    PointValuePair x;
+    final BOBYQAOptimizer optim = new BOBYQAOptimizer((dims + 2) * (dims + 1) / 2);
+    x = optim.optimize(
+        GoalType.MINIMIZE,
+        new ObjectiveFunction(f),
+        new InitialGuess(one),
+        new SimpleBounds(lowerBounds, upperBounds),
         new MaxEval(1000)
         );
     return x;

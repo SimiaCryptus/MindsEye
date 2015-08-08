@@ -108,7 +108,7 @@ public class SimpleNetworkTests {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setMass(5).setHalflife(2))
         .add(new BiasLayer(outSize))
         .trainer(samples)
-        .setVerbose(true)
+        .setVerbose(false)
         .verifyConvergence(10000, 0.1, 100);
   }
 

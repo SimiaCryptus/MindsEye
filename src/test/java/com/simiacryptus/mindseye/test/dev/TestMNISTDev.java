@@ -112,7 +112,7 @@ public class TestMNISTDev {
         .map(o -> new NDArray[]{o.data, toOutNDArray(toOut(o.label), 10)})
         .toArray(i2->new NDArray[i2][]);
     net.trainer(data)
-      //.setDynamicRate(0.1)
+      .setDynamicRate(0.01)
       .setImprovementStaleThreshold(5)
       //.setStaticRate(10.)
       .setMutationAmount(5.)
