@@ -11,28 +11,28 @@ import com.simiacryptus.mindseye.NDArray;
 public class DeltaInversionBuffer {
   public static boolean DEBUG = false;
   private static final Logger log = LoggerFactory.getLogger(DeltaInversionBuffer.class);
-  
+
   private int bufferPos = 0;
   private NDArray gradientBuffer;
-  
+
   private final double minInversionRatio;
   private double[] signalBuffer;
   private final DeltaSink sink;
-  
+
   protected DeltaInversionBuffer() {
     super();
     this.minInversionRatio = 0;
     this.sink = null;
   }
-  
+
   public DeltaInversionBuffer(final double minInversionRatio, final DeltaSink sink) {
     this.sink = sink;
     this.minInversionRatio = minInversionRatio;
   }
-  
+
   public synchronized void feed(final NDArray weightGradient, final double[] data) {
-    if(null == weightGradient) throw new IllegalArgumentException();
-    if(null == data) throw new IllegalArgumentException();
+    if (null == weightGradient) throw new IllegalArgumentException();
+    if (null == data) throw new IllegalArgumentException();
     if (DeltaInversionBuffer.DEBUG) {
       DeltaInversionBuffer.log.debug(String.format("Input: %s & %s", weightGradient, Arrays.toString(data)));
     }
@@ -72,9 +72,9 @@ public class DeltaInversionBuffer {
       this.bufferPos = 0;
     }
   }
-  
+
   public int length() {
     return this.sink.length();
   }
-  
+
 }

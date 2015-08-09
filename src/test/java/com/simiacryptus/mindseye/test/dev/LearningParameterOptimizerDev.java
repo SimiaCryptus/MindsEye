@@ -16,27 +16,32 @@ import com.simiacryptus.mindseye.math.UnivariateOptimizer;
 
 public class LearningParameterOptimizerDev {
   static final Logger log = LoggerFactory.getLogger(LearningParameterOptimizerDev.class);
-
+  
+  public static double[] ones(final int dims) {
+    final double[] last = DoubleStream.generate(() -> 1.).limit(dims).toArray();
+    return last;
+  }
+  
   @Test
   public void test_multivariate() {
-    double offset = 0.4;
+    final double offset = 0.4;
     final MultivariateFunction f = new MultivariateFunction() {
       @Override
       public double value(final double[] a) {
-        double t = IntStream.range(0, a.length).mapToDouble(i -> {
-          double x = a[i];
-          final double r = -x * Math.sin(x + offset) + 0.4 * Math.sin((1+i) * 100 * x);
+        final double t = IntStream.range(0, a.length).mapToDouble(i -> {
+          final double x = a[i];
+          final double r = -x * Math.sin(x + offset) + 0.4 * Math.sin((1 + i) * 100 * x);
           return r;
         }).average().getAsDouble();
         LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", Arrays.toString(a), t));
         return t;
       }
     };
-    final PointValuePair result = new MultivariateOptimizer(f).minimize(ones(3));
+    final PointValuePair result = new MultivariateOptimizer(f).minimize(LearningParameterOptimizerDev.ones(3));
     assert result.getValue() < -0.99;
-    log.debug(String.format("%s -> %s", Arrays.toString(result.getFirst()), result.getSecond()));
+    LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", Arrays.toString(result.getFirst()), result.getSecond()));
   }
-
+  
   @Test
   public void test_univariate() {
     final double offset = .5;
@@ -50,10 +55,5 @@ public class LearningParameterOptimizerDev {
     };
     final PointValuePair result = new UnivariateOptimizer(f).minimize();
     assert result.getValue() < -0.99;
-  }
-
-  public static double[] ones(int dims) {
-    double[] last = DoubleStream.generate(()->1.).limit(dims).toArray();
-    return last;
   }
 }

@@ -18,16 +18,21 @@ import com.simiacryptus.mindseye.learning.NNResult;
 public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
-
-  static final Random random = new Random(System.nanoTime());
+  
+  public static final Random random = new Random(System.nanoTime());
   protected List<NNLayer> layers = new ArrayList<NNLayer>();
-  private double mutationAmplitude = 1.;
-
+  private double mutationAmplitude = 2.;
+  
   public PipelineNetwork add(final NNLayer layer) {
     this.layers.add(layer);
     return this;
   }
-
+  
+  public PipelineNetwork clearMomentum() {
+    this.layers.stream().filter(a -> a instanceof MassParameters<?>).map(a -> (MassParameters<?>) a).forEach(a -> a.setMomentumDecay(0));
+    return this;
+  }
+  
   @Override
   public NNResult eval(final NNResult array) {
     NNResult r = array;
@@ -41,12 +46,16 @@ public class PipelineNetwork extends NNLayer {
     return this.layers.get(i);
   }
   
+  public double getMutationAmplitude() {
+    return this.mutationAmplitude;
+  }
+  
   protected BiasLayer mutate(final BiasLayer l, final double amount) {
     final double[] a = l.bias;
     for (int i = 0; i < a.length; i++)
     {
       if (PipelineNetwork.random.nextDouble() < amount) {
-        a[i] = this.mutationAmplitude * PipelineNetwork.random.nextGaussian();
+        a[i] = this.mutationAmplitude * l.getRandom();
       }
     }
     return l;
@@ -57,7 +66,7 @@ public class PipelineNetwork extends NNLayer {
     for (int i = 0; i < a.length; i++)
     {
       if (PipelineNetwork.random.nextDouble() < amount) {
-        a[i] = PipelineNetwork.random.nextGaussian();
+        a[i] = this.mutationAmplitude * l.getRandom();
       }
     }
     return l;
@@ -65,15 +74,20 @@ public class PipelineNetwork extends NNLayer {
 
   protected PipelineNetwork mutate(final double amount) {
     this.layers.stream()
-        .filter(l -> (l instanceof DenseSynapseLayer))
-        .map(l -> (DenseSynapseLayer) l)
-        .filter(l -> !l.isFrozen())
-        .forEach(l -> mutate(l, amount));
+    .filter(l -> (l instanceof DenseSynapseLayer))
+    .map(l -> (DenseSynapseLayer) l)
+    .filter(l -> !l.isFrozen())
+    .forEach(l -> mutate(l, amount));
     this.layers.stream()
-        .filter(l -> (l instanceof BiasLayer))
-        .map(l -> (BiasLayer) l)
-        .filter(l -> !l.isFrozen())
-        .forEach(l -> mutate(l, amount));
+    .filter(l -> (l instanceof BiasLayer))
+    .map(l -> (BiasLayer) l)
+    .filter(l -> !l.isFrozen())
+    .forEach(l -> mutate(l, amount));
+    return this;
+  }
+
+  public PipelineNetwork setMutationAmplitude(final double mutationAmplitude) {
+    this.mutationAmplitude = mutationAmplitude;
     return this;
   }
   
@@ -86,26 +100,12 @@ public class PipelineNetwork extends NNLayer {
     return new Trainer().add(this, samples);
   }
   
-  void writeDeltas(double factor) {
+  void writeDeltas(final double factor) {
     for (final NNLayer l : this.layers) {
       if (l instanceof DeltaTransaction) {
         ((DeltaTransaction) l).write(factor);
       }
     }
   }
-
-  public double getMutationAmplitude() {
-    return mutationAmplitude;
-  }
-
-  public PipelineNetwork setMutationAmplitude(double mutationAmplitude) {
-    this.mutationAmplitude = mutationAmplitude;
-    return this;
-  }
-
-  public PipelineNetwork clearMomentum() {
-    layers.stream().filter(a->a instanceof MassParameters<?>).map(a->(MassParameters<?>)a).forEach(a->a.setMomentumDecay(0));
-    return this;
-  }
-
+  
 }

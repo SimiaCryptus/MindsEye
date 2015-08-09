@@ -14,9 +14,9 @@ import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class SimpleNetworkTests {
   static final Logger log = LoggerFactory.getLogger(SimpleNetworkTests.class);
-  
+
   public static final Random random = new Random();
-  
+
   @Test
   public void test_BasicNN() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -28,14 +28,14 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) }
     };
     new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize))
-        .add(new BiasLayer(inputSize))
-        .add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .add(new BiasLayer(outSize))
-        .trainer(samples).setStaticRate(5).verifyConvergence(10000, 0.1, 10);
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize))
+    .add(new BiasLayer(inputSize))
+    .add(new SigmoidActivationLayer())
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
+    .add(new BiasLayer(outSize))
+    .trainer(samples).setStaticRate(5).verifyConvergence(10000, 0.1, 10);
   }
-  
+
   @Test
   public void test_BasicNN_OR() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -49,18 +49,18 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1 }) }
     };
     new PipelineNetwork()
-        // Becomes unstable if these are added:
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-        
-        // Works okay:
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
-        .add(new BiasLayer(outSize))
-        .add(new SigmoidActivationLayer())
-        .trainer(samples).setStaticRate(0.5).verifyConvergence(10000, 0.01, 10);
-  }
+    // Becomes unstable if these are added:
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
+    .add(new BiasLayer(midSize))
+    .add(new SigmoidActivationLayer())
 
+    // Works okay:
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()))
+    .add(new BiasLayer(outSize))
+    .add(new SigmoidActivationLayer())
+    .trainer(samples).setStaticRate(0.5).verifyConvergence(10000, 0.01, 10);
+  }
+  
   @Test
   public void test_BasicNN_XOR_3layer() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -74,23 +74,44 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1 }) }
     };
     new PipelineNetwork()
-        
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-        
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-        
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-        .add(new BiasLayer(outSize))
-        .add(new SigmoidActivationLayer())
-        
-        .trainer(samples)
-        .verifyConvergence(10000, 0.01, 10);
-  }
 
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+    .add(new BiasLayer(midSize))
+    .add(new SigmoidActivationLayer())
+
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+    .add(new BiasLayer(midSize))
+    .add(new SigmoidActivationLayer())
+
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+    .add(new BiasLayer(outSize))
+    .add(new SigmoidActivationLayer())
+
+    .trainer(samples)
+    .verifyConvergence(10000, 0.01, 10);
+  }
+  
+  @Test
+  public void test_DualSigmoid() throws Exception {
+    final int[] inputSize = new int[] { 1 };
+    final int[] midSize = new int[] { 2 };
+    final int[] outSize = new int[] { 1 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { -1 }), new NDArray(outSize, new double[] { 0 }) },
+        { new NDArray(inputSize, new double[] { 0 }), new NDArray(outSize, new double[] { .2 }) },
+        { new NDArray(inputSize, new double[] { 1 }), new NDArray(outSize, new double[] { 0 }) }
+    };
+    new PipelineNetwork()
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(new double[] { 1, 1 }).freeze())
+    .add(new BiasLayer(midSize).set(new double[] { -1, 1 }))
+    .add(new SigmoidActivationLayer())
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze())
+    .trainer(samples)
+    .setMutationAmount(0)
+    .setStaticRate(10.)
+    .verifyConvergence(1000, 0.1, 10);
+  }
+  
   @Test
   public void test_LinearNN() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -103,36 +124,15 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) }
     };
     new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setMass(10).setHalflife(4))
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setMass(5).setHalflife(2))
-        .add(new BiasLayer(outSize))
-        .trainer(samples)
-        .setVerbose(false)
-        .verifyConvergence(10000, 0.1, 100);
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setMass(10).setHalflife(4))
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setMass(5).setHalflife(2))
+    .add(new BiasLayer(outSize))
+    .trainer(samples)
+    .setVerbose(false)
+    .verifyConvergence(10000, 0.1, 100);
   }
 
-  @Test
-  public void test_DualSigmoid() throws Exception {
-    final int[] inputSize = new int[] { 1 };
-    final int[] midSize = new int[] { 2 };
-    final int[] outSize = new int[] { 1 };
-    final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { -1 }), new NDArray(outSize, new double[] { 0 }) },
-        { new NDArray(inputSize, new double[] { 0 }), new NDArray(outSize, new double[] { .2 }) },
-        { new NDArray(inputSize, new double[] { 1 }), new NDArray(outSize, new double[] { 0 }) }
-    };
-    new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(new double[]{1,1}).freeze())
-        .add(new BiasLayer(midSize).set(new double[]{-1,1}))
-        .add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[]{1,-1}).freeze())
-        .trainer(samples)
-        .setMutationAmount(0)
-        .setStaticRate(10.)
-        .verifyConvergence(1000, 0.1, 10);
-  }
-  
   @Test
   public void testDenseLinearLayer_2Layer() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -141,24 +141,24 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) }
     };
-    
-    double staticRate = 1.;
+
+    final double staticRate = 1.;
     new PipelineNetwork() //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
-    
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+
     new PipelineNetwork() //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
-    
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+
     new PipelineNetwork() //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
-        .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
   }
-  
+
   @Test
   public void testDenseLinearLayer_Basic() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -167,10 +167,10 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) }
     };
-    
+
     new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .trainer(samples).setStaticRate(30.).verifyConvergence(10000, 0.01, 10);
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
+    .trainer(samples).setStaticRate(30.).verifyConvergence(10000, 0.01, 10);
   }
-  
+
 }

@@ -4,43 +4,43 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class SupervisedTrainingParameters {
-  private double weight = 1;
   private PipelineNetwork net;
   private final NDArray[][] trainingData;
-  
+  private double weight = 1;
+
   protected SupervisedTrainingParameters() {
     super();
     this.net = null;
     this.trainingData = null;
   }
-
-  public SupervisedTrainingParameters(PipelineNetwork net, NDArray[][] trainingData) {
+  
+  public SupervisedTrainingParameters(final PipelineNetwork net, final NDArray[][] trainingData) {
     this.net = net;
     this.trainingData = trainingData;
   }
-  
+
+  public NDArray getIdeal(final NNResult eval, final NDArray preset) {
+    return preset;
+  }
+
   public PipelineNetwork getNet() {
-    return net;
+    return this.net;
+  }
+
+  public final NDArray[][] getTrainingData() {
+    return this.trainingData;
   }
   
-  public void setNet(PipelineNetwork net) {
+  public double getWeight() {
+    return this.weight;
+  }
+  
+  public void setNet(final PipelineNetwork net) {
     this.net = net;
   }
   
-  public final NDArray[][] getTrainingData() {
-    return trainingData;
-  }
-
-  public double getWeight() {
-    return weight;
-  }
-
-  public SupervisedTrainingParameters setWeight(double weight) {
+  public SupervisedTrainingParameters setWeight(final double weight) {
     this.weight = weight;
     return this;
-  }
-
-  public NDArray getIdeal(NNResult eval, NDArray preset) {
-    return preset;
   }
 }

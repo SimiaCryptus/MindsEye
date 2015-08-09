@@ -10,30 +10,30 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 
 public class DynamicRateTrainer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
-
-  public final ChampionTrainer inner;
+  
   private int currentIteration = 0;
-
+  private int generationsSinceImprovement = 0;
+  
+  public final ChampionTrainer inner;
   private int lastCalibratedIteration = Integer.MIN_VALUE;
   private double maxRate = 5e4;
   private double minRate = 1e-10;
-  private double mutationFactor = .5;
-  private double rate = Math.sqrt(.5);
-  private int recalibrationInterval = 100;
-  private boolean verbose = false;
+  private double mutationFactor = 1.;
+  private double rate = 1.;
+  private int recalibrationInterval = 31;
   private int recalibrationThreshold = 2;
-  private int generationsSinceImprovement = 0;
-  
+  private boolean verbose = false;
+
   public DynamicRateTrainer() {
     this(new ChampionTrainer());
   }
-  
+
   public DynamicRateTrainer(final ChampionTrainer inner) {
     this.inner = inner;
   }
-  
+
   public void calibrate() {
     List<DeltaTransaction> deltaObjs = null;
     double[] adjustment = null;
@@ -49,15 +49,19 @@ public class DynamicRateTrainer {
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
       newRate = DoubleStream.of(adjustment).map(x -> x * this.inner.current.getRate()).toArray();
       inBounds = DoubleStream.of(newRate).anyMatch(r -> this.maxRate > r && this.minRate < r);
-    } catch (Exception e) {
-      if(verbose) log.debug("Error calibrating",e);
+    } catch (final Exception e) {
+      if (this.verbose) {
+        DynamicRateTrainer.log.debug("Error calibrating", e);
+      }
     }
     if (inBounds)
     {
       if (this.verbose) {
         DynamicRateTrainer.log.debug(String.format("Adjusting rate by %s: %s", adjustment, newRate));
       }
-      for(int i=0;i<deltaObjs.size();i++)deltaObjs.get(i).setRate(newRate[i]);
+      for (int i = 0; i < deltaObjs.size(); i++) {
+        deltaObjs.get(i).setRate(newRate[i]);
+      }
       this.inner.train();
       this.inner.updateBest();
       this.lastCalibratedIteration = this.currentIteration;
@@ -65,45 +69,59 @@ public class DynamicRateTrainer {
       if (this.verbose) {
         DynamicRateTrainer.log.debug(String.format("Local Optimum reached - gradient not useful (%s). Mutating.", newRate));
       }
+      this.generationsSinceImprovement = 0;
       this.inner.revert();
       this.inner.current.mutate(getMutationFactor());
-      this.lastCalibratedIteration = this.currentIteration - this.recalibrationInterval;
+      this.lastCalibratedIteration = 0;
     }
   }
-
+  
   public double error() {
     return this.inner.current.error();
   }
-  
+
   public GradientDescentTrainer getBest() {
     return this.inner.getBest();
   }
-  
+
+  public int getGenerationsSinceImprovement() {
+    return this.generationsSinceImprovement;
+  }
+
   public double getMaxRate() {
     return this.maxRate;
   }
-  
+
   public double getMinRate() {
     return this.minRate;
   }
-  
+
   public double getMutationFactor() {
     return this.mutationFactor;
   }
-  
+
   public double getRate() {
     return this.rate;
   }
-  
+
+  public int getRecalibrationThreshold() {
+    return this.recalibrationThreshold;
+  }
+
   public boolean isVerbose() {
     return this.verbose;
   }
-  
+
+  public DynamicRateTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
+    this.generationsSinceImprovement = generationsSinceImprovement;
+    return this;
+  }
+
   public DynamicRateTrainer setMaxRate(final double maxRate) {
     this.maxRate = maxRate;
     return this;
   }
-  
+
   public DynamicRateTrainer setMinRate(final double minRate) {
     this.minRate = minRate;
     return this;
@@ -118,12 +136,16 @@ public class DynamicRateTrainer {
     return this;
   }
   
+  public DynamicRateTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
+    this.recalibrationThreshold = recalibrationThreshold;
+    return this;
+  }
+  
   public DynamicRateTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     this.inner.setVerbose(verbose);
     return this;
   }
-  
   
   public DynamicRateTrainer train() {
     if (this.lastCalibratedIteration < this.currentIteration++ - this.recalibrationInterval) {
@@ -137,39 +159,21 @@ public class DynamicRateTrainer {
     final double resultError = this.inner.current.error();
     if (resultError >= lastError)
     {
-      if (recalibrationThreshold < generationsSinceImprovement++)
+      if (this.recalibrationThreshold < this.generationsSinceImprovement++)
       {
         if (this.verbose) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
         }
         calibrate();
-        generationsSinceImprovement = 0;
+        this.generationsSinceImprovement = 0;
       }
     }
     else
     {
-      generationsSinceImprovement = 0;
+      this.generationsSinceImprovement = 0;
     }
     // updateRate(lastError, resultError);
     return this;
   }
 
-  public int getRecalibrationThreshold() {
-    return recalibrationThreshold;
-  }
-
-  public DynamicRateTrainer setRecalibrationThreshold(int recalibrationThreshold) {
-    this.recalibrationThreshold = recalibrationThreshold;
-    return this;
-  }
-
-  public int getGenerationsSinceImprovement() {
-    return generationsSinceImprovement;
-  }
-
-  public DynamicRateTrainer setGenerationsSinceImprovement(int generationsSinceImprovement) {
-    this.generationsSinceImprovement = generationsSinceImprovement;
-    return this;
-  }
-  
 }

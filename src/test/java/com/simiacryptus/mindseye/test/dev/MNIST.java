@@ -18,30 +18,8 @@ import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class MNIST {
-  
-  public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
-    final String path = "C:/Users/Andrew Charneski/Downloads";
-    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
-    final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
-    
-    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
-      Iterator<NDArray> imgItr = imgStream.iterator();
-      Iterator<byte[]> labelItr = labelStream.iterator();
-      
-      @Override
-      public boolean hasNext() {
-        return this.imgItr.hasNext() && this.labelItr.hasNext();
-      }
-      
-      @Override
-      public LabeledObject<NDArray> next() {
-        return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
-      }
-    }, 100).limit(10000);
-    return merged;
-  }
-  
-  public static void report(PipelineNetwork net) throws FileNotFoundException, IOException {
+
+  public static void report(final PipelineNetwork net) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
@@ -49,12 +27,34 @@ public class MNIST {
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
     MNIST.trainingDataStream()
-        .sorted(Comparator.comparing(img -> img.label))
-        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>")
-        .forEach(out::println);
+    .sorted(Comparator.comparing(img -> img.label))
+    .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>")
+    .forEach(out::println);
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());
   }
-  
+
+  public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
+    final String path = "C:/Users/Andrew Charneski/Downloads";
+    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
+    final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
+
+    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
+      Iterator<NDArray> imgItr = imgStream.iterator();
+      Iterator<byte[]> labelItr = labelStream.iterator();
+
+      @Override
+      public boolean hasNext() {
+        return this.imgItr.hasNext() && this.labelItr.hasNext();
+      }
+
+      @Override
+      public LabeledObject<NDArray> next() {
+        return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
+      }
+    }, 100).limit(10000);
+    return merged;
+  }
+
 }

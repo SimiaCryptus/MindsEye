@@ -16,53 +16,13 @@ import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class BooleanSigmoidNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSigmoidNetworkTests.class);
-  
+
   public static final Random random = new Random();
-  
-  @Test
-  public void test_BasicNN_XOR() throws Exception {
-    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
-    final NDArray[][] samples = getTrainingData(gate);
-    test(samples);
-  }
-  
-  @Test
-  public void test_BasicNN_AND() throws Exception {
-    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
-    final NDArray[][] samples = getTrainingData(gate);
-    test(samples);
-  }
-  
-  @Test
-  public void test_BasicNN_OR() throws Exception {
-    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
-    final NDArray[][] samples = getTrainingData(gate);
-    test(samples);
-  }
-  
-  public void test(final NDArray[][] samples) {
-    final int[] midSize = new int[] { 2 };
+
+  public NDArray[][] getTrainingData(final BiFunction<Boolean, Boolean, Boolean> gate) {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    boolean verbose = false;
-    new PipelineNetwork()
-        
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-         .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-        
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-        .add(new BiasLayer(outSize))
-        .add(new SigmoidActivationLayer())
-        .trainer(samples)
-        .setVerbose(verbose)
-        .verifyConvergence(10000, 0.01, 10);
-  }
-  
-  public NDArray[][] getTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 1 };
-    Function<double[], double[]> fn = v -> new double[] { gate.apply(v[0] == 1, v[1] == 1) ? 1 : -1 };
+    final Function<double[], double[]> fn = v -> new double[] { gate.apply(v[0] == 1, v[1] == 1) ? 1 : -1 };
     final NDArray[][] samples = new NDArray[][] {
         // XOR:
         { new NDArray(inputSize, new double[] { 0, 0 }), null },
@@ -70,9 +30,50 @@ public class BooleanSigmoidNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), null },
         { new NDArray(inputSize, new double[] { 1, 1 }), null }
     };
-    for (int i = 0; i < samples.length; i++)
+    for (int i = 0; i < samples.length; i++) {
       samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].getData()));
+    }
     return samples;
   }
-  
+
+  public void test(final NDArray[][] samples) {
+    final int[] midSize = new int[] { 2 };
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 1 };
+    final boolean verbose = false;
+    new PipelineNetwork()
+
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+        .add(new BiasLayer(midSize))
+    .add(new SigmoidActivationLayer())
+
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+    .add(new BiasLayer(outSize))
+    .add(new SigmoidActivationLayer())
+    .trainer(samples)
+    .setVerbose(verbose)
+    .verifyConvergence(10000, 0.01, 10);
+  }
+
+  @Test
+  public void test_BasicNN_AND() throws Exception {
+    final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
+    final NDArray[][] samples = getTrainingData(gate);
+    test(samples);
+  }
+
+  @Test
+  public void test_BasicNN_OR() throws Exception {
+    final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
+    final NDArray[][] samples = getTrainingData(gate);
+    test(samples);
+  }
+
+  @Test
+  public void test_BasicNN_XOR() throws Exception {
+    final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
+    final NDArray[][] samples = getTrainingData(gate);
+    test(samples);
+  }
+
 }

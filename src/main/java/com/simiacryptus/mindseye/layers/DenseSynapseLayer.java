@@ -17,34 +17,35 @@ import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.GradientDescentAccumulator;
 import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSynapseLayer>, DeltaTransaction {
   private final class DenseSynapseResult extends NNResult {
+    private final NNResult inObj;
     private final NDArray inputGradient;
     private final NDArray weightGradient;
-    private final NNResult inObj;
-    
-    private DenseSynapseResult(NDArray data, NDArray inputGradient, NDArray weightGradient, NNResult inObj) {
+
+    private DenseSynapseResult(final NDArray data, final NDArray inputGradient, final NDArray weightGradient, final NNResult inObj) {
       super(data);
-      if(null == inputGradient) throw new IllegalArgumentException();
-      //if(null == weightGradient) throw new IllegalArgumentException();
+      if (null == inputGradient) throw new IllegalArgumentException();
+      // if(null == weightGradient) throw new IllegalArgumentException();
       this.inputGradient = inputGradient;
       this.weightGradient = weightGradient;
       this.inObj = inObj;
     }
-    
+
     @Override
     public void feedback(final NDArray data) {
       NDArray passback = null;
-      if (null != weightGradient) {
-        DenseSynapseLayer.this.deltaBuffer.feed(weightGradient, data.getData());
+      if (null != this.weightGradient) {
+        DenseSynapseLayer.this.deltaBuffer.feed(this.weightGradient, data.getData());
       }
-      if (inObj.isAlive()) {
+      if (this.inObj.isAlive()) {
         final double[] delta = data.getData();
         DoubleMatrix pseudoinverse;
         try {
-          pseudoinverse = NDArray.inverseCache.get(inputGradient);
-        } catch (ExecutionException e) {
+          pseudoinverse = NDArray.inverseCache.get(this.inputGradient);
+        } catch (final ExecutionException e) {
           throw new RuntimeException(e);
         }
         final double[] inverted = pseudoinverse.mmul(new DoubleMatrix(delta.length, 1, delta)).data;
@@ -52,60 +53,66 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
         for (int i = 0; i < mcdelta.length; i++) {
           mcdelta[i] *= Math.random() < DenseSynapseLayer.this.backpropPruning ? 0 : 1;
         }
-        passback = new NDArray(inObj.data.getDims(), mcdelta);
+        passback = new NDArray(this.inObj.data.getDims(), mcdelta);
       }
-      if(null != passback)
+      if (null != passback)
       {
-        inObj.feedback(passback);
+        this.inObj.feedback(passback);
       }
       if (isVerbose()) {
         DenseSynapseLayer.log.debug(String.format("Feed back: %s => %s", data, passback));
       }
     }
-    
+
     @Override
     public boolean isAlive() {
-      return null != weightGradient || inObj.isAlive();
+      return null != this.weightGradient || this.inObj.isAlive();
     }
   }
-  
+
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
+
+  public static int[] transpose(final int[] dims2) {
+    final int[] dims = new int[] { dims2[1], dims2[0] };
+    return dims;
+  }
   
+  private NDArray _inputGradient;
   private double backpropPruning = 0.;
   private GradientDescentAccumulator deltaBuffer;
   private boolean frozen = false;
   private DeltaMassMomentum massMomentum;
   private final int[] outputDims;
   private boolean verbose = false;
-  private NDArray _inputGradient;
+
   public final NDArray weights;
-  
+
   private DeltaFlushBuffer writer;
-  
+
   protected DenseSynapseLayer() {
     super();
     this.outputDims = null;
     this.weights = null;
   }
-  
+
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
     this.writer = new DeltaFlushBuffer(this.weights);
-    this.massMomentum = new DeltaMassMomentum(writer);
+    this.massMomentum = new DeltaMassMomentum(this.writer);
     this.deltaBuffer = new GradientDescentAccumulator(this.massMomentum);
   }
-  
+
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.weights.getData());
     return this;
   }
-  
+
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
     final NDArray output = new NDArray(this.outputDims);
-    final NDArray inputGradient = null != _inputGradient ? null : new NDArray(input.dim(), output.dim());
+    final NDArray inputGradient = null != this._inputGradient ? null : new NDArray(input.dim(), output.dim());
     final NDArray weightGradient = this.frozen ? null : new NDArray(this.weights.dim(), output.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, output.dim()).forEach(o -> {
@@ -117,65 +124,95 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
         if (null != weightGradient) {
           weightGradient.add(new int[] { this.weights.index(i, o), o }, b);
         }
-        double value = b * a;
-        if (Double.isFinite(value)) output.add(o, value);
+        final double value = b * a;
+        if (Double.isFinite(value)) {
+          output.add(o, value);
+        }
       });
     });
     if (null != inputGradient) {
-      _inputGradient = inputGradient;
+      this._inputGradient = inputGradient;
     }
     if (isVerbose()) {
       DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj.data, this.weights, output));
     }
-    return new DenseSynapseResult(output, _inputGradient, weightGradient, inObj);
+    return new DenseSynapseResult(output, this._inputGradient, weightGradient, inObj);
   }
-  
+
   public DenseSynapseLayer freeze() {
     return freeze(true);
   }
-  
+
   public DenseSynapseLayer freeze(final boolean b) {
     this.frozen = b;
     return this;
   }
-  
+
   public double getBackpropPruning() {
     return this.backpropPruning;
   }
-  
+
   @Override
   public double getMass() {
     return this.massMomentum.getMass();
   }
-  
+
   @Override
   public double getMomentumDecay() {
     return this.massMomentum.getMomentumDecay();
   }
-  
+
+  public double getRandom() {
+    return PipelineNetwork.random.nextGaussian();
+  }
+
+  @Override
+  public double getRate() {
+    return 1. / this.massMomentum.getMass();
+  }
+
+  public boolean isFrozen() {
+    return this.frozen;
+  }
+
   private boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public DenseSynapseLayer setBackpropPruning(final double backpropPruning) {
     this.backpropPruning = backpropPruning;
     return this;
   }
-  
+
+  @Override
+  public DenseSynapseLayer setHalflife(final double halflife) {
+    return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
+  }
+
   @Override
   public DenseSynapseLayer setMass(final double mass) {
     this.massMomentum.setMass(mass);
     return this;
   }
-  
+
   @Override
   public DenseSynapseLayer setMomentumDecay(final double momentumDecay) {
     this.massMomentum.setMomentumDecay(momentumDecay);
     return this;
   }
   
+  @Override
+  public void setRate(final double rate) {
+    this.massMomentum.setMass(1. / rate);
+  }
+
   public DenseSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+  
+  public DenseSynapseLayer setWeights(final double[] data) {
+    this.weights.set(data);
     return this;
   }
   
@@ -190,40 +227,12 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
   
   @Override
   public String toString() {
-    return "DenseSynapseLayer [weights=" + weights + "]";
+    return "DenseSynapseLayer [weights=" + this.weights + "]";
   }
   
   @Override
-  public void write(double factor) {
-    _inputGradient = null;
-    writer.write(factor);
-  }
-
-  public static int[] transpose(int[] dims2) {
-    int[] dims = new int[] { dims2[1], dims2[0] };
-    return dims;
-  }
-  
-  public DenseSynapseLayer setHalflife(final double halflife) {
-    return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
-  }
-
-  public DenseSynapseLayer setWeights(double[] data) {
-    weights.set(data);
-    return this;
-  }
-
-  public boolean isFrozen() {
-    return frozen;
-  }
-
-  @Override
-  public void setRate(double rate) {
-    this.massMomentum.setMass(1./rate);
-  }
-
-  @Override
-  public double getRate() {
-    return 1./this.massMomentum.getMass();
+  public void write(final double factor) {
+    this._inputGradient = null;
+    this.writer.write(factor);
   }
 }

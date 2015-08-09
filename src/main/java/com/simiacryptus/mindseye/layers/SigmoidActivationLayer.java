@@ -9,10 +9,12 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class SigmoidActivationLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
   double feedbackAttenuation = 1;
-  
+
+  private boolean verbose;
+
   public SigmoidActivationLayer() {
   }
   
@@ -35,42 +37,40 @@ public class SigmoidActivationLayer extends NNLayer {
       output.set(i, 2 * f - 1);
     });
     if (isVerbose()) {
-      log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
+      SigmoidActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
     }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data) {
         NDArray passback = null;
         if (inObj.isAlive()) {
-          NDArray next = new NDArray(data.getDims());
+          final NDArray next = new NDArray(data.getDims());
           passback = next;
           IntStream.range(0, next.dim()).forEach(i -> {
-            if(Double.isFinite(inputGradient.getData()[i]) && 0 != inputGradient.getData()[i]) {
+            if (Double.isFinite(inputGradient.getData()[i]) && 0 != inputGradient.getData()[i]) {
               next.set(i, data.getData()[i] * inputGradient.getData()[i]);
             }
           });
         }
         if (isVerbose()) {
-          log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
+          SigmoidActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
         }
         inObj.feedback(passback);
       }
-      
+
       @Override
       public boolean isAlive() {
         return true;
       }
     };
   }
-
+  
   public boolean isVerbose() {
-    return verbose;
+    return this.verbose;
   }
-
-  public SigmoidActivationLayer setVerbose(boolean verbose) {
+  
+  public SigmoidActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
-
-  private boolean verbose;
 }

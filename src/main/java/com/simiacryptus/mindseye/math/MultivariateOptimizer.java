@@ -16,93 +16,96 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.Util;
 
 public class MultivariateOptimizer {
-  public static class Triplet<A,B,C> {
+  public static class Triplet<A, B, C> {
     public final A a;
     public final B b;
     public final C c;
-    public Triplet(A a, B b, C c) {
+    
+    public Triplet(final A a, final B b, final C c) {
       super();
       this.a = a;
       this.b = b;
       this.c = c;
     }
   }
-
+  
   static final Logger log = LoggerFactory.getLogger(MultivariateOptimizer.class);
-
+  
+  public static double[] copy(final double[] start, final int i, final double v) {
+    final double[] next = Arrays.copyOf(start, start.length);
+    next[i] = v;
+    return next;
+  }
+  
   private final MultivariateFunction f;
-  private boolean verbose = false;
-
+  
+  int maxIterations = 1000;
+  private boolean verbose = true;
+  
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;
   }
-  int maxIterations = 1000;
-
+  
+  public double dist(final double[] last, final double[] next) {
+    if (isVerbose()) {
+      MultivariateOptimizer.log.debug(String.format("%s -> %s", Arrays.toString(last), Arrays.toString(next)));
+    }
+    return Math.sqrt(IntStream.range(0, last.length).mapToDouble(i -> next[i] - last[i]).map(x -> x * x).average().getAsDouble());
+  }
+  
+  public PointValuePair eval(final double[] x) {
+    return new PointValuePair(x, this.f.value(x));
+  }
+  
+  public boolean isVerbose() {
+    return this.verbose;
+  }
+  
+  public PointValuePair minimize(final double[] x) {
+    return minimize(eval(x));
+  }
+  
   public PointValuePair minimize(Pair<double[], Double> last) {
     double dist;
     int iterations = 0;
     do {
-      Pair<double[], Double> next = step(last);
+      final Pair<double[], Double> next = step(last);
       dist = dist(last.getFirst(), next.getFirst());
       last = next;
-      if(iterations++>maxIterations){
-        throw new RuntimeException("Non convergent");
-      }
+      if (iterations++ > this.maxIterations) throw new RuntimeException("Non convergent");
     } while (dist > 1e-8);
     return eval(last.getFirst());
   }
-
-  public PointValuePair eval(double[] x) {
-    return new PointValuePair(x, this.f.value(x));
+  
+  public MultivariateOptimizer setVerbose(final boolean verbose) {
+    this.verbose = verbose;
+    return this;
   }
-
-  public double dist(final double[] last, double[] next) {
-    if(isVerbose()) log.debug(String.format("%s -> %s", Arrays.toString(last), Arrays.toString(next)));
-    return Math.sqrt(IntStream.range(0, last.length).mapToDouble(i->next[i]-last[i]).map(x->x*x).average().getAsDouble());
-  }
-
-  public Pair<double[],Double> step(final Pair<double[], Double> last) {
-    //Set<Integer> toMutate = chooseIndexes(1, start.length);
-    ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, last.getFirst().length).mapToObj(x->x).collect(Collectors.toList()));
+  
+  public Pair<double[], Double> step(final Pair<double[], Double> initial) {
+    // Set<Integer> toMutate = chooseIndexes(1, start.length);
+    final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, initial.getFirst().length).mapToObj(x -> x).collect(Collectors.toList()));
     Collections.shuffle(l);
-    Triplet<Integer, double[],Double> opt = IntStream.range(0, last.getFirst().length).parallel().mapToObj(i->{
-      MultivariateFunction f2 = Util.kryo().copy(f);
+    final Triplet<Integer, double[], Double> opt = IntStream.range(0, initial.getFirst().length).parallel().mapToObj(i -> {
+      final MultivariateFunction f2 = Util.kryo().copy(this.f);
       try {
-        PointValuePair minimize = new UnivariateOptimizer(x1 -> {
-          return f2.value(copy(last.getFirst(), i, x1));
-        }).minimize(last.getFirst()[i]);
-        return new Triplet<>(i,copy(last.getFirst(), i, minimize.getFirst()[0]), minimize.getSecond());
-      } catch (Exception e) {
-        if(verbose) log.debug("Error mutating " + i, e);
+        final PointValuePair minimize = new UnivariateOptimizer(x1 -> {
+          return f2.value(MultivariateOptimizer.copy(initial.getFirst(), i, x1));
+        }).minimize(initial.getFirst()[i]);
+        return new Triplet<>(i, MultivariateOptimizer.copy(initial.getFirst(), i, minimize.getFirst()[0]), minimize.getSecond());
+      } catch (final Exception e) {
+        if (this.verbose) {
+          MultivariateOptimizer.log.debug("Error mutating " + i, e);
+        }
         return null;
       }
     })
-    .filter(x->null!=x)
-    .filter(x->x.c<last.getValue())
-    //.min(Comparator.comparing(x->x.c))
-    .findFirst()
-    .get();
-    return new Pair<>(copy(last.getFirst(), opt.a, opt.b[opt.a]), opt.c);
-    //return step(start, l.stream().collect(Collectors.toSet()));
+      .filter(x -> null != x)
+      .filter(x -> x.c < initial.getValue())
+      .limit(2)
+      .min(Comparator.comparing(x -> x.c))
+      .get();
+    return new Pair<>(MultivariateOptimizer.copy(initial.getFirst(), opt.a, opt.b[opt.a]), opt.c);
   }
-
-  public static double[] copy(final double[] start, int i, double v) {
-    double[] next = Arrays.copyOf(start, start.length);
-    next[i] = v;
-    return next;
-  }
-
-  public boolean isVerbose() {
-    return verbose;
-  }
-
-  public MultivariateOptimizer setVerbose(boolean verbose) {
-    this.verbose = verbose;
-    return this;
- }
-
-  public PointValuePair minimize(double[] x) {
-    return minimize(eval(x));
-  }
-
+  
 }

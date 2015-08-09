@@ -20,31 +20,31 @@ import org.slf4j.LoggerFactory;
 
 public class UnivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
-
+  
   public final UnivariateFunction f;
   public double growth = 2.;
   public double maxValue = 100;
   public double minValue = 1. / this.maxValue;
   public List<PointValuePair> points = new ArrayList<PointValuePair>();
+  double relativeUncertiantyThreshold = 3e-2;
   public double solveThreshold = -Double.MAX_VALUE;
   private boolean verbose = false;
-  double relativeUncertiantyThreshold = 1e-3;
-  
+
   public UnivariateOptimizer(final UnivariateFunction f) {
     this.f = f;
   }
-
+  
   public boolean continueIterating() {
-    if (getRelativeUncertianty() < relativeUncertiantyThreshold) return false;
+    if (getRelativeUncertianty() < this.relativeUncertiantyThreshold) return false;
     if (this.points.get(1).getValue() < this.solveThreshold) return false;
-    if (this.points.size() > 10) return false;
+    if (this.points.size() > 5) return false;
     return true;
   }
-
+  
   public PointValuePair eval(final double optimal) {
     return new PointValuePair(new double[] { optimal }, this.f.value(optimal));
   }
-
+  
   public double findMin() {
     final PolynomialFunction poly = new PolynomialFunction(PolynomialCurveFitter.create(2).fit(this.points.stream().map(pt -> {
       return new WeightedObservedPoint(1, pt.getFirst()[0], pt.getSecond());
@@ -61,16 +61,16 @@ public class UnivariateOptimizer {
       return min + (max - min) * Math.random();
     }
   }
-
+  
   public List<PointValuePair> getKeyPoints() {
     this.points.get(0);
     final PointValuePair bottom = this.points.stream().min(Comparator.comparing((final PointValuePair x) -> x.getSecond())).get();
     final PointValuePair bottomLeft = this.points.stream().filter(x -> x.getFirst()[0] < bottom.getFirst()[0])
-        .max(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(()->{
+        .max(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(() -> {
           return new RuntimeException();
         });
     final PointValuePair bottomRight = this.points.stream().filter(x -> x.getFirst()[0] > bottom.getFirst()[0])
-        .min(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(()->{
+        .min(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(() -> {
           return new RuntimeException();
         });
     final List<PointValuePair> newList = Stream.of(new PointValuePair[] {
@@ -79,66 +79,66 @@ public class UnivariateOptimizer {
         bottomRight
     }).distinct().collect(Collectors.toList());
     assert newList.size() == 3;
-    if (IntStream.range(0, newList.size()).allMatch(i->newList.get(i)==points.get(i))) {
+    if (IntStream.range(0, newList.size()).allMatch(i -> newList.get(i) == this.points.get(i)))
       return this.points;
-    } else {
-      return newList;
-    }
+    else return newList;
   }
-
+  
   public double getRelativeUncertianty() {
     final double a = this.points.get(0).getFirst()[0];
     final double b = this.points.get(1).getFirst()[0];
     final double avg = (b + a) / 2;
     final double span = b - a;
-    if (this.isVerbose()) {
-      log.debug(String.format("%s span, %s avg; %s conv", span, avg, span / avg));
+    if (isVerbose()) {
+      UnivariateOptimizer.log.debug(String.format("%s span, %s avg; %s conv", span, avg, span / avg));
     }
-    if (this.isVerbose()) {
-      log.debug(this.points.stream().map(pt -> String.format("%s=%s", Arrays.toString(pt.getFirst()), pt.getSecond()))
+    if (isVerbose()) {
+      UnivariateOptimizer.log.debug(this.points.stream().map(pt -> String.format("%s=%s", Arrays.toString(pt.getFirst()), pt.getSecond()))
           .reduce((aa, bb) -> aa + ", " + bb).get());
     }
     return span / avg;
   }
-
+  
+  public boolean isVerbose() {
+    return this.verbose;
+  }
+  
   public PointValuePair minimize() {
     return minimize(1.);
   }
-
-  public PointValuePair minimize(double start) {
+  
+  public PointValuePair minimize(final double start) {
     this.points.add(eval(0));
     this.points.add(eval(start));
-
+    
     final double oneV = this.points.get(this.points.size() - 1).getValue();
     final double zeroV = this.points.get(this.points.size() - 2).getValue();
     if (oneV > zeroV) {
       for (double x = start / this.growth; true; x /= this.growth) {
         this.points.add(eval(x));
-        Double lastV = this.points.get(this.points.size() - 1).getValue();
+        final Double lastV = this.points.get(this.points.size() - 1).getValue();
         if (lastV < zeroV) {
           break;
         }
-        if (x < this.minValue) {
-          throw new RuntimeException("x < minValue");
-        }
+        if (x < this.minValue) throw new RuntimeException("x < minValue");
       }
     } else {
       for (double x = start * this.growth; true; x *= this.growth) {
         this.points.add(eval(x));
-        Double prevV = this.points.get(this.points.size() - 2).getValue();
-        Double thisV = this.points.get(this.points.size() - 1).getValue();
+        final Double prevV = this.points.get(this.points.size() - 2).getValue();
+        final Double thisV = this.points.get(this.points.size() - 1).getValue();
         if (thisV > prevV) {
           break;
         }
-        if (x > this.maxValue) {
-          throw new RuntimeException("x > maxValue");
-        }
+        if (x > this.maxValue) throw new RuntimeException("x > maxValue");
       }
     }
     try {
       this.points = getKeyPoints();
-    } catch (RuntimeException e) {
-      if(verbose) log.debug("Invalid starting constraints",e);
+    } catch (final RuntimeException e) {
+      if (this.verbose) {
+        UnivariateOptimizer.log.debug("Invalid starting constraints", e);
+      }
     }
     while (continueIterating()) {
       this.points.add(eval(findMin()));
@@ -146,14 +146,10 @@ public class UnivariateOptimizer {
     }
     return this.points.get(1);
   }
-
-  public boolean isVerbose() {
-    return verbose;
-  }
-
-  public UnivariateOptimizer setVerbose(boolean verbose) {
+  
+  public UnivariateOptimizer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
-
+  
 }

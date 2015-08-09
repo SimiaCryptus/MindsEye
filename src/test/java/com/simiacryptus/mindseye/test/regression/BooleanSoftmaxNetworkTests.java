@@ -17,55 +17,15 @@ import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class BooleanSoftmaxNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSoftmaxNetworkTests.class);
-  
+
   public static final Random random = new Random();
-
-  @Test
-  public void test_AND() throws Exception {
-    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
-    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
-    test(samples);
-  }
-
-  @Test
-  public void test_OR() throws Exception {
-    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
-    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
-    test(samples);
-  }
   
-  @Test
-  public void test_XOR() throws Exception {
-    BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
-    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
-    test(samples);
-  }
-
-  public void test(final NDArray[][] samples) {
-    final int[] midSize = new int[] { 4 };
+  public NDArray[][] getSoftmaxGateTrainingData(final BiFunction<Boolean, Boolean, Boolean> gate) {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    new PipelineNetwork()
-        
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-        
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-        .add(new BiasLayer(outSize))
-        .add(new SoftmaxActivationLayer().setVerbose(false))
-
-        .trainer(samples)
-        //.setVerbose(true)
-        .verifyConvergence(10000, 0.01, 10);
-  }
-  
-  public NDArray[][] getSoftmaxGateTrainingData(BiFunction<Boolean, Boolean, Boolean> gate) {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    Function<double[], double[]> fn = v -> new double[] { 
-        gate.apply(v[0] == 1, v[1] == 1) ? 1 : 0, 
-        !gate.apply(v[0] == 1, v[1] == 1) ? 1 : 0 
+    final Function<double[], double[]> fn = v -> new double[] {
+        gate.apply(v[0] == 1, v[1] == 1) ? 1 : 0,
+        !gate.apply(v[0] == 1, v[1] == 1) ? 1 : 0
     };
     final NDArray[][] samples = new NDArray[][] {
         // XOR:
@@ -74,9 +34,52 @@ public class BooleanSoftmaxNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), null },
         { new NDArray(inputSize, new double[] { 1, 1 }), null }
     };
-    for (int i = 0; i < samples.length; i++)
+    for (int i = 0; i < samples.length; i++) {
       samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].getData()));
+    }
     return samples;
   }
   
+  public void test(final NDArray[][] samples) {
+    final int[] midSize = new int[] { 4 };
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    new PipelineNetwork()
+
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+    .add(new BiasLayer(midSize))
+    .add(new SigmoidActivationLayer())
+
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+    .add(new BiasLayer(outSize))
+    .add(new SoftmaxActivationLayer().setVerbose(false))
+        
+    .setMutationAmplitude(2.)
+    .trainer(samples)
+    //.setMutationAmount(.5)
+    // .setVerbose(true)
+    .verifyConvergence(10000, 0.01, 10);
+  }
+
+  @Test
+  public void test_AND() throws Exception {
+    final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
+    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
+    test(samples);
+  }
+  
+  @Test
+  public void test_OR() throws Exception {
+    final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
+    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
+    test(samples);
+  }
+
+  @Test
+  public void test_XOR() throws Exception {
+    final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
+    final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
+    test(samples);
+  }
+
 }
