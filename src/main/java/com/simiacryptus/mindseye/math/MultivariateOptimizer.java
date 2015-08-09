@@ -17,13 +17,18 @@ public class MultivariateOptimizer {
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;
   }
+  int maxIterations = 1000;
 
   public PointValuePair minimize(double[] last) {
     double dist;
+    int iterations = 0;
     do {
       double[] next = step(last);
       dist = dist(last, next);
       last = next;
+      if(iterations++>maxIterations){
+        throw new RuntimeException("Non convergent");
+      }
     } while (dist > 1e-8);
     return new PointValuePair(last, this.f.value(last));
   }
