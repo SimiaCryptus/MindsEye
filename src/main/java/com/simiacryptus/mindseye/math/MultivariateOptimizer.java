@@ -20,7 +20,7 @@ public class MultivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(MultivariateOptimizer.class);
 
   private final MultivariateFunction f;
-  private boolean verbose = false;
+  private boolean verbose = true;
 
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;
@@ -70,13 +70,14 @@ public class MultivariateOptimizer {
   }
 
   public double[] step(final double[] start, Set<Integer> toMutate) {
-    return IntStream.range(0, start.length).parallel().mapToDouble(i->{
+    double[] next = IntStream.range(0, start.length).parallel().mapToDouble(i->{
       return toMutate.contains(i)?new UnivariateOptimizer(x->{
         double[] pt = Arrays.copyOf(start, start.length);
         pt[i] = x;
         return f.value(pt);
       }).minimize(start[i]).getFirst()[0]:start[i];
     }).toArray();
+    return next;
   }
 
   public boolean isVerbose() {

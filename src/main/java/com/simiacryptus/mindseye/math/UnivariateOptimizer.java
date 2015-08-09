@@ -117,7 +117,7 @@ public class UnivariateOptimizer {
         this.points.add(eval(x));
         //Double prevV = this.points.get(this.points.size() - 2).getValue();
         Double lastV = this.points.get(this.points.size() - 1).getValue();
-        if (lastV <= zeroV) {
+        if (lastV < zeroV) {
           break;
         }
         if (x < this.minValue) {
@@ -129,7 +129,7 @@ public class UnivariateOptimizer {
         this.points.add(eval(x));
         Double prevV = this.points.get(this.points.size() - 2).getValue();
         Double thisV = this.points.get(this.points.size() - 1).getValue();
-        if (thisV >= prevV) {
+        if (thisV > prevV) {
           break;
         }
         if (x > this.maxValue) {
@@ -137,7 +137,11 @@ public class UnivariateOptimizer {
         }
       }
     }
-    this.points = getKeyPoints();
+    try {
+      this.points = getKeyPoints();
+    } catch (RuntimeException e) {
+      log.debug("Invalid starting constraints",e);
+    }
     while (continueIterating()) {
       this.points.add(eval(findMin()));
       this.points = getKeyPoints();

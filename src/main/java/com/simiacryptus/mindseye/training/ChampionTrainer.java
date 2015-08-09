@@ -33,11 +33,14 @@ public class ChampionTrainer {
   }
   
   public void revert() {
-    if (isVerbose()) {
-      ChampionTrainer.log.debug(String.format("Revert to best = %s", this.best.error()));
-      // log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
+    if(null != this.best)
+    {
+      if (isVerbose()) {
+        ChampionTrainer.log.debug(String.format("Revert to best = %s", null==this.best?null:this.best.error()));
+        // log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
+      }
+      this.current = Util.kryo().copy(this.best);
     }
-    this.current = Util.kryo().copy(this.best);
   }
 
   public ChampionTrainer setVerbose(final boolean verbose) {
