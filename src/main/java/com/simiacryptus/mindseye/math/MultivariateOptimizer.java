@@ -12,7 +12,7 @@ public class MultivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(MultivariateOptimizer.class);
 
   private final MultivariateFunction f;
-  private boolean verbose = false;
+  private boolean verbose = true;
 
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;
@@ -34,12 +34,12 @@ public class MultivariateOptimizer {
   }
 
   public double[] step(final double[] start) {
-    return IntStream.range(0, start.length).mapToDouble(i->{
+    return IntStream.range(0, start.length).parallel().mapToDouble(i->{
       return new UnivariateOptimizer(x->{
         double[] pt = Arrays.copyOf(start, start.length);
         pt[i] = x;
         return f.value(pt);
-      }).minimize().getFirst()[0];
+      }).minimize(start[i]).getFirst()[0];
     }).toArray();
   }
 

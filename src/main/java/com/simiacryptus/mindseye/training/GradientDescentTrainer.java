@@ -10,11 +10,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
-import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.optim.ConvergenceChecker;
 import org.apache.commons.math3.optim.InitialGuess;
 import org.apache.commons.math3.optim.MaxEval;
-import org.apache.commons.math3.optim.MaxIter;
 import org.apache.commons.math3.optim.PointValuePair;
 import org.apache.commons.math3.optim.SimpleBounds;
 import org.apache.commons.math3.optim.SimpleValueChecker;
@@ -23,12 +21,8 @@ import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.CMAESOptimizer;
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.PowellOptimizer;
-import org.apache.commons.math3.optim.univariate.BrentOptimizer;
-import org.apache.commons.math3.optim.univariate.SearchInterval;
-import org.apache.commons.math3.optim.univariate.UnivariateObjectiveFunction;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.commons.math3.util.DoubleArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +30,7 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 
 public class GradientDescentTrainer {
   
@@ -117,37 +112,30 @@ public class GradientDescentTrainer {
         return Util.geomMean(calcError(evalTrainingData()));
       }
     };
-    double f_lower = f.value(lowerBounds);
-    double[] upperBounds = IntStream.range(0, dims).mapToDouble(new IntToDoubleFunction() {
-      double min = 0;
-      double max = 5000;
-      
-      @Override
-      public double applyAsDouble(int dim) {
-        double last = f_lower;
-        for (double i = 1.; i < max; i *= 1.5)
-        {
-          double[] pt = Arrays.copyOf(lowerBounds, lowerBounds.length);
-          pt[dim] = i;
-          double x = f.value(pt);
-          if (last < x) {
-            return i;
-          } else {
-            last = x;
-          }
-        }
-        return 1;
-      }
-    }).toArray();
-    
-    PointValuePair x;
-    //PointValuePair x = cmaes(f, one, dims, lowerBounds, upperBounds);
-    if(2 <= dims) {
-      x = bobyqa(f, one, dims, lowerBounds, upperBounds);
-    } else {
-      x = powell(f, one);
-    }
-    //PointValuePair x = powell(f, one);
+//    double f_lower = f.value(lowerBounds);
+//    double[] upperBounds = IntStream.range(0, dims).mapToDouble(new IntToDoubleFunction() {
+//      double min = 0;
+//      double max = 5000;
+//      
+//      @Override
+//      public double applyAsDouble(int dim) {
+//        double last = f_lower;
+//        for (double i = 1.; i < max; i *= 1.5)
+//        {
+//          double[] pt = Arrays.copyOf(lowerBounds, lowerBounds.length);
+//          pt[dim] = i;
+//          double x = f.value(pt);
+//          if (last < x) {
+//            return i;
+//          } else {
+//            last = x;
+//          }
+//        }
+//        return 1;
+//      }
+//    }).toArray();
+//    
+    PointValuePair x = new MultivariateOptimizer(f).minimize(one);
     f.value(x.getKey());
     this.error = calcError(evalTrainingData());
     if (verbose) log.debug(String.format("Terminated at position: %s (%s), error %s", Arrays.toString(x.getKey()), x.getValue(), this.error));
