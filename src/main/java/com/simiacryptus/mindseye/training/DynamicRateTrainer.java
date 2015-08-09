@@ -21,9 +21,9 @@ public class DynamicRateTrainer {
   private double maxRate = 5e4;
   private double minRate = 1e-10;
   private double mutationFactor = 1.;
-  private double rate = 1.;
-  private int recalibrationInterval = 31;
-  private int recalibrationThreshold = 2;
+  private double rate = 1/Math.E;
+  private int recalibrationInterval = 15;
+  private int recalibrationThreshold = 3;
   private boolean verbose = false;
 
   public DynamicRateTrainer() {
