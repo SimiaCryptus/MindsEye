@@ -3,8 +3,7 @@ package com.simiacryptus.mindseye.math;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -14,31 +13,45 @@ import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
-
 public class MultivariateOptimizer {
+  public static class Triplet<A,B,C> {
+    public final A a;
+    public final B b;
+    public final C c;
+    public Triplet(A a, B b, C c) {
+      super();
+      this.a = a;
+      this.b = b;
+      this.c = c;
+    }
+  }
+
   static final Logger log = LoggerFactory.getLogger(MultivariateOptimizer.class);
 
   private final MultivariateFunction f;
-  private boolean verbose = true;
+  private boolean verbose = false;
 
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;
   }
   int maxIterations = 1000;
 
-  public PointValuePair minimize(double[] last) {
+  public PointValuePair minimize(Pair<double[], Double> last) {
     double dist;
     int iterations = 0;
     do {
-      double[] next = step(last);
-      dist = dist(last, next);
+      Pair<double[], Double> next = step(last);
+      dist = dist(last.getFirst(), next.getFirst());
       last = next;
       if(iterations++>maxIterations){
         throw new RuntimeException("Non convergent");
       }
     } while (dist > 1e-8);
-    return new PointValuePair(last, this.f.value(last));
+    return eval(last.getFirst());
+  }
+
+  public PointValuePair eval(double[] x) {
+    return new PointValuePair(x, this.f.value(x));
   }
 
   public double dist(final double[] last, double[] next) {
@@ -46,37 +59,33 @@ public class MultivariateOptimizer {
     return Math.sqrt(IntStream.range(0, last.length).mapToDouble(i->next[i]-last[i]).map(x->x*x).average().getAsDouble());
   }
 
-  public double[] step(final double[] start) {
+  public Pair<double[],Double> step(final Pair<double[], Double> last) {
     //Set<Integer> toMutate = chooseIndexes(1, start.length);
-    ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, start.length).mapToObj(x->x).collect(Collectors.toList()));
+    ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, last.getFirst().length).mapToObj(x->x).collect(Collectors.toList()));
     Collections.shuffle(l);
-    Pair<Integer, double[]> opt = l.stream().map(i->{
+    Triplet<Integer, double[],Double> opt = IntStream.range(0, last.getFirst().length).mapToObj(i->{
       try {
-        return new Pair<>(i,step(start, new HashSet<Integer>(Arrays.asList(i))));
+        PointValuePair minimize = new UnivariateOptimizer(x1 -> {
+          return f.value(copy(last.getFirst(), i, x1));
+        }).minimize(last.getFirst()[i]);
+        return new Triplet<>(i,copy(last.getFirst(), i, minimize.getFirst()[0]), minimize.getSecond());
       } catch (Exception e) {
         if(verbose) log.debug("Error mutating " + i, e);
         return null;
       }
-    }).filter(x->null!=x).findFirst().get();
-    double[] next = Arrays.copyOf(start, start.length);
-    next[opt.getFirst()] = opt.getSecond()[opt.getFirst()];
-    return next;
+    })
+    .filter(x->null!=x)
+    .filter(x->x.c<last.getValue())
+    //.min(Comparator.comparing(x->x.c))
+    .findFirst()
+    .get();
+    return new Pair<>(copy(last.getFirst(), opt.a, opt.b[opt.a]), opt.c);
     //return step(start, l.stream().collect(Collectors.toSet()));
   }
 
-  public Set<Integer> chooseIndexes(int numberOfSelections, int maxValue) {
-    Set<Integer> toMutate = IntStream.generate(()->(int)(maxValue*Math.random())).distinct().limit(numberOfSelections).mapToObj(x->x).collect(Collectors.toSet());
-    return toMutate;
-  }
-
-  public double[] step(final double[] start, Set<Integer> toMutate) {
-    double[] next = IntStream.range(0, start.length).parallel().mapToDouble(i->{
-      return toMutate.contains(i)?new UnivariateOptimizer(x->{
-        double[] pt = Arrays.copyOf(start, start.length);
-        pt[i] = x;
-        return f.value(pt);
-      }).minimize(start[i]).getFirst()[0]:start[i];
-    }).toArray();
+  public static double[] copy(final double[] start, int i, double v) {
+    double[] next = Arrays.copyOf(start, start.length);
+    next[i] = v;
     return next;
   }
 
@@ -88,5 +97,9 @@ public class MultivariateOptimizer {
     this.verbose = verbose;
     return this;
  }
+
+  public PointValuePair minimize(double[] x) {
+    return minimize(eval(x));
+  }
 
 }

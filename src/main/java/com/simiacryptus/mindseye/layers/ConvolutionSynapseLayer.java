@@ -4,9 +4,6 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
-
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +13,6 @@ import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.Coordinate;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.learning.DeltaInversionBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;

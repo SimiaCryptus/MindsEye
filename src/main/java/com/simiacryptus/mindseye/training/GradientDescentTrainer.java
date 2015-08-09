@@ -3,26 +3,13 @@ package com.simiacryptus.mindseye.training;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
-import org.apache.commons.math3.optim.ConvergenceChecker;
-import org.apache.commons.math3.optim.InitialGuess;
-import org.apache.commons.math3.optim.MaxEval;
 import org.apache.commons.math3.optim.PointValuePair;
-import org.apache.commons.math3.optim.SimpleBounds;
-import org.apache.commons.math3.optim.SimpleValueChecker;
-import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
-import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.CMAESOptimizer;
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.PowellOptimizer;
-import org.apache.commons.math3.random.JDKRandomGenerator;
-import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +79,6 @@ public class GradientDescentTrainer {
   public synchronized double[] trainLineSearch(int dims) {
     assert(0<currentNetworks.size());
     learn(evalTrainingData());
-    double[] lowerBounds = new double[dims];
     double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     MultivariateFunction f = new MultivariateFunction() {
       double[] pos = new double[dims];
@@ -114,84 +100,11 @@ public class GradientDescentTrainer {
         return Util.geomMean(calcError(evalTrainingData()));
       }
     };
-//    double f_lower = f.value(lowerBounds);
-//    double[] upperBounds = IntStream.range(0, dims).mapToDouble(new IntToDoubleFunction() {
-//      double min = 0;
-//      double max = 5000;
-//      
-//      @Override
-//      public double applyAsDouble(int dim) {
-//        double last = f_lower;
-//        for (double i = 1.; i < max; i *= 1.5)
-//        {
-//          double[] pt = Arrays.copyOf(lowerBounds, lowerBounds.length);
-//          pt[dim] = i;
-//          double x = f.value(pt);
-//          if (last < x) {
-//            return i;
-//          } else {
-//            last = x;
-//          }
-//        }
-//        return 1;
-//      }
-//    }).toArray();
-//    
     PointValuePair x = new MultivariateOptimizer(f).minimize(one);
     f.value(x.getKey());
     this.error = calcError(evalTrainingData());
     if (verbose) log.debug(String.format("Terminated at position: %s (%s), error %s", Arrays.toString(x.getKey()), x.getValue(), this.error));
     return x.getKey();
-  }
-
-  public PointValuePair cmaes(MultivariateFunction f, double[] one, int dims, double[] lowerBounds, double[] upperBounds) {
-    PointValuePair x;
-    int maxIterations = 100;
-    double stopFitness = 0;
-    boolean isActiveCMA = true;
-    int diagonalOnly = 10;
-    int checkFeasableCount = 0;
-    RandomGenerator random = new JDKRandomGenerator();
-    boolean generateStatistics = false;
-    ConvergenceChecker<PointValuePair> checker = new SimpleValueChecker(1e-5, 1e-5);
-    final CMAESOptimizer optim = new CMAESOptimizer(maxIterations, stopFitness, isActiveCMA, diagonalOnly, checkFeasableCount, random, generateStatistics,
-        checker);
-    x = optim.optimize(
-        GoalType.MINIMIZE,
-        new ObjectiveFunction(f),
-        new InitialGuess(one),
-        new SimpleBounds(lowerBounds, upperBounds),
-        new CMAESOptimizer.PopulationSize(1),
-        new CMAESOptimizer.Sigma(DoubleStream.generate(() -> 1e-1).limit(dims).toArray()),
-        new MaxEval(1000)
-        );
-    return x;
-  }
-
-  public PointValuePair bobyqa(MultivariateFunction f, double[] one, int dims, double[] lowerBounds, double[] upperBounds) {
-    PointValuePair x;
-    final BOBYQAOptimizer optim = new BOBYQAOptimizer((dims + 2) * (dims + 1) / 2);
-    x = optim.optimize(
-        GoalType.MINIMIZE,
-        new ObjectiveFunction(f),
-        new InitialGuess(one),
-        new SimpleBounds(lowerBounds, upperBounds),
-        new MaxEval(1000)
-        );
-    return x;
-  }
-
-  public PointValuePair powell(MultivariateFunction f, double[] one) {
-    PointValuePair x;
-    final PowellOptimizer optim = new PowellOptimizer(1e-3, 1e-3);
-    x = optim.optimize(
-        GoalType.MINIMIZE,
-        new ObjectiveFunction(f),
-        new InitialGuess(one),
-        //new SimpleBounds(lowerBounds, upperBounds),
-        new MaxEval(1000)
-        );
-    return x;
   }
   
   protected void learn(final List<List<NNResult>> results) {

@@ -22,19 +22,20 @@ public class UnivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
 
   public final UnivariateFunction f;
-  public double growth = 1.1;
-  public double maxValue = 1000;
+  public double growth = 2.;
+  public double maxValue = 100;
   public double minValue = 1. / this.maxValue;
   public List<PointValuePair> points = new ArrayList<PointValuePair>();
   public double solveThreshold = -Double.MAX_VALUE;
   private boolean verbose = false;
-
+  double relativeUncertiantyThreshold = 1e-3;
+  
   public UnivariateOptimizer(final UnivariateFunction f) {
     this.f = f;
   }
 
   public boolean continueIterating() {
-    if (getRelativeUncertianty() < 1e-3) return false;
+    if (getRelativeUncertianty() < relativeUncertiantyThreshold) return false;
     if (this.points.get(1).getValue() < this.solveThreshold) return false;
     if (this.points.size() > 10) return false;
     return true;
@@ -63,7 +64,6 @@ public class UnivariateOptimizer {
 
   public List<PointValuePair> getKeyPoints() {
     this.points.get(0);
-    // PointValuePair left = points.stream().min(Comparator.comparing((PointValuePair x)->x.getFirst()[0])).get();
     final PointValuePair bottom = this.points.stream().min(Comparator.comparing((final PointValuePair x) -> x.getSecond())).get();
     final PointValuePair bottomLeft = this.points.stream().filter(x -> x.getFirst()[0] < bottom.getFirst()[0])
         .max(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(()->{
@@ -73,7 +73,6 @@ public class UnivariateOptimizer {
         .min(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(()->{
           return new RuntimeException();
         });
-    // PointValuePair right = points.stream().max(Comparator.comparing((PointValuePair x)->x.getFirst()[0])).get();
     final List<PointValuePair> newList = Stream.of(new PointValuePair[] {
         bottomLeft,
         bottom,
@@ -115,7 +114,6 @@ public class UnivariateOptimizer {
     if (oneV > zeroV) {
       for (double x = start / this.growth; true; x /= this.growth) {
         this.points.add(eval(x));
-        //Double prevV = this.points.get(this.points.size() - 2).getValue();
         Double lastV = this.points.get(this.points.size() - 1).getValue();
         if (lastV < zeroV) {
           break;
@@ -140,7 +138,7 @@ public class UnivariateOptimizer {
     try {
       this.points = getKeyPoints();
     } catch (RuntimeException e) {
-      log.debug("Invalid starting constraints",e);
+      if(verbose) log.debug("Invalid starting constraints",e);
     }
     while (continueIterating()) {
       this.points.add(eval(findMin()));

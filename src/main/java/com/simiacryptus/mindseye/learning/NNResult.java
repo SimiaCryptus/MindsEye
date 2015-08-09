@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.learning;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import com.simiacryptus.mindseye.NDArray;
