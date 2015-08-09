@@ -63,6 +63,9 @@ public class GradientDescentTrainer {
   }
   
   public GradientDescentTrainer setVerbose(final boolean verbose) {
+    if(verbose) {
+      this.verbose = true;
+    }
     this.verbose = verbose;
     return this;
   }

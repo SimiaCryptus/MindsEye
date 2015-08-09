@@ -109,7 +109,7 @@ public class NetworkElementUnitTests {
             .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
             .setVerbose(verbose)
             .freeze())
-        .trainer(samples).setVerbose(true).setStaticRate(10.).verifyConvergence(10000, 0.1, 10);
+        .trainer(samples).setVerbose(verbose).setStaticRate(10.).verifyConvergence(10000, 0.1, 10);
   }
   
   @Test

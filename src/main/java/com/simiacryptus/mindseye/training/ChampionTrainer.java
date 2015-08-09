@@ -45,7 +45,7 @@ public class ChampionTrainer {
 
   public ChampionTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
-    this.current.setVerbose(true);
+    this.current.setVerbose(verbose);
     return this;
   }
 

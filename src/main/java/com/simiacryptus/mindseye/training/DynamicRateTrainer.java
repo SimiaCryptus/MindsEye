@@ -118,7 +118,7 @@ public class DynamicRateTrainer {
   
   public DynamicRateTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
-    this.inner.setVerbose(true);
+    this.inner.setVerbose(verbose);
     return this;
   }
   

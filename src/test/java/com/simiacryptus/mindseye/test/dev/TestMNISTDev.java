@@ -48,8 +48,6 @@ public class TestMNISTDev {
     public Network() {
       super();
       
-      // layers.add(new NormalizerLayer(inputSize.getDims()));
-      
       add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 2));
       add(new MaxSubsampleLayer(4, 4, 1));
       add(new BiasLayer(eval(inputSize).data.getDims()));
@@ -66,8 +64,6 @@ public class TestMNISTDev {
       
       add(new DenseSynapseLayer(eval(inputSize).data.dim(), new int[] { 10 }));
       add(new BiasLayer(eval(inputSize).data.getDims()));
-      // layers.add(new BiasLayer(eval(inputSize).data.getDims()));
-      //add(new SigmoidActivationLayer());
       add(new SoftmaxActivationLayer());
     }
     
@@ -112,10 +108,6 @@ public class TestMNISTDev {
         .map(o -> new NDArray[]{o.data, toOutNDArray(toOut(o.label), 10)})
         .toArray(i2->new NDArray[i2][]);
     net.trainer(data)
-      .setDynamicRate(0.01)
-      .setImprovementStaleThreshold(5)
-      //.setStaticRate(10.)
-      .setMutationAmount(5.)
       .setVerbose(true)
       .verifyConvergence(10000, 0.01, 1);
     {
