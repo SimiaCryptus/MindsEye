@@ -1,64 +1,59 @@
 package com.simiacryptus.mindseye.test.dev;
 
+import java.util.Arrays;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.optim.PointValuePair;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.simiacryptus.mindseye.math.MultivariateOptimizer;
+import com.simiacryptus.mindseye.math.UnivariateOptimizer;
 
 public class LearningParameterOptimizerDev {
-  public static class Opt1 {
+  static final Logger log = LoggerFactory.getLogger(LearningParameterOptimizerDev.class);
 
-    private final UnivariateFunction f;
-
-    public Opt1(UnivariateFunction f) {
-      this.f = f;
-    }
-
-    public PointValuePair opt() {
-      double optimal = 0;
-      return new PointValuePair(new double[]{optimal}, f.value(optimal));
-    }
-    
-  }
-
-  public static class OptN {
-
-    private final MultivariateFunction f;
-
-    public OptN(MultivariateFunction f) {
-      this.f = f;
-    }
-
-    public PointValuePair opt() {
-      double[] optimal = new double[]{};
-      return new PointValuePair(optimal, f.value(optimal));
-    }
-    
+  @Test
+  public void test_multivariate() {
+    double offset = 0.4;
+    final MultivariateFunction f = new MultivariateFunction() {
+      @Override
+      public double value(final double[] a) {
+        double t = IntStream.range(0, a.length).mapToDouble(i -> {
+          double x = a[i];
+          final double r = -x * Math.sin(x + offset) + 0.4 * Math.sin((1+i) * 100 * x);
+          return r;
+        }).average().getAsDouble();
+        LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", Arrays.toString(a), t));
+        return t;
+      }
+    };
+    final PointValuePair result = new MultivariateOptimizer(f).minimize(ones(3));
+    assert result.getValue() < -0.99;
+    log.debug(String.format("%s -> %s", Arrays.toString(result.getFirst()), result.getSecond()));
   }
 
   @Test
-  public void test_univariate(){
-    UnivariateFunction f = new UnivariateFunction() {
+  public void test_univariate() {
+    final double offset = .5;
+    final UnivariateFunction f = new UnivariateFunction() {
       @Override
-      public double value(double x) {
-        return Math.sin(x);
+      public double value(final double x) {
+        final double r = -Math.sin(x + offset) + 0.4 * Math.sin(100 * x);
+        LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", x, r));
+        return r;
       }
     };
-    PointValuePair result = new Opt1(f).opt();
-    assert(result.getValue() < 0.99);
+    final PointValuePair result = new UnivariateOptimizer(f).minimize();
+    assert result.getValue() < -0.99;
   }
 
-  @Test
-  public void test_multivariate(){
-    MultivariateFunction f = new MultivariateFunction() {
-      @Override
-      public double value(double[] d) {
-        return DoubleStream.of(d).map(x->Math.sin(x)).average().getAsDouble();
-      }
-    };
-    PointValuePair result = new OptN(f).opt();
-    assert(result.getValue() < 0.99);
+  public static double[] ones(int dims) {
+    double[] last = DoubleStream.generate(()->1.).limit(dims).toArray();
+    return last;
   }
 }
