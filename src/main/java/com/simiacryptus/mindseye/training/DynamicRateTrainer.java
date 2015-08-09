@@ -69,10 +69,10 @@ public class DynamicRateTrainer {
       if (this.verbose) {
         DynamicRateTrainer.log.debug(String.format("Local Optimum reached - gradient not useful (%s). Mutating.", newRate));
       }
-      this.generationsSinceImprovement = 0;
+      this.generationsSinceImprovement = this.recalibrationThreshold-2;
       this.inner.revert();
       this.inner.current.mutate(getMutationFactor());
-      this.lastCalibratedIteration = 0;
+      this.lastCalibratedIteration = this.currentIteration;// - (this.recalibrationInterval + 2);
     }
   }
   
@@ -157,20 +157,22 @@ public class DynamicRateTrainer {
     final double lastError = this.inner.current.error();
     this.inner.train();
     final double resultError = this.inner.current.error();
-    if (resultError >= lastError)
-    {
-      if (this.recalibrationThreshold < this.generationsSinceImprovement++)
+    if (Double.isFinite(lastError) && Double.isFinite(resultError)) {
+      if (resultError >= lastError)
       {
-        if (this.verbose) {
-          DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
+        if (this.recalibrationThreshold < this.generationsSinceImprovement++)
+        {
+          if (this.verbose) {
+            DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
+          }
+          calibrate();
+          this.generationsSinceImprovement = 0;
         }
-        calibrate();
+      }
+      else
+      {
         this.generationsSinceImprovement = 0;
       }
-    }
-    else
-    {
-      this.generationsSinceImprovement = 0;
     }
     // updateRate(lastError, resultError);
     return this;

@@ -121,6 +121,7 @@ public class GradientDescentTrainer {
       GradientDescentTrainer.log.debug(String.format("Mutating %s by %s", this.currentNetworks, mutationAmount));
     }
     this.currentNetworks.stream().forEach(x -> x.getNet().mutate(mutationAmount));
+    this.error = null;
   }
 
   public GradientDescentTrainer setError(final double[] error) {
