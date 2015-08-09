@@ -103,8 +103,8 @@ public class GradientDescentTrainer {
         return Util.geomMean(calcError(evalTrainingData()));
       }
     };
-    PointValuePair x = new MultivariateOptimizer(f).minimize(one);
-    f.value(x.getKey());
+    PointValuePair x = new MultivariateOptimizer(f).minimize(one); // May or may not be cloned before evaluations
+    f.value(x.getKey()); // f is stateful, based on most recent evaluation
     this.error = calcError(evalTrainingData());
     if (verbose) log.debug(String.format("Terminated at position: %s (%s), error %s", Arrays.toString(x.getKey()), x.getValue(), this.error));
     return x.getKey();

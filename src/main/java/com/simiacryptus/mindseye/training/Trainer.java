@@ -30,10 +30,6 @@ public class Trainer {
     return this;
   }
 
-  public Trainer setImprovementStaleThreshold(int i) {
-    return this;
-  }
-
   public Trainer setStaticRate(double d) {
     macroTrainer.getInner().setRate(d);
     return this;

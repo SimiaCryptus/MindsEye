@@ -20,9 +20,11 @@ public class DynamicRateTrainer {
   private double maxRate = 5e4;
   private double minRate = 1e-10;
   private double mutationFactor = .5;
-  private double rate = 1.;
-  private int recalibrationInterval = 10;
+  private double rate = Math.sqrt(.5);
+  private int recalibrationInterval = 100;
   private boolean verbose = false;
+  private int recalibrationThreshold = 2;
+  private int generationsSinceImprovement = 0;
   
   public DynamicRateTrainer() {
     this(new ChampionTrainer());
@@ -122,6 +124,7 @@ public class DynamicRateTrainer {
     return this;
   }
   
+  
   public DynamicRateTrainer train() {
     if (this.lastCalibratedIteration < this.currentIteration++ - this.recalibrationInterval) {
       if (this.verbose) {
@@ -134,12 +137,38 @@ public class DynamicRateTrainer {
     final double resultError = this.inner.current.error();
     if (resultError >= lastError)
     {
-      if (this.verbose) {
-        DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
+      if (recalibrationThreshold < generationsSinceImprovement++)
+      {
+        if (this.verbose) {
+          DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
+        }
+        calibrate();
+        generationsSinceImprovement = 0;
       }
-      calibrate();
+    }
+    else
+    {
+      generationsSinceImprovement = 0;
     }
     // updateRate(lastError, resultError);
+    return this;
+  }
+
+  public int getRecalibrationThreshold() {
+    return recalibrationThreshold;
+  }
+
+  public DynamicRateTrainer setRecalibrationThreshold(int recalibrationThreshold) {
+    this.recalibrationThreshold = recalibrationThreshold;
+    return this;
+  }
+
+  public int getGenerationsSinceImprovement() {
+    return generationsSinceImprovement;
+  }
+
+  public DynamicRateTrainer setGenerationsSinceImprovement(int generationsSinceImprovement) {
+    this.generationsSinceImprovement = generationsSinceImprovement;
     return this;
   }
   

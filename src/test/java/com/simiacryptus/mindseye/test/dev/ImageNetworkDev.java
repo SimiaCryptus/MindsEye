@@ -85,13 +85,12 @@ public class ImageNetworkDev {
       
       trainer
       .setMutationAmount(0.1)
-      .setImprovementStaleThreshold(1)
       .setStaticRate(0.05)
       .setVerbose(true)
-          .setDynamicRate(0.005)
-          .setMaxDynamicRate(1.)
-          .setMinDynamicRate(0.001)
-          .train(100, 0.0001);
+      .setDynamicRate(0.005)
+      .setMaxDynamicRate(1.)
+      .setMinDynamicRate(0.001)
+      .train(100, 0.0001);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       NNResult recovered = bias.eval(zeroInput);

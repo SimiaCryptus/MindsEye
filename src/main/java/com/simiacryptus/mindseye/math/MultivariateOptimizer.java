@@ -13,6 +13,8 @@ import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.Util;
+
 public class MultivariateOptimizer {
   public static class Triplet<A,B,C> {
     public final A a;
@@ -63,10 +65,11 @@ public class MultivariateOptimizer {
     //Set<Integer> toMutate = chooseIndexes(1, start.length);
     ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, last.getFirst().length).mapToObj(x->x).collect(Collectors.toList()));
     Collections.shuffle(l);
-    Triplet<Integer, double[],Double> opt = IntStream.range(0, last.getFirst().length).mapToObj(i->{
+    Triplet<Integer, double[],Double> opt = IntStream.range(0, last.getFirst().length).parallel().mapToObj(i->{
+      MultivariateFunction f2 = Util.kryo().copy(f);
       try {
         PointValuePair minimize = new UnivariateOptimizer(x1 -> {
-          return f.value(copy(last.getFirst(), i, x1));
+          return f2.value(copy(last.getFirst(), i, x1));
         }).minimize(last.getFirst()[i]);
         return new Triplet<>(i,copy(last.getFirst(), i, minimize.getFirst()[0]), minimize.getSecond());
       } catch (Exception e) {
