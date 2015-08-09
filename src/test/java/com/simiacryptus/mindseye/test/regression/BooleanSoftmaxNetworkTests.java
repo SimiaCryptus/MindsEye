@@ -54,7 +54,7 @@ public class BooleanSoftmaxNetworkTests {
     .add(new BiasLayer(outSize))
     .add(new SoftmaxActivationLayer().setVerbose(false))
         
-    .setMutationAmplitude(2.)
+    .setMutationAmplitude(.2)
     .trainer(samples)
     //.setMutationAmount(.5)
     // .setVerbose(true)

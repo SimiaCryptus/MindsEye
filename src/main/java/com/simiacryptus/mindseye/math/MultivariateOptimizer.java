@@ -40,7 +40,7 @@ public class MultivariateOptimizer {
   private final MultivariateFunction f;
   
   int maxIterations = 1000;
-  private boolean verbose = true;
+  private boolean verbose = false;
   
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;

@@ -23,7 +23,7 @@ public class UnivariateOptimizer {
   
   public final UnivariateFunction f;
   public double growth = 2.;
-  public double maxValue = 100;
+  public double maxValue = 1e4;
   public double minValue = 1. / this.maxValue;
   public List<PointValuePair> points = new ArrayList<PointValuePair>();
   double relativeUncertiantyThreshold = 3e-2;
@@ -65,14 +65,14 @@ public class UnivariateOptimizer {
   public List<PointValuePair> getKeyPoints() {
     this.points.get(0);
     final PointValuePair bottom = this.points.stream().min(Comparator.comparing((final PointValuePair x) -> x.getSecond())).get();
-    final PointValuePair bottomLeft = this.points.stream().filter(x -> x.getFirst()[0] < bottom.getFirst()[0])
-        .max(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(() -> {
-          return new RuntimeException();
-        });
-    final PointValuePair bottomRight = this.points.stream().filter(x -> x.getFirst()[0] > bottom.getFirst()[0])
-        .min(Comparator.comparing(x -> x.getFirst()[0])).orElseThrow(() -> {
-          return new RuntimeException();
-        });
+    final PointValuePair bottomLeft = this.points.stream()
+        .filter(x -> x.getFirst()[0] < bottom.getFirst()[0])
+        .max(Comparator.comparing(x -> x.getFirst()[0]))
+        .orElseThrow(() -> new RuntimeException());
+    final PointValuePair bottomRight = this.points.stream()
+        .filter(x -> x.getFirst()[0] > bottom.getFirst()[0])
+        .min(Comparator.comparing(x -> x.getFirst()[0]))
+        .orElseThrow(() -> new RuntimeException());
     final List<PointValuePair> newList = Stream.of(new PointValuePair[] {
         bottomLeft,
         bottom,
@@ -93,7 +93,8 @@ public class UnivariateOptimizer {
       UnivariateOptimizer.log.debug(String.format("%s span, %s avg; %s conv", span, avg, span / avg));
     }
     if (isVerbose()) {
-      UnivariateOptimizer.log.debug(this.points.stream().map(pt -> String.format("%s=%s", Arrays.toString(pt.getFirst()), pt.getSecond()))
+      UnivariateOptimizer.log.debug(this.points.stream()
+          .map(pt -> String.format("%s=%s", Arrays.toString(pt.getFirst()), pt.getSecond()))
           .reduce((aa, bb) -> aa + ", " + bb).get());
     }
     return span / avg;
@@ -117,7 +118,7 @@ public class UnivariateOptimizer {
       for (double x = start / this.growth; true; x /= this.growth) {
         this.points.add(eval(x));
         final Double lastV = this.points.get(this.points.size() - 1).getValue();
-        if (lastV < zeroV) {
+        if (lastV <= zeroV) {
           break;
         }
         if (x < this.minValue) throw new RuntimeException("x < minValue");
