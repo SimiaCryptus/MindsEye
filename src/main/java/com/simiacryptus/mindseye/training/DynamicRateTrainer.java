@@ -48,7 +48,7 @@ public class DynamicRateTrainer {
       newRate = DoubleStream.of(adjustment).map(x -> x * this.inner.current.getRate()).toArray();
       inBounds = DoubleStream.of(newRate).anyMatch(r -> this.maxRate > r && this.minRate < r);
     } catch (Exception e) {
-      log.debug("Error calibrating",e);
+      if(verbose) log.debug("Error calibrating",e);
     }
     if (inBounds)
     {

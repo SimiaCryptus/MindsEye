@@ -54,7 +54,7 @@ public class MultivariateOptimizer {
       try {
         return new Pair<>(i,step(start, new HashSet<Integer>(Arrays.asList(i))));
       } catch (Exception e) {
-        log.debug("Error mutating " + i, e);
+        if(verbose) log.debug("Error mutating " + i, e);
         return null;
       }
     }).filter(x->null!=x).findFirst().get();
