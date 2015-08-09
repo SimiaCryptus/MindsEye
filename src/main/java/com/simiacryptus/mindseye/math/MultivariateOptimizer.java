@@ -12,7 +12,7 @@ public class MultivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(MultivariateOptimizer.class);
 
   private final MultivariateFunction f;
-  private boolean verbose = true;
+  private boolean verbose = false;
 
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;

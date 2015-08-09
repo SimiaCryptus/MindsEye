@@ -27,7 +27,7 @@ public class UnivariateOptimizer {
   public double minValue = 1. / this.maxValue;
   public List<PointValuePair> points = new ArrayList<PointValuePair>();
   public double solveThreshold = -Double.MAX_VALUE;
-  private boolean verbose = true;
+  private boolean verbose = false;
 
   public UnivariateOptimizer(final UnivariateFunction f) {
     this.f = f;
@@ -79,10 +79,10 @@ public class UnivariateOptimizer {
         bottom,
         bottomRight
     }).distinct().collect(Collectors.toList());
+    assert newList.size() == 3;
     if (IntStream.range(0, newList.size()).allMatch(i->newList.get(i)==points.get(i))) {
       return this.points;
     } else {
-      assert newList.size() == 3;
       return newList;
     }
   }
@@ -117,7 +117,7 @@ public class UnivariateOptimizer {
         this.points.add(eval(x));
         //Double prevV = this.points.get(this.points.size() - 2).getValue();
         Double lastV = this.points.get(this.points.size() - 1).getValue();
-        if (lastV < oneV) {
+        if (lastV <= zeroV) {
           break;
         }
         if (x < this.minValue) {
@@ -129,7 +129,7 @@ public class UnivariateOptimizer {
         this.points.add(eval(x));
         Double prevV = this.points.get(this.points.size() - 2).getValue();
         Double thisV = this.points.get(this.points.size() - 1).getValue();
-        if (thisV > prevV) {
+        if (thisV >= prevV) {
           break;
         }
         if (x > this.maxValue) {

@@ -11,7 +11,7 @@ public class ChampionTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(ChampionTrainer.class);
   
-  public GradientDescentTrainer best = new GradientDescentTrainer();
+  public GradientDescentTrainer best = null;
   public GradientDescentTrainer current = null;
   private boolean verbose = false;
 
@@ -20,6 +20,7 @@ public class ChampionTrainer {
   }
 
   public ChampionTrainer(GradientDescentTrainer current) {
+    assert(null!=current);
     this.current = current;
   }
   

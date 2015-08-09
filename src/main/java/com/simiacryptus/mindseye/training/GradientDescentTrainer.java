@@ -81,6 +81,7 @@ public class GradientDescentTrainer {
   }
   
   public synchronized double[] trainSet() {
+    assert(0<currentNetworks.size());
     final List<List<NNResult>> results = evalTrainingData();
     this.error = calcError(results);
     learn(results);
@@ -89,6 +90,7 @@ public class GradientDescentTrainer {
   }
   
   public synchronized double[] trainLineSearch(int dims) {
+    assert(0<currentNetworks.size());
     learn(evalTrainingData());
     double[] lowerBounds = new double[dims];
     double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();

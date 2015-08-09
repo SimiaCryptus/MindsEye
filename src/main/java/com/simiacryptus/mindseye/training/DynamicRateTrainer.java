@@ -33,15 +33,24 @@ public class DynamicRateTrainer {
   }
   
   public void calibrate() {
-    List<DeltaTransaction> deltaObjs = this.inner.current.currentNetworks.stream()
-        .flatMap(n->n.getNet().layers.stream())
-        .filter(l->l instanceof DeltaTransaction)
-        .map(l->(DeltaTransaction)l)
-        .distinct().collect(Collectors.toList());
-    final double[] localMin = this.inner.current.copy().clearMomentum().trainLineSearch(deltaObjs.size());
-    final double[] adjustment = DoubleStream.of(localMin).map(x->x*this.rate).toArray();
-    final double[] newRate = DoubleStream.of(adjustment).map(x->x*this.inner.current.getRate()).toArray();
-    if (DoubleStream.of(newRate).anyMatch(r->this.maxRate > r && this.minRate < r))
+    List<DeltaTransaction> deltaObjs = null;
+    double[] adjustment = null;
+    double[] newRate = null;
+    boolean inBounds = false;
+    try {
+      deltaObjs = this.inner.current.currentNetworks.stream()
+          .flatMap(n -> n.getNet().layers.stream())
+          .filter(l -> l instanceof DeltaTransaction)
+          .map(l -> (DeltaTransaction) l)
+          .distinct().collect(Collectors.toList());
+      final double[] localMin = this.inner.current.copy().clearMomentum().trainLineSearch(deltaObjs.size());
+      adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
+      newRate = DoubleStream.of(adjustment).map(x -> x * this.inner.current.getRate()).toArray();
+      inBounds = DoubleStream.of(newRate).anyMatch(r -> this.maxRate > r && this.minRate < r);
+    } catch (Exception e) {
+      log.debug("Error calibrating",e);
+    }
+    if (inBounds)
     {
       if (this.verbose) {
         DynamicRateTrainer.log.debug(String.format("Adjusting rate by %s: %s", adjustment, newRate));

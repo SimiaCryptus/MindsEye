@@ -72,7 +72,8 @@ public class Trainer {
     long succeesses = IntStream.range(0, reps).parallel().filter(i->{
       boolean hasConverged = false;
       try {
-        Double error = Util.kryo().copy(macroTrainer).setMaxIterations(maxIter).setStopError(convergence).train();
+        MacroTrainer copy = Util.kryo().copy(macroTrainer);
+        Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
         hasConverged = error <= convergence;
         if (!hasConverged) {
           log.debug("Not Converged");
