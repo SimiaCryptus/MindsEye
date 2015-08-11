@@ -16,9 +16,9 @@ public class DynamicRateTrainer {
   
   int currentIteration = 0;
   int generationsSinceImprovement = 0;
+  int lastCalibratedIteration = Integer.MIN_VALUE;
   
   public final ChampionTrainer inner;
-  int lastCalibratedIteration = Integer.MIN_VALUE;
   double maxRate = 5e4;
   double minRate = 1e-10;
   private double mutationFactor = 1.;
@@ -35,7 +35,7 @@ public class DynamicRateTrainer {
     this.inner = inner;
   }
 
-  public boolean calibrate() {
+  protected boolean calibrate() {
     List<DeltaTransaction> deltaObjs = null;
     double[] adjustment = null;
     double[] newRate = null;
@@ -145,6 +145,9 @@ public class DynamicRateTrainer {
   }
   
   public boolean train() {
+    currentIteration = 0;
+    generationsSinceImprovement = 0;
+    lastCalibratedIteration = Integer.MIN_VALUE;
     if (this.lastCalibratedIteration < this.currentIteration++ - this.recalibrationInterval) {
       if (this.verbose) {
         DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule");

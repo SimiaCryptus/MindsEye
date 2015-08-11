@@ -11,7 +11,7 @@ public class MutationTrainer {
   
   public final DynamicRateTrainer inner;
   private double mutationFactor = 1.;
-  private boolean verbose = false;
+  private boolean verbose = true;
 
   public MutationTrainer() {
     this(new ChampionTrainer());
@@ -94,7 +94,7 @@ public class MutationTrainer {
   
   public void train(double stopError) {
     this.inner.train();
-    while(this.inner.inner.current.error() < stopError) {
+    while(null == this.inner.inner.best || this.inner.inner.best.error() > stopError) {
       if (this.verbose) {
         log.debug(String.format("Local Optimum reached - gradient not useful. Mutating."));
       }

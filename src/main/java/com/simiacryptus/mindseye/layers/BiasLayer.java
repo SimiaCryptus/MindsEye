@@ -156,5 +156,9 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
   public void write(final double factor) {
     this.flush.write(factor);
   }
+
+  public BiasLayer freeze() {
+    return setFrozen(true);
+  }
   
 }
