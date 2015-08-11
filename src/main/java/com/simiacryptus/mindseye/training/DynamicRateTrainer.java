@@ -41,15 +41,16 @@ public class DynamicRateTrainer {
     double[] newRate = null;
     boolean inBounds = false;
     try {
-      deltaObjs = this.inner.current.currentNetworks.stream()
+      GradientDescentTrainer current = this.inner.current;
+      deltaObjs = current.currentNetworks.stream()
           .flatMap(n -> n.getNet().layers.stream())
           .filter(l -> l instanceof DeltaTransaction)
           .map(l -> (DeltaTransaction) l)
           .filter(x->!x.isFrozen())
           .distinct().collect(Collectors.toList());
-      final double[] localMin = this.inner.current.copy().clearMomentum().trainLineSearch(deltaObjs.size());
+      final double[] localMin = current.copy().clearMomentum().trainLineSearch(deltaObjs.size());
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
-      newRate = DoubleStream.of(adjustment).map(x -> x * this.inner.current.getRate()).toArray();
+      newRate = DoubleStream.of(adjustment).map(x -> x * current.getRate()).toArray();
       inBounds = DoubleStream.of(newRate).anyMatch(r -> this.maxRate > r && this.minRate < r);
     } catch (final Exception e) {
       if (this.verbose) {
@@ -64,10 +65,8 @@ public class DynamicRateTrainer {
       for (int i = 0; i < deltaObjs.size(); i++) {
         deltaObjs.get(i).setRate(newRate[i]);
       }
-      this.inner.train();
-      this.inner.updateBest();
       this.lastCalibratedIteration = this.currentIteration;
-      return true;
+      return trainOnce()>0;
     } else {
       return false;
     }
@@ -154,9 +153,12 @@ public class DynamicRateTrainer {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule");
         }
         if (!calibrate()) return false;
-        if (trainOnce() <= 0) return false;
       }
-      if (trainOnce() <= 0)
+      if (trainOnce() > 0)
+      {
+        this.generationsSinceImprovement = 0;
+      }
+      else
       {
         if (this.recalibrationThreshold < this.generationsSinceImprovement++)
         {
@@ -164,23 +166,22 @@ public class DynamicRateTrainer {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }
           if (!calibrate()) return false;
-          if (trainOnce() <= 0) return false;
           this.generationsSinceImprovement = 0;
         }
-      }
-      else
-      {
-        this.generationsSinceImprovement = 0;
       }
     }
   }
 
   public double trainOnce() {
-    final double lastError = this.inner.current.error();
+    final double prev = this.inner.current.error();
     this.inner.train();
-    final double resultError = this.inner.current.error();
-    double improvement = (Double.isFinite(lastError) || Double.isFinite(resultError))?-Double.POSITIVE_INFINITY:(lastError-resultError);
-    return improvement;
+    this.inner.updateBest();
+    final double next = this.inner.current.error();
+    if((Double.isFinite(prev) || Double.isFinite(next))){
+      return -Double.POSITIVE_INFINITY;
+    } else {
+      return (prev-next);
+    }
   }
 
 }
