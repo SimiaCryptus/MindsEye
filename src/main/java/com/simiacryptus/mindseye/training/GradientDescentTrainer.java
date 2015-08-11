@@ -146,7 +146,7 @@ public class GradientDescentTrainer {
   public synchronized double[] trainLineSearch(final int dims) {
     assert 0 < this.currentNetworks.size();
     learn(evalTrainingData());
-    final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
+    //final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     final MultivariateFunction f = new MultivariateFunction() {
       double[] pos = new double[dims];
 
@@ -170,7 +170,7 @@ public class GradientDescentTrainer {
         return Util.geomMean(calcError(evalTrainingData()));
       }
     };
-    final PointValuePair x = new MultivariateOptimizer(f).minimize(one); // May or may not be cloned before evaluations
+    final PointValuePair x = new MultivariateOptimizer(f).minimize(dims); // May or may not be cloned before evaluations
     f.value(x.getKey()); // f is stateful, based on most recent evaluation
     this.error = calcError(evalTrainingData());
     if (this.verbose) {

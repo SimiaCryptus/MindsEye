@@ -110,9 +110,9 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
     return this;
   }
   
-  public boolean setFrozen(final boolean frozen) {
+  public BiasLayer setFrozen(final boolean frozen) {
     this.frozen = frozen;
-    return true;
+    return this;
   }
   
   @Override

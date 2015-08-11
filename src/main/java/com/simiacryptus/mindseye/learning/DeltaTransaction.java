@@ -6,4 +6,6 @@ public interface DeltaTransaction {
   void setRate(double rate);
   
   void write(double factor);
+
+  boolean isFrozen();
 }

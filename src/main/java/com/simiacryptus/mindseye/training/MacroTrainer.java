@@ -10,16 +10,16 @@ public class MacroTrainer {
   private static final Logger log = LoggerFactory.getLogger(MacroTrainer.class);
 
   private int currentGeneration = 0;
-  private final DynamicRateTrainer inner;
+  private final MutationTrainer inner;
   private int maxIterations = 1000;
   private double stopError = 0.1;
   private boolean verbose = false;
   
   public MacroTrainer() {
-    this(new DynamicRateTrainer());
+    this(new MutationTrainer());
   }
   
-  public MacroTrainer(final DynamicRateTrainer inner) {
+  public MacroTrainer(final MutationTrainer inner) {
     this.inner = inner;
   }
 
@@ -44,7 +44,7 @@ public class MacroTrainer {
   }
   
   public DynamicRateTrainer getInner() {
-    return this.inner;
+    return this.inner.inner;
   }
   
   public int getMaxIterations() {
@@ -63,7 +63,7 @@ public class MacroTrainer {
     if (this.verbose) {
       MacroTrainer.log.debug(String.format("Mutating %s by %s", this.inner, mutationAmount));
     }
-    this.inner.inner.current.mutate(mutationAmount);
+    this.inner.inner.inner.current.mutate(mutationAmount);
   }
   
   public MacroTrainer setMaxIterations(final int maxIterations) {
@@ -90,21 +90,22 @@ public class MacroTrainer {
   public Double train() {
     final long startMs = System.currentTimeMillis();
     this.currentGeneration = 0;
-    this.inner.inner.current.mutate(1);
+    this.inner.inner.inner.current.mutate(1);
     while (continueTraining())
     {
       this.currentGeneration++;
-      this.inner.train();
+      this.inner.train(stopError);
       if (this.verbose)
       {
         MacroTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
-            this.currentGeneration, this.inner.error(), Arrays.toString(this.inner.inner.current.error), this.inner.inner.current.getRate()));
+            this.currentGeneration, this.inner.error(), Arrays.toString(this.inner.inner.inner.current.error), this.inner.inner.inner.current.getRate()));
       }
     }
     MacroTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", this.inner.error(),
         (System.currentTimeMillis() - startMs) / 1000.,
         this.currentGeneration));
-    return this.inner.inner.best.error();
+    GradientDescentTrainer best = this.inner.inner.inner.best;
+    return null==best?Double.POSITIVE_INFINITY:best.error();
   }
   
 }

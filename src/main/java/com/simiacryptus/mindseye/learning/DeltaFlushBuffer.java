@@ -64,4 +64,9 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
     this.reset = true;
   }
 
+  @Override
+  public boolean isFrozen() {
+    return false;
+  }
+
 }

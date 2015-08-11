@@ -101,11 +101,10 @@ public class PipelineNetwork extends NNLayer {
   }
   
   void writeDeltas(final double factor) {
-    for (final NNLayer l : this.layers) {
-      if (l instanceof DeltaTransaction) {
-        ((DeltaTransaction) l).write(factor);
-      }
-    }
+    this.layers.stream() //
+      .filter(x->x instanceof DeltaTransaction) //
+      .map(x->(DeltaTransaction)x) //
+      .forEach(x->x.write(factor));
   }
   
 }

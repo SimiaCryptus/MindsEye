@@ -22,6 +22,7 @@ public class NetworkElementUnitTests {
   public static final Random random = new Random();
   
   @Test
+  //@Ignore
   public void bias_feedback() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
@@ -30,8 +31,8 @@ public class NetworkElementUnitTests {
     };
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
-        .add(new BiasLayer(inputSize).setMass(Double.POSITIVE_INFINITY))
-        .trainer(samples).setStaticRate(10.).verifyConvergence(1000, 0.1, 100);
+        //.add(new BiasLayer(inputSize).setFrozen(true))
+        .trainer(samples).verifyConvergence(1000, 0.1, 100);
   }
   
   @Test
@@ -43,7 +44,8 @@ public class NetworkElementUnitTests {
     };
     new PipelineNetwork() //
         .add(new BiasLayer(inputSize)) //
-        .trainer(samples).setStaticRate(5.).verifyConvergence(1000, 0.01, 100);
+        .trainer(samples) //
+        .verifyConvergence(1000, 0.01, 100);
   }
   
   @Test

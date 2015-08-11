@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.training;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -13,17 +14,17 @@ public class DynamicRateTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
   
-  private int currentIteration = 0;
-  private int generationsSinceImprovement = 0;
+  int currentIteration = 0;
+  int generationsSinceImprovement = 0;
   
   public final ChampionTrainer inner;
-  private int lastCalibratedIteration = Integer.MIN_VALUE;
-  private double maxRate = 5e4;
-  private double minRate = 1e-10;
+  int lastCalibratedIteration = Integer.MIN_VALUE;
+  double maxRate = 5e4;
+  double minRate = 1e-10;
   private double mutationFactor = 1.;
-  private double rate = 1/Math.E;
+  double rate = 1/Math.E;
   private int recalibrationInterval = 15;
-  private int recalibrationThreshold = 3;
+  int recalibrationThreshold = 3;
   private boolean verbose = false;
 
   public DynamicRateTrainer() {
@@ -34,7 +35,7 @@ public class DynamicRateTrainer {
     this.inner = inner;
   }
 
-  public void calibrate() {
+  public boolean calibrate() {
     List<DeltaTransaction> deltaObjs = null;
     double[] adjustment = null;
     double[] newRate = null;
@@ -44,6 +45,7 @@ public class DynamicRateTrainer {
           .flatMap(n -> n.getNet().layers.stream())
           .filter(l -> l instanceof DeltaTransaction)
           .map(l -> (DeltaTransaction) l)
+          .filter(x->!x.isFrozen())
           .distinct().collect(Collectors.toList());
       final double[] localMin = this.inner.current.copy().clearMomentum().trainLineSearch(deltaObjs.size());
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
@@ -65,14 +67,9 @@ public class DynamicRateTrainer {
       this.inner.train();
       this.inner.updateBest();
       this.lastCalibratedIteration = this.currentIteration;
+      return true;
     } else {
-      if (this.verbose) {
-        DynamicRateTrainer.log.debug(String.format("Local Optimum reached - gradient not useful (%s). Mutating.", newRate));
-      }
-      this.generationsSinceImprovement = this.recalibrationThreshold-2;
-      this.inner.revert();
-      this.inner.current.mutate(getMutationFactor());
-      this.lastCalibratedIteration = this.currentIteration;// - (this.recalibrationInterval + 2);
+      return false;
     }
   }
   
@@ -147,12 +144,12 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  public DynamicRateTrainer train() {
+  public boolean train() {
     if (this.lastCalibratedIteration < this.currentIteration++ - this.recalibrationInterval) {
       if (this.verbose) {
         DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule");
       }
-      calibrate();
+      if(!calibrate()) return false;
     }
     final double lastError = this.inner.current.error();
     this.inner.train();
@@ -175,7 +172,7 @@ public class DynamicRateTrainer {
       }
     }
     // updateRate(lastError, resultError);
-    return this;
+    return true;
   }
 
 }

@@ -61,8 +61,9 @@ public class MultivariateOptimizer {
     return this.verbose;
   }
   
-  public PointValuePair minimize(final double[] x) {
-    return minimize(eval(x));
+  public PointValuePair minimize(int dims) {
+    double[] start = new double[dims];
+    return minimize(eval(start));
   }
   
   public PointValuePair minimize(Pair<double[], Double> last) {
@@ -74,6 +75,7 @@ public class MultivariateOptimizer {
       last = next;
       if (iterations++ > this.maxIterations) throw new RuntimeException("Non convergent");
     } while (dist > 1e-8);
+    if (isVerbose()) log.debug(String.format("Result: %s with prev dist %s", Arrays.toString(last.getFirst()), dist));
     return eval(last.getFirst());
   }
   
@@ -86,12 +88,13 @@ public class MultivariateOptimizer {
     // Set<Integer> toMutate = chooseIndexes(1, start.length);
     final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, initial.getFirst().length).mapToObj(x -> x).collect(Collectors.toList()));
     Collections.shuffle(l);
-    final Triplet<Integer, double[], Double> opt = IntStream.range(0, initial.getFirst().length).parallel().mapToObj(i -> {
+    return IntStream.range(0, initial.getFirst().length).parallel().mapToObj(i -> {
       final MultivariateFunction f2 = Util.kryo().copy(this.f);
       try {
+        double start = initial.getFirst()[i];
         final PointValuePair minimize = new UnivariateOptimizer(x1 -> {
           return f2.value(MultivariateOptimizer.copy(initial.getFirst(), i, x1));
-        }).minimize(initial.getFirst()[i]);
+        }).minimize(0.==start?1.:start);
         return new Triplet<>(i, MultivariateOptimizer.copy(initial.getFirst(), i, minimize.getFirst()[0]), minimize.getSecond());
       } catch (final Exception e) {
         if (this.verbose) {
@@ -104,8 +107,8 @@ public class MultivariateOptimizer {
       .filter(x -> x.c < initial.getValue())
       .limit(2)
       .min(Comparator.comparing(x -> x.c))
-      .get();
-    return new Pair<>(MultivariateOptimizer.copy(initial.getFirst(), opt.a, opt.b[opt.a]), opt.c);
+      .map(opt->new Pair<>(MultivariateOptimizer.copy(initial.getFirst(), opt.a, opt.b[opt.a]), opt.c))
+      .orElse(initial);
   }
   
 }

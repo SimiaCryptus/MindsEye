@@ -37,7 +37,7 @@ public class LearningParameterOptimizerDev {
         return t;
       }
     };
-    final PointValuePair result = new MultivariateOptimizer(f).minimize(LearningParameterOptimizerDev.ones(3));
+    final PointValuePair result = new MultivariateOptimizer(f).minimize(LearningParameterOptimizerDev.ones(3).length);
     assert result.getValue() < -0.99;
     LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", Arrays.toString(result.getFirst()), result.getSecond()));
   }
