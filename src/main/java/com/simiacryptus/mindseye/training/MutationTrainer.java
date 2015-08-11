@@ -93,7 +93,7 @@ public class MutationTrainer {
   }
   
   public void train(double stopError) {
-    this.inner.train();
+    this.inner.trainToLocalOptimum();
     while(null == this.inner.inner.best || this.inner.inner.best.error() > stopError) {
       if (this.verbose) {
         log.debug(String.format("Local Optimum reached - gradient not useful. Mutating."));
@@ -102,7 +102,7 @@ public class MutationTrainer {
       this.inner.inner.revert();
       this.inner.inner.current.mutate(getMutationFactor());
       this.inner.lastCalibratedIteration = this.inner.currentIteration;// - (this.recalibrationInterval + 2);
-      this.inner.train();
+      this.inner.trainToLocalOptimum();
     }
     
   }

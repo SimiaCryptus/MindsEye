@@ -144,28 +144,27 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  public boolean train() {
+  public boolean trainToLocalOptimum() {
     currentIteration = 0;
     generationsSinceImprovement = 0;
     lastCalibratedIteration = Integer.MIN_VALUE;
-    if (this.lastCalibratedIteration < this.currentIteration++ - this.recalibrationInterval) {
-      if (this.verbose) {
-        DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule");
+    while (true) {
+      if (this.lastCalibratedIteration < this.currentIteration++ - this.recalibrationInterval) {
+        if (this.verbose) {
+          DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule");
+        }
+        if (!calibrate()) return false;
+        if (trainOnce() <= 0) return false;
       }
-      if(!calibrate()) return false;
-    }
-    final double lastError = this.inner.current.error();
-    this.inner.train();
-    final double resultError = this.inner.current.error();
-    if (Double.isFinite(lastError) && Double.isFinite(resultError)) {
-      if (resultError >= lastError)
+      if (trainOnce() <= 0)
       {
         if (this.recalibrationThreshold < this.generationsSinceImprovement++)
         {
           if (this.verbose) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }
-          calibrate();
+          if (!calibrate()) return false;
+          if (trainOnce() <= 0) return false;
           this.generationsSinceImprovement = 0;
         }
       }
@@ -174,8 +173,14 @@ public class DynamicRateTrainer {
         this.generationsSinceImprovement = 0;
       }
     }
-    // updateRate(lastError, resultError);
-    return true;
+  }
+
+  public double trainOnce() {
+    final double lastError = this.inner.current.error();
+    this.inner.train();
+    final double resultError = this.inner.current.error();
+    double improvement = (Double.isFinite(lastError) || Double.isFinite(resultError))?-Double.POSITIVE_INFINITY:(lastError-resultError);
+    return improvement;
   }
 
 }
