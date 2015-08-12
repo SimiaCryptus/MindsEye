@@ -87,6 +87,7 @@ public class SimpleNetworkTests {
     .add(new BiasLayer(outSize))
     .add(new SigmoidActivationLayer())
 
+    .setMutationAmplitude(10.)
     .trainer(samples)
     .verifyConvergence(10000, 0.01, 10);
   }
@@ -145,8 +146,9 @@ public class SimpleNetworkTests {
     final double staticRate = 1.;
 
     new PipelineNetwork() //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
+    .setMutationAmplitude(.5)
     .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
 
     new PipelineNetwork() //

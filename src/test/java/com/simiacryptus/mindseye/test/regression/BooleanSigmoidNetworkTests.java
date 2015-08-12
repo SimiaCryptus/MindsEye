@@ -50,6 +50,7 @@ public class BooleanSigmoidNetworkTests {
     .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
     .add(new BiasLayer(outSize))
     .add(new SigmoidActivationLayer())
+    .setMutationAmplitude(10.)
     .trainer(samples)
     .setVerbose(verbose)
     .verifyConvergence(10000, 0.01, 10);
