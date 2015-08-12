@@ -23,12 +23,12 @@ public class UnivariateOptimizer {
   
   public final UnivariateFunction f;
   public double growth = 2.;
-  public double maxValue = 1e4;
-  public double minValue = 1. / this.maxValue;
+  public double maxValue = 1024;
+  public double minValue = 0;
   public List<PointValuePair> points = new ArrayList<PointValuePair>();
   double relativeUncertiantyThreshold = 3e-2;
   public double solveThreshold = -Double.MAX_VALUE;
-  private boolean verbose = false;
+  private boolean verbose = true;
 
   public UnivariateOptimizer(final UnivariateFunction f) {
     this.f = f;
@@ -42,7 +42,9 @@ public class UnivariateOptimizer {
   }
   
   public PointValuePair eval(final double optimal) {
-    return new PointValuePair(new double[] { optimal }, this.f.value(optimal));
+    double value = this.f.value(optimal);
+    log.debug(String.format("f(%s) = %s", optimal, value));
+    return new PointValuePair(new double[] { optimal }, value);
   }
   
   public double findMin() {
@@ -68,7 +70,11 @@ public class UnivariateOptimizer {
     final PointValuePair bottomLeft = this.points.stream()
         .filter(x -> x.getFirst()[0] < bottom.getFirst()[0])
         .max(Comparator.comparing(x -> x.getFirst()[0]))
+        //.orElse(this.points.get(0));
         .orElseThrow(() -> new RuntimeException());
+    if(bottom == bottomLeft) {
+      return this.points;
+    }
     final PointValuePair bottomRight = this.points.stream()
         .filter(x -> x.getFirst()[0] > bottom.getFirst()[0])
         .min(Comparator.comparing(x -> x.getFirst()[0]))
@@ -79,9 +85,12 @@ public class UnivariateOptimizer {
         bottomRight
     }).distinct().collect(Collectors.toList());
     assert newList.size() == 3;
-    if (IntStream.range(0, newList.size()).allMatch(i -> newList.get(i) == this.points.get(i)))
-      return this.points;
-    else return newList;
+    if (isVerbose()) {
+      UnivariateOptimizer.log.debug(newList.stream()
+          .map(pt -> String.format("%s=%s", Arrays.toString(pt.getFirst()), pt.getSecond()))
+          .reduce((aa, bb) -> aa + ", " + bb).get());
+    }
+    return newList;
   }
   
   public double getRelativeUncertianty() {
@@ -115,7 +124,7 @@ public class UnivariateOptimizer {
     final double oneV = this.points.get(this.points.size() - 1).getValue();
     final double zeroV = this.points.get(this.points.size() - 2).getValue();
     if (oneV > zeroV) {
-      for (double x = start / this.growth; true; x /= this.growth) {
+      for (double x = start / this.growth; x>1./maxValue; x /= this.growth) {
         this.points.add(eval(x));
         final Double lastV = this.points.get(this.points.size() - 1).getValue();
         if (lastV <= zeroV) {
@@ -124,14 +133,14 @@ public class UnivariateOptimizer {
         if (x < this.minValue) throw new RuntimeException("x < minValue");
       }
     } else {
-      for (double x = start * this.growth; true; x *= this.growth) {
+      for (double x = start * this.growth; x<maxValue; x *= this.growth) {
         this.points.add(eval(x));
         final Double prevV = this.points.get(this.points.size() - 2).getValue();
         final Double thisV = this.points.get(this.points.size() - 1).getValue();
         if (thisV > prevV) {
           break;
         }
-        if (x > this.maxValue) throw new RuntimeException("x > maxValue");
+        if (x > this.maxValue) throw new RuntimeException("x > maxValue: " + x);
       }
     }
     try {
@@ -142,7 +151,9 @@ public class UnivariateOptimizer {
       }
     }
     while (continueIterating()) {
-      this.points.add(eval(findMin()));
+      double nextValue = findMin();
+      if(points.stream().anyMatch(p->p.getFirst()[0]==nextValue)) break;
+      this.points.add(eval(nextValue));
       this.points = getKeyPoints();
     }
     return this.points.get(1);

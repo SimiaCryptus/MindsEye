@@ -65,21 +65,23 @@ public class Trainer {
   }
   
   public void verifyConvergence(final int maxIter, final double convergence, final int reps) {
-    final long succeesses = IntStream.range(0, reps).parallel().filter(i -> {
-      boolean hasConverged = false;
-      try {
-        final MacroTrainer copy = Util.kryo().copy(this.macroTrainer);
-        final Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
-        hasConverged = error <= convergence;
-        if (!hasConverged) {
-          Trainer.log.debug("Not Converged");
-        }
-      } catch (final Throwable e) {
-        Trainer.log.debug("Not Converged", e);
-      }
-      return hasConverged;
-    }).count();
+    final long succeesses = IntStream.range(0, reps) //
+        // .parallel()
+        .filter(i -> {
+          boolean hasConverged = false;
+          try {
+            final MacroTrainer copy = Util.kryo().copy(this.macroTrainer);
+            final Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
+            hasConverged = error <= convergence;
+            if (!hasConverged) {
+              Trainer.log.debug("Not Converged");
+            }
+          } catch (final Throwable e) {
+            Trainer.log.debug("Not Converged", e);
+          }
+          return hasConverged;
+        }).count();
     if (reps > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
   }
-
+  
 }

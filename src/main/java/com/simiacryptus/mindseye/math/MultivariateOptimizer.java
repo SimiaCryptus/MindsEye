@@ -62,21 +62,34 @@ public class MultivariateOptimizer {
   }
   
   public PointValuePair minimize(int dims) {
-    double[] start = new double[dims];
-    return minimize(eval(start));
+    return minimize(eval(new double[dims]));
   }
   
-  public PointValuePair minimize(Pair<double[], Double> last) {
-    double dist;
-    int iterations = 0;
-    do {
-      final Pair<double[], Double> next = step(last);
-      dist = dist(last.getFirst(), next.getFirst());
-      last = next;
-      if (iterations++ > this.maxIterations) throw new RuntimeException("Non convergent");
-    } while (dist > 1e-8);
-    if (isVerbose()) log.debug(String.format("Result: %s with prev dist %s", Arrays.toString(last.getFirst()), dist));
-    return eval(last.getFirst());
+  public PointValuePair minimize(PointValuePair initial) {
+    int dims = initial.getFirst().length;
+    final ThreadLocal<MultivariateFunction> f2 = copyOnFork(f);
+    return IntStream.range(0, (int) Math.min(Math.ceil(Math.sqrt(dims)), 2)).limit(1)
+        //.parallel()
+        .mapToObj(threadNum->{
+      final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, dims).mapToObj(x -> x).collect(Collectors.toList()));
+      Collections.shuffle(l);
+      PointValuePair accumulator = initial;
+      for(int i=0;i<dims;i++){
+        Integer d = l.get(i);
+        try {
+          double[] pos = accumulator.getFirst();
+          PointValuePair oneD = new UnivariateOptimizer(x1 -> {
+            return f2.get().value(MultivariateOptimizer.copy(pos, d, x1));
+          }).minimize();
+          accumulator = new PointValuePair(MultivariateOptimizer.copy(pos, d, oneD.getFirst()[0]), oneD.getSecond());
+        } catch (final Exception e) {
+          if (this.verbose) {
+            MultivariateOptimizer.log.debug("Error mutating " + d, e);
+          }
+        }
+      }
+      return accumulator;
+    }).sorted(Comparator.comparing(p->p.getSecond())).findFirst().orElse(null);
   }
   
   public MultivariateOptimizer setVerbose(final boolean verbose) {
@@ -84,31 +97,15 @@ public class MultivariateOptimizer {
     return this;
   }
   
-  public Pair<double[], Double> step(final Pair<double[], Double> initial) {
-    // Set<Integer> toMutate = chooseIndexes(1, start.length);
-    final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, initial.getFirst().length).mapToObj(x -> x).collect(Collectors.toList()));
-    Collections.shuffle(l);
-    return IntStream.range(0, initial.getFirst().length).parallel().mapToObj(i -> {
-      final MultivariateFunction f2 = Util.kryo().copy(this.f);
-      try {
-        double start = initial.getFirst()[i];
-        final PointValuePair minimize = new UnivariateOptimizer(x1 -> {
-          return f2.value(MultivariateOptimizer.copy(initial.getFirst(), i, x1));
-        }).minimize(0.==start?1.:start);
-        return new Triplet<>(i, MultivariateOptimizer.copy(initial.getFirst(), i, minimize.getFirst()[0]), minimize.getSecond());
-      } catch (final Exception e) {
-        if (this.verbose) {
-          MultivariateOptimizer.log.debug("Error mutating " + i, e);
-        }
-        return null;
+  public static <T> ThreadLocal<T> copyOnFork(T localValue) {
+    final ThreadLocal<T> f2 = new ThreadLocal<T>(){
+      @Override
+      protected T initialValue() {
+        return Util.kryo().copy(localValue);
       }
-    })
-      .filter(x -> null != x)
-      .filter(x -> x.c < initial.getValue())
-      .limit(2)
-      .min(Comparator.comparing(x -> x.c))
-      .map(opt->new Pair<>(MultivariateOptimizer.copy(initial.getFirst(), opt.a, opt.b[opt.a]), opt.c))
-      .orElse(initial);
+    };
+    f2.set(localValue);
+    return f2;
   }
   
 }

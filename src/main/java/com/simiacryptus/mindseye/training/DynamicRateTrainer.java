@@ -117,6 +117,7 @@ public class DynamicRateTrainer {
   }
 
   public boolean isVerbose() {
+    //return true;
     return this.verbose;
   }
 
