@@ -19,7 +19,14 @@ public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
   
-  public static final Random random = new Random(System.nanoTime());
+  public static final ThreadLocal<Random> R = new ThreadLocal<Random>(){
+    public final Random r = new Random(System.nanoTime());
+    @Override
+    protected Random initialValue() {
+      return new Random(r.nextLong());
+    }
+  };
+  
   protected List<NNLayer> layers = new ArrayList<NNLayer>();
   private double mutationAmplitude = 2.;
   
@@ -54,8 +61,8 @@ public class PipelineNetwork extends NNLayer {
     final double[] a = l.bias;
     for (int i = 0; i < a.length; i++)
     {
-      if (PipelineNetwork.random.nextDouble() < amount) {
-        a[i] = this.mutationAmplitude * l.getRandom();
+      if (R.get().nextDouble() < amount) {
+        a[i] = this.mutationAmplitude * R.get().nextGaussian();
       }
     }
     return l;
@@ -65,8 +72,8 @@ public class PipelineNetwork extends NNLayer {
     final double[] a = l.weights.getData();
     for (int i = 0; i < a.length; i++)
     {
-      if (PipelineNetwork.random.nextDouble() < amount) {
-        a[i] = this.mutationAmplitude * l.getRandom();
+      if (R.get().nextDouble() < amount) {
+        a[i] = this.mutationAmplitude * R.get().nextGaussian();
       }
     }
     return l;
@@ -78,11 +85,13 @@ public class PipelineNetwork extends NNLayer {
     .map(l -> (DenseSynapseLayer) l)
     .filter(l -> !l.isFrozen())
     .forEach(l -> mutate(l, amount));
+    
     this.layers.stream()
     .filter(l -> (l instanceof BiasLayer))
     .map(l -> (BiasLayer) l)
     .filter(l -> !l.isFrozen())
     .forEach(l -> mutate(l, amount));
+    
     return this;
   }
 

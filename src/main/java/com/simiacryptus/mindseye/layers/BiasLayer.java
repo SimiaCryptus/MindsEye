@@ -86,10 +86,6 @@ public class BiasLayer extends NNLayer implements MassParameters<BiasLayer>, Del
     return this.deltaBuffer.getMomentumDecay();
   }
   
-  public double getRandom() {
-    return PipelineNetwork.random.nextGaussian();
-  }
-  
   @Override
   public double getRate() {
     return 1. / this.deltaBuffer.getMass();

@@ -162,10 +162,6 @@ public class DenseSynapseLayer extends NNLayer implements MassParameters<DenseSy
     return this.massMomentum.getMomentumDecay();
   }
 
-  public double getRandom() {
-    return PipelineNetwork.random.nextGaussian();
-  }
-
   @Override
   public double getRate() {
     return 1. / this.massMomentum.getMass();

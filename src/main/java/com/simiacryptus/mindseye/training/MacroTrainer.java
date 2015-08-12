@@ -91,10 +91,12 @@ public class MacroTrainer {
     final long startMs = System.currentTimeMillis();
     this.currentGeneration = 0;
     this.inner.inner.inner.current.mutate(1);
+    this.inner.train();
     while (continueTraining())
     {
       this.currentGeneration++;
-      this.inner.train(stopError);
+      this.inner.mutate();
+      this.inner.train();
       if (this.verbose)
       {
         MacroTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",

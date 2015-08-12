@@ -11,7 +11,7 @@ public class MutationTrainer {
   
   public final DynamicRateTrainer inner;
   private double mutationFactor = 1.;
-  private boolean verbose = true;
+  private boolean verbose = false;
 
   public MutationTrainer() {
     this(new ChampionTrainer());
@@ -91,20 +91,29 @@ public class MutationTrainer {
     this.inner.setVerbose(verbose);
     return this;
   }
-  
+
+  @Deprecated
   public void train(double stopError) {
-    this.inner.trainToLocalOptimum();
+    train();
     while(null == this.inner.inner.best || this.inner.inner.best.error() > stopError) {
       if (this.verbose) {
-        log.debug(String.format("Local Optimum reached - gradient not useful. Mutating."));
+        log.debug(String.format("Local Optimum reached at %s. Gradient not useful. Mutating.", Arrays.toString(this.inner.inner.best.error)));
       }
-      this.inner.generationsSinceImprovement = this.inner.recalibrationThreshold-1;
-      this.inner.inner.revert();
-      this.inner.inner.current.mutate(getMutationFactor());
-      this.inner.lastCalibratedIteration = this.inner.currentIteration;// - (this.recalibrationInterval + 2);
-      this.inner.trainToLocalOptimum();
+      mutate();
+      train();
     }
     
+  }
+
+  public void train() {
+    this.inner.trainToLocalOptimum();
+  }
+
+  public void mutate() {
+    this.inner.generationsSinceImprovement = this.inner.recalibrationThreshold-1;
+    this.inner.inner.revert();
+    this.inner.inner.current.mutate(getMutationFactor());
+    this.inner.lastCalibratedIteration = this.inner.currentIteration;// - (this.recalibrationInterval + 2);
   }
 
 }

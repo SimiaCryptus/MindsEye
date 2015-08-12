@@ -20,7 +20,7 @@ public class DynamicRateTrainer {
   
   public final ChampionTrainer inner;
   double maxRate = 5e4;
-  double minRate = 1e-10;
+  double minRate = -Double.MAX_VALUE;
   private double mutationFactor = 1.;
   double rate = 1/Math.E;
   private int recalibrationInterval = 15;
@@ -48,9 +48,16 @@ public class DynamicRateTrainer {
           .map(l -> (DeltaTransaction) l)
           .filter(x->!x.isFrozen())
           .distinct().collect(Collectors.toList());
-      final double[] localMin = current.copy().clearMomentum().trainLineSearch(deltaObjs.size());
+      for (int i = 0; i < deltaObjs.size(); i++) {
+        deltaObjs.get(i).setRate(1);
+      }
+      GradientDescentTrainer clone = current.copy().clearMomentum();
+      final double[] localMin = clone.trainLineSearch(deltaObjs.size());
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
       newRate = DoubleStream.of(adjustment).map(x -> x * current.getRate()).toArray();
+      if (this.verbose) {
+        DynamicRateTrainer.log.debug(String.format("Calibrated to %s with %s error", Arrays.toString(newRate), Arrays.toString(current.getError())));
+      }
       inBounds = DoubleStream.of(newRate).anyMatch(r -> this.maxRate > r && this.minRate < r);
     } catch (final Exception e) {
       if (this.verbose) {
@@ -59,14 +66,15 @@ public class DynamicRateTrainer {
     }
     if (inBounds)
     {
-      if (this.verbose) {
-        DynamicRateTrainer.log.debug(String.format("Adjusting rate by %s: %s", adjustment, newRate));
-      }
       for (int i = 0; i < deltaObjs.size(); i++) {
         deltaObjs.get(i).setRate(newRate[i]);
       }
       this.lastCalibratedIteration = this.currentIteration;
-      return trainOnce()>0;
+      double improvement = trainOnce();
+      if (this.verbose) {
+        DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: %s (%s improvement)", adjustment, newRate, improvement));
+      }
+      return improvement>0;
     } else {
       return false;
     }

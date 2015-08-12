@@ -54,10 +54,11 @@ public class BooleanSoftmaxNetworkTests {
     .add(new BiasLayer(outSize))
     .add(new SoftmaxActivationLayer().setVerbose(false))
         
-    .setMutationAmplitude(.2)
+    .setMutationAmplitude(10.)
     .trainer(samples)
+    .setStaticRate(.5)
     //.setMutationAmount(.5)
-    .setVerbose(false)
+    //.setVerbose(true)
     .verifyConvergence(10000, 0.01, 10);
   }
 

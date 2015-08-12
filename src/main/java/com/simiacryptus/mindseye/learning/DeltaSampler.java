@@ -1,12 +1,9 @@
 package com.simiacryptus.mindseye.learning;
 
-import java.util.Random;
-
 import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class DeltaSampler implements DeltaSink {
-  public static final Random random = new Random(System.nanoTime());
-  
   private double sampling = 2.;
   private DeltaSink values;
   
@@ -32,7 +29,7 @@ public class DeltaSampler implements DeltaSink {
     final int dim = length();
     final double[] v = new double[data.length];
     for (int i = 0; i < dim; i++) {
-      if (DeltaSampler.random.nextDouble() < this.sampling)
+      if (PipelineNetwork.R.get().nextDouble() < this.sampling)
       {
         v[i] = data[i];
       }
