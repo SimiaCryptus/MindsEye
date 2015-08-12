@@ -14,7 +14,15 @@ import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
+import org.apache.commons.math3.optim.MaxEval;
 import org.apache.commons.math3.optim.PointValuePair;
+import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
+import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
+import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.PowellOptimizer;
+import org.apache.commons.math3.optim.univariate.BrentOptimizer;
+import org.apache.commons.math3.optim.univariate.SearchInterval;
+import org.apache.commons.math3.optim.univariate.UnivariateObjectiveFunction;
+import org.apache.commons.math3.optim.univariate.UnivariatePointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +36,7 @@ public class UnivariateOptimizer {
   public List<PointValuePair> points = new ArrayList<PointValuePair>();
   double relativeUncertiantyThreshold = 3e-2;
   public double solveThreshold = -Double.MAX_VALUE;
-  private boolean verbose = true;
+  private boolean verbose = false;
 
   public UnivariateOptimizer(final UnivariateFunction f) {
     this.f = f;
@@ -43,7 +51,7 @@ public class UnivariateOptimizer {
   
   public PointValuePair eval(final double optimal) {
     double value = this.f.value(optimal);
-    log.debug(String.format("f(%s) = %s", optimal, value));
+    if(verbose) log.debug(String.format("f(%s) = %s", optimal, value));
     return new PointValuePair(new double[] { optimal }, value);
   }
   
@@ -150,13 +158,14 @@ public class UnivariateOptimizer {
         UnivariateOptimizer.log.debug("Invalid starting constraints", e);
       }
     }
-    while (continueIterating()) {
-      double nextValue = findMin();
-      if(points.stream().anyMatch(p->p.getFirst()[0]==nextValue)) break;
-      this.points.add(eval(nextValue));
-      this.points = getKeyPoints();
-    }
-    return this.points.get(1);
+    
+    final UnivariatePointValuePair optim = new BrentOptimizer(1e-3, 1e-3).optimize(
+        GoalType.MINIMIZE,
+        new UnivariateObjectiveFunction(f),
+        new SearchInterval(this.points.get(0).getFirst()[0],this.points.get(2).getFirst()[0],this.points.get(1).getFirst()[0]),
+        new MaxEval(10000)
+        );
+    return new PointValuePair(new double[]{optim.getPoint()}, optim.getValue());
   }
   
   public UnivariateOptimizer setVerbose(final boolean verbose) {

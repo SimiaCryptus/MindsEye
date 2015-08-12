@@ -56,7 +56,7 @@ public class BooleanSoftmaxNetworkTests {
         
     //.setMutationAmplitude(10.)
     .trainer(samples)
-    .setVerbose(true)
+    //.setVerbose(true)
     //.setStaticRate(.5)
     .verifyConvergence(10000, 0.01, 10);
   }

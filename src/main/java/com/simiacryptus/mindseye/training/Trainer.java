@@ -66,7 +66,7 @@ public class Trainer {
   
   public void verifyConvergence(final int maxIter, final double convergence, final int reps) {
     final long succeesses = IntStream.range(0, reps) //
-        // .parallel()
+        .parallel()
         .filter(i -> {
           boolean hasConverged = false;
           try {

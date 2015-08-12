@@ -143,10 +143,6 @@ public class SimpleNetworkTests {
     };
 
     final double staticRate = 1.;
-    new PipelineNetwork() //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
 
     new PipelineNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze())
@@ -156,6 +152,17 @@ public class SimpleNetworkTests {
     new PipelineNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+
+    new PipelineNetwork() //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+    
+    new PipelineNetwork() //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
     .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
   }
 
