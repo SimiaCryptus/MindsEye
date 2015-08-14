@@ -143,7 +143,7 @@ public class UnivariateOptimizer {
     final double oneV = this.points.get(this.points.size() - 1).getValue();
     final double zeroV = this.points.get(this.points.size() - 2).getValue();
     if (oneV > zeroV) {
-      for (double x = start / this.growth; x>1e-6; x /= this.growth) {
+      for (double x = start / this.growth; x>1e-10; x /= this.growth) {
         this.points.add(eval(x));
         final Double lastV = this.points.get(this.points.size() - 1).getValue();
         if (lastV <= zeroV) {

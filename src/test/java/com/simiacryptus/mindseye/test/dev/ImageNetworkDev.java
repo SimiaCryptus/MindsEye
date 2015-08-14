@@ -162,19 +162,19 @@ public class ImageNetworkDev {
           .add(bias)
           .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
       
-      trainer.add(new SupervisedTrainingParameters(
-          new PipelineNetwork().add(bias),
-          new NDArray[][] { { zeroInput, zeroInput } })
-      {
-        @Override
-        public NDArray getIdeal(NNResult eval, NDArray preset) {
-          NDArray retVal = preset.copy();
-          for (int i = 0; i < retVal.dim(); i++) {
-            if (eval.data.getData()[i] < 0) retVal.getData()[i] = eval.data.getData()[i];
-          }
-          return retVal;
-        }
-      }.setWeight(1));
+//      trainer.add(new SupervisedTrainingParameters(
+//          new PipelineNetwork().add(bias),
+//          new NDArray[][] { { zeroInput, zeroInput } })
+//      {
+//        @Override
+//        public NDArray getIdeal(NNResult eval, NDArray preset) {
+//          NDArray retVal = preset.copy();
+//          for (int i = 0; i < retVal.dim(); i++) {
+//            if (eval.data.getData()[i] < 0) retVal.getData()[i] = eval.data.getData()[i];
+//          }
+//          return retVal;
+//        }
+//      }.setWeight(1));
       
 //      trainer.add(new SupervisedTrainingParameters(
 //          new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(5)),
@@ -187,7 +187,7 @@ public class ImageNetworkDev {
           //.setDynamicRate(0.005)
           // .setMaxDynamicRate(1.)
           // .setMinDynamicRate(0.001)
-          .train(100, 0.0001);
+          .train(10, 0.0001);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       final NNResult recovered = bias.eval(zeroInput);
