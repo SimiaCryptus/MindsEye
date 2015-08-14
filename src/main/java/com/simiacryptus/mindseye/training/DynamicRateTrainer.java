@@ -24,7 +24,7 @@ public class DynamicRateTrainer {
   private double mutationFactor = 1.;
   double rate = 1;
   private int recalibrationInterval = 15;
-  int recalibrationThreshold = 3;
+  int recalibrationThreshold = 0;
   private boolean verbose = false;
 
   public DynamicRateTrainer() {
@@ -39,7 +39,6 @@ public class DynamicRateTrainer {
     double last = this.inner.current.error();
     List<DeltaTransaction> deltaObjs = null;
     double[] adjustment = null;
-    double[] newRate = null;
     boolean inBounds = false;
     try {
       GradientDescentTrainer current = this.inner.current;
@@ -55,9 +54,8 @@ public class DynamicRateTrainer {
       GradientDescentTrainer clone = current.copy().clearMomentum();
       final double[] localMin = clone.trainLineSearch(deltaObjs.size());
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
-      newRate = DoubleStream.of(adjustment).map(x -> x * current.getRate()).toArray();
-      inBounds = DoubleStream.of(newRate).allMatch(r -> this.maxRate > r) 
-          && DoubleStream.of(newRate).anyMatch(r -> this.minRate < r);
+      inBounds = DoubleStream.of(adjustment).allMatch(r -> this.maxRate > r) 
+          && DoubleStream.of(adjustment).anyMatch(r -> this.minRate < r);
     } catch (final Exception e) {
       if (this.isVerbose()) {
         DynamicRateTrainer.log.debug("Error calibrating", e);
@@ -66,17 +64,18 @@ public class DynamicRateTrainer {
     if (inBounds)
     {
       for (int i = 0; i < deltaObjs.size(); i++) {
-        deltaObjs.get(i).setRate(newRate[i]);
+        deltaObjs.get(i).setRate(adjustment[i]);
       }
       this.lastCalibratedIteration = this.currentIteration;
-      double improvement = last - trainOnce();
+      double err = trainOnce();
+      double improvement = last - err;
       if (this.isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: %s (%s - %s improvement)", Arrays.toString(adjustment), Arrays.toString(newRate), error(), improvement));
+        DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(adjustment), last, err, improvement));
       }
       return improvement>0;
     } else {
       if (this.isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(newRate), Arrays.toString(this.inner.current.getError())));
+        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(adjustment), Arrays.toString(this.inner.current.getError())));
       }
       return false;
     }
@@ -193,6 +192,10 @@ public class DynamicRateTrainer {
     this.inner.step();
     this.inner.updateBest();
     return this.inner.current.error();
+  }
+
+  public double[] getRates() {
+    return inner.current.getRates();
   }
 
 }

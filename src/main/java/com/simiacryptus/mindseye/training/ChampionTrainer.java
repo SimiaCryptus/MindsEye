@@ -55,8 +55,8 @@ public class ChampionTrainer {
     updateBest();
     if (this.verbose)
     {
-      ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s in %.03fs",
-          this.current.error(), Arrays.toString(this.current.getError()), this.current.getRate(), (System.currentTimeMillis() - startMs) / 1000.));
+      ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s*%s in %.03fs",
+          this.current.error(), Arrays.toString(this.current.getError()), this.current.getRate(), Arrays.toString(this.current.getRates()), (System.currentTimeMillis() - startMs) / 1000.));
     }
     return this.current.error();
   }
