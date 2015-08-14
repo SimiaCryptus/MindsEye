@@ -25,7 +25,7 @@ public class GradientDescentTrainer {
 
   public List<SupervisedTrainingParameters> currentNetworks = new ArrayList<>();
   private double[] error;
-  private double rate = .1;
+  private double rate = 0.5;
 
   private boolean verbose = false;
 

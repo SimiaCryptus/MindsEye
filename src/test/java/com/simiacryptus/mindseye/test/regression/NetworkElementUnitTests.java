@@ -178,8 +178,25 @@ public class NetworkElementUnitTests {
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .trainer(samples)
         // .setStaticRate(.01)
-        // .setVerbose(true)
-        .verifyConvergence(10, 0.1, 100);
+        .setVerbose(true)
+        .verifyConvergence(1, 0.1, 1);
+  }
+  
+  @Test
+  public void _denseSynapseLayer_train2() throws Exception {
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) }
+    };
+    
+    new PipelineNetwork()
+        .add(new BiasLayer(inputSize))
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
+        .trainer(samples)
+        // .setStaticRate(.01)
+        .setVerbose(true)
+        .verifyConvergence(1, 0.1, 1);
   }
   
   @Test
