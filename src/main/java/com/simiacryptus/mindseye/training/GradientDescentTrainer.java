@@ -170,6 +170,7 @@ public class GradientDescentTrainer {
             .flatMap(n -> n.getNet().layers.stream())
             .filter(l -> l instanceof DeltaTransaction)
             .map(l -> (DeltaTransaction) l)
+            .filter(l->!l.isFrozen())
             .distinct().collect(Collectors.toList());
         for (int i = 0; i < diff.length; i++) {
           deltaObjs.get(i).write(diff[i]);
@@ -177,7 +178,10 @@ public class GradientDescentTrainer {
         for (int i = 0; i < diff.length; i++) {
           this.pos[i] += diff[i];
         }
-        return Util.geomMean(calcError(evalTrainingData()));
+        double[] calcError = calcError(evalTrainingData());
+        double err = Util.geomMean(calcError);
+        if(isVerbose()) log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(x),err,Arrays.toString(calcError)));
+        return err;
       }
     };
     final PointValuePair x = new MultivariateOptimizer(f).minimize(dims); // May or may not be cloned before evaluations
