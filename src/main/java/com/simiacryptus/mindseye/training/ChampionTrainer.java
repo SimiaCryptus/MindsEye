@@ -49,14 +49,14 @@ public class ChampionTrainer {
     return this;
   }
   
-  public Double train() {
+  public Double step() {
     final long startMs = System.currentTimeMillis();
     this.current.trainSet();
     updateBest();
     if (this.verbose)
     {
       ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s in %.03fs",
-          this.current.error(), Arrays.toString(this.current.error), this.current.getRate(), (System.currentTimeMillis() - startMs) / 1000.));
+          this.current.error(), Arrays.toString(this.current.getError()), this.current.getRate(), (System.currentTimeMillis() - startMs) / 1000.));
     }
     return this.current.error();
   }

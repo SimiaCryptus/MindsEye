@@ -24,8 +24,8 @@ public class GradientDescentTrainer {
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
 
   public List<SupervisedTrainingParameters> currentNetworks = new ArrayList<>();
-  double[] error;
-  private double rate = 0.1;
+  private double[] error;
+  private double rate = .1;
 
   private boolean verbose = false;
 
@@ -69,9 +69,15 @@ public class GradientDescentTrainer {
   }
 
   public double error() {
-    if (null == this.error) return Double.POSITIVE_INFINITY;
-    final double geometricMean = Math.exp(DoubleStream.of(this.error).filter(x -> 0 != x).map(Math::log).average().orElse(Double.POSITIVE_INFINITY));
-    return Math.pow(geometricMean, 1 / this.currentNetworks.stream().mapToDouble(p -> p.getWeight()).sum());
+    double[] error = this.getError();
+    if (null == error) {
+      trainSet();
+      return error();
+    }
+    final double geometricMean = Math.exp(DoubleStream.of(error).filter(x -> 0 != x).map(Math::log).average().orElse(Double.POSITIVE_INFINITY));
+    double returnValue = Math.pow(geometricMean, 1 / this.currentNetworks.stream().mapToDouble(p -> p.getWeight()).sum());
+    assert(Double.isFinite(returnValue));
+    return returnValue;
   }
 
   protected List<List<NNResult>> evalTrainingData() {
@@ -86,7 +92,10 @@ public class GradientDescentTrainer {
         }).collect(Collectors.toList())).collect(Collectors.toList());
   }
 
-  public double[] getError() {
+  public synchronized double[] getError() {
+//    if(null==this.error||0==this.error.length){
+//      trainSet();
+//    }
     return this.error;
   }
 
@@ -121,7 +130,7 @@ public class GradientDescentTrainer {
       GradientDescentTrainer.log.debug(String.format("Mutating %s by %s", this.currentNetworks, mutationAmount));
     }
     this.currentNetworks.stream().forEach(x -> x.getNet().mutate(mutationAmount));
-    this.error = null;
+    this.setError(null);
   }
 
   public GradientDescentTrainer setError(final double[] error) {
@@ -145,6 +154,7 @@ public class GradientDescentTrainer {
 
   public synchronized double[] trainLineSearch(final int dims) {
     assert 0 < this.currentNetworks.size();
+    double[] prev = this.getError();
     learn(evalTrainingData());
     //final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     final MultivariateFunction f = new MultivariateFunction() {
@@ -172,9 +182,9 @@ public class GradientDescentTrainer {
     };
     final PointValuePair x = new MultivariateOptimizer(f).minimize(dims); // May or may not be cloned before evaluations
     f.value(x.getKey()); // f is stateful, based on most recent evaluation
-    this.error = calcError(evalTrainingData());
+    this.setError(calcError(evalTrainingData()));
     if (this.verbose) {
-      GradientDescentTrainer.log.debug(String.format("Terminated at position: %s (%s), error %s", Arrays.toString(x.getKey()), x.getValue(), this.error));
+      GradientDescentTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(), Arrays.toString(prev), Arrays.toString(this.getError())));
     }
     return x.getKey();
   }
@@ -182,10 +192,10 @@ public class GradientDescentTrainer {
   public synchronized double[] trainSet() {
     assert 0 < this.currentNetworks.size();
     final List<List<NNResult>> results = evalTrainingData();
-    this.error = calcError(results);
+    this.setError(calcError(results));
     learn(results);
     this.currentNetworks.stream().forEach(params -> params.getNet().writeDeltas(1));
-    return this.error;
+    return this.getError();
   }
 
 }

@@ -27,13 +27,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UnivariateOptimizer {
+  public static final class PtList extends ArrayList<PointValuePair> {
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      stream().forEach(x->builder.append(String.format("%s%s = %s",builder.length()==0?"":",", Arrays.toString(x.getFirst()),x.getSecond())));
+      builder.append("PtList []");
+      return builder.toString();
+    }
+    
+  }
+
   static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
   
   public final UnivariateFunction f;
   public double growth = 2.;
-  public double maxValue = 1024;
+  public double maxValue = 1e8;
   public double minValue = 0;
-  public List<PointValuePair> points = new ArrayList<PointValuePair>();
+  public final List<PointValuePair> points = new PtList();
   double relativeUncertiantyThreshold = 3e-2;
   public double solveThreshold = -Double.MAX_VALUE;
   private boolean verbose = false;
@@ -78,7 +90,6 @@ public class UnivariateOptimizer {
     final PointValuePair bottomLeft = this.points.stream()
         .filter(x -> x.getFirst()[0] < bottom.getFirst()[0])
         .max(Comparator.comparing(x -> x.getFirst()[0]))
-        //.orElse(this.points.get(0));
         .orElseThrow(() -> new RuntimeException());
     if(bottom == bottomLeft) {
       return this.points;
@@ -152,17 +163,23 @@ public class UnivariateOptimizer {
       }
     }
     try {
-      this.points = getKeyPoints();
+      List<PointValuePair> keyPoints = getKeyPoints();
+      this.points.clear();
+      this.points.addAll(keyPoints);
     } catch (final RuntimeException e) {
       if (this.verbose) {
-        UnivariateOptimizer.log.debug("Invalid starting constraints", e);
+        UnivariateOptimizer.log.debug("Invalid starting constraints: " + this.points, e);
       }
     }
+    assert(3 == this.points.size());
+    double leftX = this.points.get(0).getFirst()[0];
+    double midX = this.points.get(1).getFirst()[0];
+    double rightX = this.points.get(2).getFirst()[0];
     
     final UnivariatePointValuePair optim = new BrentOptimizer(1e-3, 1e-3).optimize(
         GoalType.MINIMIZE,
         new UnivariateObjectiveFunction(f),
-        new SearchInterval(this.points.get(0).getFirst()[0],this.points.get(2).getFirst()[0],this.points.get(1).getFirst()[0]),
+        new SearchInterval(leftX,rightX,midX),
         new MaxEval(10000)
         );
     return new PointValuePair(new double[]{optim.getPoint()}, optim.getValue());

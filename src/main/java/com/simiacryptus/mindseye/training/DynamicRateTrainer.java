@@ -36,6 +36,7 @@ public class DynamicRateTrainer {
   }
 
   protected boolean calibrate() {
+    double last = this.inner.current.error();
     List<DeltaTransaction> deltaObjs = null;
     double[] adjustment = null;
     double[] newRate = null;
@@ -64,16 +65,13 @@ public class DynamicRateTrainer {
     }
     if (inBounds)
     {
-      if (this.isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Calibrated to %s with %s error", Arrays.toString(newRate), Arrays.toString(this.inner.current.getError())));
-      }
       for (int i = 0; i < deltaObjs.size(); i++) {
         deltaObjs.get(i).setRate(newRate[i]);
       }
       this.lastCalibratedIteration = this.currentIteration;
-      double improvement = trainOnce();
+      double improvement = last - trainOnce();
       if (this.isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: %s (%s improvement)", Arrays.toString(adjustment), Arrays.toString(newRate), improvement));
+        DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: %s (%s - %s improvement)", Arrays.toString(adjustment), Arrays.toString(newRate), error(), improvement));
       }
       return improvement>0;
     } else {
@@ -156,18 +154,22 @@ public class DynamicRateTrainer {
     return this;
   }
   
+  final int maxIterations=10000;
   public boolean trainToLocalOptimum() {
     currentIteration = 0;
     generationsSinceImprovement = 0;
     lastCalibratedIteration = Integer.MIN_VALUE;
-    while (true) {
-      if (this.lastCalibratedIteration < this.currentIteration++ - this.recalibrationInterval) {
+    while (maxIterations>currentIteration++) {
+      if (this.lastCalibratedIteration < this.currentIteration - this.recalibrationInterval) {
         if (this.isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
-        if (!calibrate()) return false;
+        calibrate();
+        //if (!calibrate()) return false;
       }
-      if (trainOnce() > 0)
+      double last = this.inner.current.error();
+      double improvement = last - trainOnce();
+      if (improvement > 0)
       {
         this.generationsSinceImprovement = 0;
       }
@@ -183,18 +185,14 @@ public class DynamicRateTrainer {
         }
       }
     }
+    log.debug("Maximum steps reached");
+    return false;
   }
 
   public double trainOnce() {
-    final double prev = this.inner.current.error();
-    this.inner.train();
+    this.inner.step();
     this.inner.updateBest();
-    final double next = this.inner.current.error();
-    if((Double.isFinite(prev) || Double.isFinite(next))){
-      return -Double.POSITIVE_INFINITY;
-    } else {
-      return (prev-next);
-    }
+    return this.inner.current.error();
   }
 
 }

@@ -14,6 +14,7 @@ import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Trainer;
 
@@ -45,14 +46,14 @@ public class SimpleMNIST {
     net.add(new DenseSynapseLayer(net.eval(this.inputSize).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
     net.add(new BiasLayer(net.eval(this.inputSize).data.getDims()).setVerbose(this.verbose > 1));
     // net.add(new SigmoidActivationLayer().setVerbose(verbose));
-    // net.add(new SoftmaxActivationLayer().setVerbose(verbose));
+    net.add(new SoftmaxActivationLayer().setVerbose(verbose>1));
     return net;
   }
   
   public Trainer getTrainer(final PipelineNetwork net, final NDArray[][] data) {
     return net.trainer(data)
-        .setDynamicRate(0.001)
-        .setStaticRate(0.01)
+        //.setDynamicRate(0.001)
+        //.setStaticRate(0.01)
         .setMutationAmount(0.2)
         .setVerbose(this.verbose > 0);
   }

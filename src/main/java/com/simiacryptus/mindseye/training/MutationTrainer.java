@@ -46,7 +46,7 @@ public class MutationTrainer {
   }
 
   public double getRate() {
-    return this.inner.rate;
+    return this.inner.getRate();
   }
 
   public int getRecalibrationThreshold() {
@@ -77,7 +77,7 @@ public class MutationTrainer {
   }
   
   public MutationTrainer setRate(final double rate) {
-    this.inner.rate = rate;
+    this.inner.setRate(rate);
     return this;
   }
   
@@ -97,9 +97,9 @@ public class MutationTrainer {
     train();
     while(null == this.inner.inner.best || this.inner.inner.best.error() > stopError) {
       if (this.verbose) {
-        log.debug(String.format("Local Optimum reached at %s. Gradient not useful. Mutating.", Arrays.toString(this.inner.inner.best.error)));
+        log.debug(String.format("Local Optimum reached at %s. Gradient not useful. Mutating.", Arrays.toString(this.inner.inner.best.getError())));
       }
-      mutate();
+      mutateBest();
       train();
     }
     
@@ -109,7 +109,7 @@ public class MutationTrainer {
     this.inner.trainToLocalOptimum();
   }
 
-  public void mutate() {
+  public void mutateBest() {
     this.inner.generationsSinceImprovement = this.inner.recalibrationThreshold-1;
     this.inner.inner.revert();
     this.inner.inner.current.mutate(getMutationFactor());

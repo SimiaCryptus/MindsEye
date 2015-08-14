@@ -90,17 +90,18 @@ public class MacroTrainer {
   public Double train() {
     final long startMs = System.currentTimeMillis();
     this.currentGeneration = 0;
-    this.inner.inner.inner.current.mutate(1);
-    this.inner.train();
     while (continueTraining())
     {
-      this.currentGeneration++;
-      this.inner.mutate();
+      if(0==this.currentGeneration++){
+        this.inner.inner.inner.current.mutate(1);
+      } else {
+        this.inner.mutateBest();
+      }
       this.inner.train();
       if (this.verbose)
       {
         MacroTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
-            this.currentGeneration, this.inner.error(), Arrays.toString(this.inner.inner.inner.current.error), this.inner.inner.inner.current.getRate()));
+            this.currentGeneration, this.inner.error(), Arrays.toString(this.inner.inner.inner.current.getError()), this.inner.inner.inner.current.getRate()));
       }
     }
     MacroTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", this.inner.error(),

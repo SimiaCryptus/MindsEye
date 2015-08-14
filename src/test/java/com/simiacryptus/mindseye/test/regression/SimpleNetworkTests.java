@@ -33,7 +33,7 @@ public class SimpleNetworkTests {
     .add(new SigmoidActivationLayer())
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
     .add(new BiasLayer(outSize))
-    .trainer(samples).setStaticRate(5).verifyConvergence(10000, 0.1, 10);
+    .trainer(samples).setStaticRate(5).verifyConvergence(100, 0.1, 10);
   }
 
   @Test
@@ -131,7 +131,7 @@ public class SimpleNetworkTests {
     .add(new BiasLayer(outSize))
     .trainer(samples)
     .setVerbose(false)
-    .verifyConvergence(10000, 0.1, 100);
+    .verifyConvergence(100, 0.1, 100);
   }
 
   @Test
@@ -149,23 +149,23 @@ public class SimpleNetworkTests {
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
     .setMutationAmplitude(.5)
-    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(100, 0.01, 10);
 
     new PipelineNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
-    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(100, 0.01, 10);
 
     new PipelineNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(100, 0.01, 10);
     
     new PipelineNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-    .trainer(samples).setStaticRate(staticRate).verifyConvergence(10000, 0.01, 10);
+    .trainer(samples).setStaticRate(staticRate).verifyConvergence(100, 0.01, 10);
   }
 
   @Test

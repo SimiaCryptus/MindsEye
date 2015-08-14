@@ -82,9 +82,9 @@ public class MultivariateOptimizer {
             return f2.get().value(MultivariateOptimizer.copy(pos, d, x1));
           }).minimize();
           accumulator = new PointValuePair(MultivariateOptimizer.copy(pos, d, oneD.getFirst()[0]), oneD.getSecond());
-        } catch (final Exception e) {
-          if (this.verbose) {
-            MultivariateOptimizer.log.debug("Error mutating " + d, e);
+        } catch (final Throwable e) {
+          if (this.isVerbose()) {
+            MultivariateOptimizer.log.debug("Error optimizing dimension " + d, e);
           }
         }
       }

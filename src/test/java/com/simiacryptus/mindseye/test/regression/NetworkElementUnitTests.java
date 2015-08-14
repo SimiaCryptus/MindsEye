@@ -63,7 +63,9 @@ public class NetworkElementUnitTests {
             .addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian())
             .setVerbose(verbose)
             .freeze())
-        .trainer(samples).setVerbose(verbose).setStaticRate(10.).verifyConvergence(10000, 0.1, 10);
+        .trainer(samples).setVerbose(verbose)
+        //.setStaticRate(10.)
+        .verifyConvergence(100, 0.1, 10);
   }
   
   @Test
@@ -114,7 +116,7 @@ public class NetworkElementUnitTests {
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)) //
         .trainer(samples) //
         //.setStaticRate(.25).setMutationAmount(1)
-        .verifyConvergence(10000, 0.1, 100);
+        .verifyConvergence(100, 0.1, 100);
   }
   
   @Test
