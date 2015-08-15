@@ -14,54 +14,56 @@ import com.simiacryptus.mindseye.Util;
 public class Trainer {
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
 
-  MutationTrainer trainer = new MutationTrainer();
+  private MutationTrainer inner = new MutationTrainer();
 
   public Trainer add(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
     return add(new SupervisedTrainingParameters(pipelineNetwork, samples));
   }
 
   public Trainer add(final SupervisedTrainingParameters params) {
-    this.trainer.getInner().inner.current.add(params);
+    this.getInner().getInner().getInner().getCurrent().add(params);
     return this;
   }
 
   public Tuple2<List<SupervisedTrainingParameters>, Double> getBest() {
-    return new Tuple2<List<SupervisedTrainingParameters>, Double>(this.trainer.getBest().currentNetworks, this.trainer.getBest().error());
+    GradientDescentTrainer best = this.getInner().getBest();
+    return new Tuple2<List<SupervisedTrainingParameters>, Double>(best.getCurrentNetworks(), best.error());
   }
 
   public Trainer setDynamicRate(final double d) {
-    this.trainer.getInner().inner.current.setRate(d);
+    this.getInner().getInner().getInner().getCurrent().setRate(d);
     return this;
   }
 
   public Trainer setMaxDynamicRate(final double d) {
-    this.trainer.getInner().setMaxRate(d);
+    this.getInner().getInner().setMaxRate(d);
     return this;
   }
 
   public Trainer setMinDynamicRate(final double d) {
-    this.trainer.getInner().setMinRate(d);
+    this.getInner().getInner().setMinRate(d);
     return this;
   }
 
   public Trainer setMutationAmount(final double d) {
-    this.trainer.setMutationAmount(d);
+    this.getInner().setMutationAmount(d);
     return this;
   }
 
   public Trainer setStaticRate(final double d) {
-    this.trainer.getInner().setRate(d);
+    this.getInner().getInner().setRate(d);
     return this;
   }
 
   public Trainer setVerbose(final boolean b) {
-    this.trainer.setVerbose(b);
+    this.getInner().setVerbose(b);
     return this;
   }
 
   public void train(final int i, final double d) {
-    this.trainer.setMaxIterations(i).setStopError(d);
-    this.trainer.train();
+    MutationTrainer inner = this.getInner();
+    inner.setMaxIterations(i).setStopError(d);
+    inner.train();
   }
 
   public void verifyConvergence(final int maxIter, final double convergence, final int reps) {
@@ -70,7 +72,7 @@ public class Trainer {
         .filter(i -> {
           boolean hasConverged = false;
           try {
-            final MutationTrainer copy = Util.kryo().copy(this.trainer);
+            final MutationTrainer copy = Util.kryo().copy(this.getInner());
             final Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
             hasConverged = error <= convergence;
             if (!hasConverged) {
@@ -85,8 +87,16 @@ public class Trainer {
   }
 
   public Trainer setMutationAmplitude(double d) {
-    this.trainer.setMutationAmplitude(d);
+    this.getInner().setMutationAmplitude(d);
     return this;
+  }
+
+  public MutationTrainer getInner() {
+    return inner;
+  }
+
+  public void setInner(MutationTrainer inner) {
+    this.inner = inner;
   }
 
 }

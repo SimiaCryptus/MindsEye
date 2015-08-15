@@ -11,8 +11,8 @@ public class ChampionTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(ChampionTrainer.class);
   
-  public GradientDescentTrainer best = null;
-  public GradientDescentTrainer current = null;
+  private GradientDescentTrainer best = null;
+  private GradientDescentTrainer current = null;
   private boolean verbose = false;
 
   public ChampionTrainer() {
@@ -21,7 +21,7 @@ public class ChampionTrainer {
 
   public ChampionTrainer(final GradientDescentTrainer current) {
     assert null != current;
-    this.current = current;
+    this.setCurrent(current);
   }
   
   public GradientDescentTrainer getBest() {
@@ -33,43 +33,59 @@ public class ChampionTrainer {
   }
   
   public void revert() {
-    if (null != this.best)
+    GradientDescentTrainer best = this.getBest();
+    if (null != best)
     {
       if (isVerbose()) {
-        ChampionTrainer.log.debug(String.format("Revert to best = %s", null == this.best ? null : this.best.error()));
+        ChampionTrainer.log.debug(String.format("Revert to best = %s", null == best ? null : best.error()));
         // log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
       }
-      this.current = Util.kryo().copy(this.best);
+      this.setCurrent(Util.kryo().copy(best));
     }
   }
 
   public ChampionTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
-    this.current.setVerbose(verbose);
+    this.getCurrent().setVerbose(verbose);
     return this;
   }
 
   public Double step() {
     final long startMs = System.currentTimeMillis();
-    this.current.trainSet();
+    this.getCurrent().trainSet();
     updateBest();
     if (this.verbose)
     {
       ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s*%s in %.03fs",
-          this.current.error(), Arrays.toString(this.current.getError()), this.current.getRate(), Arrays.toString(this.current.getRates()),
+          this.getCurrent().error(), Arrays.toString(this.getCurrent().getError()), this.getCurrent().getRate(), Arrays.toString(this.getCurrent().getRates()),
           (System.currentTimeMillis() - startMs) / 1000.));
     }
-    return this.current.error();
+    return this.getCurrent().error();
   }
 
   protected void updateBest() {
-    if (Double.isFinite(this.current.error()) && (null == this.best || this.best.error() > this.current.error())) {
+    GradientDescentTrainer best = this.getBest();
+    if (Double.isFinite(this.getCurrent().error()) && (null == best || best.error() > this.getCurrent().error())) {
       if (isVerbose()) {
-        ChampionTrainer.log.debug(String.format("New best Error %s > %s", this.current.error(), null == this.best ? "null" : this.best.error()));
+        ChampionTrainer.log.debug(String.format("New best Error %s > %s", this.getCurrent().error(), null == best ? "null" : best.error()));
         // log.debug(String.format("Best: %s", currentNetworks.get(0).getNet()));
       }
-      this.best = Util.kryo().copy(this.current);
+      this.setBest(Util.kryo().copy(this.getCurrent()));
     }
+  }
+
+  public GradientDescentTrainer getCurrent() {
+    return current;
+  }
+
+  public ChampionTrainer setCurrent(GradientDescentTrainer current) {
+    this.current = current;
+    return this;
+  }
+
+  public ChampionTrainer setBest(GradientDescentTrainer best) {
+    this.best = best;
+    return this;
   }
 
 }

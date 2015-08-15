@@ -18,7 +18,7 @@ public class MutationTrainer {
   private static final Logger log = LoggerFactory.getLogger(MutationTrainer.class);
 
   private int currentGeneration = 0;
-  public final DynamicRateTrainer inner;
+  private final DynamicRateTrainer inner;
   private int maxIterations = 1000;
   private double mutationFactor = 1.;
   private double stopError = 0.1;
@@ -39,9 +39,9 @@ public class MutationTrainer {
       }
       return false;
     }
-    if (this.inner.error() < this.stopError) {
+    if (this.getInner().error() < this.stopError) {
       if (this.verbose) {
-        MutationTrainer.log.debug("Reached convergence: " + this.inner.error());
+        MutationTrainer.log.debug("Reached convergence: " + this.getInner().error());
       }
       return false;
     }
@@ -49,15 +49,15 @@ public class MutationTrainer {
   }
   
   public double error() {
-    return this.inner.inner.current.error();
+    return this.getInner().getInner().getCurrent().error();
   }
   
   public GradientDescentTrainer getBest() {
-    return this.inner.getBest();
+    return this.getInner().getBest();
   }
   
   public int getGenerationsSinceImprovement() {
-    return this.inner.generationsSinceImprovement;
+    return this.getInner().generationsSinceImprovement;
   }
   
   public DynamicRateTrainer getInner() {
@@ -69,11 +69,11 @@ public class MutationTrainer {
   }
   
   public double getMaxRate() {
-    return this.inner.maxRate;
+    return this.getInner().maxRate;
   }
   
   public double getMinRate() {
-    return this.inner.minRate;
+    return this.getInner().minRate;
   }
   
   public double getMutationFactor() {
@@ -81,11 +81,11 @@ public class MutationTrainer {
   }
 
   public double getRate() {
-    return this.inner.getRate();
+    return this.getInner().getRate();
   }
 
   public int getRecalibrationThreshold() {
-    return this.inner.recalibrationThreshold;
+    return this.getInner().recalibrationThreshold;
   }
 
   public double getStopError() {
@@ -122,9 +122,9 @@ public class MutationTrainer {
   
   public void mutate(final double amount) {
     if (this.verbose) {
-      MutationTrainer.log.debug(String.format("Mutating %s by %s", this.inner, amount));
+      MutationTrainer.log.debug(String.format("Mutating %s by %s", this.getInner(), amount));
     }
-    List<NNLayer> layers = this.inner.inner.current.currentNetworks.stream().flatMap(x->x.getNet().layers.stream()).distinct().collect(Collectors.toList());
+    List<NNLayer> layers = this.getInner().getInner().getCurrent().getCurrentNetworks().stream().flatMap(x->x.getNet().layers.stream()).distinct().collect(Collectors.toList());
     layers.stream()
         .filter(l -> (l instanceof DenseSynapseLayer))
         .map(l -> (DenseSynapseLayer) l)
@@ -135,20 +135,20 @@ public class MutationTrainer {
         .map(l -> (BiasLayer) l)
         .filter(l -> !l.isFrozen())
         .forEach(l -> mutate(l, amount));
-    this.inner.inner.current.setError(null);
+    this.getInner().getInner().getCurrent().setError(null);
   }
   
   double mutationAmplitude = 2.;
 
   public void mutateBest() {
-    this.inner.generationsSinceImprovement = this.inner.recalibrationThreshold - 1;
-    this.inner.inner.revert();
+    this.getInner().generationsSinceImprovement = this.getInner().recalibrationThreshold - 1;
+    this.getInner().getInner().revert();
     mutate(getMutationFactor());
-    this.inner.lastCalibratedIteration = this.inner.currentIteration;// - (this.recalibrationInterval + 2);
+    this.getInner().lastCalibratedIteration = this.getInner().currentIteration;// - (this.recalibrationInterval + 2);
   }
   
   public MutationTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
-    this.inner.generationsSinceImprovement = generationsSinceImprovement;
+    this.getInner().generationsSinceImprovement = generationsSinceImprovement;
     return this;
   }
 
@@ -158,17 +158,17 @@ public class MutationTrainer {
   }
 
   public MutationTrainer setMaxRate(final double maxRate) {
-    this.inner.maxRate = maxRate;
+    this.getInner().maxRate = maxRate;
     return this;
   }
 
   public MutationTrainer setMinRate(final double minRate) {
-    this.inner.minRate = minRate;
+    this.getInner().minRate = minRate;
     return this;
   }
 
   public MutationTrainer setMutationAmount(final double mutationAmount) {
-    this.inner.setMutationFactor(mutationAmount);
+    this.getInner().setMutationFactor(mutationAmount);
     return this;
   }
 
@@ -177,23 +177,24 @@ public class MutationTrainer {
   }
 
   public MutationTrainer setRate(final double rate) {
-    this.inner.setRate(rate);
+    this.getInner().setRate(rate);
     return this;
   }
   
   public MutationTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
-    this.inner.recalibrationThreshold = recalibrationThreshold;
+    this.getInner().recalibrationThreshold = recalibrationThreshold;
     return this;
   }
   
   public MutationTrainer setStopError(final double stopError) {
+    getInner().setStopError(stopError);
     this.stopError = stopError;
     return this;
   }
   
   public MutationTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
-    this.inner.setVerbose(verbose);
+    this.getInner().setVerbose(verbose);
     return this;
   }
   
@@ -207,17 +208,17 @@ public class MutationTrainer {
       } else {
         mutateBest();
       }
-      this.inner.trainToLocalOptimum();
+      this.getInner().trainToLocalOptimum();
       if (this.verbose)
       {
         MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
-            this.currentGeneration, this.inner.error(), Arrays.toString(this.inner.inner.current.getError()), this.inner.inner.current.getRate()));
+            this.currentGeneration, this.getInner().error(), Arrays.toString(this.getInner().getInner().getCurrent().getError()), this.getInner().getInner().getCurrent().getRate()));
       }
     }
-    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", this.inner.error(),
+    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", this.getInner().error(),
         (System.currentTimeMillis() - startMs) / 1000.,
         this.currentGeneration));
-    final GradientDescentTrainer best = this.inner.inner.best;
+    final GradientDescentTrainer best = this.getBest();
     return null == best ? Double.POSITIVE_INFINITY : best.error();
   }
 

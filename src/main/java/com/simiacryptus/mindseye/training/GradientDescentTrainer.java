@@ -24,7 +24,7 @@ public class GradientDescentTrainer {
     return geometricMean;
   }
   
-  public List<SupervisedTrainingParameters> currentNetworks = new ArrayList<>();
+  private List<SupervisedTrainingParameters> currentNetworks = new ArrayList<>();
   private double[] error;
 
   private double rate = 0.5;
@@ -39,15 +39,15 @@ public class GradientDescentTrainer {
   }
 
   public GradientDescentTrainer add(final SupervisedTrainingParameters params) {
-    this.currentNetworks.add(params);
+    this.getCurrentNetworks().add(params);
     return this;
   }
 
   protected double[] calcError(final List<List<NNResult>> results) {
-    final List<List<Double>> rms = IntStream.range(0, this.currentNetworks.size()).parallel()
+    final List<List<Double>> rms = IntStream.range(0, this.getCurrentNetworks().size()).parallel()
         .mapToObj(network -> {
           final List<NNResult> result = results.get(network);
-          final SupervisedTrainingParameters currentNet = this.currentNetworks.get(network);
+          final SupervisedTrainingParameters currentNet = this.getCurrentNetworks().get(network);
           return IntStream.range(0, result.size()).parallel().mapToObj(sample -> {
             final NNResult eval = result.get(sample);
             final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
@@ -62,7 +62,7 @@ public class GradientDescentTrainer {
   }
 
   public GradientDescentTrainer clearMomentum() {
-    this.currentNetworks.forEach(x -> x.getNet());
+    this.getCurrentNetworks().forEach(x -> x.getNet());
     return this;
   }
 
@@ -78,7 +78,7 @@ public class GradientDescentTrainer {
   }
 
   protected List<List<NNResult>> evalTrainingData() {
-    return this.currentNetworks.parallelStream().map(params -> Stream.of(params.getTrainingData())
+    return this.getCurrentNetworks().parallelStream().map(params -> Stream.of(params.getTrainingData())
         .parallel()
         .map(sample -> {
           final NDArray input = sample[0];
@@ -101,7 +101,7 @@ public class GradientDescentTrainer {
   }
 
   public double[] getRates() {
-    return this.currentNetworks.stream()
+    return this.getCurrentNetworks().stream()
         .flatMap(n -> n.getNet().layers.stream())
         .filter(l -> l instanceof DeltaTransaction)
         .map(l -> (DeltaTransaction) l)
@@ -115,9 +115,9 @@ public class GradientDescentTrainer {
 
   protected void learn(final List<List<NNResult>> results) {
     // Apply corrections
-    IntStream.range(0, this.currentNetworks.size()).parallel().forEach(network -> {
+    IntStream.range(0, this.getCurrentNetworks().size()).parallel().forEach(network -> {
       final List<NNResult> netresults = results.get(network);
-      final SupervisedTrainingParameters currentNet = this.currentNetworks.get(network);
+      final SupervisedTrainingParameters currentNet = this.getCurrentNetworks().get(network);
       IntStream.range(0, netresults.size()).parallel().forEach(sample -> {
         final NNResult eval = netresults.get(sample);
         final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
@@ -151,11 +151,11 @@ public class GradientDescentTrainer {
   }
 
   public double totalWeight() {
-    return 1 / this.currentNetworks.stream().mapToDouble(p -> p.getWeight()).sum();
+    return 1 / this.getCurrentNetworks().stream().mapToDouble(p -> p.getWeight()).sum();
   }
 
   public synchronized double[] trainSet() {
-    assert 0 < this.currentNetworks.size();
+    assert 0 < this.getCurrentNetworks().size();
     final List<List<NNResult>> results = evalTrainingData();
     final double[] calcError = calcError(results);
     if (this.verbose) {
@@ -163,14 +163,14 @@ public class GradientDescentTrainer {
     }
     setError(calcError);
     learn(results);
-    this.currentNetworks.stream().forEach(params -> params.getNet().writeDeltas(1));
+    this.getCurrentNetworks().stream().forEach(params -> params.getNet().writeDeltas(1));
 
     final double[] validationError = calcError(evalTrainingData());
     if (GradientDescentTrainer.geometricMean(calcError) < GradientDescentTrainer.geometricMean(validationError)) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Reverting: (%s)", Arrays.toString(calcError)));
       }
-      this.currentNetworks.stream().forEach(params -> params.getNet().writeDeltas(-1));
+      this.getCurrentNetworks().stream().forEach(params -> params.getNet().writeDeltas(-1));
     } else {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Validating: (%s)", Arrays.toString(calcError)));
@@ -179,6 +179,15 @@ public class GradientDescentTrainer {
 
     setError(calcError);
     return calcError;
+  }
+
+  public List<SupervisedTrainingParameters> getCurrentNetworks() {
+    return currentNetworks;
+  }
+
+  public GradientDescentTrainer setCurrentNetworks(List<SupervisedTrainingParameters> currentNetworks) {
+    this.currentNetworks = currentNetworks;
+    return this;
   }
 
 }
