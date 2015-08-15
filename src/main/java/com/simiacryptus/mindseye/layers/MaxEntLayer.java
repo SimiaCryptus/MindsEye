@@ -12,7 +12,6 @@ public class MaxEntLayer extends NNLayer {
   
   private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   private double factor = -1;
-  double feedbackAttenuation = 1;
   private boolean reverse = false;
   
   private boolean verbose;

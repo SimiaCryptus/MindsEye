@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 
@@ -275,6 +276,10 @@ public class DynamicRateTrainer {
   public DynamicRateTrainer setStopError(double stopError) {
     this.stopError = stopError;
     return this;
+  }
+
+  public List<NNLayer> getLayers() {
+    return getInner().getLayers();
   }
   
 }

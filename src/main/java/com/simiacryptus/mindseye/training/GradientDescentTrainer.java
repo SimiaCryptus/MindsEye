@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -188,6 +189,10 @@ public class GradientDescentTrainer {
   public GradientDescentTrainer setCurrentNetworks(List<SupervisedTrainingParameters> currentNetworks) {
     this.currentNetworks = currentNetworks;
     return this;
+  }
+
+  public List<NNLayer> getLayers() {
+    return getCurrentNetworks().stream().flatMap(x->x.getNet().layers.stream()).distinct().collect(Collectors.toList());
   }
 
 }

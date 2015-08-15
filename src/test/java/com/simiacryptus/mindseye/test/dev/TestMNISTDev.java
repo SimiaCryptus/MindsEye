@@ -79,7 +79,7 @@ public class TestMNISTDev {
     return TestMNISTDev.toIterator(new BinaryChunkIterator(in, recordSize));
   }
   
-  private static double bounds(final double value) {
+  public static double bounds(final double value) {
     return value < 0 ? 0 : value > 0xFF ? 0xFF : value;
   }
   
@@ -95,28 +95,6 @@ public class TestMNISTDev {
     return ndArray;
   }
   
-  public static BufferedImage toImage(final NDArray ndArray) {
-    final int[] dims = ndArray.getDims();
-    final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
-    for (int x = 0; x < img.getWidth(); x++)
-    {
-      for (int y = 0; y < img.getHeight(); y++)
-      {
-        if (ndArray.getDims()[2] == 1) {
-          final double value = ndArray.get(x, y, 0);
-          final int asByte = (int) TestMNISTDev.bounds(value) & 0xFF;
-          img.setRGB(x, y, asByte * 0x010101);
-        } else {
-          final double red = TestMNISTDev.bounds(ndArray.get(x, y, 0));
-          final double green = TestMNISTDev.bounds(ndArray.get(x, y, 1));
-          final double blue = TestMNISTDev.bounds(ndArray.get(x, y, 2));
-          img.setRGB(x, y, (int) (red + ((int) green << 8) + ((int) blue << 16)));
-        }
-      }
-    }
-    return img;
-  }
-
   public static String toInlineImage(final BufferedImage img, final String alt) {
     return TestMNISTDev.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
   }
@@ -212,7 +190,7 @@ public class TestMNISTDev {
     out.println("<html><head></head><body>");
     buffer.stream()
         .sorted(Comparator.comparing(img -> img.label))
-        .map(x -> "<p>" + TestMNISTDev.toInlineImage(x.<BufferedImage> map(TestMNISTDev::toImage)) + net.eval(x.data).data.toString() + "</p>")
+        .map(x -> "<p>" + TestMNISTDev.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>")
         .forEach(out::println);
     out.println("</body></html>");
     out.close();

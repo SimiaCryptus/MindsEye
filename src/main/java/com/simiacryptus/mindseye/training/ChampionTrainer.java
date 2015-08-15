@@ -1,11 +1,14 @@
 package com.simiacryptus.mindseye.training;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.layers.NNLayer;
 
 public class ChampionTrainer {
 
@@ -86,6 +89,10 @@ public class ChampionTrainer {
   public ChampionTrainer setBest(GradientDescentTrainer best) {
     this.best = best;
     return this;
+  }
+
+  public List<NNLayer> getLayers() {
+    return getCurrent().getLayers();
   }
 
 }

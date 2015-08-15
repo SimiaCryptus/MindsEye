@@ -124,7 +124,7 @@ public class MutationTrainer {
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", this.getInner(), amount));
     }
-    List<NNLayer> layers = this.getInner().getInner().getCurrent().getCurrentNetworks().stream().flatMap(x->x.getNet().layers.stream()).distinct().collect(Collectors.toList());
+    List<NNLayer> layers = this.getLayers();
     layers.stream()
         .filter(l -> (l instanceof DenseSynapseLayer))
         .map(l -> (DenseSynapseLayer) l)
@@ -138,6 +138,10 @@ public class MutationTrainer {
     this.getInner().getInner().getCurrent().setError(null);
   }
   
+  private List<NNLayer> getLayers() {
+    return getInner().getLayers();
+  }
+
   double mutationAmplitude = 2.;
 
   public void mutateBest() {
