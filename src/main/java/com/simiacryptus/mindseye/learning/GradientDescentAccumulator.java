@@ -11,18 +11,18 @@ import com.simiacryptus.mindseye.NDArray;
 public class GradientDescentAccumulator {
   public static boolean DEBUG = false;
   private static final Logger log = LoggerFactory.getLogger(GradientDescentAccumulator.class);
-
+  
   private final DeltaSink sink;
-
+  
   protected GradientDescentAccumulator() {
     super();
     this.sink = null;
   }
-
+  
   public GradientDescentAccumulator(final DeltaSink sink) {
     this.sink = sink;
   }
-
+  
   public void feed(final NDArray weightGradient, final double[] data) {
     if (null == weightGradient) throw new IllegalArgumentException();
     if (null == data) throw new IllegalArgumentException();
@@ -38,9 +38,9 @@ public class GradientDescentAccumulator {
     assert inverted.length == length();
     this.sink.feed(inverted);
   }
-
+  
   public int length() {
     return this.sink.length();
   }
-
+  
 }

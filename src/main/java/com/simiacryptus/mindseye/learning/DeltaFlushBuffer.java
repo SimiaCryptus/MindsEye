@@ -5,28 +5,28 @@ import java.util.Arrays;
 import com.simiacryptus.mindseye.NDArray;
 
 public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
-  
+
   private final double[] buffer;
+  private final DeltaSink inner;
   private double rate = 1.;
+
   private boolean reset = false;
   
-  private final DeltaSink values;
-
   protected DeltaFlushBuffer() {
     super();
-    this.values = null;
+    this.inner = null;
     this.buffer = null;
   }
-  
+
   public DeltaFlushBuffer(final DeltaSink values) {
-    this.values = values;
+    this.inner = values;
     this.buffer = new double[values.length()];
   }
-  
+
   public DeltaFlushBuffer(final NDArray values) {
     this(new DeltaMemoryWriter(values.getData()));
   }
-  
+
   @Override
   public void feed(final double[] data) {
     if (this.reset) {
@@ -38,17 +38,22 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
       this.buffer[i] += data[i] * this.rate;
     }
   }
-  
+
   @Override
   public double getRate() {
     return this.rate;
   }
+  
+  @Override
+  public boolean isFrozen() {
+    return false;
+  }
 
   @Override
   public int length() {
-    return this.values.length();
+    return this.inner.length();
   }
-  
+
   @Override
   public void setRate(final double rate) {
     this.rate = rate;
@@ -60,13 +65,8 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
     for (int i = 0; i < this.buffer.length; i++) {
       cpy[i] = this.buffer[i] * factor;
     }
-    this.values.feed(cpy);
+    this.inner.feed(cpy);
     this.reset = true;
   }
-
-  @Override
-  public boolean isFrozen() {
-    return false;
-  }
-
+  
 }

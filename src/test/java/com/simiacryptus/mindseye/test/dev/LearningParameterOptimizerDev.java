@@ -16,12 +16,12 @@ import com.simiacryptus.mindseye.math.UnivariateOptimizer;
 
 public class LearningParameterOptimizerDev {
   static final Logger log = LoggerFactory.getLogger(LearningParameterOptimizerDev.class);
-  
+
   public static double[] ones(final int dims) {
     final double[] last = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     return last;
   }
-  
+
   @Test
   public void test_multivariate() {
     final double offset = 0.4;
@@ -41,7 +41,7 @@ public class LearningParameterOptimizerDev {
     assert result.getValue() < -0.99;
     LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", Arrays.toString(result.getFirst()), result.getSecond()));
   }
-  
+
   @Test
   public void test_univariate() {
     final double offset = .5;

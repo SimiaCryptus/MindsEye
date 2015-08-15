@@ -9,15 +9,15 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class SigmoidActivationLayer extends NNLayer {
-
+  
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
   double feedbackAttenuation = 1;
-
+  
   private boolean verbose;
-
+  
   public SigmoidActivationLayer() {
   }
-  
+
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -57,18 +57,18 @@ public class SigmoidActivationLayer extends NNLayer {
         }
         inObj.feedback(passback);
       }
-
+      
       @Override
       public boolean isAlive() {
         return true;
       }
     };
   }
-  
+
   public boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public SigmoidActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

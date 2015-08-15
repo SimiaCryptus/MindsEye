@@ -10,14 +10,14 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class SoftmaxActivationLayer extends NNLayer {
-
+  
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
-
+  
   private boolean verbose;
-
+  
   public SoftmaxActivationLayer() {
   }
-
+  
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -25,7 +25,7 @@ public class SoftmaxActivationLayer extends NNLayer {
     final double sum1 = exp.sum();
     final double sum = !Double.isFinite(sum1) || 0. == sum1 ? 1. : sum1;
     final NDArray output = exp.map(x -> x / sum);
-
+    
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, output.dim()).forEach(j -> {
@@ -40,7 +40,7 @@ public class SoftmaxActivationLayer extends NNLayer {
         }
       });
     });
-
+    
     if (isVerbose()) {
       SoftmaxActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
     }
@@ -53,7 +53,7 @@ public class SoftmaxActivationLayer extends NNLayer {
             if (delta[i] < 0) {
               delta[i] = 0;
             }
-
+          
           final NDArray passback = new NDArray(data.getDims());
           IntStream.range(0, input.dim()).forEach(iinput -> {
             IntStream.range(0, output.dim()).forEach(ioutput -> {
@@ -63,25 +63,25 @@ public class SoftmaxActivationLayer extends NNLayer {
               }
             });
           });
-
+          
           if (isVerbose()) {
             SoftmaxActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
           }
           inObj.feedback(passback);
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return true;
       }
     };
   }
-
+  
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public SoftmaxActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

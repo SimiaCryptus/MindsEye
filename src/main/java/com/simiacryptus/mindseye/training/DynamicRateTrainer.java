@@ -5,118 +5,138 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
+import org.apache.commons.math3.analysis.MultivariateFunction;
+import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 
 public class DynamicRateTrainer {
-
-  private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
   
+  private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
+
+  private double baseRate = .1;
   int currentIteration = 0;
   int generationsSinceImprovement = 0;
-  int lastCalibratedIteration = Integer.MIN_VALUE;
-  
-  private double baseRate = .1;
+
   public final ChampionTrainer inner;
+  int lastCalibratedIteration = Integer.MIN_VALUE;
+  final int maxIterations = 10000;
   double maxRate = 5e4;
   double minRate = 0;
   private double mutationFactor = 1.;
   double rate = 1;
   private int recalibrationInterval = 15;
   int recalibrationThreshold = 0;
+  
   private boolean verbose = false;
-
+  
   public DynamicRateTrainer() {
     this(new ChampionTrainer());
   }
-
+  
   public DynamicRateTrainer(final ChampionTrainer inner) {
     this.inner = inner;
   }
-
+  
   protected boolean calibrate() {
-    double last = this.inner.current.error();
+    final double last = this.inner.current.error();
     List<DeltaTransaction> deltaObjs = null;
     double[] adjustment = null;
     boolean inBounds = false;
     try {
-      GradientDescentTrainer current = this.inner.current;
+      final GradientDescentTrainer current = this.inner.current;
       deltaObjs = current.currentNetworks.stream()
           .flatMap(n -> n.getNet().layers.stream())
           .filter(l -> l instanceof DeltaTransaction)
           .map(l -> (DeltaTransaction) l)
-          .filter(x->!x.isFrozen())
+          .filter(x -> !x.isFrozen())
           .distinct().collect(Collectors.toList());
       for (int i = 0; i < deltaObjs.size(); i++) {
         deltaObjs.get(i).setRate(getBaseRate());
       }
-      GradientDescentTrainer clone = current.copy().clearMomentum();
-      final double[] localMin = clone.trainLineSearch(deltaObjs.size());
+      final double[] localMin = trainLineSearch(deltaObjs.size());
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
-      inBounds = DoubleStream.of(adjustment).allMatch(r -> this.maxRate > r) 
+      inBounds = DoubleStream.of(adjustment).allMatch(r -> this.maxRate > r)
           && DoubleStream.of(adjustment).anyMatch(r -> this.minRate < r);
     } catch (final Exception e) {
-      if (this.isVerbose()) {
+      if (isVerbose()) {
         DynamicRateTrainer.log.debug("Error calibrating", e);
       }
     }
     if (inBounds)
     {
       for (int i = 0; i < deltaObjs.size(); i++) {
-        deltaObjs.get(i).setRate(adjustment[i]);
+        final DeltaTransaction deltaTransaction = deltaObjs.get(i);
+        deltaTransaction.setRate(adjustment[i] * deltaTransaction.getRate());
       }
       this.lastCalibratedIteration = this.currentIteration;
-      double err = trainOnce();
-      double improvement = last - err;
-      if (this.isVerbose()) {
+      final double err = trainOnce();
+      final double improvement = last - err;
+      if (isVerbose()) {
         DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(adjustment), last, err, improvement));
       }
-      return improvement>0;
+      return improvement > 0;
     } else {
-      if (this.isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(adjustment), Arrays.toString(this.inner.current.getError())));
+      if (isVerbose()) {
+        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(adjustment),
+            Arrays.toString(this.inner.current.getError())));
       }
       return false;
     }
   }
-  
+
   public double error() {
     return this.inner.current.error();
   }
-
+  
+  public double getBaseRate() {
+    return this.baseRate;
+  }
+  
   public GradientDescentTrainer getBest() {
     return this.inner.getBest();
   }
-
+  
   public int getGenerationsSinceImprovement() {
     return this.generationsSinceImprovement;
   }
-
+  
   public double getMaxRate() {
     return this.maxRate;
   }
-
+  
   public double getMinRate() {
     return this.minRate;
   }
-
+  
   public double getMutationFactor() {
     return this.mutationFactor;
   }
-
+  
   public double getRate() {
     return this.rate;
   }
-
+  
+  public double[] getRates() {
+    return this.inner.current.getRates();
+  }
+  
   public int getRecalibrationThreshold() {
     return this.recalibrationThreshold;
   }
-
+  
   public boolean isVerbose() {
-    //return true;
+    // return true;
     return this.verbose;
+  }
+  
+  public DynamicRateTrainer setBaseRate(final double baseRate) {
+    this.baseRate = baseRate;
+    return this;
   }
 
   public DynamicRateTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
@@ -133,11 +153,11 @@ public class DynamicRateTrainer {
     this.minRate = minRate;
     return this;
   }
-  
+
   public void setMutationFactor(final double mutationRate) {
     this.mutationFactor = mutationRate;
   }
-  
+
   public DynamicRateTrainer setRate(final double rate) {
     this.rate = rate;
     return this;
@@ -154,21 +174,74 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  final int maxIterations=10000;
+  public synchronized double[] trainLineSearch(final int dims) {
+    assert 0 < this.inner.current.currentNetworks.size();
+    final double[] prev = this.inner.current.getError();
+    this.inner.current.learn(this.inner.current.evalTrainingData());
+    // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
+    final MultivariateFunction f = new MultivariateFunction() {
+      double[] pos = new double[dims];
+
+      @Override
+      public double value(final double x[]) {
+        final double[] diff = new double[x.length];
+        for (int i = 0; i < diff.length; i++) {
+          diff[i] = x[i] - this.pos[i];
+        }
+        final List<DeltaTransaction> deltaObjs = DynamicRateTrainer.this.inner.current.currentNetworks.stream()
+            .flatMap(n -> n.getNet().layers.stream())
+            .filter(l -> l instanceof DeltaTransaction)
+            .map(l -> (DeltaTransaction) l)
+            .filter(l -> !l.isFrozen())
+            .distinct().collect(Collectors.toList());
+        assert diff.length == deltaObjs.size();
+        assert diff.length == this.pos.length;
+        for (int i = 0; i < diff.length; i++) {
+          deltaObjs.get(i).write(diff[i]);
+        }
+        for (int i = 0; i < diff.length; i++) {
+          this.pos[i] += diff[i];
+        }
+        final double[] calcError = DynamicRateTrainer.this.inner.current.calcError(DynamicRateTrainer.this.inner.current.evalTrainingData());
+        final double err = Util.geomMean(calcError);
+        if (isVerbose()) {
+          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(x), err, Arrays.toString(calcError)));
+        }
+        return err;
+      }
+    };
+    final PointValuePair x = new MultivariateOptimizer(f).minimize(dims); // May or may not be cloned before evaluations
+    f.value(x.getFirst()); // Reset to original state
+    // f.value(new double[dims]); // Reset to original state
+    final double[] calcError = this.inner.current.calcError(this.inner.current.evalTrainingData());
+    this.inner.current.setError(calcError);
+    if (this.verbose) {
+      DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(),
+          Arrays.toString(prev), Arrays.toString(calcError)));
+    }
+    return x.getKey();
+  }
+  
+  public double trainOnce() {
+    this.inner.step();
+    this.inner.updateBest();
+    return this.inner.current.error();
+  }
+  
   public boolean trainToLocalOptimum() {
-    currentIteration = 0;
-    generationsSinceImprovement = 0;
-    lastCalibratedIteration = Integer.MIN_VALUE;
-    while (maxIterations>currentIteration++) {
+    this.currentIteration = 0;
+    this.generationsSinceImprovement = 0;
+    this.lastCalibratedIteration = Integer.MIN_VALUE;
+    while (this.maxIterations > this.currentIteration++) {
       if (this.lastCalibratedIteration < this.currentIteration - this.recalibrationInterval) {
-        if (this.isVerbose()) {
+        if (isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
         calibrate();
-        //if (!calibrate()) return false;
+        // if (!calibrate()) return false;
       }
-      double last = this.inner.current.error();
-      double improvement = last - trainOnce();
+      final double last = this.inner.current.error();
+      final double improvement = last - trainOnce();
       if (improvement > 0)
       {
         this.generationsSinceImprovement = 0;
@@ -177,7 +250,7 @@ public class DynamicRateTrainer {
       {
         if (this.recalibrationThreshold < this.generationsSinceImprovement++)
         {
-          if (this.isVerbose()) {
+          if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }
           if (!calibrate()) return false;
@@ -185,27 +258,8 @@ public class DynamicRateTrainer {
         }
       }
     }
-    log.debug("Maximum steps reached");
+    DynamicRateTrainer.log.debug("Maximum steps reached");
     return false;
   }
-
-  public double trainOnce() {
-    this.inner.step();
-    this.inner.updateBest();
-    return this.inner.current.error();
-  }
-
-  public double[] getRates() {
-    return inner.current.getRates();
-  }
-
-  public double getBaseRate() {
-    return baseRate;
-  }
-
-  public DynamicRateTrainer setBaseRate(double baseRate) {
-    this.baseRate = baseRate;
-    return this;
-  }
-
+  
 }

@@ -9,24 +9,24 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class MaxEntLayer extends NNLayer {
-
+  
   private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   private double factor = -1;
   double feedbackAttenuation = 1;
   private boolean reverse = false;
-
+  
   private boolean verbose;
-
+  
   public MaxEntLayer() {
   }
-  
+
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
     final NDArray output = new NDArray(1);
-
+    
     final double sum = input.map(x -> x * x).sum();
-
+    
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       final double sign = Math.signum(input.getData()[i]);
@@ -61,36 +61,36 @@ public class MaxEntLayer extends NNLayer {
         }
         inObj.feedback(passback);
       }
-
+      
       @Override
       public boolean isAlive() {
         return true;
       }
     };
   }
-  
+
   public double getFactor() {
     return this.factor;
   }
-  
+
   public boolean isReverse() {
     return this.reverse;
   }
-  
+
   public boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public MaxEntLayer setFactor(final double factor) {
     this.factor = factor;
     return this;
   }
-  
+
   public MaxEntLayer setReverse(final boolean reverse) {
     this.reverse = reverse;
     return this;
   }
-  
+
   public MaxEntLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

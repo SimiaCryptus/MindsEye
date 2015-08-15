@@ -15,33 +15,31 @@ import com.simiacryptus.mindseye.Coordinate;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.learning.DeltaMassMomentum;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.GradientDescentAccumulator;
-import com.simiacryptus.mindseye.learning.MassParameters;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<ConvolutionSynapseLayer>, DeltaTransaction {
+public class ConvolutionSynapseLayer extends NNLayer implements DeltaTransaction {
   public static final class IndexMapKey {
     int[] input;
     int[] kernel;
     int[] output;
-    
+
     public IndexMapKey(final int[] kernel, final int[] input, final int[] output) {
       super();
       this.kernel = kernel;
       this.input = input;
       this.output = output;
     }
-    
+
     public IndexMapKey(final NDArray kernel, final NDArray input, final NDArray output) {
       super();
       this.kernel = kernel.getDims();
       this.input = input.getDims();
       this.output = output.getDims();
     }
-    
+
     @Override
     public boolean equals(final Object obj) {
       if (this == obj) return true;
@@ -53,7 +51,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
       if (!Arrays.equals(this.output, other.output)) return false;
       return true;
     }
-    
+
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -64,7 +62,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
       return result;
     }
   }
-
+  
   public static final LoadingCache<IndexMapKey, int[][]> indexMapCache = CacheBuilder.newBuilder().build(new CacheLoader<IndexMapKey, int[][]>() {
     @Override
     public int[][] load(final IndexMapKey key) throws Exception {
@@ -91,7 +89,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
     }
   });
   private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
-  
+
   public static int[][] getIndexMap(final NDArray kernel, final NDArray input, final NDArray output) {
     try {
       return ConvolutionSynapseLayer.indexMapCache.get(new IndexMapKey(kernel, input, output));
@@ -99,40 +97,34 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
       throw new RuntimeException(e);
     }
   }
-  
+
   private GradientDescentAccumulator deltaBuffer;
   private DeltaFlushBuffer flush;
   private boolean frozen = false;
   public final NDArray kernel;
-
-  private DeltaMassMomentum massMomentum;
-  
-  // NDArray _inputGradient;
   private boolean paralell = false;
-  
   private boolean verbose = false;
-  
+
   protected ConvolutionSynapseLayer() {
     super();
     this.kernel = null;
   }
-
+  
   public ConvolutionSynapseLayer(final int[] kernelDims, final int bandwidth) {
-
+    
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
     final DeltaMemoryWriter writer = new DeltaMemoryWriter(this.kernel);
-    this.massMomentum = new DeltaMassMomentum(writer);
-    this.flush = new DeltaFlushBuffer(this.massMomentum);
+    this.flush = new DeltaFlushBuffer(writer);
     this.deltaBuffer = new GradientDescentAccumulator(this.flush);
   }
-
+  
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.kernel.getData());
     return this;
   }
-
+  
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -163,7 +155,7 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
         }
         if (inObj.isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
-
+          
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
             final double kernelValue = ConvolutionSynapseLayer.this.kernel.get(array[0]);
             if (0. != kernelValue)
@@ -178,91 +170,65 @@ public class ConvolutionSynapseLayer extends NNLayer implements MassParameters<C
           inObj.feedback(backprop);
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return !ConvolutionSynapseLayer.this.frozen || inObj.isAlive();
       }
     };
   }
-
+  
   public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.kernel.getData(), i -> f.getAsDouble());
     return this;
   }
-  
+
   public ConvolutionSynapseLayer freeze() {
     return freeze(true);
   }
-
+  
   public ConvolutionSynapseLayer freeze(final boolean b) {
     this.frozen = b;
     return this;
   }
 
   @Override
-  public double getMass() {
-    return this.massMomentum.getMass();
-  }
-  
-  @Override
-  public double getMomentumDecay() {
-    return this.massMomentum.getMomentumDecay();
-  }
-  
-  @Override
   public double getRate() {
-    return 1. / this.massMomentum.getMass();
+    return this.flush.getRate();
   }
-  
+
+  @Override
   public boolean isFrozen() {
     return this.frozen;
   }
-  
+
   public boolean isParalell() {
     return this.paralell;
   }
-
+  
   public boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public void setFrozen(final boolean frozen) {
     this.frozen = frozen;
-  }
-  
-  @Override
-  public ConvolutionSynapseLayer setHalflife(final double halflife) {
-    return setMomentumDecay(Math.exp(2 * Math.log(0.5) / halflife));
-  }
-
-  @Override
-  public ConvolutionSynapseLayer setMass(final double mass) {
-    this.massMomentum.setMass(mass);
-    return this;
-  }
-  
-  @Override
-  public ConvolutionSynapseLayer setMomentumDecay(final double momentumDecay) {
-    this.massMomentum.setMomentumDecay(momentumDecay);
-    return this;
   }
   
   public ConvolutionSynapseLayer setParalell(final boolean parallel) {
     this.paralell = parallel;
     return this;
   }
-  
+
   @Override
   public void setRate(final double rate) {
-    this.massMomentum.setMass(1. / rate);
+    this.flush.setRate(rate);
   }
-  
+
   public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
-  
+
   @Override
   public void write(final double factor) {
     if (isFrozen()) return;

@@ -8,30 +8,30 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.Util;
 
 public class ChampionTrainer {
-  
-  private static final Logger log = LoggerFactory.getLogger(ChampionTrainer.class);
 
+  private static final Logger log = LoggerFactory.getLogger(ChampionTrainer.class);
+  
   public GradientDescentTrainer best = null;
   public GradientDescentTrainer current = null;
   private boolean verbose = false;
-  
+
   public ChampionTrainer() {
     this(new GradientDescentTrainer());
   }
-  
+
   public ChampionTrainer(final GradientDescentTrainer current) {
     assert null != current;
     this.current = current;
   }
-
+  
   public GradientDescentTrainer getBest() {
     return this.best;
   }
-  
+
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public void revert() {
     if (null != this.best)
     {
@@ -42,13 +42,13 @@ public class ChampionTrainer {
       this.current = Util.kryo().copy(this.best);
     }
   }
-  
+
   public ChampionTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     this.current.setVerbose(verbose);
     return this;
   }
-  
+
   public Double step() {
     final long startMs = System.currentTimeMillis();
     this.current.trainSet();
@@ -56,11 +56,12 @@ public class ChampionTrainer {
     if (this.verbose)
     {
       ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s*%s in %.03fs",
-          this.current.error(), Arrays.toString(this.current.getError()), this.current.getRate(), Arrays.toString(this.current.getRates()), (System.currentTimeMillis() - startMs) / 1000.));
+          this.current.error(), Arrays.toString(this.current.getError()), this.current.getRate(), Arrays.toString(this.current.getRates()),
+          (System.currentTimeMillis() - startMs) / 1000.));
     }
     return this.current.error();
   }
-  
+
   protected void updateBest() {
     if (Double.isFinite(this.current.error()) && (null == this.best || this.best.error() > this.current.error())) {
       if (isVerbose()) {
@@ -70,5 +71,5 @@ public class ChampionTrainer {
       this.best = Util.kryo().copy(this.current);
     }
   }
-  
+
 }
