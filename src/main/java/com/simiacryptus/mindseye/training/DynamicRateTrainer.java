@@ -18,6 +18,7 @@ public class DynamicRateTrainer {
   int generationsSinceImprovement = 0;
   int lastCalibratedIteration = Integer.MIN_VALUE;
   
+  private double baseRate = .001;
   public final ChampionTrainer inner;
   double maxRate = 5e4;
   double minRate = 0;
@@ -49,7 +50,7 @@ public class DynamicRateTrainer {
           .filter(x->!x.isFrozen())
           .distinct().collect(Collectors.toList());
       for (int i = 0; i < deltaObjs.size(); i++) {
-        deltaObjs.get(i).setRate(1);
+        deltaObjs.get(i).setRate(getBaseRate());
       }
       GradientDescentTrainer clone = current.copy().clearMomentum();
       final double[] localMin = clone.trainLineSearch(deltaObjs.size());
@@ -196,6 +197,15 @@ public class DynamicRateTrainer {
 
   public double[] getRates() {
     return inner.current.getRates();
+  }
+
+  public double getBaseRate() {
+    return baseRate;
+  }
+
+  public DynamicRateTrainer setBaseRate(double baseRate) {
+    this.baseRate = baseRate;
+    return this;
   }
 
 }

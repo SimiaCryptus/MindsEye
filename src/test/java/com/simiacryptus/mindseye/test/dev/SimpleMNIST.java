@@ -76,7 +76,7 @@ public class SimpleMNIST {
         .map(o -> new NDArray[] { o.data, SimpleMNIST.toOutNDArray(SimpleMNIST.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
 
-    getTrainer(net, data).verifyConvergence(10000, 0.01, 1);
+    getTrainer(net, data).verifyConvergence(0, 0.01, 1);
     
     final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average()
         .getAsDouble();

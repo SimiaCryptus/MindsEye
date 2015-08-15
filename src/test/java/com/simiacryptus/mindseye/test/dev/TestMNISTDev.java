@@ -231,7 +231,7 @@ public class TestMNISTDev {
         .toArray(i2 -> new NDArray[i2][]);
     net.trainer(data)
         .setMutationAmount(.1)
-        //.setStaticRate(0.2)
+        .setStaticRate(0.25)
         .setVerbose(true)
         .verifyConvergence(10000, 0.01, 1);
     {

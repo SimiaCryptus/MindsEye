@@ -42,9 +42,10 @@ public class UnivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
   
   public final UnivariateFunction f;
-  public double growth = 2.;
-  public double maxValue = 1e8;
+  public double growth = 3;
+  public double maxValue = 1e6;
   public double minValue = 0;
+  double minRate = 1e-9;
   public final List<PointValuePair> points = new PtList();
   double relativeUncertiantyThreshold = 3e-2;
   public double solveThreshold = -Double.MAX_VALUE;
@@ -143,7 +144,7 @@ public class UnivariateOptimizer {
     final double oneV = this.points.get(this.points.size() - 1).getValue();
     final double zeroV = this.points.get(this.points.size() - 2).getValue();
     if (oneV > zeroV) {
-      for (double x = start / this.growth; x>1e-10; x /= this.growth) {
+      for (double x = start / this.growth; x>minRate; x /= this.growth) {
         this.points.add(eval(x));
         final Double lastV = this.points.get(this.points.size() - 1).getValue();
         if (lastV <= zeroV) {
@@ -176,11 +177,11 @@ public class UnivariateOptimizer {
     double midX = this.points.get(1).getFirst()[0];
     double rightX = this.points.get(2).getFirst()[0];
     
-    final UnivariatePointValuePair optim = new BrentOptimizer(1e-6, 1e-6).optimize(
+    final UnivariatePointValuePair optim = new BrentOptimizer(1e-4, 1e-8).optimize(
         GoalType.MINIMIZE,
         new UnivariateObjectiveFunction(f),
         new SearchInterval(leftX,rightX,midX),
-        new MaxEval(10000)
+        new MaxEval(100)
         );
     return new PointValuePair(new double[]{optim.getPoint()}, optim.getValue());
   }

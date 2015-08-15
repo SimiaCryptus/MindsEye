@@ -40,7 +40,7 @@ public class BooleanSigmoidNetworkTests {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    final boolean verbose = false;
+    final boolean verbose = true;
     new PipelineNetwork()
 
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
@@ -53,7 +53,7 @@ public class BooleanSigmoidNetworkTests {
     .setMutationAmplitude(10.)
     .trainer(samples)
     .setVerbose(verbose)
-    .verifyConvergence(10, 0.01, 100);
+    .verifyConvergence(0, 0.01, 1);
   }
 
   @Test

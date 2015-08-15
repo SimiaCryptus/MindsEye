@@ -178,7 +178,7 @@ public class NetworkElementUnitTests {
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .trainer(samples)
         // .setStaticRate(.01)
-        .setVerbose(true)
+        //.setVerbose(true)
         .verifyConvergence(1, 0.1, 1);
   }
   

@@ -68,7 +68,7 @@ public class MultivariateOptimizer {
   public PointValuePair minimize(PointValuePair initial) {
     int dims = initial.getFirst().length;
     final ThreadLocal<MultivariateFunction> f2 = copyOnFork(f);
-    return IntStream.range(0, (int) Math.min(Math.ceil(Math.sqrt(dims)), 2))
+    return IntStream.range(0, (int) Math.min(Math.ceil(Math.sqrt(dims)), 1))
         .parallel()
         .mapToObj(threadNum->{
       final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, dims).mapToObj(x -> x).collect(Collectors.toList()));

@@ -187,7 +187,7 @@ public class ImageNetworkDev {
           //.setDynamicRate(0.005)
           // .setMaxDynamicRate(1.)
           // .setMinDynamicRate(0.001)
-          .train(10, 0.0001);
+          .train(0, 0.1);
       
       bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
       final NNResult recovered = bias.eval(zeroInput);
