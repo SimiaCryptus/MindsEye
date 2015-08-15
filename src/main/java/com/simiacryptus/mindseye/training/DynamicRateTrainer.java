@@ -18,7 +18,7 @@ public class DynamicRateTrainer {
   int generationsSinceImprovement = 0;
   int lastCalibratedIteration = Integer.MIN_VALUE;
   
-  private double baseRate = .001;
+  private double baseRate = .1;
   public final ChampionTrainer inner;
   double maxRate = 5e4;
   double minRate = 0;

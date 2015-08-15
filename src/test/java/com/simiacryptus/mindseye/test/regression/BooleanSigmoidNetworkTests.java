@@ -52,8 +52,8 @@ public class BooleanSigmoidNetworkTests {
     .add(new SigmoidActivationLayer())
     .setMutationAmplitude(10.)
     .trainer(samples)
-    .setVerbose(verbose)
-    .verifyConvergence(0, 0.01, 1);
+    //.setVerbose(verbose)
+    .verifyConvergence(0, 0.01, 100);
   }
 
   @Test
