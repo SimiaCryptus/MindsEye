@@ -2,7 +2,9 @@ package com.simiacryptus.mindseye.training;
 
 import groovy.lang.Tuple2;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -67,23 +69,27 @@ public class Trainer {
   }
 
   public void verifyConvergence(final int maxIter, final double convergence, final int reps) {
-    final long succeesses = IntStream.range(0, reps) //
-        .parallel()
-        .filter(i -> {
-          boolean hasConverged = false;
-          try {
-            final MutationTrainer copy = Util.kryo().copy(this.getInner());
-            final Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
-            hasConverged = error <= convergence;
-            if (!hasConverged) {
-              Trainer.log.debug("Not Converged");
-            }
-          } catch (final Throwable e) {
-            Trainer.log.debug("Not Converged", e);
-          }
-          return hasConverged;
-        }).count();
+    final long succeesses = IntStream.range(0, reps).parallel()
+        .filter(i -> testCopy(maxIter, convergence)).count();
     if (reps > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
+  }
+
+  public final List<Function<MutationTrainer, Void>> handler = new ArrayList<>();
+  
+  public boolean testCopy(final int maxIter, final double convergence) {
+    boolean hasConverged = false;
+    try {
+      final MutationTrainer copy = Util.kryo().copy(this.getInner());
+      final Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
+      handler.stream().forEach(h->h.apply(copy));
+      hasConverged = error <= convergence;
+      if (!hasConverged) {
+        Trainer.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
+      }
+    } catch (final Throwable e) {
+      Trainer.log.debug("Not Converged", e);
+    }
+    return hasConverged;
   }
 
   public Trainer setMutationAmplitude(double d) {

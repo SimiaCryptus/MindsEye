@@ -95,4 +95,8 @@ public class ChampionTrainer {
     return getCurrent().getLayers();
   }
 
+  public List<PipelineNetwork> getNetwork() {
+    return current.getNetwork();
+  }
+
 }

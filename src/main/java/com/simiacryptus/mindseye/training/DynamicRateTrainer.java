@@ -281,5 +281,9 @@ public class DynamicRateTrainer {
   public List<NNLayer> getLayers() {
     return getInner().getLayers();
   }
+
+  public List<PipelineNetwork> getNetwork() {
+    return inner.getNetwork();
+  }
   
 }

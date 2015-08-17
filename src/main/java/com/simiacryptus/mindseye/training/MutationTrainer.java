@@ -234,4 +234,8 @@ public class MutationTrainer {
     this.mutationAmplitude = mutationAmplitude;
     return this;
   }
+
+  public List<PipelineNetwork> getNetwork() {
+    return inner.getNetwork();
+  }
 }

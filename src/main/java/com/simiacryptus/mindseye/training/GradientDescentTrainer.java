@@ -195,4 +195,8 @@ public class GradientDescentTrainer {
     return getCurrentNetworks().stream().flatMap(x->x.getNet().layers.stream()).distinct().collect(Collectors.toList());
   }
 
+  public List<PipelineNetwork> getNetwork() {
+    return currentNetworks.stream().map(SupervisedTrainingParameters::getNet).collect(Collectors.toList());
+  }
+
 }
