@@ -61,7 +61,7 @@ public class DynamicRateTrainer {
       for (int i = 0; i < deltaObjs.size(); i++) {
         deltaObjs.get(i).setRate(getBaseRate());
       }
-      final double[] localMin = trainLineSearch(deltaObjs.size());
+      final double[] localMin = optimizeRates(deltaObjs.size());
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(adjustment).allMatch(r -> this.maxRate > r)
           && DoubleStream.of(adjustment).anyMatch(r -> this.minRate < r);
@@ -177,7 +177,7 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  public synchronized double[] trainLineSearch(final int dims) {
+  public synchronized double[] optimizeRates(final int dims) {
     assert 0 < this.getInner().getCurrent().getCurrentNetworks().size();
     final double[] prev = this.getInner().getCurrent().getError();
     this.getInner().getCurrent().learn(this.getInner().getCurrent().evalTrainingData());

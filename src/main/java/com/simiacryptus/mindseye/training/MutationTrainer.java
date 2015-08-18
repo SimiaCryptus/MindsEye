@@ -96,46 +96,54 @@ public class MutationTrainer {
     return this.verbose;
   }
   
-  public BiasLayer mutate(final BiasLayer l, final double amount) {
+  public int mutate(final BiasLayer l, final double amount) {
     final double[] a = l.bias;
     Random random = Util.R.get();
+    int sum = 0;
     for (int i = 0; i < a.length; i++)
     {
       if (random.nextDouble() < amount) {
+        sum += 0;
         //a[i] = mutationAmplitude * random.nextGaussian();
       }
     }
-    return l;
+    return sum;
   }
   
-  public DenseSynapseLayer mutate(final DenseSynapseLayer l, final double amount) {
+  public int mutate(final DenseSynapseLayer l, final double amount) {
     final double[] a = l.weights.getData();
     Random random = Util.R.get();
+    int sum = 0;
     for (int i = 0; i < a.length; i++)
     {
       if (random.nextDouble() < amount) {
         a[i] = mutationAmplitude * random.nextGaussian();
+        sum += 1;
       }
     }
-    return l;
+    return sum;
   }
   
-  public void mutate(final double amount) {
+  public int mutate(final double amount) {
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", this.getInner(), amount));
     }
     List<NNLayer> layers = this.getLayers();
-    layers.stream()
+    int sum = 
+      layers.stream()
         .filter(l -> (l instanceof DenseSynapseLayer))
         .map(l -> (DenseSynapseLayer) l)
         .filter(l -> !l.isFrozen())
-        .forEach(l -> mutate(l, amount));
-    layers.stream()
+        .mapToInt(l -> mutate(l, amount))
+        .sum() + 
+      layers.stream()
         .filter(l -> (l instanceof BiasLayer))
         .map(l -> (BiasLayer) l)
         .filter(l -> !l.isFrozen())
-        .forEach(l -> mutate(l, amount));
+        .mapToInt(l -> mutate(l, amount))
+        .sum();
     this.getInner().getInner().getCurrent().setError(null);
+    return sum;
   }
   
   private List<NNLayer> getLayers() {

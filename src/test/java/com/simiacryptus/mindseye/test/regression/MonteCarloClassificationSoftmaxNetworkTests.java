@@ -229,17 +229,20 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     final int[] outSize = new int[] { 2 };
     PipelineNetwork net = new PipelineNetwork()
         
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
+//        .add(new BiasLayer(midSize))
+//        .add(new SigmoidActivationLayer())
         
         // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
         // .add(new BiasLayer(midSize))
         // .add(new SigmoidActivationLayer())
         
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+//        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize))
-        .add(new SoftmaxActivationLayer().setVerbose(false));
+
+//         .add(new SigmoidActivationLayer());
+//        .add(new SoftmaxActivationLayer().setVerbose(false))
+        ;
     return net;
   }
   
