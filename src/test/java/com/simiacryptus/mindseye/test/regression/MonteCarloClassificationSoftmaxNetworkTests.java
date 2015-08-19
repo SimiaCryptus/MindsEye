@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
@@ -29,6 +30,8 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Trainer;
@@ -56,6 +59,26 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     public double[] apply(Void n) {
       double x = Util.R.get().nextDouble() * 4 - 2;
       return new double[] { a * x + b, c * x + d };
+    }
+  }
+  
+  public static final class UnionDistribution extends ArrayList<Function<Void, double[]>> implements Function<Void, double[]> {
+    
+    public UnionDistribution() {
+      super();
+    }
+    
+    public UnionDistribution(Function<Void, double[]>... c) {
+      this(Arrays.asList(c));
+    }
+    
+    public UnionDistribution(Collection<? extends Function<Void, double[]>> c) {
+      super(c);
+    }
+    
+    @Override
+    public double[] apply(Void t) {
+      return get(Util.R.get().nextInt(size())).apply(t);
     }
   }
   
@@ -87,6 +110,33 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
       IntStream.range(0, dims).forEach(i -> {
         IntStream.range(0, dims).forEach(j -> {
           postMult.setEntry(i, j, random.nextGaussian() * 0.4);
+        });
+      });
+    }
+    
+    public GaussianDistribution(int dims, double[] pos, double size) {
+      Random random = Util.R.get();
+      
+      final double[] means = new double[dims];
+      for (int i = 0; i < means.length; i++)
+      {
+        means[i] = 1;
+      }
+      final double[][] diaganals = new double[dims][];
+      for (int i = 0; i < diaganals.length; i++)
+      {
+        diaganals[i] = new double[dims];
+        diaganals[i][i] = 1;
+      }
+      final RandomGenerator rng = new JDKRandomGenerator();
+      rng.setSeed(random.nextInt());
+      this.distribution = new MultivariateNormalDistribution(rng, means, diaganals);
+      
+      this.pos = MatrixUtils.createColumnRealMatrix(pos);
+      this.postMult = MatrixUtils.createRealMatrix(dims, dims);
+      IntStream.range(0, dims).forEach(i -> {
+        IntStream.range(0, dims).forEach(j -> {
+          postMult.setEntry(i, j, i == j ? size : 0);
         });
       });
     }
@@ -181,11 +231,11 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
           {
             for (int x = 0; x < getWidth(); x++) {
               for (int y = 0; y < getHeight(); y++) {
-                double xf = (x*1./getWidth() - .5) * 3;
-                double yf = (y*1./getHeight() - .5) * 3;
-                NNResult eval = n.getNetwork().get(0).eval(new NDArray(new int[]{2},new double[]{xf,yf}));
-                int winner = IntStream.range(0, 2).mapToObj(o->o).max(Comparator.comparing(o->eval.data.get((int)o))).get();
-                this.setRGB(x, y, 0==winner?0x0F0000:0x000F00);
+                double xf = (x * 1. / getWidth() - .5) * 3;
+                double yf = (y * 1. / getHeight() - .5) * 3;
+                NNResult eval = n.getNetwork().get(0).eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+                int winner = IntStream.range(0, 2).mapToObj(o -> o).max(Comparator.comparing(o -> eval.data.get((int) o))).get();
+                this.setRGB(x, y, 0 == winner ? 0x0F0000 : 0x000F00);
               }
             }
             Graphics2D g = (Graphics2D) getGraphics();
@@ -207,43 +257,42 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
       return null;
     });
     try {
-      trainer.verifyConvergence(0, 0.01, 100);
+      trainer.verifyConvergence(0, 0.01, 20);
     } finally {
-      Util.report((String[])images.stream().map(i->Util.toInlineImage(i, "")).toArray(i->new String[i]));
+      Util.report((String[]) images.stream().map(i -> Util.toInlineImage(i, "")).toArray(i -> new String[i]));
     }
   }
-
+  
   public Trainer buildTrainer(final NDArray[][] samples, PipelineNetwork net) {
     return net.trainer(samples);
     // .setMutationAmplitude(5.)
-     //.setVerbose(true);
+    // .setVerbose(true);
     // .setStaticRate(.1)
   }
-
+  
   public PipelineNetwork buildNetwork() {
-    //final int[] midSize = new int[] { 10 };
+    final int[] midSize = new int[] { 10 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     PipelineNetwork net = new PipelineNetwork()
         
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-//        .add(new BiasLayer(midSize))
-//        .add(new SigmoidActivationLayer())
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+        .add(new BiasLayer(midSize))
+        .add(new SigmoidActivationLayer())
         
         // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
         // .add(new BiasLayer(midSize))
         // .add(new SigmoidActivationLayer())
         
-//        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize))
-
-//         .add(new SigmoidActivationLayer());
-//        .add(new SoftmaxActivationLayer().setVerbose(false))
-        ;
+        
+        // .add(new SigmoidActivationLayer());
+        .add(new SoftmaxActivationLayer().setVerbose(false));
     return net;
   }
   
-  @Test
+  @Test(expected = RuntimeException.class)
   public void test_Lines() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new Random2DLine(),
@@ -251,7 +300,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         )));
   }
   
-  @Test
+  @Test(expected = RuntimeException.class)
   public void test_Gaussians() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new GaussianDistribution(2),
@@ -259,11 +308,19 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         )));
   }
   
-  @Test
+  @Test(expected = RuntimeException.class)
   public void test_snakes() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new SnakeDistribution(2, Util.R.get(), 7, 0.01),
         new SnakeDistribution(2, Util.R.get(), 7, 0.01)
+        )));
+  }
+  
+  @Test(expected = RuntimeException.class)
+  public void test_xor() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))
         )));
   }
   

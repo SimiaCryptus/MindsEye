@@ -10,6 +10,8 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.Coordinate;
+import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
@@ -105,30 +107,49 @@ public class MutationTrainer {
     for (int i = 0; i < a.length; i++)
     {
       if (random.nextDouble() < amount) {
-        sum += 0;
-        //a[i] = mutationAmplitude * random.nextGaussian();
-      }
-    }
-    return sum;
-  }
-  
-  public int mutate(final DenseSynapseLayer l, final double amount) {
-    final double[] a = l.weights.getData();
-    Random random = Util.R.get();
-    int sum = 0;
-    for (int i = 0; i < a.length; i++)
-    {
-      if (random.nextDouble() < amount) {
         double prev = a[i];
         double prevEntropy = entropy(l);
         a[i] = randomWeight(l, random);
         double nextEntropy = entropy(l);
         if(nextEntropy < prevEntropy) {
           a[i] = prev;
+        } else {
+          sum += 1;
         }
-        sum += 1;
       }
     }
+    return sum;
+  }
+  
+  private double randomWeight(BiasLayer l, Random random) {
+    return mutationAmplitude * random.nextGaussian() * 0.05;
+  }
+
+  private double entropy(BiasLayer l) {
+    return 0;
+  }
+
+  public int mutate(final DenseSynapseLayer l, final double amount) {
+    final double[] a = l.weights.getData();
+    Random random = Util.R.get();
+    int sum = 0;
+    l.weights.coordStream().mapToInt(idx->{
+      int i = idx.index;
+      if (random.nextDouble() < amount) {
+        double prev = a[i];
+        double prevEntropy = entropy(l, idx);
+        a[i] = randomWeight(l, random);
+        double nextEntropy = entropy(l, idx);
+        if(nextEntropy < prevEntropy) {
+          a[i] = prev;
+          return 0;
+        } else {
+          return 1;
+        }
+      } else {
+        return 0;
+      }
+    });
     return sum;
   }
 
@@ -136,11 +157,14 @@ public class MutationTrainer {
     return mutationAmplitude * random.nextGaussian() / Math.sqrt(l.weights.getDims()[0]);
   }
   
-  private double entropy(DenseSynapseLayer l) {
-    int columns = l.weights.getDims()[0];
-    int rows = l.weights.getDims()[1];
-    DoubleMatrix matrix = new DoubleMatrix(columns, rows, l.weights.getData()).transpose();
-    return IntStream.range(0, rows).mapToDouble(i->i).flatMap(i->{
+  private double entropy(DenseSynapseLayer l, Coordinate idx) {
+    NDArray weights = l.weights;
+    int[] dims = weights.getDims();
+    int columns = dims[0];
+    int rows = dims[1];
+    DoubleMatrix matrix = new DoubleMatrix(columns, rows, weights.getData()).transpose();
+    //DoubleMatrix matrix = new DoubleMatrix(rows, columns, l.weights.getData());
+    return IntStream.range(0, rows).filter(i->i==(int)idx.coords[1]).mapToDouble(i->i).flatMap(i->{
       return IntStream.range(0, rows).mapToDouble(j->{
         ArrayRealVector vi = new ArrayRealVector(matrix.getRow((int) i).toArray());
         if(vi.getNorm() <= 0.) return 0.;
