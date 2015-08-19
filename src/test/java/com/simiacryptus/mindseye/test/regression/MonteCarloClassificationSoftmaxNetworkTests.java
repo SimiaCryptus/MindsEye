@@ -29,8 +29,6 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Trainer;
@@ -224,7 +222,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
   }
 
   public PipelineNetwork buildNetwork() {
-    final int[] midSize = new int[] { 10 };
+    //final int[] midSize = new int[] { 10 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     PipelineNetwork net = new PipelineNetwork()

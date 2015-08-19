@@ -3,8 +3,10 @@ package com.simiacryptus.mindseye.training;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import org.apache.commons.math3.linear.ArrayRealVector;
+import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,14 +119,41 @@ public class MutationTrainer {
     for (int i = 0; i < a.length; i++)
     {
       if (random.nextDouble() < amount) {
-        a[i] = mutationAmplitude * random.nextGaussian();
+        double prev = a[i];
+        double prevEntropy = entropy(l);
+        a[i] = randomWeight(l, random);
+        double nextEntropy = entropy(l);
+        if(nextEntropy < prevEntropy) {
+          a[i] = prev;
+        }
         sum += 1;
       }
     }
     return sum;
   }
+
+  public double randomWeight(final DenseSynapseLayer l, Random random) {
+    return mutationAmplitude * random.nextGaussian() / Math.sqrt(l.weights.getDims()[0]);
+  }
   
-  public int mutate(final double amount) {
+  private double entropy(DenseSynapseLayer l) {
+    int columns = l.weights.getDims()[0];
+    int rows = l.weights.getDims()[1];
+    DoubleMatrix matrix = new DoubleMatrix(columns, rows, l.weights.getData()).transpose();
+    return IntStream.range(0, rows).mapToDouble(i->i).flatMap(i->{
+      return IntStream.range(0, rows).mapToDouble(j->{
+        ArrayRealVector vi = new ArrayRealVector(matrix.getRow((int) i).toArray());
+        if(vi.getNorm() <= 0.) return 0.;
+        vi.unitize();
+        ArrayRealVector vj = new ArrayRealVector(matrix.getRow(j).toArray());
+        if(vj.getNorm() <= 0.) return 0.;
+        vj.unitize();
+        return Math.acos(vi.cosine(vj));
+      });
+    }).average().getAsDouble();
+  }
+
+  public int mutate(final double amount) {  
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", this.getInner(), amount));
     }
