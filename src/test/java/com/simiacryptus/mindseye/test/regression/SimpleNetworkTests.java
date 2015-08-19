@@ -33,7 +33,8 @@ public class SimpleNetworkTests {
         .add(new SigmoidActivationLayer())
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
         .add(new BiasLayer(outSize))
-        .trainer(samples).setStaticRate(5).verifyConvergence(100, 0.1, 10);
+        .trainer(samples)
+        .verifyConvergence(100, 0.1, 10);
   }
   
   @Test

@@ -83,6 +83,8 @@ public class MultivariateOptimizer {
         .mapToObj(threadNum -> {
           final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, dims).mapToObj(x -> x).collect(Collectors.toList()));
           Collections.shuffle(l);
+          return l;
+        }).distinct().map(l->{
           PointValuePair accumulator = initial;
           for (int i = 0; i < dims; i++) {
             final Integer d = l.get(i);

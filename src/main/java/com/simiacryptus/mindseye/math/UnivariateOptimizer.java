@@ -35,7 +35,7 @@ public class UnivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
 
   public final UnivariateFunction f;
-  public double growth = 3;
+  public double growth = 1.2;
   public double maxValue = 1e6;
   double minRate = 1e-9;
   public double minValue = 0;

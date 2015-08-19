@@ -214,11 +214,10 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
   }
 
   public Trainer buildTrainer(final NDArray[][] samples, PipelineNetwork net) {
-    Trainer trainer = net.trainer(samples);
+    return net.trainer(samples);
     // .setMutationAmplitude(5.)
-    // .setVerbose(true)
+     //.setVerbose(true);
     // .setStaticRate(.1)
-    return trainer;
   }
 
   public PipelineNetwork buildNetwork() {
