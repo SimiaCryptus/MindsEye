@@ -58,7 +58,7 @@ public class SimpleNetworkTests {
         .add(new BiasLayer(outSize))
         .add(new SigmoidActivationLayer())
         .trainer(samples)
-        .verifyConvergence(10, 0.01, 10);
+        .verifyConvergence(10, 0.01, 100);
   }
 
   @Test

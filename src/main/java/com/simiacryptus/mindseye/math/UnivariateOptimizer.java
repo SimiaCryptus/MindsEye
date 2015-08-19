@@ -36,11 +36,10 @@ public class UnivariateOptimizer {
 
   public final UnivariateFunction f;
   public double growth = 1.2;
-  public double maxValue = 1e6;
+  public double maxValue = 1e8;
   double minRate = 1e-9;
   public double minValue = 0;
   public final List<PointValuePair> points = new PtList();
-  double relativeUncertiantyThreshold = 3e-2;
   public double solveThreshold = -Double.MAX_VALUE;
   private boolean verbose = false;
   
@@ -99,8 +98,8 @@ public class UnivariateOptimizer {
     if (oneV > zeroV) {
       for (double x = start / this.growth; x > this.minRate; x /= this.growth) {
         this.points.add(eval(x));
-        final Double lastV = this.points.get(this.points.size() - 1).getValue();
-        if (lastV <= zeroV) {
+        final Double thisV = this.points.get(this.points.size() - 1).getValue();
+        if (thisV < zeroV) {
           break;
         }
         if (x < this.minValue) throw new RuntimeException("x < minValue");
