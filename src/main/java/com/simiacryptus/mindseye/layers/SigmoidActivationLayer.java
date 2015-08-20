@@ -26,11 +26,11 @@ public class SigmoidActivationLayer extends NNLayer {
     IntStream.range(0, input.dim()).forEach(i -> {
       final double x = input.getData()[i];
       final double f = 1 / (1 + Math.exp(-x));
-      final double minDeriv = 0.;
-      //double d = f * (1 - f);
-      double ex = Math.exp(x);
-      double ex1 = 1 + ex;
-      double d = ex / (ex1*ex1);
+      final double minDeriv = 0;
+//      double ex = Math.exp(x);
+//      double ex1 = 1 + ex;
+//      double d = ex / (ex1*ex1);
+      double d = f * (1 - f);
       if (!Double.isFinite(d) || d < minDeriv) {
         d = minDeriv;
       }

@@ -122,7 +122,7 @@ public class MutationTrainer {
   }
   
   private double randomWeight(BiasLayer l, Random random) {
-    return mutationAmplitude * random.nextGaussian() * 0.05;
+    return mutationAmplitude * random.nextGaussian() * 0.0;
   }
 
   private double entropy(BiasLayer l) {
@@ -270,6 +270,10 @@ public class MutationTrainer {
     {
       if (0 == this.currentGeneration++) {
         mutate(1);
+//        mutate(1);
+//        mutate(1);
+//        mutate(1);
+//        mutate(1);
       } else {
         mutateBest();
       }

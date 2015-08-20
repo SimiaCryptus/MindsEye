@@ -257,7 +257,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
       return null;
     });
     try {
-      trainer.verifyConvergence(0, 0.01, 20);
+      trainer.verifyConvergence(0, 0.0, 10);
     } finally {
       Util.report((String[]) images.stream().map(i -> Util.toInlineImage(i, "")).toArray(i -> new String[i]));
     }
@@ -271,7 +271,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
   }
   
   public PipelineNetwork buildNetwork() {
-    final int[] midSize = new int[] { 10 };
+    final int[] midSize = new int[] { 5 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     PipelineNetwork net = new PipelineNetwork()
@@ -287,7 +287,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize))
         
-        // .add(new SigmoidActivationLayer());
+         //.add(new SigmoidActivationLayer());
         .add(new SoftmaxActivationLayer().setVerbose(false));
     return net;
   }
