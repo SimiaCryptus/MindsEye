@@ -132,8 +132,7 @@ public class MutationTrainer {
   public int mutate(final DenseSynapseLayer l, final double amount) {
     final double[] a = l.weights.getData();
     Random random = Util.R.get();
-    int sum = 0;
-    l.weights.coordStream().mapToInt(idx->{
+    return l.weights.coordStream().mapToInt(idx->{
       int i = idx.index;
       if (random.nextDouble() < amount) {
         double prev = a[i];
@@ -149,8 +148,7 @@ public class MutationTrainer {
       } else {
         return 0;
       }
-    });
-    return sum;
+    }).sum();
   }
 
   public double randomWeight(final DenseSynapseLayer l, Random random) {
@@ -270,10 +268,10 @@ public class MutationTrainer {
     {
       if (0 == this.currentGeneration++) {
         mutate(1);
-//        mutate(1);
-//        mutate(1);
-//        mutate(1);
-//        mutate(1);
+        mutate(1);
+        mutate(1);
+        mutate(1);
+        mutate(1);
       } else {
         mutateBest();
       }
