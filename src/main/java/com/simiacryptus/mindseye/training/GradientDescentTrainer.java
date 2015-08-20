@@ -124,6 +124,7 @@ public class GradientDescentTrainer {
         final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
         final NDArray delta = eval.delta(output).scale(getRate());
         final double factor = currentNet.getWeight();// * product / rmsList[network];
+        //log.debug(String.format("%s actual vs %s ideal -> %s delta * %s", eval.data, output, delta, factor));
         if (Double.isFinite(factor)) {
           delta.scale(factor);
         }

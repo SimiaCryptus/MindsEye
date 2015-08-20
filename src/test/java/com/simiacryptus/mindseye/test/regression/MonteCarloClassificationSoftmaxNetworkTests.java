@@ -273,11 +273,14 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
           {
             for (int x = 0; x < getWidth(); x++) {
               for (int y = 0; y < getHeight(); y++) {
-                double xf = (x * 1. / getWidth() - .5) * 3;
-                double yf = (y * 1. / getHeight() - .5) * 3;
+                double xf = (x * 1. / getWidth() - .5) * 6;
+                double yf = (y * 1. / getHeight() - .5) * 6;
                 NNResult eval = n.getNetwork().get(0).eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
                 // int winner = IntStream.range(0, 2).mapToObj(o -> o).max(Comparator.comparing(o -> eval.data.get((int) o))).get();
-                this.setRGB(x, y, eval.data.get(0) < eval.data.get(1) ? 0x1F0000 : 0x001F00);
+                double a = eval.data.get(0);
+                double b = eval.data.get(1);
+                //if(Math.random()<0.01) log.debug(String.format("(%s:%s) -> %s vs %s", xf, yf, a, b));
+                this.setRGB(x, y, a > b ? 0x1F0000 : 0x001F00);
               }
             }
             Graphics2D g = (Graphics2D) getGraphics();
@@ -306,13 +309,13 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
   }
   
   public void verify(Trainer trainer) {
-    trainer.verifyConvergence(0, 0.0, 1);
+    trainer.verifyConvergence(0, 0.0, 10);
   }
   
   public Trainer buildTrainer(final NDArray[][] samples, PipelineNetwork net) {
-    return net.trainer(samples)
+    return net.trainer(samples);
     // .setMutationAmplitude(5.)
-    .setVerbose(true);
+//    .setVerbose(true);
     // .setStaticRate(.1)
   }
   
@@ -321,7 +324,8 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     final int[] outSize = new int[] { 2 };
     PipelineNetwork net = new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .add(new BiasLayer(outSize));
+        .add(new BiasLayer(outSize))
+        .add(new SoftmaxActivationLayer());
     return net;
   }
   

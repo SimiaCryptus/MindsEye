@@ -13,34 +13,34 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
   @Override
   public PipelineNetwork buildNetwork() {
     
-    final int[] midSize = new int[] { 5 };
-        final int[] inputSize = new int[] { 2 };
-        final int[] outSize = new int[] { 2 };
-        PipelineNetwork net = new PipelineNetwork()
-            
-      .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-    
-      //        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-    //        .add(new BiasLayer(midSize))
-    //        .add(new SigmoidActivationLayer())
-            
-            // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-            // .add(new BiasLayer(midSize))
-            // .add(new SigmoidActivationLayer())
-            
-    //        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-            .add(new BiasLayer(outSize));
-            
-//             .add(new SigmoidActivationLayer());
-//            .add(new SoftmaxActivationLayer().setVerbose(false));
-        return net;
+    final int[] midSize = new int[] { 4 };
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    PipelineNetwork net = new PipelineNetwork()
+        
+        // .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
+        
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+        .add(new BiasLayer(midSize))
+        .add(new SigmoidActivationLayer())
+        
+        // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+        // .add(new BiasLayer(midSize))
+        // .add(new SigmoidActivationLayer())
+        
+         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+        .add(new BiasLayer(outSize))
+        
+        // .add(new SigmoidActivationLayer());
+        .add(new SoftmaxActivationLayer().setVerbose(false));
+    return net;
   }
   
   @Override
   public void verify(Trainer trainer) {
     trainer.verifyConvergence(0, 0.0, 30);
   }
-
+  
   @Override
   public void test_Gaussians() throws Exception {
     super.test_Gaussians();
