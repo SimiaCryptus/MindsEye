@@ -29,8 +29,11 @@ public abstract class NNLayer {
   public abstract NNResult eval(NNResult array);
 
   private DeltaTransaction vector;
+  private Double fraction = null;
   
   public final DeltaTransaction newVector(double fraction) {
+    if(null != this.fraction && this.fraction.equals(fraction)) return this.vector;
+    this.fraction = fraction;
     vector = newVector(fraction,Util.R.get().nextLong());
     return vector;
   }

@@ -137,10 +137,10 @@ public class ImageNetworkDev {
       // }
       // }.setWeight(1));
         
-        // trainer.add(new SupervisedTrainingParameters(
-        // new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1)),
-        // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-.2));
-        
+        trainer.add(new SupervisedTrainingParameters(
+            new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer()),
+            new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(0.1));
+
         // trainer.add(new SupervisedTrainingParameters(
         // new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1).setReverse(true)),
         // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-0.1));

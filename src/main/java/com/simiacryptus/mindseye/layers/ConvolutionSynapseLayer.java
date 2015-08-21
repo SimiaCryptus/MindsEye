@@ -228,6 +228,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
   }
 
   protected DeltaTransaction newVector(double fraction,long mask) {
+    if (isFrozen()) return null;
     return new DeltaTransaction() {
       
       @Override
