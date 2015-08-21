@@ -216,8 +216,8 @@ public class DynamicRateTrainer {
             .map(n->n.getVector()).filter(n->null!=n)
             .distinct().count();
         double[] layerRates = Arrays.copyOf(x, layerCount);
-        double[] netRates = Arrays.copyOfRange(x, layerCount,current.getCurrentNetworks().size());
-        if(0<netRates.length) log.debug("TODO: Optimize the rates of each network. Needs seperate delta buffers for each network within same layer obj!");
+        //double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
+        if(current.getCurrentNetworks().size()>1) log.debug("TODO: Optimize the rates of each network. Needs seperate delta buffers for each network within same layer obj!");
         final List<DeltaTransaction> deltaObjs = current.getCurrentNetworks().stream()
             .flatMap(n -> n.getNet().layers.stream())
             .map(l -> l.newVector(fraction))
