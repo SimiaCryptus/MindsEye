@@ -30,11 +30,13 @@ public abstract class NNLayer {
 
   private DeltaTransaction vector;
   private Double fraction = null;
+  private Long mask = null;
   
   public final DeltaTransaction newVector(double fraction) {
     if(null != this.fraction && this.fraction.equals(fraction)) return this.vector;
     this.fraction = fraction;
-    vector = newVector(fraction,Util.R.get().nextLong());
+    this.mask = Util.R.get().nextLong();
+    vector = newVector(fraction,mask);
     return vector;
   }
 

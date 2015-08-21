@@ -52,12 +52,12 @@ public class MaxEntLayer extends NNLayer {
             if (Double.isFinite(inputGradient.getData()[i]) && 0 != inputGradient.getData()[i]) {
               // double f = output.data[0];
               // f = Math.pow(f, feedbackAttenuation);
-              next.set(i, data.getData()[0] * inputGradient.getData()[i]);
+              next.set(i, inputGradient.getData()[i]);
             }
           }
         }
         if (isVerbose()) {
-          MaxEntLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
+          MaxEntLayer.log.debug(String.format("Feed back @ %s: => %s", output, passback));
         }
         inObj.feedback(passback);
       }

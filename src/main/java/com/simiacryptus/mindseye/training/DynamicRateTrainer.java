@@ -48,21 +48,22 @@ public class DynamicRateTrainer {
   
   protected boolean calibrate() {
     final double last = error();
-    List<DeltaTransaction> deltaObjs = null;
+    List<DeltaTransaction> layerVectors = null;
     double[] adjustment = null;
     boolean inBounds = false;
     try {
       final GradientDescentTrainer current = this.getInner().getCurrent();
-      deltaObjs = current.getCurrentNetworks().stream()
+      layerVectors = current.getCurrentNetworks().stream()
           .flatMap(n -> n.getNet().layers.stream())
+          .distinct()
           .map(l -> l.getVector())
           .filter(l -> null != l)
           .filter(x -> !x.isFrozen())
-          .distinct().collect(Collectors.toList());
-      for (int i = 0; i < deltaObjs.size(); i++) {
-        deltaObjs.get(i).setRate(getBaseRate());
+          .collect(Collectors.toList());
+      for (int i = 0; i < layerVectors.size(); i++) {
+        layerVectors.get(i).setRate(getBaseRate());
       }
-      final double[] localMin = optimizeRates(deltaObjs.size());
+      final double[] localMin = optimizeRates(layerVectors.size());
       adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(adjustment).allMatch(r -> this.maxRate > r)
           && DoubleStream.of(adjustment).anyMatch(r -> this.minRate < r);
@@ -73,8 +74,8 @@ public class DynamicRateTrainer {
     }
     if (inBounds)
     {
-      for (int i = 0; i < deltaObjs.size(); i++) {
-        final DeltaTransaction deltaTransaction = deltaObjs.get(i);
+      for (int i = 0; i < layerVectors.size(); i++) {
+        final DeltaTransaction deltaTransaction = layerVectors.get(i);
         deltaTransaction.setRate(adjustment[i] * deltaTransaction.getRate());
       }
       this.lastCalibratedIteration = this.currentIteration;
@@ -126,7 +127,7 @@ public class DynamicRateTrainer {
   }
   
   public double[] getRates() {
-    return this.getInner().getCurrent().getRates();
+    return this.getInner().getCurrent().getLayerRates();
   }
   
   public int getRecalibrationThreshold() {
@@ -210,29 +211,35 @@ public class DynamicRateTrainer {
       
       @Override
       public double value(final double x[]) {
-        final double[] diff = new double[x.length];
-        for (int i = 0; i < diff.length; i++) {
-          diff[i] = x[i] - this.pos[i];
-        }
-        final List<DeltaTransaction> deltaObjs = DynamicRateTrainer.this.getInner().getCurrent().getCurrentNetworks().stream()
+        GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
+        int layerCount = (int) current.getCurrentNetworks().stream().flatMap(n -> n.getNet().layers.stream())
+            .map(n->n.getVector()).filter(n->null!=n)
+            .distinct().count();
+        double[] layerRates = Arrays.copyOf(x, layerCount);
+        double[] netRates = Arrays.copyOfRange(x, layerCount,current.getCurrentNetworks().size());
+        if(0<netRates.length) log.debug("TODO: Optimize the rates of each network. Needs seperate delta buffers for each network within same layer obj!");
+        final List<DeltaTransaction> deltaObjs = current.getCurrentNetworks().stream()
             .flatMap(n -> n.getNet().layers.stream())
             .map(l -> l.newVector(fraction))
             .filter(l -> null != l)
             .filter(l -> !l.isFrozen())
             .distinct().collect(Collectors.toList());
-        assert diff.length == deltaObjs.size();
-        assert diff.length == this.pos.length;
-        for (int i = 0; i < diff.length; i++) {
-          deltaObjs.get(i).write(diff[i]);
+        assert layerRates.length == deltaObjs.size();
+        assert layerRates.length == this.pos.length;
+        for (int i = 0; i < layerRates.length; i++) {
+          double prev = this.pos[i];
+          double next = layerRates[i];
+          double adj = next - prev;
+          deltaObjs.get(i).write(adj);
         }
-        for (int i = 0; i < diff.length; i++) {
-          this.pos[i] += diff[i];
+        for (int i = 0; i < layerRates.length; i++) {
+          this.pos[i] = layerRates[i];
         }
-        final double[] calcError = DynamicRateTrainer.this.getInner().getCurrent()
-            .calcError(DynamicRateTrainer.this.getInner().getCurrent().evalTrainingData());
+        final double[] calcError = current
+            .calcError(current.evalTrainingData());
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
-          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(x), err, Arrays.toString(calcError)));
+          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(layerRates), err, Arrays.toString(calcError)));
         }
         return err;
       }
