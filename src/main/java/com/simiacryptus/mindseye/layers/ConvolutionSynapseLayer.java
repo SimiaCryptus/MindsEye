@@ -227,7 +227,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     this.flush.write(factor);
   }
 
-  public DeltaTransaction getVector(double fraction) {
+  protected DeltaTransaction newVector(double fraction,long mask) {
     return new DeltaTransaction() {
       
       @Override

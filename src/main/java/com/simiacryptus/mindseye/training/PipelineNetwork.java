@@ -45,10 +45,10 @@ public class PipelineNetwork extends NNLayer {
   }
 
   void writeDeltas(final double factor) {
-    this.layers.stream() //
-        .filter(x -> x instanceof DeltaTransaction) //
-        .map(x -> (DeltaTransaction) x) //
-        .forEach(x -> x.write(factor));
+    this.layers.stream()
+      .map(l -> l.getVector())
+      .filter(l -> null != l)
+      .forEach(x -> x.write(factor));
   }
 
 }

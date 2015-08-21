@@ -104,8 +104,8 @@ public class GradientDescentTrainer {
   public double[] getRates() {
     return this.getCurrentNetworks().stream()
         .flatMap(n -> n.getNet().layers.stream())
-        .filter(l -> l instanceof DeltaTransaction)
-        .map(l -> (DeltaTransaction) l)
+        .map(l -> l.getVector())
+        .filter(l -> null != l)
         .filter(x -> !x.isFrozen())
         .mapToDouble(x -> x.getRate()).toArray();
   }

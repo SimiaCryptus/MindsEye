@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.layers;
 
+import java.util.DoubleSummaryStatistics;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ public class MaxEntLayer extends NNLayer {
     final NDArray input = inObj.data;
     final NDArray output = new NDArray(1);
     
-    final double sum = input.map(x -> x * x).sum();
+    final double sum = input.map(x -> Math.abs(x)).sum();
     
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {

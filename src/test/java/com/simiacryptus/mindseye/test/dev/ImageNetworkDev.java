@@ -116,7 +116,7 @@ public class ImageNetworkDev {
       final NNResult output = forwardConvolutionNet.eval(obj.data);
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
-      final Trainer trainer = new Trainer();
+      final Trainer trainer = new Trainer().setStaticRate(1.);
       
       trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
           .add(bias)

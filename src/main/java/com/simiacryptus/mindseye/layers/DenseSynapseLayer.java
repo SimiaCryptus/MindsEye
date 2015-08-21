@@ -157,17 +157,12 @@ public class DenseSynapseLayer extends NNLayer {
     return "DenseSynapseLayer [weights=" + this.weights + "]";
   }
 
-  public void write(final double factor, double fraction, long mask) {
-    this.writer.write(factor, fraction, mask);
-  }
-
-  public DeltaTransaction getVector(double fraction) {
+  protected DeltaTransaction newVector(double fraction,long mask) {
     return new DeltaTransaction() {
-      long mask = Util.R.get().nextLong();
       
       @Override
       public void write(double factor) {
-        DenseSynapseLayer.this.write(factor, fraction, mask);
+        DenseSynapseLayer.this.writer.write(factor, fraction, mask);
       }
       
       @Override

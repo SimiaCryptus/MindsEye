@@ -116,18 +116,14 @@ public class BiasLayer extends NNLayer {
     return "BiasLayer " + Arrays.toString(this.bias);
   }
   
-  public void write(final double factor, double fraction, long mask) {
-    if (isFrozen()) return;
-    this.flush.write(factor, fraction, mask);
-  }
 
-  public DeltaTransaction getVector(double fraction) {
+  protected DeltaTransaction newVector(double fraction,long mask) {
     return new DeltaTransaction() {
-      long mask = Util.R.get().nextLong();
       
       @Override
       public void write(double factor) {
-        BiasLayer.this.write(factor, fraction, mask);
+        if (isFrozen()) return;
+        flush.write(factor, fraction, mask);
       }
       
       @Override

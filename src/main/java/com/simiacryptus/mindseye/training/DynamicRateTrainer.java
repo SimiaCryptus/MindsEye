@@ -30,7 +30,7 @@ public class DynamicRateTrainer {
   double maxRate = 5e4;
   double minRate = 0;
   private double mutationFactor = 1.;
-  double rate = 0.2;
+  double rate = 0.5;
   private int recalibrationInterval = 10;
   int recalibrationThreshold = 0;
   
@@ -55,7 +55,7 @@ public class DynamicRateTrainer {
       final GradientDescentTrainer current = this.getInner().getCurrent();
       deltaObjs = current.getCurrentNetworks().stream()
           .flatMap(n -> n.getNet().layers.stream())
-          .map(l -> l.getVector(1))
+          .map(l -> l.getVector())
           .filter(l -> null != l)
           .filter(x -> !x.isFrozen())
           .distinct().collect(Collectors.toList());
@@ -179,7 +179,7 @@ public class DynamicRateTrainer {
   }
   
   double monteCarloMin = 0.5;
-  double monteCarloDecayStep = 0.75;
+  double monteCarloDecayStep = 0.9;
   
   public synchronized double[] optimizeRates(final int dims) {
     assert 0 < this.getInner().getCurrent().getCurrentNetworks().size();
@@ -216,7 +216,7 @@ public class DynamicRateTrainer {
         }
         final List<DeltaTransaction> deltaObjs = DynamicRateTrainer.this.getInner().getCurrent().getCurrentNetworks().stream()
             .flatMap(n -> n.getNet().layers.stream())
-            .map(l -> l.getVector(fraction))
+            .map(l -> l.newVector(fraction))
             .filter(l -> null != l)
             .filter(l -> !l.isFrozen())
             .distinct().collect(Collectors.toList());
@@ -246,6 +246,8 @@ public class DynamicRateTrainer {
     return error();
   }
   
+  private double decayTolerance = 1e-3;
+  
   public boolean trainToLocalOptimum() {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
@@ -258,11 +260,10 @@ public class DynamicRateTrainer {
         //calibrate();
         if (!calibrate()) return false;
       }
-      //final double last = this.getInner().getBest().error();
+      final double best = this.getInner().getBest().error();
       final double last = this.getInner().getCurrent().error();
-      final double improvement = trainOnce()/last;
-      double tol = 1e-3;
-      if (improvement < 1+tol)
+      double next = trainOnce();
+      if ((next/last) < 1+getDecayTolerance() || (next/best) < 1+5*getDecayTolerance())
       {
         this.generationsSinceImprovement = 0;
       }
@@ -301,6 +302,15 @@ public class DynamicRateTrainer {
   
   public List<PipelineNetwork> getNetwork() {
     return inner.getNetwork();
+  }
+
+  public double getDecayTolerance() {
+    return decayTolerance;
+  }
+
+  public boolean setDecayTolerance(double decayTolerance) {
+    this.decayTolerance = decayTolerance;
+    return true;
   }
   
 }
