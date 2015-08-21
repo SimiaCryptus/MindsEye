@@ -21,15 +21,6 @@ public class NDArray {
     double apply(double v);
   }
 
-  public static final LoadingCache<NDArray, DoubleMatrix> inverseCache = CacheBuilder.newBuilder().weakKeys().build(new CacheLoader<NDArray, DoubleMatrix>() {
-    @Override
-    public DoubleMatrix load(final NDArray key) throws Exception {
-      if (key.dim() > 0)
-        return key.asMatrix().transpose();
-      else return org.jblas.Solve.pinv(key.asMatrix());
-    }
-  });
-
   public static int dim(final int... dims) {
     int total = 1;
     for (final int dim : dims) {
