@@ -40,7 +40,7 @@ public class MultivariateOptimizer {
     final ThreadLocal<T> f2 = new ThreadLocal<T>() {
       @Override
       protected T initialValue() {
-        return Util.kryo().copy(localValue);
+        return Util.copy(localValue);
       }
     };
     f2.set(localValue);

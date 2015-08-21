@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.regression;
+package com.simiacryptus.mindseye.test.demo;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.layers.BiasLayer;
@@ -17,28 +17,32 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     PipelineNetwork net = new PipelineNetwork()
-        
-        // .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-        
-        // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        // .add(new BiasLayer(midSize))
-        // .add(new SigmoidActivationLayer())
-        
-         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-        .add(new BiasLayer(outSize))
-        
-        // .add(new SigmoidActivationLayer());
-        .add(new SoftmaxActivationLayer().setVerbose(false));
+      
+      // .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
+      
+      .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+      .add(new BiasLayer(midSize))
+      .add(new SigmoidActivationLayer())
+      
+      .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+      .add(new BiasLayer(midSize))
+      .add(new SigmoidActivationLayer())
+      
+      // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+      // .add(new BiasLayer(midSize))
+      // .add(new SigmoidActivationLayer())
+      
+      .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+      .add(new BiasLayer(outSize))
+      
+      // .add(new SigmoidActivationLayer());
+      .add(new SoftmaxActivationLayer().setVerbose(false));
     return net;
   }
   
   @Override
   public void verify(Trainer trainer) {
-    trainer.verifyConvergence(0, 0.0, 30);
+    trainer.verifyConvergence(0, 0.0, 10);
   }
   
   @Override

@@ -14,7 +14,7 @@ import com.simiacryptus.mindseye.learning.DeltaSampler;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class BiasLayer extends NNLayer implements DeltaTransaction {
+public class BiasLayer extends NNLayer {
   
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
   
@@ -73,12 +73,10 @@ public class BiasLayer extends NNLayer implements DeltaTransaction {
     return setFrozen(true);
   }
 
-  @Override
   public double getRate() {
     return this.flush.getRate();
   }
 
-  @Override
   public boolean isFrozen() {
     return this.frozen;
   }
@@ -99,7 +97,6 @@ public class BiasLayer extends NNLayer implements DeltaTransaction {
     return this;
   }
 
-  @Override
   public void setRate(final double rate) {
     this.flush.setRate(rate);
   }
@@ -119,10 +116,35 @@ public class BiasLayer extends NNLayer implements DeltaTransaction {
     return "BiasLayer " + Arrays.toString(this.bias);
   }
   
-  @Override
-  public void write(final double factor) {
+  public void write(final double factor, double fraction, long mask) {
     if (isFrozen()) return;
-    this.flush.write(factor);
+    this.flush.write(factor, fraction, mask);
+  }
+
+  public DeltaTransaction getVector(double fraction) {
+    return new DeltaTransaction() {
+      long mask = Util.R.get().nextLong();
+      
+      @Override
+      public void write(double factor) {
+        BiasLayer.this.write(factor, fraction, mask);
+      }
+      
+      @Override
+      public void setRate(double rate) {
+        BiasLayer.this.setRate(rate);
+      }
+      
+      @Override
+      public boolean isFrozen() {
+        return BiasLayer.this.isFrozen();
+      }
+      
+      @Override
+      public double getRate() {
+        return BiasLayer.this.getRate();
+      }
+    };
   }
 
 }

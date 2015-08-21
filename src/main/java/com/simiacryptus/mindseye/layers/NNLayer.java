@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 /**
@@ -23,7 +24,11 @@ public abstract class NNLayer {
       }
     });
   }
-  
+
   public abstract NNResult eval(NNResult array);
+
+  public DeltaTransaction getVector(double fraction) {
+    return null;
+  }
   
 }

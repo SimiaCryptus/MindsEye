@@ -16,7 +16,7 @@ import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.GradientDescentAccumulator;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class DenseSynapseLayer extends NNLayer implements DeltaTransaction {
+public class DenseSynapseLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
     private final NDArray inputGradient;
@@ -147,12 +147,10 @@ public class DenseSynapseLayer extends NNLayer implements DeltaTransaction {
     return this.backpropPruning;
   }
   
-  @Override
   public double getRate() {
     return this.writer.getRate();
   }
   
-  @Override
   public boolean isFrozen() {
     return this.frozen;
   }
@@ -166,7 +164,6 @@ public class DenseSynapseLayer extends NNLayer implements DeltaTransaction {
     return this;
   }
   
-  @Override
   public void setRate(final double rate) {
     this.writer.setRate(rate);
   }
@@ -195,9 +192,35 @@ public class DenseSynapseLayer extends NNLayer implements DeltaTransaction {
     return "DenseSynapseLayer [weights=" + this.weights + "]";
   }
 
-  @Override
-  public void write(final double factor) {
+  public void write(final double factor, double fraction, long mask) {
     this._inputGradient = null;
-    this.writer.write(factor);
+    this.writer.write(factor, fraction, mask);
   }
+
+  public DeltaTransaction getVector(double fraction) {
+    return new DeltaTransaction() {
+      long mask = Util.R.get().nextLong();
+      
+      @Override
+      public void write(double factor) {
+        DenseSynapseLayer.this.write(factor, fraction, mask);
+      }
+      
+      @Override
+      public void setRate(double rate) {
+        DenseSynapseLayer.this.setRate(rate);
+      }
+      
+      @Override
+      public boolean isFrozen() {
+        return DenseSynapseLayer.this.isFrozen();
+      }
+      
+      @Override
+      public double getRate() {
+        return DenseSynapseLayer.this.getRate();
+      }
+    };
+  }
+
 }

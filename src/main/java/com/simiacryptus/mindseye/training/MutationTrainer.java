@@ -24,7 +24,7 @@ public class MutationTrainer {
   private int currentGeneration = 0;
   private final DynamicRateTrainer inner;
   private int maxIterations = 1000;
-  private double mutationFactor = 1.;
+  private double mutationFactor = .1;
   private double stopError = 0.1;
   private boolean verbose = false;
   
@@ -174,7 +174,7 @@ public class MutationTrainer {
       });
     }).average().getAsDouble();
   }
-
+  
   public int mutate(final double amount) {  
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", this.getInner(), amount));
@@ -206,7 +206,7 @@ public class MutationTrainer {
   public void mutateBest() {
     this.getInner().generationsSinceImprovement = this.getInner().recalibrationThreshold - 1;
     this.getInner().getInner().revert();
-    mutate(getMutationFactor());
+    while(0 >= mutate(getMutationFactor())) {}
     this.getInner().lastCalibratedIteration = this.getInner().currentIteration;// - (this.recalibrationInterval + 2);
   }
   

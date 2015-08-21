@@ -42,6 +42,10 @@ import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;
 
 public class Util {
 
+  public static <T> T copy(T original) {
+    return kryo().copy(original);
+  }
+
   public static final ThreadLocal<Random> R = new ThreadLocal<Random>() {
     public final Random r = new Random(System.nanoTime());
 

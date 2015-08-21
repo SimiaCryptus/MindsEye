@@ -52,7 +52,7 @@ public class BooleanSigmoidNetworkTests {
         .trainer(samples)
         .setMutationAmplitude(10.)
         // .setVerbose(verbose)
-        .verifyConvergence(0, 0.01, 100);
+        .verifyConvergence(10, 0.01, 100);
   }
   
   @Test

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.regression;
+package com.simiacryptus.mindseye.test.demo;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

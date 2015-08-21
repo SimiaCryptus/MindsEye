@@ -20,7 +20,7 @@ import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.GradientDescentAccumulator;
 import com.simiacryptus.mindseye.learning.NNResult;
 
-public class ConvolutionSynapseLayer extends NNLayer implements DeltaTransaction {
+public class ConvolutionSynapseLayer extends NNLayer {
   public static final class IndexMapKey {
     int[] input;
     int[] kernel;
@@ -192,12 +192,10 @@ public class ConvolutionSynapseLayer extends NNLayer implements DeltaTransaction
     return this;
   }
 
-  @Override
   public double getRate() {
     return this.flush.getRate();
   }
 
-  @Override
   public boolean isFrozen() {
     return this.frozen;
   }
@@ -219,7 +217,6 @@ public class ConvolutionSynapseLayer extends NNLayer implements DeltaTransaction
     return this;
   }
 
-  @Override
   public void setRate(final double rate) {
     this.flush.setRate(rate);
   }
@@ -229,9 +226,33 @@ public class ConvolutionSynapseLayer extends NNLayer implements DeltaTransaction
     return this;
   }
 
-  @Override
   public void write(final double factor) {
     if (isFrozen()) return;
     this.flush.write(factor);
+  }
+
+  public DeltaTransaction getVector(double fraction) {
+    return new DeltaTransaction() {
+      
+      @Override
+      public void write(double factor) {
+        ConvolutionSynapseLayer.this.write(factor);
+      }
+      
+      @Override
+      public void setRate(double rate) {
+        ConvolutionSynapseLayer.this.setRate(rate);
+      }
+      
+      @Override
+      public boolean isFrozen() {
+        return ConvolutionSynapseLayer.this.isFrozen();
+      }
+      
+      @Override
+      public double getRate() {
+        return ConvolutionSynapseLayer.this.getRate();
+      }
+    };
   }
 }

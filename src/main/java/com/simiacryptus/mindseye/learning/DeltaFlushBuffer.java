@@ -2,6 +2,8 @@ package com.simiacryptus.mindseye.learning;
 
 import java.util.Arrays;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.simiacryptus.mindseye.NDArray;
 
 public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
@@ -61,12 +63,27 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
   
   @Override
   public void write(final double factor) {
+    write(factor, 1., 0l);
+  }
+
+  public void write(final double factor, double fraction, long mask) {
+    long longF = (long)(fraction * Long.MAX_VALUE);
     final double[] cpy = new double[this.buffer.length];
     for (int i = 0; i < this.buffer.length; i++) {
+      if(fraction<1.){
+        long hash = Hashing.sha1().hashLong(i ^ mask).asLong();
+        if(longF > (hash)){
+          continue;
+        }
+      }
       cpy[i] = this.buffer[i] * factor;
     }
     this.inner.feed(cpy);
     this.reset = true;
   }
-  
+
+  public DeltaTransaction getVector(double fraction) {
+    return this;
+  }
+
 }
