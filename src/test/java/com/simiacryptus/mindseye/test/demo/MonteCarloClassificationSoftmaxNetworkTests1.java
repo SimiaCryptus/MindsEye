@@ -24,10 +24,14 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
       .add(new BiasLayer(midSize))
       .add(new SigmoidActivationLayer())
       
-      .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-      .add(new BiasLayer(midSize))
-      .add(new SigmoidActivationLayer())
-      
+//      .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+//      .add(new BiasLayer(midSize))
+//      .add(new SigmoidActivationLayer())
+//            
+//      .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+//      .add(new BiasLayer(midSize))
+//      .add(new SigmoidActivationLayer())
+
       // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
       // .add(new BiasLayer(midSize))
       // .add(new SigmoidActivationLayer())
