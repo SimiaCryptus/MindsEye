@@ -71,7 +71,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
         final NDArray output = new NDArray(key.output);
         return output.coordStream(false).map(o -> {
           final NDArray input = new NDArray(key.input);
-          final NDArray gradientSize = new NDArray(kernel.dim(), output.dim());
           final int[] inputCoords = Coordinate.add(k.coords, o.coords);
           for (int d = 0; d < input.getDims().length; d++) {
             if (inputCoords[d] < 0) return null;
@@ -81,8 +80,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
           return new int[] {
               k.index,
               input_index,
-              o.index,
-              gradientSize.index(k.index, o.index)
+              o.index
           };
         });
       }).filter(x -> null != x).toArray(i -> new int[i][]);
@@ -98,7 +96,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
   }
 
-  private GradientDescentAccumulator deltaBuffer;
   private DeltaFlushBuffer flush;
   private boolean frozen = false;
   public final NDArray kernel;
@@ -117,7 +114,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
     this.kernel = new NDArray(kernelDims2);
     final DeltaMemoryWriter writer = new DeltaMemoryWriter(this.kernel);
     this.flush = new DeltaFlushBuffer(writer);
-    this.deltaBuffer = new GradientDescentAccumulator(this.flush);
   }
   
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
@@ -147,11 +143,11 @@ public class ConvolutionSynapseLayer extends NNLayer {
       @Override
       public void feedback(final NDArray errorSignal) {
         if (!ConvolutionSynapseLayer.this.frozen) {
-          final NDArray weightGradient = new NDArray(ConvolutionSynapseLayer.this.kernel.dim(), output.dim());
+          final NDArray weightGradient = new NDArray(ConvolutionSynapseLayer.this.kernel.getDims());
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            weightGradient.add(array[3], input.getData()[array[1]]);
+            weightGradient.add(array[0], input.getData()[array[1]] * errorSignal.getData()[array[2]]);
           });
-          ConvolutionSynapseLayer.this.deltaBuffer.feed(weightGradient, errorSignal.getData());
+          ConvolutionSynapseLayer.this.flush.feed(weightGradient.getData());
         }
         if (inObj.isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
