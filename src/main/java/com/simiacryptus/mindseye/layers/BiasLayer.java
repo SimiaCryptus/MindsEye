@@ -19,7 +19,7 @@ public class BiasLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
   
   public final double[] bias;
-  private DeltaFlushBuffer flush;
+  private DeltaFlushBuffer writer;
   private boolean frozen = false;
   private DeltaSampler sampler;
   private boolean verbose = false;
@@ -31,9 +31,8 @@ public class BiasLayer extends NNLayer {
   
   public BiasLayer(final int[] outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
-    final DeltaMemoryWriter writer = new DeltaMemoryWriter(this.bias);
-    this.flush = new DeltaFlushBuffer(writer);
-    this.sampler = new DeltaSampler(this.flush);
+    this.writer = new DeltaFlushBuffer(this.bias);
+    this.sampler = new DeltaSampler(this.writer);
   }
 
   public BiasLayer addWeights(final DoubleSupplier f) {
@@ -74,7 +73,7 @@ public class BiasLayer extends NNLayer {
   }
 
   public double getRate() {
-    return this.flush.getRate();
+    return this.writer.getRate();
   }
 
   public boolean isFrozen() {
@@ -98,7 +97,7 @@ public class BiasLayer extends NNLayer {
   }
 
   public void setRate(final double rate) {
-    this.flush.setRate(rate);
+    this.writer.setRate(rate);
   }
 
   public BiasLayer setSampling(final double sampling) {
@@ -124,7 +123,7 @@ public class BiasLayer extends NNLayer {
       @Override
       public void write(double factor) {
         if (isFrozen()) return;
-        flush.write(factor, fraction, mask);
+        writer.write(factor, fraction, mask);
       }
       
       @Override

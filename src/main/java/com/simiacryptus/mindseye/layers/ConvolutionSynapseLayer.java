@@ -17,7 +17,6 @@ import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
-import com.simiacryptus.mindseye.learning.GradientDescentAccumulator;
 import com.simiacryptus.mindseye.learning.NNResult;
 
 public class ConvolutionSynapseLayer extends NNLayer {
@@ -96,7 +95,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
   }
 
-  private DeltaFlushBuffer flush;
+  private DeltaFlushBuffer writer;
   private boolean frozen = false;
   public final NDArray kernel;
   private boolean paralell = false;
@@ -112,8 +111,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
-    final DeltaMemoryWriter writer = new DeltaMemoryWriter(this.kernel);
-    this.flush = new DeltaFlushBuffer(writer);
+    this.writer = new DeltaFlushBuffer(this.kernel);
   }
   
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
@@ -147,7 +145,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
             weightGradient.add(array[0], input.getData()[array[1]] * errorSignal.getData()[array[2]]);
           });
-          ConvolutionSynapseLayer.this.flush.feed(weightGradient.getData());
+          ConvolutionSynapseLayer.this.writer.feed(weightGradient.getData());
         }
         if (inObj.isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
@@ -189,7 +187,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
   }
 
   public double getRate() {
-    return this.flush.getRate();
+    return this.writer.getRate();
   }
 
   public boolean isFrozen() {
@@ -214,7 +212,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
   }
 
   public void setRate(final double rate) {
-    this.flush.setRate(rate);
+    this.writer.setRate(rate);
   }
 
   public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
@@ -224,7 +222,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
 
   public void write(final double factor) {
     if (isFrozen()) return;
-    this.flush.write(factor);
+    this.writer.write(factor);
   }
 
   protected DeltaTransaction newVector(double fraction,long mask) {
