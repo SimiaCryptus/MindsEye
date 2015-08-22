@@ -15,6 +15,7 @@ import com.simiacryptus.mindseye.Coordinate;
 import com.simiacryptus.mindseye.LogNDArray;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.LogNDArray.LogNumber;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
@@ -144,7 +145,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
         if (!ConvolutionSynapseLayer.this.frozen) {
           final LogNDArray weightGradient = new LogNDArray(ConvolutionSynapseLayer.this.kernel.getDims());
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            weightGradient.add(array[0], input.getData()[array[1]] + errorSignal.getData()[array[2]]);
+            weightGradient.add(array[0], LogNumber.log(input.getData()[array[1]]).add(errorSignal.getData()[array[2]]));
           });
           ConvolutionSynapseLayer.this.writer.feed(weightGradient.exp().getData());
         }
@@ -153,11 +154,11 @@ public class ConvolutionSynapseLayer extends NNLayer {
           final LogNDArray backprop = new LogNDArray(inputDims);
           
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            final double kernelValue = klog.get(array[0]);
-            if (Double.isFinite(kernelValue))
+            final LogNumber kernelValue = klog.get(array[0]);
+            if (Double.isFinite(kernelValue.logValue))
             {
-              final double errorValue = errorSignal.get(array[2]);
-              backprop.add(array[1], errorValue + kernelValue);
+              final LogNumber errorValue = errorSignal.get(array[2]);
+              backprop.add(array[1], errorValue.multiply(kernelValue));
             }
           });
           if (isVerbose()) {
