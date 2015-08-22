@@ -6,6 +6,7 @@ import java.util.function.DoubleSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.LogNDArray;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
@@ -50,7 +51,7 @@ public class BiasLayer extends NNLayer {
     }
     return new NNResult(translated) {
       @Override
-      public void feedback(final NDArray data) {
+      public void feedback(final LogNDArray data) {
         if (isVerbose()) {
           BiasLayer.log.debug(String.format("Feed back: %s", data));
         }

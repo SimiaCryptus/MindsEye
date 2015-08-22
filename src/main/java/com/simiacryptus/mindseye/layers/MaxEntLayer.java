@@ -6,6 +6,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.LogNDArray;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -43,23 +44,22 @@ public class MaxEntLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data) {
-        NDArray passback = null;
+      public void feedback(final LogNDArray data) {
         if (inObj.isAlive()) {
-          final NDArray next = new NDArray(input.getDims());
-          passback = next;
-          for (int i = 0; i < next.getData().length; i++) {
-            if (Double.isFinite(inputGradient.getData()[i]) && 0 != inputGradient.getData()[i]) {
+          LogNDArray inputGradientLog = inputGradient.log();
+          LogNDArray passback = new LogNDArray(input.getDims());
+          for (int i = 0; i < passback.getData().length; i++) {
+            if (Double.isFinite(inputGradientLog.getData()[i])) {
               // double f = output.data[0];
               // f = Math.pow(f, feedbackAttenuation);
-              next.set(i, inputGradient.getData()[i]);
+              passback.set(i, inputGradientLog.getData()[i]);
             }
           }
+          if (isVerbose()) {
+            MaxEntLayer.log.debug(String.format("Feed back @ %s: => %s", output, passback));
+          }
+          inObj.feedback(passback);
         }
-        if (isVerbose()) {
-          MaxEntLayer.log.debug(String.format("Feed back @ %s: => %s", output, passback));
-        }
-        inObj.feedback(passback);
       }
       
       @Override

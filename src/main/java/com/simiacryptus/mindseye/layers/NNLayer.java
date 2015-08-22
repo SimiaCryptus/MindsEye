@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.LogNDArray;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
@@ -15,7 +16,7 @@ public abstract class NNLayer {
   public final NNResult eval(final NDArray array) {
     return eval(new NNResult(array) {
       @Override
-      public void feedback(final NDArray data) {
+      public void feedback(final LogNDArray data) {
         // Do Nothing
       }
 

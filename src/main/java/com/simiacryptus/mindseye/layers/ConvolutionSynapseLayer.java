@@ -12,6 +12,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.Coordinate;
+import com.simiacryptus.mindseye.LogNDArray;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
@@ -139,23 +140,24 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray errorSignal) {
+      public void feedback(final LogNDArray errorSignal) {
         if (!ConvolutionSynapseLayer.this.frozen) {
-          final NDArray weightGradient = new NDArray(ConvolutionSynapseLayer.this.kernel.getDims());
+          final LogNDArray weightGradient = new LogNDArray(ConvolutionSynapseLayer.this.kernel.getDims());
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            weightGradient.add(array[0], input.getData()[array[1]] * errorSignal.getData()[array[2]]);
+            weightGradient.add(array[0], input.getData()[array[1]] + errorSignal.getData()[array[2]]);
           });
-          ConvolutionSynapseLayer.this.writer.feed(weightGradient.getData());
+          ConvolutionSynapseLayer.this.writer.feed(weightGradient.exp().getData());
         }
         if (inObj.isAlive()) {
-          final NDArray backprop = new NDArray(inputDims);
+          LogNDArray klog = ConvolutionSynapseLayer.this.kernel.log();
+          final LogNDArray backprop = new LogNDArray(inputDims);
           
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            final double kernelValue = ConvolutionSynapseLayer.this.kernel.get(array[0]);
-            if (0. != kernelValue)
+            final double kernelValue = klog.get(array[0]);
+            if (Double.isFinite(kernelValue))
             {
               final double errorValue = errorSignal.get(array[2]);
-              backprop.add(array[1], errorValue * kernelValue);
+              backprop.add(array[1], errorValue + kernelValue);
             }
           });
           if (isVerbose()) {

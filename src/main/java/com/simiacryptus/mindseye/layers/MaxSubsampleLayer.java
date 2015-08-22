@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Coordinate;
+import com.simiacryptus.mindseye.LogNDArray;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -46,9 +47,9 @@ public class MaxSubsampleLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data) {
+      public void feedback(final LogNDArray data) {
         if (inObj.isAlive()) {
-          final NDArray backSignal = new NDArray(inputDims);
+          final LogNDArray backSignal = new LogNDArray(inputDims);
           gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().coords, data.get(e.getKey().coords)));
           inObj.feedback(backSignal);
         }

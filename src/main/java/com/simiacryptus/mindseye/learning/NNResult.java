@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.mindseye.LogNDArray;
 import com.simiacryptus.mindseye.NDArray;
 
 public abstract class NNResult {
@@ -44,7 +45,7 @@ public abstract class NNResult {
     return Math.sqrt(sum / this.data.dim());
   }
 
-  public abstract void feedback(final NDArray data);
+  public abstract void feedback(final LogNDArray data);
 
   public final NDArray ideal(final int k) {
     final NDArray delta = new NDArray(this.data.getDims());
@@ -55,11 +56,11 @@ public abstract class NNResult {
   public abstract boolean isAlive();
 
   public final void learn(final double d, final int k) {
-    feedback(delta(k).scale(d));
+    feedback(delta(k).scale(d).log());
   }
 
   public final void learn(final double d, final NDArray out) {
-    feedback(delta(out).scale(d));
+    feedback(delta(out).scale(d).log());
   }
   
 }
