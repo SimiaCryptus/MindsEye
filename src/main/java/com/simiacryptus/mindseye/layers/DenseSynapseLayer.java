@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.LogNDArray;
+import com.simiacryptus.mindseye.LogNDArray.LogNumber;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
@@ -26,13 +27,13 @@ public class DenseSynapseLayer extends NNLayer {
     
     @Override
     public void feedback(final LogNDArray delta) {
-      double[] deltaData = delta.getData();
-      double[] inputData = inObj.data.log().getData();
+      LogNumber[] deltaData = delta.getData();
+      LogNumber[] inputData = inObj.data.log().getData();
 
       LogNDArray weightDelta = new LogNDArray(weights.getDims());
       for(int i=0;i<weightDelta.getDims()[0];i++){
         for(int j=0;j<weightDelta.getDims()[1];j++){
-          weightDelta.set(new int[]{i,j}, deltaData[j] + inputData[i]);
+          weightDelta.set(new int[]{i,j}, deltaData[j].add(inputData[i]));
         }
       }
       writer.feed(weightDelta.exp().getData());
@@ -43,7 +44,7 @@ public class DenseSynapseLayer extends NNLayer {
         LogNDArray passback = new LogNDArray(this.inObj.data.getDims());
         for(int i=0;i<matrix.columns;i++){
           for(int j=0;j<matrix.rows;j++){
-            passback.add(i, deltaData[j] + matrix.get(j, i));
+            passback.add(i, deltaData[j].add(LogNumber.log(matrix.get(j, i))));
           }
         }
         this.inObj.feedback(passback);

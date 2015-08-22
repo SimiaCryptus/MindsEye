@@ -11,11 +11,13 @@ import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
 
+import com.simiacryptus.mindseye.LogNDArray.LogNumber;
+
 public class LogNDArray {
   
   public static class LogNumber extends Number implements Comparable<LogNumber> {
     public double logValue;
-    private boolean realNeg;
+    public boolean realNeg;
     
     private LogNumber(boolean realNeg, double logValue) {
       super();
@@ -55,18 +57,38 @@ public class LogNDArray {
     }
     
     public LogNumber add(LogNumber right) {
-      assert (Double.isFinite(this.logValue));
-      assert (Double.isFinite(right.logValue));
+      assert (this.isFinite());
+      assert (right.isFinite());
       LogNumber r = log(right.doubleValue() + this.doubleValue());
-      assert (Double.isFinite(r.logValue));
+      assert (r.isFinite());
       return r;
     }
     
     public LogNumber multiply(LogNumber right) {
-      assert (Double.isFinite(this.logValue));
-      assert (Double.isFinite(right.logValue));
+      assert (this.isFinite());
+      assert (right.isFinite());
       LogNumber r = new LogNumber(realNeg == right.realNeg, logValue + right.logValue);
-      assert (Double.isFinite(r.logValue));
+      assert (r.isFinite());
+      return r;
+    }
+
+    public boolean isFinite() {
+      return Double.isFinite(logValue);
+    }
+
+    public LogNumber subtract(LogNumber value) {
+      return add(value.negate());
+    }
+
+    private LogNumber negate() {
+      return new LogNumber(!realNeg, logValue);
+    }
+
+    public LogNumber divide(LogNumber right) {
+      assert (this.isFinite());
+      assert (right.isFinite());
+      LogNumber r = new LogNumber(realNeg == right.realNeg, logValue - right.logValue);
+      assert (r.isFinite());
       return r;
     }
     
@@ -173,7 +195,7 @@ public class LogNDArray {
     // assert IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     // assert coords.length==dims.length;
     final LogNumber v = getData()[index(coords)];
-    assert Double.isFinite(v.logValue);
+    assert v.isFinite();
     return v;
   }
   
@@ -244,7 +266,7 @@ public class LogNDArray {
   }
   
   public void set(final Coordinate coords, final LogNumber value) {
-    assert Double.isFinite(value.logValue);
+    assert value.isFinite();
     set(coords.index, value);
   }
   
@@ -257,12 +279,12 @@ public class LogNDArray {
   }
   
   public void set(final int index, final LogNumber value) {
-    assert Double.isFinite(value.logValue);
+    assert value.isFinite();
     getData()[index] = value;
   }
   
   public void set(final int[] coords, final LogNumber value) {
-    assert Double.isFinite(value.logValue);
+    assert value.isFinite();
     set(index(coords), value);
   }
   
@@ -275,7 +297,7 @@ public class LogNDArray {
   }
   
   public synchronized void add(final int index, final LogNumber value) {
-    assert Double.isFinite(value.logValue);
+    assert value.isFinite();
     set(index, getData()[index].add(value));
   }
   

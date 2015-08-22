@@ -55,7 +55,7 @@ public class BiasLayer extends NNLayer {
         if (isVerbose()) {
           BiasLayer.log.debug(String.format("Feed back: %s", data));
         }
-        BiasLayer.this.sampler.feed(data.getData());
+        BiasLayer.this.sampler.feed(data.exp().getData());
         if (inObj.isAlive())
         {
           inObj.feedback(data);

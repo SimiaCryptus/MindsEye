@@ -155,7 +155,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
           
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
             final LogNumber kernelValue = klog.get(array[0]);
-            if (Double.isFinite(kernelValue.logValue))
+            if (kernelValue.isFinite())
             {
               final LogNumber errorValue = errorSignal.get(array[2]);
               backprop.add(array[1], errorValue.multiply(kernelValue));

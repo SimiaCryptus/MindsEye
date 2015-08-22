@@ -49,7 +49,7 @@ public class MaxEntLayer extends NNLayer {
           LogNDArray inputGradientLog = inputGradient.log();
           LogNDArray passback = new LogNDArray(input.getDims());
           for (int i = 0; i < passback.getData().length; i++) {
-            if (Double.isFinite(inputGradientLog.getData()[i])) {
+            if (inputGradientLog.getData()[i].isFinite()) {
               // double f = output.data[0];
               // f = Math.pow(f, feedbackAttenuation);
               passback.set(i, inputGradientLog.getData()[i]);
