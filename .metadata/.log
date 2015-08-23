@@ -1,0 +1,21 @@
+!SESSION 2015-08-23 10:24:31.035 -----------------------------------------------
+eclipse.buildId=4.3.2.M20140221-1700
+java.version=1.7.0_51
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY org.eclipse.m2e.logback.appender 2 0 2015-08-23 10:25:58.703
+!MESSAGE CatalogItem org.eclipse.m2e.discovery.lifecyclemapping.m2e-egit does not contain lifecycle mapping metadata
+
+!ENTRY org.eclipse.m2e.logback.appender 2 0 2015-08-23 10:25:58.762
+!MESSAGE CatalogItem org.eclipse.m2e.discovery.lifecyclemapping.m2e-subversive does not contain lifecycle mapping metadata
+
+!ENTRY org.eclipse.m2e.logback.appender 2 0 2015-08-23 10:25:58.764
+!MESSAGE CatalogItem org.eclipse.m2e.discovery.lifecyclemapping.m2e-subclipse does not contain lifecycle mapping metadata
+
+!ENTRY org.eclipse.core.jobs 2 2 2015-08-23 10:26:25.622
+!MESSAGE Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: org.eclipse.m2e.core.internal.index.nexus.IndexUpdaterJob
+
+!ENTRY org.eclipse.m2e.logback.appender 4 0 2015-08-23 10:26:25.931
+!MESSAGE Unable to update index for central|http://repo.maven.apache.org/maven2

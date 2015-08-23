@@ -5,12 +5,6 @@
 	<artifactId>mindseye</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<properties>
-		<nd4j.version>0.0.3.5.5.5</nd4j.version>
-		<dl4j.version>0.0.3.3.4.alpha2</dl4j.version>
-		<canova.version>0.0.0.4</canova.version>
-	</properties>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -29,6 +23,7 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jblas</groupId>
@@ -44,7 +39,9 @@
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
 			<version>[2.4.0,)</version>
+<!--
 			<scope>test</scope>
+-->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -75,12 +72,6 @@
 			<groupId>de.javakaffee</groupId>
 			<artifactId>kryo-serializers</artifactId>
 			<version>0.33</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-math3</artifactId>
-			<version>3.5</version>
 		</dependency>
 	</dependencies>
 </project>
