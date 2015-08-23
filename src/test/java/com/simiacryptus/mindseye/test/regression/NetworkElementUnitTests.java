@@ -34,7 +34,7 @@ public class NetworkElementUnitTests {
     .trainer(samples)
     // .setStaticRate(.01)
     // .setVerbose(true)
-    .verifyConvergence(1, 0.1, 1);
+    .verifyConvergence(0, 0.1, 10);
   }
 
   @Test
@@ -48,7 +48,7 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
     .add(new BiasLayer(inputSize))
     .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
-    .trainer(samples).verifyConvergence(10, 0.1, 100);
+    .trainer(samples).verifyConvergence(0, 0.1, 100);
   }
 
   @Test
@@ -61,7 +61,7 @@ public class NetworkElementUnitTests {
     new PipelineNetwork() //
     .add(new BiasLayer(inputSize)) //
     .trainer(samples) //
-    .verifyConvergence(10, 0.01, 100);
+    .verifyConvergence(0, 0.01, 100);
   }
 
   @Test
@@ -95,7 +95,7 @@ public class NetworkElementUnitTests {
     .trainer(samples)
     .setVerbose(verbose)
     .setStaticRate(.1)
-    .verifyConvergence(10, 0.1, 10);
+    .verifyConvergence(0, 0.1, 10);
   }
 
   @Test
@@ -113,7 +113,7 @@ public class NetworkElementUnitTests {
     // .setStaticRate(.5)
     .setVerbose(verbose) //
     // .setMinDynamicRate(0).setMaxDynamicRate(0.5)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
   }
 
   @Test
@@ -133,7 +133,7 @@ public class NetworkElementUnitTests {
     .trainer(samples)
     .setVerbose(verbose)
     .setStaticRate(.1)
-    .verifyConvergence(10, 0.1, 10);
+    .verifyConvergence(0, 0.1, 10);
   }
 
   @Test
@@ -149,7 +149,7 @@ public class NetworkElementUnitTests {
     .trainer(samples)
     // .setStaticRate(.01)
     // .setVerbose(true)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
   }
 
   @Test
@@ -166,7 +166,7 @@ public class NetworkElementUnitTests {
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)) //
     .trainer(samples) //
     // .setStaticRate(.25).setMutationAmount(1)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
   }
 
   @Test
@@ -181,35 +181,35 @@ public class NetworkElementUnitTests {
     .trainer(samples)
     // .setStaticRate(.01)
     // .setVerbose(true)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
     new PipelineNetwork()
     .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
     .add(new BiasLayer(inputSize))
     .trainer(samples)
     // .setStaticRate(.01)
     // .setVerbose(true)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
     new PipelineNetwork()
     .add(new BiasLayer(inputSize))
     .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
     .trainer(samples)
     // .setStaticRate(.01)
     // .setVerbose(true)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
     new PipelineNetwork()
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
     .add(new BiasLayer(inputSize))
     .trainer(samples)
     // .setStaticRate(.01)
     // .setVerbose(true)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
     new PipelineNetwork()
     .add(new BiasLayer(inputSize))
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
     .trainer(samples)
     // .setStaticRate(.01)
     // .setVerbose(true)
-    .verifyConvergence(1, 0.1, 1);
+    .verifyConvergence(0, 0.1, 10);
   }
 
   @Test
@@ -225,7 +225,7 @@ public class NetworkElementUnitTests {
     .add(new MaxSubsampleLayer(2))
     .trainer(samples)
     .setVerbose(verbose)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
   }
 
   @Test
@@ -239,7 +239,7 @@ public class NetworkElementUnitTests {
     .add(new BiasLayer(inputSize))
     .add(new SigmoidActivationLayer())
     .trainer(samples)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
   }
 
   @Test
@@ -253,7 +253,7 @@ public class NetworkElementUnitTests {
     .add(new BiasLayer(inputSize))
     .add(new SoftmaxActivationLayer())
     .trainer(samples)
-    .verifyConvergence(10, 0.1, 100);
+    .verifyConvergence(0, 0.1, 100);
   }
 
 }
