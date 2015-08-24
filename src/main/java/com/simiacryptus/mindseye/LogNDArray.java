@@ -9,106 +9,11 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import javax.swing.text.DefaultEditorKit.CopyAction;
+
 import org.jblas.DoubleMatrix;
 
-import com.simiacryptus.mindseye.LogNDArray.LogNumber;
-
 public class LogNDArray {
-  
-  public static class LogNumber extends Number implements Comparable<LogNumber> {
-    public static final LogNumber zero = new LogNumber((byte) 0,0);
-    public final double logValue;
-    public final byte type;
-
-    private LogNumber(byte type, double logValue) {
-      super();
-      this.type = type;
-      this.logValue = logValue;
-    }
-
-    private LogNumber(boolean realNeg, double logValue) {
-      super();
-      this.type = (byte) (realNeg?-1:1);
-      this.logValue = logValue;
-    }
-    
-    public static LogNumber log(double v) {
-      if(0. == (v*1.)) return new LogNumber((byte) 0, 0);
-      return new LogNumber(v < 0, Math.log(Math.abs(v)));
-    }
-    
-    @Override
-    public int intValue() {
-      return (int) doubleValue();
-    }
-    
-    @Override
-    public long longValue() {
-      return (long) doubleValue();
-    }
-    
-    @Override
-    public float floatValue() {
-      return (float) doubleValue();
-    }
-    
-    @Override
-    public double doubleValue() {
-      return type * Math.exp(logValue);
-    }
-    
-    @Override
-    public int compareTo(LogNumber o) {
-      int compare = Byte.compare(this.type, o.type);
-      if (0 == compare) compare = Double.compare(this.logValue, o.logValue);
-      return compare;
-    }
-    
-    public LogNumber add(LogNumber right) {
-      if(null == right) return this;
-      assert (this.isFinite());
-      assert (right.isFinite());
-      LogNumber r = log(right.doubleValue() + this.doubleValue());
-      assert (r.isFinite());
-      return r;
-    }
-    
-    public LogNumber multiply(LogNumber right) {
-      if(null == right) return this;
-      assert (this.isFinite());
-      assert (right.isFinite());
-      LogNumber r = new LogNumber(isNegative() == right.isNegative(), logValue + right.logValue);
-      assert (r.isFinite());
-      return r;
-    }
-
-    public boolean isFinite() {
-      return Double.isFinite(logValue);
-    }
-
-    public LogNumber subtract(LogNumber value) {
-      if(null == value) return this;
-      return add(value.negate());
-    }
-
-    private LogNumber negate() {
-      return new LogNumber(!isNegative(), logValue);
-    }
-
-    public LogNumber divide(LogNumber right) {
-      if(null == right) return this;
-      assert (this.isFinite());
-      assert (right.isFinite());
-      LogNumber r = new LogNumber(isNegative() == right.isNegative(), logValue - right.logValue);
-      assert (r.isFinite());
-      return r;
-    }
-
-    public boolean isNegative() {
-      return type==-1;
-    }
-
-  }
   
   public static int dim(final int... dims) {
     int total = 1;
@@ -151,6 +56,14 @@ public class LogNDArray {
   
   public LogNDArray(NDArray ndArray) {
     this(ndArray.dims, log(ndArray.data));
+  }
+
+  public LogNDArray(LogNDArray copy) {
+    this(copy.dims, Arrays.copyOf(copy.data, copy.data.length));
+  }
+
+  private static LogNumber[] log(double[] data) {
+    return DoubleStream.of(data).mapToObj(x -> LogNumber.log(x)).toArray(i->new LogNumber[i]);
   }
   
   public Stream<Coordinate> coordStream() {
@@ -263,7 +176,7 @@ public class LogNDArray {
       return get(coords).toString();
     else {
       List<String> list = IntStream.range(0, dims[coords.length]).mapToObj(i -> {
-        return toString(_add(coords, i));
+        return toString(concat(coords, i));
       }).collect(Collectors.<String> toList());
       if (list.size() > 10) {
         list = list.subList(0, 8);
@@ -274,10 +187,10 @@ public class LogNDArray {
     }
   }
   
-  private int[] _add(final int[] base, final int... extra) {
-    final int[] copy = Arrays.copyOf(base, base.length + extra.length);
-    for (int i = 0; i < extra.length; i++) {
-      copy[i + base.length] = extra[i];
+  private int[] concat(final int[] a, final int... b) {
+    final int[] copy = Arrays.copyOf(a, a.length + b.length);
+    for (int i = 0; i < b.length; i++) {
+      copy[i + a.length] = b[i];
     }
     return copy;
   }
@@ -305,14 +218,15 @@ public class LogNDArray {
     set(index(coords), value);
   }
   
-  private static LogNumber[] log(double[] data) {
-    return DoubleStream.of(data).mapToObj(x -> LogNumber.log(x)).toArray(i->new LogNumber[i]);
-  }
-  
   public NDArray exp() {
     return new NDArray(getDims(), Stream.of(getData()).mapToDouble(x -> x.doubleValue()).toArray());
   }
-  
+
+  public synchronized void add(final int index, final double value) {
+    assert Double.isFinite(value);
+    set(index, getData()[index].add(value));
+  }
+
   public synchronized void add(final int index, final LogNumber value) {
     assert value.isFinite();
     set(index, getData()[index].add(value));
@@ -323,11 +237,12 @@ public class LogNDArray {
   }
   
   public LogNDArray scale(double rate) {
+    LogNDArray copy = new LogNDArray(this);
     LogNumber log = LogNumber.log(rate);
     for (int i = 0; i < data.length; i++) {
-      data[i] = data[i].add(log);
+      copy.set(i, data[i].multiply(log));
     }
-    return this;
+    return copy;
   }
   
 }

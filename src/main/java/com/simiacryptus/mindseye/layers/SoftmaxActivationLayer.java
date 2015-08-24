@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.LogNDArray.LogNumber;
+import com.simiacryptus.mindseye.LogNumber;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
 
@@ -54,7 +54,7 @@ public class SoftmaxActivationLayer extends NNLayer {
           final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           for (int i = 0; i < delta.length; i++)
             if (delta[i].isNegative()) {
-              delta[i] = LogNumber.log(0);
+              delta[i] = LogNumber.zero;
             }
           
           final LogNDArray passback = new LogNDArray(data.getDims());
@@ -62,7 +62,7 @@ public class SoftmaxActivationLayer extends NNLayer {
             IntStream.range(0, output.dim()).forEach(ioutput -> {
               final LogNumber value = inputGradientLog.get(new int[] { iinput, ioutput });
               if (value.isFinite()) {
-                passback.add(iinput, delta[ioutput].divide(value));
+                passback.add(iinput, delta[ioutput].multiply(value));
               }
             });
           });

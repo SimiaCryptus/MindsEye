@@ -123,17 +123,23 @@ public class GradientDescentTrainer {
 
   protected void learn(final List<List<NNResult>> results) {
     // Apply corrections
-    IntStream.range(0, this.getCurrentNetworks().size()).parallel().forEach(network -> {
+    IntStream.range(0, this.getCurrentNetworks().size())
+    //.parallel()
+    .forEach(network -> {
       final List<NNResult> netresults = results.get(network);
       final SupervisedTrainingParameters currentNet = this.getCurrentNetworks().get(network);
-      IntStream.range(0, netresults.size()).parallel().forEach(sample -> {
+      IntStream.range(0, netresults.size())
+      //.parallel()
+      .forEach(sample -> {
         final NNResult eval = netresults.get(sample);
         final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
-        final LogNDArray delta = eval.delta(output).log().scale(getRate());
+        NDArray delta2 = eval.delta(output);
+        LogNDArray log2 = delta2.log();
+        LogNDArray delta = log2.scale(getRate());
         final double factor = currentNet.getWeight();// * product / rmsList[network];
         //log.debug(String.format("%s actual vs %s ideal -> %s delta * %s", eval.data, output, delta, factor));
         if (Double.isFinite(factor)) {
-          delta.scale(factor);
+          delta = delta.scale(factor);
         }
         eval.feedback(delta);
       });

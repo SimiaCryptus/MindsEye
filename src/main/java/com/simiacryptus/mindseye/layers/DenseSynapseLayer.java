@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.LogNDArray.LogNumber;
+import com.simiacryptus.mindseye.LogNumber;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
@@ -28,28 +28,33 @@ public class DenseSynapseLayer extends NNLayer {
     @Override
     public void feedback(final LogNDArray delta) {
       LogNumber[] deltaData = delta.getData();
-      LogNumber[] inputData = inObj.data.log().getData();
+      double[] inputData = inObj.data.getData();
 
       LogNDArray weightDelta = new LogNDArray(weights.getDims());
       for(int i=0;i<weightDelta.getDims()[0];i++){
         for(int j=0;j<weightDelta.getDims()[1];j++){
-          weightDelta.set(new int[]{i,j}, deltaData[j].add(inputData[i]));
+          weightDelta.set(new int[]{i,j}, deltaData[j].multiply(inputData[i]));
         }
       }
       writer.feed(weightDelta.exp().getData());
       if (this.inObj.isAlive()) {
-        DoubleMatrix matrix = weights.asMatrix().transpose();
+        DoubleMatrix matrix = weights.asMatrix();
         //DoubleMatrix deltaV = new DoubleMatrix(deltaData.length, 1, deltaData);
         //final double[] inverted = matrix.mmul(deltaV).data;
         LogNDArray passback = new LogNDArray(this.inObj.data.getDims());
         for(int i=0;i<matrix.columns;i++){
           for(int j=0;j<matrix.rows;j++){
-            passback.add(i, deltaData[j].add(LogNumber.log(matrix.get(j, i))));
+            passback.add(i, deltaData[j].multiply(matrix.get(j, i)));
           }
         }
         this.inObj.feedback(passback);
         if (isVerbose()) {
-          DenseSynapseLayer.log.debug(String.format("Feed back: %s => %s", delta, passback));
+          DenseSynapseLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", inObj.data, DenseSynapseResult.this.data, delta, passback));
+        }
+      } else {
+        //this.inObj.feedback(null);
+        if (isVerbose()) {
+          DenseSynapseLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", inObj.data, DenseSynapseResult.this.data, delta));
         }
       }
     }

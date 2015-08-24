@@ -51,7 +51,7 @@ public class SigmoidActivationLayer extends NNLayer {
           final LogNDArray passback = new LogNDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
             if (inputGradientLog.getData()[i].isFinite()) {
-              passback.set(i, data.getData()[i].add(inputGradientLog.getData()[i]));
+              passback.set(i, data.getData()[i].multiply(inputGradientLog.getData()[i]));
             }
           });
           if (isVerbose()) {

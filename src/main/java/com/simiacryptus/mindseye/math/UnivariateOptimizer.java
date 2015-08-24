@@ -89,7 +89,7 @@ public class UnivariateOptimizer {
     return minimize(1.);
   }
 
-  public PointValuePair minimize(final double start) {
+  public synchronized PointValuePair minimize(final double start) {
     this.points.add(eval(0));
     this.points.add(eval(start));
 
@@ -119,12 +119,12 @@ public class UnivariateOptimizer {
       final List<PointValuePair> keyPoints = getKeyPoints();
       this.points.clear();
       this.points.addAll(keyPoints);
+      assert 3 == this.points.size();
     } catch (final RuntimeException e) {
       if (this.verbose) {
         UnivariateOptimizer.log.debug("Invalid starting constraints: " + this.points, e);
       }
     }
-    assert 3 == this.points.size();
     final double leftX = this.points.get(0).getFirst()[0];
     final double midX = this.points.get(1).getFirst()[0];
     final double rightX = this.points.get(2).getFirst()[0];

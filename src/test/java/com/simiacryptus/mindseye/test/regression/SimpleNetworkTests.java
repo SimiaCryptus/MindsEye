@@ -169,18 +169,4 @@ public class SimpleNetworkTests {
         .trainer(samples).setStaticRate(staticRate).verifyConvergence(10, 0.01, 10);
   }
   
-  @Test
-  public void testDenseLinearLayer_Basic() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
-        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) }
-    };
-    
-    new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .trainer(samples).setStaticRate(30.).verifyConvergence(10000, 0.01, 10);
-  }
-  
 }
