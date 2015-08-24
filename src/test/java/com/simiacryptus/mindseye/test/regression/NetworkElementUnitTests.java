@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Random;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,11 +44,11 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1, 1 }) }
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1, 2 }) }
     };
     new PipelineNetwork()
     .add(new BiasLayer(inputSize))
-    .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
+    //.add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
     .trainer(samples).verifyConvergence(0, 0.1, 100);
   }
 
@@ -99,6 +100,7 @@ public class NetworkElementUnitTests {
   }
 
   @Test
+  @Ignore
   public void convolutionSynapseLayer_train() throws Exception {
     final boolean verbose = false;
     final int[] inputSize = new int[] { 2 };

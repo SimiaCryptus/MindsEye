@@ -16,16 +16,24 @@ import com.simiacryptus.mindseye.LogNDArray.LogNumber;
 public class LogNDArray {
   
   public static class LogNumber extends Number implements Comparable<LogNumber> {
-    public double logValue;
-    public boolean realNeg;
-    
+    public static final LogNumber zero = new LogNumber((byte) 0,0);
+    public final double logValue;
+    public final byte type;
+
+    private LogNumber(byte type, double logValue) {
+      super();
+      this.type = type;
+      this.logValue = logValue;
+    }
+
     private LogNumber(boolean realNeg, double logValue) {
       super();
-      this.realNeg = realNeg;
+      this.type = (byte) (realNeg?-1:1);
       this.logValue = logValue;
     }
     
     public static LogNumber log(double v) {
+      if(0. == (v*1.)) return new LogNumber((byte) 0, 0);
       return new LogNumber(v < 0, Math.log(Math.abs(v)));
     }
     
@@ -46,17 +54,18 @@ public class LogNDArray {
     
     @Override
     public double doubleValue() {
-      return (realNeg ? -1 : 1) * Math.exp(logValue);
+      return type * Math.exp(logValue);
     }
     
     @Override
     public int compareTo(LogNumber o) {
-      int compare = Boolean.compare(!this.realNeg, !o.realNeg);
+      int compare = Byte.compare(this.type, o.type);
       if (0 == compare) compare = Double.compare(this.logValue, o.logValue);
       return compare;
     }
     
     public LogNumber add(LogNumber right) {
+      if(null == right) return this;
       assert (this.isFinite());
       assert (right.isFinite());
       LogNumber r = log(right.doubleValue() + this.doubleValue());
@@ -65,9 +74,10 @@ public class LogNDArray {
     }
     
     public LogNumber multiply(LogNumber right) {
+      if(null == right) return this;
       assert (this.isFinite());
       assert (right.isFinite());
-      LogNumber r = new LogNumber(realNeg == right.realNeg, logValue + right.logValue);
+      LogNumber r = new LogNumber(isNegative() == right.isNegative(), logValue + right.logValue);
       assert (r.isFinite());
       return r;
     }
@@ -77,21 +87,27 @@ public class LogNDArray {
     }
 
     public LogNumber subtract(LogNumber value) {
+      if(null == value) return this;
       return add(value.negate());
     }
 
     private LogNumber negate() {
-      return new LogNumber(!realNeg, logValue);
+      return new LogNumber(!isNegative(), logValue);
     }
 
     public LogNumber divide(LogNumber right) {
+      if(null == right) return this;
       assert (this.isFinite());
       assert (right.isFinite());
-      LogNumber r = new LogNumber(realNeg == right.realNeg, logValue - right.logValue);
+      LogNumber r = new LogNumber(isNegative() == right.isNegative(), logValue - right.logValue);
       assert (r.isFinite());
       return r;
     }
-    
+
+    public boolean isNegative() {
+      return type==-1;
+    }
+
   }
   
   public static int dim(final int... dims) {
@@ -204,6 +220,7 @@ public class LogNDArray {
       synchronized (this) {
         if (null == this.data) {
           this.data = new LogNumber[NDArray.dim(this.dims)];
+          Arrays.fill(this.data, LogNumber.zero);
         }
       }
     }
@@ -306,9 +323,9 @@ public class LogNDArray {
   }
   
   public LogNDArray scale(double rate) {
-    double log = Math.log(rate);
+    LogNumber log = LogNumber.log(rate);
     for (int i = 0; i < data.length; i++) {
-      data[i].logValue += log;
+      data[i] = data[i].add(log);
     }
     return this;
   }
