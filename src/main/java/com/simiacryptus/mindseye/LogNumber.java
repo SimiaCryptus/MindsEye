@@ -63,14 +63,20 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   }
   
   public LogNumber add(LogNumber right) {
-    if(null == right) return this;
-    assert (this.isFinite());
+    LogNumber left = this;
+    assert (left.isFinite());
     assert (right.isFinite());
-    LogNumber r = log(right.doubleValue() + this.doubleValue());
-    assert (r.isFinite());
-    return r;
+    if(null == right) return left;
+    if(left.logValue < right.logValue) return right.add(left);
+    if((right.logValue-left.logValue) < -13) return this;
+    LogNumber left2 = new LogNumber(left.type, 0); // left.logValue-left.logValue
+    LogNumber right2 = new LogNumber(right.type, right.logValue-left.logValue);
+    LogNumber result = LogNumber.log(right2.doubleValue() + left2.doubleValue());
+    assert (result.isFinite());
+    LogNumber result2 = new LogNumber(result.type, result.logValue + left.logValue);
+    return result2;
   }
-  
+
   public LogNumber multiply(double right) {
     return multiply(log(right));
   }
