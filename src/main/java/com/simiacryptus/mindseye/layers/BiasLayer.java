@@ -6,14 +6,14 @@ import java.util.function.DoubleSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaSampler;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class BiasLayer extends NNLayer {
   
@@ -53,7 +53,7 @@ public class BiasLayer extends NNLayer {
       @Override
       public void feedback(final LogNDArray data) {
         if (isVerbose()) {
-          BiasLayer.log.debug(String.format("Feed back: %s", data));
+          log.debug(String.format("Feed back: %s", data));
         }
         BiasLayer.this.sampler.feed(data.exp().getData());
         if (inObj.isAlive())
@@ -64,7 +64,7 @@ public class BiasLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        return true;
+        return inObj.isAlive() || !isFrozen();
       }
     };
   }

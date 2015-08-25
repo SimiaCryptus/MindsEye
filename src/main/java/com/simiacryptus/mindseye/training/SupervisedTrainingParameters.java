@@ -1,7 +1,7 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class SupervisedTrainingParameters {
   private PipelineNetwork net;

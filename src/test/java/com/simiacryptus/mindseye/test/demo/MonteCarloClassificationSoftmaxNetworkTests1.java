@@ -1,10 +1,10 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Trainer;
 

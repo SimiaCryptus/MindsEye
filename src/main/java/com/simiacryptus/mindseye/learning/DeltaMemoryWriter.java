@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.learning;
 
-import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class DeltaMemoryWriter implements DeltaSink {
 

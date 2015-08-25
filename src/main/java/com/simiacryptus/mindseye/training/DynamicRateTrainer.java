@@ -27,7 +27,7 @@ public class DynamicRateTrainer {
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
   final int maxIterations = 100000;
-  double maxRate = 5e4;
+  double maxRate = 5e3;
   double minRate = 0;
   private double mutationFactor = 1.;
   double rate = 0.5;
@@ -191,7 +191,7 @@ public class DynamicRateTrainer {
     PointValuePair x = null;
     do {
       final MultivariateFunction f = asMetaF(dims, fraction);
-      x = new MultivariateOptimizer(f).minimize(dims); // May or may not be cloned before evaluations
+      x = new MultivariateOptimizer(f).setMaxRate(maxRate).minimize(dims); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= monteCarloDecayStep;
     } while (fraction > monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
@@ -259,7 +259,15 @@ public class DynamicRateTrainer {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
-    while (this.maxIterations > this.currentIteration++ && this.getStopError() < error()) {
+    while (true) {
+      if(this.getStopError() > error()) {
+        DynamicRateTrainer.log.debug("Target error reached: " + error());
+        break;
+      }
+      if(this.maxIterations <= this.currentIteration++) {
+        DynamicRateTrainer.log.debug("Maximum steps reached");
+        break;
+      }
       if (this.lastCalibratedIteration < this.currentIteration - this.recalibrationInterval) {
         if (isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
@@ -286,7 +294,6 @@ public class DynamicRateTrainer {
         }
       }
     }
-    DynamicRateTrainer.log.debug("Maximum steps reached");
     return false;
   }
   

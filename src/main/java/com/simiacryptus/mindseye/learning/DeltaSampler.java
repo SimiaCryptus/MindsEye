@@ -1,7 +1,7 @@
 package com.simiacryptus.mindseye.learning;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class DeltaSampler implements DeltaSink {
   private double sampling = 2.;

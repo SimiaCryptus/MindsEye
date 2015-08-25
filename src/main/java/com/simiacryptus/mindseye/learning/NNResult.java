@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.IntStream;
 
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public abstract class NNResult {
 

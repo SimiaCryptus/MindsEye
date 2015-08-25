@@ -36,7 +36,7 @@ public class UnivariateOptimizer {
 
   public final UnivariateFunction f;
   public double growth = 1.2;
-  public double maxValue = 1e8;
+  private double maxRate = 1e8;
   double minRate = 1e-9;
   public double minValue = 0;
   public final List<PointValuePair> points = new PtList();
@@ -105,14 +105,14 @@ public class UnivariateOptimizer {
         if (x < this.minValue) throw new RuntimeException("x < minValue");
       }
     } else {
-      for (double x = start * this.growth; x < this.maxValue; x *= this.growth) {
+      for (double x = start * this.growth; x < this.getMaxRate(); x *= this.growth) {
         this.points.add(eval(x));
         final Double prevV = this.points.get(this.points.size() - 2).getValue();
         final Double thisV = this.points.get(this.points.size() - 1).getValue();
         if (thisV > prevV) {
           break;
         }
-        if (x > this.maxValue) throw new RuntimeException("x > maxValue: " + x);
+        if (x > this.getMaxRate()) throw new RuntimeException("x > maxValue: " + x);
       }
     }
     try {
@@ -140,6 +140,15 @@ public class UnivariateOptimizer {
 
   public UnivariateOptimizer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+
+  public double getMaxRate() {
+    return maxRate;
+  }
+
+  public UnivariateOptimizer setMaxRate(double maxRate) {
+    this.maxRate = maxRate;
     return this;
   }
 

@@ -6,10 +6,10 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.LogNumber;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.LogNumber;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class SoftmaxActivationLayer extends NNLayer {
   
@@ -76,8 +76,9 @@ public class SoftmaxActivationLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        return true;
+        return inObj.isAlive();
       }
+
     };
   }
   

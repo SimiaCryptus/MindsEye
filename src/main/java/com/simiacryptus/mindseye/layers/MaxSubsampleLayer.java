@@ -8,10 +8,10 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Coordinate;
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.Coordinate;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class MaxSubsampleLayer extends NNLayer {
   @SuppressWarnings("unused")
@@ -57,7 +57,7 @@ public class MaxSubsampleLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        return true;
+        return inObj.isAlive();
       }
     };
   }

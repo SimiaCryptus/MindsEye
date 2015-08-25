@@ -15,13 +15,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.SupervisedTrainingParameters;
 import com.simiacryptus.mindseye.training.Trainer;

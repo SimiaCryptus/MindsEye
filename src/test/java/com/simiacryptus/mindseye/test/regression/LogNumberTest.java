@@ -5,7 +5,7 @@ import java.util.stream.DoubleStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.simiacryptus.mindseye.LogNumber;
+import com.simiacryptus.mindseye.math.LogNumber;
 
 public class LogNumberTest {
 

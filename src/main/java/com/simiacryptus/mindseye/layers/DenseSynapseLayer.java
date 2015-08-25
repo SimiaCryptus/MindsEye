@@ -8,13 +8,13 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.LogNumber;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.LogNumber;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class DenseSynapseLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
@@ -27,6 +27,9 @@ public class DenseSynapseLayer extends NNLayer {
     
     @Override
     public void feedback(final LogNDArray delta) {
+      if (isVerbose()) {
+        log.debug(String.format("Feed back: %s", data));
+      }
       LogNumber[] deltaData = delta.getData();
       double[] inputData = inObj.data.getData();
 
@@ -61,8 +64,9 @@ public class DenseSynapseLayer extends NNLayer {
     
     @Override
     public boolean isAlive() {
-      return this.inObj.isAlive();
+      return inObj.isAlive() || !isFrozen();
     }
+
   }
   
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);

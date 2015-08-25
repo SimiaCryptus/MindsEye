@@ -1,10 +1,10 @@
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.NDArray;
 
 /**
  * Nonlinear Network Layer (aka Neural Network Layer)

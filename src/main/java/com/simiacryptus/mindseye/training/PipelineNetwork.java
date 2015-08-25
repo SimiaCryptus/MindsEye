@@ -6,10 +6,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")

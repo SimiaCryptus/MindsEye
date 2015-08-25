@@ -51,6 +51,7 @@ public class MultivariateOptimizer {
   int maxIterations = 1000;
 
   private boolean verbose = false;
+  private double maxRate = 1e5;
 
   public MultivariateOptimizer(final MultivariateFunction f) {
     this.f = f;
@@ -92,7 +93,7 @@ public class MultivariateOptimizer {
               final double[] pos = accumulator.getFirst();
               final PointValuePair oneD = new UnivariateOptimizer(x1 -> {
                 return f2.get().value(MultivariateOptimizer.copy(pos, d, x1));
-              }).minimize();
+              }).setMaxRate(getMaxRate()).minimize();
               accumulator = new PointValuePair(MultivariateOptimizer.copy(pos, d, oneD.getFirst()[0]), oneD.getSecond());
             } catch (final Throwable e) {
               if (isVerbose()) {
@@ -106,6 +107,15 @@ public class MultivariateOptimizer {
 
   public MultivariateOptimizer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+
+  public double getMaxRate() {
+    return maxRate;
+  }
+
+  public MultivariateOptimizer setMaxRate(double maxRate) {
+    this.maxRate = maxRate;
     return this;
   }
 

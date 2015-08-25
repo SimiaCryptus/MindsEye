@@ -1,20 +1,23 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.math;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.swing.text.DefaultEditorKit.CopyAction;
-
 import org.jblas.DoubleMatrix;
 
-public class LogNDArray {
-  
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.simiacryptus.mindseye.Util;
+
+public class NDArray {
+
   public static int dim(final int... dims) {
     int total = 1;
     for (final int dim : dims) {
@@ -22,23 +25,23 @@ public class LogNDArray {
     }
     return total;
   }
-  
-  protected volatile LogNumber[] data;
+
+  protected volatile double[] data;
   protected final int[] dims;
   protected final int[] skips;
-  
-  protected LogNDArray() {
+
+  protected NDArray() {
     super();
     this.data = null;
     this.skips = null;
     this.dims = null;
   }
-  
-  public LogNDArray(final int... dims) {
+
+  public NDArray(final int... dims) {
     this(dims, null);
   }
-  
-  public LogNDArray(final int[] dims, final LogNumber[] data) {
+
+  public NDArray(final int[] dims, final double[] data) {
     this.dims = Arrays.copyOf(dims, dims.length);
     this.skips = new int[dims.length];
     for (int i = 0; i < this.skips.length; i++)
@@ -53,34 +56,26 @@ public class LogNDArray {
     assert null == data || 0 < data.length;
     this.data = data;// Arrays.copyOf(data, data.length);
   }
-  
-  public LogNDArray(NDArray ndArray) {
-    this(ndArray.dims, log(ndArray.data));
+
+  public DoubleMatrix asMatrix() {
+    return new DoubleMatrix(this.dims[0], this.dims[1], getData()).transpose();
   }
 
-  public LogNDArray(LogNDArray copy) {
-    this(copy.dims, Arrays.copyOf(copy.data, copy.data.length));
-  }
-
-  private static LogNumber[] log(double[] data) {
-    return DoubleStream.of(data).mapToObj(x -> LogNumber.log(x)).toArray(i->new LogNumber[i]);
-  }
-  
   public Stream<Coordinate> coordStream() {
     return coordStream(false);
   }
-  
+
   public Stream<Coordinate> coordStream(final boolean paralell) {
     return Util.toStream(new Iterator<Coordinate>() {
-      
+  
       int cnt = 0;
       int[] val = new int[dims.length];
-      
+  
       @Override
       public boolean hasNext() {
         return this.cnt < dim();
       }
-      
+  
       @Override
       public Coordinate next() {
         final int[] last = Arrays.copyOf(this.val, this.val.length);
@@ -98,52 +93,51 @@ public class LogNDArray {
       }
     }, dim(), paralell);
   }
-  
+
   public int dim() {
     return getData().length;
   }
-  
+
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) return true;
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
-    final LogNDArray other = (LogNDArray) obj;
+    final NDArray other = (NDArray) obj;
     if (!Arrays.equals(getData(), other.getData())) return false;
     if (!Arrays.equals(this.dims, other.dims)) return false;
     return true;
   }
-  
-  public LogNumber get(final Coordinate coords) {
-    final LogNumber v = getData()[coords.index];
-    assert Double.isFinite(v.logValue);
+
+  public double get(final Coordinate coords) {
+    final double v = getData()[coords.index];
+    assert Double.isFinite(v);
     return v;
   }
-  
-  public LogNumber get(final int... coords) {
+
+  public double get(final int... coords) {
     // assert IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     // assert coords.length==dims.length;
-    final LogNumber v = getData()[index(coords)];
-    assert v.isFinite();
+    final double v = getData()[index(coords)];
+    assert Double.isFinite(v);
     return v;
   }
-  
-  public LogNumber[] getData() {
+
+  public double[] getData() {
     if (null == this.data) {
       synchronized (this) {
         if (null == this.data) {
-          this.data = new LogNumber[NDArray.dim(this.dims)];
-          Arrays.fill(this.data, LogNumber.zero);
+          this.data = new double[NDArray.dim(this.dims)];
         }
       }
     }
     return this.data;
   }
-  
+
   public int[] getDims() {
     return this.dims;
   }
-  
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -152,11 +146,11 @@ public class LogNDArray {
     result = prime * result + Arrays.hashCode(this.dims);
     return result;
   }
-  
+
   public int index(final Coordinate coords) {
     return coords.index;
   }
-  
+
   public int index(final int... coords) {
     int v = 0;
     for (int i = 0; i < this.skips.length && i < coords.length; i++) {
@@ -165,19 +159,19 @@ public class LogNDArray {
     return v;
     // return IntStream.range(0, skips.length).map(i->skips[i]*coords[i]).sum();
   }
-  
+
   @Override
   public String toString() {
     return toString(new int[] {});
   }
-  
+
   private String toString(final int... coords) {
     if (coords.length == dims.length)
-      return get(coords).toString();
+      return Double.toString(get(coords));
     else {
       List<String> list = IntStream.range(0, dims[coords.length]).mapToObj(i -> {
-        return toString(concat(coords, i));
-      }).collect(Collectors.<String> toList());
+        return toString(_add(coords, i));
+      }).collect(Collectors.<String>toList());
       if (list.size() > 10) {
         list = list.subList(0, 8);
         list.add("...");
@@ -186,63 +180,91 @@ public class LogNDArray {
       return "{ " + str.get() + " }";
     }
   }
-  
-  private int[] concat(final int[] a, final int... b) {
-    final int[] copy = Arrays.copyOf(a, a.length + b.length);
-    for (int i = 0; i < b.length; i++) {
-      copy[i + a.length] = b[i];
+
+  private int[] _add(final int[] base, final int... extra) {
+    final int[] copy = Arrays.copyOf(base, base.length + extra.length);
+    for (int i = 0; i < extra.length; i++) {
+      copy[i + base.length] = extra[i];
     }
     return copy;
   }
-  
-  public void set(final Coordinate coords, final LogNumber value) {
-    assert value.isFinite();
+
+  public void set(final Coordinate coords, final double value) {
+    assert Double.isFinite(value);
     set(coords.index, value);
   }
   
-  public LogNDArray set(final LogNumber[] data) {
+  public NDArray set(final double[] data) {
     for (int i = 0; i < getData().length; i++)
     {
       getData()[i] = data[i];
     }
     return this;
   }
-  
-  public void set(final int index, final LogNumber value) {
-    assert value.isFinite();
+
+  public void set(final int index, final double value) {
+    assert Double.isFinite(value);
     getData()[index] = value;
   }
-  
-  public void set(final int[] coords, final LogNumber value) {
-    assert value.isFinite();
+
+  public void set(final int[] coords, final double value) {
+    assert Double.isFinite(value);
     set(index(coords), value);
   }
+
+  public LogNDArray log() {
+    return new LogNDArray(this);
+  }
   
-  public NDArray exp() {
-    return new NDArray(getDims(), Stream.of(getData()).mapToDouble(x -> x.doubleValue()).toArray());
+  public void add(final Coordinate coords, final double value) {
+    add(coords.index, value);
   }
 
   public synchronized void add(final int index, final double value) {
     assert Double.isFinite(value);
-    set(index, getData()[index].add(value));
+    getData()[index] += value;
   }
 
-  public synchronized void add(final int index, final LogNumber value) {
-    assert value.isFinite();
-    set(index, getData()[index].add(value));
-  }
-  
-  public void add(final int[] coords, final LogNumber value) {
+  public void add(final int[] coords, final double value) {
     add(index(coords), value);
   }
-  
-  public LogNDArray scale(double rate) {
-    LogNDArray copy = new LogNDArray(this);
-    LogNumber log = LogNumber.log(rate);
-    for (int i = 0; i < data.length; i++) {
-      copy.set(i, data[i].multiply(log));
+
+  public NDArray copy() {
+    return new NDArray(Arrays.copyOf(this.dims, this.dims.length), Arrays.copyOf(getData(), getData().length));
+  }
+
+  public NDArray map(final ToDoubleBiFunction<Double, Coordinate> f) {
+    return new NDArray(this.dims, coordStream(false).mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
+  }
+
+  public NDArray map(final UnivariateFunction f) {
+    final double[] cpy = new double[getData().length];
+    for (int i = 0; i < getData().length; i++) {
+      final double x = getData()[i];
+      assert Double.isFinite(x);
+      final double v = f.apply(x);
+      assert Double.isFinite(v);
+      cpy[i] = v;
     }
-    return copy;
+    ;
+    return new NDArray(this.dims, cpy);
+  }
+  
+  public NDArray scale(final double d) {
+    for (int i = 0; i < getData().length; i++)
+    {
+      getData()[i] *= d;
+    }
+    return this;
+  }
+  
+  public double sum() {
+    double v = 0;
+    for (final double element : getData()) {
+      v += element;
+    }
+    assert Double.isFinite(v);
+    return v;
   }
   
 }

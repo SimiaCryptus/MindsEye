@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.math;
 
 @SuppressWarnings("serial")
 public class LogNumber extends Number implements Comparable<LogNumber> {
@@ -43,7 +43,7 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   
   @Override
   public double doubleValue() {
-    double exp = Math.exp(logValue);
+    double exp = 0.==logValue?1.:Math.exp(logValue);
     if(Double.isNaN(logValue) && !Double.isFinite(exp)) 
       if(((byte)0) == type){
         return Double.NaN;
@@ -68,8 +68,8 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     assert (right.isFinite());
     if(null == right) return left;
     if(left.logValue < right.logValue) return right.add(left);
-    if((right.logValue-left.logValue) < -13) return this;
-    LogNumber left2 = new LogNumber(left.type, 0); // left.logValue-left.logValue
+    if((right.logValue-left.logValue) < -8) return this;
+    LogNumber left2 = new LogNumber(left.type, 0.); // left.logValue-left.logValue
     LogNumber right2 = new LogNumber(right.type, right.logValue-left.logValue);
     LogNumber result = LogNumber.log(right2.doubleValue() + left2.doubleValue());
     assert (result.isFinite());

@@ -11,15 +11,15 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.simiacryptus.mindseye.Coordinate;
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.LogNumber;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.Coordinate;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.LogNumber;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class ConvolutionSynapseLayer extends NNLayer {
   public static final class IndexMapKey {
@@ -170,7 +170,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        return !ConvolutionSynapseLayer.this.frozen || inObj.isAlive();
+        return inObj.isAlive() || !isFrozen();
       }
     };
   }

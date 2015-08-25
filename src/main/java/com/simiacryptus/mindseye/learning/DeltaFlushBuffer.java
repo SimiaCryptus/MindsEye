@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
 

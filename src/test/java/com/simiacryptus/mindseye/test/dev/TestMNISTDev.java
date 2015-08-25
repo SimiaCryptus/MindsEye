@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.data.BinaryChunkIterator;
 import com.simiacryptus.mindseye.data.LabeledObject;
@@ -39,6 +38,7 @@ import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class TestMNISTDev {

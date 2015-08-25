@@ -11,11 +11,11 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.LogNDArray;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class GradientDescentTrainer {
 

@@ -10,8 +10,8 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.math.NDArray;
 
 public class Trainer {
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
@@ -68,10 +68,14 @@ public class Trainer {
     inner.train();
   }
 
-  public void verifyConvergence(final int maxIter, final double convergence, final int reps) {
-    final long succeesses = IntStream.range(0, reps).parallel()
-        .filter(i -> testCopy(maxIter, convergence)).count();
-    if (reps > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
+  public long verifyConvergence(final int maxIter, final double convergence, final int reps) {
+    return verifyConvergence(maxIter, convergence, reps, reps);
+  }
+
+  public long verifyConvergence(final int maxIter, final double convergence, final int reps, int minSuccess) {
+    final long succeesses = IntStream.range(0, reps).parallel().filter(i -> testCopy(maxIter, convergence)).count();
+    if (minSuccess > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
+    return succeesses;
   }
 
   public final List<Function<MutationTrainer, Void>> handler = new ArrayList<>();
