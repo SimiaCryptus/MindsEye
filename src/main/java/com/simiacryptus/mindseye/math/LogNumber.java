@@ -3,7 +3,6 @@ package com.simiacryptus.mindseye.math;
 @SuppressWarnings("serial")
 public class LogNumber extends Number implements Comparable<LogNumber> {
   public static final LogNumber zero = new LogNumber((byte) 0,0);
-  private static final LogNumber NaN = new LogNumber((byte) 0,Double.NaN);
   public final double logValue;
   public final byte type;
 
@@ -13,12 +12,6 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     this.logValue = logValue;
   }
 
-  private LogNumber(boolean realNeg, double logValue) {
-    super();
-    this.type = (byte) (realNeg?-1:1);
-    this.logValue = logValue;
-  }
-  
   public static LogNumber log(double v) {
     if(0. == Math.abs(v)) return new LogNumber((byte) 0, 0);
     LogNumber logNumber = new LogNumber((byte) (v < 0. ? -1 : 1), Math.log(Math.abs(v)));
@@ -130,9 +123,6 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append(doubleValue());
-//    builder.append(type);
-//    builder.append("*e^");
-//    builder.append(logValue);
     return builder.toString();
   }
 

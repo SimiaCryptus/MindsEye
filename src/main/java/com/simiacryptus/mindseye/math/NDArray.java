@@ -11,9 +11,6 @@ import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.Util;
 
 public class NDArray {

@@ -9,10 +9,6 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.swing.text.DefaultEditorKit.CopyAction;
-
-import org.jblas.DoubleMatrix;
-
 import com.simiacryptus.mindseye.Util;
 
 public class LogNDArray {

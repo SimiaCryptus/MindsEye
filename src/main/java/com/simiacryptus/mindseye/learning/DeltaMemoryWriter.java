@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.learning;
 
+import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 
 public class DeltaMemoryWriter implements DeltaSink {
@@ -18,12 +19,21 @@ public class DeltaMemoryWriter implements DeltaSink {
     this(values.getData());
   }
 
-  @Override
   public void feed(final double[] data) {
-
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       this.values[i] += data[i];
+      if (!Double.isFinite(this.values[i])) {
+        this.values[i] = 0;
+      }
+    }
+  }
+
+  @Override
+  public void feed(final LogNumber[] data) {
+    final int dim = length();
+    for (int i = 0; i < dim; i++) {
+      this.values[i] += data[i].doubleValue();
       if (!Double.isFinite(this.values[i])) {
         this.values[i] = 0;
       }

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaSampler;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
@@ -55,7 +54,7 @@ public class BiasLayer extends NNLayer {
         if (isVerbose()) {
           log.debug(String.format("Feed back: %s", data));
         }
-        BiasLayer.this.sampler.feed(data.exp().getData());
+        BiasLayer.this.sampler.feed(data.getData());
         if (inObj.isAlive())
         {
           inObj.feedback(data);
@@ -71,10 +70,6 @@ public class BiasLayer extends NNLayer {
 
   public BiasLayer freeze() {
     return setFrozen(true);
-  }
-
-  public double getRate() {
-    return this.writer.getRate();
   }
 
   public boolean isFrozen() {
@@ -95,10 +90,6 @@ public class BiasLayer extends NNLayer {
   public BiasLayer setFrozen(final boolean frozen) {
     this.frozen = frozen;
     return this;
-  }
-
-  public void setRate(final double rate) {
-    this.writer.setRate(rate);
   }
 
   public BiasLayer setSampling(final double sampling) {
@@ -129,7 +120,8 @@ public class BiasLayer extends NNLayer {
       
       @Override
       public void setRate(double rate) {
-        BiasLayer.this.setRate(rate);
+        final double rate1 = rate;
+        BiasLayer.this.writer.setRate(rate1);
       }
       
       @Override
@@ -139,7 +131,7 @@ public class BiasLayer extends NNLayer {
       
       @Override
       public double getRate() {
-        return BiasLayer.this.getRate();
+        return BiasLayer.this.writer.getRate();
       }
     };
   }

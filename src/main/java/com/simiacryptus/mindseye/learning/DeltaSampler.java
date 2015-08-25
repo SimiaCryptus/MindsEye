@@ -1,6 +1,9 @@
 package com.simiacryptus.mindseye.learning;
 
+import java.util.Random;
+
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 
 public class DeltaSampler implements DeltaSink {
@@ -24,14 +27,17 @@ public class DeltaSampler implements DeltaSink {
   }
 
   @Override
-  public void feed(final double[] data) {
+  public void feed(final LogNumber[] data) {
+    Random r = Util.R.get();
     assert data.length == length();
     final int dim = length();
-    final double[] v = new double[data.length];
+    final LogNumber[] v = new LogNumber[data.length];
     for (int i = 0; i < dim; i++) {
-      if (Util.R.get().nextDouble() < this.sampling)
+      if (r.nextDouble() < this.sampling)
       {
         v[i] = data[i];
+      } else {
+        v[i] = LogNumber.zero;
       }
     }
     this.values.feed(v);
@@ -50,5 +56,5 @@ public class DeltaSampler implements DeltaSink {
     this.sampling = sampling;
     return this;
   }
-  
+
 }

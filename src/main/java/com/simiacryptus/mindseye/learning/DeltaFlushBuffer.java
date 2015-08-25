@@ -2,27 +2,28 @@ package com.simiacryptus.mindseye.learning;
 
 import java.util.Arrays;
 
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 
-public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
+public class DeltaFlushBuffer implements DeltaSink {
 
-  private final double[] buffer;
+  private final LogNumber[] buffer;
   private final DeltaSink inner;
-  private double rate = 1.;
+  private LogNumber rate = LogNumber.log(1);
 
   private boolean reset = false;
   
   protected DeltaFlushBuffer() {
     super();
     this.inner = null;
-    this.buffer = null;
+    this.buffer = new LogNumber[]{};
   }
 
   public DeltaFlushBuffer(final DeltaSink values) {
     this.inner = values;
-    this.buffer = new double[values.length()];
+    this.buffer = new LogNumber[values.length()];
+    Arrays.fill(this.buffer, LogNumber.zero);
   }
 
   public DeltaFlushBuffer(final NDArray values) {
@@ -33,24 +34,25 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
     this(new DeltaMemoryWriter(bias));
   }
 
-  @Override
   public void feed(final double[] data) {
+    feed(new NDArray(new int[]{data.length}, data).log().getData());
+  }
+
+  public void feed(final LogNumber[] data) {
     if (this.reset) {
       this.reset = false;
-      Arrays.fill(this.buffer, 0);
+      Arrays.fill(this.buffer, LogNumber.zero);
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      this.buffer[i] += data[i] * this.rate;
+      this.buffer[i] = this.buffer[i].add(rate.multiply(data[i]));
     }
   }
 
-  @Override
   public double getRate() {
-    return this.rate;
+    return this.rate.doubleValue();
   }
   
-  @Override
   public boolean isFrozen() {
     return false;
   }
@@ -60,19 +62,17 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
     return this.inner.length();
   }
 
-  @Override
   public void setRate(final double rate) {
-    this.rate = rate;
+    this.rate = LogNumber.log(rate);
   }
   
-  @Override
   public void write(final double factor) {
     write(factor, 1., 0l);
   }
 
   public void write(final double factor, double fraction, long mask) {
     long longF = (long)(fraction * Long.MAX_VALUE);
-    final double[] cpy = new double[this.buffer.length];
+    final LogNumber[] cpy = new LogNumber[this.buffer.length];
     for (int i = 0; i < this.buffer.length; i++) {
       if(fraction<1.){
         long hash = Hashing.sha1().hashLong(i ^ mask).asLong();
@@ -80,13 +80,13 @@ public class DeltaFlushBuffer implements DeltaSink, DeltaTransaction {
           continue;
         }
       }
-      cpy[i] = this.buffer[i] * factor;
+      cpy[i] = this.buffer[i].multiply(factor);
     }
     this.inner.feed(cpy);
     this.reset = true;
   }
 
-  public DeltaTransaction getVector(double fraction) {
+  public DeltaFlushBuffer getVector(double fraction) {
     return this;
   }
 

@@ -42,8 +42,6 @@ public class DenseSynapseLayer extends NNLayer {
       writer.feed(weightDelta.exp().getData());
       if (this.inObj.isAlive()) {
         DoubleMatrix matrix = weights.asMatrix();
-        //DoubleMatrix deltaV = new DoubleMatrix(deltaData.length, 1, deltaData);
-        //final double[] inverted = matrix.mmul(deltaV).data;
         LogNDArray passback = new LogNDArray(this.inObj.data.getDims());
         for(int i=0;i<matrix.columns;i++){
           for(int j=0;j<matrix.rows;j++){
@@ -55,7 +53,6 @@ public class DenseSynapseLayer extends NNLayer {
           DenseSynapseLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", inObj.data, DenseSynapseResult.this.data, delta, passback));
         }
       } else {
-        //this.inObj.feedback(null);
         if (isVerbose()) {
           DenseSynapseLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", inObj.data, DenseSynapseResult.this.data, delta));
         }
@@ -71,17 +68,10 @@ public class DenseSynapseLayer extends NNLayer {
   
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
   
-  public static int[] transpose(final int[] dims2) {
-    final int[] dims = new int[] { dims2[1], dims2[0] };
-    return dims;
-  }
-
   private boolean frozen = false;
   private final int[] outputDims;
   private boolean verbose = false;
-  
   public final NDArray weights;
-  
   private DeltaFlushBuffer writer;
   
   protected DenseSynapseLayer() {
@@ -130,20 +120,12 @@ public class DenseSynapseLayer extends NNLayer {
     return this;
   }
   
-  public double getRate() {
-    return this.writer.getRate();
-  }
-  
   public boolean isFrozen() {
     return this.frozen;
   }
   
   private boolean isVerbose() {
     return this.verbose;
-  }
-  
-  public void setRate(final double rate) {
-    this.writer.setRate(rate);
   }
   
   public DenseSynapseLayer setVerbose(final boolean verbose) {
@@ -181,7 +163,7 @@ public class DenseSynapseLayer extends NNLayer {
       
       @Override
       public void setRate(double rate) {
-        DenseSynapseLayer.this.setRate(rate);
+        DenseSynapseLayer.this.writer.setRate(rate);
       }
       
       @Override
@@ -191,7 +173,7 @@ public class DenseSynapseLayer extends NNLayer {
       
       @Override
       public double getRate() {
-        return DenseSynapseLayer.this.getRate();
+        return DenseSynapseLayer.this.writer.getRate();
       }
     };
   }

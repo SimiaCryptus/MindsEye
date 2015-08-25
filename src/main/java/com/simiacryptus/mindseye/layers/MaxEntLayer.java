@@ -1,6 +1,5 @@
 package com.simiacryptus.mindseye.layers;
 
-import java.util.DoubleSummaryStatistics;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;

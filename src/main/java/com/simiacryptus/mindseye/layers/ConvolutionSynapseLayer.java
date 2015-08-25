@@ -13,7 +13,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.learning.DeltaMemoryWriter;
 import com.simiacryptus.mindseye.learning.DeltaTransaction;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
@@ -145,7 +144,9 @@ public class ConvolutionSynapseLayer extends NNLayer {
         if (!ConvolutionSynapseLayer.this.frozen) {
           final LogNDArray weightGradient = new LogNDArray(ConvolutionSynapseLayer.this.kernel.getDims());
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            weightGradient.add(array[0], LogNumber.log(input.getData()[array[1]]).multiply(errorSignal.getData()[array[2]]));
+            double in = input.getData()[array[1]];
+            LogNumber err = errorSignal.getData()[array[2]];
+            weightGradient.add(array[0], err.multiply(in));
           });
           ConvolutionSynapseLayer.this.writer.feed(weightGradient.exp().getData());
         }
@@ -189,10 +190,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
     return this;
   }
 
-  public double getRate() {
-    return this.writer.getRate();
-  }
-
   public boolean isFrozen() {
     return this.frozen;
   }
@@ -214,18 +211,9 @@ public class ConvolutionSynapseLayer extends NNLayer {
     return this;
   }
 
-  public void setRate(final double rate) {
-    this.writer.setRate(rate);
-  }
-
   public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
-  }
-
-  public void write(final double factor) {
-    if (isFrozen()) return;
-    this.writer.write(factor);
   }
 
   protected DeltaTransaction newVector(double fraction,long mask) {
@@ -234,12 +222,13 @@ public class ConvolutionSynapseLayer extends NNLayer {
       
       @Override
       public void write(double factor) {
-        ConvolutionSynapseLayer.this.write(factor);
+        if (isFrozen()) return;
+        writer.write(factor);
       }
       
       @Override
       public void setRate(double rate) {
-        ConvolutionSynapseLayer.this.setRate(rate);
+        ConvolutionSynapseLayer.this.writer.setRate(rate);
       }
       
       @Override
@@ -249,7 +238,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
       
       @Override
       public double getRate() {
-        return ConvolutionSynapseLayer.this.getRate();
+        return ConvolutionSynapseLayer.this.writer.getRate();
       }
     };
   }
