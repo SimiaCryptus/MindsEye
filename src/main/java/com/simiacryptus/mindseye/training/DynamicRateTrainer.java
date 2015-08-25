@@ -26,7 +26,7 @@ public class DynamicRateTrainer {
   
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
-  final int maxIterations = 100000;
+  final int maxIterations = 100;
   double maxRate = 5e3;
   double minRate = 0;
   private double mutationFactor = 1.;
@@ -262,18 +262,21 @@ public class DynamicRateTrainer {
     while (true) {
       if(this.getStopError() > error()) {
         DynamicRateTrainer.log.debug("Target error reached: " + error());
-        break;
+        return false;
       }
       if(this.maxIterations <= this.currentIteration++) {
         DynamicRateTrainer.log.debug("Maximum steps reached");
-        break;
+        return false;
       }
       if (this.lastCalibratedIteration < this.currentIteration - this.recalibrationInterval) {
         if (isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
         //calibrate();
-        if (!calibrate()) return false;
+        if (!calibrate()) {
+          DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
+          return false;
+        }
       }
       final double best = this.getInner().getBest().error();
       final double last = this.getInner().getCurrent().error();
@@ -289,12 +292,14 @@ public class DynamicRateTrainer {
           if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }
-          if (!calibrate()) return false;
+          if (!calibrate()) {
+            DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
+            return false;
+          }
           this.generationsSinceImprovement = 0;
         }
       }
     }
-    return false;
   }
   
   public ChampionTrainer getInner() {
