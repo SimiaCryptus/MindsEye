@@ -13,15 +13,49 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
   @Override
   public PipelineNetwork buildNetwork() {
     
-    final int[] midSize = new int[] { 4 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
+    final int[] midSize = new int[] { 2 };
+    final int midLayers = 0;
     PipelineNetwork net = new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer());
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)
+        {
+          // @Override
+          // protected double getMobility() {
+          // // //if(true) return 1;
+          // double status = getStatus();
+          // double x = (0.5 - status) * 5;
+          // double sigmiod = SigmoidActivationLayer.sigmiod(x);
+          // return sigmiod;
+          // }
+        }
+        )
+        .add(new BiasLayer(midSize)
+        {
+          // @Override
+          // protected double getMobility() {
+          // // //if(true) return 1;
+          // double status = getStatus();
+          // double x = (0.7 - status) * 5;
+          // double sigmiod = SigmoidActivationLayer.sigmiod(x);
+          // return sigmiod;
+          // }
+        }
+        )
+        .add(new SigmoidActivationLayer()
+        {
+          // @Override
+          // protected double getNonlinearity() {
+          // // if(true) return 1;
+          // double status = getStatus();
+          // double sigmiod = SigmoidActivationLayer.sigmiod((0.8 - status) * 2);
+          // double sigmiod2 = SigmoidActivationLayer.sigmiod((0.6 - status) * 5);
+          // return (sigmiod+sigmiod2)/2;
+          // }
+        }
+        );
     
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < midLayers; i++)
       net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
           .add(new BiasLayer(midSize))
           .add(new SigmoidActivationLayer());
@@ -29,8 +63,17 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
     net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize));
     
-    // .add(new SigmoidActivationLayer());
-    // .add(new SoftmaxActivationLayer().setVerbose(false));
+    // net = net.add(new SigmoidActivationLayer());
+    net = net.add(new SoftmaxActivationLayer() {
+      @Override
+      protected double getNonlinearity() {
+        // return getStatus()<.2?1:1e-5;
+        // if(true) return 0.;
+        double status = getStatus();
+        double x = (0.3 - status) * 5;
+        return SigmoidActivationLayer.sigmiod(x);
+      }
+    }.setVerbose(false));
     return net;
   }
   

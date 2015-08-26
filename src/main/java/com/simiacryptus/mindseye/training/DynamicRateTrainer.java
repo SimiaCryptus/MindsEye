@@ -27,7 +27,7 @@ public class DynamicRateTrainer {
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
   final int maxIterations = 100;
-  double maxRate = 5e3;
+  double maxRate = 10;
   double minRate = 0;
   private double mutationFactor = 1.;
   double rate = 0.5;
@@ -251,7 +251,13 @@ public class DynamicRateTrainer {
   public double trainOnce() {
     this.getInner().step();
     this.getInner().updateBest();
-    return error();
+    double error = error();
+    List<SupervisedTrainingParameters> nets = this.getInner().getCurrent().getCurrentNetworks();
+    nets.stream()
+        .flatMap(n -> n.getNet().layers.stream())
+        .distinct()
+        .forEach(layer -> layer.setStatus(error));
+    return error;
   }
   
   private double decayTolerance = 1e-3;

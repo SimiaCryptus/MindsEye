@@ -27,12 +27,12 @@ public class SigmoidActivationLayer extends NNLayer {
     double nonlinearity = getNonlinearity();
     IntStream.range(0, input.dim()).forEach(i -> {
 
-      final double x = input.getData()[i]*nonlinearity;
-      final double f = sigmiod(x) / nonlinearity;
+      final double x = input.getData()[i];
+      final double f = 0.==nonlinearity?x:(sigmiod(x*nonlinearity) / nonlinearity);
       final double minDeriv = 0;
       double ex = Math.exp(x);
       double ex1 = 1 + ex;
-      double d = ex / (ex1*ex1);
+      double d = 0.==nonlinearity?1.:(ex / (ex1*ex1));
 //      double d = f * (1 - f);
       if (!Double.isFinite(d) || d < minDeriv) {
         d = minDeriv;

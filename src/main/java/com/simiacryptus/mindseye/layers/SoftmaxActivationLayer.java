@@ -24,7 +24,7 @@ public class SoftmaxActivationLayer extends NNLayer {
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
     double nonlinearity = getNonlinearity();
-    final NDArray exp = inObj.data.map(x -> Math.exp(nonlinearity * Math.min(x, 100)));
+    final NDArray exp = inObj.data.map(x->Math.min(x, 100)).map(x -> 0.==nonlinearity?x:(Math.exp(nonlinearity * x)/nonlinearity));
     final double sum1 = exp.sum();
     final double sum = !Double.isFinite(sum1) || 0. == sum1 ? 1. : sum1;
     final NDArray output = exp.map(x -> x / sum);
@@ -51,13 +51,13 @@ public class SoftmaxActivationLayer extends NNLayer {
       @Override
       public void feedback(final LogNDArray data) {
         if (inObj.isAlive()) {
-          LogNDArray inputGradientLog = inputGradient.log();
           final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           for (int i = 0; i < delta.length; i++)
             if (delta[i].isNegative()) {
               delta[i] = LogNumber.ZERO;
             }
           
+          LogNDArray inputGradientLog = inputGradient.log().scale(sum);
           final LogNDArray passback = new LogNDArray(data.getDims());
           IntStream.range(0, input.dim()).forEach(iinput -> {
             IntStream.range(0, output.dim()).forEach(ioutput -> {

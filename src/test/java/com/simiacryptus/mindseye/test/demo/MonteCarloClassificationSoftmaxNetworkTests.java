@@ -252,10 +252,14 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
   }
   
   public NDArray[][] getTrainingData(int dimensions, List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
+    return getTrainingData(dimensions, populations, 100);
+  }
+
+  public NDArray[][] getTrainingData(int dimensions, List<Function<Void, double[]>> populations, int sampleN) throws FileNotFoundException, IOException {
     final int[] inputSize = new int[] { dimensions };
     final int[] outSize = new int[] { populations.size() };
     final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x)
-        .flatMap(p -> IntStream.range(0, 100).mapToObj(i -> {
+        .flatMap(p -> IntStream.range(0, sampleN).mapToObj(i -> {
           return new NDArray[] {
               new NDArray(inputSize, populations.get(p).apply(null)),
               new NDArray(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
@@ -335,7 +339,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new Simple2DLine(Util.R.get()),
         new Simple2DLine(Util.R.get())
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -343,7 +347,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
         new Simple2DLine(new double[] { -1, 1 }, new double[] { 1, -1 })
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -352,7 +356,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
         new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e })
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -363,7 +367,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
             new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e }),
             new Simple2DLine(new double[] { -1 - e, -1 + e }, new double[] { 1 - e, 1 + e })),
         new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 })
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -372,7 +376,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new GaussianDistribution(2),
         new GaussianDistribution(2)
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -381,7 +385,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new SnakeDistribution(2, Util.R.get(), 7, 0.01),
         new SnakeDistribution(2, Util.R.get(), 7, 0.01)
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -389,7 +393,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
         new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -397,7 +401,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
         new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 1 }, 0.1))
-        )));
+        ), 100));
   }
   
   @Test(expected = RuntimeException.class)
@@ -405,15 +409,31 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new UnionDistribution(new Simple2DCircle(1, new double[] { -0.5, 0 })),
         new UnionDistribution(new Simple2DCircle(1, new double[] { 0.5, 0 }))
-        )));
+        ), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_O() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 })),
         new UnionDistribution(new Simple2DCircle(0.1, new double[] { 0, 0 }))
-        )));
+        ), 100));
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void test_O2() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 })),
+        new UnionDistribution(new Simple2DCircle(1.75, new double[] { 0, 0 }))
+        ), 100));
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void test_O3() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 2.)),
+        new UnionDistribution(new Simple2DCircle(.25, new double[] { 0, 0 }))
+        ), 1000));
   }
   
   @Test(expected = RuntimeException.class)
@@ -421,7 +441,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
         new UnionDistribution(new GaussianDistribution(2, new double[] { -1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 0 }, 0.1))
-        )));
+        ), 100));
   }
   
 }

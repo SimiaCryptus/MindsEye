@@ -32,7 +32,7 @@ public abstract class NNLayer {
   private DeltaVector vector;
   private Double fraction = null;
   private Long mask = null;
-  private double currentStatusValue;
+  private double currentStatusValue = Double.MAX_VALUE;
   
   public final DeltaVector newVector(double fraction) {
     if(null != this.fraction && this.fraction.equals(fraction)) return this.vector;
