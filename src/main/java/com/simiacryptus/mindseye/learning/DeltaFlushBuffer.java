@@ -80,7 +80,6 @@ public class DeltaFlushBuffer implements DeltaSink {
 
     if(!this.reset) {
       this.normalizationFactor = Stream.of(this.buffer).map(LogNumber::abs).max(Comparator.naturalOrder()).get();
-      this.normalizationFactor = LogNumber.ONE;
     }
 
     for (int i = 0; i < this.buffer.length; i++) {

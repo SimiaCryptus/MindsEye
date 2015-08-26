@@ -24,9 +24,10 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
         .add(new BiasLayer(midSize))
         .add(new SigmoidActivationLayer())
         
-        // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        // .add(new BiasLayer(midSize))
-        // .add(new SigmoidActivationLayer())
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+        .add(new BiasLayer(midSize))
+        .add(new SigmoidActivationLayer())
+
         //
         // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
         // .add(new BiasLayer(midSize))
@@ -38,9 +39,9 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
         
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize));
-        
-        //.add(new SigmoidActivationLayer());
-        //.add(new SoftmaxActivationLayer().setVerbose(false));
+    
+    // .add(new SigmoidActivationLayer());
+    // .add(new SoftmaxActivationLayer().setVerbose(false));
     return net;
   }
   
