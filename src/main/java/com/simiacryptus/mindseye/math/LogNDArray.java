@@ -131,7 +131,7 @@ public class LogNDArray {
       synchronized (this) {
         if (null == this.data) {
           this.data = new LogNumber[NDArray.dim(this.dims)];
-          Arrays.fill(this.data, LogNumber.zero);
+          Arrays.fill(this.data, LogNumber.ZERO);
         }
       }
     }

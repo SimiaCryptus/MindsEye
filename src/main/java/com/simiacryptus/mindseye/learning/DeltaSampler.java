@@ -37,7 +37,7 @@ public class DeltaSampler implements DeltaSink {
       {
         v[i] = data[i];
       } else {
-        v[i] = LogNumber.zero;
+        v[i] = LogNumber.ZERO;
       }
     }
     this.values.feed(v);

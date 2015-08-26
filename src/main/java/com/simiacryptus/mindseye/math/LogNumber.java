@@ -2,7 +2,8 @@ package com.simiacryptus.mindseye.math;
 
 @SuppressWarnings("serial")
 public class LogNumber extends Number implements Comparable<LogNumber> {
-  public static final LogNumber zero = new LogNumber((byte) 0,0);
+  public static final LogNumber ZERO = new LogNumber((byte) 0,0);
+  public static final LogNumber ONE = new LogNumber((byte) 1,0);
   public final double logValue;
   public final byte type;
 
@@ -124,6 +125,10 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     StringBuilder builder = new StringBuilder();
     builder.append(doubleValue());
     return builder.toString();
+  }
+
+  public LogNumber abs() {
+    return new LogNumber((byte) 1, logValue);
   }
 
   

@@ -1,6 +1,9 @@
 package com.simiacryptus.mindseye.learning;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.hash.Hashing;
 import com.simiacryptus.mindseye.math.LogNumber;
@@ -13,6 +16,7 @@ public class DeltaFlushBuffer implements DeltaSink {
   private LogNumber rate = LogNumber.log(1);
 
   private boolean reset = false;
+  private LogNumber normalizationFactor;
   
   protected DeltaFlushBuffer() {
     super();
@@ -23,7 +27,7 @@ public class DeltaFlushBuffer implements DeltaSink {
   public DeltaFlushBuffer(final DeltaSink values) {
     this.inner = values;
     this.buffer = new LogNumber[values.length()];
-    Arrays.fill(this.buffer, LogNumber.zero);
+    Arrays.fill(this.buffer, LogNumber.ZERO);
   }
 
   public DeltaFlushBuffer(final NDArray values) {
@@ -41,11 +45,11 @@ public class DeltaFlushBuffer implements DeltaSink {
   public void feed(final LogNumber[] data) {
     if (this.reset) {
       this.reset = false;
-      Arrays.fill(this.buffer, LogNumber.zero);
+      Arrays.fill(this.buffer, LogNumber.ZERO);
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      this.buffer[i] = this.buffer[i].add(rate.multiply(data[i]));
+      this.buffer[i] = this.buffer[i].add(data[i]);
     }
   }
 
@@ -70,9 +74,15 @@ public class DeltaFlushBuffer implements DeltaSink {
     write(factor, 1., 0l);
   }
 
-  public void write(final double factor, double fraction, long mask) {
+  public synchronized void write(final double factor, double fraction, long mask) {
     long longF = (long)(fraction * Long.MAX_VALUE);
     final LogNumber[] cpy = new LogNumber[this.buffer.length];
+
+    if(!this.reset) {
+      this.normalizationFactor = Stream.of(this.buffer).map(LogNumber::abs).max(Comparator.naturalOrder()).get();
+      this.normalizationFactor = LogNumber.ONE;
+    }
+
     for (int i = 0; i < this.buffer.length; i++) {
       if(fraction<1.){
         long hash = Hashing.sha1().hashLong(i ^ mask).asLong();
@@ -80,7 +90,8 @@ public class DeltaFlushBuffer implements DeltaSink {
           continue;
         }
       }
-      cpy[i] = this.buffer[i].multiply(factor);
+      cpy[i] = this.buffer[i].multiply(factor).multiply(getRate())
+          .divide(this.normalizationFactor);
     }
     this.inner.feed(cpy);
     this.reset = true;

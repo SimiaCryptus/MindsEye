@@ -54,7 +54,7 @@ public class SoftmaxActivationLayer extends NNLayer {
           final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           for (int i = 0; i < delta.length; i++)
             if (delta[i].isNegative()) {
-              delta[i] = LogNumber.zero;
+              delta[i] = LogNumber.ZERO;
             }
           
           final LogNDArray passback = new LogNDArray(data.getDims());
