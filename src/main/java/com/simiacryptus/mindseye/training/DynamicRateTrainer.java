@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.DeltaVector;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 
 public class DynamicRateTrainer {
@@ -48,50 +48,54 @@ public class DynamicRateTrainer {
   
   protected boolean calibrate() {
     final double last = error();
-    List<DeltaTransaction> layerVectors = null;
+    List<DeltaVector> layers = null;
     double[] adjustment = null;
     boolean inBounds = false;
+    PointValuePair localMin;
+    List<SupervisedTrainingParameters> nets = this.getInner().getCurrent().getCurrentNetworks();
     try {
-      final GradientDescentTrainer current = this.getInner().getCurrent();
-      layerVectors = current.getCurrentNetworks().stream()
+      layers = nets.stream()
           .flatMap(n -> n.getNet().layers.stream())
           .distinct()
           .map(l -> l.getVector())
           .filter(l -> null != l)
           .filter(x -> !x.isFrozen())
           .collect(Collectors.toList());
-      for (int i = 0; i < layerVectors.size(); i++) {
-        layerVectors.get(i).setRate(getBaseRate());
+      for (int i = 0; i < layers.size(); i++) {
+        layers.get(i).setRate(getBaseRate());
       }
-      final double[] localMin = optimizeRates(layerVectors.size());
-      adjustment = DoubleStream.of(localMin).map(x -> x * this.rate).toArray();
+      localMin = optimizeRates(layers.size());
+      nets.stream()
+          .flatMap(n -> n.getNet().layers.stream())
+          .distinct()
+          .forEach(layer -> layer.setStatus((double) localMin.getValue()));
+      adjustment = DoubleStream.of(localMin.getKey()).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(adjustment).allMatch(r -> this.maxRate > r)
           && DoubleStream.of(adjustment).anyMatch(r -> this.minRate < r);
+      if (inBounds)
+      {
+        for (int i = 0; i < layers.size(); i++) {
+          final DeltaVector layer = layers.get(i);
+          layer.setRate(adjustment[i] * layer.getMobility());
+        }
+        this.lastCalibratedIteration = this.currentIteration;
+        final double err = trainOnce();
+        final double improvement = last - err;
+        if (isVerbose()) {
+          DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(adjustment), last, err, improvement));
+        }
+        return improvement > 0;
+      }
     } catch (final Exception e) {
       if (isVerbose()) {
         DynamicRateTrainer.log.debug("Error calibrating", e);
       }
     }
-    if (inBounds)
-    {
-      for (int i = 0; i < layerVectors.size(); i++) {
-        final DeltaTransaction deltaTransaction = layerVectors.get(i);
-        deltaTransaction.setRate(adjustment[i] * deltaTransaction.getRate());
-      }
-      this.lastCalibratedIteration = this.currentIteration;
-      final double err = trainOnce();
-      final double improvement = last - err;
-      if (isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(adjustment), last, err, improvement));
-      }
-      return improvement > 0;
-    } else {
-      if (isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(adjustment),
-            Arrays.toString(this.getInner().getCurrent().getError())));
-      }
-      return false;
+    if (isVerbose()) {
+      DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(adjustment),
+          Arrays.toString(this.getInner().getCurrent().getError())));
     }
+    return false;
   }
   
   public double error() {
@@ -124,10 +128,6 @@ public class DynamicRateTrainer {
   
   public double getRate() {
     return this.rate;
-  }
-  
-  public double[] getRates() {
-    return this.getInner().getCurrent().getLayerRates();
   }
   
   public int getRecalibrationThreshold() {
@@ -182,7 +182,7 @@ public class DynamicRateTrainer {
   double monteCarloMin = 0.5;
   double monteCarloDecayStep = 0.9;
   
-  public synchronized double[] optimizeRates(final int dims) {
+  public synchronized PointValuePair optimizeRates(final int dims) {
     assert 0 < this.getInner().getCurrent().getCurrentNetworks().size();
     final double[] prev = this.getInner().getCurrent().getError();
     this.getInner().getCurrent().learn(this.getInner().getCurrent().evalTrainingData());
@@ -202,7 +202,7 @@ public class DynamicRateTrainer {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(),
           Arrays.toString(prev), Arrays.toString(calcError)));
     }
-    return x.getKey();
+    return x;
   }
   
   public MultivariateFunction asMetaF(final int dims, double fraction) {
@@ -213,12 +213,13 @@ public class DynamicRateTrainer {
       public double value(final double x[]) {
         GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
         int layerCount = (int) current.getCurrentNetworks().stream().flatMap(n -> n.getNet().layers.stream())
-            .map(n->n.getVector()).filter(n->null!=n)
+            .map(n -> n.getVector()).filter(n -> null != n)
             .distinct().count();
         double[] layerRates = Arrays.copyOf(x, layerCount);
-        //double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
-        if(current.getCurrentNetworks().size()>1) log.debug("TODO: Optimize the rates of each network. Needs seperate delta buffers for each network within same layer obj!");
-        final List<DeltaTransaction> deltaObjs = current.getCurrentNetworks().stream()
+        // double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
+        if (current.getCurrentNetworks().size() > 1)
+          log.debug("TODO: Optimize the rates of each network. Needs seperate delta buffers for each network within same layer obj!");
+        final List<DeltaVector> deltaObjs = current.getCurrentNetworks().stream()
             .flatMap(n -> n.getNet().layers.stream())
             .map(l -> l.newVector(fraction))
             .filter(l -> null != l)
@@ -260,11 +261,11 @@ public class DynamicRateTrainer {
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
     while (true) {
-      if(this.getStopError() > error()) {
+      if (this.getStopError() > error()) {
         DynamicRateTrainer.log.debug("Target error reached: " + error());
         return false;
       }
-      if(this.maxIterations <= this.currentIteration++) {
+      if (this.maxIterations <= this.currentIteration++) {
         DynamicRateTrainer.log.debug("Maximum steps reached");
         return false;
       }
@@ -272,7 +273,7 @@ public class DynamicRateTrainer {
         if (isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
-        //calibrate();
+        // calibrate();
         if (!calibrate()) {
           DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
           return false;
@@ -281,7 +282,7 @@ public class DynamicRateTrainer {
       final double best = this.getInner().getBest().error();
       final double last = this.getInner().getCurrent().error();
       double next = trainOnce();
-      if ((next/last) < 1+getDecayTolerance() || (next/best) < 1+5*getDecayTolerance())
+      if ((next / last) < 1 + getDecayTolerance() || (next / best) < 1 + 5 * getDecayTolerance())
       {
         this.generationsSinceImprovement = 0;
       }
@@ -322,11 +323,11 @@ public class DynamicRateTrainer {
   public List<PipelineNetwork> getNetwork() {
     return inner.getNetwork();
   }
-
+  
   public double getDecayTolerance() {
     return decayTolerance;
   }
-
+  
   public boolean setDecayTolerance(double decayTolerance) {
     this.decayTolerance = decayTolerance;
     return true;

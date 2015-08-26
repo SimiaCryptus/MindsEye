@@ -101,14 +101,14 @@ public class GradientDescentTrainer {
     return this.rate;
   }
 
-  public double[] getLayerRates() {
+  public double[] getVectorMobility() {
     return this.getCurrentNetworks().stream()
         .flatMap(n -> n.getNet().layers.stream())
         .distinct()
         .map(l -> l.getVector())
         .filter(l -> null != l)
         .filter(x -> !x.isFrozen())
-        .mapToDouble(x -> x.getRate()).toArray();
+        .mapToDouble(x -> x.getMobility()).toArray();
   }
 
   public double[] getNetworkRates() {
@@ -173,7 +173,7 @@ public class GradientDescentTrainer {
     final List<List<NNResult>> results = evalTrainingData();
     final double[] calcError = calcError(results);
     if (this.verbose) {
-      GradientDescentTrainer.log.debug(String.format("Training with rate %s*%s: (%s)", getRate(), Arrays.toString(getLayerRates()), Arrays.toString(calcError)));
+      GradientDescentTrainer.log.debug(String.format("Training with rate %s*%s: (%s)", getRate(), Arrays.toString(getVectorMobility()), Arrays.toString(calcError)));
     }
     setError(calcError);
     learn(results);

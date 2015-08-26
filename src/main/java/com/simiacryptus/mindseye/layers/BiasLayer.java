@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.DeltaSampler;
-import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.DeltaVector;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -108,9 +108,9 @@ public class BiasLayer extends NNLayer {
   }
   
 
-  protected DeltaTransaction newVector(double fraction,long mask) {
+  protected DeltaVector newVector(double fraction,long mask) {
     if (isFrozen()) return null;
-    return new DeltaTransaction() {
+    return new DeltaVector() {
       
       @Override
       public void write(double factor) {
@@ -129,11 +129,16 @@ public class BiasLayer extends NNLayer {
         return BiasLayer.this.isFrozen();
       }
       
+      
       @Override
-      public double getRate() {
-        return BiasLayer.this.writer.getRate();
+      public double getMobility() {
+        return writer.getRate() * BiasLayer.this.getMobility();
       }
     };
+  }
+
+  protected double getMobility() {
+    return 1;
   }
 
 }

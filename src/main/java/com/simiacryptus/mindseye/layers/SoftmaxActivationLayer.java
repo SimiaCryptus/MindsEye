@@ -23,14 +23,15 @@ public class SoftmaxActivationLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
-    final NDArray exp = inObj.data.map(x -> Math.exp(Math.min(x, 100)));
+    double nonlinearity = getNonlinearity();
+    final NDArray exp = inObj.data.map(x -> Math.exp(nonlinearity * Math.min(x, 100)));
     final double sum1 = exp.sum();
     final double sum = !Double.isFinite(sum1) || 0. == sum1 ? 1. : sum1;
     final NDArray output = exp.map(x -> x / sum);
     
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
-      IntStream.range(0, output.dim()).forEach(j -> {
+      IntStream.range(0, input.dim()).forEach(j -> {
         double value = 0;
         if (i == j) {
           value = exp.getData()[i] * (sum - exp.getData()[i]);
@@ -89,5 +90,9 @@ public class SoftmaxActivationLayer extends NNLayer {
   public SoftmaxActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  protected double getNonlinearity() {
+    return 1;
   }
 }

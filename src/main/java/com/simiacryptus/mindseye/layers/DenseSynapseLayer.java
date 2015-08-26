@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.DeltaVector;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.LogNumber;
@@ -152,9 +152,9 @@ public class DenseSynapseLayer extends NNLayer {
     return "DenseSynapseLayer [weights=" + this.weights + "]";
   }
 
-  protected DeltaTransaction newVector(double fraction,long mask) {
+  protected DeltaVector newVector(double fraction,long mask) {
     if (isFrozen()) return null;
-    return new DeltaTransaction() {
+    return new DeltaVector() {
       
       @Override
       public void write(double factor) {
@@ -172,10 +172,14 @@ public class DenseSynapseLayer extends NNLayer {
       }
       
       @Override
-      public double getRate() {
-        return DenseSynapseLayer.this.writer.getRate();
+      public double getMobility() {
+        return DenseSynapseLayer.this.writer.getRate() * DenseSynapseLayer.this.getMobility();
       }
     };
+  }
+
+  protected double getMobility() {
+    return 1;
   }
 
 }

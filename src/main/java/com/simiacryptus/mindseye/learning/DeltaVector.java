@@ -1,7 +1,7 @@
 package com.simiacryptus.mindseye.learning;
 
-public interface DeltaTransaction {
-  double getRate();
+public interface DeltaVector {
+  double getMobility();
 
   boolean isFrozen();
 

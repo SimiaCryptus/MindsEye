@@ -1,7 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.DeltaVector;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -29,11 +29,12 @@ public abstract class NNLayer {
 
   public abstract NNResult eval(NNResult array);
 
-  private DeltaTransaction vector;
+  private DeltaVector vector;
   private Double fraction = null;
   private Long mask = null;
+  private double currentStatusValue;
   
-  public final DeltaTransaction newVector(double fraction) {
+  public final DeltaVector newVector(double fraction) {
     if(null != this.fraction && this.fraction.equals(fraction)) return this.vector;
     this.fraction = fraction;
     this.mask = Util.R.get().nextLong();
@@ -41,13 +42,21 @@ public abstract class NNLayer {
     return vector;
   }
 
-  protected DeltaTransaction newVector(double fraction,long mask) {
+  protected DeltaVector newVector(double fraction,long mask) {
     return null;
   }
 
-  public DeltaTransaction getVector() {
+  public DeltaVector getVector() {
     if(null==vector) newVector(1);
     return vector;
+  }
+
+  public void setStatus(double value) {
+    this.currentStatusValue = value;
+  }
+
+  public double getStatus() {
+    return currentStatusValue;
   }
   
 }

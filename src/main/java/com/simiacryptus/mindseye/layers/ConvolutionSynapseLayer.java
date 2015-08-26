@@ -13,7 +13,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.learning.DeltaTransaction;
+import com.simiacryptus.mindseye.learning.DeltaVector;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.LogNDArray;
@@ -216,9 +216,9 @@ public class ConvolutionSynapseLayer extends NNLayer {
     return this;
   }
 
-  protected DeltaTransaction newVector(double fraction,long mask) {
+  protected DeltaVector newVector(double fraction,long mask) {
     if (isFrozen()) return null;
-    return new DeltaTransaction() {
+    return new DeltaVector() {
       
       @Override
       public void write(double factor) {
@@ -236,10 +236,15 @@ public class ConvolutionSynapseLayer extends NNLayer {
         return ConvolutionSynapseLayer.this.isFrozen();
       }
       
+
       @Override
-      public double getRate() {
-        return ConvolutionSynapseLayer.this.writer.getRate();
+      public double getMobility() {
+        return writer.getRate() * ConvolutionSynapseLayer.this.getMobility();
       }
     };
+  }
+
+  protected double getMobility() {
+    return 1;
   }
 }

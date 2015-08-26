@@ -24,9 +24,11 @@ public class SigmoidActivationLayer extends NNLayer {
     final NDArray input = inObj.data;
     final NDArray output = new NDArray(inObj.data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
+    double nonlinearity = getNonlinearity();
     IntStream.range(0, input.dim()).forEach(i -> {
-      final double x = input.getData()[i];
-      final double f = 1 / (1 + Math.exp(-x));
+
+      final double x = input.getData()[i]*nonlinearity;
+      final double f = sigmiod(x) / nonlinearity;
       final double minDeriv = 0;
       double ex = Math.exp(x);
       double ex1 = 1 + ex;
@@ -68,6 +70,10 @@ public class SigmoidActivationLayer extends NNLayer {
     };
   }
 
+  public static double sigmiod(final double x) {
+    return 1 / (1 + Math.exp(-x));
+  }
+
   public boolean isVerbose() {
     return this.verbose;
   }
@@ -75,5 +81,9 @@ public class SigmoidActivationLayer extends NNLayer {
   public SigmoidActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  protected double getNonlinearity() {
+    return 1;
   }
 }

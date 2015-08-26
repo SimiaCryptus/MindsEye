@@ -17,27 +17,16 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     PipelineNetwork net = new PipelineNetwork()
-        
-        // .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
         .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-        
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        .add(new BiasLayer(midSize))
-        .add(new SigmoidActivationLayer())
-
-        //
-        // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        // .add(new BiasLayer(midSize))
-        // .add(new SigmoidActivationLayer())
-        
-        // .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        // .add(new BiasLayer(midSize))
-        // .add(new SigmoidActivationLayer())
-        
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+        .add(new SigmoidActivationLayer());
+    
+    for (int i = 0; i < 2; i++)
+      net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+          .add(new BiasLayer(midSize))
+          .add(new SigmoidActivationLayer());
+    
+    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize));
     
     // .add(new SigmoidActivationLayer());
