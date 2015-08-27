@@ -73,7 +73,7 @@ public class MutationTrainer {
   }
   
   public double getMaxRate() {
-    return this.getInner().maxRate;
+    return this.getInner().getMaxRate();
   }
   
   public double getMinRate() {
@@ -221,7 +221,7 @@ public class MutationTrainer {
   }
 
   public MutationTrainer setMaxRate(final double maxRate) {
-    this.getInner().maxRate = maxRate;
+    this.getInner().setMaxRate(maxRate);
     return this;
   }
 

@@ -146,12 +146,9 @@ public class ImageNetworkDev {
         // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-0.1));
         
         trainer
-            .setMutationAmount(0.1)
-            // .setStaticRate(0.05)
+            .setStaticRate(0.5)
+            .setMaxDynamicRate(1000000)
             .setVerbose(true)
-            // .setDynamicRate(0.005)
-            // .setMaxDynamicRate(1.)
-            // .setMinDynamicRate(0.001)
             .train(0, 0.1);
         
         bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);

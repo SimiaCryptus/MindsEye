@@ -70,7 +70,7 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
         // return getStatus()<.2?1:1e-5;
         // if(true) return 0.;
         double status = getStatus();
-        double x = (0.3 - status) * 5;
+        double x = (0.3 - status) * 15;
         return SigmoidActivationLayer.sigmiod(x);
       }
     }.setVerbose(false));

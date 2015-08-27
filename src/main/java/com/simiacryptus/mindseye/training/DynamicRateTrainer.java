@@ -26,8 +26,8 @@ public class DynamicRateTrainer {
   
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
-  final int maxIterations = 100;
-  double maxRate = 10;
+  final int maxIterations = 1000;
+  private double maxRate = 100;
   double minRate = 0;
   private double mutationFactor = 1.;
   double rate = 0.5;
@@ -70,7 +70,7 @@ public class DynamicRateTrainer {
           .distinct()
           .forEach(layer -> layer.setStatus((double) localMin.getValue()));
       adjustment = DoubleStream.of(localMin.getKey()).map(x -> x * this.rate).toArray();
-      inBounds = DoubleStream.of(adjustment).allMatch(r -> this.maxRate > r)
+      inBounds = DoubleStream.of(adjustment).allMatch(r -> this.getMaxRate() > r)
           && DoubleStream.of(adjustment).anyMatch(r -> this.minRate < r);
       if (inBounds)
       {
@@ -191,7 +191,7 @@ public class DynamicRateTrainer {
     PointValuePair x = null;
     do {
       final MultivariateFunction f = asMetaF(dims, fraction);
-      x = new MultivariateOptimizer(f).setMaxRate(maxRate).minimize(dims); // May or may not be cloned before evaluations
+      x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(dims); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= monteCarloDecayStep;
     } while (fraction > monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);

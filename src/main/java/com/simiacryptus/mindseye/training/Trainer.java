@@ -29,7 +29,7 @@ public class Trainer {
 
   public Tuple2<List<SupervisedTrainingParameters>, Double> getBest() {
     GradientDescentTrainer best = this.getInner().getBest();
-    return new Tuple2<List<SupervisedTrainingParameters>, Double>(best.getCurrentNetworks(), best.error());
+    return new Tuple2<List<SupervisedTrainingParameters>, Double>(null==best?null:best.getCurrentNetworks(), null==best?null:best.error());
   }
 
   public Trainer setDynamicRate(final double d) {

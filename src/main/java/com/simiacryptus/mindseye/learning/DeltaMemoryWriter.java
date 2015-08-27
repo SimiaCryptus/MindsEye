@@ -32,7 +32,9 @@ public class DeltaMemoryWriter implements DeltaSink {
   @Override
   public void feed(final LogNumber[] data) {
     final int dim = length();
+    if(null == data) return;
     for (int i = 0; i < dim; i++) {
+      if(null == data[i]) continue;
       this.values[i] += data[i].doubleValue();
       if (!Double.isFinite(this.values[i])) {
         this.values[i] = 0;
