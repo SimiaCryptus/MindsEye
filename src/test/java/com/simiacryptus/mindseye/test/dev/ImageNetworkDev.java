@@ -100,7 +100,7 @@ public class ImageNetworkDev {
     
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
     // final NDArray inputImage = TestMNISTDev.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    NDArray inputImage = TestMNISTDev.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
+    NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
     // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
     
     final NNLayer convolution = blur_3x4();

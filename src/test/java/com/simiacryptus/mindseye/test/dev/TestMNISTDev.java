@@ -2,29 +2,15 @@ package com.simiacryptus.mindseye.test.dev;
 
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import java.util.zip.GZIPInputStream;
-
-import javax.imageio.ImageIO;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +23,6 @@ import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
-import com.simiacryptus.mindseye.util.BinaryChunkIterator;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -73,110 +58,6 @@ public class TestMNISTDev {
   
   public static final Random random = new Random();
   
-  public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
-    final DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(new File(path, name))));
-    in.skip(skip);
-    return TestMNISTDev.toIterator(new BinaryChunkIterator(in, recordSize));
-  }
-  
-  public static double bounds(final double value) {
-    return value < 0 ? 0 : value > 0xFF ? 0xFF : value;
-  }
-  
-  public static NDArray toImage(final byte[] b) {
-    final NDArray ndArray = new NDArray(28, 28);
-    for (int x = 0; x < 28; x++)
-    {
-      for (int y = 0; y < 28; y++)
-      {
-        ndArray.set(new int[] { x, y }, b[x + y * 28]);
-      }
-    }
-    return ndArray;
-  }
-  
-  public static String toInlineImage(final BufferedImage img, final String alt) {
-    return TestMNISTDev.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
-  }
-  
-  public static String toInlineImage(final LabeledObject<BufferedImage> img) {
-    final ByteArrayOutputStream b = new ByteArrayOutputStream();
-    try {
-      ImageIO.write(img.data, "PNG", b);
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
-    }
-    final byte[] byteArray = b.toByteArray();
-    final String encode = Base64.getEncoder().encodeToString(byteArray);
-    return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
-  }
-
-  public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
-    return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
-  }
-  
-  public static NDArray toNDArray1(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
-    for (int x = 0; x < img.getWidth(); x++)
-    {
-      for (int y = 0; y < img.getHeight(); y++)
-      {
-        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
-      }
-    }
-    return a;
-  }
-  
-  public static NDArray toNDArray3(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
-    for (int x = 0; x < img.getWidth(); x++)
-    {
-      for (int y = 0; y < img.getHeight(); y++)
-      {
-        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
-        a.set(new int[] { x, y, 1 }, img.getRGB(x, y) >> 8 & 0xFF);
-        a.set(new int[] { x, y, 2 }, img.getRGB(x, y) >> 16 & 0x0FF);
-      }
-    }
-    return a;
-  }
-  
-  public static int toOut(final String label) {
-    for (int i = 0; i < 10; i++)
-    {
-      if (label.equals("[" + i + "]")) return i;
-    }
-    throw new RuntimeException();
-  }
-  
-  public static NDArray toOutNDArray(final int out, final int max) {
-    final NDArray ndArray = new NDArray(max);
-    ndArray.set(out, 1);
-    return ndArray;
-  }
-
-  public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
-    final String path = "C:/Users/Andrew Charneski/Downloads";
-    final Stream<NDArray> imgStream = TestMNISTDev.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(TestMNISTDev::toImage);
-    final Stream<byte[]> labelStream = TestMNISTDev.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
-    
-    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
-      Iterator<NDArray> imgItr = imgStream.iterator();
-      Iterator<byte[]> labelItr = labelStream.iterator();
-      
-      @Override
-      public boolean hasNext() {
-        return this.imgItr.hasNext() && this.labelItr.hasNext();
-      }
-      
-      @Override
-      public LabeledObject<NDArray> next() {
-        return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
-      }
-    }, 100).limit(10000);
-    return merged;
-  }
-  
   protected Network getNetwork() {
     return new Network();
   }
@@ -190,7 +71,7 @@ public class TestMNISTDev {
     out.println("<html><head></head><body>");
     buffer.stream()
         .sorted(Comparator.comparing(img -> img.label))
-        .map(x -> "<p>" + TestMNISTDev.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>")
+        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>")
         .forEach(out::println);
     out.println("</body></html>");
     out.close();
@@ -201,9 +82,9 @@ public class TestMNISTDev {
   public void test() throws Exception {
     TestMNISTDev.log.info("Starting");
     final PipelineNetwork net = getNetwork();
-    final List<LabeledObject<NDArray>> buffer = TestMNISTDev.trainingDataStream().collect(Collectors.toList());
+    final List<LabeledObject<NDArray>> buffer = Util.trainingDataStream().collect(Collectors.toList());
     final NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(1000)
-        .map(o -> new NDArray[] { o.data, TestMNISTDev.toOutNDArray(TestMNISTDev.toOut(o.label), 10) })
+        .map(o -> new NDArray[] { o.data, Util.toOutNDArray(Util.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
     net.trainer(data)
     .setMutationAmplitude(2)
@@ -213,7 +94,7 @@ public class TestMNISTDev {
     .verifyConvergence(10000, 0.01, 1);
     {
       final PipelineNetwork net2 = net;
-      final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(TestMNISTDev.toOut(o1.label)))
+      final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(Util.toOut(o1.label)))
           .average().getAsDouble();
       TestMNISTDev.log.info("Tested RMS Error: {}", prevRms);
     }

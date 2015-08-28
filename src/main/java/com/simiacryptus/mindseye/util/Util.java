@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -33,7 +34,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.test.dev.TestMNISTDev;
 
 import de.javakaffee.kryoserializers.EnumMapSerializer;
 import de.javakaffee.kryoserializers.EnumSetSerializer;
@@ -101,7 +101,7 @@ public class Util {
   }
 
   public static String imageHtml(final BufferedImage... imgArray) {
-    return Stream.of(imgArray).map(img -> TestMNISTDev.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
+    return (String) Stream.of(imgArray).map(img -> toInlineImage(img, "")).reduce((a, b) -> a + b).get();
   }
   
   public static Kryo kryo() {
@@ -233,17 +233,120 @@ public class Util {
       {
         if (ndArray.getDims()[2] == 1) {
           final double value = ndArray.get(x, y, 0);
-          final int asByte = (int) TestMNISTDev.bounds(value) & 0xFF;
+          final int asByte = (int) bounds(value) & 0xFF;
           img.setRGB(x, y, asByte * 0x010101);
         } else {
-          final double red = TestMNISTDev.bounds(ndArray.get(x, y, 0));
-          final double green = TestMNISTDev.bounds(ndArray.get(x, y, 1));
-          final double blue = TestMNISTDev.bounds(ndArray.get(x, y, 2));
+          final double red = bounds(ndArray.get(x, y, 0));
+          final double green = bounds(ndArray.get(x, y, 1));
+          final double blue = bounds(ndArray.get(x, y, 2));
           img.setRGB(x, y, (int) (red + ((int) green << 8) + ((int) blue << 16)));
         }
       }
     }
     return img;
   }
+//
+//  public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
+//    final DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(new File(path, name))));
+//    in.skip(skip);
+//    return toIterator(new BinaryChunkIterator(in, recordSize));
+//  }
+//  
+//  public static double bounds(final double value) {
+//    return value < 0 ? 0 : value > 0xFF ? 0xFF : value;
+//  }
+//  
+//  public static NDArray toImage(final byte[] b) {
+//    final NDArray ndArray = new NDArray(28, 28);
+//    for (int x = 0; x < 28; x++)
+//    {
+//      for (int y = 0; y < 28; y++)
+//      {
+//        ndArray.set(new int[] { x, y }, b[x + y * 28]);
+//      }
+//    }
+//    return ndArray;
+//  }
+//  
+//  public static String toInlineImage(final BufferedImage img, final String alt) {
+//    return TestMNISTDev.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
+//  }
+//  
+//  public static String toInlineImage(final LabeledObject<BufferedImage> img) {
+//    final ByteArrayOutputStream b = new ByteArrayOutputStream();
+//    try {
+//      ImageIO.write(img.data, "PNG", b);
+//    } catch (final Exception e) {
+//      throw new RuntimeException(e);
+//    }
+//    final byte[] byteArray = b.toByteArray();
+//    final String encode = Base64.getEncoder().encodeToString(byteArray);
+//    return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
+//  }
 
+//  public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+//    return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
+//  }
+  
+  public static NDArray toNDArray1(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
+    for (int x = 0; x < img.getWidth(); x++)
+    {
+      for (int y = 0; y < img.getHeight(); y++)
+      {
+        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
+      }
+    }
+    return a;
+  }
+  
+  public static NDArray toNDArray3(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
+    for (int x = 0; x < img.getWidth(); x++)
+    {
+      for (int y = 0; y < img.getHeight(); y++)
+      {
+        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
+        a.set(new int[] { x, y, 1 }, img.getRGB(x, y) >> 8 & 0xFF);
+        a.set(new int[] { x, y, 2 }, img.getRGB(x, y) >> 16 & 0x0FF);
+      }
+    }
+    return a;
+  }
+  
+  public static int toOut(final String label) {
+    for (int i = 0; i < 10; i++)
+    {
+      if (label.equals("[" + i + "]")) return i;
+    }
+    throw new RuntimeException();
+  }
+  
+  public static NDArray toOutNDArray(final int out, final int max) {
+    final NDArray ndArray = new NDArray(max);
+    ndArray.set(out, 1);
+    return ndArray;
+  }
+
+  public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
+    final String path = "C:/Users/Andrew Charneski/Downloads";
+    final Stream<NDArray> imgStream = binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
+    final Stream<byte[]> labelStream = binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
+    
+    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
+      Iterator<NDArray> imgItr = imgStream.iterator();
+      Iterator<byte[]> labelItr = labelStream.iterator();
+      
+      @Override
+      public boolean hasNext() {
+        return this.imgItr.hasNext() && this.labelItr.hasNext();
+      }
+      
+      @Override
+      public LabeledObject<NDArray> next() {
+        return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
+      }
+    }, 100).limit(10000);
+    return merged;
+  }
 }
