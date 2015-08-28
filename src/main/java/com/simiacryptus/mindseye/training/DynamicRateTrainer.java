@@ -24,7 +24,7 @@ public class DynamicRateTrainer {
   
   private double baseRate = .1;
   int currentIteration = 0;
-  private double decayTolerance = 1e-3;
+  private double decayTolerance = 5e-2;
   int generationsSinceImprovement = 0;
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;

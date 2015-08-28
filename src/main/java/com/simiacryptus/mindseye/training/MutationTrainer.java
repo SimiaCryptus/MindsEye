@@ -23,8 +23,8 @@ public class MutationTrainer {
   
   private int currentGeneration = 0;
   private final DynamicRateTrainer inner;
-  private int maxIterations = 1000;
-  double mutationAmplitude = 2.;
+  private int maxIterations = 100;
+  double mutationAmplitude = 5.;
   private double mutationFactor = .1;
   private double stopError = 0.1;
   private boolean verbose = false;
@@ -207,7 +207,7 @@ public class MutationTrainer {
   }
 
   private double randomWeight(final BiasLayer l, final Random random) {
-    return this.mutationAmplitude * random.nextGaussian() * 0.0;
+    return this.mutationAmplitude * random.nextGaussian() * 0.2;
   }
   
   public double randomWeight(final DenseSynapseLayer l, final Random random) {

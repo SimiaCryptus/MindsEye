@@ -387,14 +387,6 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
   }
 
   @Test(expected = RuntimeException.class)
-  public void test_O3() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 2.)),
-        new UnionDistribution(new Simple2DCircle(.25, new double[] { 0, 0 }))
-        ), 1000));
-  }
-
-  @Test(expected = RuntimeException.class)
   public void test_oo() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new UnionDistribution(new Simple2DCircle(1, new double[] { -0.5, 0 })),
@@ -443,6 +435,16 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         ), 100));
   }
 
+
+  @Test(expected = RuntimeException.class)
+  @Ignore
+  public void test_O3() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 2.)),
+        new UnionDistribution(new Simple2DCircle(.25, new double[] { 0, 0 }))
+        ), 1000));
+  }
+  
   public void verify(final Trainer trainer) {
     trainer.verifyConvergence(0, 0.0, 10);
   }
