@@ -9,14 +9,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Trainer;
+import com.simiacryptus.mindseye.util.LabeledObject;
+import com.simiacryptus.mindseye.util.Util;
 
 public class SimpleMNIST {
   private static final Logger log = LoggerFactory.getLogger(SimpleMNIST.class);

@@ -12,7 +12,7 @@ import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.util.Util;
 
 public class MultivariateOptimizer {
   public static class Triplet<A, B, C> {

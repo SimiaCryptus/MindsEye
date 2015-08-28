@@ -9,7 +9,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.util.Util;
 
 public class LogNDArray {
   

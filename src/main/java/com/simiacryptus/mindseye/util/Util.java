@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.util;
 
 import java.awt.Desktop;
 import java.awt.geom.AffineTransform;
@@ -32,8 +32,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
-import com.simiacryptus.mindseye.data.BinaryChunkIterator;
-import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.test.dev.TestMNISTDev;
 

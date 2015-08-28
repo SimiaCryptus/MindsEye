@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.data;
+package com.simiacryptus.mindseye.util;
 
 import java.util.function.Function;
 

@@ -55,10 +55,7 @@ public class BooleanSoftmaxNetworkTests {
         .add(new SoftmaxActivationLayer().setVerbose(false))
         
         .trainer(samples)
-        .setMutationAmplitude(5.)
-        //.setVerbose(true)
-        .setStaticRate(.1)
-        .verifyConvergence(0, 0.01, 10);
+        .verifyConvergence(10, 0.01, 100);
   }
   
   @Test

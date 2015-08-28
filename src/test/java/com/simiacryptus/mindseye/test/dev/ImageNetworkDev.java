@@ -15,8 +15,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.data.LabeledObject;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
@@ -25,6 +23,8 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.SupervisedTrainingParameters;
 import com.simiacryptus.mindseye.training.Trainer;
+import com.simiacryptus.mindseye.util.LabeledObject;
+import com.simiacryptus.mindseye.util.Util;
 
 @SuppressWarnings("unused")
 public class ImageNetworkDev {
@@ -137,9 +137,9 @@ public class ImageNetworkDev {
       // }
       // }.setWeight(1));
         
-        trainer.add(new SupervisedTrainingParameters(
-            new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer()),
-            new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(0.1));
+//        trainer.add(new SupervisedTrainingParameters(
+//            new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer()),
+//            new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(0.1));
 
         // trainer.add(new SupervisedTrainingParameters(
         // new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1).setReverse(true)),

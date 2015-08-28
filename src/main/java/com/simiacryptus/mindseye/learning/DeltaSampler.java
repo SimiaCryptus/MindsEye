@@ -2,9 +2,9 @@ package com.simiacryptus.mindseye.learning;
 
 import java.util.Random;
 
-import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.util.Util;
 
 public class DeltaSampler implements DeltaSink {
   private double sampling = 2.;

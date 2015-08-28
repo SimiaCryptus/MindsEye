@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.util.Util;
 
 public class NDArray {
 

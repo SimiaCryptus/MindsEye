@@ -10,8 +10,8 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.util.Util;
 
 public class Trainer {
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
