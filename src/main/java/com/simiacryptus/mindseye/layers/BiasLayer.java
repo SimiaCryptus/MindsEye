@@ -13,18 +13,18 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.util.Util;
 
 public class BiasLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
-  
+
   public final double[] bias;
   private boolean frozen = false;
   private boolean verbose = false;
-  
+
   protected BiasLayer() {
     super();
     this.bias = null;
   }
-  
+
   public BiasLayer(final int[] outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
   }
@@ -44,17 +44,20 @@ public class BiasLayer extends NNLayer {
     }
     return new NNResult(translated) {
       @Override
-      public void feedback(final LogNDArray data, DeltaBuffer buffer) {
+      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         if (isVerbose()) {
-          log.debug(String.format("Feed back: %s", data));
+          BiasLayer.log.debug(String.format("Feed back: %s", data));
         }
-        buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data.getData());
+        if (!isFrozen())
+        {
+          buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data.getData());
+        }
         if (inObj.isAlive())
         {
           inObj.feedback(data, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj.isAlive() || !isFrozen();
@@ -95,9 +98,5 @@ public class BiasLayer extends NNLayer {
   public String toString() {
     return "BiasLayer " + Arrays.toString(this.bias);
   }
-
-  protected double getMobility() {
-    return 1;
-  }
-
+  
 }

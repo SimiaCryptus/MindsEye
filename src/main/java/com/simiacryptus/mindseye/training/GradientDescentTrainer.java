@@ -29,9 +29,7 @@ public class GradientDescentTrainer {
   
   private List<SupervisedTrainingParameters> currentNetworks = new ArrayList<>();
   private double[] error;
-
   private double rate = 0.5;
-
   private boolean verbose = false;
 
   public GradientDescentTrainer() {
@@ -42,15 +40,15 @@ public class GradientDescentTrainer {
   }
 
   public GradientDescentTrainer add(final SupervisedTrainingParameters params) {
-    this.getCurrentNetworks().add(params);
+    getCurrentNetworks().add(params);
     return this;
   }
 
   protected double[] calcError(final List<List<NNResult>> results) {
-    final List<List<Double>> rms = IntStream.range(0, this.getCurrentNetworks().size()).parallel()
+    final List<List<Double>> rms = IntStream.range(0, getCurrentNetworks().size()).parallel()
         .mapToObj(network -> {
           final List<NNResult> result = results.get(network);
-          final SupervisedTrainingParameters currentNet = this.getCurrentNetworks().get(network);
+          final SupervisedTrainingParameters currentNet = getCurrentNetworks().get(network);
           return IntStream.range(0, result.size()).parallel().mapToObj(sample -> {
             final NNResult eval = result.get(sample);
             final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
@@ -65,7 +63,7 @@ public class GradientDescentTrainer {
   }
 
   public GradientDescentTrainer clearMomentum() {
-    this.getCurrentNetworks().forEach(x -> x.getNet());
+    getCurrentNetworks().forEach(x -> x.getNet());
     return this;
   }
 
@@ -81,7 +79,7 @@ public class GradientDescentTrainer {
   }
 
   protected List<List<NNResult>> evalTrainingData() {
-    return this.getCurrentNetworks().parallelStream().map(params -> Stream.of(params.getTrainingData())
+    return getCurrentNetworks().parallelStream().map(params -> Stream.of(params.getTrainingData())
         .parallel()
         .map(sample -> {
           final NDArray input = sample[0];
@@ -92,6 +90,10 @@ public class GradientDescentTrainer {
         }).collect(Collectors.toList())).collect(Collectors.toList());
   }
 
+  public List<SupervisedTrainingParameters> getCurrentNetworks() {
+    return this.currentNetworks;
+  }
+
   public synchronized double[] getError() {
     // if(null==this.error||0==this.error.length){
     // trainSet();
@@ -99,13 +101,21 @@ public class GradientDescentTrainer {
     return this.error;
   }
 
-  public double getRate() {
-    return this.rate;
+  public List<NNLayer> getLayers() {
+    return getCurrentNetworks().stream().flatMap(x -> x.getNet().layers.stream()).distinct().collect(Collectors.toList());
+  }
+
+  public List<PipelineNetwork> getNetwork() {
+    return this.currentNetworks.stream().map(SupervisedTrainingParameters::getNet).collect(Collectors.toList());
   }
 
   public double[] getNetworkRates() {
-    return this.getCurrentNetworks().stream()
+    return getCurrentNetworks().stream()
         .mapToDouble(x -> x.getNet().getRate()).toArray();
+  }
+
+  public double getRate() {
+    return this.rate;
   }
 
   public boolean isVerbose() {
@@ -116,23 +126,23 @@ public class GradientDescentTrainer {
     return learn(results, new DeltaBuffer());
   }
 
-  protected DeltaBuffer learn(final List<List<NNResult>> results, DeltaBuffer buffer) {
+  protected DeltaBuffer learn(final List<List<NNResult>> results, final DeltaBuffer buffer) {
     // Apply corrections
-    IntStream.range(0, this.getCurrentNetworks().size())
-    //.parallel()
+    IntStream.range(0, getCurrentNetworks().size())
+    // .parallel()
     .forEach(network -> {
       final List<NNResult> netresults = results.get(network);
-      final SupervisedTrainingParameters currentNet = this.getCurrentNetworks().get(network);
+      final SupervisedTrainingParameters currentNet = getCurrentNetworks().get(network);
       IntStream.range(0, netresults.size())
-      //.parallel()
+      // .parallel()
       .forEach(sample -> {
         final NNResult eval = netresults.get(sample);
         final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
-        NDArray delta2 = eval.delta(output);
-        LogNDArray log2 = delta2.log();
+        final NDArray delta2 = eval.delta(output);
+        final LogNDArray log2 = delta2.log();
         LogNDArray delta = log2.scale(getRate());
         final double factor = currentNet.getWeight();// * product / rmsList[network];
-        //log.debug(String.format("%s actual vs %s ideal -> %s delta * %s", eval.data, output, delta, factor));
+        // log.debug(String.format("%s actual vs %s ideal -> %s delta * %s", eval.data, output, delta, factor));
         if (Double.isFinite(factor)) {
           delta = delta.scale(factor);
         }
@@ -140,6 +150,11 @@ public class GradientDescentTrainer {
       });
     });
     return buffer;
+  }
+
+  public GradientDescentTrainer setCurrentNetworks(final List<SupervisedTrainingParameters> currentNetworks) {
+    this.currentNetworks = currentNetworks;
+    return this;
   }
 
   public GradientDescentTrainer setError(final double[] error) {
@@ -162,19 +177,19 @@ public class GradientDescentTrainer {
   }
 
   public double totalWeight() {
-    return 1 / this.getCurrentNetworks().stream().mapToDouble(p -> p.getWeight()).sum();
+    return 1 / getCurrentNetworks().stream().mapToDouble(p -> p.getWeight()).sum();
   }
 
-  public synchronized double[] trainSet(double[] rates) {
-    assert 0 < this.getCurrentNetworks().size();
+  public synchronized double[] trainSet(final double[] rates) {
+    assert 0 < getCurrentNetworks().size();
     final List<List<NNResult>> results = evalTrainingData();
     final double[] calcError = calcError(results);
     setError(calcError);
-    DeltaBuffer buffer = new DeltaBuffer();
+    final DeltaBuffer buffer = new DeltaBuffer();
     learn(results, buffer);
-    List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());
-    if(null != rates) {
-      IntStream.range(0, buffer.map.size()).forEach(i->{
+    final List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());
+    if (null != rates) {
+      IntStream.range(0, buffer.map.size()).forEach(i -> {
         deltas.get(i).write(rates[i]);
       });
       final double[] validationError = calcError(evalTrainingData());
@@ -182,7 +197,7 @@ public class GradientDescentTrainer {
         if (this.verbose) {
           GradientDescentTrainer.log.debug(String.format("Reverting: (%s)", Arrays.toString(calcError)));
         }
-        IntStream.range(0, buffer.map.size()).forEach(i->{
+        IntStream.range(0, buffer.map.size()).forEach(i -> {
           deltas.get(i).write(-rates[i]);
         });
       } else {
@@ -193,23 +208,6 @@ public class GradientDescentTrainer {
       setError(calcError);
     }
     return calcError;
-  }
-
-  public List<SupervisedTrainingParameters> getCurrentNetworks() {
-    return currentNetworks;
-  }
-
-  public GradientDescentTrainer setCurrentNetworks(List<SupervisedTrainingParameters> currentNetworks) {
-    this.currentNetworks = currentNetworks;
-    return this;
-  }
-
-  public List<NNLayer> getLayers() {
-    return getCurrentNetworks().stream().flatMap(x->x.getNet().layers.stream()).distinct().collect(Collectors.toList());
-  }
-
-  public List<PipelineNetwork> getNetwork() {
-    return currentNetworks.stream().map(SupervisedTrainingParameters::getNet).collect(Collectors.toList());
   }
 
 }

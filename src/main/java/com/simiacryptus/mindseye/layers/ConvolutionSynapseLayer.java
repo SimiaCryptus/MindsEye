@@ -25,21 +25,21 @@ public class ConvolutionSynapseLayer extends NNLayer {
     int[] input;
     int[] kernel;
     int[] output;
-
+    
     public IndexMapKey(final int[] kernel, final int[] input, final int[] output) {
       super();
       this.kernel = kernel;
       this.input = input;
       this.output = output;
     }
-
+    
     public IndexMapKey(final NDArray kernel, final NDArray input, final NDArray output) {
       super();
       this.kernel = kernel.getDims();
       this.input = input.getDims();
       this.output = output.getDims();
     }
-
+    
     @Override
     public boolean equals(final Object obj) {
       if (this == obj) return true;
@@ -51,7 +51,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
       if (!Arrays.equals(this.output, other.output)) return false;
       return true;
     }
-
+    
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -62,7 +62,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
       return result;
     }
   }
-  
+
   public static final LoadingCache<IndexMapKey, int[][]> indexMapCache = CacheBuilder.newBuilder().build(new CacheLoader<IndexMapKey, int[][]>() {
     @Override
     public int[][] load(final IndexMapKey key) throws Exception {
@@ -87,7 +87,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
   });
   private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
-
+  
   public static int[][] getIndexMap(final NDArray kernel, final NDArray input, final NDArray output) {
     try {
       return ConvolutionSynapseLayer.indexMapCache.get(new IndexMapKey(kernel, input, output));
@@ -95,31 +95,31 @@ public class ConvolutionSynapseLayer extends NNLayer {
       throw new RuntimeException(e);
     }
   }
-
-  private DeltaFlushBuffer writer;
+  
   private boolean frozen = false;
   public final NDArray kernel;
   private boolean paralell = false;
   private boolean verbose = false;
-
+  private DeltaFlushBuffer writer;
+  
   protected ConvolutionSynapseLayer() {
     super();
     this.kernel = null;
   }
-  
+
   public ConvolutionSynapseLayer(final int[] kernelDims, final int bandwidth) {
-    
+
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
     this.writer = new DeltaFlushBuffer(this.kernel);
   }
-  
+
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.kernel.getData());
     return this;
   }
-  
+
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -140,20 +140,20 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray errorSignal, DeltaBuffer buffer) {
-        if (!ConvolutionSynapseLayer.this.frozen) {
+      public void feedback(final LogNDArray errorSignal, final DeltaBuffer buffer) {
+        if (!isFrozen()) {
           final LogNDArray weightGradient = new LogNDArray(ConvolutionSynapseLayer.this.kernel.getDims());
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            double in = input.getData()[array[1]];
-            LogNumber err = errorSignal.getData()[array[2]];
+            final double in = input.getData()[array[1]];
+            final LogNumber err = errorSignal.getData()[array[2]];
             weightGradient.add(array[0], err.multiply(in));
           });
           ConvolutionSynapseLayer.this.writer.feed(weightGradient.exp().getData());
         }
         if (inObj.isAlive()) {
-          LogNDArray klog = ConvolutionSynapseLayer.this.kernel.log();
+          final LogNDArray klog = ConvolutionSynapseLayer.this.kernel.log();
           final LogNDArray backprop = new LogNDArray(inputDims);
-          
+
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
             final LogNumber kernelValue = klog.get(array[0]);
             if (kernelValue.isFinite())
@@ -168,28 +168,32 @@ public class ConvolutionSynapseLayer extends NNLayer {
           inObj.feedback(backprop, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.kernel.getData(), i -> f.getAsDouble());
     return this;
   }
-
+  
   public ConvolutionSynapseLayer freeze() {
     return freeze(true);
   }
-  
+
   public ConvolutionSynapseLayer freeze(final boolean b) {
     this.frozen = b;
     return this;
   }
-
+  
+  protected double getMobility() {
+    return 1;
+  }
+  
   public boolean isFrozen() {
     return this.frozen;
   }
@@ -206,17 +210,13 @@ public class ConvolutionSynapseLayer extends NNLayer {
     this.frozen = frozen;
   }
   
-  public ConvolutionSynapseLayer setParalell(final boolean parallel) {
+  public ConvolutionSynapseLayer setParallel(final boolean parallel) {
     this.paralell = parallel;
     return this;
   }
-
+  
   public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
-  }
-
-  protected double getMobility() {
-    return 1;
   }
 }

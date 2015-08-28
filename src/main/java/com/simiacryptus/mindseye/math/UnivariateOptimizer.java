@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 public class UnivariateOptimizer {
   @SuppressWarnings("serial")
   public static final class PtList extends ArrayList<PointValuePair> {
-    
+
     @Override
     public String toString() {
       final StringBuilder builder = new StringBuilder();
@@ -29,11 +29,11 @@ public class UnivariateOptimizer {
       builder.append("PtList []");
       return builder.toString();
     }
-
+    
   }
-  
-  static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
 
+  static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
+  
   public final UnivariateFunction f;
   public double growth = 1.2;
   private double maxRate = 1e8;
@@ -42,11 +42,11 @@ public class UnivariateOptimizer {
   public final List<PointValuePair> points = new PtList();
   public double solveThreshold = -Double.MAX_VALUE;
   private boolean verbose = false;
-  
+
   public UnivariateOptimizer(final UnivariateFunction f) {
     this.f = f;
   }
-
+  
   public PointValuePair eval(final double optimal) {
     final double value = this.f.value(optimal);
     if (this.verbose) {
@@ -54,7 +54,7 @@ public class UnivariateOptimizer {
     }
     return new PointValuePair(new double[] { optimal }, value);
   }
-
+  
   public List<PointValuePair> getKeyPoints() {
     this.points.get(0);
     final PointValuePair bottom = this.points.stream().min(Comparator.comparing((final PointValuePair x) -> x.getSecond())).get();
@@ -80,19 +80,23 @@ public class UnivariateOptimizer {
     }
     return newList;
   }
-
+  
+  public double getMaxRate() {
+    return this.maxRate;
+  }
+  
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public PointValuePair minimize() {
     return minimize(1.);
   }
-
+  
   public synchronized PointValuePair minimize(final double start) {
     this.points.add(eval(0));
     this.points.add(eval(start));
-
+    
     final double oneV = this.points.get(this.points.size() - 1).getValue();
     final double zeroV = this.points.get(this.points.size() - 2).getValue();
     if (oneV > zeroV) {
@@ -105,14 +109,14 @@ public class UnivariateOptimizer {
         if (x < this.minValue) throw new RuntimeException("x < minValue");
       }
     } else {
-      for (double x = start * this.growth; x < this.getMaxRate(); x *= this.growth) {
+      for (double x = start * this.growth; x < getMaxRate(); x *= this.growth) {
         this.points.add(eval(x));
         final Double prevV = this.points.get(this.points.size() - 2).getValue();
         final Double thisV = this.points.get(this.points.size() - 1).getValue();
         if (thisV > prevV) {
           break;
         }
-        if (x > this.getMaxRate()) throw new RuntimeException("x > maxValue: " + x);
+        if (x > getMaxRate()) throw new RuntimeException("x > maxValue: " + x);
       }
     }
     try {
@@ -128,7 +132,7 @@ public class UnivariateOptimizer {
     final double leftX = this.points.get(0).getFirst()[0];
     final double midX = this.points.get(1).getFirst()[0];
     final double rightX = this.points.get(2).getFirst()[0];
-
+    
     final UnivariatePointValuePair optim = new BrentOptimizer(1e-4, 1e-8).optimize(
         GoalType.MINIMIZE,
         new UnivariateObjectiveFunction(this.f),
@@ -137,19 +141,15 @@ public class UnivariateOptimizer {
         );
     return new PointValuePair(new double[] { optim.getPoint() }, optim.getValue());
   }
-
+  
+  public UnivariateOptimizer setMaxRate(final double maxRate) {
+    this.maxRate = maxRate;
+    return this;
+  }
+  
   public UnivariateOptimizer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
-
-  public double getMaxRate() {
-    return maxRate;
-  }
-
-  public UnivariateOptimizer setMaxRate(double maxRate) {
-    this.maxRate = maxRate;
-    return this;
-  }
-
+  
 }

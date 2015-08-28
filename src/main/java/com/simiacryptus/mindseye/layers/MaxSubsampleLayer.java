@@ -17,18 +17,18 @@ import com.simiacryptus.mindseye.math.NDArray;
 public class MaxSubsampleLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
-  
+
   private int[] kernelDims;
-  
+
   protected MaxSubsampleLayer() {
     super();
   }
-
+  
   public MaxSubsampleLayer(final int... kernelDims) {
-    
+
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
-  
+
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
@@ -48,14 +48,14 @@ public class MaxSubsampleLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data, DeltaBuffer buffer) {
+      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         if (inObj.isAlive()) {
           final LogNDArray backSignal = new LogNDArray(inputDims);
           gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().coords, data.get(e.getKey().coords)));
           inObj.feedback(backSignal, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj.isAlive();

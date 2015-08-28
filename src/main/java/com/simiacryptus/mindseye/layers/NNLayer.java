@@ -13,14 +13,18 @@ import com.simiacryptus.mindseye.math.NDArray;
  * @author Andrew Charneski
  */
 public abstract class NNLayer {
-  
+
+  private double currentStatusValue = Double.MAX_VALUE;
+
+  private String id = UUID.randomUUID().toString();
+
   public final NNResult eval(final NDArray array) {
     return eval(new NNResult(array) {
       @Override
-      public void feedback(final LogNDArray data, DeltaBuffer buffer) {
+      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         // Do Nothing
       }
-      
+
       @Override
       public boolean isAlive() {
         return false;
@@ -29,25 +33,22 @@ public abstract class NNLayer {
   }
   
   public abstract NNResult eval(NNResult array);
-  
-  private double currentStatusValue = Double.MAX_VALUE;
-  private String id = UUID.randomUUID().toString();
-  
-  public void setStatus(double value) {
-    this.currentStatusValue = value;
-  }
-  
-  public double getStatus() {
-    return currentStatusValue;
-  }
-  
+
   public String getId() {
-    return id;
+    return this.id;
   }
-  
-  public NNLayer setId(String id) {
+
+  public double getStatus() {
+    return this.currentStatusValue;
+  }
+
+  public NNLayer setId(final String id) {
     this.id = id;
     return this;
   }
-  
+
+  public void setStatus(final double value) {
+    this.currentStatusValue = value;
+  }
+
 }

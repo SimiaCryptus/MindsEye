@@ -11,23 +11,23 @@ import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 
 public class MaxEntLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   private double factor = -1;
   private boolean reverse = false;
-  
+
   private boolean verbose;
-  
+
   public MaxEntLayer() {
   }
-
+  
   @Override
   public NNResult eval(final NNResult inObj) {
     final NDArray input = inObj.data;
     final NDArray output = new NDArray(1);
-    
+
     final double sum = input.map(x -> Math.abs(x)).sum();
-    
+
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       final double sign = Math.signum(input.getData()[i]);
@@ -44,10 +44,10 @@ public class MaxEntLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data, DeltaBuffer buffer) {
+      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         if (inObj.isAlive()) {
-          LogNDArray inputGradientLog = inputGradient.log();
-          LogNDArray passback = new LogNDArray(input.getDims());
+          final LogNDArray inputGradientLog = inputGradient.log();
+          final LogNDArray passback = new LogNDArray(input.getDims());
           for (int i = 0; i < passback.getData().length; i++) {
             if (inputGradientLog.getData()[i].isFinite()) {
               // double f = output.data[0];
@@ -61,37 +61,37 @@ public class MaxEntLayer extends NNLayer {
           inObj.feedback(passback, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj.isAlive();
       }
-
+      
     };
   }
-
+  
   public double getFactor() {
     return this.factor;
   }
-
+  
   public boolean isReverse() {
     return this.reverse;
   }
-
+  
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public MaxEntLayer setFactor(final double factor) {
     this.factor = factor;
     return this;
   }
-
+  
   public MaxEntLayer setReverse(final boolean reverse) {
     this.reverse = reverse;
     return this;
   }
-
+  
   public MaxEntLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

@@ -15,77 +15,74 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class Trainer {
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
-
+  
+  public final List<Function<MutationTrainer, Void>> handler = new ArrayList<>();
+  
   private MutationTrainer inner = new MutationTrainer();
-
+  
   public Trainer add(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
     return add(new SupervisedTrainingParameters(pipelineNetwork, samples));
   }
-
-  public Trainer add(final SupervisedTrainingParameters params) {
-    this.getInner().getInner().getInner().getCurrent().add(params);
-    return this;
-  }
-
-  public Tuple2<List<SupervisedTrainingParameters>, Double> getBest() {
-    GradientDescentTrainer best = this.getInner().getBest();
-    return new Tuple2<List<SupervisedTrainingParameters>, Double>(null==best?null:best.getCurrentNetworks(), null==best?null:best.error());
-  }
-
-  public Trainer setDynamicRate(final double d) {
-    this.getInner().getInner().getInner().getCurrent().setRate(d);
-    return this;
-  }
-
-  public Trainer setMaxDynamicRate(final double d) {
-    this.getInner().getInner().setMaxRate(d);
-    return this;
-  }
-
-  public Trainer setMinDynamicRate(final double d) {
-    this.getInner().getInner().setMinRate(d);
-    return this;
-  }
-
-  public Trainer setMutationAmount(final double d) {
-    this.getInner().setMutationAmount(d);
-    return this;
-  }
-
-  public Trainer setStaticRate(final double d) {
-    this.getInner().getInner().setRate(d);
-    return this;
-  }
-
-  public Trainer setVerbose(final boolean b) {
-    this.getInner().setVerbose(b);
-    return this;
-  }
-
-  public void train(final int i, final double d) {
-    MutationTrainer inner = this.getInner();
-    inner.setMaxIterations(i).setStopError(d);
-    inner.train();
-  }
-
-  public long verifyConvergence(final int maxIter, final double convergence, final int reps) {
-    return verifyConvergence(maxIter, convergence, reps, reps);
-  }
-
-  public long verifyConvergence(final int maxIter, final double convergence, final int reps, int minSuccess) {
-    final long succeesses = IntStream.range(0, reps).parallel().filter(i -> testCopy(maxIter, convergence)).count();
-    if (minSuccess > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
-    return succeesses;
-  }
-
-  public final List<Function<MutationTrainer, Void>> handler = new ArrayList<>();
   
+  public Trainer add(final SupervisedTrainingParameters params) {
+    getInner().getInner().getInner().getCurrent().add(params);
+    return this;
+  }
+  
+  public Tuple2<List<SupervisedTrainingParameters>, Double> getBest() {
+    final GradientDescentTrainer best = getInner().getBest();
+    return new Tuple2<List<SupervisedTrainingParameters>, Double>(null == best ? null : best.getCurrentNetworks(), null == best ? null : best.error());
+  }
+  
+  public MutationTrainer getInner() {
+    return this.inner;
+  }
+  
+  public Trainer setDynamicRate(final double d) {
+    getInner().getInner().getInner().getCurrent().setRate(d);
+    return this;
+  }
+  
+  public void setInner(final MutationTrainer inner) {
+    this.inner = inner;
+  }
+  
+  public Trainer setMaxDynamicRate(final double d) {
+    getInner().getInner().setMaxRate(d);
+    return this;
+  }
+  
+  public Trainer setMinDynamicRate(final double d) {
+    getInner().getInner().setMinRate(d);
+    return this;
+  }
+  
+  public Trainer setMutationAmount(final double d) {
+    getInner().setMutationAmount(d);
+    return this;
+  }
+  
+  public Trainer setMutationAmplitude(final double d) {
+    getInner().setMutationAmplitude(d);
+    return this;
+  }
+  
+  public Trainer setStaticRate(final double d) {
+    getInner().getInner().setRate(d);
+    return this;
+  }
+  
+  public Trainer setVerbose(final boolean b) {
+    getInner().setVerbose(b);
+    return this;
+  }
+
   public boolean testCopy(final int maxIter, final double convergence) {
     boolean hasConverged = false;
     try {
-      final MutationTrainer copy = Util.kryo().copy(this.getInner());
+      final MutationTrainer copy = Util.kryo().copy(getInner());
       final Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
-      handler.stream().forEach(h->h.apply(copy));
+      this.handler.stream().forEach(h -> h.apply(copy));
       hasConverged = error <= convergence;
       if (!hasConverged) {
         Trainer.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
@@ -95,18 +92,21 @@ public class Trainer {
     }
     return hasConverged;
   }
-
-  public Trainer setMutationAmplitude(double d) {
-    this.getInner().setMutationAmplitude(d);
-    return this;
+  
+  public void train(final int i, final double d) {
+    final MutationTrainer inner = getInner();
+    inner.setMaxIterations(i).setStopError(d);
+    inner.train();
   }
-
-  public MutationTrainer getInner() {
-    return inner;
+  
+  public long verifyConvergence(final int maxIter, final double convergence, final int reps) {
+    return verifyConvergence(maxIter, convergence, reps, reps);
   }
-
-  public void setInner(MutationTrainer inner) {
-    this.inner = inner;
+  
+  public long verifyConvergence(final int maxIter, final double convergence, final int reps, final int minSuccess) {
+    final long succeesses = IntStream.range(0, reps).parallel().filter(i -> testCopy(maxIter, convergence)).count();
+    if (minSuccess > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
+    return succeesses;
   }
-
+  
 }

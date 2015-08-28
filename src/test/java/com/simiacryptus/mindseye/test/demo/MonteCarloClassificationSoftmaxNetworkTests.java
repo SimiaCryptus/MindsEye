@@ -37,180 +37,156 @@ import com.simiacryptus.mindseye.training.Trainer;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MonteCarloClassificationSoftmaxNetworkTests {
-  static final Logger log = LoggerFactory.getLogger(MonteCarloClassificationSoftmaxNetworkTests.class);
-  
-  public static final class Simple2DLine implements Function<Void, double[]> {
-    
-    public final double width;
-    public final double left;
-    public final double height;
-    public final double bottom;
-    
-    public Simple2DLine(double[]... pts) {
-      super();
-      assert (pts.length == 2);
-      this.width = (pts[0][0] - pts[1][0]);
-      this.left = pts[1][0];
-      this.height = (pts[0][1] - pts[1][1]);
-      this.bottom = pts[1][1];
+  public static final class GaussianDistribution implements Function<Void, double[]> {
+    public final MultivariateNormalDistribution distribution;
+    private RealMatrix pos;
+    private RealMatrix postMult;
+
+    public GaussianDistribution(final int dims) {
+      final Random random = Util.R.get();
+
+      final double[] means = new double[dims];
+      for (int i = 0; i < means.length; i++)
+      {
+        means[i] = 1;
+      }
+      final double[][] diaganals = new double[dims][];
+      for (int i = 0; i < diaganals.length; i++)
+      {
+        diaganals[i] = new double[dims];
+        diaganals[i][i] = 1;
+      }
+      final RandomGenerator rng = new JDKRandomGenerator();
+      rng.setSeed(random.nextInt());
+      this.distribution = new MultivariateNormalDistribution(rng, means, diaganals);
+
+      this.pos = MatrixUtils.createColumnRealMatrix(IntStream.range(0, dims).mapToDouble(i -> random.nextGaussian() * 0.6).toArray());
+      this.postMult = MatrixUtils.createRealMatrix(dims, dims);
+      IntStream.range(0, dims).forEach(i -> {
+        IntStream.range(0, dims).forEach(j -> {
+          this.postMult.setEntry(i, j, random.nextGaussian() * 0.4);
+        });
+      });
     }
-    
-    public Simple2DLine(double left, double bottom, double width, double height) {
+
+    public GaussianDistribution(final int dims, final double[] pos, final double size) {
+      final Random random = Util.R.get();
+
+      final double[] means = new double[dims];
+      for (int i = 0; i < means.length; i++)
+      {
+        means[i] = 1;
+      }
+      final double[][] diaganals = new double[dims][];
+      for (int i = 0; i < diaganals.length; i++)
+      {
+        diaganals[i] = new double[dims];
+        diaganals[i][i] = 1;
+      }
+      final RandomGenerator rng = new JDKRandomGenerator();
+      rng.setSeed(random.nextInt());
+      this.distribution = new MultivariateNormalDistribution(rng, means, diaganals);
+
+      this.pos = MatrixUtils.createColumnRealMatrix(pos);
+      this.postMult = MatrixUtils.createRealMatrix(dims, dims);
+      IntStream.range(0, dims).forEach(i -> {
+        IntStream.range(0, dims).forEach(j -> {
+          this.postMult.setEntry(i, j, i == j ? size : 0);
+        });
+      });
+    }
+
+    @Override
+    public double[] apply(final Void n) {
+      final RealMatrix sample = MatrixUtils.createColumnRealMatrix(this.distribution.sample());
+      final RealMatrix multiply = this.postMult.multiply(sample);
+      final RealMatrix add = multiply.add(this.pos).transpose();
+      final double[] ds = add.getData()[0];
+      return ds;
+    }
+  }
+
+  public static final class Simple2DCircle implements Function<Void, double[]> {
+
+    private double[] center;
+    private double radius;
+
+    public Simple2DCircle(final double radius, final double[] center) {
+      super();
+      assert center.length == 2;
+      this.radius = radius;
+      this.center = center;
+    }
+
+    @Override
+    public double[] apply(final Void n) {
+      final double x = Util.R.get().nextDouble() * 2 * Math.PI;
+      return new double[] { Math.sin(x) * this.radius + this.center[0], Math.cos(x) * this.radius + this.center[1] };
+    }
+  }
+
+  public static final class Simple2DLine implements Function<Void, double[]> {
+
+    public final double bottom;
+    public final double height;
+    public final double left;
+    public final double width;
+
+    public Simple2DLine() {
+      this(Util.R.get());
+    }
+
+    public Simple2DLine(final double left, final double bottom, final double width, final double height) {
       super();
       this.width = width;
       this.left = left;
       this.height = height;
       this.bottom = bottom;
     }
-    
-    public Simple2DLine() {
-      this(Util.R.get());
-    }
-    
-    public Simple2DLine(Random random) {
+
+    public Simple2DLine(final double[]... pts) {
       super();
-      Random r = random;
+      assert pts.length == 2;
+      this.width = pts[0][0] - pts[1][0];
+      this.left = pts[1][0];
+      this.height = pts[0][1] - pts[1][1];
+      this.bottom = pts[1][1];
+    }
+
+    public Simple2DLine(final Random random) {
+      super();
+      final Random r = random;
       this.width = r.nextGaussian() * 4;
       this.left = r.nextGaussian() - 2;
       this.height = r.nextGaussian() * 4;
       this.bottom = r.nextGaussian() - 2;
     }
-    
+
     @Override
-    public double[] apply(Void n) {
-      double x = Util.R.get().nextDouble();
-      return new double[] { width * x + left, height * x + bottom };
+    public double[] apply(final Void n) {
+      final double x = Util.R.get().nextDouble();
+      return new double[] { this.width * x + this.left, this.height * x + this.bottom };
     }
   }
-  
-  public static final class Simple2DCircle implements Function<Void, double[]> {
-    
-    private double radius;
-    private double[] center;
-    
-    public Simple2DCircle(double radius, double[] center) {
-      super();
-      assert (center.length == 2);
-      this.radius = radius;
-      this.center = center;
-    }
-    
-    @Override
-    public double[] apply(Void n) {
-      double x = Util.R.get().nextDouble() * 2 * Math.PI;
-      return new double[] { Math.sin(x) * radius + center[0], Math.cos(x) * radius + center[1] };
-    }
-  }
-  
-  @SuppressWarnings("serial")
-  public static final class UnionDistribution extends ArrayList<Function<Void, double[]>> implements Function<Void, double[]> {
-    
-    public UnionDistribution() {
-      super();
-    }
-    
-    @SafeVarargs
-    public UnionDistribution(Function<Void, double[]>... c) {
-      this(Arrays.asList(c));
-    }
-    
-    public UnionDistribution(Collection<? extends Function<Void, double[]>> c) {
-      super(c);
-    }
-    
-    @Override
-    public double[] apply(Void t) {
-      return get(Util.R.get().nextInt(size())).apply(t);
-    }
-  }
-  
-  public static final class GaussianDistribution implements Function<Void, double[]> {
-    public final MultivariateNormalDistribution distribution;
-    private RealMatrix pos;
-    private RealMatrix postMult;
-    
-    public GaussianDistribution(int dims) {
-      Random random = Util.R.get();
-      
-      final double[] means = new double[dims];
-      for (int i = 0; i < means.length; i++)
-      {
-        means[i] = 1;
-      }
-      final double[][] diaganals = new double[dims][];
-      for (int i = 0; i < diaganals.length; i++)
-      {
-        diaganals[i] = new double[dims];
-        diaganals[i][i] = 1;
-      }
-      final RandomGenerator rng = new JDKRandomGenerator();
-      rng.setSeed(random.nextInt());
-      this.distribution = new MultivariateNormalDistribution(rng, means, diaganals);
-      
-      this.pos = MatrixUtils.createColumnRealMatrix(IntStream.range(0, dims).mapToDouble(i -> random.nextGaussian() * 0.6).toArray());
-      this.postMult = MatrixUtils.createRealMatrix(dims, dims);
-      IntStream.range(0, dims).forEach(i -> {
-        IntStream.range(0, dims).forEach(j -> {
-          postMult.setEntry(i, j, random.nextGaussian() * 0.4);
-        });
-      });
-    }
-    
-    public GaussianDistribution(int dims, double[] pos, double size) {
-      Random random = Util.R.get();
-      
-      final double[] means = new double[dims];
-      for (int i = 0; i < means.length; i++)
-      {
-        means[i] = 1;
-      }
-      final double[][] diaganals = new double[dims][];
-      for (int i = 0; i < diaganals.length; i++)
-      {
-        diaganals[i] = new double[dims];
-        diaganals[i][i] = 1;
-      }
-      final RandomGenerator rng = new JDKRandomGenerator();
-      rng.setSeed(random.nextInt());
-      this.distribution = new MultivariateNormalDistribution(rng, means, diaganals);
-      
-      this.pos = MatrixUtils.createColumnRealMatrix(pos);
-      this.postMult = MatrixUtils.createRealMatrix(dims, dims);
-      IntStream.range(0, dims).forEach(i -> {
-        IntStream.range(0, dims).forEach(j -> {
-          postMult.setEntry(i, j, i == j ? size : 0);
-        });
-      });
-    }
-    
-    @Override
-    public double[] apply(Void n) {
-      RealMatrix sample = MatrixUtils.createColumnRealMatrix(distribution.sample());
-      RealMatrix multiply = this.postMult.multiply(sample);
-      RealMatrix add = multiply.add(pos).transpose();
-      double[] ds = add.getData()[0];
-      return ds;
-    }
-  }
-  
+
   public final class SnakeDistribution implements Function<Void, double[]>
   {
-    public final List<PolynomialSplineFunction> parametricFuctions;
     public final int dims;
-    public final double radius;
     public final int nodes;
-    
-    public SnakeDistribution(int dims, Random random)
+    public final List<PolynomialSplineFunction> parametricFuctions;
+    public final double radius;
+
+    public SnakeDistribution(final int dims, final Random random)
     {
       this(dims, random, 10, 0.01);
     }
-    
-    public SnakeDistribution(int dims, Random random, int nodes)
+
+    public SnakeDistribution(final int dims, final Random random, final int nodes)
     {
       this(dims, random, nodes, 0.01);
     }
-    
-    public SnakeDistribution(int dims, Random random, int nodes, double radius)
+
+    public SnakeDistribution(final int dims, final Random random, final int nodes, final double radius)
     {
       this.dims = dims;
       this.radius = radius;
@@ -227,35 +203,77 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         }
         parametricFuctions.add(new LoessInterpolator().interpolate(yval, xval));
       }
-      
+
       this.parametricFuctions = parametricFuctions;
     }
-    
+
     @Override
-    public double[] apply(Void n) {
+    public double[] apply(final Void n) {
       final Random random = Util.R.get();
-      final double[] pt = new double[dims];
+      final double[] pt = new double[this.dims];
       final double t = random.nextDouble();
       for (int i = 0; i < pt.length; i++)
       {
-        pt[i] = parametricFuctions.get(i).value(t);
-        pt[i] += random.nextGaussian() * radius;
+        pt[i] = this.parametricFuctions.get(i).value(t);
+        pt[i] += random.nextGaussian() * this.radius;
       }
       return pt;
     }
-    
+
     public int getDimension()
     {
-      return dims;
+      return this.dims;
     }
-    
+
+  }
+
+  @SuppressWarnings("serial")
+  public static final class UnionDistribution extends ArrayList<Function<Void, double[]>> implements Function<Void, double[]> {
+
+    public UnionDistribution() {
+      super();
+    }
+
+    public UnionDistribution(final Collection<? extends Function<Void, double[]>> c) {
+      super(c);
+    }
+
+    @SafeVarargs
+    public UnionDistribution(final Function<Void, double[]>... c) {
+      this(Arrays.asList(c));
+    }
+
+    @Override
+    public double[] apply(final Void t) {
+      return get(Util.R.get().nextInt(size())).apply(t);
+    }
+  }
+
+  static final Logger log = LoggerFactory.getLogger(MonteCarloClassificationSoftmaxNetworkTests.class);
+
+  public PipelineNetwork buildNetwork() {
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final PipelineNetwork net = new PipelineNetwork()
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
+    .add(new BiasLayer(outSize))
+    .add(new SoftmaxActivationLayer());
+    return net;
   }
   
-  public NDArray[][] getTrainingData(int dimensions, List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
+  public Trainer buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
+    return net.trainer(samples);
+    // .setMutationAmplitude(5.)
+    // .setVerbose(true);
+    // .setStaticRate(.1)
+  }
+
+  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
     return getTrainingData(dimensions, populations, 100);
   }
 
-  public NDArray[][] getTrainingData(int dimensions, List<Function<Void, double[]>> populations, int sampleN) throws FileNotFoundException, IOException {
+  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException,
+      IOException {
     final int[] inputSize = new int[] { dimensions };
     final int[] outSize = new int[] { populations.size() };
     final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x)
@@ -266,41 +284,41 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         })).toArray(i -> new NDArray[i][]);
     return samples;
   }
-  
+
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
-    PipelineNetwork net = buildNetwork();
-    Trainer trainer = buildTrainer(samples, net);
-    ArrayList<BufferedImage> images = new ArrayList<>();
+    final PipelineNetwork net = buildNetwork();
+    final Trainer trainer = buildTrainer(samples, net);
+    final ArrayList<BufferedImage> images = new ArrayList<>();
     trainer.handler.add(n -> {
       try {
-        BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
+        final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
           {
             for (int x = 0; x < getWidth(); x++) {
               for (int y = 0; y < getHeight(); y++) {
-                double xf = (x * 1. / getWidth() - .5) * 6;
-                double yf = (y * 1. / getHeight() - .5) * 6;
-                NNResult eval = n.getNetwork().get(0).eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+                final double xf = (x * 1. / getWidth() - .5) * 6;
+                final double yf = (y * 1. / getHeight() - .5) * 6;
+                final NNResult eval = n.getNetwork().get(0).eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
                 // int winner = IntStream.range(0, 2).mapToObj(o -> o).max(Comparator.comparing(o -> eval.data.get((int) o))).get();
-                double a = eval.data.get(0);
-                double b = eval.data.get(1);
-                //if(Math.random()<0.01) log.debug(String.format("(%s:%s) -> %s vs %s", xf, yf, a, b));
+                final double a = eval.data.get(0);
+                final double b = eval.data.get(1);
+                // if(Math.random()<0.01) log.debug(String.format("(%s:%s) -> %s vs %s", xf, yf, a, b));
                 this.setRGB(x, y, a > b ? 0x1F0000 : 0x001F00);
               }
             }
-            Graphics2D g = (Graphics2D) getGraphics();
+            final Graphics2D g = (Graphics2D) getGraphics();
             Stream.of(samples).forEach(pt -> {
-              double x = pt[0].get(0);
-              double y = pt[0].get(1);
-              int c = IntStream.range(0, pt[1].dim()).mapToObj(obj -> obj).max(Comparator.comparing(i -> pt[1].get(i))).get();
+              final double x = pt[0].get(0);
+              final double y = pt[0].get(1);
+              final int c = IntStream.range(0, pt[1].dim()).mapToObj(obj -> obj).max(Comparator.comparing(i -> pt[1].get(i))).get();
               g.setColor(Arrays.asList(Color.RED, Color.GREEN).get(c));
-              int xpx = (int) ((((x + 3) / 6)) * getHeight());
-              int ypx = (int) ((((y + 3) / 6)) * getHeight());
+              final int xpx = (int) ((x + 3) / 6 * getHeight());
+              final int ypx = (int) ((y + 3) / 6 * getHeight());
               g.drawOval(xpx - 1, ypx - 1, 2, 2);
             });
           }
         };
         images.add(img);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace();
       }
       return null;
@@ -308,68 +326,12 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
     try {
       verify(trainer);
     } finally {
-      Util.report((String[]) images.stream().map(i -> Util.toInlineImage(i, "")).toArray(i -> new String[i]));
+      Stream<String> map = images.stream().map(i -> Util.toInlineImage(i, ""));
+      String[] array = map.toArray(i -> new String[i]);
+      Util.report(array);
     }
   }
-  
-  public void verify(Trainer trainer) {
-    trainer.verifyConvergence(0, 0.0, 10);
-  }
-  
-  public Trainer buildTrainer(final NDArray[][] samples, PipelineNetwork net) {
-    return net.trainer(samples);
-    // .setMutationAmplitude(5.)
-//    .setVerbose(true);
-    // .setStaticRate(.1)
-  }
-  
-  public PipelineNetwork buildNetwork() {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    PipelineNetwork net = new PipelineNetwork()
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .add(new BiasLayer(outSize))
-        .add(new SoftmaxActivationLayer());
-    return net;
-  }
-  
-  @Test(expected = RuntimeException.class)
-  @Ignore
-  public void test_Lines() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new Simple2DLine(Util.R.get()),
-        new Simple2DLine(Util.R.get())
-        ), 100));
-  }
-  
-  @Test(expected = RuntimeException.class)
-  public void test_X() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
-        new Simple2DLine(new double[] { -1, 1 }, new double[] { 1, -1 })
-        ), 100));
-  }
-  
-  @Test(expected = RuntimeException.class)
-  public void test_II() throws Exception {
-    double e = 1e-1;
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
-        new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e })
-        ), 100));
-  }
-  
-  @Test(expected = RuntimeException.class)
-  public void test_III() throws Exception {
-    double e = 1e-1;
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(
-            new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e }),
-            new Simple2DLine(new double[] { -1 - e, -1 + e }, new double[] { 1 - e, 1 + e })),
-        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 })
-        ), 100));
-  }
-  
+
   @Test(expected = RuntimeException.class)
   @Ignore
   public void test_Gaussians() throws Exception {
@@ -378,37 +340,33 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         new GaussianDistribution(2)
         ), 100));
   }
-  
+
+  @Test(expected = RuntimeException.class)
+  public void test_II() throws Exception {
+    final double e = 1e-1;
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
+        new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e })
+        ), 100));
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void test_III() throws Exception {
+    final double e = 1e-1;
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(
+            new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e }),
+            new Simple2DLine(new double[] { -1 - e, -1 + e }, new double[] { 1 - e, 1 + e })),
+            new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 })
+        ), 100));
+  }
+
   @Test(expected = RuntimeException.class)
   @Ignore
-  public void test_snakes() throws Exception {
+  public void test_Lines() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new SnakeDistribution(2, Util.R.get(), 7, 0.01),
-        new SnakeDistribution(2, Util.R.get(), 7, 0.01)
-        ), 100));
-  }
-  
-  @Test(expected = RuntimeException.class)
-  public void test_xor() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))
-        ), 100));
-  }
-  
-  @Test(expected = RuntimeException.class)
-  public void test_simple() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 1 }, 0.1))
-        ), 100));
-  }
-  
-  @Test(expected = RuntimeException.class)
-  public void test_oo() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new Simple2DCircle(1, new double[] { -0.5, 0 })),
-        new UnionDistribution(new Simple2DCircle(1, new double[] { 0.5, 0 }))
+        new Simple2DLine(Util.R.get()),
+        new Simple2DLine(Util.R.get())
         ), 100));
   }
 
@@ -435,6 +393,31 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         new UnionDistribution(new Simple2DCircle(.25, new double[] { 0, 0 }))
         ), 1000));
   }
+
+  @Test(expected = RuntimeException.class)
+  public void test_oo() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new Simple2DCircle(1, new double[] { -0.5, 0 })),
+        new UnionDistribution(new Simple2DCircle(1, new double[] { 0.5, 0 }))
+        ), 100));
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void test_simple() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 1 }, 0.1))
+        ), 100));
+  }
+
+  @Test(expected = RuntimeException.class)
+  @Ignore
+  public void test_snakes() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new SnakeDistribution(2, Util.R.get(), 7, 0.01),
+        new SnakeDistribution(2, Util.R.get(), 7, 0.01)
+        ), 100));
+  }
   
   @Test(expected = RuntimeException.class)
   public void test_sos() throws Exception {
@@ -444,4 +427,24 @@ public class MonteCarloClassificationSoftmaxNetworkTests {
         ), 100));
   }
   
+  @Test(expected = RuntimeException.class)
+  public void test_X() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
+        new Simple2DLine(new double[] { -1, 1 }, new double[] { 1, -1 })
+        ), 100));
+  }
+  
+  @Test(expected = RuntimeException.class)
+  public void test_xor() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))
+        ), 100));
+  }
+
+  public void verify(final Trainer trainer) {
+    trainer.verifyConvergence(0, 0.0, 10);
+  }
+
 }
