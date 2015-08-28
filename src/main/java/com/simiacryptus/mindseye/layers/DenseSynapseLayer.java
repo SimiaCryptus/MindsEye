@@ -9,8 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.learning.DeltaVector;
+import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.LogNumber;
@@ -26,7 +25,7 @@ public class DenseSynapseLayer extends NNLayer {
     }
     
     @Override
-    public void feedback(final LogNDArray delta) {
+    public void feedback(final LogNDArray delta, DeltaBuffer buffer) {
       if (isVerbose()) {
         log.debug(String.format("Feed back: %s", data));
       }
@@ -39,7 +38,7 @@ public class DenseSynapseLayer extends NNLayer {
           weightDelta.set(new int[]{i,j}, deltaData[j].multiply(inputData[i]));
         }
       }
-      writer.feed(weightDelta.exp().getData());
+      buffer.get(DenseSynapseLayer.this, weights).feed(weightDelta.exp().getData());
       if (this.inObj.isAlive()) {
         DoubleMatrix matrix = weights.asMatrix();
         LogNDArray passback = new LogNDArray(this.inObj.data.getDims());
@@ -48,7 +47,7 @@ public class DenseSynapseLayer extends NNLayer {
             passback.add(i, deltaData[j].multiply(matrix.get(j, i)));
           }
         }
-        this.inObj.feedback(passback);
+        this.inObj.feedback(passback, buffer);
         if (isVerbose()) {
           DenseSynapseLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", inObj.data, DenseSynapseResult.this.data, delta, passback));
         }
@@ -72,7 +71,6 @@ public class DenseSynapseLayer extends NNLayer {
   private final int[] outputDims;
   private boolean verbose = false;
   public final NDArray weights;
-  private DeltaFlushBuffer writer;
   
   protected DenseSynapseLayer() {
     super();
@@ -83,7 +81,6 @@ public class DenseSynapseLayer extends NNLayer {
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
-    this.writer = new DeltaFlushBuffer(this.weights);
   }
   
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
@@ -150,32 +147,6 @@ public class DenseSynapseLayer extends NNLayer {
   @Override
   public String toString() {
     return "DenseSynapseLayer [weights=" + this.weights + "]";
-  }
-
-  protected DeltaVector newVector(double fraction,long mask) {
-    if (isFrozen()) return null;
-    return new DeltaVector() {
-      
-      @Override
-      public void write(double factor) {
-        DenseSynapseLayer.this.writer.write(factor, fraction, mask);
-      }
-      
-      @Override
-      public void setRate(double rate) {
-        DenseSynapseLayer.this.writer.setRate(rate);
-      }
-      
-      @Override
-      public boolean isFrozen() {
-        return DenseSynapseLayer.this.isFrozen();
-      }
-      
-      @Override
-      public double getMobility() {
-        return DenseSynapseLayer.this.writer.getRate() * DenseSynapseLayer.this.getMobility();
-      }
-    };
   }
 
   protected double getMobility() {

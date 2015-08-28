@@ -8,6 +8,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.LogNDArray;
@@ -47,11 +48,11 @@ public class MaxSubsampleLayer extends NNLayer {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data) {
+      public void feedback(final LogNDArray data, DeltaBuffer buffer) {
         if (inObj.isAlive()) {
           final LogNDArray backSignal = new LogNDArray(inputDims);
           gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().coords, data.get(e.getKey().coords)));
-          inObj.feedback(backSignal);
+          inObj.feedback(backSignal, buffer);
         }
       }
       

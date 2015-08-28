@@ -6,6 +6,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.LogNumber;
@@ -49,7 +50,7 @@ public class SoftmaxActivationLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data) {
+      public void feedback(final LogNDArray data, DeltaBuffer buffer) {
         if (inObj.isAlive()) {
           final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           for (int i = 0; i < delta.length; i++)
@@ -71,7 +72,7 @@ public class SoftmaxActivationLayer extends NNLayer {
           if (isVerbose()) {
             SoftmaxActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
           }
-          inObj.feedback(passback);
+          inObj.feedback(passback, buffer);
         }
       }
       

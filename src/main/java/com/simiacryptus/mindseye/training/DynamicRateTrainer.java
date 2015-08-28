@@ -1,10 +1,10 @@
 package com.simiacryptus.mindseye.training;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
-
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.optim.PointValuePair;
@@ -13,7 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.learning.DeltaVector;
+import com.simiacryptus.mindseye.learning.DeltaBuffer;
+import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 
 public class DynamicRateTrainer {
@@ -46,43 +47,28 @@ public class DynamicRateTrainer {
     this.inner = inner;
   }
   
+  double[] rates = null;
   protected boolean calibrate() {
     final double last = error();
-    List<DeltaVector> layers = null;
-    double[] adjustment = null;
     boolean inBounds = false;
-    PointValuePair localMin;
+    PointValuePair optimum;
     List<SupervisedTrainingParameters> nets = this.getInner().getCurrent().getCurrentNetworks();
     try {
-      layers = nets.stream()
-          .flatMap(n -> n.getNet().layers.stream())
-          .distinct()
-          .map(l -> l.getVector())
-          .filter(l -> null != l)
-          .filter(x -> !x.isFrozen())
-          .collect(Collectors.toList());
-      for (int i = 0; i < layers.size(); i++) {
-        layers.get(i).setRate(getBaseRate());
-      }
-      localMin = optimizeRates(layers.size());
+      optimum = optimizeRates();
       nets.stream()
           .flatMap(n -> n.getNet().layers.stream())
           .distinct()
-          .forEach(layer -> layer.setStatus((double) localMin.getValue()));
-      adjustment = DoubleStream.of(localMin.getKey()).map(x -> x * this.rate).toArray();
-      inBounds = DoubleStream.of(adjustment).allMatch(r -> this.getMaxRate() > r)
-          && DoubleStream.of(adjustment).anyMatch(r -> this.minRate < r);
+          .forEach(layer -> layer.setStatus((double) optimum.getValue()));
+      rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
+      inBounds = DoubleStream.of(rates).allMatch(r -> this.getMaxRate() > r)
+          && DoubleStream.of(rates).anyMatch(r -> this.minRate < r);
       if (inBounds)
       {
-        for (int i = 0; i < layers.size(); i++) {
-          final DeltaVector layer = layers.get(i);
-          layer.setRate(adjustment[i] * layer.getMobility());
-        }
         this.lastCalibratedIteration = this.currentIteration;
         final double err = trainOnce();
         final double improvement = last - err;
         if (isVerbose()) {
-          DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(adjustment), last, err, improvement));
+          DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(rates), last, err, improvement));
         }
         return improvement > 0;
       }
@@ -92,7 +78,7 @@ public class DynamicRateTrainer {
       }
     }
     if (isVerbose()) {
-      DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(adjustment),
+      DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(rates),
           Arrays.toString(this.getInner().getCurrent().getError())));
     }
     return false;
@@ -182,16 +168,16 @@ public class DynamicRateTrainer {
   double monteCarloMin = 0.5;
   double monteCarloDecayStep = 0.9;
   
-  public synchronized PointValuePair optimizeRates(final int dims) {
+  public synchronized PointValuePair optimizeRates() {
+    final double[] prev = this.getInner().getCurrent().calcError(this.getInner().getCurrent().evalTrainingData());
     assert 0 < this.getInner().getCurrent().getCurrentNetworks().size();
-    final double[] prev = this.getInner().getCurrent().getError();
-    this.getInner().getCurrent().learn(this.getInner().getCurrent().evalTrainingData());
+    DeltaBuffer lessonVector = this.getInner().getCurrent().learn(this.getInner().getCurrent().evalTrainingData(), new DeltaBuffer());
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
     do {
-      final MultivariateFunction f = asMetaF(dims, fraction);
-      x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(dims); // May or may not be cloned before evaluations
+      final MultivariateFunction f = asMetaF(lessonVector, fraction);
+      x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= monteCarloDecayStep;
     } while (fraction > monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
@@ -205,33 +191,31 @@ public class DynamicRateTrainer {
     return x;
   }
   
-  public MultivariateFunction asMetaF(final int dims, double fraction) {
+  public MultivariateFunction asMetaF(DeltaBuffer lessonVector, double fraction) {
     final MultivariateFunction f = new MultivariateFunction() {
-      double[] pos = new double[dims];
+      double[] pos = new double[lessonVector.map.size()];
       
       @Override
       public double value(final double x[]) {
         GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
-        int layerCount = (int) current.getCurrentNetworks().stream().flatMap(n -> n.getNet().layers.stream())
-            .map(n -> n.getVector()).filter(n -> null != n)
-            .distinct().count();
+        List<DeltaFlushBuffer> writeVectors = current.getCurrentNetworks().stream()
+            .flatMap(n -> n.getNet().layers.stream())
+            .map(n -> lessonVector.map.get(n))
+            .filter(n -> null != n)
+            .distinct()
+            .sorted(Comparator.comparing(y->y.getId()))
+            .collect(Collectors.toList());
+        int layerCount = writeVectors.size();
         double[] layerRates = Arrays.copyOf(x, layerCount);
         // double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
         if (current.getCurrentNetworks().size() > 1)
           log.debug("TODO: Optimize the rates of each network. Needs seperate delta buffers for each network within same layer obj!");
-        final List<DeltaVector> deltaObjs = current.getCurrentNetworks().stream()
-            .flatMap(n -> n.getNet().layers.stream())
-            .map(l -> l.newVector(fraction))
-            .filter(l -> null != l)
-            .filter(l -> !l.isFrozen())
-            .distinct().collect(Collectors.toList());
-        assert layerRates.length == deltaObjs.size();
         assert layerRates.length == this.pos.length;
         for (int i = 0; i < layerRates.length; i++) {
           double prev = this.pos[i];
           double next = layerRates[i];
           double adj = next - prev;
-          deltaObjs.get(i).write(adj);
+          writeVectors.get(i).write(adj);
         }
         for (int i = 0; i < layerRates.length; i++) {
           this.pos[i] = layerRates[i];
@@ -249,7 +233,7 @@ public class DynamicRateTrainer {
   }
   
   public double trainOnce() {
-    this.getInner().step();
+    this.getInner().step(rates);
     this.getInner().updateBest();
     double error = error();
     List<SupervisedTrainingParameters> nets = this.getInner().getCurrent().getCurrentNetworks();

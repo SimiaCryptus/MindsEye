@@ -12,8 +12,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.learning.DeltaVector;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.LogNDArray;
@@ -140,7 +140,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray errorSignal) {
+      public void feedback(final LogNDArray errorSignal, DeltaBuffer buffer) {
         if (!ConvolutionSynapseLayer.this.frozen) {
           final LogNDArray weightGradient = new LogNDArray(ConvolutionSynapseLayer.this.kernel.getDims());
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
@@ -165,7 +165,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
           if (isVerbose()) {
             ConvolutionSynapseLayer.log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
           }
-          inObj.feedback(backprop);
+          inObj.feedback(backprop, buffer);
         }
       }
       
@@ -214,34 +214,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
   public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
-  }
-
-  protected DeltaVector newVector(double fraction,long mask) {
-    if (isFrozen()) return null;
-    return new DeltaVector() {
-      
-      @Override
-      public void write(double factor) {
-        if (isFrozen()) return;
-        writer.write(factor);
-      }
-      
-      @Override
-      public void setRate(double rate) {
-        ConvolutionSynapseLayer.this.writer.setRate(rate);
-      }
-      
-      @Override
-      public boolean isFrozen() {
-        return ConvolutionSynapseLayer.this.isFrozen();
-      }
-      
-
-      @Override
-      public double getMobility() {
-        return writer.getRate() * ConvolutionSynapseLayer.this.getMobility();
-      }
-    };
   }
 
   protected double getMobility() {

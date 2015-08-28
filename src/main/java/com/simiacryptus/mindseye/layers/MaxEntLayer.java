@@ -5,6 +5,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -43,7 +44,7 @@ public class MaxEntLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data) {
+      public void feedback(final LogNDArray data, DeltaBuffer buffer) {
         if (inObj.isAlive()) {
           LogNDArray inputGradientLog = inputGradient.log();
           LogNDArray passback = new LogNDArray(input.getDims());
@@ -57,7 +58,7 @@ public class MaxEntLayer extends NNLayer {
           if (isVerbose()) {
             MaxEntLayer.log.debug(String.format("Feed back @ %s: => %s", output, passback));
           }
-          inObj.feedback(passback);
+          inObj.feedback(passback, buffer);
         }
       }
       

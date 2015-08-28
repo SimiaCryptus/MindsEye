@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.learning.DeltaBuffer;
+import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -70,7 +72,7 @@ public class GradientDescentTrainer {
   public double error() {
     final double[] error = getError();
     if (null == error) {
-      trainSet();
+      trainSet(null);
       return error();
     }
     final double returnValue = Math.pow(GradientDescentTrainer.geometricMean(error), totalWeight());
@@ -101,16 +103,6 @@ public class GradientDescentTrainer {
     return this.rate;
   }
 
-  public double[] getVectorMobility() {
-    return this.getCurrentNetworks().stream()
-        .flatMap(n -> n.getNet().layers.stream())
-        .distinct()
-        .map(l -> l.getVector())
-        .filter(l -> null != l)
-        .filter(x -> !x.isFrozen())
-        .mapToDouble(x -> x.getMobility()).toArray();
-  }
-
   public double[] getNetworkRates() {
     return this.getCurrentNetworks().stream()
         .mapToDouble(x -> x.getNet().getRate()).toArray();
@@ -120,7 +112,11 @@ public class GradientDescentTrainer {
     return this.verbose;
   }
 
-  protected void learn(final List<List<NNResult>> results) {
+  protected DeltaBuffer learn(final List<List<NNResult>> results) {
+    return learn(results, new DeltaBuffer());
+  }
+
+  protected DeltaBuffer learn(final List<List<NNResult>> results, DeltaBuffer buffer) {
     // Apply corrections
     IntStream.range(0, this.getCurrentNetworks().size())
     //.parallel()
@@ -140,9 +136,10 @@ public class GradientDescentTrainer {
         if (Double.isFinite(factor)) {
           delta = delta.scale(factor);
         }
-        eval.feedback(delta);
+        eval.feedback(delta, buffer);
       });
     });
+    return buffer;
   }
 
   public GradientDescentTrainer setError(final double[] error) {
@@ -168,30 +165,33 @@ public class GradientDescentTrainer {
     return 1 / this.getCurrentNetworks().stream().mapToDouble(p -> p.getWeight()).sum();
   }
 
-  public synchronized double[] trainSet() {
+  public synchronized double[] trainSet(double[] rates) {
     assert 0 < this.getCurrentNetworks().size();
     final List<List<NNResult>> results = evalTrainingData();
     final double[] calcError = calcError(results);
-    if (this.verbose) {
-      GradientDescentTrainer.log.debug(String.format("Training with rate %s*%s: (%s)", getRate(), Arrays.toString(getVectorMobility()), Arrays.toString(calcError)));
-    }
     setError(calcError);
-    learn(results);
-    this.getCurrentNetworks().stream().forEach(params -> params.getNet().writeDeltas(1));
-
-    final double[] validationError = calcError(evalTrainingData());
-    if (GradientDescentTrainer.geometricMean(calcError) < GradientDescentTrainer.geometricMean(validationError)) {
-      if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Reverting: (%s)", Arrays.toString(calcError)));
+    DeltaBuffer buffer = new DeltaBuffer();
+    learn(results, buffer);
+    List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());
+    if(null != rates) {
+      IntStream.range(0, buffer.map.size()).forEach(i->{
+        deltas.get(i).write(rates[i]);
+      });
+      final double[] validationError = calcError(evalTrainingData());
+      if (GradientDescentTrainer.geometricMean(calcError) < GradientDescentTrainer.geometricMean(validationError)) {
+        if (this.verbose) {
+          GradientDescentTrainer.log.debug(String.format("Reverting: (%s)", Arrays.toString(calcError)));
+        }
+        IntStream.range(0, buffer.map.size()).forEach(i->{
+          deltas.get(i).write(-rates[i]);
+        });
+      } else {
+        if (this.verbose) {
+          GradientDescentTrainer.log.debug(String.format("Validating: (%s)", Arrays.toString(calcError)));
+        }
       }
-      this.getCurrentNetworks().stream().forEach(params -> params.getNet().writeDeltas(-1));
-    } else {
-      if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Validating: (%s)", Arrays.toString(calcError)));
-      }
+      setError(calcError);
     }
-
-    setError(calcError);
     return calcError;
   }
 

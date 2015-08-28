@@ -3,7 +3,6 @@ package com.simiacryptus.mindseye.test.demo;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Trainer;
@@ -63,17 +62,19 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
     net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
         .add(new BiasLayer(outSize));
     
-    // net = net.add(new SigmoidActivationLayer());
-    net = net.add(new SoftmaxActivationLayer() {
-      @Override
-      protected double getNonlinearity() {
-        // return getStatus()<.2?1:1e-5;
-        // if(true) return 0.;
-        double status = getStatus();
-        double x = (0.3 - status) * 15;
-        return SigmoidActivationLayer.sigmiod(x);
-      }
-    }.setVerbose(false));
+    net = net.add(new SigmoidActivationLayer());
+    
+    // net = net.add(new SoftmaxActivationLayer() {
+    // @Override
+    // protected double getNonlinearity() {
+    // // return getStatus()<.2?1:1e-5;
+    // // if(true) return 0.;
+    // double status = getStatus();
+    // double x = (0.3 - status) * 15;
+    // return SigmoidActivationLayer.sigmiod(x);
+    // }
+    // }.setVerbose(false));
+    
     return net;
   }
   

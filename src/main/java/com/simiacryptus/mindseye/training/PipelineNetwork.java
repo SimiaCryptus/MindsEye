@@ -45,14 +45,6 @@ public class PipelineNetwork extends NNLayer {
     return new Trainer().add(this, samples);
   }
 
-  void writeDeltas(final double factor) {
-    this.layers.stream()
-      .distinct()
-      .map(l -> l.getVector())
-      .filter(l -> null != l)
-      .forEach(x -> x.write(factor * getRate()));
-  }
-
   public double getRate() {
     return rate;
   }

@@ -7,7 +7,8 @@ public class DeltaMemoryWriter implements DeltaSink {
 
   private double[] values;
 
-  public DeltaMemoryWriter() {
+  @SuppressWarnings("unused")
+  private DeltaMemoryWriter() {
     super();
   }
   
