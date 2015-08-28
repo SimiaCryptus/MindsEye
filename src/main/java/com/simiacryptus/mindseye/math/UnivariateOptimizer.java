@@ -127,7 +127,10 @@ public class UnivariateOptimizer {
         if (thisV > prevV) {
           break;
         }
-        if (x > getMaxRate()) throw new RuntimeException("x > maxValue: " + x);
+        if (x > getMaxRate()) {
+          break;
+          //throw new RuntimeException("x > maxValue: " + x);
+        }
       }
     }
     try {
