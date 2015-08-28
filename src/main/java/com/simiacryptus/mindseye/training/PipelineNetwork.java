@@ -10,6 +10,12 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 
+/***
+ * Defines the fundamental structure of a network, currently only simple linear layout.
+ * 
+ * @author Andrew Charneski
+ *
+ */
 public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);

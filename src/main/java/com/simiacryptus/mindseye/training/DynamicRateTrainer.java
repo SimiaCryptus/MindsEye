@@ -19,9 +19,9 @@ import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.util.Util;
 
 public class DynamicRateTrainer {
-
+  
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
-
+  
   private double baseRate = .1;
   int currentIteration = 0;
   private double decayTolerance = 1e-3;
@@ -40,19 +40,19 @@ public class DynamicRateTrainer {
   int recalibrationThreshold = 0;
   private double stopError = 0;
   private boolean verbose = false;
-
+  
   public DynamicRateTrainer() {
     this(new ChampionTrainer());
   }
-
+  
   public DynamicRateTrainer(final ChampionTrainer inner) {
     this.inner = inner;
   }
-
+  
   public MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final double fraction) {
     final MultivariateFunction f = new MultivariateFunction() {
       double[] pos = new double[lessonVector.map.size()];
-
+      
       @Override
       public double value(final double x[]) {
         final GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
@@ -90,18 +90,17 @@ public class DynamicRateTrainer {
     };
     return f;
   }
-
+  
   protected boolean calibrate() {
     final double last = error();
     boolean inBounds = false;
     PointValuePair optimum;
-    final List<SupervisedTrainingParameters> nets = getInner().getCurrent().getCurrentNetworks();
     try {
       optimum = optimizeRates();
-      nets.stream()
-      .flatMap(n -> n.getNet().layers.stream())
-      .distinct()
-      .forEach(layer -> layer.setStatus(optimum.getValue()));
+      getInner().getCurrent().getCurrentNetworks().stream()
+          .flatMap(n -> n.getNet().layers.stream())
+          .distinct()
+          .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(this.rates).allMatch(r -> getMaxRate() > r)
           && DoubleStream.of(this.rates).anyMatch(r -> this.minRate < r);
@@ -126,63 +125,63 @@ public class DynamicRateTrainer {
     }
     return false;
   }
-
+  
   public double error() {
     return getInner().getCurrent().error();
   }
-
+  
   public double getBaseRate() {
     return this.baseRate;
   }
-
+  
   public GradientDescentTrainer getBest() {
     return getInner().getBest();
   }
-
+  
   public double getDecayTolerance() {
     return this.decayTolerance;
   }
-
+  
   public int getGenerationsSinceImprovement() {
     return this.generationsSinceImprovement;
   }
-
+  
   public ChampionTrainer getInner() {
     return this.inner;
   }
-
+  
   public List<NNLayer> getLayers() {
     return getInner().getLayers();
   }
-
+  
   public double getMaxRate() {
     return this.maxRate;
   }
-
+  
   public double getMinRate() {
     return this.minRate;
   }
-
+  
   public double getMutationFactor() {
     return this.mutationFactor;
   }
-
+  
   public List<PipelineNetwork> getNetwork() {
     return this.inner.getNetwork();
   }
-
+  
   public double getRate() {
     return this.rate;
   }
-
+  
   public int getRecalibrationThreshold() {
     return this.recalibrationThreshold;
   }
-
+  
   public double getStopError() {
     return this.stopError;
   }
-
+  
   public boolean isVerbose() {
     // return true;
     return this.verbose;
@@ -210,69 +209,68 @@ public class DynamicRateTrainer {
     }
     return x;
   }
-
+  
   public DynamicRateTrainer setBaseRate(final double baseRate) {
     this.baseRate = baseRate;
     return this;
   }
-
+  
   public boolean setDecayTolerance(final double decayTolerance) {
     this.decayTolerance = decayTolerance;
     return true;
   }
-
+  
   public DynamicRateTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
     this.generationsSinceImprovement = generationsSinceImprovement;
     return this;
   }
-
+  
   public DynamicRateTrainer setMaxRate(final double maxRate) {
     this.maxRate = maxRate;
     return this;
   }
-
+  
   public DynamicRateTrainer setMinRate(final double minRate) {
     this.minRate = minRate;
     return this;
   }
-
+  
   public void setMutationFactor(final double mutationRate) {
     this.mutationFactor = mutationRate;
   }
-
+  
   public DynamicRateTrainer setRate(final double rate) {
     this.rate = rate;
     return this;
   }
-
+  
   public DynamicRateTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
     this.recalibrationThreshold = recalibrationThreshold;
     return this;
   }
-
+  
   public DynamicRateTrainer setStopError(final double stopError) {
     this.stopError = stopError;
     return this;
   }
-
+  
   public DynamicRateTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     getInner().setVerbose(verbose);
     return this;
   }
-
+  
   public double trainOnce() {
     getInner().step(this.rates);
     getInner().updateBest();
     final double error = error();
-    final List<SupervisedTrainingParameters> nets = getInner().getCurrent().getCurrentNetworks();
-    nets.stream()
-    .flatMap(n -> n.getNet().layers.stream())
-    .distinct()
-    .forEach(layer -> layer.setStatus(error));
+    getInner().getCurrent().getCurrentNetworks().stream()
+        .flatMap(n -> n.getNet().layers.stream())
+        .distinct()
+        .forEach(layer -> layer.setStatus(error));
     return error;
   }
-
+  
   public boolean trainToLocalOptimum() {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
@@ -319,5 +317,5 @@ public class DynamicRateTrainer {
       }
     }
   }
-
+  
 }

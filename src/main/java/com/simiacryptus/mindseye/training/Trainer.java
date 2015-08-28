@@ -13,7 +13,14 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.util.Util;
 
+/**
+ * Encapsulates overall network architecture, training method and data.
+ * 
+ * @author Andrew Charneski
+ *
+ */
 public class Trainer {
+  
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
   
   public final List<Function<MutationTrainer, Void>> handler = new ArrayList<>();
