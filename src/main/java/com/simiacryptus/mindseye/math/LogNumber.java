@@ -1,5 +1,13 @@
 package com.simiacryptus.mindseye.math;
 
+/***
+ * Represents a real number using a double-precision floating point value 
+ * in the logrithmic scale, providing extremely high dynamic range in 
+ * arithmetic operations
+ * 
+ * @author Andrew Charneski
+ *
+ */
 @SuppressWarnings("serial")
 public class LogNumber extends Number implements Comparable<LogNumber> {
   public static final LogNumber ONE = new LogNumber((byte) 1, 0);

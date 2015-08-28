@@ -18,6 +18,17 @@ import org.apache.commons.math3.optim.univariate.UnivariatePointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Specialized multivariate optimizer for discovering a learning rate metaparameter vector. 
+ * Assumes all rates should be in [0,max).
+ * Assumes a very high rate of exclusionary interdependence.
+ * Assumes null vector and solutions beyond threshold magnitude are invalid
+ * Assumes approximately parabolic optimum basin
+ * Specializes in discovering optimal metaparameters over wide range of scales eg [1e-5,1e5].
+ *   
+ * @author Andrew Charneski
+ *
+ */
 public class UnivariateOptimizer {
   @SuppressWarnings("serial")
   public static final class PtList extends ArrayList<PointValuePair> {
