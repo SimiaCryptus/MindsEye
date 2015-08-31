@@ -43,8 +43,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   
   public double[] inputToXY(NDArray input, int classificationActual, int classificationExpected) {
     return new double[] { //
-        ((classificationActual + Util.R.get().nextDouble()) * 10. - 5), //
-        (classificationExpected + Util.R.get().nextDouble()) * 10. - 5 //
+        ((classificationActual + Util.R.get().nextDouble()) * 6. - 3), //
+        (classificationExpected + Util.R.get().nextDouble()) * 6. - 3 //
     };
   }
   
