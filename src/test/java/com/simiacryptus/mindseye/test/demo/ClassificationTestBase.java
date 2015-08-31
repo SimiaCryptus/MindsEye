@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -124,7 +125,7 @@ public abstract class ClassificationTestBase {
               final double yf = coords[1];
               final int xpx = (int) ((xf + 3) / 6 * getHeight());
               final int ypx = (int) ((yf + 3) / 6 * getHeight());
-              Color color = Arrays.asList(Color.RED, Color.GREEN).get(classificationExpected);
+              Color color = getColor(input, classificationActual, classificationExpected);
               g.setColor(color);
               g.drawOval(xpx - 1, ypx - 1, 2, 2);
               correct.classificationMatrix.add(new int[]{classificationExpected,classificationActual}, 1.);
@@ -159,6 +160,16 @@ public abstract class ClassificationTestBase {
   }
   public void verify(final Trainer trainer) {
     trainer.verifyConvergence(0, 0.0, 10);
+  }
+
+  List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN,randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor());
+  
+  public Color getColor(NDArray input, int classificationActual, final int classificationExpected) {
+    return colorMap.get(classificationExpected);
+  }
+
+  public Color randomColor() {
+    return new Color(Util.R.get().nextInt(255),Util.R.get().nextInt(255),Util.R.get().nextInt(255));
   }
   
 }
