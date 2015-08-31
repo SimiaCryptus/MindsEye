@@ -26,8 +26,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   
   @Override
   public PipelineNetwork buildNetwork() {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
+    final int[] inputSize = new int[] { 28,28 };
+    final int[] outSize = new int[] { 10 };
     final PipelineNetwork net = new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
         .add(new BiasLayer(outSize))
@@ -46,8 +46,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     return Util.shuffle(buffer, SimpleMNIST.random).parallelStream().limit(1000);
   }
   
-  @Test(expected = RuntimeException.class)
-  @Ignore
+  @Test//(expected = RuntimeException.class)
   public void test() throws Exception {
     int maxSize = 1000;
     test(Util.shuffle(MNIST.trainingDataStream().collect(Collectors.toList()), SimpleMNIST.random).parallelStream().limit(maxSize)
