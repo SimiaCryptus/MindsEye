@@ -59,5 +59,10 @@ public class MNISTClassificationTests extends ClassificationTestBase {
         .map(obj -> new NDArray[] { obj.data, SimpleMNIST.toOutNDArray(SimpleMNIST.toOut(obj.label), 10) })
         .toArray(i -> new NDArray[i][]));
   }
+
+  @Override
+  public void verify(Trainer trainer) {
+    trainer.verifyConvergence(0, 0.0, 1);
+  }
   
 }
