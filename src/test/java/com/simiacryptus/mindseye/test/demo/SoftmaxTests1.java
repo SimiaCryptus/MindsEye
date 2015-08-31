@@ -6,7 +6,7 @@ import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 
-public class SoftmaxTests1 extends ClassificationTests {
+public class SoftmaxTests1 extends SimpleClassificationTests {
   @Override
   public PipelineNetwork buildNetwork() {
     final int[] inputSize = new int[] { 2 };

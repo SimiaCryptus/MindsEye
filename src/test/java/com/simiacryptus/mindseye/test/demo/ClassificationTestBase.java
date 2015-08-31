@@ -5,7 +5,6 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,7 +17,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
@@ -85,6 +83,7 @@ public abstract class ClassificationTestBase {
     
   }
   
+  boolean drawBG = true;
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
     final PipelineNetwork net = buildNetwork();
     final Trainer trainer = buildTrainer(samples, net);
@@ -95,24 +94,24 @@ public abstract class ClassificationTestBase {
         ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
         final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
           {
-            for (int xpx = 0; xpx < getWidth(); xpx++) {
-              for (int ypx = 0; ypx < getHeight(); ypx++) {
-                final double xf = (xpx * 1. / getWidth() - .5) * 6;
-                final double yf = (ypx * 1. / getHeight() - .5) * 6;
-                final NNResult eval = n.getNetwork().get(0).eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
-                int classificationActual = outputToClassification(eval.data);
-                int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
-                this.setRGB(xpx, ypx, color);
+            if(drawBG) {
+              for (int xpx = 0; xpx < getWidth(); xpx++) {
+                for (int ypx = 0; ypx < getHeight(); ypx++) {
+                  final double xf = (xpx * 1. / getWidth() - .5) * 6;
+                  final double yf = (ypx * 1. / getHeight() - .5) * 6;
+                  final NNResult eval = n.getNetwork().get(0).eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+                  int classificationActual = outputToClassification(eval.data);
+                  int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
+                  this.setRGB(xpx, ypx, color);
+                }
               }
             }
             final Graphics2D g = (Graphics2D) getGraphics();
             correct.pts++;
             correct.classificationAccuracy = (Stream.of(samples).mapToDouble(pt -> {
-              double[] coords = inputToXY(pt);
-              final double xf = coords[0];
-              final double yf = coords[1];
               final NDArray expectedOutput = pt[1];
-              final NDArray actualOutput = n.getNetwork().get(0).eval(new NDArray(new int[] { 2 }, coords)).data;
+              NDArray input = pt[0];
+              final NDArray actualOutput = n.getNetwork().get(0).eval(input).data;
               correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
                 double x = expectedOutput.get(i)-actualOutput.get(i);
                 return x*x;
@@ -120,6 +119,9 @@ public abstract class ClassificationTestBase {
               
               final int classificationExpected = outputToClassification(expectedOutput);
               final int classificationActual = outputToClassification(actualOutput);
+              double[] coords = inputToXY(input, classificationActual, classificationExpected);
+              final double xf = coords[0];
+              final double yf = coords[1];
               final int xpx = (int) ((xf + 3) / 6 * getHeight());
               final int ypx = (int) ((yf + 3) / 6 * getHeight());
               Color color = Arrays.asList(Color.RED, Color.GREEN).get(classificationExpected);
@@ -146,14 +148,10 @@ public abstract class ClassificationTestBase {
     }
   }
 
-  public double[] inputToXY(NDArray[] pt) {
-    double[] coords;
-    {
-      final double xf = pt[0].get(0);
-      final double yf = pt[0].get(1);
-      coords = new double[] { xf, yf };
-    }
-    return coords;
+  public double[] inputToXY(NDArray input, int classificationActual, int classificationExpected) {
+    final double xf = input.get(0);
+    final double yf = input.get(1);
+    return new double[] { xf, yf };
   }
 
   public Integer outputToClassification(NDArray actual) {

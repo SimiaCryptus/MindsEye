@@ -13,9 +13,9 @@ import com.simiacryptus.mindseye.data.SnakeDistribution;
 import com.simiacryptus.mindseye.data.UnionDistribution;
 import com.simiacryptus.mindseye.util.Util;
 
-public abstract class ClassificationTests extends ClassificationTestBase {
+public abstract class SimpleClassificationTests extends ClassificationTestBase {
   
-  public ClassificationTests() {
+  public SimpleClassificationTests() {
     super();
   }
 

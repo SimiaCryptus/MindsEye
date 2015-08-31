@@ -7,7 +7,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Trainer;
 
-public class SoftmaxTests2 extends ClassificationTests {
+public class SoftmaxTests2 extends SimpleClassificationTests {
 
   @Override
   public PipelineNetwork buildNetwork() {
