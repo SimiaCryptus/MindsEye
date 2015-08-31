@@ -14,8 +14,8 @@ public class MonteCarloClassificationSoftmaxNetworkTests1 extends MonteCarloClas
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    final int[] midSize = new int[] { 3 };
-    final int midLayers = 4;
+    final int[] midSize = new int[] { 15 };
+    final int midLayers = 1;
     PipelineNetwork net = new PipelineNetwork()
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)
     {
