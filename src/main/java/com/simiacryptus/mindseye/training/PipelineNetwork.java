@@ -6,11 +6,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.layers.EvaluationContext;
-import com.simiacryptus.mindseye.layers.EvaluationContext.LazyResult;
+import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.training.EvaluationContext.LazyResult;
 
 /***
  * Defines the fundamental structure of a network, currently only simple linear layout.

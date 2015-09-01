@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.learning;
+package com.simiacryptus.mindseye.deltas;
 
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;

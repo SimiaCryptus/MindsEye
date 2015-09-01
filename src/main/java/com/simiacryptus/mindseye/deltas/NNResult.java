@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.learning;
+package com.simiacryptus.mindseye.deltas;
 
 import java.util.Arrays;
 import java.util.Comparator;

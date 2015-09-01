@@ -5,10 +5,11 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.learning.DeltaBuffer;
-import com.simiacryptus.mindseye.learning.NNResult;
+import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.training.EvaluationContext;
 
 public class SigmoidActivationLayer extends NNLayer {
 

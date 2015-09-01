@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.training;
 
 import java.util.HashMap;
 import java.util.Map;
