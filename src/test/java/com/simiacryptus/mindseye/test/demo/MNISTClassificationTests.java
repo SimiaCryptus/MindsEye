@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.test.demo;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.Test;
@@ -49,19 +50,24 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     return new double[]{c[0]*6-3,c[1]*6-3};
   }
   
-  @Test // (expected = RuntimeException.class)
+  @Test
   public void test() throws Exception {
+    test(trainingData());
+  }
+
+  public NDArray[][] trainingData() throws IOException {
     int maxSize = 1000;
     List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream()
         .filter(this::filter)
         .collect(Collectors.toList()));
-    test(data.parallelStream().limit(maxSize)
+    NDArray[][] trainingData = data.parallelStream().limit(maxSize)
         .map(obj -> {
           int out = SimpleMNIST.toOut(remap(obj.label));
           NDArray output = SimpleMNIST.toOutNDArray(out, 10);
           return new NDArray[] { obj.data, output };
         })
-        .toArray(i -> new NDArray[i][]));
+        .toArray(i -> new NDArray[i][]);
+    return trainingData;
   }
 
   private String remap(String label) {
@@ -77,6 +83,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     if(item.label.equals("[1]")) return true;
     if(item.label.equals("[3]")) return true;
     if(item.label.equals("[5]")) return true;
+    if(item.label.equals("[7]")) return true;
     return false;
   }
 

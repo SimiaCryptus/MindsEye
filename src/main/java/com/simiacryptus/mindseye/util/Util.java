@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.TreeMap;
 import java.util.function.DoubleSupplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
@@ -149,9 +151,9 @@ public class Util {
   }
 
   public static <T> List<T> shuffle(final List<T> buffer, final Random random) {
-    final ArrayList<T> list = new ArrayList<T>(buffer);
-    Collections.shuffle(list);
-    return list;
+    TreeMap<Double, T> tree = new TreeMap<Double,T>();
+    if(!buffer.stream().allMatch(item->null==tree.put(random.nextDouble(), item))) throw new RuntimeException();
+    return tree.values().stream().collect(Collectors.toList());
   }
 
   public static NDArray toImage(final byte[] b) {
