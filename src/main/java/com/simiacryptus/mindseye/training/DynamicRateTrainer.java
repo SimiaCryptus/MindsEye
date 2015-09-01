@@ -36,7 +36,7 @@ public class DynamicRateTrainer {
   private double mutationFactor = 1.;
   double rate = 0.25;
   double[] rates = null;
-  private int recalibrationInterval = 1000;
+  private int recalibrationInterval = 20;
   int recalibrationThreshold = 0;
   private double stopError = 0;
   private boolean verbose = false;
