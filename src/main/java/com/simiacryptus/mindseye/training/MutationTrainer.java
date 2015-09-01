@@ -1,6 +1,5 @@
 package com.simiacryptus.mindseye.training;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -195,7 +194,7 @@ public class MutationTrainer {
                 .filter(l -> !l.isFrozen())
                 .mapToInt(l -> mutate(l, amount))
                 .sum();
-    getInner().getInner().getCurrent().setError(null);
+    getInner().getInner().getCurrent().setError(Double.NaN);
     return sum;
   }
   
@@ -289,7 +288,7 @@ public class MutationTrainer {
         getInner().trainToLocalOptimum(trainingContext);
         if (this.verbose) {
           MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
-              this.currentGeneration, getInner().error(trainingContext), Arrays.toString(getInner().getInner().getCurrent().getError()),
+              this.currentGeneration, getInner().error(trainingContext), (getInner().getInner().getCurrent().getError()),
               getInner().getInner().getCurrent()
                   .getRate()));
         }

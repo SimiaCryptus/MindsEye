@@ -92,7 +92,7 @@ public class Util {
     return Util.kryo().copy(original);
   }
   
-  public static double geomMean(final double[] error) {
+  public static double geomMean(final double... error) {
     double sumLog = 0;
     for (final double element : error) {
       sumLog += Math.log(element);

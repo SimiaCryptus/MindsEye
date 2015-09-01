@@ -24,7 +24,7 @@ public class DynamicRateTrainer {
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
   
   int currentIteration = 0;
-  private double temperature = 0.1;
+  private double temperature = 0.0;
   int generationsSinceImprovement = 0;
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
@@ -76,11 +76,11 @@ public class DynamicRateTrainer {
         for (int i = 0; i < layerRates.length; i++) {
           this.pos[i] = layerRates[i];
         }
-        final double[] calcError = current
+        final double calcError = current
             .calcError(current.evalTrainingData(trainingContext));
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
-          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(layerRates), err, Arrays.toString(calcError)));
+          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(layerRates), err, (calcError)));
         }
         return err;
       }
@@ -118,7 +118,7 @@ public class DynamicRateTrainer {
     }
     if (isVerbose()) {
       DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(this.rates),
-          Arrays.toString(getInner().getCurrent().getError())));
+          (getInner().getCurrent().getError())));
     }
     return false;
   }
@@ -181,7 +181,7 @@ public class DynamicRateTrainer {
   }
   
   public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
-    final double[] prev = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
+    final double prev = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
     assert null != getInner().getCurrent().getCurrentNetwork();
     final DeltaBuffer lessonVector = getInner().getCurrent().learn(getInner().getCurrent().evalTrainingData(trainingContext), new DeltaBuffer());
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
@@ -194,11 +194,11 @@ public class DynamicRateTrainer {
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
     // f.value(new double[dims]); // Reset to original state
-    final double[] calcError = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
+    final double calcError = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
     getInner().getCurrent().setError(calcError);
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(),
-          Arrays.toString(prev), Arrays.toString(calcError)));
+          (prev), calcError));
     }
     return x;
   }

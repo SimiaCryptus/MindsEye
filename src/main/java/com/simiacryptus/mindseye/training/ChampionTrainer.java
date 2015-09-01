@@ -1,6 +1,5 @@
 package com.simiacryptus.mindseye.training;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -83,7 +82,7 @@ public class ChampionTrainer {
     if (this.verbose)
     {
       ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s in %.03fs",
-          getCurrent().error(trainingContext), Arrays.toString(getCurrent().getError()), getCurrent().getRate(),
+          getCurrent().error(trainingContext), (getCurrent().getError()), getCurrent().getRate(),
           (System.currentTimeMillis() - startMs) / 1000.));
     }
     return getCurrent().error(trainingContext);
