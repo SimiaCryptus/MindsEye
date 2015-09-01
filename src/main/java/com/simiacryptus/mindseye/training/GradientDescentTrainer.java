@@ -1,6 +1,5 @@
 package com.simiacryptus.mindseye.training;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
@@ -27,7 +27,7 @@ public class GradientDescentTrainer {
     return geometricMean;
   }
   
-  private List<SupervisedTrainingParameters> currentNetworks = new ArrayList<>();
+  private SupervisedTrainingParameters currentNetwork = null;
   private double[] error;
   private double rate = 0.5;
   private boolean verbose = false;
@@ -35,36 +35,28 @@ public class GradientDescentTrainer {
   public GradientDescentTrainer() {
   }
 
-  public GradientDescentTrainer add(final PipelineNetwork net, final NDArray[][] data) {
-    return add(new SupervisedTrainingParameters(net, data));
+  public GradientDescentTrainer set(final PipelineNetwork net, final NDArray[][] data) {
+    return set(new SupervisedTrainingParameters(net, data));
   }
 
-  public GradientDescentTrainer add(final SupervisedTrainingParameters params) {
-    getCurrentNetworks().add(params);
+  public GradientDescentTrainer set(final SupervisedTrainingParameters params) {
+    assert(null == currentNetwork);
+    currentNetwork = params;
     return this;
   }
 
-  protected double[] calcError(final List<List<NNResult>> results) {
-    final List<List<Double>> rms = IntStream.range(0, getCurrentNetworks().size()).parallel()
-        .mapToObj(network -> {
-          final List<NNResult> result = results.get(network);
-          final SupervisedTrainingParameters currentNet = getCurrentNetworks().get(network);
-          return IntStream.range(0, result.size()).parallel().mapToObj(sample -> {
-            final NNResult eval = result.get(sample);
-            final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
-            final double err = eval.errRms(output);
-            return Math.pow(err, currentNet.getWeight());
-          }).collect(Collectors.toList());
-        }).collect(Collectors.toList());
-    final double[] err = rms.stream().map(r ->
-    r.stream().mapToDouble(x -> x).filter(Double::isFinite).filter(x -> 0 < x).average().orElse(1))
-    .mapToDouble(x -> x).toArray();
-    return err;
-  }
-
-  public GradientDescentTrainer clearMomentum() {
-    getCurrentNetworks().forEach(x -> x.getNet());
-    return this;
+  protected double[] calcError(final List<NNResult> result) {
+    List<Double> rms;
+    {
+      final SupervisedTrainingParameters currentNet = getCurrentNetwork();
+      rms = IntStream.range(0, result.size()).parallel().mapToObj(sample -> {
+        final NNResult eval = result.get(sample);
+        final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
+        final double err = eval.errRms(output);
+        return Math.pow(err, currentNet.getWeight());
+      }).collect(Collectors.toList());
+    }
+    return rms.stream().mapToDouble(x -> x).toArray();
   }
 
   public double error(TrainingContext trainingContext) {
@@ -78,21 +70,22 @@ public class GradientDescentTrainer {
     return returnValue;
   }
 
-  protected List<List<NNResult>> evalTrainingData(TrainingContext trainingContext) {
-    return getCurrentNetworks().parallelStream().map(params -> Stream.of(params.getTrainingData())
+  protected List<NNResult> evalTrainingData(TrainingContext trainingContext) {
+    SupervisedTrainingParameters params = getCurrentNetwork();
+    return Stream.of(params.getTrainingData())
         .parallel()
         .map(sample -> {
           final NDArray input = sample[0];
           final NDArray output = sample[1];
           trainingContext.evaluations.increment();
-          final NNResult eval = params.getNet().eval(input);
+          final NNResult eval = params.getNet().eval(new EvaluationContext(), input);
           assert eval.data.dim() == output.dim();
           return eval;
-        }).collect(Collectors.toList())).collect(Collectors.toList());
+        }).collect(Collectors.toList());
   }
 
-  public List<SupervisedTrainingParameters> getCurrentNetworks() {
-    return this.currentNetworks;
+  public SupervisedTrainingParameters getCurrentNetwork() {
+    return this.currentNetwork;
   }
 
   public synchronized double[] getError() {
@@ -103,16 +96,12 @@ public class GradientDescentTrainer {
   }
 
   public List<NNLayer> getLayers() {
-    return getCurrentNetworks().stream().flatMap(x -> x.getNet().layers.stream()).distinct().collect(Collectors.toList());
+    SupervisedTrainingParameters x = getCurrentNetwork();
+    return x.getNet().insertOrder.stream().distinct().collect(Collectors.toList());
   }
 
-  public List<PipelineNetwork> getNetwork() {
-    return this.currentNetworks.stream().map(SupervisedTrainingParameters::getNet).collect(Collectors.toList());
-  }
-
-  public double[] getNetworkRates() {
-    return getCurrentNetworks().stream()
-        .mapToDouble(x -> x.getNet().getRate()).toArray();
+  public PipelineNetwork getNetwork() {
+    return this.currentNetwork.getNet();
   }
 
   public double getRate() {
@@ -123,17 +112,14 @@ public class GradientDescentTrainer {
     return this.verbose;
   }
 
-  protected DeltaBuffer learn(final List<List<NNResult>> results) {
+  protected DeltaBuffer learn(final List<NNResult> results) {
     return learn(results, new DeltaBuffer());
   }
 
-  protected DeltaBuffer learn(final List<List<NNResult>> results, final DeltaBuffer buffer) {
+  protected DeltaBuffer learn(final List<NNResult> netresults, final DeltaBuffer buffer) {
     // Apply corrections
-    IntStream.range(0, getCurrentNetworks().size())
-    // .parallel()
-    .forEach(network -> {
-      final List<NNResult> netresults = results.get(network);
-      final SupervisedTrainingParameters currentNet = getCurrentNetworks().get(network);
+    {
+      final SupervisedTrainingParameters currentNet = getCurrentNetwork();
       IntStream.range(0, netresults.size())
       // .parallel()
       .forEach(sample -> {
@@ -149,13 +135,8 @@ public class GradientDescentTrainer {
         }
         eval.feedback(delta, buffer);
       });
-    });
+    };
     return buffer;
-  }
-
-  public GradientDescentTrainer setCurrentNetworks(final List<SupervisedTrainingParameters> currentNetworks) {
-    this.currentNetworks = currentNetworks;
-    return this;
   }
 
   public GradientDescentTrainer setError(final double[] error) {
@@ -178,12 +159,12 @@ public class GradientDescentTrainer {
   }
 
   public double totalWeight() {
-    return 1 / getCurrentNetworks().stream().mapToDouble(p -> p.getWeight()).sum();
+    return 1. / getCurrentNetwork().getWeight();
   }
 
   public synchronized double[] trainSet(TrainingContext trainingContext, final double[] rates) {
-    assert 0 < getCurrentNetworks().size();
-    final List<List<NNResult>> results = evalTrainingData(trainingContext);
+    assert null != getCurrentNetwork();
+    final List<NNResult> results = evalTrainingData(trainingContext);
     final double[] calcError = calcError(results);
     setError(calcError);
     final DeltaBuffer buffer = new DeltaBuffer();

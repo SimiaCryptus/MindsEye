@@ -39,7 +39,7 @@ public class ChampionTrainer {
     return getCurrent().getLayers();
   }
   
-  public List<PipelineNetwork> getNetwork() {
+  public PipelineNetwork getNetwork() {
     return this.current.getNetwork();
   }
   

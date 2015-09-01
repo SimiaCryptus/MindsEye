@@ -22,14 +22,14 @@ public class SoftmaxActivationLayer extends NNLayer {
   }
 
   @Override
-  public NNResult eval(final NNResult inObj) {
-    final NDArray input = inObj.data;
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    final NDArray input = inObj[0].data;
     final double nonlinearity = getNonlinearity();
-    final NDArray exp = inObj.data.map(x -> Math.min(x, 100)).map(x -> 0. == nonlinearity ? x : Math.exp(nonlinearity * x) / nonlinearity);
+    final NDArray exp = inObj[0].data.map(x -> Math.min(x, 100)).map(x -> 0. == nonlinearity ? x : Math.exp(nonlinearity * x) / nonlinearity);
     final double sum1 = exp.sum();
     final double sum = !Double.isFinite(sum1) || 0. == sum1 ? 1. : sum1;
     final NDArray output = exp.map(x -> x / sum);
-
+    
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, input.dim()).forEach(j -> {
@@ -44,20 +44,20 @@ public class SoftmaxActivationLayer extends NNLayer {
         }
       });
     });
-
+    
     if (isVerbose()) {
-      SoftmaxActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
+      SoftmaxActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
     return new NNResult(output) {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
-        if (inObj.isAlive()) {
+        if (inObj[0].isAlive()) {
           final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           for (int i = 0; i < delta.length; i++)
             if (delta[i].isNegative()) {
               delta[i] = LogNumber.ZERO;
             }
-
+    
           final LogNDArray inputGradientLog = inputGradient.log().scale(sum);
           final LogNDArray passback = new LogNDArray(data.getDims());
           IntStream.range(0, input.dim()).forEach(iinput -> {
@@ -68,17 +68,17 @@ public class SoftmaxActivationLayer extends NNLayer {
               }
             });
           });
-
+    
           if (isVerbose()) {
             SoftmaxActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
           }
-          inObj.feedback(passback, buffer);
+          inObj[0].feedback(passback, buffer);
         }
       }
-
+    
       @Override
       public boolean isAlive() {
-        return inObj.isAlive();
+        return inObj[0].isAlive();
       }
       
     };

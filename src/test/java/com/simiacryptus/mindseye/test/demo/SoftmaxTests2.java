@@ -14,7 +14,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    final int[] midSize = new int[] { 15 };
+    final int[] midSize = new int[] { 5 };
     final int midLayers = 1;
     PipelineNetwork net = new PipelineNetwork()
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)

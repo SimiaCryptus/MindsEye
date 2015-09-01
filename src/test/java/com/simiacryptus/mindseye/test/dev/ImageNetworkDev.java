@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
@@ -102,19 +103,19 @@ public class ImageNetworkDev {
     final NNLayer convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new EvaluationContext(), new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, ""));
 
     final PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
 
     Util.report(data.stream().map(obj -> {
-      final NNResult output = forwardConvolutionNet.eval(obj.data);
+      final NNResult output = forwardConvolutionNet.eval(new EvaluationContext(), obj.data);
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       final Trainer trainer = new Trainer().setStaticRate(1.);
 
-      trainer.add(new SupervisedTrainingParameters(new PipelineNetwork()
+      trainer.set(new SupervisedTrainingParameters(new PipelineNetwork()
       .add(bias)
       .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
 
@@ -152,9 +153,9 @@ public class ImageNetworkDev {
         e.printStackTrace();
       }
 
-      bias = (BiasLayer) trainer.getBest(trainingContext).getFirst().get(0).getNet().get(0);
-      final NNResult recovered = bias.eval(zeroInput);
-      final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(zeroInput);
+      bias = (BiasLayer) trainer.getBest(trainingContext).getFirst().getNet().get(0);
+      final NNResult recovered = bias.eval(new EvaluationContext(), zeroInput);
+      final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(new EvaluationContext(), zeroInput);
 
       return Util.imageHtml(
           Util.toImage(obj.data),

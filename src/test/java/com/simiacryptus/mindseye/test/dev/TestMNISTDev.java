@@ -20,6 +20,7 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
+import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -36,20 +37,20 @@ public class TestMNISTDev {
 
       add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 2));
       add(new MaxSubsampleLayer(4, 4, 1));
-      add(new BiasLayer(eval(this.inputSize).data.getDims()));
+      add(new BiasLayer(eval(new EvaluationContext(), this.inputSize).data.getDims()));
       add(new SigmoidActivationLayer());
 
       add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2));
       add(new MaxSubsampleLayer(2, 2, 1, 1));
-      add(new BiasLayer(eval(this.inputSize).data.getDims()));
+      add(new BiasLayer(eval(new EvaluationContext(), this.inputSize).data.getDims()));
       add(new SigmoidActivationLayer());
       
-      this.layers.add(new DenseSynapseLayer(eval(this.inputSize).data.dim(), new int[] { 16 }));
-      add(new BiasLayer(eval(this.inputSize).data.getDims()));
-      this.layers.add(new SigmoidActivationLayer());
+      this.insertOrder.add(new DenseSynapseLayer(eval(new EvaluationContext(), this.inputSize).data.dim(), new int[] { 16 }));
+      add(new BiasLayer(eval(new EvaluationContext(), this.inputSize).data.getDims()));
+      this.insertOrder.add(new SigmoidActivationLayer());
 
-      add(new DenseSynapseLayer(eval(this.inputSize).data.dim(), new int[] { 10 }));
-      add(new BiasLayer(eval(this.inputSize).data.getDims()));
+      add(new DenseSynapseLayer(eval(new EvaluationContext(), this.inputSize).data.dim(), new int[] { 10 }));
+      add(new BiasLayer(eval(new EvaluationContext(), this.inputSize).data.getDims()));
       add(new SoftmaxActivationLayer());
     }
 
@@ -72,7 +73,7 @@ public class TestMNISTDev {
     out.println("<html><head></head><body>");
     buffer.stream()
     .sorted(Comparator.comparing(img -> img.label))
-    .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>")
+    .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(new EvaluationContext(), x.data).data.toString() + "</p>")
     .forEach(out::println);
     out.println("</body></html>");
     out.close();
@@ -94,7 +95,7 @@ public class TestMNISTDev {
     .setVerbose(true).verifyConvergence(10000, 0.01, 1);
     {
       final PipelineNetwork net2 = net;
-      final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(Util.toOut(o1.label)))
+      final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(new EvaluationContext(), o1.data).errMisclassification(Util.toOut(o1.label)))
           .average().getAsDouble();
       TestMNISTDev.log.info("Tested RMS Error: {}", prevRms);
     }

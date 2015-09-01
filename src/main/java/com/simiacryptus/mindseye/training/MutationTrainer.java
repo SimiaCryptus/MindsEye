@@ -118,7 +118,7 @@ public class MutationTrainer {
     return this.mutationFactor;
   }
 
-  public List<PipelineNetwork> getNetwork() {
+  public PipelineNetwork getNetwork() {
     return this.inner.getNetwork();
   }
   

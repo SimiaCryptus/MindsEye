@@ -35,12 +35,12 @@ public class BiasLayer extends NNLayer {
   }
 
   @Override
-  public NNResult eval(final NNResult inObj) {
-    final NDArray translated = inObj.data.map((v, i) -> {
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    final NDArray translated = inObj[0].data.map((v, i) -> {
       return v + this.bias[i.index];
     });
     if (isVerbose()) {
-      BiasLayer.log.debug(String.format("Feed forward: %s => %s", inObj.data, translated));
+      BiasLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, translated));
     }
     return new NNResult(translated) {
       @Override
@@ -52,15 +52,15 @@ public class BiasLayer extends NNLayer {
         {
           buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data.getData());
         }
-        if (inObj.isAlive())
+        if (inObj[0].isAlive())
         {
-          inObj.feedback(data, buffer);
+          inObj[0].feedback(data, buffer);
         }
       }
-
+    
       @Override
       public boolean isAlive() {
-        return inObj.isAlive() || !isFrozen();
+        return inObj[0].isAlive() || !isFrozen();
       }
     };
   }

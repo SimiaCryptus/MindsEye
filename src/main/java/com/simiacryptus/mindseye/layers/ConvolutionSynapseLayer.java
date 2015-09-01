@@ -121,8 +121,8 @@ public class ConvolutionSynapseLayer extends NNLayer {
   }
 
   @Override
-  public NNResult eval(final NNResult inObj) {
-    final NDArray input = inObj.data;
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    final NDArray input = inObj[0].data;
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();
     final int[] newDims = IntStream.range(0, kernelDims.length).map(
@@ -136,7 +136,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
       output.add(array[2], input.getData()[array[1]] * this.kernel.getData()[array[0]]);
     });
     if (isVerbose()) {
-      ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj.data, this.kernel, output));
+      ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
     }
     return new NNResult(output) {
       @Override
@@ -150,10 +150,10 @@ public class ConvolutionSynapseLayer extends NNLayer {
           });
           ConvolutionSynapseLayer.this.writer.feed(weightGradient.exp().getData());
         }
-        if (inObj.isAlive()) {
+        if (inObj[0].isAlive()) {
           final LogNDArray klog = ConvolutionSynapseLayer.this.kernel.log();
           final LogNDArray backprop = new LogNDArray(inputDims);
-
+    
           Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
             final LogNumber kernelValue = klog.get(array[0]);
             if (kernelValue.isFinite())
@@ -165,13 +165,13 @@ public class ConvolutionSynapseLayer extends NNLayer {
           if (isVerbose()) {
             ConvolutionSynapseLayer.log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
           }
-          inObj.feedback(backprop, buffer);
+          inObj[0].feedback(backprop, buffer);
         }
       }
-
+    
       @Override
       public boolean isAlive() {
-        return inObj.isAlive() || !isFrozen();
+        return inObj[0].isAlive() || !isFrozen();
       }
     };
   }

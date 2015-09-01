@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.util.LabeledObject;
@@ -28,7 +29,7 @@ public class MNIST {
     out.println("<html><head></head><body>");
     MNIST.trainingDataStream()
     .sorted(Comparator.comparing(img -> img.label))
-    .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>")
+    .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage> map(Util::toImage)) + net.eval(new EvaluationContext(), x.data).data.toString() + "</p>")
     .forEach(out::println);
     out.println("</body></html>");
     out.close();

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
@@ -40,8 +41,8 @@ public class SimpleMNIST {
 
   protected PipelineNetwork getNetwork() {
     final PipelineNetwork net = new PipelineNetwork();
-    net.add(new DenseSynapseLayer(net.eval(this.inputSize).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
-    net.add(new BiasLayer(net.eval(this.inputSize).data.getDims()).setVerbose(this.verbose > 1));
+    net.add(new DenseSynapseLayer(net.eval(new EvaluationContext(), this.inputSize).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
+    net.add(new BiasLayer(net.eval(new EvaluationContext(), this.inputSize).data.getDims()).setVerbose(this.verbose > 1));
     // net.add(new SigmoidActivationLayer().setVerbose(verbose));
     net.add(new SoftmaxActivationLayer().setVerbose(this.verbose > 1));
     return net;
@@ -75,7 +76,7 @@ public class SimpleMNIST {
 
     getTrainer(net, data).verifyConvergence(0, 0.01, 1);
     
-    final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average()
+    final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(new EvaluationContext(), o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average()
         .getAsDouble();
     SimpleMNIST.log.info("Tested RMS Error: {}", prevRms);
     MNIST.report(net);

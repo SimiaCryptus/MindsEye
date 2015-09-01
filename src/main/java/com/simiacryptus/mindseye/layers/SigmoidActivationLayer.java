@@ -26,9 +26,9 @@ public class SigmoidActivationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult inObj) {
-    final NDArray input = inObj.data;
-    final NDArray output = new NDArray(inObj.data.getDims());
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    final NDArray input = inObj[0].data;
+    final NDArray output = new NDArray(inObj[0].data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
     final double nonlinearity = getNonlinearity();
     IntStream.range(0, input.dim()).forEach(i -> {
@@ -49,12 +49,12 @@ public class SigmoidActivationLayer extends NNLayer {
         output.set(i, 2 * f - 1);
       });
     if (isVerbose()) {
-      SigmoidActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
+      SigmoidActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
     return new NNResult(output) {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
-        if (inObj.isAlive()) {
+        if (inObj[0].isAlive()) {
           final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
@@ -65,17 +65,17 @@ public class SigmoidActivationLayer extends NNLayer {
           if (isVerbose()) {
             SigmoidActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
-          inObj.feedback(passback, buffer);
+          inObj[0].feedback(passback, buffer);
         }
       }
-
+    
       @Override
       public boolean isAlive() {
-        return inObj.isAlive();
+        return inObj[0].isAlive();
       }
     };
   }
-  
+
   protected double getNonlinearity() {
     return 1;
   }

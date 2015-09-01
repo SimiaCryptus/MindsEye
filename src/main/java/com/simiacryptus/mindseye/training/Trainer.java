@@ -28,18 +28,18 @@ public class Trainer {
   
   private MutationTrainer inner = new MutationTrainer();
   
-  public Trainer add(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
-    return add(new SupervisedTrainingParameters(pipelineNetwork, samples));
+  public Trainer set(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
+    return set(new SupervisedTrainingParameters(pipelineNetwork, samples));
   }
   
-  public Trainer add(final SupervisedTrainingParameters params) {
-    getInner().getInner().getInner().getCurrent().add(params);
+  public Trainer set(final SupervisedTrainingParameters params) {
+    getInner().getInner().getInner().getCurrent().set(params);
     return this;
   }
   
-  public Tuple2<List<SupervisedTrainingParameters>, Double> getBest(TrainingContext trainingContext) {
+  public Tuple2<SupervisedTrainingParameters, Double> getBest(TrainingContext trainingContext) {
     final GradientDescentTrainer best = getInner().getBest();
-    return new Tuple2<List<SupervisedTrainingParameters>, Double>(null == best ? null : best.getCurrentNetworks(), null == best ? null : best.error(trainingContext));
+    return new Tuple2<SupervisedTrainingParameters, Double>(null == best ? null : best.getCurrentNetwork(), null == best ? null : best.error(trainingContext));
   }
   
   public MutationTrainer getInner() {

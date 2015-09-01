@@ -20,44 +20,34 @@ public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
   
-  protected List<NNLayer> layers = new ArrayList<NNLayer>();
-  
-  private double rate = 1.;
+  protected List<NNLayer> insertOrder = new ArrayList<NNLayer>();
   
   public PipelineNetwork add(final NNLayer layer) {
-    this.layers.add(layer);
+    this.insertOrder.add(layer);
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult array) {
-    NNResult r = array;
-    for (final NNLayer l : this.layers) {
-      r = l.eval(r);
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    assert(1==inObj.length);
+    NNResult r = inObj[0];
+    for (final NNLayer l : this.insertOrder) {
+      r = l.eval(new EvaluationContext(), r);
     }
     return r;
   }
 
   public NNLayer get(final int i) {
-    return this.layers.get(i);
-  }
-  
-  public double getRate() {
-    return this.rate;
-  }
-  
-  public PipelineNetwork setRate(final double rate) {
-    this.rate = rate;
-    return this;
+    return this.insertOrder.get(i);
   }
   
   @Override
   public String toString() {
-    return "PipelineNetwork [" + this.layers + "]";
+    return "PipelineNetwork [" + this.insertOrder + "]";
   }
   
   public Trainer trainer(final NDArray[][] samples) {
-    return new Trainer().add(this, samples);
+    return new Trainer().set(this, samples);
   }
   
 }

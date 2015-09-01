@@ -22,12 +22,12 @@ public class MaxEntLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult inObj) {
-    final NDArray input = inObj.data;
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(1);
-
+    
     final double sum = input.map(x -> Math.abs(x)).sum();
-
+    
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       final double sign = Math.signum(input.getData()[i]);
@@ -40,12 +40,12 @@ public class MaxEntLayer extends NNLayer {
       output.add(0, f);
     });
     if (isVerbose()) {
-      MaxEntLayer.log.debug(String.format("Feed forward: %s => %s", inObj.data, output));
+      MaxEntLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
     return new NNResult(output) {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
-        if (inObj.isAlive()) {
+        if (inObj[0].isAlive()) {
           final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(input.getDims());
           for (int i = 0; i < passback.getData().length; i++) {
@@ -58,18 +58,18 @@ public class MaxEntLayer extends NNLayer {
           if (isVerbose()) {
             MaxEntLayer.log.debug(String.format("Feed back @ %s: => %s", output, passback));
           }
-          inObj.feedback(passback, buffer);
+          inObj[0].feedback(passback, buffer);
         }
       }
-
+    
       @Override
       public boolean isAlive() {
-        return inObj.isAlive();
+        return inObj[0].isAlive();
       }
       
     };
   }
-  
+
   public double getFactor() {
     return this.factor;
   }

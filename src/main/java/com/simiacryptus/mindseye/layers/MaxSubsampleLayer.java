@@ -30,8 +30,8 @@ public class MaxSubsampleLayer extends NNLayer {
   }
 
   @Override
-  public NNResult eval(final NNResult inObj) {
-    final NDArray input = inObj.data;
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    final NDArray input = inObj[0].data;
     final int[] inputDims = input.getDims();
     final int[] newDims = IntStream.range(0, inputDims.length).map(
         i -> inputDims[i] / this.kernelDims[i]
@@ -49,16 +49,16 @@ public class MaxSubsampleLayer extends NNLayer {
     return new NNResult(output) {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
-        if (inObj.isAlive()) {
+        if (inObj[0].isAlive()) {
           final LogNDArray backSignal = new LogNDArray(inputDims);
           gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().coords, data.get(e.getKey().coords)));
-          inObj.feedback(backSignal, buffer);
+          inObj[0].feedback(backSignal, buffer);
         }
       }
-
+    
       @Override
       public boolean isAlive() {
-        return inObj.isAlive();
+        return inObj[0].isAlive();
       }
     };
   }

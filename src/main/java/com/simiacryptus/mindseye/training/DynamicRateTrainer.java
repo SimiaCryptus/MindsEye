@@ -57,8 +57,8 @@ public class DynamicRateTrainer {
       @Override
       public double value(final double x[]) {
         final GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
-        final List<DeltaFlushBuffer> writeVectors = current.getCurrentNetworks().stream()
-            .flatMap(n -> n.getNet().layers.stream())
+        final List<DeltaFlushBuffer> writeVectors = current.getCurrentNetwork()
+            .getNet().insertOrder.stream()
             .map(n -> lessonVector.map.get(n))
             .filter(n -> null != n)
             .distinct()
@@ -67,9 +67,6 @@ public class DynamicRateTrainer {
         final int layerCount = writeVectors.size();
         final double[] layerRates = Arrays.copyOf(x, layerCount);
         // double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
-        if (current.getCurrentNetworks().size() > 1) {
-          DynamicRateTrainer.log.debug("TODO: Optimize the rates of each network. Needs seperate delta buffers for each network within same layer obj!");
-        }
         assert layerRates.length == this.pos.length;
         for (int i = 0; i < layerRates.length; i++) {
           final double prev = this.pos[i];
@@ -99,10 +96,9 @@ public class DynamicRateTrainer {
     PointValuePair optimum;
     try {
       optimum = optimizeRates(trainingContext);
-      getInner().getCurrent().getCurrentNetworks().stream()
-          .flatMap(n -> n.getNet().layers.stream())
-          .distinct()
-          .forEach(layer -> layer.setStatus(optimum.getValue()));
+      getInner().getCurrent().getCurrentNetwork()
+        .getNet().insertOrder.stream().distinct()
+        .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(this.rates).allMatch(r -> getMaxRate() > r)
           && DoubleStream.of(this.rates).anyMatch(r -> this.minRate < r);
@@ -168,7 +164,7 @@ public class DynamicRateTrainer {
     return this.mutationFactor;
   }
   
-  public List<PipelineNetwork> getNetwork() {
+  public PipelineNetwork getNetwork() {
     return this.inner.getNetwork();
   }
   
@@ -191,7 +187,7 @@ public class DynamicRateTrainer {
   
   public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
     final double[] prev = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
-    assert 0 < getInner().getCurrent().getCurrentNetworks().size();
+    assert null != getInner().getCurrent().getCurrentNetwork();
     final DeltaBuffer lessonVector = getInner().getCurrent().learn(getInner().getCurrent().evalTrainingData(trainingContext), new DeltaBuffer());
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
@@ -266,8 +262,7 @@ public class DynamicRateTrainer {
     getInner().step(trainingContext, this.rates);
     getInner().updateBest(trainingContext);
     final double error = error(trainingContext);
-    getInner().getCurrent().getCurrentNetworks().stream()
-        .flatMap(n -> n.getNet().layers.stream())
+    getInner().getCurrent().getCurrentNetwork().getNet().insertOrder.stream()
         .distinct()
         .forEach(layer -> layer.setStatus(error));
     return error;

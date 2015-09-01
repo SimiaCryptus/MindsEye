@@ -91,8 +91,8 @@ public class DenseSynapseLayer extends NNLayer {
   }
 
   @Override
-  public NNResult eval(final NNResult inObj) {
-    final NDArray input = inObj.data;
+  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(this.outputDims);
     IntStream.range(0, input.dim()).forEach(i -> {
       IntStream.range(0, output.dim()).forEach(o -> {
@@ -105,9 +105,9 @@ public class DenseSynapseLayer extends NNLayer {
       });
     });
     if (isVerbose()) {
-      DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj.data, this.weights, output));
+      DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }
-    return new DenseSynapseResult(output, inObj);
+    return new DenseSynapseResult(output, inObj[0]);
   }
 
   public DenseSynapseLayer freeze() {
