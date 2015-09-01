@@ -18,10 +18,6 @@ public class SupervisedTrainingParameters {
     this.trainingData = trainingData;
   }
 
-  public NDArray interceptIdeal(final NNResult eval, final NDArray preset) {
-    return preset;
-  }
-
   public PipelineNetwork getNet() {
     return this.net;
   }

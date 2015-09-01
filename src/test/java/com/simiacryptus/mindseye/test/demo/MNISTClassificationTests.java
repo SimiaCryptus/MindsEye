@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.test.dev.MNIST;
@@ -34,7 +35,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     final PipelineNetwork net = new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
         .add(new BiasLayer(outSize))
-        .add(new SoftmaxActivationLayer());
+        .add(new SigmoidActivationLayer());
+    //.add(new SoftmaxActivationLayer());
     return net;
   }
   

@@ -44,7 +44,8 @@ public class GradientDescentTrainer {
       NDArray[][] trainingData = currentNet.getTrainingData();
       NDArray[] sampleRow = trainingData[sample];
       NDArray expected = sampleRow[1];
-      final NDArray output = currentNet.interceptIdeal(eval, expected);
+      final NDArray preset = expected;
+      final NDArray output = preset;
       final double err = eval.data.rms(output);
       return err * err;
     }).collect(Collectors.toList());
@@ -110,12 +111,11 @@ public class GradientDescentTrainer {
       IntStream.range(0, netresults.size())
       // .parallel()
       .forEach(sample -> {
-        final NNResult eval = netresults.get(sample);
-        final NDArray output = currentNet.interceptIdeal(eval, currentNet.getTrainingData()[sample][1]);
-        final NDArray delta2 = eval.delta(output);
-        final LogNDArray log2 = delta2.log();
-        LogNDArray delta = log2.scale(getRate());
-        eval.feedback(delta, buffer);
+        final NNResult actualOutput = netresults.get(sample);
+        final NDArray idealOutput = currentNet.getTrainingData()[sample][1];
+        final NDArray delta = actualOutput.delta(idealOutput);
+        LogNDArray logDelta = delta.log().scale(getRate());
+        actualOutput.feedback(logDelta, buffer);
       });
     };
     return buffer;
