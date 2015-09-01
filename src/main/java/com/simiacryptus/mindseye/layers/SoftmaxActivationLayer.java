@@ -32,19 +32,20 @@ public class SoftmaxActivationLayer extends NNLayer {
     final NDArray output = exp.map(x -> x / sum);
     
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
-    IntStream.range(0, input.dim()).forEach(i -> {
-      IntStream.range(0, input.dim()).forEach(j -> {
+    double[] expdata = exp.getData();
+    for(int i=0;i<expdata.length;i++){
+      for(int j=0;j<expdata.length;j++){
         double value = 0;
         if (i == j) {
-          value = exp.getData()[i] * (sum - exp.getData()[i]);
+          value = expdata[i] * (sum - expdata[j]);
         } else {
-          value = -(exp.getData()[i] * exp.getData()[j]);
+          value = -(expdata[i] * expdata[j]);
         }
         if (Double.isFinite(value)) {
           inputGradient.add(new int[] { i, j }, value);
         }
-      });
-    });
+      };
+    };
     
     if (isVerbose()) {
       SoftmaxActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
@@ -54,21 +55,21 @@ public class SoftmaxActivationLayer extends NNLayer {
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
           final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
-          for (int i = 0; i < delta.length; i++)
-            if (delta[i].isNegative()) {
-              delta[i] = LogNumber.ZERO;
-            }
+//          for (int i = 0; i < delta.length; i++)
+//            if (delta[i].isNegative()) {
+//              delta[i] = LogNumber.ZERO;
+//            }
     
-          final LogNDArray inputGradientLog = inputGradient.log().scale(sum);
+          final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
-          IntStream.range(0, input.dim()).forEach(iinput -> {
-            IntStream.range(0, output.dim()).forEach(ioutput -> {
-              final LogNumber value = inputGradientLog.get(new int[] { iinput, ioutput });
+          for(int i=0;i<input.dim();i++){
+            for(int j=0;j<output.dim();j++){
+              final LogNumber value = inputGradientLog.get(new int[] { i, j });
               if (value.isFinite()) {
-                passback.add(iinput, delta[ioutput].multiply(value));
+                passback.add(i, delta[j].multiply(value));
               }
-            });
-          });
+            };
+          };
     
           if (isVerbose()) {
             SoftmaxActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));

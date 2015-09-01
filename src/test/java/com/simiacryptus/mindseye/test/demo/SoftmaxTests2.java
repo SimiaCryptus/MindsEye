@@ -131,6 +131,16 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   }
 
   @Override
+  public void test_O2() throws Exception {
+    super.test_O2();
+  }
+
+  @Override
+  public void test_O3() throws Exception {
+    super.test_O3();
+  }
+
+  @Override
   public void test_xor() throws Exception {
     super.test_xor();
   }

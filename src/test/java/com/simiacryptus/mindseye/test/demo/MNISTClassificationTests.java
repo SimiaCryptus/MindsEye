@@ -34,9 +34,9 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     final int[] outSize = new int[] { 10 };
     final PipelineNetwork net = new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-        .add(new BiasLayer(outSize))
-        .add(new SigmoidActivationLayer());
-    //.add(new SoftmaxActivationLayer());
+        //.add(new BiasLayer(outSize))
+        //.add(new SigmoidActivationLayer());
+        .add(new SoftmaxActivationLayer());
     return net;
   }
   
@@ -52,14 +52,32 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   @Test // (expected = RuntimeException.class)
   public void test() throws Exception {
     int maxSize = 1000;
-    List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream().collect(Collectors.toList()));
+    List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream()
+        .filter(this::filter)
+        .collect(Collectors.toList()));
     test(data.parallelStream().limit(maxSize)
         .map(obj -> {
-          int out = SimpleMNIST.toOut(obj.label);
+          int out = SimpleMNIST.toOut(remap(obj.label));
           NDArray output = SimpleMNIST.toOutNDArray(out, 10);
           return new NDArray[] { obj.data, output };
         })
         .toArray(i -> new NDArray[i][]));
+  }
+
+  private String remap(String label) {
+    switch(label){
+//    case "[0]": return "[5]";
+//    case "[5]": return "[9]";
+//    case "[9]": return "[0]";
+    default: return label;
+    }
+  }
+
+  public boolean filter(LabeledObject<NDArray> item) {
+    if(item.label.equals("[1]")) return true;
+    if(item.label.equals("[3]")) return true;
+    if(item.label.equals("[5]")) return true;
+    return false;
   }
 
   @Override
