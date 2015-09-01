@@ -16,6 +16,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
 public class DynamicRateTrainer {
@@ -49,7 +50,7 @@ public class DynamicRateTrainer {
     this.inner = inner;
   }
   
-  public MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final double fraction) {
+  public MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final double fraction, TrainingContext trainingContext) {
     final MultivariateFunction f = new MultivariateFunction() {
       double[] pos = new double[lessonVector.map.size()];
       
@@ -80,7 +81,7 @@ public class DynamicRateTrainer {
           this.pos[i] = layerRates[i];
         }
         final double[] calcError = current
-            .calcError(current.evalTrainingData());
+            .calcError(current.evalTrainingData(trainingContext));
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
           DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(layerRates), err, Arrays.toString(calcError)));
@@ -91,12 +92,13 @@ public class DynamicRateTrainer {
     return f;
   }
   
-  protected boolean calibrate() {
-    final double last = error();
+  protected boolean calibrate(TrainingContext trainingContext) {
+    trainingContext.calibrations.increment();
+    final double last = error(trainingContext);
     boolean inBounds = false;
     PointValuePair optimum;
     try {
-      optimum = optimizeRates();
+      optimum = optimizeRates(trainingContext);
       getInner().getCurrent().getCurrentNetworks().stream()
           .flatMap(n -> n.getNet().layers.stream())
           .distinct()
@@ -107,7 +109,7 @@ public class DynamicRateTrainer {
       if (inBounds)
       {
         this.lastCalibratedIteration = this.currentIteration;
-        final double err = trainOnce();
+        final double err = trainOnce(trainingContext);
         final double improvement = last - err;
         if (isVerbose()) {
           DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), last, err, improvement));
@@ -126,8 +128,8 @@ public class DynamicRateTrainer {
     return false;
   }
   
-  public double error() {
-    return getInner().getCurrent().error();
+  public double error(TrainingContext trainingContext) {
+    return getInner().getCurrent().error(trainingContext);
   }
   
   public double getBaseRate() {
@@ -187,21 +189,21 @@ public class DynamicRateTrainer {
     return this.verbose;
   }
   
-  public synchronized PointValuePair optimizeRates() {
-    final double[] prev = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData());
+  public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
+    final double[] prev = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
     assert 0 < getInner().getCurrent().getCurrentNetworks().size();
-    final DeltaBuffer lessonVector = getInner().getCurrent().learn(getInner().getCurrent().evalTrainingData(), new DeltaBuffer());
+    final DeltaBuffer lessonVector = getInner().getCurrent().learn(getInner().getCurrent().evalTrainingData(trainingContext), new DeltaBuffer());
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
     do {
-      final MultivariateFunction f = asMetaF(lessonVector, fraction);
+      final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
       x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
     // f.value(new double[dims]); // Reset to original state
-    final double[] calcError = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData());
+    final double[] calcError = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
     getInner().getCurrent().setError(calcError);
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(),
@@ -260,10 +262,10 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  public double trainOnce() {
-    getInner().step(this.rates);
-    getInner().updateBest();
-    final double error = error();
+  public double trainOnce(TrainingContext trainingContext) throws TerminationCondition {
+    getInner().step(trainingContext, this.rates);
+    getInner().updateBest(trainingContext);
+    final double error = error(trainingContext);
     getInner().getCurrent().getCurrentNetworks().stream()
         .flatMap(n -> n.getNet().layers.stream())
         .distinct()
@@ -271,13 +273,13 @@ public class DynamicRateTrainer {
     return error;
   }
   
-  public boolean trainToLocalOptimum() {
+  public boolean trainToLocalOptimum(TrainingContext trainingContext) throws TerminationCondition {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
     while (true) {
-      if (getStopError() > error()) {
-        DynamicRateTrainer.log.debug("Target error reached: " + error());
+      if (getStopError() > error(trainingContext)) {
+        DynamicRateTrainer.log.debug("Target error reached: " + error(trainingContext));
         return false;
       }
       if (this.maxIterations <= this.currentIteration++) {
@@ -289,14 +291,14 @@ public class DynamicRateTrainer {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
         // calibrate();
-        if (!calibrate()) {
+        if (!calibrate(trainingContext)) {
           DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
           return false;
         }
       }
-      final double best = getInner().getBest().error();
-      final double last = getInner().getCurrent().error();
-      final double next = trainOnce();
+      final double best = getInner().getBest().error(trainingContext);
+      final double last = getInner().getCurrent().error(trainingContext);
+      final double next = trainOnce(trainingContext);
       if (next / last < 1 + getDecayTolerance() || next / best < 1 + 5 * getDecayTolerance())
       {
         this.generationsSinceImprovement = 0;
@@ -308,7 +310,7 @@ public class DynamicRateTrainer {
           if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }
-          if (!calibrate()) {
+          if (!calibrate(trainingContext)) {
             DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
             return false;
           }

@@ -19,6 +19,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.SupervisedTrainingParameters;
 import com.simiacryptus.mindseye.training.Trainer;
+import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -140,13 +141,18 @@ public class ImageNetworkDev {
       // new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1).setReverse(true)),
       // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-0.1));
 
-      trainer
-      .setStaticRate(0.5)
-      .setMaxDynamicRate(1000000)
-      .setVerbose(true)
-      .train(0, 0.1);
+      TrainingContext trainingContext = new TrainingContext();
+      try {
+        trainer
+        .setStaticRate(0.5)
+        .setMaxDynamicRate(1000000)
+        .setVerbose(true)
+        .train(0, 0.1, trainingContext);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
 
-      bias = (BiasLayer) trainer.getBest().getFirst().get(0).getNet().get(0);
+      bias = (BiasLayer) trainer.getBest(trainingContext).getFirst().get(0).getNet().get(0);
       final NNResult recovered = bias.eval(zeroInput);
       final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(zeroInput);
 

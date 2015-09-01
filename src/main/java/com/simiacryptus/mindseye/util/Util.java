@@ -350,4 +350,8 @@ public class Util {
     }, 100).limit(10000);
     return merged;
   }
+
+  public static List<LabeledObject<NDArray>> shuffle(List<LabeledObject<NDArray>> buffer) {
+    return shuffle(buffer, Util.R.get());
+  }
 }

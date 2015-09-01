@@ -41,18 +41,16 @@ public class BooleanSigmoidNetworkTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     new PipelineNetwork()
-
+    
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
         .add(new BiasLayer(midSize))
     .add(new SigmoidActivationLayer())
-
+    
     .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
     .add(new BiasLayer(outSize))
     .add(new SigmoidActivationLayer())
     .trainer(samples)
-    .setMutationAmplitude(10.)
-    // .setVerbose(verbose)
-    .verifyConvergence(10, 0.01, 100);
+    .setMutationAmplitude(10.).verifyConvergence(10, 0.01, 100);
   }
 
   @Test

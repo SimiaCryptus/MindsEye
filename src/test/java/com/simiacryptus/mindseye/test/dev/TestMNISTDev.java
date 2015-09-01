@@ -88,11 +88,10 @@ public class TestMNISTDev {
         .map(o -> new NDArray[] { o.data, Util.toOutNDArray(Util.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
     net.trainer(data)
-        .setMutationAmplitude(2)
-        .setMutationAmount(.1)
-        .setStaticRate(0.25)
-        .setVerbose(true)
-        .verifyConvergence(10000, 0.01, 1);
+    .setMutationAmplitude(2)
+    .setMutationAmount(.1)
+    .setStaticRate(0.25)
+    .setVerbose(true).verifyConvergence(10000, 0.01, 1);
     {
       final PipelineNetwork net2 = net;
       final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(Util.toOut(o1.label)))

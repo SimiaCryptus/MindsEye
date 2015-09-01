@@ -67,23 +67,24 @@ public class GradientDescentTrainer {
     return this;
   }
 
-  public double error() {
+  public double error(TrainingContext trainingContext) {
     final double[] error = getError();
     if (null == error) {
-      trainSet(null);
-      return error();
+      trainSet(trainingContext,null);
+      return error(trainingContext);
     }
     final double returnValue = Math.pow(GradientDescentTrainer.geometricMean(error), totalWeight());
     assert Double.isFinite(returnValue);
     return returnValue;
   }
 
-  protected List<List<NNResult>> evalTrainingData() {
+  protected List<List<NNResult>> evalTrainingData(TrainingContext trainingContext) {
     return getCurrentNetworks().parallelStream().map(params -> Stream.of(params.getTrainingData())
         .parallel()
         .map(sample -> {
           final NDArray input = sample[0];
           final NDArray output = sample[1];
+          trainingContext.evaluations.increment();
           final NNResult eval = params.getNet().eval(input);
           assert eval.data.dim() == output.dim();
           return eval;
@@ -180,9 +181,9 @@ public class GradientDescentTrainer {
     return 1 / getCurrentNetworks().stream().mapToDouble(p -> p.getWeight()).sum();
   }
 
-  public synchronized double[] trainSet(final double[] rates) {
+  public synchronized double[] trainSet(TrainingContext trainingContext, final double[] rates) {
     assert 0 < getCurrentNetworks().size();
-    final List<List<NNResult>> results = evalTrainingData();
+    final List<List<NNResult>> results = evalTrainingData(trainingContext);
     final double[] calcError = calcError(results);
     setError(calcError);
     final DeltaBuffer buffer = new DeltaBuffer();
@@ -192,7 +193,7 @@ public class GradientDescentTrainer {
       IntStream.range(0, buffer.map.size()).forEach(i -> {
         deltas.get(i).write(rates[i]);
       });
-      final double[] validationError = calcError(evalTrainingData());
+      final double[] validationError = calcError(evalTrainingData(trainingContext));
       if (GradientDescentTrainer.geometricMean(calcError) < GradientDescentTrainer.geometricMean(validationError)) {
         if (this.verbose) {
           GradientDescentTrainer.log.debug(String.format("Reverting: (%s)", Arrays.toString(calcError)));

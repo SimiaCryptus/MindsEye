@@ -45,17 +45,16 @@ public class BooleanSoftmaxNetworkTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     new PipelineNetwork()
-
+    
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
     .add(new BiasLayer(midSize))
     .add(new SigmoidActivationLayer())
-
+    
     .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
     .add(new BiasLayer(outSize))
     .add(new SoftmaxActivationLayer().setVerbose(false))
-
-    .trainer(samples)
-    .verifyConvergence(10, 0.01, 100);
+    
+    .trainer(samples).verifyConvergence(10, 0.01, 100);
   }
 
   @Test

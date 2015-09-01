@@ -4,13 +4,14 @@ import groovy.lang.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
 /**
@@ -23,7 +24,7 @@ public class Trainer {
   
   static final Logger log = LoggerFactory.getLogger(Trainer.class);
   
-  public final List<Function<MutationTrainer, Void>> handler = new ArrayList<>();
+  public final List<BiFunction<MutationTrainer, TrainingContext, Void>> handler = new ArrayList<>();
   
   private MutationTrainer inner = new MutationTrainer();
   
@@ -36,9 +37,9 @@ public class Trainer {
     return this;
   }
   
-  public Tuple2<List<SupervisedTrainingParameters>, Double> getBest() {
+  public Tuple2<List<SupervisedTrainingParameters>, Double> getBest(TrainingContext trainingContext) {
     final GradientDescentTrainer best = getInner().getBest();
-    return new Tuple2<List<SupervisedTrainingParameters>, Double>(null == best ? null : best.getCurrentNetworks(), null == best ? null : best.error());
+    return new Tuple2<List<SupervisedTrainingParameters>, Double>(null == best ? null : best.getCurrentNetworks(), null == best ? null : best.error(trainingContext));
   }
   
   public MutationTrainer getInner() {
@@ -88,8 +89,11 @@ public class Trainer {
     boolean hasConverged = false;
     try {
       final MutationTrainer copy = Util.kryo().copy(getInner());
-      final Double error = copy.setMaxIterations(maxIter).setStopError(convergence).train();
-      this.handler.stream().forEach(h -> h.apply(copy));
+      TrainingContext trainingContext = trainingContext();
+      final Double error = trainingContext.overallTimer.time(()->{
+        return copy.setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
+      });
+      this.handler.stream().forEach(h -> h.apply(copy,trainingContext));
       hasConverged = error <= convergence;
       if (!hasConverged) {
         Trainer.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
@@ -99,13 +103,17 @@ public class Trainer {
     }
     return hasConverged;
   }
-  
-  public void train(final int i, final double d) {
+
+  public void train(final int i, final double d, TrainingContext trainingContext) throws TerminationCondition {
     final MutationTrainer inner = getInner();
     inner.setMaxIterations(i).setStopError(d);
-    inner.train();
+    inner.train(trainingContext);
   }
   
+  private TrainingContext trainingContext() {
+    return new TrainingContext();
+  }
+
   public long verifyConvergence(final int maxIter, final double convergence, final int reps) {
     return verifyConvergence(maxIter, convergence, reps, reps);
   }

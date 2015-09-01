@@ -1,7 +1,6 @@
 package com.simiacryptus.mindseye.test.dev;
 
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,8 +19,6 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class SimpleMNIST {
   private static final Logger log = LoggerFactory.getLogger(SimpleMNIST.class);
-
-  public static final Random random = new Random();
 
   public static int toOut(final String label) {
     for (int i = 0; i < 10; i++)
@@ -59,7 +56,7 @@ public class SimpleMNIST {
   }
 
   public Stream<LabeledObject<NDArray>> getTraining(final List<LabeledObject<NDArray>> buffer) {
-    return Util.shuffle(buffer, SimpleMNIST.random).parallelStream().limit(1000);
+    return Util.shuffle(buffer, Util.R.get()).parallelStream().limit(1000);
   }
 
   public Stream<LabeledObject<NDArray>> getVerification(final List<LabeledObject<NDArray>> buffer) {

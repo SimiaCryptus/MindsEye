@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -89,9 +88,9 @@ public abstract class ClassificationTestBase {
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
     final PipelineNetwork net = buildNetwork();
     final Trainer trainer = buildTrainer(samples, net);
-    final Map<BufferedImage,ClassificationResultMetrics> images = new HashMap<>();
+    final Map<BufferedImage,String> images = new HashMap<>();
     int categories = samples[0][1].dim();
-    trainer.handler.add(n -> {
+    trainer.handler.add((n,trainingContext) -> {
       try {
         ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
         final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
@@ -128,14 +127,15 @@ public abstract class ClassificationTestBase {
               final int ypx = (int) ((yf + 3) / 6 * getHeight());
               Color color = getColor(input, classificationActual, classificationExpected);
               g.setColor(color);
-              g.drawOval(xpx - 1, ypx - 1, 2, 2);
+              g.drawOval(xpx, ypx, 1, 1);
               correct.classificationMatrix.add(new int[]{classificationExpected,classificationActual}, 1.);
               return classificationExpected==classificationActual?1.:0.;
             }).average().getAsDouble());
           }
         };
-        log.debug(correct.toString());
-        images.put(img, correct);
+        String label = correct.toString() + " \n" + trainingContext.toString();
+        log.debug(label);
+        images.put(img, label);
       } catch (final Exception e) {
         e.printStackTrace();
       }
@@ -163,13 +163,14 @@ public abstract class ClassificationTestBase {
     trainer.verifyConvergence(0, 0.0, 10);
   }
 
-  List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN,randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor());
+  static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN,randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor());
   
   public Color getColor(NDArray input, int classificationActual, final int classificationExpected) {
-    return colorMap.get(classificationExpected);
+    Color color = colorMap.get(classificationExpected);
+    return color;
   }
 
-  public Color randomColor() {
+  public static Color randomColor() {
     Random r = Util.R.get();
     return new Color(r.nextInt(255),r.nextInt(255),r.nextInt(255));
   }

@@ -15,6 +15,7 @@ import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MutationTrainer {
@@ -37,16 +38,16 @@ public class MutationTrainer {
     this.inner = new DynamicRateTrainer(inner);
   }
 
-  public boolean continueTraining() {
+  public boolean continueTraining(TrainingContext trainingContext) {
     if (this.maxIterations < this.currentGeneration) {
       if (this.verbose) {
         MutationTrainer.log.debug("Reached max iterations: " + this.currentGeneration);
       }
       return false;
     }
-    if (getInner().error() < this.stopError) {
+    if (getInner().error(trainingContext) < this.stopError) {
       if (this.verbose) {
-        MutationTrainer.log.debug("Reached convergence: " + getInner().error());
+        MutationTrainer.log.debug("Reached convergence: " + getInner().error(trainingContext));
       }
       return false;
     }
@@ -77,8 +78,8 @@ public class MutationTrainer {
     }).average().getAsDouble();
   }
 
-  public double error() {
-    return getInner().getInner().getCurrent().error();
+  public double error(TrainingContext trainingContext) {
+    return getInner().getInner().getCurrent().error(trainingContext);
   }
 
   public GradientDescentTrainer getBest() {
@@ -198,9 +199,9 @@ public class MutationTrainer {
     return sum;
   }
   
-  public void mutateBest() {
+  public void mutateBest(TrainingContext trainingContext) {
     getInner().generationsSinceImprovement = getInner().recalibrationThreshold - 1;
-    getInner().getInner().revert();
+    getInner().getInner().revert(trainingContext);
     while (0 >= mutate(getMutationFactor())) {
     }
     getInner().lastCalibratedIteration = getInner().currentIteration;// - (this.recalibrationInterval + 2);
@@ -270,32 +271,36 @@ public class MutationTrainer {
     return this;
   }
   
-  public Double train() {
+  public Double train(TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
     this.currentGeneration = 0;
-    while (continueTraining())
-    {
-      if (0 == this.currentGeneration++) {
-        mutate(1);
-        mutate(1);
-        mutate(1);
-        mutate(1);
-        mutate(1);
-      } else {
-        mutateBest();
-      }
-      getInner().trainToLocalOptimum();
-      if (this.verbose)
-      {
-        MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
-            this.currentGeneration, getInner().error(), Arrays.toString(getInner().getInner().getCurrent().getError()), getInner().getInner().getCurrent()
-                .getRate()));
-      }
+    try {
+      while (continueTraining(trainingContext)) {
+        if (0 == this.currentGeneration++) {
+          mutate(1);
+          mutate(1);
+          mutate(1);
+          mutate(1);
+          mutate(1);
+        } else {
+          trainingContext.mutations.increment();
+          mutateBest(trainingContext);
+        }
+        getInner().trainToLocalOptimum(trainingContext);
+        if (this.verbose) {
+          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
+              this.currentGeneration, getInner().error(trainingContext), Arrays.toString(getInner().getInner().getCurrent().getError()),
+              getInner().getInner().getCurrent()
+                  .getRate()));
+        }
+      } 
+    } catch (TerminationCondition e) {
+      log.debug("Terminated training",e);
     }
-    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", getInner().error(),
+    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", getInner().error(trainingContext),
         (System.currentTimeMillis() - startMs) / 1000.,
         this.currentGeneration));
     final GradientDescentTrainer best = getBest();
-    return null == best ? Double.POSITIVE_INFINITY : best.error();
+    return null == best ? Double.POSITIVE_INFINITY : best.error(trainingContext);
   }
 }

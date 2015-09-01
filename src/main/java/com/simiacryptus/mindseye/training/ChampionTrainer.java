@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
 public class ChampionTrainer {
@@ -46,12 +47,12 @@ public class ChampionTrainer {
     return this.verbose;
   }
   
-  public void revert() {
+  public void revert(TrainingContext trainingContext) {
     final GradientDescentTrainer best = getBest();
     if (null != best)
     {
       if (isVerbose()) {
-        ChampionTrainer.log.debug(String.format("Revert to best = %s", null == best ? null : best.error()));
+        ChampionTrainer.log.debug(String.format("Revert to best = %s", null == best ? null : best.error(trainingContext)));
         // log.debug(String.format("Discarding %s", best.getFirst().get(0).getNet()));
       }
       setCurrent(Util.kryo().copy(best));
@@ -74,27 +75,31 @@ public class ChampionTrainer {
     return this;
   }
   
-  public Double step(final double[] rates) {
+  public Double step(TrainingContext trainingContext, final double[] rates) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
-    getCurrent().trainSet(rates);
-    updateBest();
+    getCurrent().trainSet(trainingContext, rates);
+    updateBest(trainingContext);
+    trainingContext.gradientSteps.increment();
     if (this.verbose)
     {
       ChampionTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s in %.03fs",
-          getCurrent().error(), Arrays.toString(getCurrent().getError()), getCurrent().getRate(),
+          getCurrent().error(trainingContext), Arrays.toString(getCurrent().getError()), getCurrent().getRate(),
           (System.currentTimeMillis() - startMs) / 1000.));
     }
-    return getCurrent().error();
+    return getCurrent().error(trainingContext);
   }
   
-  protected void updateBest() {
+  protected void updateBest(TrainingContext trainingContext) {
     final GradientDescentTrainer best = getBest();
-    if (Double.isFinite(getCurrent().error()) && (null == best || best.error() > getCurrent().error())) {
+    GradientDescentTrainer current = getCurrent();
+    double currentError = current.error(trainingContext);
+    double bestError = null==best?Double.POSITIVE_INFINITY:best.error(trainingContext);
+    if (Double.isFinite(currentError) && (null == best || bestError > currentError)) {
       if (isVerbose()) {
-        ChampionTrainer.log.debug(String.format("New best Error %s > %s", getCurrent().error(), null == best ? "null" : best.error()));
+        ChampionTrainer.log.debug(String.format("New best Error %s > %s", currentError, null == best ? "null" : bestError));
         // log.debug(String.format("Best: %s", currentNetworks.get(0).getNet()));
       }
-      setBest(Util.kryo().copy(getCurrent()));
+      setBest(Util.kryo().copy(current));
     }
   }
   

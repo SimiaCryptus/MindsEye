@@ -2,9 +2,6 @@ package com.simiacryptus.mindseye.test.demo;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.simiacryptus.mindseye.layers.BiasLayer;
@@ -42,16 +39,18 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   }
   
   public double[] inputToXY(NDArray input, int classificationActual, int classificationExpected) {
-    return new double[] { //
-        ((classificationActual + Util.R.get().nextDouble()) * 6. - 3), //
-        (classificationExpected + Util.R.get().nextDouble()) * 6. - 3 //
+    double n = 10.;
+    double[] c = new double[] { //
+        ((classificationActual   + Util.R.get().nextDouble()) / (n+1)), //
+         (classificationExpected + Util.R.get().nextDouble()) / (n+1) //
     };
+    return new double[]{c[0]*6-3,c[1]*6-3};
   }
   
   @Test // (expected = RuntimeException.class)
   public void test() throws Exception {
-    int maxSize = 100000;
-    List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream().collect(Collectors.toList()), SimpleMNIST.random);
+    int maxSize = 1000;
+    List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream().collect(Collectors.toList()));
     test(data.parallelStream().limit(maxSize)
         .map(obj -> {
           int out = SimpleMNIST.toOut(obj.label);
