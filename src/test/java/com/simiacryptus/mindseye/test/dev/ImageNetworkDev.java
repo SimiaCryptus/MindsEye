@@ -2,10 +2,14 @@ package com.simiacryptus.mindseye.test.dev;
 
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -96,16 +100,17 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
 
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    // final NDArray inputImage = TestMNISTDev.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
+   final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
     // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
 
     final NNLayer convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new EvaluationContext(),new NDArray(inputSize)).data.getDims();
+    EvaluationContext evaluationContext = new EvaluationContext();
+    final int[] outSize = convolution.eval(evaluationContext,new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
-    data.add(new LabeledObject<NDArray>(inputImage, ""));
+    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
     final PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
 
@@ -155,7 +160,7 @@ public class ImageNetworkDev {
       }
 
       bias = (BiasLayer) trainer.getBest(trainingContext).getFirst().getNet().get(0);
-      final NNResult recovered = bias.eval(new EvaluationContext(), zeroInput);
+      final NNResult recovered = bias.eval(evaluationContext, zeroInput);
       NDArray[] input1 = { zeroInput };
       final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(input1);
 
@@ -168,5 +173,16 @@ public class ImageNetworkDev {
     }));
 
   }
-
+  
+  public static BufferedImage scale(BufferedImage img, final double scale) {
+    final int w = img.getWidth();
+    final int h = img.getHeight();
+    final BufferedImage after = new BufferedImage((int) (w * scale), (int) (h * scale), BufferedImage.TYPE_INT_ARGB);
+    final AffineTransform at = new AffineTransform();
+    at.scale(scale, scale);
+    final AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+    img = scaleOp.filter(img, after);
+    return img;
+  }
+  
 }
