@@ -95,7 +95,7 @@ public class NetworkElementUnitTests {
   }
   
   @Test
-  @Ignore
+  //@Ignore
   public void convolutionSynapseLayer_train() throws Exception {
     final boolean verbose = false;
     final int[] inputSize = new int[] { 2 };

@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.learning.DeltaBuffer;
 import com.simiacryptus.mindseye.learning.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.learning.NNResult;
@@ -53,7 +52,7 @@ public class GradientDescentTrainer {
         final NNResult eval = result.get(sample);
         final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
         final double err = eval.errRms(output);
-        return Math.pow(err, currentNet.getWeight());
+        return err;
       }).collect(Collectors.toList());
     }
     return rms.stream().mapToDouble(x -> x).toArray();
@@ -65,7 +64,7 @@ public class GradientDescentTrainer {
       trainSet(trainingContext,null);
       return error(trainingContext);
     }
-    final double returnValue = Math.pow(GradientDescentTrainer.geometricMean(error), totalWeight());
+    final double returnValue = GradientDescentTrainer.geometricMean(error);
     assert Double.isFinite(returnValue);
     return returnValue;
   }
@@ -78,7 +77,8 @@ public class GradientDescentTrainer {
           final NDArray input = sample[0];
           final NDArray output = sample[1];
           trainingContext.evaluations.increment();
-          final NNResult eval = params.getNet().eval(new EvaluationContext(), input);
+          NDArray[] input1 = { input };
+          final NNResult eval = params.getNet().eval(input1);
           assert eval.data.dim() == output.dim();
           return eval;
         }).collect(Collectors.toList());
@@ -128,11 +128,6 @@ public class GradientDescentTrainer {
         final NDArray delta2 = eval.delta(output);
         final LogNDArray log2 = delta2.log();
         LogNDArray delta = log2.scale(getRate());
-        final double factor = currentNet.getWeight();// * product / rmsList[network];
-        // log.debug(String.format("%s actual vs %s ideal -> %s delta * %s", eval.data, output, delta, factor));
-        if (Double.isFinite(factor)) {
-          delta = delta.scale(factor);
-        }
         eval.feedback(delta, buffer);
       });
     };
@@ -156,10 +151,6 @@ public class GradientDescentTrainer {
     }
     this.verbose = verbose;
     return this;
-  }
-
-  public double totalWeight() {
-    return 1. / getCurrentNetwork().getWeight();
   }
 
   public synchronized double[] trainSet(TrainingContext trainingContext, final double[] rates) {

@@ -44,7 +44,7 @@ public class ImageNetworkDev {
     return convolution;
   }
 
-  public NNLayer blur_3x4() {
+  public PipelineNetwork blur_3x4() {
     final PipelineNetwork net = new PipelineNetwork();
     for (int i = 0; i < 3; i++)
     {
@@ -103,21 +103,22 @@ public class ImageNetworkDev {
     final NNLayer convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new EvaluationContext(), new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(null,new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, ""));
 
     final PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
 
     Util.report(data.stream().map(obj -> {
-      final NNResult output = forwardConvolutionNet.eval(new EvaluationContext(), obj.data);
+      NDArray[] input = { obj.data };
+      final NNResult output = forwardConvolutionNet.eval(input);
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       final Trainer trainer = new Trainer().setStaticRate(1.);
 
       trainer.set(new SupervisedTrainingParameters(new PipelineNetwork()
       .add(bias)
-      .add(convolution), new NDArray[][] { { zeroInput, output.data } }).setWeight(1));
+      .add(convolution), new NDArray[][] { { zeroInput, output.data } }));
 
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias),
@@ -155,7 +156,8 @@ public class ImageNetworkDev {
 
       bias = (BiasLayer) trainer.getBest(trainingContext).getFirst().getNet().get(0);
       final NNResult recovered = bias.eval(new EvaluationContext(), zeroInput);
-      final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(new EvaluationContext(), zeroInput);
+      NDArray[] input1 = { zeroInput };
+      final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(input1);
 
       return Util.imageHtml(
           Util.toImage(obj.data),

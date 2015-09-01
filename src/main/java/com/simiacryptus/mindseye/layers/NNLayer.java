@@ -22,7 +22,11 @@ public abstract class NNLayer {
   private String id = UUID.randomUUID().toString();
 
   public final NNResult eval(EvaluationContext evaluationContext, final NDArray... array) {
-    return eval(evaluationContext, Stream.of(array).map(a->new NNResult(a) {
+    return eval(evaluationContext, wrapInput(array));
+  }
+
+  public static NNResult[] wrapInput(final NDArray... array) {
+    return Stream.of(array).map(a->new NNResult(a) {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         // Do Nothing
@@ -32,7 +36,7 @@ public abstract class NNLayer {
       public boolean isAlive() {
         return false;
       }
-    }).toArray(i->new NNResult[i]));
+    }).toArray(i->new NNResult[i]);
   }
   
   public abstract NNResult eval(EvaluationContext evaluationContext, NNResult... array);

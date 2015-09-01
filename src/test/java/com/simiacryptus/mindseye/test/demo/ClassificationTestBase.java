@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
@@ -101,7 +100,7 @@ public abstract class ClassificationTestBase {
                 for (int ypx = 0; ypx < getHeight(); ypx++) {
                   final double xf = (xpx * 1. / getWidth() - .5) * 6;
                   final double yf = (ypx * 1. / getHeight() - .5) * 6;
-                  final NNResult eval = n.getNetwork().eval(new EvaluationContext(), new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+                  final NNResult eval = n.getNetwork().eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
                   int classificationActual = outputToClassification(eval.data);
                   int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
                   this.setRGB(xpx, ypx, color);
@@ -113,7 +112,7 @@ public abstract class ClassificationTestBase {
             correct.classificationAccuracy = (Stream.of(samples).mapToDouble(pt -> {
               final NDArray expectedOutput = pt[1];
               NDArray input = pt[0];
-              NNResult output = n.getNetwork().eval(new EvaluationContext(), input);
+              NNResult output = n.getNetwork().eval(input);
               final NDArray actualOutput = output.data;
               correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
                 double x = expectedOutput.get(i)-actualOutput.get(i);

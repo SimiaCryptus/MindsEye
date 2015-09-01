@@ -23,21 +23,20 @@ public class DynamicRateTrainer {
   
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
   
-  private double baseRate = .1;
   int currentIteration = 0;
-  private double decayTolerance = 5e-2;
+  private double temperature = 0.1;
   int generationsSinceImprovement = 0;
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
-  final int maxIterations = 1000;
-  private double maxRate = 100;
+  final int maxIterations = 10000;
+  private double maxRate = 10000;
   double minRate = 0;
-  double monteCarloDecayStep = 0.9;
+  double monteCarloDecayStep = 0.7;
   double monteCarloMin = 0.5;
   private double mutationFactor = 1.;
-  double rate = 0.5;
+  double rate = 0.25;
   double[] rates = null;
-  private int recalibrationInterval = 10;
+  private int recalibrationInterval = 1000;
   int recalibrationThreshold = 0;
   private double stopError = 0;
   private boolean verbose = false;
@@ -128,16 +127,12 @@ public class DynamicRateTrainer {
     return getInner().getCurrent().error(trainingContext);
   }
   
-  public double getBaseRate() {
-    return this.baseRate;
-  }
-  
   public GradientDescentTrainer getBest() {
     return getInner().getBest();
   }
   
-  public double getDecayTolerance() {
-    return this.decayTolerance;
+  public double getTemperature() {
+    return this.temperature;
   }
   
   public int getGenerationsSinceImprovement() {
@@ -208,14 +203,9 @@ public class DynamicRateTrainer {
     return x;
   }
   
-  public DynamicRateTrainer setBaseRate(final double baseRate) {
-    this.baseRate = baseRate;
+  public DynamicRateTrainer setTemperature(final double temperature) {
+    this.temperature = temperature;
     return this;
-  }
-  
-  public boolean setDecayTolerance(final double decayTolerance) {
-    this.decayTolerance = decayTolerance;
-    return true;
   }
   
   public DynamicRateTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
@@ -294,7 +284,7 @@ public class DynamicRateTrainer {
       final double best = getInner().getBest().error(trainingContext);
       final double last = getInner().getCurrent().error(trainingContext);
       final double next = trainOnce(trainingContext);
-      if (next / last < 1 + getDecayTolerance() || next / best < 1 + 5 * getDecayTolerance())
+      if (next / last < 1 + getTemperature() || next / best < 1 + 5 * getTemperature())
       {
         this.generationsSinceImprovement = 0;
       }

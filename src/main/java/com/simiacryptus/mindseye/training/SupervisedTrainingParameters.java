@@ -6,7 +6,6 @@ import com.simiacryptus.mindseye.math.NDArray;
 public class SupervisedTrainingParameters {
   private PipelineNetwork net;
   private final NDArray[][] trainingData;
-  private double weight = 1;
 
   protected SupervisedTrainingParameters() {
     super();
@@ -31,16 +30,8 @@ public class SupervisedTrainingParameters {
     return this.trainingData;
   }
   
-  public double getWeight() {
-    return this.weight;
-  }
-  
   public void setNet(final PipelineNetwork net) {
     this.net = net;
   }
   
-  public SupervisedTrainingParameters setWeight(final double weight) {
-    this.weight = weight;
-    return this;
-  }
 }
