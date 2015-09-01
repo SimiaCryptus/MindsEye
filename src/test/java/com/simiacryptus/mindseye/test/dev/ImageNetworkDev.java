@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.layers.EvaluationContext;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNLayer.EvaluationContext;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;

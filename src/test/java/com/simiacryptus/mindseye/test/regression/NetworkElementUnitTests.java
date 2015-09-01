@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Random;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +156,7 @@ public class NetworkElementUnitTests {
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)) //
     .trainer(samples) //
     // .setStaticRate(.25).setMutationAmount(1)
-    .setVerbose(verbose).verifyConvergence(0, 0.1, 1);
+    .setVerbose(verbose).verifyConvergence(0, 0.1, 10);
   }
   
   @Test

@@ -6,7 +6,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Supplier;
+import com.simiacryptus.mindseye.layers.EvaluationContext;
+import com.simiacryptus.mindseye.layers.EvaluationContext.LazyResult;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.learning.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -15,64 +16,39 @@ import com.simiacryptus.mindseye.math.NDArray;
  * Defines the fundamental structure of a network, currently only simple linear layout.
  * 
  * @author Andrew Charneski
- *
  */
 public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
   
-  
-  public static class LazyResult<T> {
-    private transient volatile T value;
-    private final Supplier<T> f;
-    
-
-    public LazyResult(Supplier<T> f) {
-      super();
-      this.f = f;
-    }
-
-    public T get() {
-      if(null==this.value) {
-       synchronized(this){
-         if(null==this.value) {
-          this.value = initialValue(); 
-         }
-       } 
-      }
-      return this.value;
-    }
-
-    protected final T initialValue() {
-      return f.get();
-    }
-  }
-  
   protected List<NNLayer> insertOrder = new ArrayList<NNLayer>();
+  public final Object inputHandle = new Object();
+  public LazyResult<NNResult[]> head = new LazyResult<NNResult[]>() {
+    @Override
+    protected NNResult[] initialValue(EvaluationContext t) {
+      return (NNResult[]) t.cache.get(inputHandle);
+    }
+  };
   
-  public PipelineNetwork add(final NNLayer layer) {
+  public synchronized PipelineNetwork add(final NNLayer layer) {
     this.insertOrder.add(layer);
-    
+    LazyResult<NNResult[]> prevHead = head;
+    head = new LazyResult<NNResult[]>() {
+      @Override
+      protected NNResult[] initialValue(EvaluationContext ctx) {
+        NNResult[] input = prevHead.get(ctx);
+        NNResult output = layer.eval(ctx, input);
+        return new NNResult[] { output };
+      }
+    };
     return this;
   }
   
   public NNResult eval(EvaluationContext evaluationContext, NNResult... array) {
-    return eval(array);
+    evaluationContext.cache.put(inputHandle, array);
+    return head.get(evaluationContext)[0];
   }
-
-  public NNResult eval(final NDArray... inObj) {
-    return eval(wrapInput(inObj));
-  }
-
-  public NNResult eval(final NNResult... inObj) {
-    assert(1==inObj.length);
-    NNResult r = inObj[0];
-    for (final NNLayer l : this.insertOrder) {
-      r = l.eval(new EvaluationContext(), r);
-    }
-    return r;
-  }
-
+  
   public NNLayer get(final int i) {
     return this.insertOrder.get(i);
   }
@@ -84,6 +60,10 @@ public class PipelineNetwork extends NNLayer {
   
   public Trainer trainer(final NDArray[][] samples) {
     return new Trainer().set(this, samples);
+  }
+  
+  public NNResult eval(NDArray... array) {
+    return eval(new EvaluationContext(), array);
   }
   
 }

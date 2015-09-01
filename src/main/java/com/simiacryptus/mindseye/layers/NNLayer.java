@@ -15,8 +15,6 @@ import com.simiacryptus.mindseye.math.NDArray;
  */
 public abstract class NNLayer {
 
-  public static class EvaluationContext {}
-  
   private double currentStatusValue = Double.MAX_VALUE;
 
   private String id = UUID.randomUUID().toString();
