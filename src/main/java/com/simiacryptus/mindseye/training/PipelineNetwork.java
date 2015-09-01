@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,7 @@ public class PipelineNetwork extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
   
   protected List<NNLayer> insertOrder = new ArrayList<NNLayer>();
-  public final Object inputHandle = new Object();
+  public final UUID inputHandle = UUID.randomUUID();
   public LazyResult<NNResult[]> head = new LazyResult<NNResult[]>() {
     @Override
     protected NNResult[] initialValue(EvaluationContext t) {

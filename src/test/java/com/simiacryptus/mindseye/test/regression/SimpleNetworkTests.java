@@ -137,8 +137,6 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) }
     };
 
-    final double staticRate = .5;
-    
     // new PipelineNetwork() //
     // .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
     // .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //

@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -20,13 +19,8 @@ public class GradientDescentTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
 
-  public static double geometricMean(final double... error) {
-    final double geometricMean = Math.exp(DoubleStream.of(error).filter(x -> 0 != x).map(Math::log).average().orElse(Double.POSITIVE_INFINITY));
-    return geometricMean;
-  }
-  
   private SupervisedTrainingParameters currentNetwork = null;
-  private double error;
+  private double error = Double.POSITIVE_INFINITY;
   private double rate = 0.5;
   private boolean verbose = false;
 
@@ -47,9 +41,12 @@ public class GradientDescentTrainer {
     final SupervisedTrainingParameters currentNet = getCurrentNetwork();
     List<Double> rms = IntStream.range(0, result.size()).parallel().mapToObj(sample -> {
       final NNResult eval = result.get(sample);
-      final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
-      final double err = eval.errRms(output);
-      return err;
+      NDArray[][] trainingData = currentNet.getTrainingData();
+      NDArray[] sampleRow = trainingData[sample];
+      NDArray expected = sampleRow[1];
+      final NDArray output = currentNet.interceptIdeal(eval, expected);
+      final double err = eval.data.rms(output);
+      return err * err;
     }).collect(Collectors.toList());
     return Math.sqrt(rms.stream().mapToDouble(x -> x).average().getAsDouble());
   }
@@ -60,9 +57,7 @@ public class GradientDescentTrainer {
       trainSet(trainingContext,null);
       return error(trainingContext);
     }
-    final double returnValue = GradientDescentTrainer.geometricMean(error);
-    //assert Double.isFinite(returnValue);
-    return returnValue;
+    return error;
   }
 
   protected List<NNResult> evalTrainingData(TrainingContext trainingContext) {
@@ -73,8 +68,7 @@ public class GradientDescentTrainer {
           final NDArray input = sample[0];
           final NDArray output = sample[1];
           trainingContext.evaluations.increment();
-          NDArray[] input1 = { input };
-          final NNResult eval = params.getNet().eval(input1);
+          final NNResult eval = params.getNet().eval(input);
           assert eval.data.dim() == output.dim();
           return eval;
         }).collect(Collectors.toList());
@@ -85,9 +79,6 @@ public class GradientDescentTrainer {
   }
 
   public synchronized double getError() {
-    // if(null==this.error||0==this.error.length){
-    // trainSet();
-    // }
     return this.error;
   }
 
@@ -120,7 +111,7 @@ public class GradientDescentTrainer {
       // .parallel()
       .forEach(sample -> {
         final NNResult eval = netresults.get(sample);
-        final NDArray output = currentNet.getIdeal(eval, currentNet.getTrainingData()[sample][1]);
+        final NDArray output = currentNet.interceptIdeal(eval, currentNet.getTrainingData()[sample][1]);
         final NDArray delta2 = eval.delta(output);
         final LogNDArray log2 = delta2.log();
         LogNDArray delta = log2.scale(getRate());
@@ -158,17 +149,13 @@ public class GradientDescentTrainer {
     learn(results, buffer);
     final List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());
     if (null != rates) {
-      IntStream.range(0, buffer.map.size()).forEach(i -> {
-        deltas.get(i).write(rates[i]);
-      });
+      IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(rates[i]));
       final double validationError = calcError(evalTrainingData(trainingContext));
-      if (GradientDescentTrainer.geometricMean(calcError) < GradientDescentTrainer.geometricMean(validationError)) {
+      if (calcError < validationError) {
         if (this.verbose) {
-          GradientDescentTrainer.log.debug(String.format("Reverting: (%s)", (calcError)));
+          GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s)", (calcError)));
         }
-        IntStream.range(0, buffer.map.size()).forEach(i -> {
-          deltas.get(i).write(-rates[i]);
-        });
+        IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(-rates[i]));
       } else {
         if (this.verbose) {
           GradientDescentTrainer.log.debug(String.format("Validating: (%s)", (calcError)));

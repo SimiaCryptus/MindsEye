@@ -264,4 +264,14 @@ public class NDArray {
     }
   }
 
+
+  public double rms(final NDArray right) {
+    double sum = 0;
+    for (int i = 0; i < this.dim(); i++) {
+      final double diff = this.getData()[i] - right.getData()[i];
+      sum += diff * diff;
+    }
+    return Math.sqrt(sum / this.dim());
+  }
+
 }

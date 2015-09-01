@@ -33,16 +33,7 @@ public abstract class NNResult {
   }
   
   public final double errRms(final int k) {
-    return errRms(ideal(k));
-  }
-  
-  public final double errRms(final NDArray out) {
-    double sum = 0;
-    for (int i = 0; i < this.data.dim(); i++) {
-      final double diff = NNResult.this.data.getData()[i] - out.getData()[i];
-      sum += diff * diff;
-    }
-    return Math.sqrt(sum / this.data.dim());
+    return data.rms(ideal(k));
   }
   
   public abstract void feedback(final LogNDArray data, DeltaBuffer buffer);

@@ -28,7 +28,7 @@ public class DynamicRateTrainer {
   int generationsSinceImprovement = 0;
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
-  final int maxIterations = 10000;
+  final int maxIterations = 1000;
   private double maxRate = 10000;
   double minRate = 0;
   double monteCarloDecayStep = 0.7;
@@ -58,11 +58,11 @@ public class DynamicRateTrainer {
         final GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
         final List<DeltaFlushBuffer> writeVectors = current.getCurrentNetwork()
             .getNet().insertOrder.stream()
-            .map(n -> lessonVector.map.get(n))
-            .filter(n -> null != n)
-            .distinct()
-            .sorted(Comparator.comparing(y -> y.getId()))
-            .collect(Collectors.toList());
+                .map(n -> lessonVector.map.get(n))
+                .filter(n -> null != n)
+                .distinct()
+                .sorted(Comparator.comparing(y -> y.getId()))
+                .collect(Collectors.toList());
         final int layerCount = writeVectors.size();
         final double[] layerRates = Arrays.copyOf(x, layerCount);
         // double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
@@ -96,13 +96,12 @@ public class DynamicRateTrainer {
     try {
       optimum = optimizeRates(trainingContext);
       getInner().getCurrent().getCurrentNetwork()
-        .getNet().insertOrder.stream().distinct()
-        .forEach(layer -> layer.setStatus(optimum.getValue()));
+          .getNet().insertOrder.stream().distinct()
+              .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(this.rates).allMatch(r -> getMaxRate() > r)
           && DoubleStream.of(this.rates).anyMatch(r -> this.minRate < r);
-      if (inBounds)
-      {
+      if (inBounds) {
         this.lastCalibratedIteration = this.currentIteration;
         final double err = trainOnce(trainingContext);
         final double improvement = last - err;
@@ -118,7 +117,7 @@ public class DynamicRateTrainer {
     }
     if (isVerbose()) {
       DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(this.rates),
-          (getInner().getCurrent().getError())));
+          getInner().getCurrent().getError()));
     }
     return false;
   }
@@ -284,14 +283,10 @@ public class DynamicRateTrainer {
       final double best = getInner().getBest().error(trainingContext);
       final double last = getInner().getCurrent().error(trainingContext);
       final double next = trainOnce(trainingContext);
-      if (next / last < 1 + getTemperature() || next / best < 1 + 5 * getTemperature())
-      {
+      if (next / last < 1 + getTemperature() || next / best < 1 + 5 * getTemperature()) {
         this.generationsSinceImprovement = 0;
-      }
-      else
-      {
-        if (this.recalibrationThreshold < this.generationsSinceImprovement++)
-        {
+      } else {
+        if (this.recalibrationThreshold < this.generationsSinceImprovement++) {
           if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }

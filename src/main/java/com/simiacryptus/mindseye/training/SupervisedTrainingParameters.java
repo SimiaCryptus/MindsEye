@@ -18,7 +18,7 @@ public class SupervisedTrainingParameters {
     this.trainingData = trainingData;
   }
 
-  public NDArray getIdeal(final NNResult eval, final NDArray preset) {
+  public NDArray interceptIdeal(final NNResult eval, final NDArray preset) {
     return preset;
   }
 

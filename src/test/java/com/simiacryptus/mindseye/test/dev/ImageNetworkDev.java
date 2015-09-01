@@ -103,7 +103,7 @@ public class ImageNetworkDev {
     final NNLayer convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(null,new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new EvaluationContext(),new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, ""));
 
