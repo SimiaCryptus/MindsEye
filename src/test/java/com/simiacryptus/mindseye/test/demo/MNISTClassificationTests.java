@@ -48,15 +48,16 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     };
   }
   
-  public Stream<LabeledObject<NDArray>> getTraining(final List<LabeledObject<NDArray>> buffer) {
-    return Util.shuffle(buffer, SimpleMNIST.random).parallelStream().limit(1000);
-  }
-  
   @Test // (expected = RuntimeException.class)
   public void test() throws Exception {
-    int maxSize = 1000;
-    test(Util.shuffle(MNIST.trainingDataStream().collect(Collectors.toList()), SimpleMNIST.random).parallelStream().limit(maxSize)
-        .map(obj -> new NDArray[] { obj.data, SimpleMNIST.toOutNDArray(SimpleMNIST.toOut(obj.label), 10) })
+    int maxSize = 100000;
+    List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream().collect(Collectors.toList()), SimpleMNIST.random);
+    test(data.parallelStream().limit(maxSize)
+        .map(obj -> {
+          int out = SimpleMNIST.toOut(obj.label);
+          NDArray output = SimpleMNIST.toOutNDArray(out, 10);
+          return new NDArray[] { obj.data, output };
+        })
         .toArray(i -> new NDArray[i][]));
   }
 

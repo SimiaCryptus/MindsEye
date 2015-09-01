@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -169,7 +170,8 @@ public abstract class ClassificationTestBase {
   }
 
   public Color randomColor() {
-    return new Color(Util.R.get().nextInt(255),Util.R.get().nextInt(255),Util.R.get().nextInt(255));
+    Random r = Util.R.get();
+    return new Color(r.nextInt(255),r.nextInt(255),r.nextInt(255));
   }
   
 }
