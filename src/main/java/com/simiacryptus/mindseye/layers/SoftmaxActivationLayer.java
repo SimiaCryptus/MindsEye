@@ -20,7 +20,7 @@ public class SoftmaxActivationLayer extends NNLayer {
   public SoftmaxActivationLayer() {
   }
 
-  double maxInput = 7;
+  double maxInput = 100;
   
   @Override
   public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {

@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.test.demo;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
@@ -19,31 +20,34 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 8 };
-    final int midLayers = 0;
+    final int midLayers = 3;
     PipelineNetwork net = new PipelineNetwork();
     
     //net = net.add(new SynapseActivationLayer(NDArray.dim(inputSize)).setWeights(()->1.));
     net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
     net = net.add(new BiasLayer(midSize));
-    net = net.add(new SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
     //net = net.add(new LinearActivationLayer());
+    //net = net.add(new SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
+    net = net.add(new MinMaxFilterLayer());
     net = net.add(new SigmoidActivationLayer());
     
     for (int i = 0; i < midLayers; i++) {
       net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), midSize));
       net = net.add(new BiasLayer(midSize));
-      net = net.add(new LinearActivationLayer());
+      //net = net.add(new LinearActivationLayer());
+      net = net.add(new MinMaxFilterLayer());
       net = net.add(new SigmoidActivationLayer());
     }
     
     //net = net.add(new SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
     net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
-    net = net.add(new SynapseActivationLayer(NDArray.dim(outSize)).setWeights(()->1.));
+//    net = net.add(new SynapseActivationLayer(NDArray.dim(outSize)).setWeights(()->1.));
     net = net.add(new BiasLayer(outSize));
     
     // net = net.add(new ExpActivationLayer());
     // net = net.add(new L1NormalizationLayer());
     // net = net.add(new SigmoidActivationLayer());
+    net = net.add(new MinMaxFilterLayer());
     net = net.add(new LinearActivationLayer());
     net = net.add(new SoftmaxActivationLayer());
     
