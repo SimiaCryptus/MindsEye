@@ -102,10 +102,15 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   public void test_X() throws Exception {
     super.test_X();
   }
-  
+
   @Override
   public void test_O2() throws Exception {
     super.test_O2();
+  }
+
+  @Override
+  public void test_O22() throws Exception {
+    super.test_O22();
   }
   
   @Override

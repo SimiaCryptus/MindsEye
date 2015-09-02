@@ -175,7 +175,7 @@ public class GradientDescentTrainer {
       return prevError;
     }
   }
-  private double temperature = 0.005;
+  private double temperature = 0.00;
 
   public static boolean thermalStep(final double prev, final double next, double temp) {
     if(next<prev) return true;

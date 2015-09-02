@@ -13,70 +13,41 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.simiacryptus.mindseye.util.Util;
 
 public final class GaussianDistribution implements Function<Void, double[]> {
-  public final MultivariateNormalDistribution distribution;
-  private RealMatrix pos;
-  private RealMatrix postMult;
-
+  private double[] pos;
+  private int dims;
+  private double size = 1;
+  
   public GaussianDistribution(final int dims) {
     final Random random = Util.R.get();
-
-    final double[] means = new double[dims];
-    for (int i = 0; i < means.length; i++)
-    {
-      means[i] = 1;
-    }
-    final double[][] diaganals = new double[dims][];
-    for (int i = 0; i < diaganals.length; i++)
-    {
-      diaganals[i] = new double[dims];
-      diaganals[i][i] = 1;
-    }
-    final RandomGenerator rng = new JDKRandomGenerator();
-    rng.setSeed(random.nextInt());
-    this.distribution = new MultivariateNormalDistribution(rng, means, diaganals);
-
-    this.pos = MatrixUtils.createColumnRealMatrix(IntStream.range(0, dims).mapToDouble(i -> random.nextGaussian() * 0.6).toArray());
-    this.postMult = MatrixUtils.createRealMatrix(dims, dims);
-    IntStream.range(0, dims).forEach(i -> {
-      IntStream.range(0, dims).forEach(j -> {
-        this.postMult.setEntry(i, j, random.nextGaussian() * 0.4);
-      });
-    });
+    size = random.nextDouble();
+    this.pos = IntStream.range(0, dims).mapToDouble(i -> random.nextGaussian() * 0.6).toArray();
   }
-
+  
   public GaussianDistribution(final int dims, final double[] pos, final double size) {
     final Random random = Util.R.get();
-
+    this.dims = dims;
     final double[] means = new double[dims];
-    for (int i = 0; i < means.length; i++)
-    {
+    for (int i = 0; i < means.length; i++) {
       means[i] = 1;
     }
     final double[][] diaganals = new double[dims][];
-    for (int i = 0; i < diaganals.length; i++)
-    {
+    for (int i = 0; i < diaganals.length; i++) {
       diaganals[i] = new double[dims];
       diaganals[i][i] = 1;
     }
     final RandomGenerator rng = new JDKRandomGenerator();
     rng.setSeed(random.nextInt());
-    this.distribution = new MultivariateNormalDistribution(rng, means, diaganals);
-
-    this.pos = MatrixUtils.createColumnRealMatrix(pos);
-    this.postMult = MatrixUtils.createRealMatrix(dims, dims);
-    IntStream.range(0, dims).forEach(i -> {
-      IntStream.range(0, dims).forEach(j -> {
-        this.postMult.setEntry(i, j, i == j ? size : 0);
-      });
-    });
+    
+    this.pos = pos;
+    this.size = size;
   }
-
+  
   @Override
   public double[] apply(final Void n) {
-    final RealMatrix sample = MatrixUtils.createColumnRealMatrix(this.distribution.sample());
-    final RealMatrix multiply = this.postMult.multiply(sample);
-    final RealMatrix add = multiply.add(this.pos).transpose();
-    final double[] ds = add.getData()[0];
+    final double[] ds = new double[dims];
+    for (int i = 0; i < dims; i++) {
+      ds[i] = Util.R.get().nextGaussian() * size + pos[i];
+    }
     return ds;
   }
 }

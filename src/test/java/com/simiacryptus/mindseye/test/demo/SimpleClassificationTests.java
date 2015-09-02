@@ -74,6 +74,14 @@ public abstract class SimpleClassificationTests extends ClassificationTestBase {
   }
 
   @Test(expected = RuntimeException.class)
+  public void test_O22() throws Exception {
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
+        new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 }),new Simple2DCircle(2*(1.75 * 1.75)/4, new double[] { 0, 0 })),
+        new UnionDistribution(new Simple2DCircle(1.75, new double[] { 0, 0 }))
+        ), 100));
+  }
+
+  @Test(expected = RuntimeException.class)
   public void test_oo() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
         new UnionDistribution(new Simple2DCircle(1, new double[] { -0.5, 0 })),
@@ -123,11 +131,11 @@ public abstract class SimpleClassificationTests extends ClassificationTestBase {
   }
 
   @Test(expected = RuntimeException.class)
-  @Ignore
+  //@Ignore
   public void test_O3() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 2.)),
-        new UnionDistribution(new Simple2DCircle(.25, new double[] { 0, 0 }))
+        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 1)),
+        new UnionDistribution(new Simple2DCircle(.5, new double[] { 0, 0 }))
         ), 1000));
   }
   
