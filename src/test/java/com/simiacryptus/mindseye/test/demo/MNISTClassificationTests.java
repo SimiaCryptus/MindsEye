@@ -36,8 +36,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     final PipelineNetwork net = new PipelineNetwork()
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
         //.add(new BiasLayer(outSize))
-        //.add(new SigmoidActivationLayer());
-        .add(new SoftmaxActivationLayer());
+        .add(new SigmoidActivationLayer());
+        //.add(new SoftmaxActivationLayer());
     return net;
   }
   
@@ -72,18 +72,17 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   private String remap(String label) {
     switch(label){
-//    case "[0]": return "[5]";
-//    case "[5]": return "[9]";
-//    case "[9]": return "[0]";
+    case "[0]": return "[5]";
+    case "[5]": return "[9]";
+    case "[9]": return "[0]";
     default: return label;
     }
   }
 
   public boolean filter(LabeledObject<NDArray> item) {
-    if(item.label.equals("[1]")) return true;
-    if(item.label.equals("[3]")) return true;
+    if(item.label.equals("[0]")) return true;
     if(item.label.equals("[5]")) return true;
-    if(item.label.equals("[7]")) return true;
+    if(item.label.equals("[9]")) return true;
     return false;
   }
 

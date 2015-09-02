@@ -11,17 +11,13 @@ import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
-public class SigmoidActivationLayer extends NNLayer {
+public class ExpActivationLayer extends NNLayer {
   
-  private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
-  
-  public static double sigmiod(final double x) {
-    return 1 / (1 + Math.exp(-x));
-  }
+  private static final Logger log = LoggerFactory.getLogger(ExpActivationLayer.class);
   
   private boolean verbose;
   
-  public SigmoidActivationLayer() {
+  public ExpActivationLayer() {
   }
   
   @Override
@@ -29,28 +25,16 @@ public class SigmoidActivationLayer extends NNLayer {
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(inObj[0].data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
-    final double nonlinearity = getNonlinearity();
     IntStream.range(0, input.dim()).forEach(i -> {
-      
       final double x = input.getData()[i];
-      double f = 0. == nonlinearity ? x : SigmoidActivationLayer.sigmiod(x * nonlinearity) / nonlinearity;
-      final double minDeriv = 0;
       final double ex = Math.exp(x);
-      final double ex1 = 1 + ex;
-      double d = 0. == nonlinearity ? 1. : ex / (ex1 * ex1);
-      // double d = f * (1 - f);
-      if (!Double.isFinite(d) || d < minDeriv) {
-        d = minDeriv;
-      }
-      assert Double.isFinite(d);
-      assert minDeriv <= Math.abs(d);
-      d = 2 * d;
-      f = 2 * f - 1;
+      double d = ex;
+      double f = ex;
       inputGradient.add(new int[] { i }, d);
       output.set(i, f);
     });
     if (isVerbose()) {
-      SigmoidActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
+      ExpActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
     return new NNResult(output) {
       @Override
@@ -64,7 +48,7 @@ public class SigmoidActivationLayer extends NNLayer {
             }
           });
           if (isVerbose()) {
-            SigmoidActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
+            ExpActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
           inObj[0].feedback(passback, buffer);
         }
@@ -77,15 +61,11 @@ public class SigmoidActivationLayer extends NNLayer {
     };
   }
   
-  protected double getNonlinearity() {
-    return 1;
-  }
-  
   public boolean isVerbose() {
     return this.verbose;
   }
   
-  public SigmoidActivationLayer setVerbose(final boolean verbose) {
+  public ExpActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
