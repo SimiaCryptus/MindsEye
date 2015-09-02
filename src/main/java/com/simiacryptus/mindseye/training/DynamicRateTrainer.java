@@ -24,20 +24,20 @@ public class DynamicRateTrainer {
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
   
   int currentIteration = 0;
-  private double temperature = 0.05;
+  private double temperature = 0.0;
   int generationsSinceImprovement = 0;
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
   final int maxIterations = 1000;
   private double maxRate = 10000;
   double minRate = 0;
-  double monteCarloDecayStep = 0.;
+  double monteCarloDecayStep = 0.9;
   double monteCarloMin = 0.5;
   private double mutationFactor = 1.;
   double rate = 0.5;
   double[] rates = null;
-  private int recalibrationInterval = 20;
-  int recalibrationThreshold = 0;
+  private int recalibrationInterval = 10;
+  int recalibrationThreshold = 1;
   private double stopError = 0;
   private boolean verbose = false;
   
@@ -284,7 +284,7 @@ public class DynamicRateTrainer {
       //final double best = getInner().getBest().error(trainingContext);
       final double last = getInner().getCurrent().error(trainingContext);
       final double next = trainOnce(trainingContext);
-      if (GradientDescentTrainer.thermalStep(last, next, getTemperature())) {
+      if (last != next && GradientDescentTrainer.thermalStep(last, next, getTemperature())) {
         this.generationsSinceImprovement = 0;
       } else {
         if (this.recalibrationThreshold < this.generationsSinceImprovement++) {

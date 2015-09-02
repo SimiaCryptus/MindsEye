@@ -3,12 +3,13 @@ package com.simiacryptus.mindseye.test.demo;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.junit.Test;
 
+import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.L1NormalizationLayer;
-import com.simiacryptus.mindseye.layers.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
+import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.test.dev.MNIST;
@@ -33,14 +34,21 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   @Override
   public PipelineNetwork buildNetwork() {
     final int[] inputSize = new int[] { 28, 28 };
+    final int[] midSize = new int[] { 10 };
     final int[] outSize = new int[] { 10 };
     PipelineNetwork net = new PipelineNetwork();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize));
-    // net = net.add(new BiasLayer(outSize))
-    // net = net.add(new SigmoidActivationLayer());
+    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
+    net = net.add(new BiasLayer(midSize));
+    
+    net = net.add(new MinMaxFilterLayer());
+    net = net.add(new SigmoidActivationLayer());
+    
+    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
+    net = net.add(new BiasLayer(outSize));
+    
     // net = net.add(new ExpActivationLayer())
     // net = net.add(new L1NormalizationLayer());
-    net = net.add(new LinearActivationLayer());
+    // net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
     net = net.add(new SoftmaxActivationLayer());
     return net;

@@ -1,10 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
-import java.util.Arrays;
-import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +11,6 @@ import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
-import com.simiacryptus.mindseye.util.Util;
 
 public class MinMaxFilterLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
@@ -78,8 +74,6 @@ public class MinMaxFilterLayer extends NNLayer {
     IntStream.range(0, input.dim()).forEach(i -> {
       final double x = input.getData()[i];
       final double r = Math.min(Math.max(x, -getThreshold()), getThreshold());
-      if (Double.isFinite(r)) {
-      }
       output.set(i, r);
     });
     if (isVerbose()) {

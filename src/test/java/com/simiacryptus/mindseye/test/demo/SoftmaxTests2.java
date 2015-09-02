@@ -4,10 +4,8 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.SynapseActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Tester;
@@ -20,7 +18,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 8 };
-    final int midLayers = 3;
+    final int midLayers = 0;
     PipelineNetwork net = new PipelineNetwork();
     
     //net = net.add(new SynapseActivationLayer(NDArray.dim(inputSize)).setWeights(()->1.));

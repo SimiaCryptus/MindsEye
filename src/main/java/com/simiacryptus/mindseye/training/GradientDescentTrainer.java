@@ -143,7 +143,7 @@ public class GradientDescentTrainer {
   public synchronized double trainSet(TrainingContext trainingContext, final double[] rates) {
     assert null != getCurrentNetwork();
     final List<NNResult> results = evalTrainingData(trainingContext);
-    final double prevError = calcError(results);
+    double prevError = calcError(results);
     setError(prevError);
     final DeltaBuffer buffer = new DeltaBuffer();
     learn(results, buffer);
@@ -154,21 +154,28 @@ public class GradientDescentTrainer {
     if (null != rates) {
       IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(rates[i]));
       final double validationError = calcError(evalTrainingData(trainingContext));
-      if (!thermalStep(prevError, validationError, getTemperature())) {
+      if(prevError == validationError) {
         if (this.verbose) {
-          GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s)", (prevError)));
+          GradientDescentTrainer.log.debug(String.format("Static: (%s)", (prevError)));
+        }
+      } else if (!thermalStep(prevError, validationError, getTemperature())) {
+        if (this.verbose) {
+          GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError-prevError));
         }
         IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(-rates[i]));
-      } else {
+        return prevError;
+      } else{
         if (this.verbose) {
           GradientDescentTrainer.log.debug(String.format("Validated: (%s)", (prevError)));
         }
+        setError(validationError);
       }
-      setError(prevError);
+      return validationError;
+    } else {
+      return prevError;
     }
-    return prevError;
   }
-  private double temperature = .01;
+  private double temperature = 0.005;
 
   public static boolean thermalStep(final double prev, final double next, double temp) {
     if(next<prev) return true;
