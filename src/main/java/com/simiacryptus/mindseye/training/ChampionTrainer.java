@@ -96,7 +96,11 @@ public class ChampionTrainer {
     double bestError = null==best?Double.POSITIVE_INFINITY:best.error(trainingContext);
     if (Double.isFinite(currentError) && (null == best || bestError > currentError)) {
       if (isVerbose()) {
-        ChampionTrainer.log.debug(String.format("New best Error %s > %s", currentError, null == best ? "null" : bestError));
+        ChampionTrainer.log.debug(String.format("New best Error %s > %s (%s inc)\nCurrent State: %s", 
+            currentError, 
+            null == best ? "null" : bestError, 
+            ((currentError - bestError) / currentError), 
+            trainingContext));
         // log.debug(String.format("Best: %s", currentNetworks.get(0).getNet()));
       }
       setBest(Util.kryo().copy(current));

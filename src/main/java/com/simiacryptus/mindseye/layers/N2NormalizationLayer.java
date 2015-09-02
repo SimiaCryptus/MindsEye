@@ -24,8 +24,8 @@ public class N2NormalizationLayer extends NNLayer {
   @Override
   public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
-    final double sum1 = input.sum();
-    final double sum = !Double.isFinite(sum1) || 0. == sum1 ? 1. : sum1;
+    double s1 = input.sum();
+    final double sum = s1==0.?1:s1;
     final NDArray output = input.map(x -> x / sum);
     
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
@@ -33,11 +33,11 @@ public class N2NormalizationLayer extends NNLayer {
     for(int i=0;i<indata.length;i++){
       for(int j=0;j<indata.length;j++){
         double value = 0;
-        double x = indata[j];
         if (i == j) {
-          value = (sum - x) / (sum*sum);
+          // XXX: Are i and j are reversed here?
+          value = (sum - indata[j]) / (sum*sum);
         } else {
-          value = -x / (sum*sum);
+          value = -indata[i] / (sum*sum);
         }
         if (Double.isFinite(value)) {
           inputGradient.add(new int[] { i, j }, value);

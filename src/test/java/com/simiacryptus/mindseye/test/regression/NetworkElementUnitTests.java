@@ -232,10 +232,10 @@ public class NetworkElementUnitTests {
 
   @Test
   public void n2ActivationLayer_feedback() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
+    final int[] inputSize = new int[] { 4 };
+    final int[] outSize = inputSize;
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) }
+        { new NDArray(inputSize, new double[] { 0, 0, 0, 0 }), new NDArray(outSize, new double[] { 0.2, 0.3, 0.4, 0.1 }) }
     };
     new PipelineNetwork()
     .add(new BiasLayer(inputSize))

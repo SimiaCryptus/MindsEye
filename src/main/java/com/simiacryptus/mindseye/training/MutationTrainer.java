@@ -297,9 +297,9 @@ public class MutationTrainer {
     } catch (TerminationCondition e) {
       log.debug("Terminated training",e);
     }
-    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations)", getInner().error(trainingContext),
+    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", getInner().error(trainingContext),
         (System.currentTimeMillis() - startMs) / 1000.,
-        this.currentGeneration));
+        this.currentGeneration, trainingContext));
     final GradientDescentTrainer best = getBest();
     return null == best ? Double.POSITIVE_INFINITY : best.error(trainingContext);
   }

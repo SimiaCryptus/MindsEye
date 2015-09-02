@@ -22,6 +22,7 @@ public class ExpActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    assert(0==inObj.length);
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(inObj[0].data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
@@ -42,11 +43,7 @@ public class ExpActivationLayer extends NNLayer {
         if (inObj[0].isAlive()) {
           final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
-          IntStream.range(0, passback.dim()).forEach(i -> {
-            if (inputGradientLog.getData()[i].isFinite()) {
-              passback.set(i, data.getData()[i].multiply(inputGradientLog.getData()[i]));
-            }
-          });
+          IntStream.range(0, passback.dim()).forEach(i -> passback.set(i, data.getData()[i].multiply(inputGradientLog.getData()[i])));
           if (isVerbose()) {
             ExpActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
