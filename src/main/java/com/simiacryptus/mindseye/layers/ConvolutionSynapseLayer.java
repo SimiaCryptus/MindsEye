@@ -101,7 +101,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
   public final NDArray kernel;
   private boolean paralell = false;
   private boolean verbose = false;
-  private DeltaFlushBuffer writer;
   
   protected ConvolutionSynapseLayer() {
     super();
@@ -113,7 +112,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
-    this.writer = new DeltaFlushBuffer(this.kernel);
   }
 
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
@@ -123,18 +121,21 @@ public class ConvolutionSynapseLayer extends NNLayer {
 
   @Override
   public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
+    assert(1 == inObj.length);
     final NDArray input = inObj[0].data;
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();
     final int[] newDims = IntStream.range(0, kernelDims.length).map(
         i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1).toArray();
     final NDArray output = new NDArray(newDims);
-    Arrays.stream(ConvolutionSynapseLayer.getIndexMap(this.kernel, input, output)).forEach(array -> {
-      assert Double.isFinite(this.kernel.getData()[array[0]]);
-      assert Double.isFinite(input.getData()[array[1]]);
-    });
-    Arrays.stream(ConvolutionSynapseLayer.getIndexMap(this.kernel, input, output)).forEach(array -> {
-      output.add(array[2], input.getData()[array[1]] * this.kernel.getData()[array[0]]);
+    int[][] indexMap = ConvolutionSynapseLayer.getIndexMap(this.kernel, input, output);
+    Arrays.stream(indexMap).forEach(array -> {
+      int k = array[0];
+      int i = array[1];
+      int o = array[2];
+      assert Double.isFinite(this.kernel.getData()[k]);
+      assert Double.isFinite(input.getData()[i]);
+      output.add(o, input.getData()[i] * this.kernel.getData()[k]);
     });
     if (isVerbose()) {
       ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
@@ -144,23 +145,29 @@ public class ConvolutionSynapseLayer extends NNLayer {
       public void feedback(final LogNDArray errorSignal, final DeltaBuffer buffer) {
         if (!isFrozen()) {
           final LogNDArray weightGradient = new LogNDArray(ConvolutionSynapseLayer.this.kernel.getDims());
-          Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            final double in = input.getData()[array[1]];
-            final LogNumber err = errorSignal.getData()[array[2]];
-            weightGradient.add(array[0], err.multiply(in));
+          Arrays.stream(indexMap).forEach(array -> {
+            int i = array[1];
+            int o = array[2];
+            int k = array[0];
+            final double in = input.getData()[i];
+            final LogNumber err = errorSignal.getData()[o];
+            weightGradient.add(k, err.multiply(in));
           });
-          ConvolutionSynapseLayer.this.writer.feed(weightGradient.exp().getData());
+          buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.exp().getData());
         }
         if (inObj[0].isAlive()) {
           final LogNDArray klog = ConvolutionSynapseLayer.this.kernel.log();
           final LogNDArray backprop = new LogNDArray(inputDims);
     
-          Arrays.stream(ConvolutionSynapseLayer.getIndexMap(ConvolutionSynapseLayer.this.kernel, input, output)).forEach(array -> {
-            final LogNumber kernelValue = klog.get(array[0]);
+          Arrays.stream(indexMap).forEach(array -> {
+            int k = array[0];
+            int o = array[2];
+            int i = array[1];
+            final LogNumber kernelValue = klog.get(k);
             if (kernelValue.isFinite())
             {
-              final LogNumber errorValue = errorSignal.get(array[2]);
-              backprop.add(array[1], errorValue.multiply(kernelValue));
+              final LogNumber errorValue = errorSignal.get(o);
+              backprop.add(i, errorValue.multiply(kernelValue));
             }
           });
           if (isVerbose()) {

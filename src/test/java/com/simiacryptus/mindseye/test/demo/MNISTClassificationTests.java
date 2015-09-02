@@ -85,12 +85,12 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   
   private String remap(String label) {
     switch (label) {
-    case "[0]":
-      return "[5]";
-    case "[5]":
-      return "[9]";
-    case "[9]":
-      return "[0]";
+//    case "[0]":
+//      return "[5]";
+//    case "[5]":
+//      return "[9]";
+//    case "[9]":
+//      return "[0]";
     default:
       return label;
     }
@@ -106,7 +106,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   @Override
   public void verify(Tester trainer) {
     trainer.setMutationAmplitude(.1)
-        .verifyConvergence(0, 0.1, 1);
+        .verifyConvergence(0, 0.0, 10);
   }
   
 }

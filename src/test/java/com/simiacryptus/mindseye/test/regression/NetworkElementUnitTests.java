@@ -158,7 +158,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { -1 }) },
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) }
     };
     new PipelineNetwork() //
