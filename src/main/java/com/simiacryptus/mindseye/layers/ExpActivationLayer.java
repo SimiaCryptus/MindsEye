@@ -30,8 +30,9 @@ public class ExpActivationLayer extends NNLayer {
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       final double x = input.getData()[i];
-      double max = 100;
-      final double ex = Math.exp(Math.max(Math.min(max, x), -max));
+      double max = 700;//Math.log(Double.MAX_VALUE);
+      double bounded = Math.max(Math.min(max, x), -max);
+      final double ex = Math.exp(bounded);
       double d = ex;
       double f = ex;
       inputGradient.set(new int[] { i }, d);

@@ -48,7 +48,7 @@ public class ImageNetworkDev {
     return convolution;
   }
 
-  public PipelineNetwork blur_3x4() {
+  public NNLayer blur_3x4() {
     final PipelineNetwork net = new PipelineNetwork();
     for (int i = 0; i < 3; i++)
     {

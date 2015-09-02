@@ -12,8 +12,10 @@ import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.ExpActivationLayer;
 import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.layers.L1NormalizationLayer;
+import com.simiacryptus.mindseye.layers.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.SynapseActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 
@@ -21,9 +23,9 @@ public class NetworkElementUnitTests {
   static final Logger log = LoggerFactory.getLogger(NetworkElementUnitTests.class);
   
   public static final Random random = new Random();
-  
+
   @Test
-  public void _denseSynapseLayer_train2() throws Exception {
+  public void denseSynapseLayer_feedback2() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
@@ -33,6 +35,60 @@ public class NetworkElementUnitTests {
     new PipelineNetwork()
         .add(new BiasLayer(inputSize))
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
+        .trainer(samples).verifyConvergence(0, 0.1, 100);
+  }
+
+  @Test
+  public void synapseActivationLayer_train() throws Exception {
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { 0.5, 2 }), new NDArray(outSize, new double[] { 1, -1 }) }
+    };
+    
+    new PipelineNetwork()
+        .add(new SynapseActivationLayer(NDArray.dim(inputSize)))
+        .trainer(samples).verifyConvergence(0, 0.1, 100);
+  }
+
+  @Test
+  public void synapseActivationLayer_feedback() throws Exception {
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) }
+    };
+    
+    new PipelineNetwork()
+        .add(new BiasLayer(inputSize))
+        .add(new SynapseActivationLayer(NDArray.dim(inputSize)).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
+        .trainer(samples).verifyConvergence(0, 0.1, 100);
+  }
+
+  @Test
+  public void linearActivationLayer_train() throws Exception {
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { 0.5, 2 }), new NDArray(outSize, new double[] { 1, 4 }) }
+    };
+    
+    new PipelineNetwork()
+        .add(new LinearActivationLayer())
+        .trainer(samples).verifyConvergence(0, 0.1, 100);
+  }
+
+  @Test
+  public void linearActivationLayer_feedback() throws Exception {
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final NDArray[][] samples = new NDArray[][] {
+        { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) }
+    };
+    
+    new PipelineNetwork()
+        .add(new BiasLayer(inputSize))
+        .add(new LinearActivationLayer().addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .trainer(samples).verifyConvergence(0, 0.1, 100);
   }
   

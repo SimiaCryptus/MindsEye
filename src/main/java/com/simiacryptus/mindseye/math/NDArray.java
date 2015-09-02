@@ -75,6 +75,10 @@ public class NDArray {
     add(index(coords), value);
   }
   
+  public DoubleMatrix asRowMatrix() {
+    return new DoubleMatrix(this.dims[0], 1, getData()).transpose();
+  }
+  
   public DoubleMatrix asMatrix() {
     return new DoubleMatrix(this.dims[0], this.dims[1], getData()).transpose();
   }

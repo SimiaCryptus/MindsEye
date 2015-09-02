@@ -47,10 +47,10 @@ public class TestMNISTDev {
       add(new SigmoidActivationLayer());
       NDArray[] input2 = { this.inputSize };
       
-      this.insertOrder.add(new DenseSynapseLayer(eval(input2).data.dim(), new int[] { 16 }));
+      this.getChildren().add(new DenseSynapseLayer(eval(input2).data.dim(), new int[] { 16 }));
       NDArray[] input3 = { this.inputSize };
       add(new BiasLayer(eval(input3).data.getDims()));
-      this.insertOrder.add(new SigmoidActivationLayer());
+      this.getChildren().add(new SigmoidActivationLayer());
       NDArray[] input4 = { this.inputSize };
 
       add(new DenseSynapseLayer(eval(input4).data.dim(), new int[] { 10 }));

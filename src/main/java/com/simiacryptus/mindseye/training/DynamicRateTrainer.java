@@ -57,7 +57,7 @@ public class DynamicRateTrainer {
       public double value(final double x[]) {
         final GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
         final List<DeltaFlushBuffer> writeVectors = current.getCurrentNetwork()
-            .getNet().insertOrder.stream()
+            .getNet().getChildren().stream()
                 .map(n -> lessonVector.map.get(n))
                 .filter(n -> null != n)
                 .distinct()
@@ -96,7 +96,7 @@ public class DynamicRateTrainer {
     try {
       optimum = optimizeRates(trainingContext);
       getInner().getCurrent().getCurrentNetwork()
-          .getNet().insertOrder.stream().distinct()
+          .getNet().getChildren().stream().distinct()
               .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(this.rates).allMatch(r -> getMaxRate() > r)
@@ -252,7 +252,7 @@ public class DynamicRateTrainer {
     getInner().step(trainingContext, this.rates);
     getInner().updateBest(trainingContext);
     final double error = error(trainingContext);
-    getInner().getCurrent().getCurrentNetwork().getNet().insertOrder.stream()
+    getInner().getCurrent().getCurrentNetwork().getNet().getChildren().stream()
         .distinct()
         .forEach(layer -> layer.setStatus(error));
     return error;

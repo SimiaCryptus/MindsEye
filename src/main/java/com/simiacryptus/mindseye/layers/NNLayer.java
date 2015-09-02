@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -55,6 +57,10 @@ public abstract class NNLayer {
 
   public void setStatus(final double value) {
     this.currentStatusValue = value;
+  }
+
+  public List<NNLayer> getChildren() {
+    return Arrays.asList(this);
   }
 
 }

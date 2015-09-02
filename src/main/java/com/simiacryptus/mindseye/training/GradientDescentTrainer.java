@@ -85,7 +85,7 @@ public class GradientDescentTrainer {
 
   public List<NNLayer> getLayers() {
     SupervisedTrainingParameters x = getCurrentNetwork();
-    return x.getNet().insertOrder.stream().distinct().collect(Collectors.toList());
+    return x.getNet().getChildren().stream().distinct().collect(Collectors.toList());
   }
 
   public PipelineNetwork getNetwork() {

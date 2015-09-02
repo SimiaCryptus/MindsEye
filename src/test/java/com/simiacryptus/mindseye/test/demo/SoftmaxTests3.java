@@ -11,7 +11,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 
-public class SoftmaxTests2 extends SimpleClassificationTests {
+public class SoftmaxTests3 extends SimpleClassificationTests {
   
   @Override
   public PipelineNetwork buildNetwork() {
@@ -22,30 +22,32 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     final int midLayers = 0;
     PipelineNetwork net = new PipelineNetwork();
     
-    //net = net.add(new SynapseActivationLayer(NDArray.dim(inputSize)).setWeights(()->1.));
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
-    net = net.add(new BiasLayer(midSize));
-    net = net.add(new SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
-    //net = net.add(new LinearActivationLayer());
-    net = net.add(new SigmoidActivationLayer());
+    NNLayer inputLayer = new PipelineNetwork()
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+        .add(new BiasLayer(midSize))
+        .add(new SigmoidActivationLayer());
+    net = net.add(inputLayer);
     
     for (int i = 0; i < midLayers; i++) {
-      net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), midSize));
-      net = net.add(new BiasLayer(midSize));
-      net = net.add(new LinearActivationLayer());
-      net = net.add(new SigmoidActivationLayer());
+      NNLayer hiddenLayer = new PipelineNetwork()
+          .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
+          .add(new BiasLayer(midSize))
+          .add(new SigmoidActivationLayer());
+      net = net.add(hiddenLayer);
     }
     
-    //net = net.add(new SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
-    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
-    net = net.add(new SynapseActivationLayer(NDArray.dim(outSize)).setWeights(()->1.));
-    net = net.add(new BiasLayer(outSize));
+    PipelineNetwork outputLayer = new PipelineNetwork();
+    outputLayer = outputLayer.add(new SynapseActivationLayer(NDArray.dim(midSize)));
+    outputLayer = outputLayer.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
+    outputLayer = outputLayer.add(new BiasLayer(outSize));
+    outputLayer = outputLayer.add(new SynapseActivationLayer(NDArray.dim(outSize)));
+    net = net.add(outputLayer);
     
-    // net = net.add(new ExpActivationLayer());
-    // net = net.add(new L1NormalizationLayer());
-    // net = net.add(new SigmoidActivationLayer());
-    net = net.add(new LinearActivationLayer());
-    net = net.add(new SoftmaxActivationLayer());
+    // outputLayer = outputLayer.add(new ExpActivationLayer());
+    // outputLayer = outputLayer.add(new L1NormalizationLayer());
+    // outputLayer = outputLayer.add(new SigmoidActivationLayer());
+    outputLayer = outputLayer.add(new LinearActivationLayer());
+    outputLayer = outputLayer.add(new SoftmaxActivationLayer());
     
     return net;
   }

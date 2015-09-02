@@ -6,8 +6,9 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.ExpActivationLayer;
 import com.simiacryptus.mindseye.layers.L1NormalizationLayer;
+import com.simiacryptus.mindseye.layers.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
@@ -36,9 +37,10 @@ public class MNISTClassificationTests extends ClassificationTestBase {
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
         // .add(new BiasLayer(outSize))
         // .add(new SigmoidActivationLayer());
-        //.add(new ExpActivationLayer())
-        .add(new L1NormalizationLayer());
-    // .add(new SoftmaxActivationLayer());
+        // .add(new ExpActivationLayer())
+        // .add(new L1NormalizationLayer());
+        .add(new LinearActivationLayer())
+        .add(new SoftmaxActivationLayer());
     return net;
   }
   
