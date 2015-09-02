@@ -294,8 +294,9 @@ public class DynamicRateTrainer {
           if (!calibrate(trainingContext)) {
             DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
             return false;
+          } else {
+            this.generationsSinceImprovement = 0;
           }
-          this.generationsSinceImprovement = 0;
         }
       }
     }
