@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
 import com.simiacryptus.mindseye.training.SupervisedTrainingParameters;
-import com.simiacryptus.mindseye.training.Trainer;
+import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
@@ -81,7 +81,7 @@ public class ImageNetworkDev {
     return new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1, inputSize[2] - kernelSize[2] + 1 };
   }
 
-  private BufferedImage render(final int[] inputSize, final String string) {
+  public static BufferedImage render(final int[] inputSize, final String string) {
     final Random r = new Random();
     final BufferedImage img = new BufferedImage(inputSize[0], inputSize[1], BufferedImage.TYPE_INT_RGB);
     final Graphics2D g = img.createGraphics();
@@ -119,7 +119,7 @@ public class ImageNetworkDev {
       final NNResult output = forwardConvolutionNet.eval(input);
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
-      final Trainer trainer = new Trainer().setStaticRate(1.);
+      final Tester trainer = new Tester().setStaticRate(1.);
 
       trainer.set(new SupervisedTrainingParameters(new PipelineNetwork()
       .add(bias)

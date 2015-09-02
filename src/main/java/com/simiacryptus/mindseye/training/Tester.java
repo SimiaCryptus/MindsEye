@@ -20,19 +20,19 @@ import com.simiacryptus.mindseye.util.Util;
  * @author Andrew Charneski
  *
  */
-public class Trainer {
+public class Tester {
   
-  static final Logger log = LoggerFactory.getLogger(Trainer.class);
+  static final Logger log = LoggerFactory.getLogger(Tester.class);
   
   public final List<BiFunction<MutationTrainer, TrainingContext, Void>> handler = new ArrayList<>();
   
   private MutationTrainer inner = new MutationTrainer();
   
-  public Trainer set(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
+  public Tester set(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
     return set(new SupervisedTrainingParameters(pipelineNetwork, samples));
   }
   
-  public Trainer set(final SupervisedTrainingParameters params) {
+  public Tester set(final SupervisedTrainingParameters params) {
     getInner().getInner().getInner().getCurrent().set(params);
     return this;
   }
@@ -46,7 +46,7 @@ public class Trainer {
     return this.inner;
   }
   
-  public Trainer setDynamicRate(final double d) {
+  public Tester setDynamicRate(final double d) {
     getInner().getInner().getInner().getCurrent().setRate(d);
     return this;
   }
@@ -55,32 +55,32 @@ public class Trainer {
     this.inner = inner;
   }
   
-  public Trainer setMaxDynamicRate(final double d) {
+  public Tester setMaxDynamicRate(final double d) {
     getInner().getInner().setMaxRate(d);
     return this;
   }
   
-  public Trainer setMinDynamicRate(final double d) {
+  public Tester setMinDynamicRate(final double d) {
     getInner().getInner().setMinRate(d);
     return this;
   }
   
-  public Trainer setMutationAmount(final double d) {
+  public Tester setMutationAmount(final double d) {
     getInner().setMutationAmount(d);
     return this;
   }
   
-  public Trainer setMutationAmplitude(final double d) {
+  public Tester setMutationAmplitude(final double d) {
     getInner().setMutationAmplitude(d);
     return this;
   }
   
-  public Trainer setStaticRate(final double d) {
+  public Tester setStaticRate(final double d) {
     getInner().getInner().setRate(d);
     return this;
   }
   
-  public Trainer setVerbose(final boolean b) {
+  public Tester setVerbose(final boolean b) {
     getInner().setVerbose(b);
     return this;
   }
@@ -96,10 +96,10 @@ public class Trainer {
       this.handler.stream().forEach(h -> h.apply(copy,trainingContext));
       hasConverged = error <= convergence;
       if (!hasConverged) {
-        Trainer.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
+        Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
       }
     } catch (final Throwable e) {
-      Trainer.log.debug("Not Converged", e);
+      Tester.log.debug("Not Converged", e);
     }
     return hasConverged;
   }

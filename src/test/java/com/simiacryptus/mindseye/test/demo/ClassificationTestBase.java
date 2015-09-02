@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
-import com.simiacryptus.mindseye.training.Trainer;
+import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
 public abstract class ClassificationTestBase {
@@ -34,7 +34,7 @@ public abstract class ClassificationTestBase {
     super();
   }
 
-  public Trainer buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
+  public Tester buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
     return net.trainer(samples);
   }
 
@@ -87,7 +87,7 @@ public abstract class ClassificationTestBase {
   boolean drawBG = true;
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
     final PipelineNetwork net = buildNetwork();
-    final Trainer trainer = buildTrainer(samples, net);
+    final Tester trainer = buildTrainer(samples, net);
     final Map<BufferedImage,String> images = new HashMap<>();
     int categories = samples[0][1].dim();
     trainer.handler.add((n,trainingContext) -> {
@@ -160,7 +160,7 @@ public abstract class ClassificationTestBase {
   public Integer outputToClassification(NDArray actual) {
     return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
-  public void verify(final Trainer trainer) {
+  public void verify(final Tester trainer) {
     trainer.verifyConvergence(0, 0.0, 10);
   }
 

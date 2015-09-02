@@ -12,13 +12,14 @@ import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
-public class N2NormalizationLayer extends NNLayer {
+// XXX: Actually, L1
+public class L1NormalizationLayer extends NNLayer {
 
-  private static final Logger log = LoggerFactory.getLogger(N2NormalizationLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
 
   private boolean verbose;
 
-  public N2NormalizationLayer() {
+  public L1NormalizationLayer() {
   }
 
   @Override
@@ -35,9 +36,9 @@ public class N2NormalizationLayer extends NNLayer {
         double value = 0;
         if (i == j) {
           // XXX: Are i and j are reversed here?
-          value = (sum - indata[j]) / (sum*sum);
+          value = (sum - indata[i]) / (sum*sum);
         } else {
-          value = -indata[i] / (sum*sum);
+          value = -indata[j] / (sum*sum);
         }
         if (Double.isFinite(value)) {
           inputGradient.add(new int[] { i, j }, value);
@@ -46,7 +47,7 @@ public class N2NormalizationLayer extends NNLayer {
     };
     
     if (isVerbose()) {
-      N2NormalizationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
+      log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
     return new NNResult(output) {
       @Override
@@ -61,7 +62,7 @@ public class N2NormalizationLayer extends NNLayer {
             };
           };
           if (isVerbose()) {
-            N2NormalizationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
+            log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
           }
           inObj[0].feedback(passback, buffer);
         }
@@ -79,7 +80,7 @@ public class N2NormalizationLayer extends NNLayer {
     return this.verbose;
   }
   
-  public N2NormalizationLayer setVerbose(final boolean verbose) {
+  public L1NormalizationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }

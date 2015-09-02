@@ -13,7 +13,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext.LazyResult;
 
 /***
- * Defines the fundamental structure of a network, currently only simple linear layout.
+ * Builds a linear pipeline of NNLayer components, applied in sequence
  * 
  * @author Andrew Charneski
  */
@@ -58,8 +58,8 @@ public class PipelineNetwork extends NNLayer {
     return "PipelineNetwork [" + this.insertOrder + "]";
   }
   
-  public Trainer trainer(final NDArray[][] samples) {
-    return new Trainer().set(this, samples);
+  public Tester trainer(final NDArray[][] samples) {
+    return new Tester().set(this, samples);
   }
   
   public NNResult eval(NDArray... array) {

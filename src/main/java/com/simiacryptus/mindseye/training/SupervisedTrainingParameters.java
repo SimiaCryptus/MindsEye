@@ -1,6 +1,5 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 
 public class SupervisedTrainingParameters {

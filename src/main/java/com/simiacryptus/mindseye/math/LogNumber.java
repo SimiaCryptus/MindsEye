@@ -44,7 +44,7 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     assert right.isFinite();
     if (null == right) return left;
     if (left.logValue < right.logValue) return right.add(left);
-    if (right.logValue - left.logValue < -10) return this;
+    if (right.logValue - left.logValue < -5) return this;
     final LogNumber left2 = new LogNumber(left.type, 0.); // left.logValue-left.logValue
     final LogNumber right2 = new LogNumber(right.type, right.logValue - left.logValue);
     final LogNumber result = LogNumber.log(right2.doubleValue() + left2.doubleValue());

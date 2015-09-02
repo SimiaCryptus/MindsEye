@@ -9,7 +9,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 public class DeltaBuffer {
   public final Map<NNLayer, DeltaFlushBuffer> map = new LinkedHashMap<>();
 
-  public DeltaFlushBuffer get(final NNLayer layer, final double[] ptr) {
+  public synchronized DeltaFlushBuffer get(final NNLayer layer, final double[] ptr) {
     return this.map.computeIfAbsent(layer, l -> new DeltaFlushBuffer(ptr, layer));
   }
   

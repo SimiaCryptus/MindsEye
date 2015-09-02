@@ -24,17 +24,17 @@ public class DynamicRateTrainer {
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
   
   int currentIteration = 0;
-  private double temperature = 0.0;
+  private double temperature = 0.05;
   int generationsSinceImprovement = 0;
   private final ChampionTrainer inner;
   int lastCalibratedIteration = Integer.MIN_VALUE;
   final int maxIterations = 1000;
   private double maxRate = 10000;
   double minRate = 0;
-  double monteCarloDecayStep = 0.7;
+  double monteCarloDecayStep = 0.;
   double monteCarloMin = 0.5;
   private double mutationFactor = 1.;
-  double rate = 0.25;
+  double rate = 0.5;
   double[] rates = null;
   private int recalibrationInterval = 20;
   int recalibrationThreshold = 0;
@@ -196,7 +196,8 @@ public class DynamicRateTrainer {
     final double calcError = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
     getInner().getCurrent().setError(calcError);
     if (this.verbose) {
-      DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(),
+      DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", 
+          Arrays.toString(x.getKey()), x.getValue(),
           (prev), calcError));
     }
     return x;
@@ -280,10 +281,10 @@ public class DynamicRateTrainer {
           return false;
         }
       }
-      final double best = getInner().getBest().error(trainingContext);
+      //final double best = getInner().getBest().error(trainingContext);
       final double last = getInner().getCurrent().error(trainingContext);
       final double next = trainOnce(trainingContext);
-      if (next / last < 1 + getTemperature() || next / best < 1 + 5 * getTemperature()) {
+      if (GradientDescentTrainer.thermalStep(last, next, getTemperature())) {
         this.generationsSinceImprovement = 0;
       } else {
         if (this.recalibrationThreshold < this.generationsSinceImprovement++) {

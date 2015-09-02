@@ -109,7 +109,7 @@ public class GradientDescentTrainer {
     {
       final SupervisedTrainingParameters currentNet = getCurrentNetwork();
       IntStream.range(0, netresults.size())
-      // .parallel()
+      .parallel()
       .forEach(sample -> {
         final NNResult actualOutput = netresults.get(sample);
         final NDArray idealOutput = currentNet.getTrainingData()[sample][1];
@@ -143,27 +143,48 @@ public class GradientDescentTrainer {
   public synchronized double trainSet(TrainingContext trainingContext, final double[] rates) {
     assert null != getCurrentNetwork();
     final List<NNResult> results = evalTrainingData(trainingContext);
-    final double calcError = calcError(results);
-    setError(calcError);
+    final double prevError = calcError(results);
+    setError(prevError);
     final DeltaBuffer buffer = new DeltaBuffer();
     learn(results, buffer);
+    if(null==rates) return Double.POSITIVE_INFINITY;
+    assert(rates.length==buffer.map.size());
     final List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());
+    assert(rates.length==deltas.size());
     if (null != rates) {
       IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(rates[i]));
       final double validationError = calcError(evalTrainingData(trainingContext));
-      if (calcError < validationError) {
+      if (!thermalStep(prevError, validationError, getTemperature())) {
         if (this.verbose) {
-          GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s)", (calcError)));
+          GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s)", (prevError)));
         }
         IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(-rates[i]));
       } else {
         if (this.verbose) {
-          GradientDescentTrainer.log.debug(String.format("Validating: (%s)", (calcError)));
+          GradientDescentTrainer.log.debug(String.format("Validated: (%s)", (prevError)));
         }
       }
-      setError(calcError);
+      setError(prevError);
     }
-    return calcError;
+    return prevError;
+  }
+  private double temperature = .01;
+
+  public static boolean thermalStep(final double prev, final double next, double temp) {
+    if(next<prev) return true;
+    if(temp<=0.) return false;
+    double p = Math.exp(-(next-prev)/(Math.min(next,prev)*temp));
+    boolean step = Math.random() < p;
+    return step;
+  }
+
+  public double getTemperature() {
+    return temperature;
+  }
+
+  public GradientDescentTrainer setTemperature(double temperature) {
+    this.temperature = temperature;
+    return this;
   }
 
 }

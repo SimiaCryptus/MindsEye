@@ -13,7 +13,7 @@ import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
-import com.simiacryptus.mindseye.training.Trainer;
+import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -49,7 +49,7 @@ public class SimpleMNIST {
     return net;
   }
   
-  public Trainer getTrainer(final PipelineNetwork net, final NDArray[][] data) {
+  public Tester getTrainer(final PipelineNetwork net, final NDArray[][] data) {
     return net.trainer(data)
         // .setDynamicRate(0.001)
         // .setStaticRate(0.01)
