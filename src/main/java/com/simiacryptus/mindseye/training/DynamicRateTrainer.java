@@ -50,6 +50,7 @@ public class DynamicRateTrainer {
   }
   
   public MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final double fraction, TrainingContext trainingContext) {
+    double prev = error(trainingContext);
     final MultivariateFunction f = new MultivariateFunction() {
       double[] pos = new double[lessonVector.map.size()];
       
@@ -80,7 +81,7 @@ public class DynamicRateTrainer {
             .calcError(current.evalTrainingData(trainingContext));
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
-          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(layerRates), err, (calcError)));
+          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s; %s)", Arrays.toString(layerRates), err, calcError, prev-calcError));
         }
         return err;
       }
@@ -186,13 +187,13 @@ public class DynamicRateTrainer {
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
+    final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
     do {
-      final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
       x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
-    // f.value(new double[dims]); // Reset to original state
+    //f.value(new double[lessonVector.map.size()]); // Reset to original state
     final double calcError = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
     getInner().getCurrent().setError(calcError);
     if (this.verbose) {
@@ -275,10 +276,10 @@ public class DynamicRateTrainer {
         if (isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
-        // calibrate();
-        if (!calibrate(trainingContext)) {
+        int retry = 0;
+        while(!calibrate(trainingContext) && retry++ < 5) {
           DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
-          return false;
+          //return false;
         }
       }
       //final double best = getInner().getBest().error(trainingContext);
