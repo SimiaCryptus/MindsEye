@@ -57,7 +57,7 @@ public class DynamicRateTrainer {
       @Override
       public double value(final double x[]) {
         final GradientDescentTrainer current = DynamicRateTrainer.this.getInner().getCurrent();
-        final List<DeltaFlushBuffer> writeVectors = current.getCurrentNetwork()
+        final List<DeltaFlushBuffer> writeVectors = current
             .getNet().getChildren().stream()
                 .map(n -> lessonVector.map.get(n))
                 .filter(n -> null != n)
@@ -96,7 +96,7 @@ public class DynamicRateTrainer {
     PointValuePair optimum;
     try {
       optimum = optimizeRates(trainingContext);
-      getInner().getCurrent().getCurrentNetwork()
+      getInner().getCurrent()
           .getNet().getChildren().stream().distinct()
               .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
@@ -182,8 +182,8 @@ public class DynamicRateTrainer {
   
   public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
     final double prev = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
-    assert null != getInner().getCurrent().getCurrentNetwork();
-    final DeltaBuffer lessonVector = getInner().getCurrent().learn(getInner().getCurrent().evalTrainingData(trainingContext), new DeltaBuffer());
+    assert null != getInner().getCurrent();
+    final DeltaBuffer lessonVector = getInner().getCurrent().learn(getInner().getCurrent().evalTrainingData(trainingContext));
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
@@ -253,7 +253,7 @@ public class DynamicRateTrainer {
     getInner().step(trainingContext, this.rates);
     getInner().updateBest(trainingContext);
     final double error = error(trainingContext);
-    getInner().getCurrent().getCurrentNetwork().getNet().getChildren().stream()
+    getInner().getCurrent().getNet().getChildren().stream()
         .distinct()
         .forEach(layer -> layer.setStatus(error));
     return error;

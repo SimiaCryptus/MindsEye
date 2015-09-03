@@ -40,7 +40,7 @@ public class ChampionTrainer {
   }
   
   public PipelineNetwork getNetwork() {
-    return this.current.getNetwork();
+    return this.current.getNet();
   }
   
   public boolean isVerbose() {

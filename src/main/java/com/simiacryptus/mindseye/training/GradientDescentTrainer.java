@@ -15,11 +15,10 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 
-public class GradientDescentTrainer {
+public class GradientDescentTrainer extends SupervisedTrainingParameters {
 
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
 
-  private SupervisedTrainingParameters currentNetwork = null;
   private double error = Double.POSITIVE_INFINITY;
   private double rate = 0.5;
   private boolean verbose = false;
@@ -28,17 +27,13 @@ public class GradientDescentTrainer {
   }
 
   public GradientDescentTrainer set(final PipelineNetwork net, final NDArray[][] data) {
-    return set(new SupervisedTrainingParameters(net, data));
-  }
-
-  public GradientDescentTrainer set(final SupervisedTrainingParameters params) {
-    assert(null == currentNetwork);
-    currentNetwork = params;
+    this.setNet(net);
+    this.setTrainingData(data);
     return this;
   }
 
   protected double calcError(final List<NNResult> result) {
-    final SupervisedTrainingParameters currentNet = getCurrentNetwork();
+    final SupervisedTrainingParameters currentNet = this;
     List<Double> rms = IntStream.range(0, result.size()).parallel().mapToObj(sample -> {
       final NNResult eval = result.get(sample);
       NDArray[][] trainingData = currentNet.getTrainingData();
@@ -62,7 +57,7 @@ public class GradientDescentTrainer {
   }
 
   protected List<NNResult> evalTrainingData(TrainingContext trainingContext) {
-    SupervisedTrainingParameters params = getCurrentNetwork();
+    SupervisedTrainingParameters params = this;
     return Stream.of(params.getTrainingData())
         .parallel()
         .map(sample -> {
@@ -75,21 +70,13 @@ public class GradientDescentTrainer {
         }).collect(Collectors.toList());
   }
 
-  public SupervisedTrainingParameters getCurrentNetwork() {
-    return this.currentNetwork;
-  }
-
   public synchronized double getError() {
     return this.error;
   }
 
   public List<NNLayer> getLayers() {
-    SupervisedTrainingParameters x = getCurrentNetwork();
+    SupervisedTrainingParameters x = this;
     return x.getNet().getChildren().stream().distinct().collect(Collectors.toList());
-  }
-
-  public PipelineNetwork getNetwork() {
-    return this.currentNetwork.getNet();
   }
 
   public double getRate() {
@@ -100,14 +87,11 @@ public class GradientDescentTrainer {
     return this.verbose;
   }
 
-  protected DeltaBuffer learn(final List<NNResult> results) {
-    return learn(results, new DeltaBuffer());
-  }
-
-  protected DeltaBuffer learn(final List<NNResult> netresults, final DeltaBuffer buffer) {
+  protected DeltaBuffer learn(final List<NNResult> netresults) {
+    final DeltaBuffer buffer = new DeltaBuffer();
     // Apply corrections
     {
-      final SupervisedTrainingParameters currentNet = getCurrentNetwork();
+      final SupervisedTrainingParameters currentNet = this;
       IntStream.range(0, netresults.size())
       .parallel()
       .forEach(sample -> {
@@ -141,12 +125,11 @@ public class GradientDescentTrainer {
   }
 
   public synchronized double trainSet(TrainingContext trainingContext, final double[] rates) {
-    assert null != getCurrentNetwork();
+    assert null != this;
     final List<NNResult> results = evalTrainingData(trainingContext);
     double prevError = calcError(results);
     setError(prevError);
-    final DeltaBuffer buffer = new DeltaBuffer();
-    learn(results, buffer);
+    DeltaBuffer buffer = learn(results);
     if(null==rates) return Double.POSITIVE_INFINITY;
     assert(rates.length==buffer.map.size());
     final List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());

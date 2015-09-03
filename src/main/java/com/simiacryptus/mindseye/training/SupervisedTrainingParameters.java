@@ -4,7 +4,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 
 public class SupervisedTrainingParameters {
   private PipelineNetwork net;
-  private final NDArray[][] trainingData;
+  private NDArray[][] trainingData;
 
   protected SupervisedTrainingParameters() {
     super();
@@ -25,8 +25,14 @@ public class SupervisedTrainingParameters {
     return this.trainingData;
   }
   
-  public void setNet(final PipelineNetwork net) {
+  public SupervisedTrainingParameters setNet(final PipelineNetwork net) {
     this.net = net;
+    return this;
+  }
+
+  public SupervisedTrainingParameters setTrainingData(NDArray[][] trainingData) {
+    this.trainingData = trainingData;
+    return this;
   }
   
 }

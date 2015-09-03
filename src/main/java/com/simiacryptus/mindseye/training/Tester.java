@@ -29,17 +29,13 @@ public class Tester {
   private MutationTrainer inner = new MutationTrainer();
   
   public Tester set(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
-    return set(new SupervisedTrainingParameters(pipelineNetwork, samples));
-  }
-  
-  public Tester set(final SupervisedTrainingParameters params) {
-    getInner().getInner().getInner().getCurrent().set(params);
+    getInner().getInner().getInner().getCurrent().set(pipelineNetwork, samples);
     return this;
   }
   
   public Tuple2<SupervisedTrainingParameters, Double> getBest(TrainingContext trainingContext) {
     final GradientDescentTrainer best = getInner().getBest();
-    return new Tuple2<SupervisedTrainingParameters, Double>(null == best ? null : best.getCurrentNetwork(), null == best ? null : best.error(trainingContext));
+    return new Tuple2<SupervisedTrainingParameters, Double>(null == best ? null : best, null == best ? null : best.error(trainingContext));
   }
   
   public MutationTrainer getInner() {
