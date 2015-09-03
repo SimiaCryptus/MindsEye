@@ -93,6 +93,7 @@ public class DynamicRateTrainer {
   protected boolean calibrate(TrainingContext trainingContext) {
     trainingContext.calibrations.increment();
     trainingContext.setActiveTrainingSet(new int[]{});
+    trainingContext.setActiveValidationSet(new int[]{});
     final double prevError = getInner().getCurrent().calcError(trainingContext, getInner().getCurrent().evalValidationData(trainingContext));
     boolean inBounds = false;
     PointValuePair optimum;
@@ -115,6 +116,10 @@ public class DynamicRateTrainer {
         //return true;
         boolean improved = improvement > 0;
         trainingContext.setActiveTrainingSet(null);
+        trainingContext.setActiveValidationSet(null);
+        GradientDescentTrainer current = getInner().getCurrent();
+        current.calcTrainingSieve(trainingContext, current.evalTrainingData(trainingContext, current.getActiveTrainingData(trainingContext)));
+        current.calcValidationSieve(trainingContext, current.evalValidationData(trainingContext));
         return improved;
       }
     } catch (final Exception e) {
@@ -199,6 +204,7 @@ public class DynamicRateTrainer {
     final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
     do {
       trainingContext.setActiveTrainingSet(new int[]{});
+      trainingContext.setActiveValidationSet(new int[]{});
       x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
