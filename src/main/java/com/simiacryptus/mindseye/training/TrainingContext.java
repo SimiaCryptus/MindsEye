@@ -96,7 +96,8 @@ public class TrainingContext {
   public final Timer overallTimer;
   public final Counter mutations;
   public final Counter gradientSteps;
-  private int[] activeSet;
+  private int[] activeTrainingSet;
+  private int[] activeValidationSet;
 
   public TrainingContext() {
     this.evaluations = new Counter();
@@ -123,22 +124,40 @@ public class TrainingContext {
     return builder.toString();
   }
 
-  public int[] getActiveSet() {
-    if(null == activeSet) return null;
-    if(0 == activeSet.length) return null;
-    return activeSet;
+  public int[] getActiveTrainingSet() {
+    if(null == activeTrainingSet) return null;
+    if(0 == activeTrainingSet.length) return null;
+    return activeTrainingSet;
   }
 
-  public void setActiveSet(int[] activeSet) {
-    this.activeSet = activeSet;
+  public void setActiveTrainingSet(int[] activeSet) {
+    this.activeTrainingSet = activeSet;
   }
 
-  public synchronized int[] updateActiveSet(Supplier<int[]> f) {
-    if(null == getActiveSet()) {
-      activeSet = f.get();
-      if(0 == activeSet.length) activeSet = null;
+  public synchronized int[] updateActiveTrainingSet(Supplier<int[]> f) {
+    if(null == getActiveTrainingSet()) {
+      activeTrainingSet = f.get();
+      if(0 == activeTrainingSet.length) activeTrainingSet = null;
     }
-    return activeSet;
+    return activeTrainingSet;
+  }
+  
+  public int[] getActiveValidationSet() {
+    if(null == activeValidationSet) return null;
+    if(0 == activeValidationSet.length) return null;
+    return activeValidationSet;
+  }
+
+  public void setActiveValidationSet(int[] activeSet) {
+    this.activeValidationSet = activeSet;
+  }
+
+  public synchronized int[] updateActiveValidationSet(Supplier<int[]> f) {
+    if(null == getActiveValidationSet()) {
+      activeValidationSet = f.get();
+      if(0 == activeValidationSet.length) activeValidationSet = null;
+    }
+    return activeValidationSet;
   }
   
 }
