@@ -29,11 +29,13 @@ public class MutationTrainer {
   private double stopError = 0.1;
   private boolean verbose = false;
 
+  private GradientDescentTrainer initial;
+
   public MutationTrainer() {
-    this(new ChampionTrainer());
+    this(new GradientDescentTrainer());
   }
 
-  public MutationTrainer(final ChampionTrainer inner) {
+  public MutationTrainer(final GradientDescentTrainer inner) {
     this.inner = new DynamicRateTrainer(inner);
   }
 
@@ -78,11 +80,11 @@ public class MutationTrainer {
   }
 
   public double error(TrainingContext trainingContext) {
-    return getInner().getInner().getCurrent().error(trainingContext);
+    return getInner().getInner().getError();
   }
 
   public GradientDescentTrainer getBest() {
-    return getInner().getBest();
+    return getInner().getInner();
   }
 
   public int getGenerationsSinceImprovement() {
@@ -194,13 +196,13 @@ public class MutationTrainer {
                 .filter(l -> !l.isFrozen())
                 .mapToInt(l -> mutate(l, amount))
                 .sum();
-    getInner().getInner().getCurrent().setError(Double.NaN);
+    getInner().getInner().setError(Double.NaN);
     return sum;
   }
   
   public void mutateBest(TrainingContext trainingContext) {
     getInner().generationsSinceImprovement = getInner().recalibrationThreshold - 1;
-    getInner().getInner().revert(trainingContext);
+    inner.setInner(Util.kryo().copy(this.initial));
     while (0 >= mutate(getMutationFactor())) {
     }
     getInner().lastCalibratedIteration = getInner().currentIteration;// - (this.recalibrationInterval + 2);
@@ -276,11 +278,8 @@ public class MutationTrainer {
     try {
       while (continueTraining(trainingContext)) {
         if (0 == this.currentGeneration++) {
-          mutate(1);
-          mutate(1);
-          mutate(1);
-          mutate(1);
-          mutate(1);
+          initialize();
+          this.initial = Util.kryo().copy(getInner().getInner());
         } else {
           trainingContext.mutations.increment();
           mutateBest(trainingContext);
@@ -290,8 +289,8 @@ public class MutationTrainer {
           MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
               this.currentGeneration, 
               getInner().error(trainingContext), 
-              getInner().getInner().getCurrent().getError(),
-              getInner().getInner().getCurrent().getRate()));
+              getInner().getInner().getError(),
+              getInner().getInner().getRate()));
         }
       } 
     } catch (TerminationCondition e) {
@@ -301,6 +300,14 @@ public class MutationTrainer {
         (System.currentTimeMillis() - startMs) / 1000.,
         this.currentGeneration, trainingContext));
     final GradientDescentTrainer best = getBest();
-    return null == best ? Double.POSITIVE_INFINITY : best.error(trainingContext);
+    return null == best ? Double.POSITIVE_INFINITY : best.getError();
+  }
+
+  public void initialize() {
+    mutate(1);
+    mutate(1);
+    mutate(1);
+    mutate(1);
+    mutate(1);
   }
 }

@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.training;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,8 +17,8 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 
-import groovy.lang.Tuple;
 import groovy.lang.Tuple2;
 
 public class GradientDescentTrainer {
@@ -108,15 +109,6 @@ public class GradientDescentTrainer {
         .average().getAsDouble());
   }
   
-  public double error(final TrainingContext trainingContext) {
-    final double error = getError();
-    // if (!Double.isFinite(error)) {
-    // trainSet(trainingContext, null);
-    // return error(trainingContext);
-    // }
-    return error;
-  }
-
   protected List<NNResult> evalTrainingData(final TrainingContext trainingContext, NDArray[][] activeTrainingData) {
     return Stream.of(activeTrainingData)
         .parallel()
@@ -196,14 +188,8 @@ public class GradientDescentTrainer {
           final NNResult actualOutput = netresults.get(sample);
           final NDArray idealOutput = activeTrainingData[sample][1];
           final NDArray delta = actualOutput.delta(idealOutput);
-          // double[] actualOutputData = actualOutput.data.getData();
-          // double max = DoubleStream.of(actualOutputData).max().getAsDouble();
-          // double sum = DoubleStream.of(actualOutputData).sum();
-          // boolean correct = outputToClassification(actualOutput.data) == outputToClassification(idealOutput);
-          // double certianty = (max / sum) * (correct ? 1 : -1);
           final LogNDArray logDelta = delta.log().scale(getRate());
           actualOutput.feedback(logDelta, buffer);
-          // return new Tuple2<>(certianty, sample);
         });
     return buffer;
   }
@@ -273,5 +259,19 @@ public class GradientDescentTrainer {
       return validationError;
     } else return prevError;
   }
+
+  public Double step(TrainingContext trainingContext, final double[] rates) throws TerminationCondition {
+    final long startMs = System.currentTimeMillis();
+    trainSet(trainingContext, rates);
+    trainingContext.gradientSteps.increment();
+    if (this.verbose)
+    {
+      log.debug(String.format("Trained Error: %s (%s) with rate %s*%s in %.03fs",
+          getError(), (getError()), getRate(), Arrays.toString(rates),
+          (System.currentTimeMillis() - startMs) / 1000.));
+    }
+    return getError();
+  }
+
   
 }

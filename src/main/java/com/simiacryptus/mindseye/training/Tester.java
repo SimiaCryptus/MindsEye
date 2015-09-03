@@ -29,13 +29,13 @@ public class Tester {
   private MutationTrainer inner = new MutationTrainer();
   
   public Tester setParams(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
-    getInner().getInner().getInner().getCurrent().setNet(pipelineNetwork).setMasterTrainingData(samples);
+    getInner().getInner().getInner().setNet(pipelineNetwork).setMasterTrainingData(samples);
     return this;
   }
 
   public Tuple2<GradientDescentTrainer, Double> getBest(TrainingContext trainingContext) {
     final GradientDescentTrainer best = getInner().getBest();
-    return new Tuple2<GradientDescentTrainer, Double>(null == best ? null : best, null == best ? null : best.error(trainingContext));
+    return new Tuple2<GradientDescentTrainer, Double>(null == best ? null : best, null == best ? null : best.getError());
   }
   
   public MutationTrainer getInner() {
@@ -43,7 +43,7 @@ public class Tester {
   }
   
   public Tester setDynamicRate(final double d) {
-    getInner().getInner().getInner().getCurrent().setRate(d);
+    getInner().getInner().getInner().setRate(d);
     return this;
   }
   
