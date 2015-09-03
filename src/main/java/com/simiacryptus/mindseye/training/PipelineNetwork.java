@@ -62,7 +62,7 @@ public class PipelineNetwork extends NNLayer {
   }
   
   public Tester trainer(final NDArray[][] samples) {
-    return new Tester().set(this, samples);
+    return new Tester().setParams(this, samples);
   }
   
   public NNResult eval(NDArray... array) {

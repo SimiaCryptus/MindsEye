@@ -22,7 +22,6 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import com.simiacryptus.mindseye.training.PipelineNetwork;
-import com.simiacryptus.mindseye.training.SupervisedTrainingParameters;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.LabeledObject;
@@ -121,7 +120,7 @@ public class ImageNetworkDev {
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
 
-      trainer.set(new PipelineNetwork()
+      trainer.setParams(new PipelineNetwork()
       .add(bias)
       .add(convolution), new NDArray[][] { { zeroInput, output.data } });
 

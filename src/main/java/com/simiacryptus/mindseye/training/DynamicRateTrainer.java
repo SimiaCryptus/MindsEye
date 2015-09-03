@@ -78,7 +78,7 @@ public class DynamicRateTrainer {
           this.pos[i] = layerRates[i];
         }
         final double calcError = current
-            .calcError(current.evalTrainingData(trainingContext));
+            .calcError(trainingContext, current.evalTrainingData(trainingContext));
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
           DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s; %s)", Arrays.toString(layerRates), err, calcError, prev-calcError));
@@ -181,20 +181,23 @@ public class DynamicRateTrainer {
   }
   
   public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
-    final double prev = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
+    trainingContext.setActiveSet(null);
+    final double prev = getInner().getCurrent().calcError(trainingContext, getInner().getCurrent().evalTrainingData(trainingContext));
     assert null != getInner().getCurrent();
-    final DeltaBuffer lessonVector = getInner().getCurrent().learn(getInner().getCurrent().evalTrainingData(trainingContext));
+    final DeltaBuffer lessonVector = getInner().getCurrent().learn(trainingContext, getInner().getCurrent().evalTrainingData(trainingContext));
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
     final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
     do {
+      trainingContext.setActiveSet(new int[]{});
       x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
     //f.value(new double[lessonVector.map.size()]); // Reset to original state
-    final double calcError = getInner().getCurrent().calcError(getInner().getCurrent().evalTrainingData(trainingContext));
+    trainingContext.setActiveSet(null);
+    final double calcError = getInner().getCurrent().calcError(trainingContext, getInner().getCurrent().evalTrainingData(trainingContext));
     getInner().getCurrent().setError(calcError);
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", 

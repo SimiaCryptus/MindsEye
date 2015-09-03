@@ -28,14 +28,14 @@ public class Tester {
   
   private MutationTrainer inner = new MutationTrainer();
   
-  public Tester set(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
-    getInner().getInner().getInner().getCurrent().set(pipelineNetwork, samples);
+  public Tester setParams(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
+    getInner().getInner().getInner().getCurrent().setNet(pipelineNetwork).setMasterTrainingData(samples);
     return this;
   }
-  
-  public Tuple2<SupervisedTrainingParameters, Double> getBest(TrainingContext trainingContext) {
+
+  public Tuple2<GradientDescentTrainer, Double> getBest(TrainingContext trainingContext) {
     final GradientDescentTrainer best = getInner().getBest();
-    return new Tuple2<SupervisedTrainingParameters, Double>(null == best ? null : best, null == best ? null : best.error(trainingContext));
+    return new Tuple2<GradientDescentTrainer, Double>(null == best ? null : best, null == best ? null : best.error(trainingContext));
   }
   
   public MutationTrainer getInner() {

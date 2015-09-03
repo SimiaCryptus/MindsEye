@@ -96,7 +96,8 @@ public class TrainingContext {
   public final Timer overallTimer;
   public final Counter mutations;
   public final Counter gradientSteps;
-  
+  private int[] activeSet;
+
   public TrainingContext() {
     this.evaluations = new Counter();
     this.gradientSteps = new Counter();
@@ -120,6 +121,24 @@ public class TrainingContext {
     builder.append(gradientSteps);
     builder.append("]");
     return builder.toString();
+  }
+
+  public int[] getActiveSet() {
+    if(null == activeSet) return null;
+    if(0 == activeSet.length) return null;
+    return activeSet;
+  }
+
+  public void setActiveSet(int[] activeSet) {
+    this.activeSet = activeSet;
+  }
+
+  public synchronized int[] updateActiveSet(Supplier<int[]> f) {
+    if(null == getActiveSet()) {
+      activeSet = f.get();
+      if(0 == activeSet.length) activeSet = null;
+    }
+    return activeSet;
   }
   
 }
