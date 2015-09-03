@@ -36,7 +36,7 @@ public class GradientDescentTrainer {
   private double error = Double.POSITIVE_INFINITY;
   private PipelineNetwork net = null;
   private double rate = 0.5;
-  private double temperature = 0.00;
+  private double temperature = 0.01;
   private NDArray[][] masterTrainingData = null;
   private boolean verbose = false;
   
@@ -52,14 +52,14 @@ public class GradientDescentTrainer {
   protected double calcTrainingSieve(TrainingContext trainingContext, final List<NNResult> list) {
     final NDArray[][] trainingData = getActiveTrainingData(trainingContext);
     final List<Tuple2<Double, Double>> rms = eval(trainingData, list.stream().map(x->x.data).collect(Collectors.toList()));
-    updateTrainingSieve(trainingContext, rms);
+    trainingContext.updateTrainingSieve(rms);
     return rms(trainingContext,rms, trainingContext.getActiveTrainingSet());
   }
 
   protected double calcValidationSieve(TrainingContext trainingContext, final List<NDArray> result) {
     final NDArray[][] trainingData = getActiveValidationData(trainingContext);
     final List<Tuple2<Double, Double>> rms = eval(trainingData, result);
-    updateValidationSieve(trainingContext, rms);
+    trainingContext.updateValidationSieve(rms);
     return rms(trainingContext,rms, trainingContext.getActiveValidationSet());
   }
 
@@ -78,25 +78,6 @@ public class GradientDescentTrainer {
       return new Tuple2<>(certianty, err * err);
     }).collect(Collectors.toList());
     return rms;
-  }
-
-  public void updateTrainingSieve(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms) {
-    trainingContext.updateActiveTrainingSet(() -> IntStream.range(0, rms.size())
-        .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
-        // .filter(t -> t.getSecond().getFirst() < -0.3)
-        .filter(t -> 1.1 * Math.random() > -0.1 - t.getSecond().getFirst())
-        //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
-        .mapToInt(t -> t.getFirst()).toArray());
-  }
-
-  public void updateValidationSieve(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms) {
-    trainingContext.updateActiveValidationSet(() -> IntStream.range(0, rms.size())
-        .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
-        // .filter(t -> t.getSecond().getFirst() < -0.3)
-        .filter(t -> 0.5 * Math.random() > -0. - t.getSecond().getFirst())
-        //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
-        // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(500)
-        .mapToInt(t -> t.getFirst()).toArray());
   }
 
   private static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
