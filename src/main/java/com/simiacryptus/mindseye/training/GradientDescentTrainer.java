@@ -60,8 +60,9 @@ public class GradientDescentTrainer {
     
     trainingContext.updateActiveSet(() -> IntStream.range(0, rms.size())
         .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
-        .filter(t -> t.getSecond().getFirst() < -0.3)
-        .sorted(Comparator.comparing(t -> t.getSecond().getFirst())).limit(300)
+        //.filter(t -> t.getSecond().getFirst() < -0.3)
+        .filter(t -> Math.random() > -0.2-t.getSecond().getFirst())
+        //.sorted(Comparator.comparing(t -> t.getSecond().getFirst())).limit(300)
         .mapToInt(t -> t.getFirst()).toArray());
         
     return Math.sqrt(rms.stream().mapToDouble(x -> x.getSecond()).average().getAsDouble());
