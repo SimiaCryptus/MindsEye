@@ -46,21 +46,7 @@ public class GradientDescentTrainer {
   protected double calcError(TrainingContext trainingContext, final List<NDArray> results) {
     final NDArray[][] trainingData = getActiveValidationData(trainingContext);
     final List<Tuple2<Double, Double>> rms = eval(trainingData, results);
-    return rms(trainingContext,rms, trainingContext.getActiveValidationSet());
-  }
-
-  protected double calcTrainingSieve(TrainingContext trainingContext, final List<NNResult> list) {
-    final NDArray[][] trainingData = getActiveTrainingData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = eval(trainingData, list.stream().map(x->x.data).collect(Collectors.toList()));
-    trainingContext.updateTrainingSieve(rms);
-    return rms(trainingContext,rms, trainingContext.getActiveTrainingSet());
-  }
-
-  protected double calcValidationSieve(TrainingContext trainingContext, final List<NDArray> result) {
-    final NDArray[][] trainingData = getActiveValidationData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = eval(trainingData, result);
-    trainingContext.updateValidationSieve(rms);
-    return rms(trainingContext,rms, trainingContext.getActiveValidationSet());
+    return DynamicRateTrainer.rms(trainingContext,rms, trainingContext.getActiveValidationSet());
   }
 
   public List<Tuple2<Double, Double>> eval(final NDArray[][] trainingData, final List<NDArray> results) {
@@ -78,16 +64,6 @@ public class GradientDescentTrainer {
       return new Tuple2<>(certianty, err * err);
     }).collect(Collectors.toList());
     return rms;
-  }
-
-  private static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
-    @SuppressWarnings("resource")
-    IntStream stream = null!=activeSet?IntStream.of(activeSet):IntStream.range(0, rms.size());
-    return Math.sqrt(stream
-        .filter(i->i<rms.size())
-        .mapToObj(i->rms.get(i))
-        .mapToDouble(x -> x.getSecond())
-        .average().getAsDouble());
   }
   
   protected List<NNResult> evalTrainingData(final TrainingContext trainingContext, NDArray[][] activeTrainingData) {

@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -14,10 +15,14 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
+import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
+import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
+
+import groovy.lang.Tuple2;
 
 public class DynamicRateTrainer {
   
@@ -59,11 +64,11 @@ public class DynamicRateTrainer {
         final GradientDescentTrainer current = DynamicRateTrainer.this.getInner();
         final List<DeltaFlushBuffer> writeVectors = current
             .getNet().getChildren().stream()
-                .map(n -> lessonVector.map.get(n))
-                .filter(n -> null != n)
-                .distinct()
-                .sorted(Comparator.comparing(y -> y.getId()))
-                .collect(Collectors.toList());
+            .map(n -> lessonVector.map.get(n))
+            .filter(n -> null != n)
+            .distinct()
+            .sorted(Comparator.comparing(y -> y.getId()))
+            .collect(Collectors.toList());
         final int layerCount = writeVectors.size();
         final double[] layerRates = Arrays.copyOf(x, layerCount);
         // double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
@@ -80,7 +85,7 @@ public class DynamicRateTrainer {
         final double calcError = current.calcError(trainingContext, current.evalValidationData(trainingContext));
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
-          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s; %s)", Arrays.toString(layerRates), err, calcError, prev-calcError));
+          DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s; %s)", Arrays.toString(layerRates), err, calcError, prev - calcError));
         }
         return err;
       }
@@ -90,8 +95,8 @@ public class DynamicRateTrainer {
   
   protected boolean calibrate(TrainingContext trainingContext) {
     trainingContext.calibrations.increment();
-    trainingContext.setActiveTrainingSet(new int[]{});
-    trainingContext.setActiveValidationSet(new int[]{});
+    trainingContext.setActiveTrainingSet(new int[] {});
+    trainingContext.setActiveValidationSet(new int[] {});
     final double prevError = getInner().calcError(trainingContext, getInner().evalValidationData(trainingContext));
     boolean inBounds = false;
     PointValuePair optimum;
@@ -99,7 +104,7 @@ public class DynamicRateTrainer {
       optimum = optimizeRates(trainingContext);
       getInner()
           .getNet().getChildren().stream().distinct()
-              .forEach(layer -> layer.setStatus(optimum.getValue()));
+          .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(this.rates).allMatch(r -> getMaxRate() > r)
           && DoubleStream.of(this.rates).anyMatch(r -> this.minRate < r);
@@ -109,15 +114,14 @@ public class DynamicRateTrainer {
         final double err = getInner().calcError(trainingContext, getInner().evalValidationData(trainingContext));
         final double improvement = prevError - err;
         if (isVerbose()) {
-          DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), prevError, err, improvement));
+          DynamicRateTrainer.log
+              .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), prevError, err, improvement));
         }
-        //return true;
+        // return true;
         boolean improved = improvement > 0;
         trainingContext.setActiveTrainingSet(null);
         trainingContext.setActiveValidationSet(null);
-        GradientDescentTrainer current = getInner();
-        current.calcTrainingSieve(trainingContext, current.evalTrainingData(trainingContext, current.getActiveTrainingData(trainingContext)));
-        current.calcValidationSieve(trainingContext, current.evalValidationData(trainingContext));
+        regenDataSieve(trainingContext);
         return improved;
       }
     } catch (final Exception e) {
@@ -187,30 +191,59 @@ public class DynamicRateTrainer {
   public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
     trainingContext.setActiveTrainingSet(null);
     GradientDescentTrainer current = getInner();
-    current.calcTrainingSieve(trainingContext, current.evalTrainingData(trainingContext, current.getActiveTrainingData(trainingContext)));
-    final double prev = current.calcValidationSieve(trainingContext, current.evalValidationData(trainingContext));
-    assert null != current;
+    final double prev = regenDataSieve(trainingContext);
     final DeltaBuffer lessonVector = current.prelearn(trainingContext);
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
     final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
     do {
-      trainingContext.setActiveTrainingSet(new int[]{});
-      trainingContext.setActiveValidationSet(new int[]{});
+      trainingContext.setActiveTrainingSet(new int[] {});
+      trainingContext.setActiveValidationSet(new int[] {});
       x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
-    //f.value(new double[lessonVector.map.size()]); // Reset to original state
+    // f.value(new double[lessonVector.map.size()]); // Reset to original state
     final double calcError = current.calcError(trainingContext, current.evalValidationData(trainingContext));
     current.setError(calcError);
     if (this.verbose) {
-      DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", 
+      DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s",
           Arrays.toString(x.getKey()), x.getValue(),
           (prev), calcError));
     }
     return x;
+  }
+  
+  public double regenDataSieve(TrainingContext trainingContext) {
+    GradientDescentTrainer current = getInner();
+    calcTrainingSieve(trainingContext, current.evalTrainingData(trainingContext, current.getActiveTrainingData(trainingContext)));
+    final double prev = calcValidationSieve(trainingContext, current.evalValidationData(trainingContext));
+    return prev;
+  }
+  
+  protected double calcTrainingSieve(TrainingContext trainingContext, final List<NNResult> list) {
+    final NDArray[][] trainingData = getInner().getActiveTrainingData(trainingContext);
+    final List<Tuple2<Double, Double>> rms = getInner().eval(trainingData, list.stream().map(x -> x.data).collect(Collectors.toList()));
+    trainingContext.updateTrainingSieve(rms);
+    return rms(trainingContext, rms, trainingContext.getActiveTrainingSet());
+  }
+  
+  protected double calcValidationSieve(TrainingContext trainingContext, final List<NDArray> result) {
+    final NDArray[][] trainingData = getInner().getActiveValidationData(trainingContext);
+    final List<Tuple2<Double, Double>> rms = getInner().eval(trainingData, result);
+    trainingContext.updateValidationSieve(rms);
+    return rms(trainingContext, rms, trainingContext.getActiveValidationSet());
+  }
+  
+  static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
+    @SuppressWarnings("resource")
+    IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
+    return Math.sqrt(stream
+        .filter(i -> i < rms.size())
+        .mapToObj(i -> rms.get(i))
+        .mapToDouble(x -> x.getSecond())
+        .average().getAsDouble());
   }
   
   public DynamicRateTrainer setTemperature(final double temperature) {
@@ -258,7 +291,6 @@ public class DynamicRateTrainer {
     return this;
   }
   
-
   public double trainOnce(TrainingContext trainingContext) throws TerminationCondition {
     getInner().step(trainingContext, this.rates);
     final double error = error(trainingContext);
@@ -286,9 +318,9 @@ public class DynamicRateTrainer {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
         int retry = 0;
-        while(!calibrate(trainingContext)) {
+        while (!calibrate(trainingContext)) {
           DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
-          if(++retry > 0) return false;
+          if (++retry > 0) return false;
         }
       }
       final double last = getInner().getError();
@@ -310,7 +342,7 @@ public class DynamicRateTrainer {
       }
     }
   }
-
+  
   public DynamicRateTrainer setInner(GradientDescentTrainer inner) {
     this.inner = inner;
     return this;
