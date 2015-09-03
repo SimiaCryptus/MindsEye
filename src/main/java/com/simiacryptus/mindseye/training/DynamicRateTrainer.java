@@ -39,7 +39,7 @@ public class DynamicRateTrainer {
   double rate = 0.5;
   double[] rates = null;
   private int recalibrationInterval = 10;
-  int recalibrationThreshold = 1;
+  int recalibrationThreshold = 0;
   private double stopError = 0;
   private boolean verbose = false;
   
@@ -293,7 +293,7 @@ public class DynamicRateTrainer {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
         int retry = 0;
-        while(!calibrate(trainingContext) && retry++ < 5) {
+        while(!calibrate(trainingContext) && retry++ < 0) {
           DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
           //return false;
         }
