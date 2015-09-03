@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
+import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -91,7 +92,9 @@ public class DynamicRateTrainer {
   
   protected boolean calibrate(TrainingContext trainingContext) {
     trainingContext.calibrations.increment();
-    final double last = error(trainingContext);
+    trainingContext.setActiveSet(new int[]{});
+    final List<NNResult> results = getInner().getCurrent().evalTrainingData(trainingContext);
+    final double prevError = getInner().getCurrent().calcError(trainingContext, results);
     boolean inBounds = false;
     PointValuePair optimum;
     try {
@@ -105,11 +108,14 @@ public class DynamicRateTrainer {
       if (inBounds) {
         this.lastCalibratedIteration = this.currentIteration;
         final double err = trainOnce(trainingContext);
-        final double improvement = last - err;
+        final double improvement = prevError - err;
         if (isVerbose()) {
-          DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), last, err, improvement));
+          DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), prevError, err, improvement));
         }
-        return improvement > 0;
+        //return true;
+        boolean improved = improvement > 0;
+        trainingContext.setActiveSet(null);
+        return improved;
       }
     } catch (final Exception e) {
       if (isVerbose()) {
@@ -196,7 +202,6 @@ public class DynamicRateTrainer {
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
     //f.value(new double[lessonVector.map.size()]); // Reset to original state
-    trainingContext.setActiveSet(null);
     final double calcError = getInner().getCurrent().calcError(trainingContext, getInner().getCurrent().evalTrainingData(trainingContext));
     getInner().getCurrent().setError(calcError);
     if (this.verbose) {

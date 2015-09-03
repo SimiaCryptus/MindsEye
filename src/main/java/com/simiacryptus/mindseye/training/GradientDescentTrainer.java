@@ -62,7 +62,7 @@ public class GradientDescentTrainer {
         .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
         //.filter(t -> t.getSecond().getFirst() < -0.3)
         .filter(t -> Math.random() > -0.2-t.getSecond().getFirst())
-        //.sorted(Comparator.comparing(t -> t.getSecond().getFirst())).limit(300)
+        //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(500)
         .mapToInt(t -> t.getFirst()).toArray());
         
     return Math.sqrt(rms.stream().mapToDouble(x -> x.getSecond()).average().getAsDouble());
@@ -70,10 +70,10 @@ public class GradientDescentTrainer {
   
   public double error(final TrainingContext trainingContext) {
     final double error = getError();
-    if (!Double.isFinite(error)) {
-      trainSet(trainingContext, null);
-      return error(trainingContext);
-    }
+//    if (!Double.isFinite(error)) {
+//      trainSet(trainingContext, null);
+//      return error(trainingContext);
+//    }
     return error;
   }
   
