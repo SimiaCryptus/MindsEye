@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.google.gson.JsonObject;
+
 public class EvaluationContext {
   
   public static abstract class LazyResult<T> {
@@ -19,6 +21,8 @@ public class EvaluationContext {
     }
 
     protected abstract T initialValue(EvaluationContext t);
+
+    protected abstract JsonObject toJson();
   }
   
   public final Map<UUID, Object> cache = new HashMap<>();

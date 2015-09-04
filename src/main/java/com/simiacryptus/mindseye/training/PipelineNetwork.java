@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -31,6 +32,13 @@ public class PipelineNetwork extends NNLayer {
     protected NNResult[] initialValue(EvaluationContext t) {
       return (NNResult[]) t.cache.get(inputHandle);
     }
+
+    @Override
+    protected JsonObject toJson() {
+      JsonObject json = new JsonObject();
+      json.addProperty("target", inputHandle.toString());
+      return json;
+    }
   };
   
   public synchronized PipelineNetwork add(final NNLayer layer) {
@@ -42,6 +50,14 @@ public class PipelineNetwork extends NNLayer {
         NNResult[] input = prevHead.get(ctx);
         NNResult output = layer.eval(ctx, input);
         return new NNResult[] { output };
+      }
+
+      @Override
+      protected JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.add("layer", layer.getJson());
+        json.add("prev", prevHead.toJson());
+        return json;
       }
     };
     return this;
@@ -57,10 +73,15 @@ public class PipelineNetwork extends NNLayer {
   }
   
   @Override
-  public String toString() {
-    return "PipelineNetwork [" + this.getChildren() + "]";
+  public JsonObject getJson() {
+    JsonObject json = super.getJson();
+    json.add("root", head.toJson());
+//    for(NNLayer c : getChildren()){
+//      json.add(c.getId(), c.getJson());
+//    }
+    return json;
   }
-  
+
   public Tester trainer(final NDArray[][] samples) {
     return new Tester().setParams(this, samples);
   }

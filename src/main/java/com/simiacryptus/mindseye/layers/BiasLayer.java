@@ -6,6 +6,7 @@ import java.util.function.DoubleSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
@@ -96,8 +97,10 @@ public class BiasLayer extends NNLayer {
   }
 
   @Override
-  public String toString() {
-    return "BiasLayer " + Arrays.toString(this.bias);
+  public JsonObject getJson() {
+    JsonObject json = super.getJson();
+    json.addProperty("bias", Arrays.toString(bias));
+    return json;
   }
   
 }

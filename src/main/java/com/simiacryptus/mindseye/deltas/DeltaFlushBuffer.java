@@ -28,6 +28,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   private boolean reset = false;
   
   public DeltaFlushBuffer(final DeltaSink values) {
+    assert(null != values);
     this.inner = values;
     this.buffer = new DeltaValueAccumulator1[values.length()];
     Arrays.setAll(this.buffer, i -> newAccumulator());
@@ -75,6 +76,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   }
   
   public String getId() {
+    if(null == this.layer) return "";
     return this.layer.getId();
   }
   

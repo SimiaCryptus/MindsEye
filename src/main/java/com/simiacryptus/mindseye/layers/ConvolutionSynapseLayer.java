@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
@@ -225,5 +226,12 @@ public class ConvolutionSynapseLayer extends NNLayer {
   public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  @Override
+  public JsonObject getJson() {
+    JsonObject json = super.getJson();
+    json.addProperty("kernel", this.kernel.toString());
+    return json;
   }
 }

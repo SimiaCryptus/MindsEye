@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
@@ -20,7 +23,7 @@ public abstract class NNLayer {
 
   private double currentStatusValue = Double.MAX_VALUE;
 
-  private String id = UUID.randomUUID().toString();
+  private final String id = UUID.randomUUID().toString();
 
   public final NNResult eval(EvaluationContext evaluationContext, final NDArray... array) {
     return eval(evaluationContext, wrapInput(array));
@@ -50,11 +53,6 @@ public abstract class NNLayer {
     return this.currentStatusValue;
   }
 
-  public NNLayer setId(final String id) {
-    this.id = id;
-    return this;
-  }
-
   public void setStatus(final double value) {
     this.currentStatusValue = value;
   }
@@ -62,5 +60,19 @@ public abstract class NNLayer {
   public List<NNLayer> getChildren() {
     return Arrays.asList(this);
   }
+
+  @Override
+  public final String toString() {
+    return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
+  }
+
+  public JsonObject getJson() {
+    JsonObject json = new JsonObject();
+    json.addProperty("class", getClass().getSimpleName());
+    json.addProperty("id", getId());
+    return json;
+  }
+  
+  
 
 }

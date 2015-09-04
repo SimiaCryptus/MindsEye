@@ -8,6 +8,7 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
@@ -143,8 +144,10 @@ public class SynapseActivationLayer extends NNLayer {
   }
   
   @Override
-  public String toString() {
-    return "DenseSynapseLayer [weights=" + this.weights + "]";
+  public JsonObject getJson() {
+    JsonObject json = super.getJson();
+    json.addProperty("weights", this.weights.toString());
+    return json;
   }
   
 }

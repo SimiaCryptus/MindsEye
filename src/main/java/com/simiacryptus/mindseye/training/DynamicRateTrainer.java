@@ -97,6 +97,7 @@ public class DynamicRateTrainer {
     trainingContext.setActiveTrainingSet(null);
     trainingContext.setActiveValidationSet(null);
     trainingContext.setConstraintSet(new int[] {});
+    //trainingContext.calcSieves(getInner());
     final double prevError = getInner().calcError(trainingContext, getInner().evalValidationData(trainingContext));
     boolean inBounds = false;
     PointValuePair optimum;
@@ -117,10 +118,10 @@ public class DynamicRateTrainer {
           DynamicRateTrainer.log
               .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), prevError, err, improvement));
         }
-        // return true;
         boolean improved = improvement > 0;
-        regenDataSieve(trainingContext);
-        return improved;
+        trainingContext.calcSieves(getInner());
+        return true;
+        //return improved;
       }
     } catch (final Exception e) {
       if (isVerbose()) {
@@ -219,11 +220,6 @@ public class DynamicRateTrainer {
     return x;
   }
   
-  public double regenDataSieve(TrainingContext trainingContext) {
-    GradientDescentTrainer inner = getInner();
-    return trainingContext.calcSieves(inner);
-  }
-
   public static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
     @SuppressWarnings("resource")
     IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());

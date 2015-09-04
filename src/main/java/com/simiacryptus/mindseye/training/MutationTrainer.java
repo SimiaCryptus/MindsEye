@@ -286,11 +286,12 @@ public class MutationTrainer {
         }
         getInner().trainToLocalOptimum(trainingContext);
         if (this.verbose) {
-          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s",
+          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s\n%s",
               this.currentGeneration, 
               getInner().error(trainingContext), 
               getInner().getInner().getError(),
-              getInner().getInner().getRate()));
+              getInner().getInner().getRate(),
+              getInner().getInner().getNet()));
         }
       } 
     } catch (TerminationCondition e) {
