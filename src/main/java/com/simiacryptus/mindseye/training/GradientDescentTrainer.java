@@ -35,8 +35,8 @@ public class GradientDescentTrainer {
   
   private double error = Double.POSITIVE_INFINITY;
   private PipelineNetwork net = null;
-  private double rate = 0.1;
-  private double temperature = 0.01;
+  private double rate = 0.3;
+  private double temperature = 0.0001;
   private NDArray[][] masterTrainingData = null;
   private boolean verbose = false;
   
