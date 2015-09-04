@@ -102,6 +102,7 @@ public class TrainingContext {
   public final Counter gradientSteps;
   private int[] activeTrainingSet;
   private int[] activeValidationSet;
+  private int[] activeConstraintSet;
 
   public TrainingContext() {
     this.evaluations = new Counter();
@@ -134,15 +135,32 @@ public class TrainingContext {
     return activeTrainingSet;
   }
 
+  public int[] getConstraintSet() {
+    if(null == activeConstraintSet) return null;
+    if(0 == activeConstraintSet.length) return null;
+    return activeConstraintSet;
+  }
+
+  public void setConstraintSet(int[] activeSet) {
+    this.activeConstraintSet = activeSet;
+  }
+
+  public synchronized int[] updateConstraintSet(Supplier<int[]> f) {
+    activeConstraintSet = f.get();
+//    if(null == activeConstraintSet) {
+//      if(0 == activeConstraintSet.length) activeConstraintSet = null;
+//    }
+    return activeConstraintSet;
+  }
   public void setActiveTrainingSet(int[] activeSet) {
     this.activeTrainingSet = activeSet;
   }
 
   public synchronized int[] updateActiveTrainingSet(Supplier<int[]> f) {
-    if(null == activeTrainingSet) {
-      activeTrainingSet = f.get();
-      if(0 == activeTrainingSet.length) activeTrainingSet = null;
-    }
+    activeTrainingSet = f.get();
+//    if(null == activeTrainingSet) {
+//      if(0 == activeTrainingSet.length) activeTrainingSet = null;
+//    }
     return activeTrainingSet;
   }
   
@@ -157,15 +175,24 @@ public class TrainingContext {
   }
 
   public synchronized int[] updateActiveValidationSet(Supplier<int[]> f) {
-    if(null == getActiveValidationSet()) {
-      activeValidationSet = f.get();
-      if(0 == activeValidationSet.length) activeValidationSet = null;
-    }
+    activeValidationSet = f.get();
+//    if(null == getActiveValidationSet()) {
+//      if(0 == activeValidationSet.length) activeValidationSet = null;
+//    }
     return activeValidationSet;
   }
 
   public void updateTrainingSieve(final List<Tuple2<Double, Double>> rms) {
     this.updateActiveTrainingSet(() -> IntStream.range(0, rms.size())
+        .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
+        // .filter(t -> t.getSecond().getFirst() < -0.3)
+        .filter(t -> 1.1 * Math.random() > -0.1 - t.getSecond().getFirst())
+        //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
+        .mapToInt(t -> t.getFirst()).toArray());
+  }
+
+  public void updateConstraintSieve(final List<Tuple2<Double, Double>> rms) {
+    this.updateConstraintSet(() -> IntStream.range(0, rms.size())
         .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
         // .filter(t -> t.getSecond().getFirst() < -0.3)
         .filter(t -> 1.1 * Math.random() > -0.1 - t.getSecond().getFirst())
@@ -182,5 +209,5 @@ public class TrainingContext {
         // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(500)
         .mapToInt(t -> t.getFirst()).toArray());
   }
- 
+
 }

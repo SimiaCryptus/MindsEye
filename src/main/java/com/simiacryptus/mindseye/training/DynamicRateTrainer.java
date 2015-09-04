@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.optim.PointValuePair;
@@ -95,8 +94,9 @@ public class DynamicRateTrainer {
   
   protected boolean calibrate(TrainingContext trainingContext) {
     trainingContext.calibrations.increment();
-    trainingContext.setActiveTrainingSet(new int[] {});
-    trainingContext.setActiveValidationSet(new int[] {});
+    trainingContext.setActiveTrainingSet(null);
+    trainingContext.setActiveValidationSet(null);
+    trainingContext.setConstraintSet(new int[] {});
     final double prevError = getInner().calcError(trainingContext, getInner().evalValidationData(trainingContext));
     boolean inBounds = false;
     PointValuePair optimum;
@@ -119,8 +119,6 @@ public class DynamicRateTrainer {
         }
         // return true;
         boolean improved = improvement > 0;
-        trainingContext.setActiveTrainingSet(null);
-        trainingContext.setActiveValidationSet(null);
         regenDataSieve(trainingContext);
         return improved;
       }
@@ -189,23 +187,29 @@ public class DynamicRateTrainer {
   }
   
   public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
-    trainingContext.setActiveTrainingSet(null);
     GradientDescentTrainer current = getInner();
-    final double prev = regenDataSieve(trainingContext);
+    NDArray[][] validationSet = current.getActiveValidationData(trainingContext);
+    List<NNResult> evalValidation = current.eval(trainingContext,validationSet);
+    List<NDArray> evalValidationData = evalValidation.stream().map(x1->x1.data).collect(Collectors.toList());
+    List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, validationSet, evalValidationData);
+    final double prev = rms(trainingContext, rms, null);
+    //regenDataSieve(trainingContext);
+    
     final DeltaBuffer lessonVector = current.prelearn(trainingContext);
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
     final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
     do {
-      trainingContext.setActiveTrainingSet(new int[] {});
-      trainingContext.setActiveValidationSet(new int[] {});
+//      trainingContext.setConstraintSet(null);
+//      trainingContext.setActiveTrainingSet(null);
+//      trainingContext.setActiveValidationSet(null);
       x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
     // f.value(new double[lessonVector.map.size()]); // Reset to original state
-    final double calcError = current.calcError(trainingContext, current.evalValidationData(trainingContext));
+    final double calcError = current.calcError(trainingContext, evalValidationData);
     current.setError(calcError);
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s",
@@ -216,26 +220,39 @@ public class DynamicRateTrainer {
   }
   
   public double regenDataSieve(TrainingContext trainingContext) {
-    GradientDescentTrainer current = getInner();
-    calcTrainingSieve(trainingContext, current.evalTrainingData(trainingContext, current.getActiveTrainingData(trainingContext)));
-    final double prev = calcValidationSieve(trainingContext, current.evalValidationData(trainingContext));
-    return prev;
+    calcConstraintSieve(trainingContext);
+    calcTrainingSieve(trainingContext);
+    return calcValidationSieve(trainingContext);
   }
-  
-  protected double calcTrainingSieve(TrainingContext trainingContext, final List<NNResult> list) {
-    final NDArray[][] trainingData = getInner().getActiveTrainingData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = getInner().eval(trainingData, list.stream().map(x -> x.data).collect(Collectors.toList()));
+
+  protected double calcConstraintSieve(TrainingContext trainingContext) {
+    GradientDescentTrainer inner = getInner();
+    NDArray[][] trainingData = inner.getConstraintData(trainingContext);
+    final List<NNResult> results = inner.eval(trainingContext, trainingData);
+    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, results.stream().map(x -> x.data).collect(Collectors.toList()));
+    trainingContext.updateConstraintSieve(rms);
+    return rms(trainingContext, rms, trainingContext.getConstraintSet());
+  }
+
+  protected double calcTrainingSieve(TrainingContext trainingContext) {
+    GradientDescentTrainer inner = getInner();
+    NDArray[][] activeTrainingData = inner.getActiveTrainingData(trainingContext);
+    final List<NNResult> list = inner.eval(trainingContext, activeTrainingData);
+    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, activeTrainingData, list.stream().map(x -> x.data).collect(Collectors.toList()));
     trainingContext.updateTrainingSieve(rms);
     return rms(trainingContext, rms, trainingContext.getActiveTrainingSet());
   }
   
-  protected double calcValidationSieve(TrainingContext trainingContext, final List<NDArray> result) {
+  protected double calcValidationSieve(TrainingContext trainingContext) {
+    GradientDescentTrainer current = getInner();
+    final List<NDArray> result = current.evalValidationData(trainingContext);
     final NDArray[][] trainingData = getInner().getActiveValidationData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = getInner().eval(trainingData, result);
+    getInner();
+    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, result);
     trainingContext.updateValidationSieve(rms);
     return rms(trainingContext, rms, trainingContext.getActiveValidationSet());
   }
-  
+
   static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
     @SuppressWarnings("resource")
     IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());

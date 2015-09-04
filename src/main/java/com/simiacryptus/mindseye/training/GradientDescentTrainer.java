@@ -45,11 +45,11 @@ public class GradientDescentTrainer {
 
   protected double calcError(TrainingContext trainingContext, final List<NDArray> results) {
     final NDArray[][] trainingData = getActiveValidationData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = eval(trainingData, results);
+    final List<Tuple2<Double, Double>> rms = stats(trainingContext, trainingData, results);
     return DynamicRateTrainer.rms(trainingContext,rms, trainingContext.getActiveValidationSet());
   }
 
-  public List<Tuple2<Double, Double>> eval(final NDArray[][] trainingData, final List<NDArray> results) {
+  public static List<Tuple2<Double, Double>> stats(TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
     final List<Tuple2<Double, Double>> rms = IntStream.range(0, results.size()).parallel().mapToObj(sample -> {
       final NDArray actualOutput = results.get(sample);
       final NDArray[] sampleRow = trainingData[sample];
@@ -66,8 +66,8 @@ public class GradientDescentTrainer {
     return rms;
   }
   
-  protected List<NNResult> evalTrainingData(final TrainingContext trainingContext, NDArray[][] activeTrainingData) {
-    return Stream.of(activeTrainingData)
+  protected List<NNResult> eval(final TrainingContext trainingContext, NDArray[][] trainingData) {
+    return Stream.of(trainingData)
         .parallel()
         .map(sample -> {
           final NDArray input = sample[0];
@@ -80,16 +80,9 @@ public class GradientDescentTrainer {
   }
 
   protected List<NDArray> evalValidationData(final TrainingContext trainingContext) {
-    return Stream.of(getActiveValidationData(trainingContext))
-        .parallel()
-        .map(sample -> {
-          final NDArray input = sample[0];
-          final NDArray output = sample[1];
-          trainingContext.evaluations.increment();
-          final NNResult eval = getNet().eval(input);
-          assert eval.data.dim() == output.dim();
-          return eval.data;
-        }).collect(Collectors.toList());
+    NDArray[][] validationSet = getActiveValidationData(trainingContext);
+    List<NNResult> eval = eval(trainingContext,validationSet);
+    return eval.stream().map(x->x.data).collect(Collectors.toList());
   }
   
   public synchronized double getError() {
@@ -120,8 +113,16 @@ public class GradientDescentTrainer {
   }
   
   public final NDArray[][] getActiveTrainingData(TrainingContext trainingContext) {
-    if (null != trainingContext.getActiveTrainingSet()) { //
-      return IntStream.of(trainingContext.getActiveTrainingSet()).mapToObj(i -> masterTrainingData[i]).toArray(i -> new NDArray[i][]);
+    return getTrainingData(trainingContext.getActiveTrainingSet());
+  }
+
+  public final NDArray[][] getConstraintData(TrainingContext trainingContext) {
+    return getTrainingData(trainingContext.getConstraintSet());
+  }
+
+  public NDArray[][] getTrainingData(int[] activeSet) {
+    if (null != activeSet) { //
+      return IntStream.of(activeSet).mapToObj(i -> masterTrainingData[i]).toArray(i -> new NDArray[i][]);
     }
     return this.masterTrainingData;
   }
@@ -135,9 +136,13 @@ public class GradientDescentTrainer {
   }
   
   protected DeltaBuffer prelearn(TrainingContext trainingContext) {
-    NDArray[][] activeTrainingData = getActiveTrainingData(trainingContext);
-    final List<NNResult> netresults = evalTrainingData(trainingContext, activeTrainingData);
-    assert(netresults.size() == activeTrainingData.length);
+    final DeltaBuffer buffer = calcDelta(trainingContext, getActiveTrainingData(trainingContext));
+    final DeltaBuffer buffer1 = calcDelta(trainingContext, getConstraintData(trainingContext));
+    return buffer;
+  }
+
+  public DeltaBuffer calcDelta(TrainingContext trainingContext, NDArray[][] activeTrainingData) {
+    final List<NNResult> netresults = eval(trainingContext, activeTrainingData);
     final DeltaBuffer buffer = new DeltaBuffer();
     IntStream.range(0, activeTrainingData.length)
         .parallel()
