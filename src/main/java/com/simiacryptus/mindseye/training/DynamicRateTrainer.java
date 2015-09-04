@@ -226,34 +226,18 @@ public class DynamicRateTrainer {
   }
 
   protected double calcConstraintSieve(TrainingContext trainingContext) {
-    GradientDescentTrainer inner = getInner();
-    NDArray[][] trainingData = inner.getConstraintData(trainingContext);
-    final List<NNResult> results = inner.eval(trainingContext, trainingData);
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, results.stream().map(x -> x.data).collect(Collectors.toList()));
-    trainingContext.updateConstraintSieve(rms);
-    return rms(trainingContext, rms, trainingContext.getConstraintSet());
+    return trainingContext.calcConstraintSieve(getInner());
   }
 
   protected double calcTrainingSieve(TrainingContext trainingContext) {
-    GradientDescentTrainer inner = getInner();
-    NDArray[][] activeTrainingData = inner.getActiveTrainingData(trainingContext);
-    final List<NNResult> list = inner.eval(trainingContext, activeTrainingData);
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, activeTrainingData, list.stream().map(x -> x.data).collect(Collectors.toList()));
-    trainingContext.updateTrainingSieve(rms);
-    return rms(trainingContext, rms, trainingContext.getActiveTrainingSet());
+    return trainingContext.calcTrainingSieve(getInner());
   }
   
   protected double calcValidationSieve(TrainingContext trainingContext) {
-    GradientDescentTrainer current = getInner();
-    final List<NDArray> result = current.evalValidationData(trainingContext);
-    final NDArray[][] trainingData = getInner().getActiveValidationData(trainingContext);
-    getInner();
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, result);
-    trainingContext.updateValidationSieve(rms);
-    return rms(trainingContext, rms, trainingContext.getActiveValidationSet());
+    return trainingContext.calcValidationSieve(getInner());
   }
 
-  static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
+  public static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
     @SuppressWarnings("resource")
     IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
     return Math.sqrt(stream

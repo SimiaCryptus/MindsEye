@@ -1,9 +1,16 @@
 package com.simiacryptus.mindseye.training;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.simiacryptus.mindseye.deltas.NNResult;
+import com.simiacryptus.mindseye.math.NDArray;
 
 import groovy.lang.Tuple2;
 
@@ -186,7 +193,7 @@ public class TrainingContext {
     this.updateActiveTrainingSet(() -> IntStream.range(0, rms.size())
         .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
         // .filter(t -> t.getSecond().getFirst() < -0.3)
-        .filter(t -> 1.1 * Math.random() > -0.1 - t.getSecond().getFirst())
+        .filter(t -> 1.8 * Math.random() > -0.5 - t.getSecond().getFirst())
         //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
         .mapToInt(t -> t.getFirst()).toArray());
   }
@@ -194,20 +201,51 @@ public class TrainingContext {
   public void updateConstraintSieve(final List<Tuple2<Double, Double>> rms) {
     this.updateConstraintSet(() -> IntStream.range(0, rms.size())
         .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
-        // .filter(t -> t.getSecond().getFirst() < -0.3)
-        .filter(t -> 1.1 * Math.random() > -0.1 - t.getSecond().getFirst())
-        //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
+        .sorted(Comparator.comparing(t -> t.getSecond().getFirst())).limit(50)
+        //.filter(t -> t.getSecond().getFirst() > 0.9)
         .mapToInt(t -> t.getFirst()).toArray());
   }
 
   public void updateValidationSieve(final List<Tuple2<Double, Double>> rms) {
-    this.updateActiveValidationSet(() -> IntStream.range(0, rms.size())
-        .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
-        // .filter(t -> t.getSecond().getFirst() < -0.3)
-        .filter(t -> 0.5 * Math.random() > -0. - t.getSecond().getFirst())
-        //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
-        // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(500)
-        .mapToInt(t -> t.getFirst()).toArray());
+    this.updateActiveValidationSet(() -> {
+      List<Tuple2<Integer, Tuple2<Double, Double>>> collect = new ArrayList<>(IntStream.range(0, rms.size())
+          .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
+          .collect(Collectors.toList()));
+      Collections.shuffle(collect);
+      return collect.stream().limit(400)
+          // .filter(t -> t.getSecond().getFirst() < -0.3)
+          //.filter(t -> 0.5 * Math.random() > -0. - t.getSecond().getFirst())
+          //.sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
+          // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(500)
+          .mapToInt(t -> t.getFirst()).toArray();
+    });
+  }
+
+  double calcConstraintSieve(GradientDescentTrainer inner) {
+    TrainingContext trainingContext = this;
+    NDArray[][] trainingData = inner.getConstraintData(trainingContext);
+    final List<NNResult> results = inner.eval(trainingContext, trainingData);
+    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, results.stream().map(x -> x.data).collect(Collectors.toList()));
+    trainingContext.updateConstraintSieve(rms);
+    return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getConstraintSet());
+  }
+
+  double calcTrainingSieve(GradientDescentTrainer inner) {
+    TrainingContext trainingContext = this;
+    NDArray[][] activeTrainingData = inner.getActiveTrainingData(trainingContext);
+    final List<NNResult> list = inner.eval(trainingContext, activeTrainingData);
+    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, activeTrainingData, list.stream().map(x -> x.data).collect(Collectors.toList()));
+    trainingContext.updateTrainingSieve(rms);
+    return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getActiveTrainingSet());
+  }
+  
+  double calcValidationSieve(GradientDescentTrainer current) {
+    TrainingContext trainingContext = this;
+    final List<NDArray> result = current.evalValidationData(trainingContext);
+    final NDArray[][] trainingData = current.getActiveValidationData(trainingContext);
+    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, result);
+    trainingContext.updateValidationSieve(rms);
+    return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
   }
 
 }
