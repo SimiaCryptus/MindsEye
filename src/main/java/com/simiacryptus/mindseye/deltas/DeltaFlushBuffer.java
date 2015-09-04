@@ -2,19 +2,56 @@ package com.simiacryptus.mindseye.deltas;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.google.common.hash.Hashing;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 
 public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer> {
 
-  private final LogNumber[] buffer;
+  public static class DeltaValueAccumulator {
+    public TreeSet<LogNumber> numbers = new TreeSet<>();
+
+    public DeltaValueAccumulator() {
+    }
+    public DeltaValueAccumulator(DeltaValueAccumulator toCopy) {
+      numbers.addAll(toCopy.numbers);
+    }
+    public synchronized LogNumber logValue() {
+      LogNumber[] array = numbers.stream().toArray(i->new LogNumber[i]);
+      return array[array.length/2];
+    }
+    public synchronized DeltaValueAccumulator add(LogNumber r) {
+      numbers.add(r);
+      return this;
+    }
+    public DeltaValueAccumulator add(DeltaValueAccumulator r) {
+      DeltaValueAccumulator copy = new DeltaValueAccumulator(this);
+      copy.numbers.addAll(r.numbers);
+      return copy;
+    }
+
+    public DeltaValueAccumulator multiply(double r) {
+      return map(x->x.multiply(r));
+    }
+
+    private synchronized DeltaValueAccumulator map(Function<LogNumber,LogNumber> f) {
+      DeltaValueAccumulator copy = new DeltaValueAccumulator();
+      numbers.stream().map(f).forEach(x->copy.add(x));
+      return copy;
+    }
+    public double doubleValue() {
+      return logValue().doubleValue();
+    }
+    
+  }
+  
+  private final DeltaValueAccumulator[] buffer;
   private final DeltaSink inner;
   private NNLayer layer;
 
@@ -24,8 +61,8 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
 
   public DeltaFlushBuffer(final DeltaSink values) {
     this.inner = values;
-    this.buffer = new LogNumber[values.length()];
-    Arrays.fill(this.buffer, LogNumber.ZERO);
+    this.buffer = new DeltaValueAccumulator[values.length()];
+    Arrays.setAll(this.buffer, i->new DeltaValueAccumulator());
   }
 
   public DeltaFlushBuffer(final double[] bias) {
@@ -35,7 +72,8 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   protected DeltaFlushBuffer(final double[] ptr, final NNLayer layer) {
     super();
     this.inner = new DeltaMemoryWriter(ptr);
-    this.buffer = new LogNumber[ptr.length];
+    this.buffer = new DeltaValueAccumulator[ptr.length];
+    Arrays.setAll(this.buffer, i->new DeltaValueAccumulator());
     this.layer = layer;
   }
 
@@ -43,7 +81,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     this(values.getData());
   }
 
-  public DeltaFlushBuffer(final DeltaSink values, LogNumber[] array) {
+  public DeltaFlushBuffer(final DeltaSink values, DeltaValueAccumulator[] array) {
     this.inner = values;
     this.buffer = array;
   }
@@ -60,8 +98,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      final LogNumber prev = this.buffer[i];
-      this.buffer[i] = null == prev ? data[i] : prev.add(data[i]);
+      this.buffer[i] = this.buffer[i].add(data[i]);
     }
   }
 
@@ -93,10 +130,10 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   public synchronized void write(final double factor) {
     final LogNumber[] cpy = new LogNumber[this.buffer.length];
     if (!this.reset) {
-      this.normalizationFactor = Stream.of(this.buffer).map(LogNumber::abs).max(Comparator.naturalOrder()).get();
+      this.normalizationFactor = Stream.of(this.buffer).map(x->x.logValue().abs()).max(Comparator.naturalOrder()).get();
     }
     for (int i = 0; i < this.buffer.length; i++) {
-      cpy[i] = this.buffer[i].multiply(factor).multiply(getRate())
+      cpy[i] = this.buffer[i].logValue().multiply(factor).multiply(getRate())
           .divide(this.normalizationFactor);
     }
     this.inner.feed(cpy);
@@ -110,7 +147,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
 
   @Override
   public double dotProduct(DeltaFlushBuffer right) {
-    return sum(right, (l,r)-> l.multiply(r).doubleValue());
+    return sum(right, (l,r)-> l.logValue().multiply(r.logValue()).doubleValue());
   }
 
   @Override
@@ -118,28 +155,28 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     return join(right, (l,r)-> l.add(r));
   }
 
-  protected DeltaFlushBuffer join(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, LogNumber> joiner) {
+  protected DeltaFlushBuffer join(DeltaFlushBuffer right, BiFunction<DeltaValueAccumulator, DeltaValueAccumulator, DeltaValueAccumulator> joiner) {
     return new DeltaFlushBuffer(inner, IntStream.range(0, buffer.length).mapToObj(i->{
-      LogNumber l = buffer[i];
-      LogNumber r = right.buffer[i];
+      DeltaValueAccumulator l = buffer[i];
+      DeltaValueAccumulator r = right.buffer[i];
       if(null!=l&&null!=r) return joiner.apply(l, r);
       if(null!=l) return r;
       if(null!=r) return l;
       return null;
-    }).toArray(i->new LogNumber[i]));
+    }).toArray(i->new DeltaValueAccumulator[i]));
   }
 
-  protected double sum(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, Double> joiner) {
+  protected double sum(DeltaFlushBuffer right, BiFunction<DeltaValueAccumulator, DeltaValueAccumulator, Double> joiner) {
     return IntStream.range(0, buffer.length).mapToDouble(i->{
-      LogNumber l = buffer[i];
-      LogNumber r = right.buffer[i];
+      DeltaValueAccumulator l = buffer[i];
+      DeltaValueAccumulator r = right.buffer[i];
       if(null!=l&&null!=r) return joiner.apply(l, r);
       return 0;
     }).sum();
   }
 
-  protected DeltaFlushBuffer map(Function<LogNumber, LogNumber> mapper) {
-    return new DeltaFlushBuffer(inner, Arrays.stream(buffer).map(mapper).toArray(i->new LogNumber[i]));
+  protected DeltaFlushBuffer map(Function<DeltaValueAccumulator, DeltaValueAccumulator> mapper) {
+    return new DeltaFlushBuffer(inner, Arrays.stream(buffer).map(mapper).toArray(i->new DeltaValueAccumulator[i]));
   }
 
   @Override

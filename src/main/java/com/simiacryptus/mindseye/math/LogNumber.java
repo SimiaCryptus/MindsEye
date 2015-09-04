@@ -60,6 +60,9 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     if (0 == compare) {
       compare = Double.compare(this.logValue, o.logValue);
     }
+    if (0 == compare) {
+      compare = Double.compare(System.identityHashCode(this), System.identityHashCode(o));
+    }
     return compare;
   }
 
