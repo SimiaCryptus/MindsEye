@@ -136,9 +136,16 @@ public class GradientDescentTrainer {
   }
   
   protected DeltaBuffer prelearn(TrainingContext trainingContext) {
-    final DeltaBuffer buffer = calcDelta(trainingContext, getActiveTrainingData(trainingContext));
-    final DeltaBuffer buffer1 = calcDelta(trainingContext, getConstraintData(trainingContext));
-    return buffer;
+    final DeltaBuffer primary = calcDelta(trainingContext, getActiveTrainingData(trainingContext));
+    final DeltaBuffer constraint = calcDelta(trainingContext, getConstraintData(trainingContext)).unitV();
+    double dotProductConstraint = primary.dotProduct(constraint);
+    if(dotProductConstraint < 0) {
+      //log.debug(String.format("Removing component: %s", dotProductConstraint));
+      return primary.add(constraint.scale(-dotProductConstraint));
+    } else {
+      //log.debug(String.format("Preserving component: %s", dotProductConstraint));
+      return primary;
+    }
   }
 
   public DeltaBuffer calcDelta(TrainingContext trainingContext, NDArray[][] activeTrainingData) {

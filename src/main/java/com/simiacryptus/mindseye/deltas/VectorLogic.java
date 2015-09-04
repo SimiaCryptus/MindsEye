@@ -11,5 +11,9 @@ public interface VectorLogic<T extends VectorLogic<T>> {
   public double l2();
 
   public double l1();
+
+  default T unitV() {
+    return this.scale(1./l2());
+  };
   
 }

@@ -16,7 +16,7 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   public static LogNumber log(final double v) {
     if (0. == Math.abs(v)) return new LogNumber((byte) 0, 0);
     final LogNumber logNumber = new LogNumber((byte) (v < 0. ? -1 : 1), Math.log(Math.abs(v)));
-    assert Math.abs(Math.log(logNumber.doubleValue() / v)) < 0.001;
+    //assert Math.abs(Math.log(logNumber.doubleValue() / v)) < 0.001;
     return logNumber;
   }
   
@@ -116,9 +116,9 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   public LogNumber multiply(final LogNumber right) {
     if (null == right) return this;
     assert isFinite();
-    assert right.isFinite();
+    //assert right.isFinite();
     final LogNumber r = new LogNumber((byte) (this.type * right.type), this.logValue + right.logValue);
-    assert r.isFinite();
+    //assert r.isFinite();
     return r;
   }
   
