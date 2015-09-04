@@ -8,11 +8,17 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.training.TrainingContext;
 
 public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer> {
+  
+  private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
 
   public static class DeltaValueAccumulator {
     public TreeSet<LogNumber> numbers = new TreeSet<>();
@@ -24,7 +30,10 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }
     public synchronized LogNumber logValue() {
       LogNumber[] array = numbers.stream().toArray(i->new LogNumber[i]);
-      return array[array.length/2];
+      //log.debug(String.format("Sorted Feedback: %s", Arrays.toString(array)));
+      if(null==array||0==array.length) return LogNumber.ZERO;
+      return Stream.of(array).reduce((a,b)->a.add(b)).get().divide(array.length);
+      //return array[array.length/2];
     }
     public synchronized DeltaValueAccumulator add(LogNumber r) {
       numbers.add(r);

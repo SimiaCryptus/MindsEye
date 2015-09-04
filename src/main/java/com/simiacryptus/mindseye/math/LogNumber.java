@@ -41,15 +41,15 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   public static final int ADDITION_PRECISION = 5;
   public LogNumber add(final LogNumber right) {
     final LogNumber left = this;
-    assert left.isFinite();
-    assert right.isFinite();
+    //assert left.isFinite();
+    //assert right.isFinite();
     if (null == right) return left;
     if (left.logValue < right.logValue) return right.add(left);
     if (right.logValue - left.logValue < -ADDITION_PRECISION) return this;
     final LogNumber left2 = new LogNumber(left.type, 0.); // left.logValue-left.logValue
     final LogNumber right2 = new LogNumber(right.type, right.logValue - left.logValue);
     final LogNumber result = LogNumber.log(right2.doubleValue() + left2.doubleValue());
-    assert result.isFinite();
+    //assert result.isFinite();
     final LogNumber result2 = new LogNumber(result.type, result.logValue + left.logValue);
     return result2;
   }
@@ -58,7 +58,7 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   public int compareTo(final LogNumber o) {
     int compare = Byte.compare(this.type, o.type);
     if (0 == compare) {
-      compare = Double.compare(this.logValue, o.logValue);
+      compare = Double.compare(this.type*this.logValue, o.type*o.logValue);
     }
     if (0 == compare) {
       compare = Double.compare(System.identityHashCode(this), System.identityHashCode(o));
