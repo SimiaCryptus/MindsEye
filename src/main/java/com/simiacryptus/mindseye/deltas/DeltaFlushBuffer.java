@@ -90,25 +90,12 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     this.rate = LogNumber.log(rate);
   }
 
-  public void write(final double factor) {
-    write(factor, 1., 0l);
-  }
-
-  public synchronized void write(final double factor, final double fraction, final long mask) {
-    final long longF = (long) (fraction * Long.MAX_VALUE);
+  public synchronized void write(final double factor) {
     final LogNumber[] cpy = new LogNumber[this.buffer.length];
-
     if (!this.reset) {
       this.normalizationFactor = Stream.of(this.buffer).map(LogNumber::abs).max(Comparator.naturalOrder()).get();
     }
-
     for (int i = 0; i < this.buffer.length; i++) {
-      if (fraction < 1.) {
-        final long hash = Hashing.sha1().hashLong(i ^ mask).asLong();
-        if (longF > hash) {
-          continue;
-        }
-      }
       cpy[i] = this.buffer[i].multiply(factor).multiply(getRate())
           .divide(this.normalizationFactor);
     }
@@ -131,7 +118,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     return join(right, (l,r)-> l.add(r));
   }
 
-  public DeltaFlushBuffer join(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, LogNumber> joiner) {
+  protected DeltaFlushBuffer join(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, LogNumber> joiner) {
     return new DeltaFlushBuffer(inner, IntStream.range(0, buffer.length).mapToObj(i->{
       LogNumber l = buffer[i];
       LogNumber r = right.buffer[i];
@@ -142,7 +129,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }).toArray(i->new LogNumber[i]));
   }
 
-  public double sum(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, Double> joiner) {
+  protected double sum(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, Double> joiner) {
     return IntStream.range(0, buffer.length).mapToDouble(i->{
       LogNumber l = buffer[i];
       LogNumber r = right.buffer[i];
@@ -151,7 +138,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }).sum();
   }
 
-  public DeltaFlushBuffer map(Function<LogNumber, LogNumber> mapper) {
+  protected DeltaFlushBuffer map(Function<LogNumber, LogNumber> mapper) {
     return new DeltaFlushBuffer(inner, Arrays.stream(buffer).map(mapper).toArray(i->new LogNumber[i]));
   }
 

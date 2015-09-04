@@ -9,12 +9,18 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 
 import groovy.lang.Tuple2;
 
 public class TrainingContext {
+  
+  private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
+
   @SuppressWarnings("serial")
   public static class TerminationCondition extends RuntimeException
   {
@@ -246,6 +252,14 @@ public class TrainingContext {
     final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, result);
     trainingContext.updateValidationSieve(rms);
     return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
+  }
+
+  public double calcSieves(GradientDescentTrainer inner) {
+    calcConstraintSieve(inner);
+    calcTrainingSieve(inner);
+    double validation = calcValidationSieve(inner);
+    log.debug(String.format("Calculated sieves: %s training, %s constraints, %s validation", this.activeTrainingSet.length, this.activeConstraintSet.length, this.activeValidationSet.length));
+    return validation;
   }
 
 }

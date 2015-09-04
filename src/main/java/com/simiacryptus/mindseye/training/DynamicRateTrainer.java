@@ -220,21 +220,8 @@ public class DynamicRateTrainer {
   }
   
   public double regenDataSieve(TrainingContext trainingContext) {
-    calcConstraintSieve(trainingContext);
-    calcTrainingSieve(trainingContext);
-    return calcValidationSieve(trainingContext);
-  }
-
-  protected double calcConstraintSieve(TrainingContext trainingContext) {
-    return trainingContext.calcConstraintSieve(getInner());
-  }
-
-  protected double calcTrainingSieve(TrainingContext trainingContext) {
-    return trainingContext.calcTrainingSieve(getInner());
-  }
-  
-  protected double calcValidationSieve(TrainingContext trainingContext) {
-    return trainingContext.calcValidationSieve(getInner());
+    GradientDescentTrainer inner = getInner();
+    return trainingContext.calcSieves(inner);
   }
 
   public static double rms(TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, int[] activeSet) {
