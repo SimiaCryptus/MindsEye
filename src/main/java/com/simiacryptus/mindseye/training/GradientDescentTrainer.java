@@ -139,11 +139,11 @@ public class GradientDescentTrainer {
     final List<NNResult> netresults = evalTrainingData(trainingContext, activeTrainingData);
     assert(netresults.size() == activeTrainingData.length);
     final DeltaBuffer buffer = new DeltaBuffer();
-    IntStream.range(0, netresults.size())
+    IntStream.range(0, activeTrainingData.length)
         .parallel()
         .forEach(sample -> {
-          final NNResult actualOutput = netresults.get(sample);
           final NDArray idealOutput = activeTrainingData[sample][1];
+          final NNResult actualOutput = netresults.get(sample);
           final NDArray delta = actualOutput.delta(idealOutput);
           final LogNDArray logDelta = delta.log().scale(getRate());
           actualOutput.feedback(logDelta, buffer);

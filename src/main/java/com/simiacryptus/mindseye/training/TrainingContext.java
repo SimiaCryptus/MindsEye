@@ -139,7 +139,7 @@ public class TrainingContext {
   }
 
   public synchronized int[] updateActiveTrainingSet(Supplier<int[]> f) {
-    if(null == getActiveTrainingSet()) {
+    if(null == activeTrainingSet) {
       activeTrainingSet = f.get();
       if(0 == activeTrainingSet.length) activeTrainingSet = null;
     }

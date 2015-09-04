@@ -2,6 +2,9 @@ package com.simiacryptus.mindseye.deltas;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.google.common.hash.Hashing;
@@ -9,7 +12,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 
-public class DeltaFlushBuffer implements DeltaSink {
+public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer> {
 
   private final LogNumber[] buffer;
   private final DeltaSink inner;
@@ -38,6 +41,11 @@ public class DeltaFlushBuffer implements DeltaSink {
 
   public DeltaFlushBuffer(final NDArray values) {
     this(values.getData());
+  }
+
+  public DeltaFlushBuffer(final DeltaSink values, LogNumber[] array) {
+    this.inner = values;
+    this.buffer = array;
   }
 
   public void feed(final double[] data) {
@@ -108,4 +116,57 @@ public class DeltaFlushBuffer implements DeltaSink {
     this.reset = true;
   }
 
+  @Override
+  public DeltaFlushBuffer scale(double f) {
+    return map(x->x.multiply(f));
+  }
+
+  @Override
+  public double dotProduct(DeltaFlushBuffer right) {
+    return sum(right, (l,r)-> l.multiply(r).doubleValue());
+  }
+
+  @Override
+  public DeltaFlushBuffer add(DeltaFlushBuffer right) {
+    return join(right, (l,r)-> l.add(r));
+  }
+
+  public DeltaFlushBuffer join(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, LogNumber> joiner) {
+    return new DeltaFlushBuffer(inner, IntStream.range(0, buffer.length).mapToObj(i->{
+      LogNumber l = buffer[i];
+      LogNumber r = right.buffer[i];
+      if(null!=l&&null!=r) return joiner.apply(l, r);
+      if(null!=l) return r;
+      if(null!=r) return l;
+      return null;
+    }).toArray(i->new LogNumber[i]));
+  }
+
+  public double sum(DeltaFlushBuffer right, BiFunction<LogNumber, LogNumber, Double> joiner) {
+    return IntStream.range(0, buffer.length).mapToDouble(i->{
+      LogNumber l = buffer[i];
+      LogNumber r = right.buffer[i];
+      if(null!=l&&null!=r) return joiner.apply(l, r);
+      return 0;
+    }).sum();
+  }
+
+  public DeltaFlushBuffer map(Function<LogNumber, LogNumber> mapper) {
+    return new DeltaFlushBuffer(inner, Arrays.stream(buffer).map(mapper).toArray(i->new LogNumber[i]));
+  }
+
+  @Override
+  public double l1() {
+    return Math.sqrt(Arrays.stream(buffer).mapToDouble(v->{
+      double l2 = v.doubleValue();
+      return l2*l2;
+    }).sum());
+  }
+  @Override
+  public double l2() {
+    return Math.sqrt(Arrays.stream(buffer).mapToDouble(v->{
+      double l2 = v.doubleValue();
+      return l2*l2;
+    }).sum());
+  }
 }
