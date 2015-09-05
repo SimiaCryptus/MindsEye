@@ -20,8 +20,6 @@ import com.simiacryptus.mindseye.training.EvaluationContext;
  */
 public abstract class NNLayer {
 
-  private double currentStatusValue = Double.MAX_VALUE;
-
   private final String id = UUID.randomUUID().toString();
 
   public final NNResult eval(EvaluationContext evaluationContext, final NDArray... array) {
@@ -46,14 +44,6 @@ public abstract class NNLayer {
 
   public String getId() {
     return this.id;
-  }
-
-  public double getStatus() {
-    return this.currentStatusValue;
-  }
-
-  public void setStatus(final double value) {
-    this.currentStatusValue = value;
   }
 
   public List<NNLayer> getChildren() {

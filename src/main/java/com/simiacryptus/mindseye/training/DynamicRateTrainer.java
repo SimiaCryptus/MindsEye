@@ -94,15 +94,12 @@ public class DynamicRateTrainer {
     PointValuePair optimum;
     try {
       optimum = optimizeRates(trainingContext, gradientDescentTrainer);
-      trainingContext
-          .getNet().getChildren().stream().distinct()
-          .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
       inBounds = DoubleStream.of(this.rates).allMatch(r -> getMaxRate() > r)
           && DoubleStream.of(this.rates).anyMatch(r -> this.minRate < r);
       if (inBounds) {
         this.lastCalibratedIteration = this.currentIteration;
-        trainOnce(trainingContext, gradientDescentTrainer);
+        gradientDescentTrainer.step(trainingContext, this.rates);
         final double err = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
         final double improvement = prevError - err;
         if (isVerbose()) {
@@ -252,15 +249,6 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  public double trainOnce(TrainingContext trainingContext, GradientDescentTrainer gradientDescentTrainer) {
-    gradientDescentTrainer.step(trainingContext, this.rates);
-    final double error = gradientDescentTrainer.getError();
-    trainingContext.getNet().getChildren().stream()
-        .distinct()
-        .forEach(layer -> layer.setStatus(error));
-    return error;
-  }
-  
   public boolean trainToLocalOptimum(TrainingContext trainingContext) throws TerminationCondition {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
@@ -283,7 +271,7 @@ public class DynamicRateTrainer {
         this.generationsSinceImprovement = 0;
       }
       final double last = gradientDescentTrainer.getError();
-      final double next = trainOnce(trainingContext, gradientDescentTrainer);
+      final double next = gradientDescentTrainer.step(trainingContext, this.rates);
       if (last != next && GradientDescentTrainer.thermalStep(last, next, getTemperature())) {
         this.generationsSinceImprovement = 0;
       } else {

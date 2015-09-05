@@ -179,8 +179,8 @@ public class GradientDescentTrainer {
     return this;
   }
   
-  public synchronized double trainSet(final TrainingContext trainingContext, final double[] rates) {
-    assert null != this;
+  public Double step(TrainingContext trainingContext, final double[] rates) throws TerminationCondition {
+    final long startMs = System.currentTimeMillis();
     final double prevError = calcError(trainingContext, evalValidationData(trainingContext));
     setError(prevError);
     if (null == rates) return Double.POSITIVE_INFINITY;
@@ -206,12 +206,6 @@ public class GradientDescentTrainer {
       }
       setError(validationError);
     }
-    return validationError;
-  }
-
-  public Double step(TrainingContext trainingContext, final double[] rates) throws TerminationCondition {
-    final long startMs = System.currentTimeMillis();
-    trainSet(trainingContext, rates);
     trainingContext.gradientSteps.increment();
     if (this.verbose)
     {
