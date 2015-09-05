@@ -25,24 +25,69 @@ import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
 public abstract class ClassificationTestBase {
+
+  public static class ClassificationResultMetrics {
+    public double classificationAccuracy;
+    public NDArray classificationMatrix;
+    public double pts = 0;
+    public double sumSqErr;
+    
+    public ClassificationResultMetrics(final int categories) {
+      this.classificationMatrix = new NDArray(categories, categories);
+    }
+    
+    @Override
+    public String toString() {
+      final StringBuilder builder = new StringBuilder();
+      builder.append("ClassificationResultMetrics [");
+      if (this.pts > 0) {
+        builder.append("error=");
+        builder.append(Math.sqrt(this.sumSqErr / this.pts));
+      }
+      builder.append(", accuracy=");
+      builder.append(this.classificationAccuracy);
+      builder.append(", classificationMatrix=");
+      builder.append(this.classificationMatrix);
+      builder.append("]");
+      return builder.toString();
+    }
+    
+  }
   
+  static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN, ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
+      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
+      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor());
+      
   static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
-
-  public abstract PipelineNetwork buildNetwork();
-
+  
+  public static Color randomColor() {
+    final Random r = Util.R.get();
+    return new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+  }
+  
+  boolean drawBG = true;
+  
   public ClassificationTestBase() {
     super();
   }
+  
+  public abstract PipelineNetwork buildNetwork();
 
   public Tester buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
     return net.trainer(samples);
   }
-
+  
+  public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {
+    final Color color = ClassificationTestBase.colorMap.get(classificationExpected);
+    return color;
+  }
+  
   public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
     return getTrainingData(dimensions, populations, 100);
   }
-
-  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException, IOException {
+  
+  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN)
+      throws FileNotFoundException, IOException {
     final int[] inputSize = new int[] { dimensions };
     final int[] outSize = new int[] { populations.size() };
     final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x)
@@ -53,89 +98,68 @@ public abstract class ClassificationTestBase {
         })).toArray(i -> new NDArray[i][]);
     return samples;
   }
-
-  public static class ClassificationResultMetrics {
-    public double pts = 0;
-    public double sumSqErr;
-    public double classificationAccuracy;
-    public NDArray classificationMatrix;
-
-    public ClassificationResultMetrics(int categories) {
-      this.classificationMatrix = new NDArray(categories,categories);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder builder = new StringBuilder();
-      builder.append("ClassificationResultMetrics [");
-      if(pts>0){
-        builder.append("error=");
-        builder.append(Math.sqrt(sumSqErr/pts));
-      }
-      builder.append(", accuracy=");
-      builder.append(classificationAccuracy);
-      builder.append(", classificationMatrix=");
-      builder.append(classificationMatrix);
-      builder.append("]");
-      return builder.toString();
-    }
-
-    
-    
+  
+  public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
+    final double xf = input.get(0);
+    final double yf = input.get(1);
+    return new double[] { xf, yf };
   }
   
-  boolean drawBG = true;
+  public Integer outputToClassification(final NDArray actual) {
+    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
+  }
+
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
     final PipelineNetwork net = buildNetwork();
     final Tester trainer = buildTrainer(samples, net);
-    final Map<BufferedImage,String> images = new HashMap<>();
-    int categories = samples[0][1].dim();
-    trainer.handler.add((n,trainingContext) -> {
+    final Map<BufferedImage, String> images = new HashMap<>();
+    final int categories = samples[0][1].dim();
+    trainer.handler.add((n, trainingContext) -> {
       try {
-        ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
+        final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
         final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
           {
-            if(drawBG) {
+            if (ClassificationTestBase.this.drawBG) {
               for (int xpx = 0; xpx < getWidth(); xpx++) {
                 for (int ypx = 0; ypx < getHeight(); ypx++) {
                   final double xf = (xpx * 1. / getWidth() - .5) * 6;
                   final double yf = (ypx * 1. / getHeight() - .5) * 6;
                   final NNResult eval = n.eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
-                  int classificationActual = outputToClassification(eval.data);
-                  int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
+                  final int classificationActual = outputToClassification(eval.data);
+                  final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
                   this.setRGB(xpx, ypx, color);
                 }
               }
             }
             final Graphics2D g = (Graphics2D) getGraphics();
             correct.pts++;
-            correct.classificationAccuracy = (Stream.of(samples).mapToDouble(pt -> {
+            correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
               final NDArray expectedOutput = pt[1];
-              NDArray input = pt[0];
-              NNResult output = trainer.getInner().getGradientDescentTrainer().getNet().eval(input);
+              final NDArray input = pt[0];
+              final NNResult output = trainer.getInner().getGradientDescentTrainer().getNet().eval(input);
               final NDArray actualOutput = output.data;
               correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
-                double x = expectedOutput.get(i)-actualOutput.get(i);
-                return x*x;
+                final double x = expectedOutput.get(i) - actualOutput.get(i);
+                return x * x;
               }).average().getAsDouble();
-              
+
               final int classificationExpected = outputToClassification(expectedOutput);
               final int classificationActual = outputToClassification(actualOutput);
-              double[] coords = inputToXY(input, classificationActual, classificationExpected);
+              final double[] coords = inputToXY(input, classificationActual, classificationExpected);
               final double xf = coords[0];
               final double yf = coords[1];
               final int xpx = (int) ((xf + 3) / 6 * getHeight());
               final int ypx = (int) ((yf + 3) / 6 * getHeight());
-              Color color = getColor(input, classificationActual, classificationExpected);
+              final Color color = getColor(input, classificationActual, classificationExpected);
               g.setColor(color);
               g.drawOval(xpx, ypx, 1, 1);
-              correct.classificationMatrix.add(new int[]{classificationExpected,classificationActual}, 1.);
-              return classificationExpected==classificationActual?1.:0.;
-            }).average().getAsDouble());
+              correct.classificationMatrix.add(new int[] { classificationExpected, classificationActual }, 1.);
+              return classificationExpected == classificationActual ? 1. : 0.;
+            }).average().getAsDouble();
           }
         };
-        String label = correct.toString() + " \n" + trainingContext.toString();
-        log.debug(label);
+        final String label = correct.toString() + " \n" + trainingContext.toString();
+        ClassificationTestBase.log.debug(label);
         images.put(img, label);
       } catch (final Exception e) {
         e.printStackTrace();
@@ -145,35 +169,14 @@ public abstract class ClassificationTestBase {
     try {
       verify(trainer);
     } finally {
-      Stream<String> map = images.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
-      String[] array = map.toArray(i -> new String[i]);
+      final Stream<String> map = images.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
+      final String[] array = map.toArray(i -> new String[i]);
       Util.report(array);
     }
   }
-
-  public double[] inputToXY(NDArray input, int classificationActual, int classificationExpected) {
-    final double xf = input.get(0);
-    final double yf = input.get(1);
-    return new double[] { xf, yf };
-  }
-
-  public Integer outputToClassification(NDArray actual) {
-    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
-  }
+  
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0, 0.0, 10);
   }
 
-  static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN,randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor(),randomColor());
-  
-  public Color getColor(NDArray input, int classificationActual, final int classificationExpected) {
-    Color color = colorMap.get(classificationExpected);
-    return color;
-  }
-
-  public static Color randomColor() {
-    Random r = Util.R.get();
-    return new Color(r.nextInt(255),r.nextInt(255),r.nextInt(255));
-  }
-  
 }

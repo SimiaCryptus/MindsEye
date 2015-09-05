@@ -13,28 +13,28 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
 public class ExpActivationLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(ExpActivationLayer.class);
-  
+
   private boolean verbose;
-  
+
   public ExpActivationLayer() {
   }
-  
+
   @Override
-  public NNResult eval(EvaluationContext evaluationContext, final NNResult... inObj) {
-    assert(1==inObj.length);
-    NNResult in = inObj[0];
+  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+    assert 1 == inObj.length;
+    final NNResult in = inObj[0];
     final NDArray input = in.data;
     final NDArray output = new NDArray(in.data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
     IntStream.range(0, input.dim()).forEach(i -> {
       final double x = input.getData()[i];
-      double max = 700;//Math.log(Double.MAX_VALUE);
-      double bounded = Math.max(Math.min(max, x), -max);
+      final double max = 700;// Math.log(Double.MAX_VALUE);
+      final double bounded = Math.max(Math.min(max, x), -max);
       final double ex = Math.exp(bounded);
-      double d = ex;
-      double f = ex;
+      final double d = ex;
+      final double f = ex;
       inputGradient.set(new int[] { i }, d);
       output.set(i, f);
     });
@@ -47,8 +47,8 @@ public class ExpActivationLayer extends NNLayer {
         if (in.isAlive()) {
           final LogNDArray passback = new LogNDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
-            LogNumber x = data.getData()[i];
-            double dx = inputGradient.getData()[i];
+            final LogNumber x = data.getData()[i];
+            final double dx = inputGradient.getData()[i];
             passback.set(i, x.multiply(dx));
           });
           if (isVerbose()) {
@@ -57,18 +57,18 @@ public class ExpActivationLayer extends NNLayer {
           in.feedback(passback, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return in.isAlive();
       }
     };
   }
-  
+
   public boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public ExpActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

@@ -20,17 +20,12 @@ import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNISTClassificationTests extends ClassificationTestBase {
-  
+
   public MNISTClassificationTests() {
     super();
-    drawBG = false;
+    this.drawBG = false;
   }
-  
-  @Override
-  public Tester buildTrainer(NDArray[][] samples, PipelineNetwork net) {
-    return super.buildTrainer(samples, net).setVerbose(true);
-  }
-  
+
   @Override
   public PipelineNetwork buildNetwork() {
     final int[] inputSize = new int[] { 28, 28 };
@@ -39,13 +34,13 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     PipelineNetwork net = new PipelineNetwork();
     net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
     net = net.add(new BiasLayer(midSize));
-    
+
     net = net.add(new MinMaxFilterLayer());
     net = net.add(new SigmoidActivationLayer());
-    
+
     net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
     net = net.add(new BiasLayer(outSize));
-    
+
     // net = net.add(new ExpActivationLayer())
     // net = net.add(new L1NormalizationLayer());
     // net = net.add(new LinearActivationLayer());
@@ -53,60 +48,66 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }
-  
-  public double[] inputToXY(NDArray input, int classificationActual, int classificationExpected) {
-    double n = 10.;
-    double[] c = new double[] { //
-        ((classificationActual + Util.R.get().nextDouble()) / (n + 1)), //
-        (classificationExpected + Util.R.get().nextDouble()) / (n + 1) //
-    };
-    return new double[] { c[0] * 6 - 3, c[1] * 6 - 3 };
+
+  @Override
+  public Tester buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
+    return super.buildTrainer(samples, net).setVerbose(true);
   }
-  
-  @Test
-  public void test() throws Exception {
-    test(trainingData());
-  }
-  
-  public NDArray[][] trainingData() throws IOException {
-    int maxSize = 1000;
-    List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream()
-        .filter(this::filter)
-        .collect(Collectors.toList()));
-    NDArray[][] trainingData = data.parallelStream().limit(maxSize)
-        .map(obj -> {
-          int out = SimpleMNIST.toOut(remap(obj.label));
-          NDArray output = SimpleMNIST.toOutNDArray(out, 10);
-          return new NDArray[] { obj.data, output };
-        })
-        .toArray(i -> new NDArray[i][]);
-    return trainingData;
-  }
-  
-  private String remap(String label) {
-    switch (label) {
-//    case "[0]":
-//      return "[5]";
-//    case "[5]":
-//      return "[9]";
-//    case "[9]":
-//      return "[0]";
-    default:
-      return label;
-    }
-  }
-  
-  public boolean filter(LabeledObject<NDArray> item) {
+
+  public boolean filter(final LabeledObject<NDArray> item) {
     if (item.label.equals("[0]")) return true;
     if (item.label.equals("[5]")) return true;
     if (item.label.equals("[9]")) return true;
     return true;
   }
-  
+
   @Override
-  public void verify(Tester trainer) {
+  public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
+    final double n = 10.;
+    final double[] c = new double[] { //
+        (classificationActual + Util.R.get().nextDouble()) / (n + 1), //
+        (classificationExpected + Util.R.get().nextDouble()) / (n + 1) //
+    };
+    return new double[] { c[0] * 6 - 3, c[1] * 6 - 3 };
+  }
+
+  private String remap(final String label) {
+    switch (label) {
+    // case "[0]":
+    // return "[5]";
+    // case "[5]":
+    // return "[9]";
+    // case "[9]":
+    // return "[0]";
+    default:
+      return label;
+    }
+  }
+
+  @Test
+  public void test() throws Exception {
+    test(trainingData());
+  }
+
+  public NDArray[][] trainingData() throws IOException {
+    final int maxSize = 1000;
+    final List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream()
+        .filter(this::filter)
+        .collect(Collectors.toList()));
+    final NDArray[][] trainingData = data.parallelStream().limit(maxSize)
+        .map(obj -> {
+          final int out = SimpleMNIST.toOut(remap(obj.label));
+          final NDArray output = SimpleMNIST.toOutNDArray(out, 10);
+          return new NDArray[] { obj.data, output };
+        })
+        .toArray(i -> new NDArray[i][]);
+    return trainingData;
+  }
+
+  @Override
+  public void verify(final Tester trainer) {
     trainer.setMutationAmplitude(.1)
         .verifyConvergence(0, 0.0, 1);
   }
-  
+
 }

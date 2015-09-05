@@ -8,44 +8,49 @@ import com.simiacryptus.mindseye.math.LogNumber;
 
 public class DeltaValueAccumulator2 implements DeltaValueAccumulator<DeltaValueAccumulator2> {
   public TreeSet<LogNumber> numbers = new TreeSet<>();
-  
+
   public DeltaValueAccumulator2() {
   }
-  
-  public DeltaValueAccumulator2(DeltaValueAccumulator2 toCopy) {
-    numbers.addAll(toCopy.numbers);
+
+  public DeltaValueAccumulator2(final DeltaValueAccumulator2 toCopy) {
+    this.numbers.addAll(toCopy.numbers);
   }
-  
-  public synchronized LogNumber logValue() {
-    LogNumber[] array = numbers.stream().toArray(i -> new LogNumber[i]);
-    if (null == array || 0 == array.length) return LogNumber.ZERO;
-    return Stream.of(array).reduce((a, b) -> a.add(b)).get().divide(array.length);
-  }
-  
-  public synchronized DeltaValueAccumulator2 add(LogNumber r) {
-    numbers.add(r);
-    return this;
-  }
-  
-  public DeltaValueAccumulator2 add(DeltaValueAccumulator2 r) {
-    DeltaValueAccumulator2 copy = new DeltaValueAccumulator2(this);
+
+  @Override
+  public DeltaValueAccumulator2 add(final DeltaValueAccumulator2 r) {
+    final DeltaValueAccumulator2 copy = new DeltaValueAccumulator2(this);
     copy.numbers.addAll(r.numbers);
     return copy;
   }
-  
-  public DeltaValueAccumulator2 multiply(double r) {
-    return map(x -> x.multiply(r));
+
+  @Override
+  public synchronized DeltaValueAccumulator2 add(final LogNumber r) {
+    this.numbers.add(r);
+    return this;
   }
-  
-  private synchronized DeltaValueAccumulator2 map(Function<LogNumber, LogNumber> f) {
-    DeltaValueAccumulator2 copy = new DeltaValueAccumulator2();
-    numbers.stream().map(f).forEach(x -> copy.add(x));
-    // copy.sum = f.apply(sum);
-    return copy;
-  }
-  
+
+  @Override
   public double doubleValue() {
     return logValue().doubleValue();
   }
-  
+
+  @Override
+  public synchronized LogNumber logValue() {
+    final LogNumber[] array = this.numbers.stream().toArray(i -> new LogNumber[i]);
+    if (null == array || 0 == array.length) return LogNumber.ZERO;
+    return Stream.of(array).reduce((a, b) -> a.add(b)).get().divide(array.length);
+  }
+
+  private synchronized DeltaValueAccumulator2 map(final Function<LogNumber, LogNumber> f) {
+    final DeltaValueAccumulator2 copy = new DeltaValueAccumulator2();
+    this.numbers.stream().map(f).forEach(x -> copy.add(x));
+    // copy.sum = f.apply(sum);
+    return copy;
+  }
+
+  @Override
+  public DeltaValueAccumulator2 multiply(final double r) {
+    return map(x -> x.multiply(r));
+  }
+
 }

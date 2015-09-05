@@ -17,9 +17,9 @@ import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class BooleanSoftmaxNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSoftmaxNetworkTests.class);
-
-  public static final Random random = new Random();
   
+  public static final Random random = new Random();
+
   public NDArray[][] getSoftmaxGateTrainingData(final BiFunction<Boolean, Boolean, Boolean> gate) {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
@@ -39,43 +39,43 @@ public class BooleanSoftmaxNetworkTests {
     }
     return samples;
   }
-  
+
   public void test(final NDArray[][] samples) {
     final int[] midSize = new int[] { 4 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     new PipelineNetwork()
-    
+
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
-    .add(new BiasLayer(midSize))
-    .add(new SigmoidActivationLayer())
-    
+        .add(new BiasLayer(midSize))
+        .add(new SigmoidActivationLayer())
+        
     .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-    .add(new BiasLayer(outSize))
-    .add(new SoftmaxActivationLayer().setVerbose(false))
-    
+        .add(new BiasLayer(outSize))
+        .add(new SoftmaxActivationLayer().setVerbose(false))
+        
     .trainer(samples).verifyConvergence(10, 0.01, 100);
   }
-
+  
   @Test
   public void test_AND() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
     final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
     test(samples);
   }
-  
+
   @Test
   public void test_OR() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
     final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
     test(samples);
   }
-
+  
   @Test
   public void test_XOR() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
     final NDArray[][] samples = getSoftmaxGateTrainingData(gate);
     test(samples);
   }
-
+  
 }

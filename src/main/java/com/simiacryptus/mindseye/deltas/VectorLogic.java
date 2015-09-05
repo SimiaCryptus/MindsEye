@@ -1,19 +1,19 @@
 package com.simiacryptus.mindseye.deltas;
 
 public interface VectorLogic<T extends VectorLogic<T>> {
-  
-  public T scale(double f);
-  
-  public double dotProduct(T right);
-  
+
   public T add(T right);
-  
-  public double l2();
+
+  public double dotProduct(T right);
 
   public double l1();
 
-  default T unitV() {
-    return this.scale(1./l2());
-  };
+  public double l2();
   
+  public T scale(double f);
+  
+  default T unitV() {
+    return this.scale(1. / l2());
+  };
+
 }

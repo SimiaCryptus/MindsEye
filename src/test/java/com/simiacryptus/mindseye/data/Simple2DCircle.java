@@ -5,17 +5,17 @@ import java.util.function.Function;
 import com.simiacryptus.mindseye.util.Util;
 
 public final class Simple2DCircle implements Function<Void, double[]> {
-
+  
   private double[] center;
   private double radius;
-
+  
   public Simple2DCircle(final double radius, final double[] center) {
     super();
     assert center.length == 2;
     this.radius = radius;
     this.center = center;
   }
-
+  
   @Override
   public double[] apply(final Void n) {
     final double x = Util.R.get().nextDouble() * 2 * Math.PI;

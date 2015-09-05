@@ -17,44 +17,44 @@ import com.simiacryptus.mindseye.training.EvaluationContext.LazyResult;
 
 /***
  * Builds a linear pipeline of NNLayer components, applied in sequence
- * 
+ *
  * @author Andrew Charneski
  */
 public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
-  
+
   private final List<NNLayer> children = new ArrayList<NNLayer>();
-  
-  public final UUID inputHandle = UUID.randomUUID();
+
   public LazyResult<NNResult[]> head = new LazyResult<NNResult[]>() {
     @Override
-    protected NNResult[] initialValue(EvaluationContext t) {
-      return (NNResult[]) t.cache.get(inputHandle);
+    protected NNResult[] initialValue(final EvaluationContext t) {
+      return (NNResult[]) t.cache.get(PipelineNetwork.this.inputHandle);
     }
-
+    
     @Override
     protected JsonObject toJson() {
-      JsonObject json = new JsonObject();
-      json.addProperty("target", inputHandle.toString());
+      final JsonObject json = new JsonObject();
+      json.addProperty("target", PipelineNetwork.this.inputHandle.toString());
       return json;
     }
   };
-  
+  public final UUID inputHandle = UUID.randomUUID();
+
   public synchronized PipelineNetwork add(final NNLayer layer) {
-    children.add(layer);
-    LazyResult<NNResult[]> prevHead = head;
-    head = new LazyResult<NNResult[]>() {
+    this.children.add(layer);
+    final LazyResult<NNResult[]> prevHead = this.head;
+    this.head = new LazyResult<NNResult[]>() {
       @Override
-      protected NNResult[] initialValue(EvaluationContext ctx) {
-        NNResult[] input = prevHead.get(ctx);
-        NNResult output = layer.eval(ctx, input);
+      protected NNResult[] initialValue(final EvaluationContext ctx) {
+        final NNResult[] input = prevHead.get(ctx);
+        final NNResult output = layer.eval(ctx, input);
         return new NNResult[] { output };
       }
-
+      
       @Override
       protected JsonObject toJson() {
-        JsonObject json = new JsonObject();
+        final JsonObject json = new JsonObject();
         json.add("layer", layer.getJson());
         json.add("prev", prevHead.toJson());
         return json;
@@ -62,40 +62,42 @@ public class PipelineNetwork extends NNLayer {
     };
     return this;
   }
-  
-  public NNResult eval(EvaluationContext evaluationContext, NNResult... array) {
-    evaluationContext.cache.put(inputHandle, array);
-    return head.get(evaluationContext)[0];
+
+  @Override
+  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... array) {
+    evaluationContext.cache.put(this.inputHandle, array);
+    return this.head.get(evaluationContext)[0];
   }
-  
+
+  public NNResult eval(final NDArray... array) {
+    return eval(new EvaluationContext(), array);
+  }
+
   public NNLayer get(final int i) {
-    return children.get(i);
+    return this.children.get(i);
   }
   
   @Override
+  public List<NNLayer> getChildren() {
+    return this.children.stream()
+        .flatMap(l -> l.getChildren().stream())
+        .distinct()
+        .sorted(Comparator.comparing(l -> l.getId()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public JsonObject getJson() {
-    JsonObject json = super.getJson();
-    json.add("root", head.toJson());
-//    for(NNLayer c : getChildren()){
-//      json.add(c.getId(), c.getJson());
-//    }
+    final JsonObject json = super.getJson();
+    json.add("root", this.head.toJson());
+    // for(NNLayer c : getChildren()){
+    // json.add(c.getId(), c.getJson());
+    // }
     return json;
   }
 
   public Tester trainer(final NDArray[][] samples) {
     return new Tester().setParams(this, samples);
   }
-  
-  public NNResult eval(NDArray... array) {
-    return eval(new EvaluationContext(), array);
-  }
-  
-  public List<NNLayer> getChildren() {
-    return children.stream()
-        .flatMap(l->l.getChildren().stream())
-        .distinct()
-        .sorted(Comparator.comparing(l->l.getId()))
-        .collect(Collectors.toList());
-  }
-  
+
 }

@@ -16,9 +16,9 @@ import com.simiacryptus.mindseye.training.PipelineNetwork;
 
 public class BooleanSigmoidNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSigmoidNetworkTests.class);
-
+  
   public static final Random random = new Random();
-
+  
   public NDArray[][] getTrainingData(final BiFunction<Boolean, Boolean, Boolean> gate) {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
@@ -35,43 +35,43 @@ public class BooleanSigmoidNetworkTests {
     }
     return samples;
   }
-
+  
   public void test(final NDArray[][] samples) {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     new PipelineNetwork()
-    
+
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
         .add(new BiasLayer(midSize))
-    .add(new SigmoidActivationLayer())
-    
+        .add(new SigmoidActivationLayer())
+        
     .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
-    .add(new BiasLayer(outSize))
-    .add(new SigmoidActivationLayer())
-    .trainer(samples)
-    .setMutationAmplitude(10.).verifyConvergence(10, 0.01, 100);
+        .add(new BiasLayer(outSize))
+        .add(new SigmoidActivationLayer())
+        .trainer(samples)
+        .setMutationAmplitude(10.).verifyConvergence(10, 0.01, 100);
   }
-
+  
   @Test
   public void test_BasicNN_AND() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
     final NDArray[][] samples = getTrainingData(gate);
     test(samples);
   }
-
+  
   @Test
   public void test_BasicNN_OR() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
     final NDArray[][] samples = getTrainingData(gate);
     test(samples);
   }
-
+  
   @Test
   public void test_BasicNN_XOR() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
     final NDArray[][] samples = getTrainingData(gate);
     test(samples);
   }
-
+  
 }

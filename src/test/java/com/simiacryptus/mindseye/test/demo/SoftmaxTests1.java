@@ -12,10 +12,10 @@ public class SoftmaxTests1 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final PipelineNetwork net = new PipelineNetwork()
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
-    .add(new BiasLayer(outSize))
-    .add(new SoftmaxActivationLayer());
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))
+        .add(new BiasLayer(outSize))
+        .add(new SoftmaxActivationLayer());
     return net;
   }
-
+  
 }
