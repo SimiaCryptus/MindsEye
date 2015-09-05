@@ -27,7 +27,7 @@ public class GradientDescentTrainer {
   private NDArray[][] masterTrainingData = null;
   private PipelineNetwork net = null;
   private double rate = 0.3;
-  private double temperature = 0.05;
+  private double temperature = 0.00005;
   private boolean verbose = false;
 
   public DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
