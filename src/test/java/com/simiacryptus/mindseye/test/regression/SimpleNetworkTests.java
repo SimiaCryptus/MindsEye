@@ -138,30 +138,30 @@ public class SimpleNetworkTests {
     };
     
     new PipelineNetwork() //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 1.0 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
         .trainer(samples)
         .verifyConvergence(0, 0.01, 100);
         
     new PipelineNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 1.0 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
         .trainer(samples)
-        // .setVerbose(true)
+        //.setVerbose(true).setParallel(false)
         .verifyConvergence(0, 0.01, 100);
         
     new PipelineNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
         .trainer(samples)
-        .verifyConvergence(0, 0.01, 100, 90);
+        .verifyConvergence(0, 0.01, 100, 80);
         
     new PipelineNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
         .trainer(samples)
-        .verifyConvergence(0, 0.01, 100, 90);
+        .verifyConvergence(0, 0.01, 100, 50);
   }
   
 }

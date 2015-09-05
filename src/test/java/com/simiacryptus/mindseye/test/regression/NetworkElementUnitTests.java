@@ -308,12 +308,16 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] {
-        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0., 1. }) }
+        { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.1, 0.9 }) }
     };
     new PipelineNetwork()
-        .add(new BiasLayer(inputSize))
-        .add(new SoftmaxActivationLayer())
-        .trainer(samples).verifyConvergence(0, 0.1, 100);
+        .add(new BiasLayer(inputSize).setVerbose(true))
+        .add(new SoftmaxActivationLayer().setVerbose(true))
+        
+        .trainer(samples)
+        //.setVerbose(true).setParallel(false)
+        .verifyConvergence(0, 0.1, 100);
+    
   }
   
   @Test

@@ -40,8 +40,14 @@ public class MaxSubsampleLayer extends NNLayer {
     final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
     output.coordStream(false).forEach(o -> {
       final int[] i = new NDArray(this.kernelDims).coordStream(false)
-          .map(kernelCoord -> Coordinate.add(o.coords, kernelCoord.coords))
-          .sorted(Comparator.comparing(inputCoords -> input.get(inputCoords))).findFirst().get();
+          .map(kernelCoord -> {
+            final int[] r = new int[o.coords.length];
+            for (int i1 = 0; i1 < o.coords.length; i1++) {
+              r[i1] = o.coords[i1] * this.kernelDims[i1] + kernelCoord.coords[i1];
+            }
+            return r;
+          })
+          .sorted(Comparator.comparing(inputCoords -> -input.get(inputCoords))).findFirst().get();
       final Coordinate inputCoord = new Coordinate(input.index(i), i);
       gradientMap.put(o, inputCoord);
       output.add(o, input.get(inputCoord));
@@ -51,7 +57,7 @@ public class MaxSubsampleLayer extends NNLayer {
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
           final LogNDArray backSignal = new LogNDArray(inputDims);
-          gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().coords, data.get(e.getKey().coords)));
+          gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().index, data.get(e.getKey().index)));
           inObj[0].feedback(backSignal, buffer);
         }
       }

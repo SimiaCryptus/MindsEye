@@ -29,7 +29,6 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   private final NNLayer layer;
   private LogNumber normalizationFactor;
   private LogNumber rate = LogNumber.log(1);
-  
   private boolean reset = false;
   
   public DeltaFlushBuffer(final DeltaSink values, final DeltaValueAccumulator[] array, final NNLayer layer) {
@@ -168,7 +167,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   public synchronized void write(final double factor) {
     final LogNumber[] cpy = new LogNumber[this.buffer.length];
     if (!this.reset) {
-      this.normalizationFactor = Stream.of(this.buffer).map(x -> x.logValue().abs()).max(Comparator.naturalOrder()).get();
+      this.normalizationFactor = LogNumber.ONE;//Stream.of(this.buffer).map(x -> x.logValue().abs()).max(Comparator.naturalOrder()).get();
     }
     for (int i = 0; i < this.buffer.length; i++) {
       cpy[i] = this.buffer[i].logValue().multiply(factor).multiply(getRate())

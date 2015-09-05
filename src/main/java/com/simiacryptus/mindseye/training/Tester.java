@@ -26,6 +26,8 @@ public class Tester {
   private MutationTrainer inner = new MutationTrainer();
   
   TrainingContext trainingContext = new TrainingContext();
+
+  private boolean parallel = true;
   
   public MutationTrainer getInner() {
     return this.inner;
@@ -79,7 +81,10 @@ public class Tester {
       final Double error = trainingContext.overallTimer.time(() -> {
         return copy.setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
       });
-      this.handler.stream().forEach(h -> h.apply(copy.getGradientDescentTrainer().getNet(), trainingContext));
+      PipelineNetwork net = copy.getGradientDescentTrainer().getNet();
+      this.handler.stream().forEach(h -> {
+        h.apply(net, trainingContext);
+      });
       hasConverged = error <= convergence;
       if (!hasConverged) {
         Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
@@ -105,11 +110,20 @@ public class Tester {
   }
   
   public long verifyConvergence(final int maxIter, final double convergence, final int reps, final int minSuccess) {
-    final long succeesses = IntStream.range(0, reps) //
-        .parallel() //
-        .filter(i -> testCopy(maxIter, convergence)).count();
+    IntStream range = IntStream.range(0, reps);
+    if(isParallel()) range = range.parallel();
+    final long succeesses = range.filter(i -> testCopy(maxIter, convergence)).count();
     if (minSuccess > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
     return succeesses;
+  }
+
+  public boolean isParallel() {
+    return parallel;
+  }
+
+  public Tester setParallel(boolean parallel) {
+    this.parallel = parallel;
+    return this;
   }
   
 }

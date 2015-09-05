@@ -20,6 +20,7 @@ public class SigmoidActivationLayer extends NNLayer {
   }
   
   private boolean verbose;
+  private boolean balanced = true;
   
   public SigmoidActivationLayer() {
   }
@@ -44,8 +45,10 @@ public class SigmoidActivationLayer extends NNLayer {
       }
       assert Double.isFinite(d);
       assert minDeriv <= Math.abs(d);
-      d = 2 * d;
-      f = 2 * f - 1;
+      if (isBalanced()) {
+        d = 2 * d;
+        f = 2 * f - 1;
+      }
       inputGradient.add(new int[] { i }, d);
       output.set(i, f);
     });
@@ -88,6 +91,15 @@ public class SigmoidActivationLayer extends NNLayer {
   
   public SigmoidActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+
+  public boolean isBalanced() {
+    return balanced;
+  }
+
+  public SigmoidActivationLayer setBalanced(boolean balanced) {
+    this.balanced = balanced;
     return this;
   }
 }

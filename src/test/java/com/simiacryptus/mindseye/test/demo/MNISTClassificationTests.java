@@ -45,7 +45,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     // net = net.add(new L1NormalizationLayer());
     // net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
-    net = net.add(new SoftmaxActivationLayer());
+    //net = net.add(new SoftmaxActivationLayer());
+    net = net.add(new SigmoidActivationLayer().setBalanced(false));
     return net;
   }
   
