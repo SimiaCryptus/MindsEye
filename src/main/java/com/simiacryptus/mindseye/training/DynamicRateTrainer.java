@@ -279,11 +279,8 @@ public class DynamicRateTrainer {
         if (isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
         }
-        int retry = 0;
-        while (!calibrate(trainingContext)) {
-          DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
-          if (++retry > 0) return false;
-        }
+        if(!recalibrateWRetry(trainingContext)) return false;
+        this.generationsSinceImprovement = 0;
       }
       final double last = gradientDescentTrainer.getError();
       final double next = trainOnce(trainingContext, gradientDescentTrainer);
@@ -294,15 +291,20 @@ public class DynamicRateTrainer {
           if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }
-          if (!calibrate(trainingContext)) {
-            DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
-            return false;
-          } else {
-            this.generationsSinceImprovement = 0;
-          }
+          if(!recalibrateWRetry(trainingContext)) return false;
+          this.generationsSinceImprovement = 0;
         }
       }
     }
+  }
+
+  public boolean recalibrateWRetry(TrainingContext trainingContext) {
+    int retry = 0;
+    while (!calibrate(trainingContext)) {
+      DynamicRateTrainer.log.debug("Failed recalibration at iteration " + this.currentIteration);
+      if (++retry > 0) return false;
+    }
+    return true;
   }
   
 }
