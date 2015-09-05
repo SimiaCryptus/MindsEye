@@ -40,26 +40,14 @@ public class MultivariateOptimizer {
   
   static final Logger log = LoggerFactory.getLogger(MultivariateOptimizer.class);
   
-  public static double[] copy(final double[] start, final int i, final double v) {
+  private static double[] copy(final double[] start, final int i, final double v) {
     final double[] next = Arrays.copyOf(start, start.length);
     next[i] = v;
     return next;
   }
   
-  public static <T> ThreadLocal<T> copyOnFork(final T localValue) {
-    final ThreadLocal<T> f2 = new ThreadLocal<T>() {
-      @Override
-      protected T initialValue() {
-        return Util.copy(localValue);
-      }
-    };
-    f2.set(localValue);
-    return f2;
-  }
-  
   private final MultivariateFunction f;
   int maxIterations = 1000;
-  
   private double maxRate = 1e5;
   private boolean verbose = false;
   
@@ -92,7 +80,7 @@ public class MultivariateOptimizer {
   
   public PointValuePair minimize(final PointValuePair initial) {
     final int dims = initial.getFirst().length;
-    final ThreadLocal<MultivariateFunction> f2 = MultivariateOptimizer.copyOnFork(this.f);
+    final ThreadLocal<MultivariateFunction> f2 = Util.copyOnFork(this.f);
     return IntStream.range(0, (int) Math.min(Math.ceil(Math.sqrt(dims)), 1))
         .parallel()
         .mapToObj(threadNum -> {

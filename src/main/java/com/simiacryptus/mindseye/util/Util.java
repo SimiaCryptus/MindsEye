@@ -384,4 +384,15 @@ public class Util {
     }, 100).limit(10000);
     return merged;
   }
+
+  public static <T> ThreadLocal<T> copyOnFork(final T localValue) {
+    final ThreadLocal<T> f2 = new ThreadLocal<T>() {
+      @Override
+      protected T initialValue() {
+        return copy(localValue);
+      }
+    };
+    f2.set(localValue);
+    return f2;
+  }
 }

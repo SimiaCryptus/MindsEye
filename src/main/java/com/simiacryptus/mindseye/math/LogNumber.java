@@ -146,5 +146,9 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     builder.append(doubleValue());
     return builder.toString();
   }
+
+  public LogNumber inverse() {
+    return new LogNumber(type, -logValue);
+  }
   
 }

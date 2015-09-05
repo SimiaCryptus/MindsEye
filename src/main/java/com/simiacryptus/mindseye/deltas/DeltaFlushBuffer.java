@@ -16,7 +16,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer> {
+public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   
   private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
   
@@ -25,32 +25,23 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   }
   
   private final DeltaValueAccumulator[] buffer;
-  private final DeltaSink inner;
+  private final double[] inner;
   private final NNLayer layer;
-  private LogNumber normalizationFactor;
-  private LogNumber rate = LogNumber.log(1);
-  private boolean reset = false;
+  private boolean normalize = false;
+  private LogNumber[] calcVector;
   
-  public DeltaFlushBuffer(final DeltaSink values, final DeltaValueAccumulator[] array, final NNLayer layer) {
+  public DeltaFlushBuffer(final double[] values, final DeltaValueAccumulator[] array, final NNLayer layer) {
     this.inner = values;
     this.layer = layer;
     this.buffer = array;
   }
   
-  public DeltaFlushBuffer(final DeltaSink values, final NNLayer layer) {
+  public DeltaFlushBuffer(final double[] values, final NNLayer layer) {
     assert null != values;
     this.inner = values;
     this.layer = layer;
-    this.buffer = new DeltaValueAccumulator1[values.length()];
+    this.buffer = new DeltaValueAccumulator1[values.length];
     Arrays.setAll(this.buffer, i -> DeltaFlushBuffer.newAccumulator());
-  }
-  
-  protected DeltaFlushBuffer(final double[] ptr, final NNLayer layer) {
-    super();
-    this.inner = new DeltaMemoryWriter(ptr);
-    this.buffer = new DeltaValueAccumulator1[ptr.length];
-    Arrays.setAll(this.buffer, i -> DeltaFlushBuffer.newAccumulator());
-    this.layer = layer;
   }
   
   public DeltaFlushBuffer(final NDArray values, final NNLayer layer) {
@@ -71,12 +62,8 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     feed(new NDArray(new int[] { data.length }, data).log().getData());
   }
   
-  @Override
   public void feed(final LogNumber[] data) {
-    if (this.reset) {
-      this.reset = false;
-      Arrays.fill(this.buffer, LogNumber.ZERO);
-    }
+    assert(null == calcVector);
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       final DeltaValueAccumulator prev = this.buffer[i];
@@ -87,10 +74,6 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   public String getId() {
     if (null == this.layer) return "";
     return this.layer.getId();
-  }
-  
-  public double getRate() {
-    return this.rate.doubleValue();
   }
   
   public DeltaFlushBuffer getVector(final double fraction) {
@@ -128,9 +111,8 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }).sum());
   }
   
-  @Override
   public int length() {
-    return this.inner.length();
+    return this.inner.length;
   }
   
   protected <T extends DeltaValueAccumulator<T>> DeltaFlushBuffer map(final Function<T, T> mapper) {
@@ -140,10 +122,6 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   @Override
   public DeltaFlushBuffer scale(final double f) {
     return map(x -> x.multiply(f));
-  }
-  
-  public void setRate(final double rate) {
-    this.rate = LogNumber.log(rate);
   }
   
   protected <T extends DeltaValueAccumulator<T>> double sum(final DeltaFlushBuffer right, final BiFunction<T, T, Double> joiner) {
@@ -165,19 +143,50 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   }
   
   public synchronized void write(final double factor) {
-    final LogNumber[] cpy = new LogNumber[this.buffer.length];
-    if (!this.reset) {
-      this.normalizationFactor = LogNumber.ONE;//Stream.of(this.buffer).map(x -> x.logValue().abs()).max(Comparator.naturalOrder()).get();
+    if (null == this.calcVector) {
+      this.calcVector = calcVector();
     }
+    final LogNumber[] cpy = Arrays.copyOf(calcVector(), calcVector.length);
     for (int i = 0; i < this.buffer.length; i++) {
-      cpy[i] = this.buffer[i].logValue().multiply(factor).multiply(getRate())
-          .divide(this.normalizationFactor);
+      cpy[i] = cpy[i].multiply(factor);
     }
     if (this.layer.isVerbose()) {
       log.debug(String.format("Write to memory: %s", Arrays.toString(cpy)));
     }
-    this.inner.feed(cpy);
-    this.reset = true;
+    final int dim = length();
+    if (null == cpy) return;
+    for (int i = 0; i < dim; i++) {
+      if (null == cpy[i]) {
+        continue;
+      }
+      this.inner[i] += cpy[i].doubleValue();
+      if (!Double.isFinite(this.inner[i])) {
+        this.inner[i] = 0;
+      }
+    }
+  }
+
+  public LogNumber[] calcVector() {
+    final LogNumber[] v = new LogNumber[this.buffer.length];
+    for (int i = 0; i < this.buffer.length; i++) {
+      v[i] = this.buffer[i].logValue();
+    }
+    if (isNormalize()) {
+      LogNumber normalizationFactor = Stream.of(this.buffer).map(x -> x.logValue().abs()).max(Comparator.naturalOrder()).get();
+      for (int i = 0; i < this.buffer.length; i++) {
+        v[i] = v[i].divide(normalizationFactor);
+      }
+    }
+    return v;
+  }
+  
+  public boolean isNormalize() {
+    return normalize;
+  }
+  
+  public DeltaFlushBuffer setNormalize(boolean normalize) {
+    this.normalize = normalize;
+    return this;
   }
   
 }
