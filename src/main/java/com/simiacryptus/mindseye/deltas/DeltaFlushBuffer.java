@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -166,7 +167,21 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
       cpy[i] = this.buffer[i].logValue().multiply(factor).multiply(getRate())
           .divide(this.normalizationFactor);
     }
+    if(this.layer.isVerbose()) {
+      log.debug(String.format("Write to memory: %s", Arrays.toString(cpy)));
+    }
     this.inner.feed(cpy);
     this.reset = true;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("DeltaFlushBuffer [");
+    builder.append(Arrays.toString(buffer));
+    builder.append("]");
+    return builder.toString();
+  }
+  
+  
 }

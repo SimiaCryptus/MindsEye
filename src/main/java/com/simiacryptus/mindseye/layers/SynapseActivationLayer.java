@@ -127,7 +127,8 @@ public class SynapseActivationLayer extends NNLayer {
     return this.frozen;
   }
   
-  private boolean isVerbose() {
+  @Override
+  public boolean isVerbose() {
     return this.verbose;
   }
   

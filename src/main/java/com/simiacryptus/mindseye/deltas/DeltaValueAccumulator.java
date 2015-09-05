@@ -13,5 +13,5 @@ public interface DeltaValueAccumulator<T extends DeltaValueAccumulator<T>> {
   LogNumber logValue();
   
   T multiply(double r);
-  
+   
 }

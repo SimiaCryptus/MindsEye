@@ -47,5 +47,12 @@ public class DeltaValueAccumulator1 implements DeltaValueAccumulator<DeltaValueA
   public DeltaValueAccumulator1 multiply(final double r) {
     return map(x -> x.multiply(r));
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append(doubleValue());
+    return builder.toString();
+  }
   
 }

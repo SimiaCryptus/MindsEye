@@ -105,7 +105,9 @@ public class Tester {
   }
   
   public long verifyConvergence(final int maxIter, final double convergence, final int reps, final int minSuccess) {
-    final long succeesses = IntStream.range(0, reps).parallel().filter(i -> testCopy(maxIter, convergence)).count();
+    final long succeesses = IntStream.range(0, reps) //
+        //.parallel() //
+        .filter(i -> testCopy(maxIter, convergence)).count();
     if (minSuccess > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
     return succeesses;
   }

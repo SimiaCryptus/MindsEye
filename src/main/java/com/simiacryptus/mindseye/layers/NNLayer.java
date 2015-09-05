@@ -62,4 +62,8 @@ public abstract class NNLayer {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
 
+  public boolean isVerbose() {
+    return false;
+  }
+
 }

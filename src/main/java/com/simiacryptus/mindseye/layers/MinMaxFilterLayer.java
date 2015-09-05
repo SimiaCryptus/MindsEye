@@ -94,7 +94,8 @@ public class MinMaxFilterLayer extends NNLayer {
     return this.threshold;
   }
   
-  private boolean isVerbose() {
+  @Override
+  public boolean isVerbose() {
     return this.verbose;
   }
 

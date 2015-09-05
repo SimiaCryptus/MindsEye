@@ -74,9 +74,9 @@ public class DynamicRateTrainer {
   protected synchronized boolean calibrate(final TrainingContext trainingContext) {
     synchronized (trainingContext) {
       trainingContext.calibrations.increment();
-      trainingContext.setActiveTrainingSet(null);
-      trainingContext.setActiveValidationSet(null);
-      trainingContext.setConstraintSet(new int[] {});
+      getGradientDescentTrainer().setActiveTrainingSet(null);
+      getGradientDescentTrainer().setActiveValidationSet(null);
+      getGradientDescentTrainer().setConstraintSet(new int[] {});
       // trainingContext.calcSieves(getInner());
       final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
       boolean inBounds = false;
@@ -95,7 +95,7 @@ public class DynamicRateTrainer {
             DynamicRateTrainer.log
                 .debug(String.format("Adjusting rates by %s: (%s improvement)", Arrays.toString(rates), improvement));
           }
-          trainingContext.calcSieves(gradientDescentTrainer);
+          getGradientDescentTrainer().calcSieves(trainingContext);
           return true;
           // return improvement > 0;
         }
@@ -156,6 +156,9 @@ public class DynamicRateTrainer {
     // regenDataSieve(trainingContext);
     
     final DeltaBuffer lessonVector = current.getVector(trainingContext);
+    if(isVerbose()) {
+      log.debug(String.format("Optimizing delta vector set: \n\t%s", lessonVector.vector().stream().map(x->x.toString()).reduce((a,b)->a+"\n\t"+b).get()));
+    }
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     final MultivariateFunction f = asMetaF(lessonVector, trainingContext, current);
     List<DeltaFlushBuffer> vector = lessonVector.vector();
