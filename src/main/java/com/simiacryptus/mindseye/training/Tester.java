@@ -1,7 +1,5 @@
 package com.simiacryptus.mindseye.training;
 
-import groovy.lang.Tuple2;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -34,11 +32,6 @@ public class Tester {
     return this;
   }
 
-  public Tuple2<GradientDescentTrainer, Double> getBest(TrainingContext trainingContext) {
-    final GradientDescentTrainer best = getInner().getBest();
-    return new Tuple2<GradientDescentTrainer, Double>(null == best ? null : best, null == best ? null : best.getError());
-  }
-  
   public MutationTrainer getInner() {
     return this.inner;
   }

@@ -38,9 +38,10 @@ public class MutationTrainer {
       }
       return false;
     }
-    if (getDynamicRateTrainer().error(trainingContext) < this.stopError) {
+    double error = getGradientDescentTrainer().getError();
+    if (error < this.stopError) {
       if (this.verbose) {
-        MutationTrainer.log.debug("Reached convergence: " + getDynamicRateTrainer().error(trainingContext));
+        MutationTrainer.log.debug("Reached convergence: " + error);
       }
       return false;
     }
@@ -69,14 +70,6 @@ public class MutationTrainer {
         return Math.acos(vi.cosine(vj));
       });
     }).average().getAsDouble();
-  }
-
-  public double error(TrainingContext trainingContext) {
-    return getGradientDescentTrainer().getError();
-  }
-
-  public GradientDescentTrainer getBest() {
-    return getGradientDescentTrainer();
   }
 
   public int getGenerationsSinceImprovement() {
@@ -274,22 +267,22 @@ public class MutationTrainer {
         }
         getDynamicRateTrainer().trainToLocalOptimum(trainingContext);
         if (this.verbose) {
-          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s\n%s",
+          GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s with rate %s\n%s",
               this.currentGeneration, 
-              getDynamicRateTrainer().error(trainingContext), 
-              getGradientDescentTrainer().getError(),
-              getGradientDescentTrainer().getRate(),
+              gradientDescentTrainer.getError(),
+              gradientDescentTrainer.getRate(),
               trainingContext.getNet()));
         }
       } 
     } catch (TerminationCondition e) {
       log.debug("Terminated training",e);
     }
-    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", getDynamicRateTrainer().error(trainingContext),
+    GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", gradientDescentTrainer.getError(),
         (System.currentTimeMillis() - startMs) / 1000.,
         this.currentGeneration, trainingContext));
-    final GradientDescentTrainer best = getBest();
-    return null == best ? Double.POSITIVE_INFINITY : best.getError();
+    return null == gradientDescentTrainer ? Double.POSITIVE_INFINITY : gradientDescentTrainer.getError();
   }
 
   public void initialize(TrainingContext trainingContext) {

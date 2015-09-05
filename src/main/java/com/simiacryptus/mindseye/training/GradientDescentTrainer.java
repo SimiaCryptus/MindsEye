@@ -94,9 +94,9 @@ public class GradientDescentTrainer {
   
   public final NDArray[][] getActiveValidationData(TrainingContext trainingContext) {
     if (null != trainingContext.getActiveValidationSet()) { //
-      return IntStream.of(trainingContext.getActiveValidationSet()).mapToObj(i -> masterTrainingData[i]).toArray(i -> new NDArray[i][]);
+      return IntStream.of(trainingContext.getActiveValidationSet()).mapToObj(i -> getMasterTrainingData()[i]).toArray(i -> new NDArray[i][]);
     }
-    return this.masterTrainingData;
+    return this.getMasterTrainingData();
   }
   
   public final NDArray[][] getActiveTrainingData(TrainingContext trainingContext) {
@@ -109,9 +109,9 @@ public class GradientDescentTrainer {
 
   public NDArray[][] getTrainingData(int[] activeSet) {
     if (null != activeSet) { //
-      return IntStream.of(activeSet).mapToObj(i -> masterTrainingData[i]).toArray(i -> new NDArray[i][]);
+      return IntStream.of(activeSet).mapToObj(i -> getMasterTrainingData()[i]).toArray(i -> new NDArray[i][]);
     }
-    return this.masterTrainingData;
+    return this.getMasterTrainingData();
   }
   
   public boolean isVerbose() {
@@ -220,6 +220,10 @@ public class GradientDescentTrainer {
           (System.currentTimeMillis() - startMs) / 1000.));
     }
     return getError();
+  }
+
+  public NDArray[][] getMasterTrainingData() {
+    return masterTrainingData;
   }
 
   

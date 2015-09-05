@@ -29,7 +29,7 @@ public class DynamicRateTrainer {
   int currentIteration = 0;
   private double temperature = 0.0;
   int generationsSinceImprovement = 0;
-  private GradientDescentTrainer inner = new GradientDescentTrainer();
+  private final GradientDescentTrainer inner = new GradientDescentTrainer();
   int lastCalibratedIteration = Integer.MIN_VALUE;
   final int maxIterations = 1000;
   private double maxRate = 10000;
@@ -44,14 +44,13 @@ public class DynamicRateTrainer {
   private double stopError = 0;
   private boolean verbose = false;
   
-  public MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final double fraction, TrainingContext trainingContext) {
-    double prev = error(trainingContext);
+  public MultivariateFunction asMetaF(final DeltaBuffer lessonVector, TrainingContext trainingContext, GradientDescentTrainer gradientDescentTrainer) {
+    double prev = gradientDescentTrainer.getError();
     final MultivariateFunction f = new MultivariateFunction() {
       double[] pos = new double[lessonVector.map.size()];
       
       @Override
       public double value(final double x[]) {
-        final GradientDescentTrainer current = DynamicRateTrainer.this.getGradientDescentTrainer();
         final List<DeltaFlushBuffer> writeVectors = trainingContext
             .getNet().getChildren().stream()
             .map(n -> lessonVector.map.get(n))
@@ -72,7 +71,7 @@ public class DynamicRateTrainer {
         for (int i = 0; i < layerRates.length; i++) {
           this.pos[i] = layerRates[i];
         }
-        final double calcError = current.calcError(trainingContext, current.evalValidationData(trainingContext));
+        final double calcError = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
           DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s; %s)", Arrays.toString(layerRates), err, calcError, prev - calcError));
@@ -94,7 +93,7 @@ public class DynamicRateTrainer {
     boolean inBounds = false;
     PointValuePair optimum;
     try {
-      optimum = optimizeRates(trainingContext);
+      optimum = optimizeRates(trainingContext, gradientDescentTrainer);
       trainingContext
           .getNet().getChildren().stream().distinct()
           .forEach(layer -> layer.setStatus(optimum.getValue()));
@@ -103,7 +102,7 @@ public class DynamicRateTrainer {
           && DoubleStream.of(this.rates).anyMatch(r -> this.minRate < r);
       if (inBounds) {
         this.lastCalibratedIteration = this.currentIteration;
-        trainOnce(trainingContext);
+        trainOnce(trainingContext, gradientDescentTrainer);
         final double err = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
         final double improvement = prevError - err;
         if (isVerbose()) {
@@ -124,10 +123,6 @@ public class DynamicRateTrainer {
           gradientDescentTrainer.getError()));
     }
     return false;
-  }
-  
-  public double error(TrainingContext trainingContext) {
-    return getGradientDescentTrainer().getError();
   }
   
   public double getTemperature() {
@@ -170,8 +165,7 @@ public class DynamicRateTrainer {
     return this.verbose;
   }
   
-  public synchronized PointValuePair optimizeRates(TrainingContext trainingContext) {
-    GradientDescentTrainer current = getGradientDescentTrainer();
+  public PointValuePair optimizeRates(TrainingContext trainingContext, GradientDescentTrainer current) {
     NDArray[][] validationSet = current.getActiveValidationData(trainingContext);
     List<NNResult> evalValidation = current.eval(trainingContext,validationSet);
     List<NDArray> evalValidationData = evalValidation.stream().map(x1->x1.data).collect(Collectors.toList());
@@ -183,7 +177,7 @@ public class DynamicRateTrainer {
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     double fraction = 1.;
     PointValuePair x = null;
-    final MultivariateFunction f = asMetaF(lessonVector, fraction, trainingContext);
+    final MultivariateFunction f = asMetaF(lessonVector, trainingContext, current);
     do {
 //      trainingContext.setConstraintSet(null);
 //      trainingContext.setActiveTrainingSet(null);
@@ -258,9 +252,9 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  public double trainOnce(TrainingContext trainingContext) throws TerminationCondition {
-    getGradientDescentTrainer().step(trainingContext, this.rates);
-    final double error = error(trainingContext);
+  public double trainOnce(TrainingContext trainingContext, GradientDescentTrainer gradientDescentTrainer) {
+    gradientDescentTrainer.step(trainingContext, this.rates);
+    final double error = gradientDescentTrainer.getError();
     trainingContext.getNet().getChildren().stream()
         .distinct()
         .forEach(layer -> layer.setStatus(error));
@@ -272,8 +266,9 @@ public class DynamicRateTrainer {
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
     while (true) {
-      if (getStopError() > error(trainingContext)) {
-        DynamicRateTrainer.log.debug("Target error reached: " + error(trainingContext));
+      GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+      if (getStopError() > gradientDescentTrainer.getError()) {
+        DynamicRateTrainer.log.debug("Target error reached: " + gradientDescentTrainer.getError());
         return false;
       }
       if (this.maxIterations <= this.currentIteration++) {
@@ -290,8 +285,8 @@ public class DynamicRateTrainer {
           if (++retry > 0) return false;
         }
       }
-      final double last = getGradientDescentTrainer().getError();
-      final double next = trainOnce(trainingContext);
+      final double last = gradientDescentTrainer.getError();
+      final double next = trainOnce(trainingContext, gradientDescentTrainer);
       if (last != next && GradientDescentTrainer.thermalStep(last, next, getTemperature())) {
         this.generationsSinceImprovement = 0;
       } else {
@@ -308,11 +303,6 @@ public class DynamicRateTrainer {
         }
       }
     }
-  }
-  
-  public DynamicRateTrainer setGradientDescentTrainer(GradientDescentTrainer inner) {
-    this.inner = inner;
-    return this;
   }
   
 }
