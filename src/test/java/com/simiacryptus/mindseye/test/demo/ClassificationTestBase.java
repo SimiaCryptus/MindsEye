@@ -25,17 +25,17 @@ import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
 public abstract class ClassificationTestBase {
-
+  
   public static class ClassificationResultMetrics {
     public double classificationAccuracy;
     public NDArray classificationMatrix;
     public double pts = 0;
     public double sumSqErr;
-    
+
     public ClassificationResultMetrics(final int categories) {
       this.classificationMatrix = new NDArray(categories, categories);
     }
-    
+
     @Override
     public String toString() {
       final StringBuilder builder = new StringBuilder();
@@ -51,41 +51,41 @@ public abstract class ClassificationTestBase {
       builder.append("]");
       return builder.toString();
     }
-    
+
   }
-  
+
   static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN, ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
       ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
       ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor());
-      
+
   static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
-  
+
   public static Color randomColor() {
     final Random r = Util.R.get();
     return new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
   }
-  
+
   boolean drawBG = true;
-  
+
   public ClassificationTestBase() {
     super();
   }
-  
-  public abstract PipelineNetwork buildNetwork();
 
+  public abstract PipelineNetwork buildNetwork();
+  
   public Tester buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
     return net.trainer(samples);
   }
-  
+
   public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {
     final Color color = ClassificationTestBase.colorMap.get(classificationExpected);
     return color;
   }
-  
+
   public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
     return getTrainingData(dimensions, populations, 100);
   }
-  
+
   public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN)
       throws FileNotFoundException, IOException {
     final int[] inputSize = new int[] { dimensions };
@@ -98,17 +98,17 @@ public abstract class ClassificationTestBase {
         })).toArray(i -> new NDArray[i][]);
     return samples;
   }
-  
+
   public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
     final double xf = input.get(0);
     final double yf = input.get(1);
     return new double[] { xf, yf };
   }
-  
+
   public Integer outputToClassification(final NDArray actual) {
     return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
-
+  
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
     final PipelineNetwork net = buildNetwork();
     final Tester trainer = buildTrainer(samples, net);
@@ -142,7 +142,7 @@ public abstract class ClassificationTestBase {
                 final double x = expectedOutput.get(i) - actualOutput.get(i);
                 return x * x;
               }).average().getAsDouble();
-
+              
               final int classificationExpected = outputToClassification(expectedOutput);
               final int classificationActual = outputToClassification(actualOutput);
               final double[] coords = inputToXY(input, classificationActual, classificationExpected);
@@ -174,9 +174,9 @@ public abstract class ClassificationTestBase {
       Util.report(array);
     }
   }
-  
+
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0, 0.0, 10);
   }
-
+  
 }

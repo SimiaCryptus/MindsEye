@@ -19,30 +19,30 @@ import com.simiacryptus.mindseye.util.Util;
 import groovy.lang.Tuple2;
 
 public class TrainingContext {
-
+  
   public static class Counter {
-
+    
     private final double limit;
     private double value = 0;
-    
+
     public Counter() {
       this(Double.POSITIVE_INFINITY);
     }
-    
+
     public Counter(final double limit) {
       this.limit = limit;
     }
-
+    
     public double increment() throws TerminationCondition {
       return increment(1.);
     }
-
+    
     public synchronized double increment(final double delta) throws TerminationCondition {
       this.value += delta;
       if (this.value > this.limit) throw new TerminationCondition(String.format("%s < %s", this.limit, this.value));
       return this.value;
     }
-    
+
     @Override
     public String toString() {
       final StringBuilder builder = new StringBuilder();
@@ -58,44 +58,44 @@ public class TrainingContext {
       builder.append("]");
       return builder.toString();
     }
-    
+
   }
-  
+
   @SuppressWarnings("serial")
   public static class TerminationCondition extends RuntimeException {
-    
+
     public TerminationCondition() {
       super();
     }
-    
+
     public TerminationCondition(final String message) {
       super(message);
     }
-    
+
     public TerminationCondition(final String message, final Throwable cause) {
       super(message, cause);
     }
-    
+
     public TerminationCondition(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
       super(message, cause, enableSuppression, writableStackTrace);
     }
-    
+
     public TerminationCondition(final Throwable cause) {
       super(cause);
     }
-
-  }
-
-  public static class Timer extends Counter {
     
+  }
+  
+  public static class Timer extends Counter {
+
     public Timer() {
       super();
     }
-    
+
     public Timer(final double limit, final TimeUnit units) {
       super(units.toMillis((long) limit));
     }
-    
+
     public <T> T time(final Supplier<T> f) throws TerminationCondition {
       final long start = System.currentTimeMillis();
       final T retVal = f.get();
@@ -103,12 +103,12 @@ public class TrainingContext {
       increment(elapsed);
       return retVal;
     }
-
+    
   }
-
+  
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
-  
+
   private int[] activeConstraintSet;
   private int[] activeTrainingSet;
   private int[] activeValidationSet;
@@ -117,7 +117,7 @@ public class TrainingContext {
   public final Counter gradientSteps;
   public final Counter mutations;
   public final Timer overallTimer;
-  
+
   public TrainingContext() {
     this.evaluations = new Counter();
     this.gradientSteps = new Counter();
@@ -125,7 +125,7 @@ public class TrainingContext {
     this.mutations = new Counter();
     this.overallTimer = new Timer();
   }
-  
+
   double calcConstraintSieve(final GradientDescentTrainer inner) {
     final TrainingContext trainingContext = this;
     final NDArray[][] trainingData = inner.getConstraintData(trainingContext);
@@ -135,7 +135,7 @@ public class TrainingContext {
     trainingContext.updateConstraintSieve(rms);
     return Util.rms(trainingContext, rms, trainingContext.getConstraintSet());
   }
-  
+
   public synchronized double calcSieves(final GradientDescentTrainer inner) {
     calcConstraintSieve(inner);
     calcTrainingSieve(inner);
@@ -144,7 +144,7 @@ public class TrainingContext {
     // this.activeValidationSet.length));
     return validation;
   }
-  
+
   double calcTrainingSieve(final GradientDescentTrainer inner) {
     final TrainingContext trainingContext = this;
     final NDArray[][] activeTrainingData = inner.getActiveTrainingData(trainingContext);
@@ -154,7 +154,7 @@ public class TrainingContext {
     trainingContext.updateTrainingSieve(rms);
     return Util.rms(trainingContext, rms, trainingContext.getActiveTrainingSet());
   }
-  
+
   double calcValidationSieve(final GradientDescentTrainer current) {
     final TrainingContext trainingContext = this;
     final List<NDArray> result = current.evalValidationData(trainingContext);
@@ -163,37 +163,37 @@ public class TrainingContext {
     trainingContext.updateValidationSieve(rms);
     return Util.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
   }
-  
+
   public int[] getActiveTrainingSet() {
     if (null == this.activeTrainingSet) return null;
     if (0 == this.activeTrainingSet.length) return null;
     return this.activeTrainingSet;
   }
-  
+
   public int[] getActiveValidationSet() {
     if (null == this.activeValidationSet) return null;
     if (0 == this.activeValidationSet.length) return null;
     return this.activeValidationSet;
   }
-  
+
   public int[] getConstraintSet() {
     if (null == this.activeConstraintSet) return null;
     if (0 == this.activeConstraintSet.length) return null;
     return this.activeConstraintSet;
   }
-
+  
   public synchronized void setActiveTrainingSet(final int[] activeSet) {
     this.activeTrainingSet = activeSet;
   }
-  
+
   public synchronized void setActiveValidationSet(final int[] activeSet) {
     this.activeValidationSet = activeSet;
   }
-  
+
   public synchronized void setConstraintSet(final int[] activeSet) {
     this.activeConstraintSet = activeSet;
   }
-  
+
   @Override
   public String toString() {
     final StringBuilder builder = new StringBuilder();
@@ -210,7 +210,7 @@ public class TrainingContext {
     builder.append("]");
     return builder.toString();
   }
-  
+
   public synchronized int[] updateActiveTrainingSet(final Supplier<int[]> f) {
     this.activeTrainingSet = f.get();
     // if(null == activeTrainingSet) {
@@ -218,7 +218,7 @@ public class TrainingContext {
     // }
     return this.activeTrainingSet;
   }
-  
+
   public synchronized int[] updateActiveValidationSet(final Supplier<int[]> f) {
     this.activeValidationSet = f.get();
     // if(null == getActiveValidationSet()) {
@@ -226,7 +226,7 @@ public class TrainingContext {
     // }
     return this.activeValidationSet;
   }
-  
+
   public synchronized int[] updateConstraintSet(final Supplier<int[]> f) {
     this.activeConstraintSet = f.get();
     // if(null == activeConstraintSet) {
@@ -234,7 +234,7 @@ public class TrainingContext {
     // }
     return this.activeConstraintSet;
   }
-  
+
   public void updateConstraintSieve(final List<Tuple2<Double, Double>> rms) {
     updateConstraintSet(() -> IntStream.range(0, rms.size())
         .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
@@ -242,7 +242,7 @@ public class TrainingContext {
         // .filter(t -> t.getSecond().getFirst() > 0.9)
         .mapToInt(t -> t.getFirst()).toArray());
   }
-
+  
   public void updateTrainingSieve(final List<Tuple2<Double, Double>> rms) {
     updateActiveTrainingSet(() -> IntStream.range(0, rms.size())
         .mapToObj(i -> new Tuple2<>(i, rms.get(0)))
@@ -251,7 +251,7 @@ public class TrainingContext {
         // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
         .mapToInt(t -> t.getFirst()).toArray());
   }
-  
+
   public void updateValidationSieve(final List<Tuple2<Double, Double>> rms) {
     updateActiveValidationSet(() -> {
       final List<Tuple2<Integer, Tuple2<Double, Double>>> collect = new ArrayList<>(IntStream.range(0, rms.size())
@@ -266,5 +266,5 @@ public class TrainingContext {
           .mapToInt(t -> t.getFirst()).toArray();
     });
   }
-  
+
 }

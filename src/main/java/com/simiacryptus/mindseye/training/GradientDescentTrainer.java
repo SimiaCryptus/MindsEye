@@ -20,16 +20,16 @@ import com.simiacryptus.mindseye.util.Util;
 import groovy.lang.Tuple2;
 
 public class GradientDescentTrainer {
-
+  
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
-
+  
   private double error = Double.POSITIVE_INFINITY;
   private NDArray[][] masterTrainingData = null;
   private PipelineNetwork net = null;
   private double rate = 0.3;
   private double temperature = 0.0001;
   private boolean verbose = false;
-  
+
   public DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
     final List<NNResult> netresults = eval(trainingContext, activeTrainingData);
     final DeltaBuffer buffer = new DeltaBuffer();
@@ -44,13 +44,13 @@ public class GradientDescentTrainer {
         });
     return buffer;
   }
-
+  
   protected double calcError(final TrainingContext trainingContext, final List<NDArray> results) {
     final NDArray[][] trainingData = getActiveValidationData(trainingContext);
     final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData, results);
     return Util.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
   }
-
+  
   protected List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData) {
     return Stream.of(trainingData)
         .parallel()
@@ -63,52 +63,52 @@ public class GradientDescentTrainer {
           return eval;
         }).collect(Collectors.toList());
   }
-
+  
   protected List<NDArray> evalValidationData(final TrainingContext trainingContext) {
     final NDArray[][] validationSet = getActiveValidationData(trainingContext);
     final List<NNResult> eval = eval(trainingContext, validationSet);
     return eval.stream().map(x -> x.data).collect(Collectors.toList());
   }
-
+  
   public final NDArray[][] getActiveTrainingData(final TrainingContext trainingContext) {
     return getTrainingData(trainingContext.getActiveTrainingSet());
   }
-
+  
   public final NDArray[][] getActiveValidationData(final TrainingContext trainingContext) {
     if (null != trainingContext.getActiveValidationSet())
       return IntStream.of(trainingContext.getActiveValidationSet()).mapToObj(i -> getMasterTrainingData()[i]).toArray(i -> new NDArray[i][]);
     return getMasterTrainingData();
   }
-  
+
   public final NDArray[][] getConstraintData(final TrainingContext trainingContext) {
     return getTrainingData(trainingContext.getConstraintSet());
   }
-  
+
   public synchronized double getError() {
     return this.error;
   }
-
+  
   public NDArray[][] getMasterTrainingData() {
     return this.masterTrainingData;
   }
-
+  
   public PipelineNetwork getNet() {
     return this.net;
   }
-
+  
   public double getRate() {
     return this.rate;
   }
-  
+
   public double getTemperature() {
     return this.temperature;
   }
-
+  
   public NDArray[][] getTrainingData(final int[] activeSet) {
     if (null != activeSet) return IntStream.of(activeSet).mapToObj(i -> getMasterTrainingData()[i]).toArray(i -> new NDArray[i][]);
     return getMasterTrainingData();
   }
-
+  
   protected DeltaBuffer getVector(final TrainingContext trainingContext) {
     final DeltaBuffer primary = calcDelta(trainingContext, getActiveTrainingData(trainingContext));
     final DeltaBuffer constraint = calcDelta(trainingContext, getConstraintData(trainingContext)).unitV();
@@ -118,37 +118,37 @@ public class GradientDescentTrainer {
     else // log.debug(String.format("Preserving component: %s", dotProductConstraint));
       return primary;
   }
-
+  
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public GradientDescentTrainer setError(final double error) {
     this.error = error;
     return this;
   }
-
+  
   public GradientDescentTrainer setMasterTrainingData(final NDArray[][] trainingData) {
     this.masterTrainingData = trainingData;
     return this;
   }
-
+  
   public GradientDescentTrainer setNet(final PipelineNetwork net) {
     this.net = net;
     return this;
   }
-  
+
   public GradientDescentTrainer setRate(final double dynamicRate) {
     assert Double.isFinite(dynamicRate);
     this.rate = dynamicRate;
     return this;
   }
-  
+
   public GradientDescentTrainer setTemperature(final double temperature) {
     this.temperature = temperature;
     return this;
   }
-  
+
   public GradientDescentTrainer setVerbose(final boolean verbose) {
     if (verbose) {
       this.verbose = true;
@@ -156,7 +156,7 @@ public class GradientDescentTrainer {
     this.verbose = verbose;
     return this;
   }
-  
+
   public Double step(final TrainingContext trainingContext, final double[] rates) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     final double prevError = calcError(trainingContext, evalValidationData(trainingContext));

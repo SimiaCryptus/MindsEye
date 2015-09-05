@@ -15,12 +15,12 @@ import com.simiacryptus.mindseye.training.EvaluationContext;
 public class MinMaxFilterLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
-
+    
     private DenseSynapseResult(final NDArray data, final NNResult inObj) {
       super(data);
       this.inObj = inObj;
     }
-
+    
     @Override
     public void feedback(final LogNDArray delta, final DeltaBuffer buffer) {
       if (isVerbose()) {
@@ -53,24 +53,24 @@ public class MinMaxFilterLayer extends NNLayer {
         }
       }
     }
-
+    
     @Override
     public boolean isAlive() {
       return this.inObj.isAlive();
     }
-
+    
   }
-
+  
   private static final Logger log = LoggerFactory.getLogger(MinMaxFilterLayer.class);
-
+  
   private double threshold = 20;
-
+  
   private boolean verbose = false;
-
+  
   public MinMaxFilterLayer() {
     super();
   }
-
+  
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
@@ -85,27 +85,27 @@ public class MinMaxFilterLayer extends NNLayer {
     }
     return new DenseSynapseResult(output, inObj[0]);
   }
-
+  
   protected double getMobility() {
     return 1;
   }
-
+  
   public double getThreshold() {
     return this.threshold;
   }
-
+  
   private boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public MinMaxFilterLayer setThreshold(final double threshold) {
     this.threshold = threshold;
     return this;
   }
-  
+
   public MinMaxFilterLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
-
+  
 }

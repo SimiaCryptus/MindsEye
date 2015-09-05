@@ -18,9 +18,9 @@ import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MutationTrainer {
-  
-  private static final Logger log = LoggerFactory.getLogger(MutationTrainer.class);
 
+  private static final Logger log = LoggerFactory.getLogger(MutationTrainer.class);
+  
   private int currentGeneration = 0;
   private PipelineNetwork initial;
   private final DynamicRateTrainer inner = new DynamicRateTrainer();
@@ -28,9 +28,9 @@ public class MutationTrainer {
   double mutationAmplitude = 5.;
   private double mutationFactor = .1;
   private double stopError = 0.1;
-  
+
   private boolean verbose = false;
-  
+
   public boolean continueTraining(final TrainingContext trainingContext) {
     if (this.maxIterations < this.currentGeneration) {
       if (this.verbose) {
@@ -47,11 +47,11 @@ public class MutationTrainer {
     }
     return true;
   }
-  
+
   private double entropy(final BiasLayer l) {
     return 0;
   }
-  
+
   private double entropy(final DenseSynapseLayer l, final Coordinate idx) {
     final NDArray weights = l.weights;
     final int[] dims = weights.getDims();
@@ -71,61 +71,61 @@ public class MutationTrainer {
       });
     }).average().getAsDouble();
   }
-  
+
   public DynamicRateTrainer getDynamicRateTrainer() {
     return this.inner;
   }
-  
+
   public int getGenerationsSinceImprovement() {
     return getDynamicRateTrainer().generationsSinceImprovement;
   }
-
+  
   public GradientDescentTrainer getGradientDescentTrainer() {
     return getDynamicRateTrainer().getGradientDescentTrainer();
   }
-
+  
   public int getMaxIterations() {
     return this.maxIterations;
   }
-
+  
   public double getMaxRate() {
     return getDynamicRateTrainer().getMaxRate();
   }
-
+  
   public double getMinRate() {
     return getDynamicRateTrainer().minRate;
   }
-  
+
   public double getMutationAmplitude() {
     return this.mutationAmplitude;
   }
-  
+
   public double getMutationFactor() {
     return this.mutationFactor;
   }
-
+  
   public double getRate() {
     return getDynamicRateTrainer().getRate();
   }
-
+  
   public int getRecalibrationThreshold() {
     return getDynamicRateTrainer().recalibrationThreshold;
   }
-  
+
   public double getStopError() {
     return this.stopError;
   }
-  
+
   public void initialize(final TrainingContext trainingContext) {
     for (int i = 0; i < 5; i++) {
       mutate(1, trainingContext);
     }
   }
-  
+
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public int mutate(final BiasLayer l, final double amount) {
     final double[] a = l.bias;
     final Random random = Util.R.get();
@@ -145,7 +145,7 @@ public class MutationTrainer {
     }
     return sum;
   }
-  
+
   public int mutate(final DenseSynapseLayer l, final double amount) {
     final double[] a = l.weights.getData();
     final Random random = Util.R.get();
@@ -163,7 +163,7 @@ public class MutationTrainer {
       } else return 0;
     }).sum();
   }
-
+  
   public int mutate(final double amount, final TrainingContext trainingContext) {
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", getDynamicRateTrainer(), amount));
@@ -184,7 +184,7 @@ public class MutationTrainer {
     getGradientDescentTrainer().setError(Double.NaN);
     return sum;
   }
-  
+
   public void mutateBest(final TrainingContext trainingContext) {
     getDynamicRateTrainer().generationsSinceImprovement = getDynamicRateTrainer().recalibrationThreshold - 1;
     getGradientDescentTrainer().setNet(Util.kryo().copy(this.initial));
@@ -192,71 +192,71 @@ public class MutationTrainer {
     }
     getDynamicRateTrainer().lastCalibratedIteration = getDynamicRateTrainer().currentIteration;// - (this.recalibrationInterval + 2);
   }
-
+  
   private double randomWeight(final BiasLayer l, final Random random) {
     return this.mutationAmplitude * random.nextGaussian() * 0.2;
   }
-
+  
   public double randomWeight(final DenseSynapseLayer l, final Random random) {
     return this.mutationAmplitude * random.nextGaussian() / Math.sqrt(l.weights.getDims()[0]);
   }
-
+  
   public MutationTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
     getDynamicRateTrainer().generationsSinceImprovement = generationsSinceImprovement;
     return this;
   }
-
+  
   public MutationTrainer setMaxIterations(final int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
-
+  
   public MutationTrainer setMaxRate(final double maxRate) {
     getDynamicRateTrainer().setMaxRate(maxRate);
     return this;
   }
-
+  
   public MutationTrainer setMinRate(final double minRate) {
     getDynamicRateTrainer().minRate = minRate;
     return this;
   }
-  
+
   public MutationTrainer setMutationAmount(final double mutationAmount) {
     getDynamicRateTrainer().setMutationFactor(mutationAmount);
     return this;
   }
-  
+
   public MutationTrainer setMutationAmplitude(final double mutationAmplitude) {
     this.mutationAmplitude = mutationAmplitude;
     return this;
   }
-  
+
   public void setMutationFactor(final double mutationRate) {
     this.mutationFactor = mutationRate;
   }
-  
+
   public MutationTrainer setRate(final double rate) {
     getDynamicRateTrainer().setRate(rate);
     return this;
   }
-
+  
   public MutationTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
     getDynamicRateTrainer().recalibrationThreshold = recalibrationThreshold;
     return this;
   }
-
+  
   public MutationTrainer setStopError(final double stopError) {
     getDynamicRateTrainer().setStopError(stopError);
     this.stopError = stopError;
     return this;
   }
-
+  
   public MutationTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     getDynamicRateTrainer().setVerbose(verbose);
     return this;
   }
-  
+
   public Double train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
     this.currentGeneration = 0;

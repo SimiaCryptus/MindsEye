@@ -14,21 +14,21 @@ import com.simiacryptus.mindseye.training.EvaluationContext;
 
 // XXX: Actually, L1
 public class L1NormalizationLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
-  
+
   private boolean verbose;
-  
+
   public L1NormalizationLayer() {
   }
-  
+
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final double s1 = input.sum();
     final double sum = s1 == 0. ? 1 : s1;
     final NDArray output = input.map(x -> x / sum);
-
+    
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     final double[] indata = input.getData();
     for (int i = 0; i < indata.length; i++) {
@@ -47,7 +47,7 @@ public class L1NormalizationLayer extends NNLayer {
       ;
     }
     ;
-
+    
     if (isVerbose()) {
       L1NormalizationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
@@ -71,19 +71,19 @@ public class L1NormalizationLayer extends NNLayer {
           inObj[0].feedback(passback, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }
-
+      
     };
   }
-  
+
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public L1NormalizationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

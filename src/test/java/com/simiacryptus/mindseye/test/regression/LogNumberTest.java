@@ -8,7 +8,7 @@ import org.junit.Test;
 import com.simiacryptus.mindseye.math.LogNumber;
 
 public class LogNumberTest {
-
+  
   @Test
   public void test() {
     final double[] vals = new double[] { 0., 0.0001, 0.1, 10, 1000 };
@@ -21,7 +21,7 @@ public class LogNumberTest {
       });
     });
   }
-
+  
   public void test(final double a, final double b) {
     if (a == -0.) return;
     if (b == -0.) return;
@@ -30,5 +30,5 @@ public class LogNumberTest {
     Assert.assertEquals(a / b, LogNumber.log(a).divide(b).doubleValue(), .01);
     Assert.assertEquals(a - b, LogNumber.log(a).subtract(b).doubleValue(), .01);
   }
-  
+
 }

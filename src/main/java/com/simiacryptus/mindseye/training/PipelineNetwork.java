@@ -23,15 +23,15 @@ import com.simiacryptus.mindseye.training.EvaluationContext.LazyResult;
 public class PipelineNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
-
+  
   private final List<NNLayer> children = new ArrayList<NNLayer>();
-
+  
   public LazyResult<NNResult[]> head = new LazyResult<NNResult[]>() {
     @Override
     protected NNResult[] initialValue(final EvaluationContext t) {
       return (NNResult[]) t.cache.get(PipelineNetwork.this.inputHandle);
     }
-    
+
     @Override
     protected JsonObject toJson() {
       final JsonObject json = new JsonObject();
@@ -40,7 +40,7 @@ public class PipelineNetwork extends NNLayer {
     }
   };
   public final UUID inputHandle = UUID.randomUUID();
-
+  
   public synchronized PipelineNetwork add(final NNLayer layer) {
     this.children.add(layer);
     final LazyResult<NNResult[]> prevHead = this.head;
@@ -51,7 +51,7 @@ public class PipelineNetwork extends NNLayer {
         final NNResult output = layer.eval(ctx, input);
         return new NNResult[] { output };
       }
-      
+
       @Override
       protected JsonObject toJson() {
         final JsonObject json = new JsonObject();
@@ -62,21 +62,21 @@ public class PipelineNetwork extends NNLayer {
     };
     return this;
   }
-
+  
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... array) {
     evaluationContext.cache.put(this.inputHandle, array);
     return this.head.get(evaluationContext)[0];
   }
-
+  
   public NNResult eval(final NDArray... array) {
     return eval(new EvaluationContext(), array);
   }
-
+  
   public NNLayer get(final int i) {
     return this.children.get(i);
   }
-  
+
   @Override
   public List<NNLayer> getChildren() {
     return this.children.stream()
@@ -85,7 +85,7 @@ public class PipelineNetwork extends NNLayer {
         .sorted(Comparator.comparing(l -> l.getId()))
         .collect(Collectors.toList());
   }
-
+  
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
@@ -95,9 +95,9 @@ public class PipelineNetwork extends NNLayer {
     // }
     return json;
   }
-
+  
   public Tester trainer(final NDArray[][] samples) {
     return new Tester().setParams(this, samples);
   }
-
+  
 }
