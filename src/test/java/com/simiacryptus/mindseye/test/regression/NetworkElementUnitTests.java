@@ -46,9 +46,9 @@ public class NetworkElementUnitTests {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1, 1 }) }
     };
     new PipelineNetwork() //
-        .add(new BiasLayer(inputSize).setVerbose(true))
+        .add(new BiasLayer(inputSize))
         .trainer(samples)
-        .setVerbose(true)
+        //.setVerbose(true)
         .verifyConvergence(0, 0.01, 100);
   }
 

@@ -93,4 +93,14 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
         .sorted(Comparator.comparing(y -> y.getId()))
         .collect(Collectors.toList());
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("DeltaBuffer [");
+    builder.append(vector());
+    builder.append("]");
+    return builder.toString();
+  }
+  
 }

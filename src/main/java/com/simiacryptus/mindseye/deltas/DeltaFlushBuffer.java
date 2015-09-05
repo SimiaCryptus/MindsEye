@@ -24,29 +24,27 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   public static DeltaValueAccumulator newAccumulator() {
     return new DeltaValueAccumulator1();
   }
-
+  
   private final DeltaValueAccumulator[] buffer;
   private final DeltaSink inner;
-  private NNLayer layer;
+  private final NNLayer layer;
   private LogNumber normalizationFactor;
   private LogNumber rate = LogNumber.log(1);
   
   private boolean reset = false;
   
-  public DeltaFlushBuffer(final DeltaSink values) {
+  public DeltaFlushBuffer(final DeltaSink values, NNLayer layer) {
     assert null != values;
     this.inner = values;
+    this.layer = layer;
     this.buffer = new DeltaValueAccumulator1[values.length()];
     Arrays.setAll(this.buffer, i -> DeltaFlushBuffer.newAccumulator());
   }
   
-  public DeltaFlushBuffer(final DeltaSink values, final DeltaValueAccumulator[] array) {
+  public DeltaFlushBuffer(final DeltaSink values, final DeltaValueAccumulator[] array, NNLayer layer) {
     this.inner = values;
+    this.layer = layer;
     this.buffer = array;
-  }
-  
-  public DeltaFlushBuffer(final double[] bias) {
-    this(new DeltaMemoryWriter(bias));
   }
   
   protected DeltaFlushBuffer(final double[] ptr, final NNLayer layer) {
@@ -57,8 +55,8 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     this.layer = layer;
   }
   
-  public DeltaFlushBuffer(final NDArray values) {
-    this(values.getData());
+  public DeltaFlushBuffer(final NDArray values, NNLayer layer) {
+    this(values.getData(), layer);
   }
   
   @Override
@@ -83,7 +81,8 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      this.buffer[i] = this.buffer[i].add(data[i]);
+      DeltaValueAccumulator prev = this.buffer[i];
+      this.buffer[i] = prev.add(data[i]);
     }
   }
   
@@ -112,7 +111,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
       if (null != l) return r;
       if (null != r) return l;
       return null;
-    }).toArray(i -> new DeltaValueAccumulator[i]));
+    }).toArray(i -> new DeltaValueAccumulator[i]), layer);
   }
   
   @Override
@@ -137,7 +136,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   }
   
   protected <T extends DeltaValueAccumulator<T>> DeltaFlushBuffer map(final Function<T, T> mapper) {
-    return new DeltaFlushBuffer(this.inner, Arrays.stream(this.buffer).map(x -> mapper.apply((T) x)).toArray(i -> new DeltaValueAccumulator[i]));
+    return new DeltaFlushBuffer(this.inner, Arrays.stream(this.buffer).map(x -> mapper.apply((T) x)).toArray(i -> new DeltaValueAccumulator[i]), layer);
   }
   
   @Override
@@ -167,13 +166,13 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
       cpy[i] = this.buffer[i].logValue().multiply(factor).multiply(getRate())
           .divide(this.normalizationFactor);
     }
-    if(this.layer.isVerbose()) {
+    if (this.layer.isVerbose()) {
       log.debug(String.format("Write to memory: %s", Arrays.toString(cpy)));
     }
     this.inner.feed(cpy);
     this.reset = true;
   }
-
+  
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
@@ -182,6 +181,5 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     builder.append("]");
     return builder.toString();
   }
-  
   
 }

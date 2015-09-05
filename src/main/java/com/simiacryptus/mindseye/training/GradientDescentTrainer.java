@@ -111,12 +111,25 @@ public class GradientDescentTrainer {
   
   protected DeltaBuffer getVector(final TrainingContext trainingContext) {
     final DeltaBuffer primary = calcDelta(trainingContext, getTrainingData(getActiveTrainingSet()));
+    if(isVerbose()) {
+//      log.debug(String.format("Primary Delta: %s", primary));
+    }
     final DeltaBuffer constraint = calcDelta(trainingContext, getConstraintData(trainingContext)).unitV();
+    if(isVerbose()) {
+//      log.debug(String.format("Constraint Delta: %s", constraint));
+    }
     final double dotProductConstraint = primary.dotProduct(constraint);
-    if (dotProductConstraint < 0) // log.debug(String.format("Removing component: %s", dotProductConstraint));
+    if (dotProductConstraint < 0) {
+      if(isVerbose()) {
+//        log.debug(String.format("Removing component: %s", dotProductConstraint));
+      }
       return primary.add(constraint.scale(-dotProductConstraint));
-    else // log.debug(String.format("Preserving component: %s", dotProductConstraint));
+    } else {
+      if(isVerbose()) {
+//        log.debug(String.format("Preserving component: %s", dotProductConstraint));
+      }
       return primary;
+    }
   }
   
   public boolean isVerbose() {
