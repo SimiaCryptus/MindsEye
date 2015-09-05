@@ -164,8 +164,7 @@ public class DynamicRateTrainer {
   
   public PointValuePair optimizeRates(TrainingContext trainingContext, GradientDescentTrainer current) {
     NDArray[][] validationSet = current.getActiveValidationData(trainingContext);
-    List<NNResult> evalValidation = current.eval(trainingContext,validationSet);
-    List<NDArray> evalValidationData = evalValidation.stream().map(x1->x1.data).collect(Collectors.toList());
+    List<NDArray> evalValidationData = current.eval(trainingContext,validationSet).stream().map(x1->x1.data).collect(Collectors.toList());
     List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, validationSet, evalValidationData);
     final double prev = rms(trainingContext, rms, null);
     //regenDataSieve(trainingContext);
@@ -183,13 +182,13 @@ public class DynamicRateTrainer {
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
-    // f.value(new double[lessonVector.map.size()]); // Reset to original state
+    f.value(new double[lessonVector.map.size()]); // Reset to original state
+    evalValidationData = current.eval(trainingContext,validationSet).stream().map(x1->x1.data).collect(Collectors.toList());
     final double calcError = current.calcError(trainingContext, evalValidationData);
     current.setError(calcError);
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s",
-          Arrays.toString(x.getKey()), x.getValue(),
-          (prev), calcError));
+          Arrays.toString(x.getKey()), x.getValue(), prev, calcError));
     }
     return x;
   }

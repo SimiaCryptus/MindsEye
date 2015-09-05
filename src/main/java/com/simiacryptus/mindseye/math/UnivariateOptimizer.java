@@ -46,8 +46,8 @@ public class UnivariateOptimizer {
   static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
   
   public final UnivariateFunction f;
-  public double growth = 5.;
-  private double maxRate = 1e8;
+  public double growth = 2.;
+  private double maxRate = 1e4;
   double minRate = 1e-9;
   public double minValue = 0;
   public final List<PointValuePair> points = new PtList();
@@ -108,8 +108,8 @@ public class UnivariateOptimizer {
     this.points.add(eval(0));
     this.points.add(eval(start));
     
-    final double oneV = this.points.get(this.points.size() - 1).getValue();
     final double zeroV = this.points.get(this.points.size() - 2).getValue();
+    final double oneV = this.points.get(this.points.size() - 1).getValue();
     if (oneV > zeroV) {
       for (double x = start / this.growth; x > this.minRate; x /= this.growth) {
         this.points.add(eval(x));
@@ -128,8 +128,8 @@ public class UnivariateOptimizer {
           break;
         }
         if (x > getMaxRate()) {
-          break;
-          //throw new RuntimeException("x > maxValue: " + x);
+          //break;
+          throw new RuntimeException("x > maxValue: " + x);
         }
       }
     }

@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -159,7 +160,7 @@ public class MutationTrainer {
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", getDynamicRateTrainer(), amount));
     }
-    final List<NNLayer> layers = trainingContext.getLayers();
+    final List<NNLayer> layers = trainingContext.getNet().getChildren();
     final int sum =
         layers.stream()
             .filter(l -> (l instanceof DenseSynapseLayer))

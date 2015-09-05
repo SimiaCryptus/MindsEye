@@ -260,7 +260,7 @@ public class TrainingContext {
     calcConstraintSieve(inner);
     calcTrainingSieve(inner);
     double validation = calcValidationSieve(inner);
-    log.debug(String.format("Calculated sieves: %s training, %s constraints, %s validation", this.activeTrainingSet.length, this.activeConstraintSet.length, this.activeValidationSet.length));
+    //log.debug(String.format("Calculated sieves: %s training, %s constraints, %s validation", this.activeTrainingSet.length, this.activeConstraintSet.length, this.activeValidationSet.length));
     return validation;
   }
 
@@ -273,9 +273,5 @@ public class TrainingContext {
     return this;
   }
 
-  public List<NNLayer> getLayers() {
-    return getNet().getChildren().stream().distinct().collect(Collectors.toList());
-  }
-  
 
 }

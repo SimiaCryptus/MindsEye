@@ -69,7 +69,7 @@ public class PipelineNetwork extends NNLayer {
   }
   
   public NNLayer get(final int i) {
-    return this.getChildren().get(i);
+    return children.get(i);
   }
   
   @Override
@@ -93,6 +93,7 @@ public class PipelineNetwork extends NNLayer {
   public List<NNLayer> getChildren() {
     return children.stream()
         .flatMap(l->l.getChildren().stream())
+        .distinct()
         .sorted(Comparator.comparing(l->l.getId()))
         .collect(Collectors.toList());
   }
