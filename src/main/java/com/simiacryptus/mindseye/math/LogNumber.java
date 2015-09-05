@@ -24,21 +24,21 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   public final double logValue;
   
   public final byte type;
-
+  
   private LogNumber(final byte type, final double logValue) {
     super();
     this.type = type;
     this.logValue = logValue;
   }
-
+  
   public LogNumber abs() {
     return new LogNumber((byte) 1, this.logValue);
   }
-
+  
   public LogNumber add(final double right) {
     return add(LogNumber.log(right));
   }
-
+  
   public LogNumber add(final LogNumber right) {
     final LogNumber left = this;
     // assert left.isFinite();
@@ -55,7 +55,7 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     final LogNumber result2 = new LogNumber(result.type, result.logValue + left.logValue);
     return result2;
   }
-
+  
   @Override
   public int compareTo(final LogNumber o) {
     int compare = Byte.compare(this.type, o.type);
@@ -67,11 +67,11 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     }
     return compare;
   }
-
+  
   public LogNumber divide(final double right) {
     return divide(LogNumber.log(right));
   }
-
+  
   public LogNumber divide(final LogNumber right) {
     if (null == right) return this;
     if (0 == right.type) return new LogNumber(this.type, Double.NaN);
@@ -90,21 +90,21 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     else return Double.NEGATIVE_INFINITY;
     return 0 == this.type ? 0 : this.type * exp;
   }
-
+  
   @Override
   public float floatValue() {
     return (float) doubleValue();
   }
-
+  
   @Override
   public int intValue() {
     return (int) doubleValue();
   }
-
+  
   public boolean isFinite() {
     return Double.isFinite(this.logValue);
   }
-
+  
   public boolean isNegative() {
     return this.type == -1;
   }

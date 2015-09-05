@@ -1,22 +1,10 @@
 package com.simiacryptus.mindseye.training;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.util.Util;
-
-import groovy.lang.Tuple2;
 
 public class TrainingContext {
   
@@ -24,11 +12,11 @@ public class TrainingContext {
     
     private final double limit;
     private double value = 0;
-
+    
     public Counter() {
       this(Double.POSITIVE_INFINITY);
     }
-
+    
     public Counter(final double limit) {
       this.limit = limit;
     }
@@ -42,7 +30,7 @@ public class TrainingContext {
       if (this.value > this.limit) throw new TerminationCondition(String.format("%s < %s", this.limit, this.value));
       return this.value;
     }
-
+    
     @Override
     public String toString() {
       final StringBuilder builder = new StringBuilder();
@@ -58,28 +46,28 @@ public class TrainingContext {
       builder.append("]");
       return builder.toString();
     }
-
+    
   }
-
+  
   @SuppressWarnings("serial")
   public static class TerminationCondition extends RuntimeException {
-
+    
     public TerminationCondition() {
       super();
     }
-
+    
     public TerminationCondition(final String message) {
       super(message);
     }
-
+    
     public TerminationCondition(final String message, final Throwable cause) {
       super(message, cause);
     }
-
+    
     public TerminationCondition(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
       super(message, cause, enableSuppression, writableStackTrace);
     }
-
+    
     public TerminationCondition(final Throwable cause) {
       super(cause);
     }
@@ -87,15 +75,15 @@ public class TrainingContext {
   }
   
   public static class Timer extends Counter {
-
+    
     public Timer() {
       super();
     }
-
+    
     public Timer(final double limit, final TimeUnit units) {
       super(units.toMillis((long) limit));
     }
-
+    
     public <T> T time(final Supplier<T> f) throws TerminationCondition {
       final long start = System.currentTimeMillis();
       final T retVal = f.get();
@@ -108,13 +96,13 @@ public class TrainingContext {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
-
+  
   public final Counter calibrations;
   public final Counter evaluations;
   public final Counter gradientSteps;
   public final Counter mutations;
   public final Timer overallTimer;
-
+  
   public TrainingContext() {
     this.evaluations = new Counter();
     this.gradientSteps = new Counter();
@@ -122,7 +110,7 @@ public class TrainingContext {
     this.mutations = new Counter();
     this.overallTimer = new Timer();
   }
-
+  
   @Override
   public String toString() {
     final StringBuilder builder = new StringBuilder();
@@ -139,6 +127,5 @@ public class TrainingContext {
     builder.append("]");
     return builder.toString();
   }
-
-
+  
 }

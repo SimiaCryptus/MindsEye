@@ -18,18 +18,18 @@ import com.simiacryptus.mindseye.training.EvaluationContext;
 public class MaxSubsampleLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
-
+  
   private int[] kernelDims;
-
+  
   protected MaxSubsampleLayer() {
     super();
   }
   
   public MaxSubsampleLayer(final int... kernelDims) {
-
+    
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
-
+  
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
@@ -55,7 +55,7 @@ public class MaxSubsampleLayer extends NNLayer {
           inObj[0].feedback(backSignal, buffer);
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();

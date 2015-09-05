@@ -30,5 +30,5 @@ public class LogNumberTest {
     Assert.assertEquals(a / b, LogNumber.log(a).divide(b).doubleValue(), .01);
     Assert.assertEquals(a - b, LogNumber.log(a).subtract(b).doubleValue(), .01);
   }
-
+  
 }

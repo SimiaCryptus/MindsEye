@@ -12,13 +12,13 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
 public class MaxEntLayer extends NNLayer {
-
+  
   private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   private double factor = -1;
   private boolean reverse = false;
-
+  
   private boolean verbose;
-
+  
   public MaxEntLayer() {
   }
   
@@ -62,7 +62,7 @@ public class MaxEntLayer extends NNLayer {
           inObj[0].feedback(passback, buffer);
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
@@ -70,7 +70,7 @@ public class MaxEntLayer extends NNLayer {
       
     };
   }
-
+  
   public double getFactor() {
     return this.factor;
   }
@@ -79,6 +79,7 @@ public class MaxEntLayer extends NNLayer {
     return this.reverse;
   }
   
+  @Override
   public boolean isVerbose() {
     return this.verbose;
   }

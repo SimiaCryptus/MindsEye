@@ -25,17 +25,14 @@ public class LearningParameterOptimizerDev {
   @Test
   public void test_multivariate() {
     final double offset = 0.4;
-    final MultivariateFunction f = new MultivariateFunction() {
-      @Override
-      public double value(final double[] a) {
-        final double t = IntStream.range(0, a.length).mapToDouble(i -> {
-          final double x = a[i];
-          final double r = -x * Math.sin(x + offset) + 0.4 * Math.sin((1 + i) * 100 * x);
-          return r;
-        }).average().getAsDouble();
-        LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", Arrays.toString(a), t));
-        return t;
-      }
+    final MultivariateFunction f = a -> {
+      final double t = IntStream.range(0, a.length).mapToDouble(i -> {
+        final double x = a[i];
+        final double r = -x * Math.sin(x + offset) + 0.4 * Math.sin((1 + i) * 100 * x);
+        return r;
+      }).average().getAsDouble();
+      LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", Arrays.toString(a), t));
+      return t;
     };
     final PointValuePair result = new MultivariateOptimizer(f).minimize(LearningParameterOptimizerDev.ones(3).length);
     assert result.getValue() < -0.99;
@@ -45,13 +42,10 @@ public class LearningParameterOptimizerDev {
   @Test
   public void test_univariate() {
     final double offset = .5;
-    final UnivariateFunction f = new UnivariateFunction() {
-      @Override
-      public double value(final double x) {
-        final double r = -Math.sin(x + offset) + 0.4 * Math.sin(100 * x);
-        LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", x, r));
-        return r;
-      }
+    final UnivariateFunction f = x -> {
+      final double r = -Math.sin(x + offset) + 0.4 * Math.sin(100 * x);
+      LearningParameterOptimizerDev.log.debug(String.format("%s -> %s", x, r));
+      return r;
     };
     final PointValuePair result = new UnivariateOptimizer(f).minimize();
     assert result.getValue() < -0.99;

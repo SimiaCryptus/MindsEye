@@ -15,11 +15,11 @@ public abstract class NNResult {
     super();
     this.data = data;
   }
-
+  
   public final NDArray delta(final int k) {
     return delta(ideal(k));
   }
-
+  
   public final NDArray delta(final NDArray target) {
     assert this.data.dim() == target.dim();
     final NDArray delta = new NDArray(this.data.getDims());

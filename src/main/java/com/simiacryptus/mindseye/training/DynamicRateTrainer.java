@@ -156,15 +156,17 @@ public class DynamicRateTrainer {
     // regenDataSieve(trainingContext);
     
     final DeltaBuffer lessonVector = current.getVector(trainingContext);
-    if(isVerbose()) {
-      log.debug(String.format("Optimizing delta vector set: \n\t%s", lessonVector.vector().stream().map(x->x.toString()).reduce((a,b)->a+"\n\t"+b).get()));
+    if (isVerbose()) {
+      log.debug(
+          String.format("Optimizing delta vector set: \n\t%s", lessonVector.vector().stream().map(x -> x.toString()).reduce((a, b) -> a + "\n\t" + b).get()));
     }
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
     final MultivariateFunction f = asMetaF(lessonVector, trainingContext, current);
-    List<DeltaFlushBuffer> vector = lessonVector.vector();
-    PointValuePair x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(vector.size()); // May or may not be cloned before evaluations
+    int numberOfParameters = lessonVector.vector().size();
+    
+    final PointValuePair x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(numberOfParameters); // May or may not be cloned before evaluations
     f.value(x.getFirst()); // Leave in optimal state
-    f.value(new double[vector.size()]); // Reset to original state
+    f.value(new double[lessonVector.vector().size()]); // Reset to original state
     evalValidationData = current.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
     final double calcError = current.calcError(trainingContext, evalValidationData);
     current.setError(calcError);
@@ -246,10 +248,10 @@ public class DynamicRateTrainer {
         this.generationsSinceImprovement = 0;
       }
       final double improvement = gradientDescentTrainer.step(trainingContext, getRates());
-      if (improvement<0) {
+      if (improvement < 0) {
         this.generationsSinceImprovement = 0;
       } else {
-        if (this.getRecalibrationThreshold() < this.generationsSinceImprovement++) {
+        if (getRecalibrationThreshold() < this.generationsSinceImprovement++) {
           if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }

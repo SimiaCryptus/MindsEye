@@ -29,9 +29,9 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class ImageNetworkDev {
   static final Logger log = LoggerFactory.getLogger(ImageNetworkDev.class);
-
+  
   public static final Random random = new Random();
-
+  
   public static BufferedImage render(final int[] inputSize, final String string) {
     final Random r = new Random();
     final BufferedImage img = new BufferedImage(inputSize[0], inputSize[1], BufferedImage.TYPE_INT_RGB);
@@ -45,7 +45,7 @@ public class ImageNetworkDev {
     }
     return img;
   }
-
+  
   public static BufferedImage scale(BufferedImage img, final double scale) {
     final int w = img.getWidth();
     final int h = img.getHeight();
@@ -56,7 +56,7 @@ public class ImageNetworkDev {
     img = scaleOp.filter(img, after);
     return img;
   }
-
+  
   public NNLayer blur_3() {
     final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3, 1 }, 1);
     convolution.kernel.set(new int[] { 0, 0, 0, 0 }, 0.333);
@@ -71,7 +71,7 @@ public class ImageNetworkDev {
     convolution.freeze();
     return convolution;
   }
-
+  
   public NNLayer blur_3x4() {
     final PipelineNetwork net = new PipelineNetwork();
     for (int i = 0; i < 3; i++) {
@@ -79,7 +79,7 @@ public class ImageNetworkDev {
     }
     return net;
   }
-
+  
   public NNLayer blur1() {
     final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
     convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, 0.25);
@@ -89,7 +89,7 @@ public class ImageNetworkDev {
     convolution2.freeze();
     return convolution2;
   }
-
+  
   public NNLayer edge1() {
     final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
     convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, -1);
@@ -99,40 +99,40 @@ public class ImageNetworkDev {
     convolution2.freeze();
     return convolution2;
   }
-
+  
   public int[] outsize(final int[] inputSize, final int[] kernelSize) {
     return new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1, inputSize[2] - kernelSize[2] + 1 };
   }
   
   @Test
   public void testDeconvolution() throws Exception {
-
+    
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
     final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
     // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
-
+    
     final NNLayer convolution = blur_3x4();
-
+    
     final int[] inputSize = inputImage.getDims();
     final EvaluationContext evaluationContext = new EvaluationContext();
     final int[] outSize = convolution.eval(evaluationContext, new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
-
+    
     final PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
-
+    
     Util.report(data.stream().map(obj -> {
       final NDArray[] input = { obj.data };
       final NNResult output = forwardConvolutionNet.eval(input);
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
-
+      
       trainer.setParams(new PipelineNetwork()
           .add(bias)
           .add(convolution), new NDArray[][] { { zeroInput, output.data } });
-
+          
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias),
       // new NDArray[][] { { zeroInput, zeroInput } })
@@ -147,15 +147,15 @@ public class ImageNetworkDev {
       // return retVal;
       // }
       // }.setWeight(1));
-
+      
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer()),
       // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(0.1));
-
+      
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias).add(new com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1).setReverse(true)),
       // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-0.1));
-
+      
       final TrainingContext trainingContext = new TrainingContext();
       try {
         trainer
@@ -166,19 +166,19 @@ public class ImageNetworkDev {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-
+      
       bias = (BiasLayer) trainer.getInner().getGradientDescentTrainer().getNet().get(0);
       final NNResult recovered = bias.eval(evaluationContext, zeroInput);
       final NDArray[] input1 = { zeroInput };
       final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(input1);
-
+      
       return Util.imageHtml(
           Util.toImage(obj.data),
           Util.toImage(new NDArray(outSize, output.data.getData())),
           Util.toImage(new NDArray(inputSize, recovered.data.getData())),
           Util.toImage(new NDArray(outSize, tested.data.getData())));
     }));
-
+    
   }
   
 }

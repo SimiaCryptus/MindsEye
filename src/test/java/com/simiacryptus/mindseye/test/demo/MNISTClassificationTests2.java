@@ -18,7 +18,7 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
     final int[] midSize = new int[] { 10 };
     final int[] outSize = new int[] { 10 };
     PipelineNetwork net = new PipelineNetwork();
-
+    
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 3));
     net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
     
@@ -38,5 +38,5 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }
-
+  
 }

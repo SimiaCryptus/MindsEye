@@ -39,14 +39,14 @@ public class TestMNIST {
     in.skip(skip);
     return TestMNIST.toIterator(new BinaryChunkIterator(in, recordSize));
   }
-
+  
   public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
-
+  
   @Test
   public void test() throws Exception {
-
+    
     final File outDir = new File("reports");
     outDir.mkdirs();
     final File report = new File(outDir, this.getClass().getSimpleName() + ".html");
@@ -59,12 +59,12 @@ public class TestMNIST {
     final Stream<LabeledObject<BufferedImage>> merged = Util.toStream(new Iterator<LabeledObject<BufferedImage>>() {
       Iterator<BufferedImage> imgItr = imgStream.iterator();
       Iterator<byte[]> labelItr = labelStream.iterator();
-
+      
       @Override
       public boolean hasNext() {
         return this.imgItr.hasNext() && this.labelItr.hasNext();
       }
-
+      
       @Override
       public LabeledObject<BufferedImage> next() {
         return new LabeledObject<BufferedImage>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
@@ -81,7 +81,7 @@ public class TestMNIST {
     out.close();
     Desktop.getDesktop().browse(report.toURI());
   }
-
+  
   public BufferedImage toImage(final byte[] b) {
     final BufferedImage img = new BufferedImage(28, 28, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < 28; x++) {
@@ -91,7 +91,7 @@ public class TestMNIST {
     }
     return img;
   }
-
+  
   public String toInlineImage(final LabeledObject<BufferedImage> img) {
     final ByteArrayOutputStream b = new ByteArrayOutputStream();
     try {
@@ -103,5 +103,5 @@ public class TestMNIST {
     final String encode = Base64.getEncoder().encodeToString(byteArray);
     return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
   }
-
+  
 }

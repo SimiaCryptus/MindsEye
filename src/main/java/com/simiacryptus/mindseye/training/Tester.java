@@ -26,7 +26,7 @@ public class Tester {
   private MutationTrainer inner = new MutationTrainer();
   
   TrainingContext trainingContext = new TrainingContext();
-
+  
   public MutationTrainer getInner() {
     return this.inner;
   }
@@ -65,12 +65,12 @@ public class Tester {
     getInner().getDynamicRateTrainer().setRate(d);
     return this;
   }
-
+  
   public Tester setVerbose(final boolean b) {
     getInner().setVerbose(b);
     return this;
   }
-
+  
   public boolean testCopy(final int maxIter, final double convergence) {
     boolean hasConverged = false;
     try {
@@ -95,18 +95,18 @@ public class Tester {
     inner.setMaxIterations(i).setStopError(d);
     inner.train(trainingContext);
   }
-
+  
   private TrainingContext trainingContext() {
     return this.trainingContext;
   }
-
+  
   public long verifyConvergence(final int maxIter, final double convergence, final int reps) {
     return verifyConvergence(maxIter, convergence, reps, reps);
   }
   
   public long verifyConvergence(final int maxIter, final double convergence, final int reps, final int minSuccess) {
     final long succeesses = IntStream.range(0, reps) //
-        //.parallel() //
+        .parallel() //
         .filter(i -> testCopy(maxIter, convergence)).count();
     if (minSuccess > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
     return succeesses;

@@ -19,7 +19,7 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class SimpleMNIST {
   private static final Logger log = LoggerFactory.getLogger(SimpleMNIST.class);
-
+  
   public static int toOut(final String label) {
     for (int i = 0; i < 10; i++) {
       if (label.equals("[" + i + "]")) return i;
@@ -36,7 +36,7 @@ public class SimpleMNIST {
   final NDArray inputSize = new NDArray(28, 28);
   
   int verbose = 1;
-
+  
   protected PipelineNetwork getNetwork() {
     final PipelineNetwork net = new PipelineNetwork();
     final NDArray[] input = { this.inputSize };
@@ -52,30 +52,30 @@ public class SimpleMNIST {
     return net.trainer(data)
         .setVerbose(this.verbose > 0);
   }
-
+  
   public Stream<LabeledObject<NDArray>> getTraining(final List<LabeledObject<NDArray>> buffer) {
     return Util.shuffle(buffer, Util.R.get()).parallelStream().limit(1000);
   }
-
+  
   public Stream<LabeledObject<NDArray>> getVerification(final List<LabeledObject<NDArray>> buffer) {
     return buffer.parallelStream().limit(100);
   }
-
+  
   @Test
   public void test() throws Exception {
     SimpleMNIST.log.info("Starting");
     final PipelineNetwork net = getNetwork();
     final List<LabeledObject<NDArray>> buffer = MNIST.trainingDataStream().collect(Collectors.toList());
-
+    
     final NDArray[][] data = getTraining(buffer)
         .map(o -> new NDArray[] { o.data, SimpleMNIST.toOutNDArray(SimpleMNIST.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
-
+        
     getTrainer(net, data).verifyConvergence(0, 0.01, 1);
     final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average()
         .getAsDouble();
     SimpleMNIST.log.info("Tested RMS Error: {}", prevRms);
     MNIST.report(net);
   }
-
+  
 }

@@ -27,12 +27,24 @@ public class GradientDescentTrainer {
   
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
   
+  private int[] activeConstraintSet;
+  private int[] activeTrainingSet;
+  private int[] activeValidationSet;
   private double error = Double.POSITIVE_INFINITY;
   private NDArray[][] masterTrainingData = null;
   private PipelineNetwork net = null;
   private double rate = 0.3;
   private double temperature = 0.00005;
   private boolean verbose = false;
+  
+  double calcConstraintSieve(final TrainingContext trainingContext) {
+    final NDArray[][] trainingData = getConstraintData(trainingContext);
+    final List<NNResult> results = eval(trainingContext, trainingData);
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData,
+        results.stream().map(x -> x.data).collect(Collectors.toList()));
+    updateConstraintSieve(rms);
+    return Util.rms(trainingContext, rms, getConstraintSet());
+  }
   
   public DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
     final List<NNResult> netresults = eval(trainingContext, activeTrainingData);
@@ -55,6 +67,32 @@ public class GradientDescentTrainer {
     return Util.rms(trainingContext, rms, getActiveValidationSet());
   }
   
+  public synchronized double calcSieves(final TrainingContext trainingContext) {
+    calcConstraintSieve(trainingContext);
+    calcTrainingSieve(trainingContext);
+    final double validation = calcValidationSieve(trainingContext);
+    // log.debug(String.format("Calculated sieves: %s training, %s constraints, %s validation", this.activeTrainingSet.length, this.activeConstraintSet.length,
+    // this.activeValidationSet.length));
+    return validation;
+  }
+  
+  double calcTrainingSieve(final TrainingContext trainingContext) {
+    final NDArray[][] activeTrainingData = getTrainingData(getActiveTrainingSet());
+    final List<NNResult> list = eval(trainingContext, activeTrainingData);
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, activeTrainingData,
+        list.stream().map(x -> x.data).collect(Collectors.toList()));
+    updateTrainingSieve(rms);
+    return Util.rms(trainingContext, rms, getActiveTrainingSet());
+  }
+  
+  double calcValidationSieve(final TrainingContext trainingContext) {
+    final List<NDArray> result = evalValidationData(trainingContext);
+    final NDArray[][] trainingData = getActiveValidationData(trainingContext);
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData, result);
+    updateValidationSieve(rms);
+    return Util.rms(trainingContext, rms, getActiveValidationSet());
+  }
+  
   protected List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData) {
     return Stream.of(trainingData)
         .parallel()
@@ -74,14 +112,32 @@ public class GradientDescentTrainer {
     return eval.stream().map(x -> x.data).collect(Collectors.toList());
   }
   
+  public int[] getActiveTrainingSet() {
+    if (null == this.activeTrainingSet) return null;
+    if (0 == this.activeTrainingSet.length) return null;
+    return this.activeTrainingSet;
+  }
+  
   public final NDArray[][] getActiveValidationData(final TrainingContext trainingContext) {
     if (null != getActiveValidationSet())
       return IntStream.of(getActiveValidationSet()).mapToObj(i -> getMasterTrainingData()[i]).toArray(i -> new NDArray[i][]);
     return getMasterTrainingData();
   }
   
+  public int[] getActiveValidationSet() {
+    if (null == this.activeValidationSet) return null;
+    if (0 == this.activeValidationSet.length) return null;
+    return this.activeValidationSet;
+  }
+  
   public final NDArray[][] getConstraintData(final TrainingContext trainingContext) {
     return getTrainingData(getConstraintSet());
+  }
+  
+  public int[] getConstraintSet() {
+    if (null == this.activeConstraintSet) return null;
+    if (0 == this.activeConstraintSet.length) return null;
+    return this.activeConstraintSet;
   }
   
   public synchronized double getError() {
@@ -111,22 +167,22 @@ public class GradientDescentTrainer {
   
   protected DeltaBuffer getVector(final TrainingContext trainingContext) {
     final DeltaBuffer primary = calcDelta(trainingContext, getTrainingData(getActiveTrainingSet()));
-    if(isVerbose()) {
-//      log.debug(String.format("Primary Delta: %s", primary));
+    if (isVerbose()) {
+      // log.debug(String.format("Primary Delta: %s", primary));
     }
     final DeltaBuffer constraint = calcDelta(trainingContext, getConstraintData(trainingContext)).unitV();
-    if(isVerbose()) {
-//      log.debug(String.format("Constraint Delta: %s", constraint));
+    if (isVerbose()) {
+      // log.debug(String.format("Constraint Delta: %s", constraint));
     }
     final double dotProductConstraint = primary.dotProduct(constraint);
     if (dotProductConstraint < 0) {
-      if(isVerbose()) {
-//        log.debug(String.format("Removing component: %s", dotProductConstraint));
+      if (isVerbose()) {
+        // log.debug(String.format("Removing component: %s", dotProductConstraint));
       }
       return primary.add(constraint.scale(-dotProductConstraint));
     } else {
-      if(isVerbose()) {
-//        log.debug(String.format("Preserving component: %s", dotProductConstraint));
+      if (isVerbose()) {
+        // log.debug(String.format("Preserving component: %s", dotProductConstraint));
       }
       return primary;
     }
@@ -134,6 +190,18 @@ public class GradientDescentTrainer {
   
   public boolean isVerbose() {
     return this.verbose;
+  }
+  
+  public synchronized void setActiveTrainingSet(final int[] activeSet) {
+    this.activeTrainingSet = activeSet;
+  }
+  
+  public synchronized void setActiveValidationSet(final int[] activeSet) {
+    this.activeValidationSet = activeSet;
+  }
+  
+  public synchronized void setConstraintSet(final int[] activeSet) {
+    this.activeConstraintSet = activeSet;
   }
   
   public GradientDescentTrainer setError(final double error) {
@@ -172,7 +240,7 @@ public class GradientDescentTrainer {
   
   public Double step(final TrainingContext trainingContext, final double[] rates) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
-    double prevError = calcError(trainingContext, evalValidationData(trainingContext));
+    final double prevError = calcError(trainingContext, evalValidationData(trainingContext));
     setError(prevError);
     if (null == rates) return Double.POSITIVE_INFINITY;
     final DeltaBuffer buffer = getVector(trainingContext);
@@ -206,96 +274,18 @@ public class GradientDescentTrainer {
     return validationError - prevError;
   }
   
-  private int[] activeConstraintSet;
-  private int[] activeTrainingSet;
-  private int[] activeValidationSet;
-  
-  double calcConstraintSieve(TrainingContext trainingContext) {
-    final NDArray[][] trainingData = this.getConstraintData(trainingContext);
-    final List<NNResult> results = this.eval(trainingContext, trainingData);
-    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData,
-        results.stream().map(x -> x.data).collect(Collectors.toList()));
-    updateConstraintSieve(rms);
-    return Util.rms(trainingContext, rms, getConstraintSet());
-  }
-  
-  public synchronized double calcSieves(TrainingContext trainingContext) {
-    calcConstraintSieve(trainingContext);
-    calcTrainingSieve(trainingContext);
-    final double validation = calcValidationSieve(trainingContext);
-    // log.debug(String.format("Calculated sieves: %s training, %s constraints, %s validation", this.activeTrainingSet.length, this.activeConstraintSet.length,
-    // this.activeValidationSet.length));
-    return validation;
-  }
-  
-  double calcTrainingSieve(TrainingContext trainingContext) {
-    final NDArray[][] activeTrainingData = this.getTrainingData(this.getActiveTrainingSet());
-    final List<NNResult> list = this.eval(trainingContext, activeTrainingData);
-    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, activeTrainingData,
-        list.stream().map(x -> x.data).collect(Collectors.toList()));
-    updateTrainingSieve(rms);
-    return Util.rms(trainingContext, rms, getActiveTrainingSet());
-  }
-  
-  double calcValidationSieve(TrainingContext trainingContext) {
-    final List<NDArray> result = this.evalValidationData(trainingContext);
-    final NDArray[][] trainingData = this.getActiveValidationData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData, result);
-    updateValidationSieve(rms);
-    return Util.rms(trainingContext, rms, getActiveValidationSet());
-  }
-  
-  public int[] getActiveTrainingSet() {
-    if (null == this.activeTrainingSet) return null;
-    if (0 == this.activeTrainingSet.length) return null;
-    return this.activeTrainingSet;
-  }
-  
-  public int[] getActiveValidationSet() {
-    if (null == this.activeValidationSet) return null;
-    if (0 == this.activeValidationSet.length) return null;
-    return this.activeValidationSet;
-  }
-  
-  public int[] getConstraintSet() {
-    if (null == this.activeConstraintSet) return null;
-    if (0 == this.activeConstraintSet.length) return null;
-    return this.activeConstraintSet;
-  }
-  
-  public synchronized void setActiveTrainingSet(final int[] activeSet) {
-    this.activeTrainingSet = activeSet;
-  }
-  
-  public synchronized void setActiveValidationSet(final int[] activeSet) {
-    this.activeValidationSet = activeSet;
-  }
-  
-  public synchronized void setConstraintSet(final int[] activeSet) {
-    this.activeConstraintSet = activeSet;
-  }
-  
   public synchronized int[] updateActiveTrainingSet(final Supplier<int[]> f) {
     this.activeTrainingSet = f.get();
-    // if(null == activeTrainingSet) {
-    // if(0 == activeTrainingSet.length) activeTrainingSet = null;
-    // }
     return this.activeTrainingSet;
   }
   
   public synchronized int[] updateActiveValidationSet(final Supplier<int[]> f) {
     this.activeValidationSet = f.get();
-    // if(null == getActiveValidationSet()) {
-    // if(0 == activeValidationSet.length) activeValidationSet = null;
-    // }
     return this.activeValidationSet;
   }
   
   public synchronized int[] updateConstraintSet(final Supplier<int[]> f) {
     this.activeConstraintSet = f.get();
-    // if(null == activeConstraintSet) {
-    // if(0 == activeConstraintSet.length) activeConstraintSet = null;
-    // }
     return this.activeConstraintSet;
   }
   
@@ -330,4 +320,5 @@ public class GradientDescentTrainer {
           .mapToInt(t -> t.getFirst()).toArray();
     });
   }
+  
 }

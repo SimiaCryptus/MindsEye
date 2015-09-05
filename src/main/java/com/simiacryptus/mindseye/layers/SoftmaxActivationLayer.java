@@ -13,13 +13,13 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
 public class SoftmaxActivationLayer extends NNLayer {
-
+  
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
-
+  
   double maxInput = 100;
-
+  
   private boolean verbose;
-
+  
   public SoftmaxActivationLayer() {
   }
   
@@ -63,7 +63,7 @@ public class SoftmaxActivationLayer extends NNLayer {
           // if (delta[i].isNegative()) {
           // delta[i] = LogNumber.ZERO;
           // }
-
+          
           final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
           for (int i = 0; i < input.dim(); i++) {
@@ -76,14 +76,14 @@ public class SoftmaxActivationLayer extends NNLayer {
             ;
           }
           ;
-
+          
           if (isVerbose()) {
             SoftmaxActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
           }
           inObj[0].feedback(passback, buffer);
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
@@ -91,7 +91,8 @@ public class SoftmaxActivationLayer extends NNLayer {
       
     };
   }
-
+  
+  @Override
   public boolean isVerbose() {
     return this.verbose;
   }

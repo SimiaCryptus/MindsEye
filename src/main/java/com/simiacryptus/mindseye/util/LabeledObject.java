@@ -11,9 +11,9 @@ public class LabeledObject<T> {
     this.data = img;
     this.label = name;
   }
-
+  
   public <U> LabeledObject<U> map(final Function<T, U> f) {
     return new LabeledObject<U>(f.apply(this.data), this.label);
   }
-
+  
 }

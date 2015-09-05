@@ -174,7 +174,7 @@ public class NDArray {
   public int index(final Coordinate coords) {
     return coords.index;
   }
-
+  
   public int index(final int... coords) {
     int v = 0;
     for (int i = 0; i < this.skips.length && i < coords.length; i++) {
@@ -204,7 +204,7 @@ public class NDArray {
     ;
     return new NDArray(this.dims, cpy);
   }
-
+  
   public double rms(final NDArray right) {
     double sum = 0;
     for (int i = 0; i < this.dim(); i++) {
@@ -242,7 +242,7 @@ public class NDArray {
     assert Double.isFinite(value);
     set(index(coords), value);
   }
-
+  
   public double sum() {
     double v = 0;
     for (final double element : getData()) {
@@ -251,12 +251,12 @@ public class NDArray {
     assert Double.isFinite(v);
     return v;
   }
-
+  
   @Override
   public String toString() {
     return toString(new int[] {});
   }
-
+  
   private String toString(final int... coords) {
     if (coords.length == this.dims.length)
       return Double.toString(get(coords));
@@ -272,5 +272,5 @@ public class NDArray {
       return "{ " + str.get() + " }";
     }
   }
-
+  
 }

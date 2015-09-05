@@ -17,5 +17,5 @@ public class SoftmaxTests1 extends SimpleClassificationTests {
         .add(new SoftmaxActivationLayer());
     return net;
   }
-
+  
 }

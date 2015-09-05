@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class UnivariateOptimizer {
   @SuppressWarnings("serial")
   public static final class PtList extends ArrayList<PointValuePair> {
-
+    
     @Override
     public String toString() {
       final StringBuilder builder = new StringBuilder();
@@ -41,7 +41,7 @@ public class UnivariateOptimizer {
     }
     
   }
-
+  
   static final Logger log = LoggerFactory.getLogger(UnivariateOptimizer.class);
   
   public final UnivariateFunction f;
@@ -52,7 +52,7 @@ public class UnivariateOptimizer {
   public final List<PointValuePair> points = new PtList();
   public double solveThreshold = -Double.MAX_VALUE;
   private boolean verbose = false;
-
+  
   public UnivariateOptimizer(final UnivariateFunction f) {
     this.f = f;
   }

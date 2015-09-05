@@ -20,12 +20,12 @@ import com.simiacryptus.mindseye.util.Util;
 public class DenseSynapseLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
-
+    
     private DenseSynapseResult(final NDArray data, final NNResult inObj) {
       super(data);
       this.inObj = inObj;
     }
-
+    
     @Override
     public void feedback(final LogNDArray delta, final DeltaBuffer buffer) {
       if (isVerbose()) {
@@ -61,37 +61,37 @@ public class DenseSynapseLayer extends NNLayer {
         }
       }
     }
-
+    
     @Override
     public boolean isAlive() {
       return this.inObj.isAlive() || !isFrozen();
     }
     
   }
-
+  
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
-
+  
   private boolean frozen = false;
   private final int[] outputDims;
   private boolean verbose = false;
   public final NDArray weights;
-
+  
   protected DenseSynapseLayer() {
     super();
     this.outputDims = null;
     this.weights = null;
   }
-
+  
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
   }
-
+  
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.weights.getData());
     return this;
   }
-
+  
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
@@ -111,27 +111,27 @@ public class DenseSynapseLayer extends NNLayer {
     }
     return new DenseSynapseResult(output, inObj[0]);
   }
-
+  
   public DenseSynapseLayer freeze() {
     return freeze(true);
   }
-
+  
   public DenseSynapseLayer freeze(final boolean b) {
     this.frozen = b;
     return this;
   }
-
+  
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
     json.addProperty("weights", this.weights.toString());
     return json;
   }
-
+  
   protected double getMobility() {
     return 1;
   }
-
+  
   public boolean isFrozen() {
     return this.frozen;
   }
@@ -155,7 +155,7 @@ public class DenseSynapseLayer extends NNLayer {
     Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;
   }
-
+  
   public DenseSynapseLayer thaw() {
     return freeze(false);
   }

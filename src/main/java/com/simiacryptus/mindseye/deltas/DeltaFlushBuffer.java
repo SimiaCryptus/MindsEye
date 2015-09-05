@@ -10,13 +10,12 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
-@SuppressWarnings({ "rawtypes", "unchecked", "unused" })
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer> {
   
   private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
@@ -33,18 +32,18 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   
   private boolean reset = false;
   
-  public DeltaFlushBuffer(final DeltaSink values, NNLayer layer) {
+  public DeltaFlushBuffer(final DeltaSink values, final DeltaValueAccumulator[] array, final NNLayer layer) {
+    this.inner = values;
+    this.layer = layer;
+    this.buffer = array;
+  }
+  
+  public DeltaFlushBuffer(final DeltaSink values, final NNLayer layer) {
     assert null != values;
     this.inner = values;
     this.layer = layer;
     this.buffer = new DeltaValueAccumulator1[values.length()];
     Arrays.setAll(this.buffer, i -> DeltaFlushBuffer.newAccumulator());
-  }
-  
-  public DeltaFlushBuffer(final DeltaSink values, final DeltaValueAccumulator[] array, NNLayer layer) {
-    this.inner = values;
-    this.layer = layer;
-    this.buffer = array;
   }
   
   protected DeltaFlushBuffer(final double[] ptr, final NNLayer layer) {
@@ -55,7 +54,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     this.layer = layer;
   }
   
-  public DeltaFlushBuffer(final NDArray values, NNLayer layer) {
+  public DeltaFlushBuffer(final NDArray values, final NNLayer layer) {
     this(values.getData(), layer);
   }
   
@@ -81,7 +80,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      DeltaValueAccumulator prev = this.buffer[i];
+      final DeltaValueAccumulator prev = this.buffer[i];
       this.buffer[i] = prev.add(data[i]);
     }
   }
@@ -111,7 +110,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
       if (null != l) return r;
       if (null != r) return l;
       return null;
-    }).toArray(i -> new DeltaValueAccumulator[i]), layer);
+    }).toArray(i -> new DeltaValueAccumulator[i]), this.layer);
   }
   
   @Override
@@ -136,7 +135,7 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
   }
   
   protected <T extends DeltaValueAccumulator<T>> DeltaFlushBuffer map(final Function<T, T> mapper) {
-    return new DeltaFlushBuffer(this.inner, Arrays.stream(this.buffer).map(x -> mapper.apply((T) x)).toArray(i -> new DeltaValueAccumulator[i]), layer);
+    return new DeltaFlushBuffer(this.inner, Arrays.stream(this.buffer).map(x -> mapper.apply((T) x)).toArray(i -> new DeltaValueAccumulator[i]), this.layer);
   }
   
   @Override
@@ -157,6 +156,15 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }).sum();
   }
   
+  @Override
+  public String toString() {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("DeltaFlushBuffer [");
+    builder.append(Arrays.toString(this.buffer));
+    builder.append("]");
+    return builder.toString();
+  }
+  
   public synchronized void write(final double factor) {
     final LogNumber[] cpy = new LogNumber[this.buffer.length];
     if (!this.reset) {
@@ -171,15 +179,6 @@ public class DeltaFlushBuffer implements DeltaSink, VectorLogic<DeltaFlushBuffer
     }
     this.inner.feed(cpy);
     this.reset = true;
-  }
-  
-  @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("DeltaFlushBuffer [");
-    builder.append(Arrays.toString(buffer));
-    builder.append("]");
-    return builder.toString();
   }
   
 }

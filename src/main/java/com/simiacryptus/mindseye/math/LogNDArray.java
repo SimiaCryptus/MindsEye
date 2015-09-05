@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import com.simiacryptus.mindseye.util.Util;
 
 public class LogNDArray {
-
+  
   public static int dim(final int... dims) {
     int total = 1;
     for (final int dim : dims) {
@@ -20,27 +20,27 @@ public class LogNDArray {
     }
     return total;
   }
-
+  
   private static LogNumber[] log(final double[] data) {
     return DoubleStream.of(data).mapToObj(x -> LogNumber.log(x)).toArray(i -> new LogNumber[i]);
   }
   
   protected volatile LogNumber[] data;
   protected final int[] dims;
-
+  
   protected final int[] skips;
-
+  
   protected LogNDArray() {
     super();
     this.data = null;
     this.skips = null;
     this.dims = null;
   }
-
+  
   public LogNDArray(final int... dims) {
     this(dims, null);
   }
-
+  
   public LogNDArray(final int[] dims, final LogNumber[] data) {
     this.dims = Arrays.copyOf(dims, dims.length);
     this.skips = new int[dims.length];
@@ -63,21 +63,21 @@ public class LogNDArray {
   public LogNDArray(final NDArray ndArray) {
     this(ndArray.dims, LogNDArray.log(ndArray.data));
   }
-
+  
   public synchronized void add(final int index, final double value) {
     assert Double.isFinite(value);
     set(index, getData()[index].add(value));
   }
-
+  
   public synchronized void add(final int index, final LogNumber value) {
     assert value.isFinite();
     set(index, getData()[index].add(value));
   }
-
+  
   public void add(final int[] coords, final LogNumber value) {
     add(index(coords), value);
   }
-
+  
   private int[] concat(final int[] a, final int... b) {
     final int[] copy = Arrays.copyOf(a, a.length + b.length);
     for (int i = 0; i < b.length; i++) {
@@ -85,22 +85,22 @@ public class LogNDArray {
     }
     return copy;
   }
-
+  
   public Stream<Coordinate> coordStream() {
     return coordStream(false);
   }
-
+  
   public Stream<Coordinate> coordStream(final boolean paralell) {
     return Util.toStream(new Iterator<Coordinate>() {
-
+      
       int cnt = 0;
       int[] val = new int[LogNDArray.this.dims.length];
-
+      
       @Override
       public boolean hasNext() {
         return this.cnt < dim();
       }
-
+      
       @Override
       public Coordinate next() {
         final int[] last = Arrays.copyOf(this.val, this.val.length);
@@ -117,11 +117,11 @@ public class LogNDArray {
       }
     }, dim(), paralell);
   }
-
+  
   public int dim() {
     return getData().length;
   }
-
+  
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) return true;
@@ -132,17 +132,17 @@ public class LogNDArray {
     if (!Arrays.equals(this.dims, other.dims)) return false;
     return true;
   }
-
+  
   public NDArray exp() {
     return new NDArray(getDims(), Stream.of(getData()).mapToDouble(x -> x.doubleValue()).toArray());
   }
-
+  
   public LogNumber get(final Coordinate coords) {
     final LogNumber v = getData()[coords.index];
     assert Double.isFinite(v.logValue);
     return v;
   }
-
+  
   public LogNumber get(final int... coords) {
     // assert IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     // assert coords.length==dims.length;
@@ -150,7 +150,7 @@ public class LogNDArray {
     assert v.isFinite();
     return v;
   }
-
+  
   public LogNumber[] getData() {
     if (null == this.data) {
       synchronized (this) {
@@ -162,11 +162,11 @@ public class LogNDArray {
     }
     return this.data;
   }
-
+  
   public int[] getDims() {
     return this.dims;
   }
-
+  
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -175,11 +175,11 @@ public class LogNDArray {
     result = prime * result + Arrays.hashCode(this.dims);
     return result;
   }
-
+  
   public int index(final Coordinate coords) {
     return coords.index;
   }
-
+  
   public int index(final int... coords) {
     int v = 0;
     for (int i = 0; i < this.skips.length && i < coords.length; i++) {
@@ -188,7 +188,7 @@ public class LogNDArray {
     return v;
     // return IntStream.range(0, skips.length).map(i->skips[i]*coords[i]).sum();
   }
-
+  
   public LogNDArray scale(final double rate) {
     final LogNDArray copy = new LogNDArray(this);
     final LogNumber log = LogNumber.log(rate);
@@ -197,12 +197,12 @@ public class LogNDArray {
     }
     return copy;
   }
-
+  
   public void set(final Coordinate coords, final LogNumber value) {
     assert value.isFinite();
     set(coords.index, value);
   }
-
+  
   public void set(final int index, final LogNumber value) {
     assert value.isFinite();
     getData()[index] = value;
@@ -219,12 +219,12 @@ public class LogNDArray {
     }
     return this;
   }
-
+  
   @Override
   public String toString() {
     return toString(new int[] {});
   }
-
+  
   private String toString(final int... coords) {
     if (coords.length == this.dims.length)
       return get(coords).toString();
@@ -240,5 +240,5 @@ public class LogNDArray {
       return "{ " + str.get() + " }";
     }
   }
-
+  
 }

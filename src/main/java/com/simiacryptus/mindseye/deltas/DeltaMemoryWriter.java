@@ -11,7 +11,7 @@ public class DeltaMemoryWriter implements DeltaSink {
   private DeltaMemoryWriter() {
     super();
   }
-
+  
   public DeltaMemoryWriter(final double[] values) {
     this.values = values;
   }
@@ -49,5 +49,5 @@ public class DeltaMemoryWriter implements DeltaSink {
   public int length() {
     return this.values.length;
   }
-
+  
 }

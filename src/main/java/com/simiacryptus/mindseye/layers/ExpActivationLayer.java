@@ -65,6 +65,7 @@ public class ExpActivationLayer extends NNLayer {
     };
   }
   
+  @Override
   public boolean isVerbose() {
     return this.verbose;
   }

@@ -98,12 +98,12 @@ public class MinMaxFilterLayer extends NNLayer {
   public boolean isVerbose() {
     return this.verbose;
   }
-
+  
   public MinMaxFilterLayer setThreshold(final double threshold) {
     this.threshold = threshold;
     return this;
   }
-
+  
   public MinMaxFilterLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

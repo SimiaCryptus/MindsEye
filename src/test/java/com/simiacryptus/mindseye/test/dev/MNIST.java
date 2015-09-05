@@ -18,7 +18,7 @@ import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNIST {
-
+  
   public static void report(final PipelineNetwork net) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
@@ -34,21 +34,21 @@ public class MNIST {
     out.close();
     Desktop.getDesktop().browse(report.toURI());
   }
-
+  
   public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
     final String path = "C:/Users/Andrew Charneski/Downloads";
     final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
     final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
-
+    
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
       Iterator<NDArray> imgItr = imgStream.iterator();
       Iterator<byte[]> labelItr = labelStream.iterator();
-
+      
       @Override
       public boolean hasNext() {
         return this.imgItr.hasNext() && this.labelItr.hasNext();
       }
-
+      
       @Override
       public LabeledObject<NDArray> next() {
         return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
@@ -56,5 +56,5 @@ public class MNIST {
     }, 100).limit(10000);
     return merged;
   }
-
+  
 }

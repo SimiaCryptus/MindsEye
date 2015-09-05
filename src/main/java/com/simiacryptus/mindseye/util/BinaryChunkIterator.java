@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 public final class BinaryChunkIterator implements Iterator<byte[]> {
-
+  
   private DataInputStream in;
   private int recordSize;
   
@@ -15,7 +15,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
     this.in = in;
     this.recordSize = recordSize;
   }
-
+  
   @Override
   public boolean hasNext() {
     try {
@@ -24,7 +24,7 @@ public final class BinaryChunkIterator implements Iterator<byte[]> {
       throw new RuntimeException(e);
     }
   }
-
+  
   @Override
   public byte[] next() {
     assert hasNext();

@@ -23,7 +23,7 @@ public class NetworkElementUnitTests {
   static final Logger log = LoggerFactory.getLogger(NetworkElementUnitTests.class);
   
   public static final Random random = new Random();
-
+  
   @Test
   // @Ignore
   public void bias_feedback() throws Exception {
@@ -37,7 +37,7 @@ public class NetworkElementUnitTests {
         // .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .trainer(samples).verifyConvergence(0, 0.1, 100);
   }
-
+  
   @Test
   public void bias_train() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -48,10 +48,10 @@ public class NetworkElementUnitTests {
     new PipelineNetwork() //
         .add(new BiasLayer(inputSize))
         .trainer(samples)
-        //.setVerbose(true)
+        // .setVerbose(true)
         .verifyConvergence(0, 0.01, 100);
   }
-
+  
   @Test
   // @Ignore
   public void bias_train2() throws Exception {
@@ -65,7 +65,7 @@ public class NetworkElementUnitTests {
         .add(new BiasLayer(inputSize))
         .trainer(samples).verifyConvergence(0, 0.1, 100);
   }
-
+  
   @Test
   public void convolutionSynapseLayer_feedback() throws Exception {
     final boolean verbose = false;
@@ -84,7 +84,7 @@ public class NetworkElementUnitTests {
         .setVerbose(verbose)
         .setStaticRate(.1).verifyConvergence(0, 0.1, 100);
   }
-
+  
   @Test
   // @Ignore
   public void convolutionSynapseLayer_train() throws Exception {

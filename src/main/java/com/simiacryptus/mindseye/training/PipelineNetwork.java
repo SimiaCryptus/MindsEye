@@ -31,7 +31,7 @@ public class PipelineNetwork extends NNLayer {
     protected NNResult[] initialValue(final EvaluationContext t) {
       return (NNResult[]) t.cache.get(PipelineNetwork.this.inputHandle);
     }
-
+    
     @Override
     protected JsonObject toJson() {
       final JsonObject json = new JsonObject();
@@ -51,7 +51,7 @@ public class PipelineNetwork extends NNLayer {
         final NNResult output = layer.eval(ctx, input);
         return new NNResult[] { output };
       }
-
+      
       @Override
       protected JsonObject toJson() {
         final JsonObject json = new JsonObject();
@@ -76,7 +76,7 @@ public class PipelineNetwork extends NNLayer {
   public NNLayer get(final int i) {
     return this.children.get(i);
   }
-
+  
   @Override
   public List<NNLayer> getChildren() {
     return this.children.stream()

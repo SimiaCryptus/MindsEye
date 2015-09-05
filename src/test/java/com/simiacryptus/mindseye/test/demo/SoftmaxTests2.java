@@ -102,12 +102,12 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   public void test_simple() throws Exception {
     super.test_simple();
   }
-
+  
   @Override
   public void test_snakes() throws Exception {
     super.test_snakes();
   }
-
+  
   @Override
   public void test_sos() throws Exception {
     super.test_sos();
@@ -126,7 +126,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   @Override
   public void verify(final Tester trainer) {
     // trainer.setVerbose(true).verifyConvergence(0, 0.0, 1);
-    trainer.verifyConvergence(0, 0.0, 10);
+    trainer.verifyConvergence(0, 0.01, 10);
   }
   
 }

@@ -20,12 +20,12 @@ import com.simiacryptus.mindseye.util.Util;
 public class SynapseActivationLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
-
+    
     private DenseSynapseResult(final NDArray data, final NNResult inObj) {
       super(data);
       this.inObj = inObj;
     }
-
+    
     @Override
     public void feedback(final LogNDArray delta, final DeltaBuffer buffer) {
       if (isVerbose()) {
@@ -57,34 +57,34 @@ public class SynapseActivationLayer extends NNLayer {
         }
       }
     }
-
+    
     @Override
     public boolean isAlive() {
       return this.inObj.isAlive() || !isFrozen();
     }
     
   }
-
+  
   private static final Logger log = LoggerFactory.getLogger(SynapseActivationLayer.class);
-
+  
   private boolean frozen = false;
   private boolean verbose = false;
   public final NDArray weights;
-
+  
   protected SynapseActivationLayer() {
     super();
     this.weights = null;
   }
-
+  
   public SynapseActivationLayer(final int inputs) {
     this.weights = new NDArray(inputs);
   }
-
+  
   public SynapseActivationLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.weights.getData());
     return this;
   }
-
+  
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
@@ -102,27 +102,27 @@ public class SynapseActivationLayer extends NNLayer {
     }
     return new DenseSynapseResult(output, inObj[0]);
   }
-
+  
   public SynapseActivationLayer freeze() {
     return freeze(true);
   }
-
+  
   public SynapseActivationLayer freeze(final boolean b) {
     this.frozen = b;
     return this;
   }
-
+  
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
     json.addProperty("weights", this.weights.toString());
     return json;
   }
-
+  
   protected double getMobility() {
     return 1;
   }
-
+  
   public boolean isFrozen() {
     return this.frozen;
   }

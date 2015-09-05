@@ -81,6 +81,7 @@ public class SigmoidActivationLayer extends NNLayer {
     return 1;
   }
   
+  @Override
   public boolean isVerbose() {
     return this.verbose;
   }
