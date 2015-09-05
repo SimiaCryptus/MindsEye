@@ -109,7 +109,7 @@ public class MutationTrainer {
   }
   
   public int getRecalibrationThreshold() {
-    return getDynamicRateTrainer().recalibrationThreshold;
+    return getDynamicRateTrainer().getRecalibrationThreshold();
   }
 
   public double getStopError() {
@@ -186,7 +186,7 @@ public class MutationTrainer {
   }
 
   public void mutateBest(final TrainingContext trainingContext) {
-    getDynamicRateTrainer().generationsSinceImprovement = getDynamicRateTrainer().recalibrationThreshold - 1;
+    getDynamicRateTrainer().generationsSinceImprovement = getDynamicRateTrainer().getRecalibrationThreshold() - 1;
     getGradientDescentTrainer().setNet(Util.kryo().copy(this.initial));
     while (0 >= mutate(getMutationFactor(), trainingContext)) {
     }
@@ -221,11 +221,6 @@ public class MutationTrainer {
     return this;
   }
 
-  public MutationTrainer setMutationAmount(final double mutationAmount) {
-    getDynamicRateTrainer().setMutationFactor(mutationAmount);
-    return this;
-  }
-
   public MutationTrainer setMutationAmplitude(final double mutationAmplitude) {
     this.mutationAmplitude = mutationAmplitude;
     return this;
@@ -241,7 +236,7 @@ public class MutationTrainer {
   }
   
   public MutationTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
-    getDynamicRateTrainer().recalibrationThreshold = recalibrationThreshold;
+    getDynamicRateTrainer().setRecalibrationThreshold(recalibrationThreshold);
     return this;
   }
   

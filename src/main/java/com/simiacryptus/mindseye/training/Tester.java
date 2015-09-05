@@ -50,11 +50,6 @@ public class Tester {
     return this;
   }
   
-  public Tester setMutationAmount(final double d) {
-    getInner().setMutationAmount(d);
-    return this;
-  }
-  
   public Tester setMutationAmplitude(final double d) {
     getInner().setMutationAmplitude(d);
     return this;

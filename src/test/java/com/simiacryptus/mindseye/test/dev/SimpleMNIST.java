@@ -50,9 +50,6 @@ public class SimpleMNIST {
   
   public Tester getTrainer(final PipelineNetwork net, final NDArray[][] data) {
     return net.trainer(data)
-        // .setDynamicRate(0.001)
-        // .setStaticRate(0.01)
-        .setMutationAmount(0.2)
         .setVerbose(this.verbose > 0);
   }
 

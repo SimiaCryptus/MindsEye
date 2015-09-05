@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
-import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,15 +30,11 @@ public class DynamicRateTrainer {
   int maxIterations = 100;
   private double maxRate = 10000;
   double minRate = 0;
-  double monteCarloDecayStep = 0.;
-  double monteCarloMin = 0.5;
-  private double mutationFactor = 1.;
   double rate = 0.5;
   private double[] rates = null;
   private int recalibrationInterval = 10;
-  int recalibrationThreshold = 0;
+  private int recalibrationThreshold = 0;
   private double stopError = 0;
-  private double temperature = 0.0;
   
   private boolean verbose = false;
   
@@ -84,7 +79,6 @@ public class DynamicRateTrainer {
       trainingContext.setConstraintSet(new int[] {});
       // trainingContext.calcSieves(getInner());
       final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-      final double prevError = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
       boolean inBounds = false;
       PointValuePair optimum;
       double[] rates = getRates();
@@ -96,12 +90,10 @@ public class DynamicRateTrainer {
         if (inBounds) {
           setRates(rates);
           this.lastCalibratedIteration = this.currentIteration;
-          gradientDescentTrainer.step(trainingContext, getRates());
-          final double err = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
-          final double improvement = prevError - err;
+          final double improvement = -gradientDescentTrainer.step(trainingContext, getRates());
           if (isVerbose()) {
             DynamicRateTrainer.log
-                .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(rates), prevError, err, improvement));
+                .debug(String.format("Adjusting rates by %s: (%s improvement)", Arrays.toString(rates), improvement));
           }
           trainingContext.calcSieves(gradientDescentTrainer);
           return true;
@@ -136,10 +128,6 @@ public class DynamicRateTrainer {
     return this.minRate;
   }
   
-  public double getMutationFactor() {
-    return this.mutationFactor;
-  }
-  
   public double getRate() {
     return this.rate;
   }
@@ -156,10 +144,6 @@ public class DynamicRateTrainer {
     return this.stopError;
   }
   
-  public double getTemperature() {
-    return this.temperature;
-  }
-  
   public boolean isVerbose() {
     return this.verbose;
   }
@@ -173,18 +157,11 @@ public class DynamicRateTrainer {
     
     final DeltaBuffer lessonVector = current.getVector(trainingContext);
     // final double[] one = DoubleStream.generate(() -> 1.).limit(dims).toArray();
-    double fraction = 1.;
-    PointValuePair x = null;
     final MultivariateFunction f = asMetaF(lessonVector, trainingContext, current);
-    do {
-      // trainingContext.setConstraintSet(null);
-      // trainingContext.setActiveTrainingSet(null);
-      // trainingContext.setActiveValidationSet(null);
-      x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.vector().size()); // May or may not be cloned before evaluations
-      f.value(x.getFirst()); // Leave in optimal state
-      fraction *= this.monteCarloDecayStep;
-    } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
-    f.value(new double[lessonVector.vector().size()]); // Reset to original state
+    List<DeltaFlushBuffer> vector = lessonVector.vector();
+    PointValuePair x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(vector.size()); // May or may not be cloned before evaluations
+    f.value(x.getFirst()); // Leave in optimal state
+    f.value(new double[vector.size()]); // Reset to original state
     evalValidationData = current.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
     final double calcError = current.calcError(trainingContext, evalValidationData);
     current.setError(calcError);
@@ -219,10 +196,6 @@ public class DynamicRateTrainer {
     return this;
   }
   
-  public void setMutationFactor(final double mutationRate) {
-    this.mutationFactor = mutationRate;
-  }
-  
   public DynamicRateTrainer setRate(final double rate) {
     this.rate = rate;
     return this;
@@ -239,11 +212,6 @@ public class DynamicRateTrainer {
   
   public DynamicRateTrainer setStopError(final double stopError) {
     this.stopError = stopError;
-    return this;
-  }
-
-  public DynamicRateTrainer setTemperature(final double temperature) {
-    this.temperature = temperature;
     return this;
   }
   
@@ -274,12 +242,11 @@ public class DynamicRateTrainer {
         if (!recalibrateWRetry(trainingContext)) return false;
         this.generationsSinceImprovement = 0;
       }
-      final double last = gradientDescentTrainer.getError();
-      final double next = gradientDescentTrainer.step(trainingContext, getRates());
-      if (last != next && Util.thermalStep(last, next, getTemperature())) {
+      final double improvement = gradientDescentTrainer.step(trainingContext, getRates());
+      if (improvement<0) {
         this.generationsSinceImprovement = 0;
       } else {
-        if (this.recalibrationThreshold < this.generationsSinceImprovement++) {
+        if (this.getRecalibrationThreshold() < this.generationsSinceImprovement++) {
           if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
           }

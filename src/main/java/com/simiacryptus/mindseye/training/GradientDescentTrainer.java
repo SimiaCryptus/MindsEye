@@ -27,7 +27,7 @@ public class GradientDescentTrainer {
   private NDArray[][] masterTrainingData = null;
   private PipelineNetwork net = null;
   private double rate = 0.3;
-  private double temperature = 0.0001;
+  private double temperature = 0.05;
   private boolean verbose = false;
 
   public DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
@@ -159,7 +159,7 @@ public class GradientDescentTrainer {
 
   public Double step(final TrainingContext trainingContext, final double[] rates) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
-    final double prevError = calcError(trainingContext, evalValidationData(trainingContext));
+    double prevError = calcError(trainingContext, evalValidationData(trainingContext));
     setError(prevError);
     if (null == rates) return Double.POSITIVE_INFINITY;
     final DeltaBuffer buffer = getVector(trainingContext);
@@ -186,10 +186,10 @@ public class GradientDescentTrainer {
     }
     trainingContext.gradientSteps.increment();
     if (this.verbose) {
-      GradientDescentTrainer.log.debug(String.format("Trained Error: %s (%s) with rate %s*%s in %.03fs",
-          getError(), getError(), getRate(), Arrays.toString(rates),
+      GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s*%s in %.03fs",
+          validationError, getRate(), Arrays.toString(rates),
           (System.currentTimeMillis() - startMs) / 1000.));
     }
-    return getError();
+    return validationError-prevError;
   }
 }
