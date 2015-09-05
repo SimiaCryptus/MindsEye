@@ -29,7 +29,7 @@ public class Tester {
   private MutationTrainer inner = new MutationTrainer();
   
   public Tester setParams(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
-    getInner().getInner().getInner().setNet(pipelineNetwork).setMasterTrainingData(samples);
+    getInner().getGradientDescentTrainer().setNet(pipelineNetwork).setMasterTrainingData(samples);
     return this;
   }
 
@@ -43,7 +43,7 @@ public class Tester {
   }
   
   public Tester setDynamicRate(final double d) {
-    getInner().getInner().getInner().setRate(d);
+    getInner().getGradientDescentTrainer().setRate(d);
     return this;
   }
   
@@ -52,12 +52,12 @@ public class Tester {
   }
   
   public Tester setMaxDynamicRate(final double d) {
-    getInner().getInner().setMaxRate(d);
+    getInner().getDynamicRateTrainer().setMaxRate(d);
     return this;
   }
   
   public Tester setMinDynamicRate(final double d) {
-    getInner().getInner().setMinRate(d);
+    getInner().getDynamicRateTrainer().setMinRate(d);
     return this;
   }
   
@@ -72,7 +72,7 @@ public class Tester {
   }
   
   public Tester setStaticRate(final double d) {
-    getInner().getInner().setRate(d);
+    getInner().getDynamicRateTrainer().setRate(d);
     return this;
   }
   

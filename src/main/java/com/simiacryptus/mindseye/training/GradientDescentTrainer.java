@@ -39,9 +39,6 @@ public class GradientDescentTrainer {
   private double temperature = 0.0001;
   private NDArray[][] masterTrainingData = null;
   private boolean verbose = false;
-  
-  public GradientDescentTrainer() {
-  }
 
   protected double calcError(TrainingContext trainingContext, final List<NDArray> results) {
     final NDArray[][] trainingData = getActiveValidationData(trainingContext);
@@ -135,7 +132,7 @@ public class GradientDescentTrainer {
     return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
   
-  protected DeltaBuffer prelearn(TrainingContext trainingContext) {
+  protected DeltaBuffer getVector(TrainingContext trainingContext) {
     final DeltaBuffer primary = calcDelta(trainingContext, getActiveTrainingData(trainingContext));
     final DeltaBuffer constraint = calcDelta(trainingContext, getConstraintData(trainingContext)).unitV();
     double dotProductConstraint = primary.dotProduct(constraint);
@@ -202,31 +199,29 @@ public class GradientDescentTrainer {
     final double prevError = calcError(trainingContext, evalValidationData(trainingContext));
     setError(prevError);
     if (null == rates) return Double.POSITIVE_INFINITY;
-    final DeltaBuffer buffer = prelearn(trainingContext);
-    assert rates.length == buffer.map.size();
+    final DeltaBuffer buffer = getVector(trainingContext);
+    assert null != rates && rates.length == buffer.map.size();
     final List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());
-    assert rates.length == deltas.size();
-    if (null != rates) {
-      IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(rates[i]));
-      final double validationError = calcError(trainingContext, evalValidationData(trainingContext));
-      if (prevError == validationError) {
-        if (this.verbose) {
-          GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));
-        }
-      } else if (!GradientDescentTrainer.thermalStep(prevError, validationError, getTemperature())) {
-        if (this.verbose) {
-          GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
-        }
-        IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(-rates[i]));
-        return prevError;
-      } else {
-        if (this.verbose) {
-          GradientDescentTrainer.log.debug(String.format("Validated: (%s)", prevError));
-        }
-        setError(validationError);
+    assert null != rates && rates.length == deltas.size();
+    IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(rates[i]));
+    final double validationError = calcError(trainingContext, evalValidationData(trainingContext));
+    if (prevError == validationError) {
+      if (this.verbose) {
+        GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));
       }
-      return validationError;
-    } else return prevError;
+    } else if (!GradientDescentTrainer.thermalStep(prevError, validationError, getTemperature())) {
+      if (this.verbose) {
+        GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
+      }
+      IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(-rates[i]));
+      return prevError;
+    } else {
+      if (this.verbose) {
+        GradientDescentTrainer.log.debug(String.format("Validated: (%s)", prevError));
+      }
+      setError(validationError);
+    }
+    return validationError;
   }
 
   public Double step(TrainingContext trainingContext, final double[] rates) throws TerminationCondition {

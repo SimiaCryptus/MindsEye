@@ -22,22 +22,14 @@ public class MutationTrainer {
   private static final Logger log = LoggerFactory.getLogger(MutationTrainer.class);
   
   private int currentGeneration = 0;
-  private final DynamicRateTrainer inner;
+  private final DynamicRateTrainer inner = new DynamicRateTrainer();
   private int maxIterations = 100;
   double mutationAmplitude = 5.;
   private double mutationFactor = .1;
   private double stopError = 0.1;
   private boolean verbose = false;
 
-  private GradientDescentTrainer initial;
-
-  public MutationTrainer() {
-    this(new GradientDescentTrainer());
-  }
-
-  public MutationTrainer(final GradientDescentTrainer inner) {
-    this.inner = new DynamicRateTrainer(inner);
-  }
+  private PipelineNetwork initial;
 
   public boolean continueTraining(TrainingContext trainingContext) {
     if (this.maxIterations < this.currentGeneration) {
@@ -46,9 +38,9 @@ public class MutationTrainer {
       }
       return false;
     }
-    if (getInner().error(trainingContext) < this.stopError) {
+    if (getDynamicRateTrainer().error(trainingContext) < this.stopError) {
       if (this.verbose) {
-        MutationTrainer.log.debug("Reached convergence: " + getInner().error(trainingContext));
+        MutationTrainer.log.debug("Reached convergence: " + getDynamicRateTrainer().error(trainingContext));
       }
       return false;
     }
@@ -80,23 +72,23 @@ public class MutationTrainer {
   }
 
   public double error(TrainingContext trainingContext) {
-    return getInner().getInner().getError();
+    return getGradientDescentTrainer().getError();
   }
 
   public GradientDescentTrainer getBest() {
-    return getInner().getInner();
+    return getGradientDescentTrainer();
   }
 
   public int getGenerationsSinceImprovement() {
-    return getInner().generationsSinceImprovement;
+    return getDynamicRateTrainer().generationsSinceImprovement;
   }
 
-  public DynamicRateTrainer getInner() {
+  public DynamicRateTrainer getDynamicRateTrainer() {
     return this.inner;
   }
 
   private List<NNLayer> getLayers() {
-    return getInner().getLayers();
+    return getDynamicRateTrainer().getLayers();
   }
   
   public int getMaxIterations() {
@@ -104,11 +96,11 @@ public class MutationTrainer {
   }
   
   public double getMaxRate() {
-    return getInner().getMaxRate();
+    return getDynamicRateTrainer().getMaxRate();
   }
   
   public double getMinRate() {
-    return getInner().minRate;
+    return getDynamicRateTrainer().minRate;
   }
   
   public double getMutationAmplitude() {
@@ -124,11 +116,11 @@ public class MutationTrainer {
   }
   
   public double getRate() {
-    return getInner().getRate();
+    return getDynamicRateTrainer().getRate();
   }
   
   public int getRecalibrationThreshold() {
-    return getInner().recalibrationThreshold;
+    return getDynamicRateTrainer().recalibrationThreshold;
   }
   
   public double getStopError() {
@@ -180,7 +172,7 @@ public class MutationTrainer {
   
   public int mutate(final double amount) {
     if (this.verbose) {
-      MutationTrainer.log.debug(String.format("Mutating %s by %s", getInner(), amount));
+      MutationTrainer.log.debug(String.format("Mutating %s by %s", getDynamicRateTrainer(), amount));
     }
     final List<NNLayer> layers = getLayers();
     final int sum =
@@ -196,16 +188,20 @@ public class MutationTrainer {
                 .filter(l -> !l.isFrozen())
                 .mapToInt(l -> mutate(l, amount))
                 .sum();
-    getInner().getInner().setError(Double.NaN);
+    getGradientDescentTrainer().setError(Double.NaN);
     return sum;
+  }
+
+  public GradientDescentTrainer getGradientDescentTrainer() {
+    return getDynamicRateTrainer().getGradientDescentTrainer();
   }
   
   public void mutateBest(TrainingContext trainingContext) {
-    getInner().generationsSinceImprovement = getInner().recalibrationThreshold - 1;
-    inner.setInner(Util.kryo().copy(this.initial));
+    getDynamicRateTrainer().generationsSinceImprovement = getDynamicRateTrainer().recalibrationThreshold - 1;
+    inner.getGradientDescentTrainer().setNet(Util.kryo().copy(this.initial));
     while (0 >= mutate(getMutationFactor())) {
     }
-    getInner().lastCalibratedIteration = getInner().currentIteration;// - (this.recalibrationInterval + 2);
+    getDynamicRateTrainer().lastCalibratedIteration = getDynamicRateTrainer().currentIteration;// - (this.recalibrationInterval + 2);
   }
 
   private double randomWeight(final BiasLayer l, final Random random) {
@@ -217,7 +213,7 @@ public class MutationTrainer {
   }
   
   public MutationTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
-    getInner().generationsSinceImprovement = generationsSinceImprovement;
+    getDynamicRateTrainer().generationsSinceImprovement = generationsSinceImprovement;
     return this;
   }
   
@@ -227,17 +223,17 @@ public class MutationTrainer {
   }
   
   public MutationTrainer setMaxRate(final double maxRate) {
-    getInner().setMaxRate(maxRate);
+    getDynamicRateTrainer().setMaxRate(maxRate);
     return this;
   }
   
   public MutationTrainer setMinRate(final double minRate) {
-    getInner().minRate = minRate;
+    getDynamicRateTrainer().minRate = minRate;
     return this;
   }
   
   public MutationTrainer setMutationAmount(final double mutationAmount) {
-    getInner().setMutationFactor(mutationAmount);
+    getDynamicRateTrainer().setMutationFactor(mutationAmount);
     return this;
   }
 
@@ -251,24 +247,24 @@ public class MutationTrainer {
   }
 
   public MutationTrainer setRate(final double rate) {
-    getInner().setRate(rate);
+    getDynamicRateTrainer().setRate(rate);
     return this;
   }
 
   public MutationTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
-    getInner().recalibrationThreshold = recalibrationThreshold;
+    getDynamicRateTrainer().recalibrationThreshold = recalibrationThreshold;
     return this;
   }
   
   public MutationTrainer setStopError(final double stopError) {
-    getInner().setStopError(stopError);
+    getDynamicRateTrainer().setStopError(stopError);
     this.stopError = stopError;
     return this;
   }
   
   public MutationTrainer setVerbose(final boolean verbose) {
     this.verbose = verbose;
-    getInner().setVerbose(verbose);
+    getDynamicRateTrainer().setVerbose(verbose);
     return this;
   }
   
@@ -279,25 +275,25 @@ public class MutationTrainer {
       while (continueTraining(trainingContext)) {
         if (0 == this.currentGeneration++) {
           initialize();
-          this.initial = Util.kryo().copy(getInner().getInner());
+          this.initial = Util.kryo().copy(getGradientDescentTrainer().getNet());
         } else {
           trainingContext.mutations.increment();
           mutateBest(trainingContext);
         }
-        getInner().trainToLocalOptimum(trainingContext);
+        getDynamicRateTrainer().trainToLocalOptimum(trainingContext);
         if (this.verbose) {
           MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s (%s) with rate %s\n%s",
               this.currentGeneration, 
-              getInner().error(trainingContext), 
-              getInner().getInner().getError(),
-              getInner().getInner().getRate(),
-              getInner().getInner().getNet()));
+              getDynamicRateTrainer().error(trainingContext), 
+              getGradientDescentTrainer().getError(),
+              getGradientDescentTrainer().getRate(),
+              getGradientDescentTrainer().getNet()));
         }
       } 
     } catch (TerminationCondition e) {
       log.debug("Terminated training",e);
     }
-    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", getInner().error(trainingContext),
+    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", getDynamicRateTrainer().error(trainingContext),
         (System.currentTimeMillis() - startMs) / 1000.,
         this.currentGeneration, trainingContext));
     final GradientDescentTrainer best = getBest();
