@@ -58,7 +58,7 @@ public class SimpleNetworkTests {
         .add(new SigmoidActivationLayer())
         .trainer(samples).verifyConvergence(10, 0.01, 100);
   }
-
+  
   @Test
   public void test_BasicNN_XOR_3layer() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -72,7 +72,7 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1 }) }
     };
     new PipelineNetwork()
-
+    
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
         .add(new BiasLayer(midSize))
         .add(new SigmoidActivationLayer())
@@ -88,7 +88,7 @@ public class SimpleNetworkTests {
     .trainer(samples)
         .setMutationAmplitude(10.).verifyConvergence(10, 0.01, 00);
   }
-
+  
   @Test
   public void test_DualSigmoid() throws Exception {
     final int[] inputSize = new int[] { 1 };
@@ -107,7 +107,7 @@ public class SimpleNetworkTests {
         .trainer(samples)
         .verifyConvergence(0, 0.1, 10);
   }
-
+  
   @Test
   public void test_LinearNN() throws Exception {
     final int[] inputSize = new int[] { 2 };
@@ -137,17 +137,17 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) }
     };
     
-    // new PipelineNetwork() //
-    // .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
-    // .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-    // .trainer(samples)
-    // .setMutationAmplitude(.5)
-    // .setStaticRate(staticRate).verifyConvergence(0, 0.01, 10);
-    
+    new PipelineNetwork() //
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 0.5 * SimpleNetworkTests.random.nextGaussian()).freeze())
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
+        .trainer(samples)
+        .verifyConvergence(0, 0.01, 100);
+        
     new PipelineNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 0.1 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
         .trainer(samples)
+        // .setVerbose(true)
         .verifyConvergence(0, 0.01, 100);
         
     new PipelineNetwork() //

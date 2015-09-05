@@ -1,10 +1,8 @@
 package com.simiacryptus.mindseye.training;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -17,6 +15,7 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
+import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
@@ -24,43 +23,11 @@ public class GradientDescentTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
 
-  public static Integer outputToClassification(final NDArray actual) {
-    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
-  }
-
-  public static List<Tuple2<Double, Double>> stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
-    final List<Tuple2<Double, Double>> rms = IntStream.range(0, results.size()).parallel().mapToObj(sample -> {
-      final NDArray actualOutput = results.get(sample);
-      final NDArray[] sampleRow = trainingData[sample];
-      final NDArray idealOutput = sampleRow[1];
-      final double err = actualOutput.rms(idealOutput);
-
-      final double[] actualOutputData = actualOutput.getData();
-      final double max = DoubleStream.of(actualOutputData).max().getAsDouble();
-      final double sum = DoubleStream.of(actualOutputData).sum();
-      final boolean correct = GradientDescentTrainer.outputToClassification(actualOutput) == GradientDescentTrainer.outputToClassification(idealOutput);
-      final double certianty = max / sum * (correct ? 1 : -1);
-      return new Tuple2<>(certianty, err * err);
-    }).collect(Collectors.toList());
-    return rms;
-  }
-  
-  public static boolean thermalStep(final double prev, final double next, final double temp) {
-    if (next < prev) return true;
-    if (temp <= 0.) return false;
-    final double p = Math.exp(-(next - prev) / (Math.min(next, prev) * temp));
-    final boolean step = Math.random() < p;
-    return step;
-  }
-  
   private double error = Double.POSITIVE_INFINITY;
   private NDArray[][] masterTrainingData = null;
   private PipelineNetwork net = null;
-  
   private double rate = 0.3;
-  
   private double temperature = 0.0001;
-
   private boolean verbose = false;
   
   public DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
@@ -80,8 +47,8 @@ public class GradientDescentTrainer {
 
   protected double calcError(final TrainingContext trainingContext, final List<NDArray> results) {
     final NDArray[][] trainingData = getActiveValidationData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, results);
-    return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData, results);
+    return Util.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
   }
 
   protected List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData) {
@@ -196,20 +163,20 @@ public class GradientDescentTrainer {
     setError(prevError);
     if (null == rates) return Double.POSITIVE_INFINITY;
     final DeltaBuffer buffer = getVector(trainingContext);
-    assert null != rates && rates.length == buffer.map.size();
-    final List<DeltaFlushBuffer> deltas = buffer.map.values().stream().collect(Collectors.toList());
+    assert null != rates && rates.length == buffer.vector().size();
+    final List<DeltaFlushBuffer> deltas = buffer.vector();
     assert null != rates && rates.length == deltas.size();
-    IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(rates[i]));
+    IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(rates[i]));
     final double validationError = calcError(trainingContext, evalValidationData(trainingContext));
     if (prevError == validationError) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));
       }
-    } else if (!GradientDescentTrainer.thermalStep(prevError, validationError, getTemperature())) {
+    } else if (!Util.thermalStep(prevError, validationError, getTemperature())) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
       }
-      IntStream.range(0, buffer.map.size()).forEach(i -> deltas.get(i).write(-rates[i]));
+      IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(-rates[i]));
       return prevError;
     } else {
       if (this.verbose) {

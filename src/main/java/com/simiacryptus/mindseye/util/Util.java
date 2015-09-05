@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -23,6 +24,8 @@ import java.util.Spliterators;
 import java.util.TreeMap;
 import java.util.function.DoubleSupplier;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
@@ -34,10 +37,12 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.training.TrainingContext;
 
 import de.javakaffee.kryoserializers.EnumMapSerializer;
 import de.javakaffee.kryoserializers.EnumSetSerializer;
 import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;
+import groovy.lang.Tuple2;
 
 public class Util {
 
@@ -338,5 +343,44 @@ public class Util {
       }
     }, 100).limit(10000);
     return merged;
+  }
+
+  public static double rms(final TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, final int[] activeSet) {
+    @SuppressWarnings("resource")
+    final IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
+    return Math.sqrt(stream
+        .filter(i -> i < rms.size())
+        .mapToObj(i -> rms.get(i))
+        .mapToDouble(x -> x.getSecond())
+        .average().getAsDouble());
+  }
+
+  public static List<Tuple2<Double, Double>> stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
+    final List<Tuple2<Double, Double>> rms = IntStream.range(0, results.size()).parallel().mapToObj(sample -> {
+      final NDArray actualOutput = results.get(sample);
+      final NDArray[] sampleRow = trainingData[sample];
+      final NDArray idealOutput = sampleRow[1];
+      final double err = actualOutput.rms(idealOutput);
+  
+      final double[] actualOutputData = actualOutput.getData();
+      final double max = DoubleStream.of(actualOutputData).max().getAsDouble();
+      final double sum = DoubleStream.of(actualOutputData).sum();
+      final boolean correct = Util.outputToClassification(actualOutput) == Util.outputToClassification(idealOutput);
+      final double certianty = max / sum * (correct ? 1 : -1);
+      return new Tuple2<>(certianty, err * err);
+    }).collect(Collectors.toList());
+    return rms;
+  }
+
+  public static boolean thermalStep(final double prev, final double next, final double temp) {
+    if (next < prev) return true;
+    if (temp <= 0.) return false;
+    final double p = Math.exp(-(next - prev) / (Math.min(next, prev) * temp));
+    final boolean step = Math.random() < p;
+    return step;
+  }
+
+  public static Integer outputToClassification(final NDArray actual) {
+    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
 }

@@ -1,7 +1,9 @@
 package com.simiacryptus.mindseye.deltas;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -11,7 +13,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 
 public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
-  public final Map<NNLayer, DeltaFlushBuffer> map = new LinkedHashMap<>();
+  private final Map<NNLayer, DeltaFlushBuffer> map = new LinkedHashMap<>();
   
   public DeltaBuffer() {
   }
@@ -82,5 +84,13 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
       if (null != l && null != r) return joiner.apply(l, r);
       return 0;
     }).sum();
+  }
+
+  public List<DeltaFlushBuffer> vector() {
+    return map.values().stream()
+        .filter(n -> null != n)
+        .distinct()
+        .sorted(Comparator.comparing(y -> y.getId()))
+        .collect(Collectors.toList());
   }
 }

@@ -1,11 +1,9 @@
 package com.simiacryptus.mindseye.training;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -26,28 +24,18 @@ public class DynamicRateTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
 
-  public static double rms(final TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, final int[] activeSet) {
-    @SuppressWarnings("resource")
-    final IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
-    return Math.sqrt(stream
-        .filter(i -> i < rms.size())
-        .mapToObj(i -> rms.get(i))
-        .mapToDouble(x -> x.getSecond())
-        .average().getAsDouble());
-  }
-  
   int currentIteration = 0;
   int generationsSinceImprovement = 0;
   private final GradientDescentTrainer inner = new GradientDescentTrainer();
   int lastCalibratedIteration = Integer.MIN_VALUE;
-  final int maxIterations = 1000;
+  int maxIterations = 100;
   private double maxRate = 10000;
   double minRate = 0;
   double monteCarloDecayStep = 0.9;
   double monteCarloMin = 0.5;
   private double mutationFactor = 1.;
   double rate = 0.5;
-  double[] rates = null;
+  private double[] rates = null;
   private int recalibrationInterval = 10;
   int recalibrationThreshold = 0;
   private double stopError = 0;
@@ -59,17 +47,11 @@ public class DynamicRateTrainer {
       final GradientDescentTrainer gradientDescentTrainer) {
     final double prev = gradientDescentTrainer.getError();
     final MultivariateFunction f = new MultivariateFunction() {
-      double[] pos = new double[lessonVector.map.size()];
+      double[] pos = new double[lessonVector.vector().size()];
 
       @Override
       public double value(final double x[]) {
-        final List<DeltaFlushBuffer> writeVectors = gradientDescentTrainer
-            .getNet().getChildren().stream()
-            .map(n -> lessonVector.map.get(n))
-            .filter(n -> null != n)
-            .distinct()
-            .sorted(Comparator.comparing(y -> y.getId()))
-            .collect(Collectors.toList());
+        final List<DeltaFlushBuffer> writeVectors = lessonVector.vector();
         final int layerCount = writeVectors.size();
         final double[] layerRates = Arrays.copyOf(x, layerCount);
         // double[] netRates = Arrays.copyOfRange(x, layerCount, current.getCurrentNetworks().size());
@@ -104,19 +86,21 @@ public class DynamicRateTrainer {
     final double prevError = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
     boolean inBounds = false;
     PointValuePair optimum;
+    double[] rates = this.getRates();
     try {
       optimum = optimizeRates(trainingContext, gradientDescentTrainer);
-      this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
-      inBounds = DoubleStream.of(this.rates).allMatch(r -> getMaxRate() > r)
-          && DoubleStream.of(this.rates).anyMatch(r -> this.minRate < r);
+      rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
+      inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r)
+          && DoubleStream.of(rates).anyMatch(r -> this.minRate < r);
       if (inBounds) {
+        this.setRates(rates);
         this.lastCalibratedIteration = this.currentIteration;
-        gradientDescentTrainer.step(trainingContext, this.rates);
+        gradientDescentTrainer.step(trainingContext, this.getRates());
         final double err = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
         final double improvement = prevError - err;
         if (isVerbose()) {
           DynamicRateTrainer.log
-              .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), prevError, err, improvement));
+              .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(rates), prevError, err, improvement));
         }
         trainingContext.calcSieves(gradientDescentTrainer);
         return true;
@@ -128,7 +112,7 @@ public class DynamicRateTrainer {
       }
     }
     if (isVerbose()) {
-      DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(this.rates),
+      DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(rates),
           gradientDescentTrainer.getError()));
     }
     return false;
@@ -177,8 +161,8 @@ public class DynamicRateTrainer {
   public PointValuePair optimizeRates(final TrainingContext trainingContext, final GradientDescentTrainer current) {
     final NDArray[][] validationSet = current.getActiveValidationData(trainingContext);
     List<NDArray> evalValidationData = current.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, validationSet, evalValidationData);
-    final double prev = DynamicRateTrainer.rms(trainingContext, rms, null);
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, validationSet, evalValidationData);
+    final double prev = Util.rms(trainingContext, rms, null);
     // regenDataSieve(trainingContext);
 
     final DeltaBuffer lessonVector = current.getVector(trainingContext);
@@ -190,11 +174,11 @@ public class DynamicRateTrainer {
       // trainingContext.setConstraintSet(null);
       // trainingContext.setActiveTrainingSet(null);
       // trainingContext.setActiveValidationSet(null);
-      x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.map.size()); // May or may not be cloned before evaluations
+      x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(lessonVector.vector().size()); // May or may not be cloned before evaluations
       f.value(x.getFirst()); // Leave in optimal state
       fraction *= this.monteCarloDecayStep;
     } while (fraction > this.monteCarloMin && new ArrayRealVector(x.getFirst()).getL1Norm() == 0);
-    f.value(new double[lessonVector.map.size()]); // Reset to original state
+    f.value(new double[lessonVector.vector().size()]); // Reset to original state
     evalValidationData = current.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
     final double calcError = current.calcError(trainingContext, evalValidationData);
     current.setError(calcError);
@@ -281,8 +265,8 @@ public class DynamicRateTrainer {
         this.generationsSinceImprovement = 0;
       }
       final double last = gradientDescentTrainer.getError();
-      final double next = gradientDescentTrainer.step(trainingContext, this.rates);
-      if (last != next && GradientDescentTrainer.thermalStep(last, next, getTemperature())) {
+      final double next = gradientDescentTrainer.step(trainingContext, this.getRates());
+      if (last != next && Util.thermalStep(last, next, getTemperature())) {
         this.generationsSinceImprovement = 0;
       } else {
         if (this.recalibrationThreshold < this.generationsSinceImprovement++) {
@@ -294,6 +278,14 @@ public class DynamicRateTrainer {
         }
       }
     }
+  }
+
+  public double[] getRates() {
+    return rates;
+  }
+
+  public void setRates(double[] rates) {
+    this.rates = rates;
   }
 
 }

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
@@ -129,10 +130,10 @@ public class TrainingContext {
     final TrainingContext trainingContext = this;
     final NDArray[][] trainingData = inner.getConstraintData(trainingContext);
     final List<NNResult> results = inner.eval(trainingContext, trainingData);
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData,
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData,
         results.stream().map(x -> x.data).collect(Collectors.toList()));
     trainingContext.updateConstraintSieve(rms);
-    return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getConstraintSet());
+    return Util.rms(trainingContext, rms, trainingContext.getConstraintSet());
   }
   
   public double calcSieves(final GradientDescentTrainer inner) {
@@ -148,19 +149,19 @@ public class TrainingContext {
     final TrainingContext trainingContext = this;
     final NDArray[][] activeTrainingData = inner.getActiveTrainingData(trainingContext);
     final List<NNResult> list = inner.eval(trainingContext, activeTrainingData);
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, activeTrainingData,
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, activeTrainingData,
         list.stream().map(x -> x.data).collect(Collectors.toList()));
     trainingContext.updateTrainingSieve(rms);
-    return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getActiveTrainingSet());
+    return Util.rms(trainingContext, rms, trainingContext.getActiveTrainingSet());
   }
   
   double calcValidationSieve(final GradientDescentTrainer current) {
     final TrainingContext trainingContext = this;
     final List<NDArray> result = current.evalValidationData(trainingContext);
     final NDArray[][] trainingData = current.getActiveValidationData(trainingContext);
-    final List<Tuple2<Double, Double>> rms = GradientDescentTrainer.stats(trainingContext, trainingData, result);
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData, result);
     trainingContext.updateValidationSieve(rms);
-    return DynamicRateTrainer.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
+    return Util.rms(trainingContext, rms, trainingContext.getActiveValidationSet());
   }
   
   public int[] getActiveTrainingSet() {
