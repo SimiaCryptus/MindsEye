@@ -116,7 +116,12 @@ public class UnivariateOptimizer {
         if (thisV < zeroV) {
           break;
         }
-        if (x < this.minValue) throw new RuntimeException("x < minValue");
+      }
+      {
+        final Double thisV = this.points.get(this.points.size() - 1).getValue();
+        if (thisV >= zeroV) {
+          throw new RuntimeException("x < minValue");
+        }
       }
     } else {
       for (double x = start * this.growth; x < getMaxRate(); x *= this.growth) {
@@ -126,8 +131,13 @@ public class UnivariateOptimizer {
         if (thisV > prevV) {
           break;
         }
-        if (x > getMaxRate()) // break;
-          throw new RuntimeException("x > maxValue: " + x);
+      }
+      {
+        final Double prevV = this.points.get(this.points.size() - 2).getValue();
+        final Double thisV = this.points.get(this.points.size() - 1).getValue();
+        if (thisV <= prevV) {
+          throw new RuntimeException("x > maxValue");
+        }
       }
     }
     try {

@@ -136,7 +136,7 @@ public class TrainingContext {
     return Util.rms(trainingContext, rms, trainingContext.getConstraintSet());
   }
   
-  public double calcSieves(final GradientDescentTrainer inner) {
+  public synchronized double calcSieves(final GradientDescentTrainer inner) {
     calcConstraintSieve(inner);
     calcTrainingSieve(inner);
     final double validation = calcValidationSieve(inner);
@@ -182,15 +182,15 @@ public class TrainingContext {
     return this.activeConstraintSet;
   }
 
-  public void setActiveTrainingSet(final int[] activeSet) {
+  public synchronized void setActiveTrainingSet(final int[] activeSet) {
     this.activeTrainingSet = activeSet;
   }
   
-  public void setActiveValidationSet(final int[] activeSet) {
+  public synchronized void setActiveValidationSet(final int[] activeSet) {
     this.activeValidationSet = activeSet;
   }
   
-  public void setConstraintSet(final int[] activeSet) {
+  public synchronized void setConstraintSet(final int[] activeSet) {
     this.activeConstraintSet = activeSet;
   }
   

@@ -356,6 +356,7 @@ public class Util {
   }
 
   public static List<Tuple2<Double, Double>> stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
+    assert(trainingData.length==results.size());
     final List<Tuple2<Double, Double>> rms = IntStream.range(0, results.size()).parallel().mapToObj(sample -> {
       final NDArray actualOutput = results.get(sample);
       final NDArray[] sampleRow = trainingData[sample];

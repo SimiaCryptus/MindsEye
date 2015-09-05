@@ -80,7 +80,7 @@ public class Tester {
     boolean hasConverged = false;
     try {
       final MutationTrainer copy = Util.kryo().copy(getInner());
-      final TrainingContext trainingContext = trainingContext();
+      final TrainingContext trainingContext = Util.kryo().copy(trainingContext());
       final Double error = trainingContext.overallTimer.time(() -> {
         return copy.setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
       });

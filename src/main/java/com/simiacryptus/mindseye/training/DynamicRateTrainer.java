@@ -31,7 +31,7 @@ public class DynamicRateTrainer {
   int maxIterations = 100;
   private double maxRate = 10000;
   double minRate = 0;
-  double monteCarloDecayStep = 0.9;
+  double monteCarloDecayStep = 0.;
   double monteCarloMin = 0.5;
   private double mutationFactor = 1.;
   double rate = 0.5;
@@ -76,46 +76,48 @@ public class DynamicRateTrainer {
     return f;
   }
 
-  protected boolean calibrate(final TrainingContext trainingContext) {
-    trainingContext.calibrations.increment();
-    trainingContext.setActiveTrainingSet(null);
-    trainingContext.setActiveValidationSet(null);
-    trainingContext.setConstraintSet(new int[] {});
-    // trainingContext.calcSieves(getInner());
-    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-    final double prevError = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
-    boolean inBounds = false;
-    PointValuePair optimum;
-    double[] rates = this.getRates();
-    try {
-      optimum = optimizeRates(trainingContext, gradientDescentTrainer);
-      rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
-      inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r)
-          && DoubleStream.of(rates).anyMatch(r -> this.minRate < r);
-      if (inBounds) {
-        this.setRates(rates);
-        this.lastCalibratedIteration = this.currentIteration;
-        gradientDescentTrainer.step(trainingContext, this.getRates());
-        final double err = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
-        final double improvement = prevError - err;
-        if (isVerbose()) {
-          DynamicRateTrainer.log
-              .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(rates), prevError, err, improvement));
+  protected synchronized boolean calibrate(final TrainingContext trainingContext) {
+    synchronized(trainingContext) {
+      trainingContext.calibrations.increment();
+      trainingContext.setActiveTrainingSet(null);
+      trainingContext.setActiveValidationSet(null);
+      trainingContext.setConstraintSet(new int[] {});
+      // trainingContext.calcSieves(getInner());
+      final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+      final double prevError = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
+      boolean inBounds = false;
+      PointValuePair optimum;
+      double[] rates = this.getRates();
+      try {
+        optimum = optimizeRates(trainingContext, gradientDescentTrainer);
+        rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
+        inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r)
+            && DoubleStream.of(rates).anyMatch(r -> this.minRate < r);
+        if (inBounds) {
+          this.setRates(rates);
+          this.lastCalibratedIteration = this.currentIteration;
+          gradientDescentTrainer.step(trainingContext, this.getRates());
+          final double err = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
+          final double improvement = prevError - err;
+          if (isVerbose()) {
+            DynamicRateTrainer.log
+            .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(rates), prevError, err, improvement));
+          }
+          trainingContext.calcSieves(gradientDescentTrainer);
+          return true;
+          // return improvement > 0;
         }
-        trainingContext.calcSieves(gradientDescentTrainer);
-        return true;
-        // return improvement > 0;
+      } catch (final Exception e) {
+        if (isVerbose()) {
+          DynamicRateTrainer.log.debug("Error calibrating", e);
+        }
       }
-    } catch (final Exception e) {
       if (isVerbose()) {
-        DynamicRateTrainer.log.debug("Error calibrating", e);
+        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(rates),
+            gradientDescentTrainer.getError()));
       }
+      return false;
     }
-    if (isVerbose()) {
-      DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(rates),
-          gradientDescentTrainer.getError()));
-    }
-    return false;
   }
 
   public int getGenerationsSinceImprovement() {
