@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -34,7 +33,6 @@ public class GradientDescentTrainer {
   }
   
   private double error = Double.POSITIVE_INFINITY;
-  private PipelineNetwork net = null;
   private double rate = 0.3;
   private double temperature = 0.0001;
   private NDArray[][] masterTrainingData = null;
@@ -70,7 +68,7 @@ public class GradientDescentTrainer {
           final NDArray input = sample[0];
           final NDArray output = sample[1];
           trainingContext.evaluations.increment();
-          final NNResult eval = getNet().eval(input);
+          final NNResult eval = trainingContext.getNet().eval(input);
           assert eval.data.dim() == output.dim();
           return eval;
         }).collect(Collectors.toList());
@@ -84,14 +82,6 @@ public class GradientDescentTrainer {
   
   public synchronized double getError() {
     return this.error;
-  }
-  
-  public List<NNLayer> getLayers() {
-    return getNet().getChildren().stream().distinct().collect(Collectors.toList());
-  }
-  
-  public PipelineNetwork getNet() {
-    return this.net;
   }
   
   public double getRate() {
@@ -162,11 +152,6 @@ public class GradientDescentTrainer {
   
   public GradientDescentTrainer setError(final double error) {
     this.error = error;
-    return this;
-  }
-  
-  public GradientDescentTrainer setNet(final PipelineNetwork net) {
-    this.net = net;
     return this;
   }
   

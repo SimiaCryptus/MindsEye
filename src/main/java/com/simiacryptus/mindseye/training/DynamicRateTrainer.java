@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -53,7 +52,7 @@ public class DynamicRateTrainer {
       @Override
       public double value(final double x[]) {
         final GradientDescentTrainer current = DynamicRateTrainer.this.getGradientDescentTrainer();
-        final List<DeltaFlushBuffer> writeVectors = current
+        final List<DeltaFlushBuffer> writeVectors = trainingContext
             .getNet().getChildren().stream()
             .map(n -> lessonVector.map.get(n))
             .filter(n -> null != n)
@@ -90,12 +89,13 @@ public class DynamicRateTrainer {
     trainingContext.setActiveValidationSet(null);
     trainingContext.setConstraintSet(new int[] {});
     //trainingContext.calcSieves(getInner());
-    final double prevError = getGradientDescentTrainer().calcError(trainingContext, getGradientDescentTrainer().evalValidationData(trainingContext));
+    GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+    final double prevError = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
     boolean inBounds = false;
     PointValuePair optimum;
     try {
       optimum = optimizeRates(trainingContext);
-      getGradientDescentTrainer()
+      trainingContext
           .getNet().getChildren().stream().distinct()
           .forEach(layer -> layer.setStatus(optimum.getValue()));
       this.rates = DoubleStream.of(optimum.getKey()).map(x -> x * this.rate).toArray();
@@ -104,13 +104,13 @@ public class DynamicRateTrainer {
       if (inBounds) {
         this.lastCalibratedIteration = this.currentIteration;
         trainOnce(trainingContext);
-        final double err = getGradientDescentTrainer().calcError(trainingContext, getGradientDescentTrainer().evalValidationData(trainingContext));
+        final double err = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
         final double improvement = prevError - err;
         if (isVerbose()) {
           DynamicRateTrainer.log
               .debug(String.format("Adjusting rates by %s: (%s->%s - %s improvement)", Arrays.toString(this.rates), prevError, err, improvement));
         }
-        trainingContext.calcSieves(getGradientDescentTrainer());
+        trainingContext.calcSieves(gradientDescentTrainer);
         return true;
         //return improvement > 0;
       }
@@ -121,7 +121,7 @@ public class DynamicRateTrainer {
     }
     if (isVerbose()) {
       DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(this.rates),
-          getGradientDescentTrainer().getError()));
+          gradientDescentTrainer.getError()));
     }
     return false;
   }
@@ -142,10 +142,6 @@ public class DynamicRateTrainer {
     return this.inner;
   }
   
-  public List<NNLayer> getLayers() {
-    return getGradientDescentTrainer().getLayers();
-  }
-  
   public double getMaxRate() {
     return this.maxRate;
   }
@@ -156,10 +152,6 @@ public class DynamicRateTrainer {
   
   public double getMutationFactor() {
     return this.mutationFactor;
-  }
-  
-  public PipelineNetwork getNetwork() {
-    return this.getGradientDescentTrainer().getNet();
   }
   
   public double getRate() {
@@ -269,7 +261,7 @@ public class DynamicRateTrainer {
   public double trainOnce(TrainingContext trainingContext) throws TerminationCondition {
     getGradientDescentTrainer().step(trainingContext, this.rates);
     final double error = error(trainingContext);
-    getGradientDescentTrainer().getNet().getChildren().stream()
+    trainingContext.getNet().getChildren().stream()
         .distinct()
         .forEach(layer -> layer.setStatus(error));
     return error;

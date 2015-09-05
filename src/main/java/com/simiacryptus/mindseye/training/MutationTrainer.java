@@ -86,10 +86,6 @@ public class MutationTrainer {
   public DynamicRateTrainer getDynamicRateTrainer() {
     return this.inner;
   }
-
-  private List<NNLayer> getLayers() {
-    return getDynamicRateTrainer().getLayers();
-  }
   
   public int getMaxIterations() {
     return this.maxIterations;
@@ -111,10 +107,6 @@ public class MutationTrainer {
     return this.mutationFactor;
   }
 
-  public PipelineNetwork getNetwork() {
-    return this.inner.getNetwork();
-  }
-  
   public double getRate() {
     return getDynamicRateTrainer().getRate();
   }
@@ -170,11 +162,11 @@ public class MutationTrainer {
     }).sum();
   }
   
-  public int mutate(final double amount) {
+  public int mutate(final double amount, TrainingContext trainingContext) {
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", getDynamicRateTrainer(), amount));
     }
-    final List<NNLayer> layers = getLayers();
+    final List<NNLayer> layers = trainingContext.getLayers();
     final int sum =
         layers.stream()
             .filter(l -> (l instanceof DenseSynapseLayer))
@@ -198,8 +190,8 @@ public class MutationTrainer {
   
   public void mutateBest(TrainingContext trainingContext) {
     getDynamicRateTrainer().generationsSinceImprovement = getDynamicRateTrainer().recalibrationThreshold - 1;
-    inner.getGradientDescentTrainer().setNet(Util.kryo().copy(this.initial));
-    while (0 >= mutate(getMutationFactor())) {
+    trainingContext.setNet(Util.kryo().copy(this.initial));
+    while (0 >= mutate(getMutationFactor(), trainingContext)) {
     }
     getDynamicRateTrainer().lastCalibratedIteration = getDynamicRateTrainer().currentIteration;// - (this.recalibrationInterval + 2);
   }
@@ -274,8 +266,8 @@ public class MutationTrainer {
     try {
       while (continueTraining(trainingContext)) {
         if (0 == this.currentGeneration++) {
-          initialize();
-          this.initial = Util.kryo().copy(getGradientDescentTrainer().getNet());
+          initialize(trainingContext);
+          this.initial = Util.kryo().copy(trainingContext.getNet());
         } else {
           trainingContext.mutations.increment();
           mutateBest(trainingContext);
@@ -287,7 +279,7 @@ public class MutationTrainer {
               getDynamicRateTrainer().error(trainingContext), 
               getGradientDescentTrainer().getError(),
               getGradientDescentTrainer().getRate(),
-              getGradientDescentTrainer().getNet()));
+              trainingContext.getNet()));
         }
       } 
     } catch (TerminationCondition e) {
@@ -300,11 +292,7 @@ public class MutationTrainer {
     return null == best ? Double.POSITIVE_INFINITY : best.getError();
   }
 
-  public void initialize() {
-    mutate(1);
-    mutate(1);
-    mutate(1);
-    mutate(1);
-    mutate(1);
+  public void initialize(TrainingContext trainingContext) {
+    for(int i=0;i<5;i++) mutate(1, trainingContext);
   }
 }

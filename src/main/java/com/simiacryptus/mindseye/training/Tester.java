@@ -29,7 +29,8 @@ public class Tester {
   private MutationTrainer inner = new MutationTrainer();
   
   public Tester setParams(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
-    getInner().getGradientDescentTrainer().setNet(pipelineNetwork).setMasterTrainingData(samples);
+    trainingContext.setNet(pipelineNetwork);
+    inner.getGradientDescentTrainer().setMasterTrainingData(samples);
     return this;
   }
 
@@ -106,8 +107,9 @@ public class Tester {
     inner.train(trainingContext);
   }
   
+  TrainingContext trainingContext = new TrainingContext();
   private TrainingContext trainingContext() {
-    return new TrainingContext();
+    return trainingContext;
   }
 
   public long verifyConvergence(final int maxIter, final double convergence, final int reps) {

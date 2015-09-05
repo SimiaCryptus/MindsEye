@@ -158,7 +158,7 @@ public class ImageNetworkDev {
         e.printStackTrace();
       }
 
-      bias = (BiasLayer) trainer.getBest(trainingContext).getFirst().getNet().get(0);
+      bias = (BiasLayer) trainingContext.getNet().get(0);
       final NNResult recovered = bias.eval(evaluationContext, zeroInput);
       NDArray[] input1 = { zeroInput };
       final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(input1);
