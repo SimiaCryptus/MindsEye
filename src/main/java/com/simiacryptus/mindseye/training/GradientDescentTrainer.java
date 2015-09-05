@@ -68,7 +68,7 @@ public class GradientDescentTrainer {
           final NDArray input = sample[0];
           final NDArray output = sample[1];
           trainingContext.evaluations.increment();
-          final NNResult eval = trainingContext.getNet().eval(input);
+          final NNResult eval = getNet().eval(input);
           assert eval.data.dim() == output.dim();
           return eval;
         }).collect(Collectors.toList());
@@ -221,4 +221,14 @@ public class GradientDescentTrainer {
   }
 
   
+
+  public PipelineNetwork getNet() {
+    return net;
+  }
+
+  public GradientDescentTrainer setNet(PipelineNetwork net) {
+    this.net = net;
+    return this;
+  }
+  private PipelineNetwork net = null;
 }

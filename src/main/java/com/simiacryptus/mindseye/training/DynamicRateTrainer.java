@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
-import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -51,7 +50,7 @@ public class DynamicRateTrainer {
       
       @Override
       public double value(final double x[]) {
-        final List<DeltaFlushBuffer> writeVectors = trainingContext
+        final List<DeltaFlushBuffer> writeVectors = gradientDescentTrainer
             .getNet().getChildren().stream()
             .map(n -> lessonVector.map.get(n))
             .filter(n -> null != n)

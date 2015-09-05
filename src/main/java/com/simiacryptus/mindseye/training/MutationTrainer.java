@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -160,7 +159,7 @@ public class MutationTrainer {
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", getDynamicRateTrainer(), amount));
     }
-    final List<NNLayer> layers = trainingContext.getNet().getChildren();
+    final List<NNLayer> layers = getGradientDescentTrainer().getNet().getChildren();
     final int sum =
         layers.stream()
             .filter(l -> (l instanceof DenseSynapseLayer))
@@ -184,7 +183,7 @@ public class MutationTrainer {
   
   public void mutateBest(TrainingContext trainingContext) {
     getDynamicRateTrainer().generationsSinceImprovement = getDynamicRateTrainer().recalibrationThreshold - 1;
-    trainingContext.setNet(Util.kryo().copy(this.initial));
+    getGradientDescentTrainer().setNet(Util.kryo().copy(this.initial));
     while (0 >= mutate(getMutationFactor(), trainingContext)) {
     }
     getDynamicRateTrainer().lastCalibratedIteration = getDynamicRateTrainer().currentIteration;// - (this.recalibrationInterval + 2);
@@ -261,7 +260,7 @@ public class MutationTrainer {
       while (continueTraining(trainingContext)) {
         if (0 == this.currentGeneration++) {
           initialize(trainingContext);
-          this.initial = Util.kryo().copy(trainingContext.getNet());
+          this.initial = Util.kryo().copy(getGradientDescentTrainer().getNet());
         } else {
           trainingContext.mutations.increment();
           mutateBest(trainingContext);
@@ -273,7 +272,7 @@ public class MutationTrainer {
               this.currentGeneration, 
               gradientDescentTrainer.getError(),
               gradientDescentTrainer.getRate(),
-              trainingContext.getNet()));
+              gradientDescentTrainer.getNet()));
         }
       } 
     } catch (TerminationCondition e) {

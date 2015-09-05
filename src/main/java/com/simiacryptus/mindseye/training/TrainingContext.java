@@ -13,13 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 
 import groovy.lang.Tuple2;
 
 public class TrainingContext {
   
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
 
   @SuppressWarnings("serial")
@@ -109,7 +109,6 @@ public class TrainingContext {
     
   }
 
-  private PipelineNetwork net = null;
   public final Counter evaluations;
   public final Counter calibrations;
   public final Timer overallTimer;
@@ -262,15 +261,6 @@ public class TrainingContext {
     double validation = calcValidationSieve(inner);
     //log.debug(String.format("Calculated sieves: %s training, %s constraints, %s validation", this.activeTrainingSet.length, this.activeConstraintSet.length, this.activeValidationSet.length));
     return validation;
-  }
-
-  public PipelineNetwork getNet() {
-    return net;
-  }
-
-  public TrainingContext setNet(PipelineNetwork net) {
-    this.net = net;
-    return this;
   }
 
 

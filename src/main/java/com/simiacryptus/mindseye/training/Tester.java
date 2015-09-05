@@ -22,12 +22,12 @@ public class Tester {
   
   static final Logger log = LoggerFactory.getLogger(Tester.class);
   
-  public final List<BiFunction<MutationTrainer, TrainingContext, Void>> handler = new ArrayList<>();
+  public final List<BiFunction<PipelineNetwork, TrainingContext, Void>> handler = new ArrayList<>();
   
   private MutationTrainer inner = new MutationTrainer();
   
   public Tester setParams(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
-    trainingContext.setNet(pipelineNetwork);
+    getInner().getGradientDescentTrainer().setNet(pipelineNetwork);
     inner.getGradientDescentTrainer().setMasterTrainingData(samples);
     return this;
   }
@@ -83,7 +83,7 @@ public class Tester {
       final Double error = trainingContext.overallTimer.time(()->{
         return copy.setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
       });
-      this.handler.stream().forEach(h -> h.apply(copy,trainingContext));
+      this.handler.stream().forEach(h -> h.apply(copy.getGradientDescentTrainer().getNet(),trainingContext));
       hasConverged = error <= convergence;
       if (!hasConverged) {
         Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
