@@ -27,7 +27,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   private final DeltaValueAccumulator[] buffer;
   private final double[] inner;
   private final NNLayer layer;
-  private boolean normalize = false;
+  private boolean normalize = true;
   private LogNumber[] calcVector;
   
   public DeltaFlushBuffer(final double[] values, final DeltaValueAccumulator[] array, final NNLayer layer) {
