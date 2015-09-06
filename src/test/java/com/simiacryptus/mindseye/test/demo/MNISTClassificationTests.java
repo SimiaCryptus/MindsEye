@@ -28,7 +28,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   @Override
   public DAGNetwork buildNetwork() {
     final int[] inputSize = new int[] { 28, 28 };
-    final int[] midSize = new int[] { 10 };
+    final int[] midSize = new int[] { 20 };
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
     net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
