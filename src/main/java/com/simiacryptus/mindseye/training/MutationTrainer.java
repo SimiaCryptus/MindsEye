@@ -5,6 +5,8 @@ import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.jblas.DoubleMatrix;
@@ -23,8 +25,8 @@ public class MutationTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(MutationTrainer.class);
 
-  private final DynamicRateTrainer inner = new DynamicRateTrainer();
-  private int maxIterations = 100;
+  private DynamicRateTrainer inner = new DynamicRateTrainer();
+  private int maxIterations = 0;
   private double mutationAmplitude = 5.;
   private double mutationFactor = .1;
   private double stopError = 0.1;
@@ -266,33 +268,49 @@ public class MutationTrainer {
 
   public Double train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
-    final DynamicRateTrainer dynamicRateTrainer = getDynamicRateTrainer();
-    int currentGeneration = trainIndividual(trainingContext, dynamicRateTrainer);
-    final GradientDescentTrainer gradientDescentTrainer = dynamicRateTrainer.getGradientDescentTrainer();
-    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", gradientDescentTrainer.getError(),
-        (System.currentTimeMillis() - startMs) / 1000., currentGeneration, trainingContext));
-    return null == gradientDescentTrainer ? Double.POSITIVE_INFINITY : gradientDescentTrainer.getError();
+
+    List<DynamicRateTrainer> population = IntStream.range(0, 3).mapToObj(i->{
+      return Util.kryo().copy(getDynamicRateTrainer());
+    }).collect(Collectors.toList());
+    
+    population = population.stream().map(dynamicRateTrainer->{
+      initialize(dynamicRateTrainer);
+      return dynamicRateTrainer;
+    }).collect(Collectors.toList());
+    
+    
+    population = population.stream().map(dynamicRateTrainer->{
+      int currentGeneration = trainIndividual(trainingContext, dynamicRateTrainer);
+      MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", 
+          dynamicRateTrainer.getGradientDescentTrainer().getError(),
+          (System.currentTimeMillis() - startMs) / 1000., 
+          currentGeneration, trainingContext));
+      return dynamicRateTrainer;
+    }).collect(Collectors.toList());
+    
+    
+    
+    this.inner = population.stream().sorted(Comparator.comparing(x->x.getGradientDescentTrainer().getError())).findFirst().get();
+    
+    return getDynamicRateTrainer().getGradientDescentTrainer().getError();
   }
 
   private int trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
     int currentGeneration = 0;
-    DAGNetwork initial = null;
+    DAGNetwork initial = Util.kryo().copy(dynamicRateTrainer.getGradientDescentTrainer().getNet());
     try {
       while (continueTraining(trainingContext, dynamicRateTrainer, currentGeneration)) {
-        if (0 == currentGeneration++) {
-          initialize(dynamicRateTrainer);
-          initial = Util.kryo().copy(dynamicRateTrainer.getGradientDescentTrainer().getNet());
-        } else {
+        if (0 < currentGeneration++) {
+          if (this.verbose) {
+            final GradientDescentTrainer gradientDescentTrainer = dynamicRateTrainer.getGradientDescentTrainer();
+            MutationTrainer.log.debug(String.format("Mutating at iteration %s Error: %s with rate %s\n%s", currentGeneration, gradientDescentTrainer.getError(),
+                gradientDescentTrainer.getRate(), gradientDescentTrainer.getNet()));
+          }
           trainingContext.mutations.increment();
           dynamicRateTrainer.getGradientDescentTrainer().setNet(Util.kryo().copy(initial));
           mutate(dynamicRateTrainer);
         }
         dynamicRateTrainer.trainToLocalOptimum(trainingContext);
-        if (this.verbose) {
-          final GradientDescentTrainer gradientDescentTrainer = dynamicRateTrainer.getGradientDescentTrainer();
-          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s with rate %s\n%s", currentGeneration, gradientDescentTrainer.getError(),
-              gradientDescentTrainer.getRate(), gradientDescentTrainer.getNet()));
-        }
       }
     } catch (final TerminationCondition e) {
       MutationTrainer.log.debug("Terminated training", e);
