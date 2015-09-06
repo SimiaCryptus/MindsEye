@@ -166,7 +166,7 @@ public class ImageNetworkDev {
         e.printStackTrace();
       }
 
-      bias = (BiasLayer) trainer.getInner().getDynamicRateTrainer().getGradientDescentTrainer().getNet().get(0);
+      bias = (BiasLayer) trainer.getInner().getNet().get(0);
       final NNResult recovered = bias.eval(evaluationContext, zeroInput);
       final NDArray[] input1 = { zeroInput };
       final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(input1);
