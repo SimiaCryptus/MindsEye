@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -97,5 +99,10 @@ public class MaxEntLayer extends NNLayer {
   public MaxEntLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
 }

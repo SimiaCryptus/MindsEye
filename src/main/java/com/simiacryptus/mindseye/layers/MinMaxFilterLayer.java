@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -107,6 +109,11 @@ public class MinMaxFilterLayer extends NNLayer {
   public MinMaxFilterLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
 
 }

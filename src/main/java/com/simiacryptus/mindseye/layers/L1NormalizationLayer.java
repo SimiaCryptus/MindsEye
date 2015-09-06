@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,5 +89,10 @@ public class L1NormalizationLayer extends NNLayer {
   public L1NormalizationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
 }

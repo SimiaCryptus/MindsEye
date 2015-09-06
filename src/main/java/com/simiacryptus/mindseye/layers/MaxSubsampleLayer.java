@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.layers;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -67,5 +68,10 @@ public class MaxSubsampleLayer extends NNLayer {
         return inObj[0].isAlive();
       }
     };
+  }
+
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
 }

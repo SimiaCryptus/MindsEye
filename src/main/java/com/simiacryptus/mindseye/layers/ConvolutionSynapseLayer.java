@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
@@ -236,5 +237,10 @@ public class ConvolutionSynapseLayer extends NNLayer {
   public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList(this.kernel.getData());
   }
 }

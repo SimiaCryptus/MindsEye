@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
@@ -151,4 +152,8 @@ public class SynapseActivationLayer extends NNLayer {
     return freeze(false);
   }
 
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
+  }
 }

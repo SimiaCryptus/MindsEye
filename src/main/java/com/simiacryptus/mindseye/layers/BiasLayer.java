@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 
 import org.slf4j.Logger;
@@ -100,6 +101,11 @@ public class BiasLayer extends NNLayer {
   public BiasLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
+  }
+
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList(this.bias);
   }
 
 }

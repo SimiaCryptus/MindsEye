@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
@@ -148,5 +149,11 @@ public class LinearActivationLayer extends NNLayer {
   public LinearActivationLayer thaw() {
     return freeze(false);
   }
+
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList(this.weights.getData());
+  }
+
 
 }

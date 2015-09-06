@@ -97,4 +97,9 @@ public class DAGNetwork extends NNLayer {
     return new Tester().setParams(this, samples);
   }
 
+
+  @Override
+  public List<double[]> state() {
+    return getChildren().stream().flatMap(l->l.state().stream()).distinct().collect(Collectors.toList());
+  }
 }

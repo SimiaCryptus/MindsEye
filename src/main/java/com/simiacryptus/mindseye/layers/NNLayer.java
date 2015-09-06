@@ -57,6 +57,8 @@ public abstract class NNLayer {
     return json;
   }
 
+  public abstract List<double[]> state();
+
   public boolean isVerbose() {
     return false;
   }

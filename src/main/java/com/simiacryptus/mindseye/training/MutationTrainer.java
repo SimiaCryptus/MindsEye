@@ -269,30 +269,108 @@ public class MutationTrainer {
   public Double train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
 
-    List<DynamicRateTrainer> population = IntStream.range(0, 3).mapToObj(i->{
+    List<DynamicRateTrainer> population = IntStream.range(0, 5).mapToObj(i -> {
       return Util.kryo().copy(getDynamicRateTrainer());
     }).collect(Collectors.toList());
-    
-    population = population.stream().map(dynamicRateTrainer->{
+
+    population = population.stream().map(dynamicRateTrainer -> {
       initialize(dynamicRateTrainer);
       return dynamicRateTrainer;
     }).collect(Collectors.toList());
-    
-    
-    population = population.stream().map(dynamicRateTrainer->{
-      int currentGeneration = trainIndividual(trainingContext, dynamicRateTrainer);
-      MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", 
-          dynamicRateTrainer.getGradientDescentTrainer().getError(),
-          (System.currentTimeMillis() - startMs) / 1000., 
-          currentGeneration, trainingContext));
-      return dynamicRateTrainer;
-    }).collect(Collectors.toList());
-    
-    
-    
-    this.inner = population.stream().sorted(Comparator.comparing(x->x.getGradientDescentTrainer().getError())).findFirst().get();
-    
+
+    int numbGenerations = 4;
+    for (int generation = 0; generation <= numbGenerations; generation++) {
+      population = population.stream().map(dynamicRateTrainer -> {
+        int currentGeneration = trainIndividual(trainingContext, dynamicRateTrainer);
+        MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", dynamicRateTrainer.getGradientDescentTrainer().getError(),
+            (System.currentTimeMillis() - startMs) / 1000., currentGeneration, trainingContext));
+        return dynamicRateTrainer;
+      }).collect(Collectors.toList());
+
+      List<DynamicRateTrainer> progenators = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).limit(3).collect(Collectors.toList());
+      measure(population);
+      if (generation < numbGenerations)
+        population = recombine(progenators);
+    }
+
+    this.inner = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).findFirst().get();
+
     return getDynamicRateTrainer().getGradientDescentTrainer().getError();
+  }
+
+  private List<DynamicRateTrainer> recombine(List<DynamicRateTrainer> progenators) {
+    List<DynamicRateTrainer> nextGen = IntStream.range(0, 5).mapToObj(i -> {
+      return Util.kryo().copy(getDynamicRateTrainer());
+    }).collect(Collectors.toList());
+    List<List<double[]>> progenators_state = progenators.stream().map(a -> a.getGradientDescentTrainer().getNet().state()).collect(Collectors.toList());
+    nextGen.stream().forEach(a -> {
+      List<double[]> state = a.getGradientDescentTrainer().getNet().state();
+      for (int i = 0; i < state.size(); i++) {
+        double[] a1 = state.get(i);
+        for (int j = 0; j < a1.length; j++) {
+          a1[j] = progenators_state.get(Util.R.get().nextInt(progenators_state.size())).get(i)[j];
+        }
+      }
+    });
+    return nextGen;
+  }
+
+  private void measure(List<DynamicRateTrainer> p) {
+    p.stream().flatMapToDouble(a -> {
+      List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
+      log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
+      return p.stream()
+          // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
+          .mapToDouble(b -> {
+        List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
+        assert (state1.size() == state2.size());
+        double sum = 0.;
+        int cnt = 0;
+        for (int i = 0; i < state1.size(); i++) {
+          double[] a1 = state1.get(i);
+          double[] a2 = state2.get(i);
+          assert (a1.length == a2.length);
+          for (int j = 0; j < a1.length; j++) {
+            double abs = Math.abs(Math.log(Math.abs(Math.abs(a1[j] - a2[j]) / a2[j])));
+            if (Double.isFinite(abs)) {
+              sum += abs;
+              cnt++;
+            }
+          }
+        }
+        double avg = Math.exp(sum / cnt);
+        log.debug(String.format("Geometric Alignment between %s and %s: %s", a, b, avg));
+        return avg;
+      });
+    }).average().getAsDouble();
+
+    p.stream().flatMapToDouble(a -> {
+      List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
+      log.debug(String.format("Evaluating arithmetic alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
+      return p.stream()
+          // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
+          .mapToDouble(b -> {
+        List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
+        assert (state1.size() == state2.size());
+        double sum = 0.;
+        int cnt = 0;
+        for (int i = 0; i < state1.size(); i++) {
+          double[] a1 = state1.get(i);
+          double[] a2 = state2.get(i);
+          assert (a1.length == a2.length);
+          for (int j = 0; j < a1.length; j++) {
+            double abs = Math.abs(a1[j] - a2[j]);
+            if (Double.isFinite(abs)) {
+              sum += abs;
+              cnt++;
+            }
+          }
+        }
+        double avg = sum / cnt;
+        log.debug(String.format("Arithmetic alignment between %s and %s: %s", a, b, avg));
+        return avg;
+      });
+    }).average().getAsDouble();
   }
 
   private int trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
