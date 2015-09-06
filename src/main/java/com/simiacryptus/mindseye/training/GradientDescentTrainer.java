@@ -50,7 +50,7 @@ public class GradientDescentTrainer {
   protected double calcError(final TrainingContext trainingContext, final List<NDArray> results) {
     final NDArray[][] trainingData = getValidationData(trainingContext);
     final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, trainingData, results);
-    return Util.rms(trainingContext, rms, getValidationSet());
+    return Util.rms(trainingContext, rms, null);
   }
 
   protected List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData) {
