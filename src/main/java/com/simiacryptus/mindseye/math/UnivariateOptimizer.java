@@ -150,7 +150,7 @@ public class UnivariateOptimizer {
     final double midX = this.points.get(1).getFirst()[0];
     final double rightX = this.points.get(2).getFirst()[0];
     
-    final UnivariatePointValuePair optim = new BrentOptimizer(1e-4, 1e-8).optimize(
+    final UnivariatePointValuePair optim = new BrentOptimizer(1e-2, 1e-6).optimize(
         GoalType.MINIMIZE,
         new UnivariateObjectiveFunction(this.f),
         new SearchInterval(leftX, rightX, midX),
