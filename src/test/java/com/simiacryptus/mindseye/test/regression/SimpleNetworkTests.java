@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Random;
+import java.util.function.DoubleSupplier;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -137,23 +138,29 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) }
     };
     
+    DoubleSupplier f = () -> {
+      double x = 15.0 * SimpleNetworkTests.random.nextGaussian();
+      if(x<0 && x>-0.001) x-=1;
+      if(x>0 && x<0.001) x+=1;
+      return x;
+    };
     new PipelineNetwork() //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(() -> 1.0 * SimpleNetworkTests.random.nextGaussian()).freeze())
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(f).freeze())
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples)
+        .trainer(samples).setStaticRate(0.01)
         .verifyConvergence(0, 0.01, 100);
         
     new PipelineNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 1.0 * SimpleNetworkTests.random.nextGaussian()).freeze()) //
-        .trainer(samples)
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(f).freeze()) //
+        .trainer(samples).setStaticRate(0.01)
         //.setVerbose(true).setParallel(false)
-        .verifyConvergence(0, 0.01, 100);
+        .verifyConvergence(0, 0.01, 100,90);
         
     new PipelineNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples)
+        .trainer(samples).setStaticRate(0.01)
         .verifyConvergence(0, 0.01, 100, 80);
         
     new PipelineNetwork() //

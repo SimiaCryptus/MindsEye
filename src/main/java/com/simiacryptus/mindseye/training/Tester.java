@@ -64,7 +64,7 @@ public class Tester {
   }
   
   public Tester setStaticRate(final double d) {
-    getInner().getDynamicRateTrainer().setRate(d);
+    getInner().getGradientDescentTrainer().setRate(d);
     return this;
   }
   

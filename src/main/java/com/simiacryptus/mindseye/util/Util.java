@@ -149,8 +149,7 @@ public class Util {
     final IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
     return Math.sqrt(stream
         .filter(i -> i < rms.size())
-        .mapToObj(i -> rms.get(i))
-        .mapToDouble(x -> x.getSecond())
+        .mapToDouble(i -> rms.get(i).getSecond())
         .average().getAsDouble());
   }
   

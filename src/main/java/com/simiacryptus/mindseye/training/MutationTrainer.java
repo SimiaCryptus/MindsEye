@@ -105,10 +105,6 @@ public class MutationTrainer {
     return this.mutationFactor;
   }
   
-  public double getRate() {
-    return getDynamicRateTrainer().getRate();
-  }
-  
   public int getRecalibrationThreshold() {
     return getDynamicRateTrainer().getRecalibrationThreshold();
   }
@@ -229,11 +225,6 @@ public class MutationTrainer {
   
   public void setMutationFactor(final double mutationRate) {
     this.mutationFactor = mutationRate;
-  }
-  
-  public MutationTrainer setRate(final double rate) {
-    getDynamicRateTrainer().setRate(rate);
-    return this;
   }
   
   public MutationTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
