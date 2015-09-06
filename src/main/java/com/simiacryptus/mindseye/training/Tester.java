@@ -38,7 +38,7 @@ public class Tester {
   }
 
   public Tester setDynamicRate(final double d) {
-    getInner().getGradientDescentTrainer().setRate(d);
+    getInner().getDynamicRateTrainer().getGradientDescentTrainer().setRate(d);
     return this;
   }
 
@@ -67,13 +67,13 @@ public class Tester {
   }
 
   public Tester setParams(final DAGNetwork pipelineNetwork, final NDArray[][] samples) {
-    getInner().getGradientDescentTrainer().setNet(pipelineNetwork);
-    this.inner.getGradientDescentTrainer().setMasterTrainingData(samples);
+    getInner().getDynamicRateTrainer().getGradientDescentTrainer().setNet(pipelineNetwork);
+    this.inner.getDynamicRateTrainer().getGradientDescentTrainer().setMasterTrainingData(samples);
     return this;
   }
 
   public Tester setStaticRate(final double d) {
-    getInner().getGradientDescentTrainer().setRate(d);
+    getInner().getDynamicRateTrainer().getGradientDescentTrainer().setRate(d);
     return this;
   }
 
@@ -83,9 +83,7 @@ public class Tester {
   }
 
   public void train(final int i, final double d, final TrainingContext trainingContext) throws TerminationCondition {
-    final MutationTrainer inner = getInner();
-    inner.setMaxIterations(i).setStopError(d);
-    inner.train(trainingContext);
+    getInner().setMaxIterations(i).setStopError(d).train(trainingContext);
   }
 
   private TrainingContext trainingContext() {

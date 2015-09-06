@@ -34,11 +34,10 @@ public class DynamicRateTrainer {
   int lastCalibratedIteration = Integer.MIN_VALUE;
   int maxIterations = 100;
   private double maxRate = 10000;
-  double minRate = 0;
+  private double minRate = 0;
   private int recalibrationInterval = 10;
   private int recalibrationThreshold = 0;
   private double stopError = 0;
-
   private boolean verbose = false;
 
   protected MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final TrainingContext trainingContext) {
@@ -100,18 +99,18 @@ public class DynamicRateTrainer {
   protected synchronized boolean calibrate(final TrainingContext trainingContext) {
     synchronized (trainingContext) {
       trainingContext.calibrations.increment();
-      getGradientDescentTrainer().setTrainingSet(null);
-      getGradientDescentTrainer().setValidationSet(null);
-      getGradientDescentTrainer().setConstraintSet(new int[] {});
-      // trainingContext.calcSieves(getInner());
       final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+      gradientDescentTrainer.setTrainingSet(null);
+      gradientDescentTrainer.setValidationSet(null);
+      gradientDescentTrainer.setConstraintSet(new int[] {});
+      // trainingContext.calcSieves(getInner());
       boolean inBounds = false;
       PointValuePair optimum;
       double[] rates = gradientDescentTrainer.getRates();
       try {
         optimum = optimizeRates(trainingContext);
         rates = DoubleStream.of(optimum.getKey()).toArray();
-        inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r) && DoubleStream.of(rates).anyMatch(r -> this.minRate < r);
+        inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r) && DoubleStream.of(rates).anyMatch(r -> this.getMinRate() < r);
         if (inBounds) {
           gradientDescentTrainer.setRates(rates);
           this.lastCalibratedIteration = this.currentIteration;

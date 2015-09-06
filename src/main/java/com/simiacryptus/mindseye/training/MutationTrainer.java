@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.jblas.DoubleMatrix;
@@ -26,10 +27,9 @@ public class MutationTrainer {
   private DAGNetwork initial;
   private final DynamicRateTrainer inner = new DynamicRateTrainer();
   private int maxIterations = 100;
-  double mutationAmplitude = 5.;
+  private double mutationAmplitude = 5.;
   private double mutationFactor = .1;
   private double stopError = 0.1;
-
   private boolean verbose = false;
 
   public boolean continueTraining(final TrainingContext trainingContext) {
@@ -39,7 +39,7 @@ public class MutationTrainer {
       }
       return false;
     }
-    final double error = getGradientDescentTrainer().getError();
+    final double error = getDynamicRateTrainer().getGradientDescentTrainer().getError();
     if (error < this.stopError) {
       if (this.verbose) {
         MutationTrainer.log.debug("Reached convergence: " + error);
@@ -80,24 +80,8 @@ public class MutationTrainer {
     return this.inner;
   }
 
-  public int getGenerationsSinceImprovement() {
-    return getDynamicRateTrainer().generationsSinceImprovement;
-  }
-
-  public GradientDescentTrainer getGradientDescentTrainer() {
-    return getDynamicRateTrainer().getGradientDescentTrainer();
-  }
-
   public int getMaxIterations() {
     return this.maxIterations;
-  }
-
-  public double getMaxRate() {
-    return getDynamicRateTrainer().getMaxRate();
-  }
-
-  public double getMinRate() {
-    return getDynamicRateTrainer().minRate;
   }
 
   public double getMutationAmplitude() {
@@ -108,23 +92,60 @@ public class MutationTrainer {
     return this.mutationFactor;
   }
 
-  public int getRecalibrationThreshold() {
-    return getDynamicRateTrainer().getRecalibrationThreshold();
-  }
-
   public double getStopError() {
     return this.stopError;
   }
 
   public void initialize(final TrainingContext trainingContext) {
-    for (int i = 0; i < 5; i++) {
-      mutate(1, trainingContext);
+    if (this.verbose) {
+      MutationTrainer.log.debug(String.format("Initialize %s", getDynamicRateTrainer()));
     }
+    final List<NNLayer> layers = getDynamicRateTrainer().getGradientDescentTrainer().getNet().getChildren();
+    for (int i = 0; i < 5; i++) {
+      layers.stream().filter(l -> (l instanceof DenseSynapseLayer)).map(l -> (DenseSynapseLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);
+      layers.stream().filter(l -> (l instanceof BiasLayer)).map(l -> (BiasLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);
+    }
+    getDynamicRateTrainer().getGradientDescentTrainer().setError(Double.NaN);
   }
 
   public boolean isVerbose() {
     return this.verbose;
   }
+  public int initialize(final BiasLayer l) {
+    final double[] a = l.bias;
+    final Random random = Util.R.get();
+    int sum = 0;
+    for (int i = 0; i < a.length; i++) {
+      final double prev = a[i];
+      final double prevEntropy = entropy(l);
+      a[i] = randomWeight(l, random);
+      final double nextEntropy = entropy(l);
+      if (nextEntropy < prevEntropy) {
+        a[i] = prev;
+      } else {
+        sum += 1;
+      }
+    }
+    return sum;
+  }
+
+  public int initialize(final DenseSynapseLayer l) {
+    final double[] a = l.weights.getData();
+    final Random random = Util.R.get();
+    return l.weights.coordStream().mapToInt(idx -> {
+      final int i = idx.index;
+      final double prev = a[i];
+      final double prevEntropy = entropy(l, idx);
+      a[i] = randomWeight(l, random);
+      final double nextEntropy = entropy(l, idx);
+      if (nextEntropy < prevEntropy) {
+        a[i] = prev;
+        return 0;
+      } else
+        return 1;
+    }).sum();
+  }
+
 
   public int mutate(final BiasLayer l, final double amount) {
     final double[] a = l.bias;
@@ -170,22 +191,20 @@ public class MutationTrainer {
     if (this.verbose) {
       MutationTrainer.log.debug(String.format("Mutating %s by %s", getDynamicRateTrainer(), amount));
     }
-    final List<NNLayer> layers = getGradientDescentTrainer().getNet().getChildren();
-    final int sum = layers.stream().filter(l -> (l instanceof DenseSynapseLayer)).map(l -> (DenseSynapseLayer) l).filter(l -> !l.isFrozen()).mapToInt(l -> mutate(l, amount)).sum()
-        + layers.stream().filter(l -> (l instanceof BiasLayer)).map(l -> (BiasLayer) l).filter(l -> !l.isFrozen()).mapToInt(l -> mutate(l, amount)).sum();
-    getGradientDescentTrainer().setError(Double.NaN);
+    final List<NNLayer> layers = getDynamicRateTrainer().getGradientDescentTrainer().getNet().getChildren();
+    Stream<DenseSynapseLayer> layers1 = layers.stream().filter(l -> (l instanceof DenseSynapseLayer)).map(l -> (DenseSynapseLayer) l).filter(l -> !l.isFrozen());
+    Stream<BiasLayer> layers2 = layers.stream().filter(l -> (l instanceof BiasLayer)).map(l -> (BiasLayer) l).filter(l -> !l.isFrozen());
+    final int sum = layers1.mapToInt(l -> mutate(l, amount)).sum() + layers2.mapToInt(l -> mutate(l, amount)).sum();
+    getDynamicRateTrainer().getGradientDescentTrainer().setError(Double.NaN);
     return sum;
   }
 
   public void mutateBest(final TrainingContext trainingContext) {
     getDynamicRateTrainer().generationsSinceImprovement = getDynamicRateTrainer().getRecalibrationThreshold() - 1;
-    getGradientDescentTrainer().setNet(Util.kryo().copy(this.initial));
+    getDynamicRateTrainer().getGradientDescentTrainer().setNet(Util.kryo().copy(this.initial));
     while (0 >= mutate(getMutationFactor(), trainingContext)) {
     }
-    getDynamicRateTrainer().lastCalibratedIteration = getDynamicRateTrainer().currentIteration;// -
-                                                                                               // (this.recalibrationInterval
-                                                                                               // +
-                                                                                               // 2);
+    getDynamicRateTrainer().lastCalibratedIteration = getDynamicRateTrainer().currentIteration;
   }
 
   private double randomWeight(final BiasLayer l, final Random random) {
@@ -206,16 +225,6 @@ public class MutationTrainer {
     return this;
   }
 
-  public MutationTrainer setMaxRate(final double maxRate) {
-    getDynamicRateTrainer().setMaxRate(maxRate);
-    return this;
-  }
-
-  public MutationTrainer setMinRate(final double minRate) {
-    getDynamicRateTrainer().minRate = minRate;
-    return this;
-  }
-
   public MutationTrainer setMutationAmplitude(final double mutationAmplitude) {
     this.mutationAmplitude = mutationAmplitude;
     return this;
@@ -223,11 +232,6 @@ public class MutationTrainer {
 
   public void setMutationFactor(final double mutationRate) {
     this.mutationFactor = mutationRate;
-  }
-
-  public MutationTrainer setRecalibrationThreshold(final int recalibrationThreshold) {
-    getDynamicRateTrainer().setRecalibrationThreshold(recalibrationThreshold);
-    return this;
   }
 
   public MutationTrainer setStopError(final double stopError) {
@@ -248,7 +252,7 @@ public class MutationTrainer {
       final Double error = trainingContext.overallTimer.time(() -> {
         return setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
       });
-      final DAGNetwork net = getGradientDescentTrainer().getNet();
+      final DAGNetwork net = getDynamicRateTrainer().getGradientDescentTrainer().getNet();
       handler.stream().forEach(h -> h.apply(net, trainingContext));
       hasConverged = error <= convergence;
       if (!hasConverged) {
@@ -267,14 +271,14 @@ public class MutationTrainer {
       while (continueTraining(trainingContext)) {
         if (0 == this.currentGeneration++) {
           initialize(trainingContext);
-          this.initial = Util.kryo().copy(getGradientDescentTrainer().getNet());
+          this.initial = Util.kryo().copy(getDynamicRateTrainer().getGradientDescentTrainer().getNet());
         } else {
           trainingContext.mutations.increment();
           mutateBest(trainingContext);
         }
         getDynamicRateTrainer().trainToLocalOptimum(trainingContext);
         if (this.verbose) {
-          final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+          final GradientDescentTrainer gradientDescentTrainer = getDynamicRateTrainer().getGradientDescentTrainer();
           MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s with rate %s\n%s", this.currentGeneration, gradientDescentTrainer.getError(),
               gradientDescentTrainer.getRate(), gradientDescentTrainer.getNet()));
         }
@@ -282,7 +286,7 @@ public class MutationTrainer {
     } catch (final TerminationCondition e) {
       MutationTrainer.log.debug("Terminated training", e);
     }
-    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+    final GradientDescentTrainer gradientDescentTrainer = getDynamicRateTrainer().getGradientDescentTrainer();
     MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", gradientDescentTrainer.getError(),
         (System.currentTimeMillis() - startMs) / 1000., this.currentGeneration, trainingContext));
     return null == gradientDescentTrainer ? Double.POSITIVE_INFINITY : gradientDescentTrainer.getError();
