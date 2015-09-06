@@ -15,15 +15,15 @@ public final class SnakeDistribution implements Function<Void, double[]> {
   public final int nodes;
   public final List<PolynomialSplineFunction> parametricFuctions;
   public final double radius;
-  
+
   public SnakeDistribution(final int dims, final Random random) {
     this(dims, random, 10, 0.01);
   }
-  
+
   public SnakeDistribution(final int dims, final Random random, final int nodes) {
     this(dims, random, nodes, 0.01);
   }
-  
+
   public SnakeDistribution(final int dims, final Random random, final int nodes, final double radius) {
     this.dims = dims;
     this.radius = radius;
@@ -38,10 +38,10 @@ public final class SnakeDistribution implements Function<Void, double[]> {
       }
       parametricFuctions.add(new LoessInterpolator().interpolate(yval, xval));
     }
-    
+
     this.parametricFuctions = parametricFuctions;
   }
-  
+
   @Override
   public double[] apply(final Void n) {
     final Random random = Util.R.get();
@@ -53,9 +53,9 @@ public final class SnakeDistribution implements Function<Void, double[]> {
     }
     return pt;
   }
-  
+
   public int getDimension() {
     return this.dims;
   }
-  
+
 }

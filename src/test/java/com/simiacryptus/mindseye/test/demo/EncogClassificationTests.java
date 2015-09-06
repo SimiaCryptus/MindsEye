@@ -32,17 +32,17 @@ import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
 public class EncogClassificationTests {
-  
+
   public static class ClassificationResultMetrics {
     public double classificationAccuracy;
     public NDArray classificationMatrix;
     public double pts = 0;
     public double sumSqErr;
-    
+
     public ClassificationResultMetrics(final int categories) {
       this.classificationMatrix = new NDArray(categories, categories);
     }
-    
+
     @Override
     public String toString() {
       final StringBuilder builder = new StringBuilder();
@@ -58,62 +58,59 @@ public class EncogClassificationTests {
       builder.append("]");
       return builder.toString();
     }
-    
+
   }
-  
+
   static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN, EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor(),
-      EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor(),
-      EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor());
-      
+      EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor(),
+      EncogClassificationTests.randomColor(), EncogClassificationTests.randomColor());
+
   static final Logger log = LoggerFactory.getLogger(EncogClassificationTests.class);
-  
+
   public static Color randomColor() {
     final Random r = Util.R.get();
     return new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
   }
-  
+
   boolean drawBG = true;
-  
+
   public EncogClassificationTests() {
     super();
   }
-  
+
   public Tester buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
     return net.trainer(samples);
   }
-  
+
   public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {
     final Color color = EncogClassificationTests.colorMap.get(classificationExpected);
     return color;
   }
-  
+
   public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
     return getTrainingData(dimensions, populations, 100);
   }
-  
-  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN)
-      throws FileNotFoundException, IOException {
+
+  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException, IOException {
     final int[] inputSize = new int[] { dimensions };
     final int[] outSize = new int[] { populations.size() };
-    final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x)
-        .flatMap(p -> IntStream.range(0, sampleN).mapToObj(i -> {
-          return new NDArray[] {
-              new NDArray(inputSize, populations.get(p).apply(null)),
-              new NDArray(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
-        })).toArray(i -> new NDArray[i][]);
+    final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x).flatMap(p -> IntStream.range(0, sampleN).mapToObj(i -> {
+      return new NDArray[] { new NDArray(inputSize, populations.get(p).apply(null)),
+          new NDArray(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
+    })).toArray(i -> new NDArray[i][]);
     return samples;
   }
-  
+
   public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
     final double xf = input.get(0);
     final double yf = input.get(1);
     return new double[] { xf, yf };
   }
-  
+
   public Integer outputToClassification(final NDArray actual) {
     return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
-  
+
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
     final PipelineNetwork net = null;
     final Tester trainer = buildTrainer(samples, net);
@@ -147,7 +144,7 @@ public class EncogClassificationTests {
                 final double x = expectedOutput.get(i) - actualOutput.get(i);
                 return x * x;
               }).average().getAsDouble();
-              
+
               final int classificationExpected = outputToClassification(expectedOutput);
               final int classificationActual = outputToClassification(actualOutput);
               final double[] coords = inputToXY(input, classificationActual, classificationExpected);
@@ -179,115 +176,103 @@ public class EncogClassificationTests {
       Util.report(array);
     }
   }
-  
+
   @Test(expected = RuntimeException.class)
   @Ignore
   public void test_Gaussians() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new GaussianDistribution(2),
-        new GaussianDistribution(2)), 100));
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new GaussianDistribution(2), new GaussianDistribution(2)), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_II() throws Exception {
     final double e = 1e-1;
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
         new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e })), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_III() throws Exception {
     final double e = 1e-1;
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(
-            new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e }),
-            new Simple2DLine(new double[] { -1 - e, -1 + e }, new double[] { 1 - e, 1 + e })),
-        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 })), 100));
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e }),
+        new Simple2DLine(new double[] { -1 - e, -1 + e }, new double[] { 1 - e, 1 + e })), new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 })), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   @Ignore
   public void test_Lines() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new Simple2DLine(Util.R.get()),
-        new Simple2DLine(Util.R.get())), 100));
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new Simple2DLine(Util.R.get()), new Simple2DLine(Util.R.get())), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_O() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 })),
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 })),
         new UnionDistribution(new Simple2DCircle(0.1, new double[] { 0, 0 }))), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_O2() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 })),
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 })),
         new UnionDistribution(new Simple2DCircle(1.75, new double[] { 0, 0 }))), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_O22() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 }), new Simple2DCircle(2 * (1.75 * 1.75) / 4, new double[] { 0, 0 })),
-        new UnionDistribution(new Simple2DCircle(1.75, new double[] { 0, 0 }))), 100));
+    test(getTrainingData(2,
+        Arrays.<Function<Void, double[]>>asList(
+            new UnionDistribution(new Simple2DCircle(2, new double[] { 0, 0 }), new Simple2DCircle(2 * (1.75 * 1.75) / 4, new double[] { 0, 0 })),
+            new UnionDistribution(new Simple2DCircle(1.75, new double[] { 0, 0 }))),
+        100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   // @Ignore
   public void test_O3() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 1)),
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 1)),
         new UnionDistribution(new Simple2DCircle(.5, new double[] { 0, 0 }))), 1000));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_oo() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new Simple2DCircle(1, new double[] { -0.5, 0 })),
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new Simple2DCircle(1, new double[] { -0.5, 0 })),
         new UnionDistribution(new Simple2DCircle(1, new double[] { 0.5, 0 }))), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_simple() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
         new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 1 }, 0.1))), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   @Ignore
   public void test_snakes() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new SnakeDistribution(2, Util.R.get(), 7, 0.01),
-        new SnakeDistribution(2, Util.R.get(), 7, 0.01)), 100));
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new SnakeDistribution(2, Util.R.get(), 7, 0.01), new SnakeDistribution(2, Util.R.get(), 7, 0.01)), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_sos() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
         new UnionDistribution(new GaussianDistribution(2, new double[] { -1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 0 }, 0.1))), 100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_X() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }),
-        new Simple2DLine(new double[] { -1, 1 }, new double[] { 1, -1 })), 100));
+    test(getTrainingData(2,
+        Arrays.<Function<Void, double[]>>asList(new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 }), new Simple2DLine(new double[] { -1, 1 }, new double[] { 1, -1 })),
+        100));
   }
-  
+
   @Test(expected = RuntimeException.class)
   public void test_xor() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>> asList(
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
-        new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))), 100));
+    test(getTrainingData(2,
+        Arrays.<Function<Void, double[]>>asList(
+            new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
+            new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))),
+        100));
   }
-  
+
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0, 0.0, 10);
   }
-  
+
 }

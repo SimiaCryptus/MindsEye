@@ -45,57 +45,70 @@ import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;
 import groovy.lang.Tuple2;
 
 public class Util {
-  
+
   public static final ThreadLocal<Random> R = new ThreadLocal<Random>() {
     public final Random r = new Random(System.nanoTime());
-    
+
     @Override
     protected Random initialValue() {
       return new Random(this.r.nextLong());
     }
   };
-  
+
   private static final ThreadLocal<Kryo> threadKryo = new ThreadLocal<Kryo>() {
-    
+
     @Override
     protected Kryo initialValue() {
       final Kryo kryo = new KryoReflectionFactorySupport() {
-        
+
         @Override
         public Serializer<?> getDefaultSerializer(@SuppressWarnings("rawtypes") final Class clazz) {
-          if (EnumSet.class.isAssignableFrom(clazz)) return new EnumSetSerializer();
-          if (EnumMap.class.isAssignableFrom(clazz)) return new EnumMapSerializer();
+          if (EnumSet.class.isAssignableFrom(clazz))
+            return new EnumSetSerializer();
+          if (EnumMap.class.isAssignableFrom(clazz))
+            return new EnumMapSerializer();
           return super.getDefaultSerializer(clazz);
         }
-        
+
       };
       return kryo;
     }
-    
+
   };
-  
+
   public static void add(final DoubleSupplier f, final double[] data) {
     for (int i = 0; i < data.length; i++) {
       data[i] += f.getAsDouble();
     }
   }
-  
+
   public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
     final DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(new File(path, name))));
     in.skip(skip);
     return Util.toIterator(new BinaryChunkIterator(in, recordSize));
   }
-  
+
   public static double bounds(final double value) {
     final int max = 0xFF;
     final int min = 0;
     return value < min ? min : value > max ? max : value;
   }
-  
+
   public static <T> T copy(final T original) {
     return Util.kryo().copy(original);
   }
-  
+
+  public static <T> ThreadLocal<T> copyOnFork(final T localValue) {
+    final ThreadLocal<T> f2 = new ThreadLocal<T>() {
+      @Override
+      protected T initialValue() {
+        return copy(localValue);
+      }
+    };
+    f2.set(localValue);
+    return f2;
+  }
+
   public static double geomMean(final double... error) {
     double sumLog = 0;
     for (final double element : error) {
@@ -103,30 +116,31 @@ public class Util {
     }
     return Math.exp(sumLog / error.length);
   }
-  
+
   public static String imageHtml(final BufferedImage... imgArray) {
     return Stream.of(imgArray).map(img -> Util.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
   }
-  
+
   public static Kryo kryo() {
     return Util.threadKryo.get();
   }
-  
+
   public static Integer outputToClassification(final NDArray actual) {
     return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
-  
+
   public static byte[] read(final DataInputStream i, final int s) throws IOException {
     final byte[] b = new byte[s];
     int pos = 0;
     while (b.length > pos) {
       final int read = i.read(b, pos, b.length - pos);
-      if (0 == read) throw new RuntimeException();
+      if (0 == read)
+        throw new RuntimeException();
       pos += read;
     }
     return b;
   }
-  
+
   public static void report(final Stream<String> fragments) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
@@ -139,20 +153,17 @@ public class Util {
     out.close();
     Desktop.getDesktop().browse(report.toURI());
   }
-  
+
   public static void report(final String... fragments) throws FileNotFoundException, IOException {
     Util.report(Stream.of(fragments));
   }
-  
+
   public static double rms(final TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, final int[] activeSet) {
     @SuppressWarnings("resource")
     final IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
-    return Math.sqrt(stream
-        .filter(i -> i < rms.size())
-        .mapToDouble(i -> rms.get(i).getSecond())
-        .average().getAsDouble());
+    return Math.sqrt(stream.filter(i -> i < rms.size()).mapToDouble(i -> rms.get(i).getSecond()).average().getAsDouble());
   }
-  
+
   public static BufferedImage scale(BufferedImage img, final double scale) {
     final int w = img.getWidth();
     final int h = img.getHeight();
@@ -163,14 +174,12 @@ public class Util {
     img = scaleOp.filter(img, after);
     return img;
   }
-  
-  public static List<LabeledObject<NDArray>> shuffle(final List<LabeledObject<NDArray>> buffer) {
-    return Util.shuffle(buffer, Util.R.get());
-  }
-  
+
   //
-  // public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
-  // final DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(new File(path, name))));
+  // public static Stream<byte[]> binaryStream(final String path, final String
+  // name, final int skip, final int recordSize) throws IOException {
+  // final DataInputStream in = new DataInputStream(new GZIPInputStream(new
+  // FileInputStream(new File(path, name))));
   // in.skip(skip);
   // return toIterator(new BinaryChunkIterator(in, recordSize));
   // }
@@ -191,11 +200,14 @@ public class Util {
   // return ndArray;
   // }
   //
-  // public static String toInlineImage(final BufferedImage img, final String alt) {
-  // return TestMNISTDev.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
+  // public static String toInlineImage(final BufferedImage img, final String
+  // alt) {
+  // return TestMNISTDev.toInlineImage(new LabeledObject<BufferedImage>(img,
+  // alt));
   // }
   //
-  // public static String toInlineImage(final LabeledObject<BufferedImage> img) {
+  // public static String toInlineImage(final LabeledObject<BufferedImage> img)
+  // {
   // final ByteArrayOutputStream b = new ByteArrayOutputStream();
   // try {
   // ImageIO.write(img.data, "PNG", b);
@@ -204,15 +216,21 @@ public class Util {
   // }
   // final byte[] byteArray = b.toByteArray();
   // final String encode = Base64.getEncoder().encodeToString(byteArray);
-  // return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
+  // return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" +
+  // img.label + "\" />";
   // }
-  
+
+  public static List<LabeledObject<NDArray>> shuffle(final List<LabeledObject<NDArray>> buffer) {
+    return Util.shuffle(buffer, Util.R.get());
+  }
+
   public static <T> List<T> shuffle(final List<T> buffer, final Random random) {
     final TreeMap<Double, T> tree = new TreeMap<Double, T>();
-    if (!buffer.stream().allMatch(item -> null == tree.put(random.nextDouble(), item))) throw new RuntimeException();
+    if (!buffer.stream().allMatch(item -> null == tree.put(random.nextDouble(), item)))
+      throw new RuntimeException();
     return tree.values().stream().collect(Collectors.toList());
   }
-  
+
   public static List<Tuple2<Double, Double>> stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
     assert trainingData.length == results.size();
     final List<Tuple2<Double, Double>> rms = IntStream.range(0, results.size()).parallel().mapToObj(sample -> {
@@ -220,7 +238,7 @@ public class Util {
       final NDArray[] sampleRow = trainingData[sample];
       final NDArray idealOutput = sampleRow[1];
       final double err = actualOutput.rms(idealOutput);
-      
+
       final double[] actualOutputData = actualOutput.getData();
       final double max = DoubleStream.of(actualOutputData).max().getAsDouble();
       final double sum = DoubleStream.of(actualOutputData).sum();
@@ -230,15 +248,17 @@ public class Util {
     }).collect(Collectors.toList());
     return rms;
   }
-  
+
   public static boolean thermalStep(final double prev, final double next, final double temp) {
-    if (next < prev) return true;
-    if (temp <= 0.) return false;
+    if (next < prev)
+      return true;
+    if (temp <= 0.)
+      return false;
     final double p = Math.exp(-(next - prev) / (Math.min(next, prev) * temp));
     final boolean step = Math.random() < p;
     return step;
   }
-  
+
   public static NDArray toImage(final byte[] b) {
     final NDArray ndArray = new NDArray(28, 28);
     for (int x = 0; x < 28; x++) {
@@ -248,7 +268,7 @@ public class Util {
     }
     return ndArray;
   }
-  
+
   public static BufferedImage toImage(final NDArray ndArray) {
     final int[] dims = ndArray.getDims();
     final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
@@ -268,11 +288,11 @@ public class Util {
     }
     return img;
   }
-  
+
   public static String toInlineImage(final BufferedImage img, final String alt) {
     return Util.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
   }
-  
+
   public static String toInlineImage(final LabeledObject<BufferedImage> img) {
     final ByteArrayOutputStream b = new ByteArrayOutputStream();
     try {
@@ -284,15 +304,16 @@ public class Util {
     final String encode = Base64.getEncoder().encodeToString(byteArray);
     return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
   }
-  
+
+  // public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+  // return StreamSupport.stream(Spliterators.spliterator(iterator, 1,
+  // Spliterator.ORDERED), false);
+  // }
+
   public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
-  
-  // public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
-  // return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
-  // }
-  
+
   public static NDArray toNDArray1(final BufferedImage img) {
     final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -302,7 +323,7 @@ public class Util {
     }
     return a;
   }
-  
+
   public static NDArray toNDArray3(final BufferedImage img) {
     final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -314,7 +335,7 @@ public class Util {
     }
     return a;
   }
-  
+
   public static NDArray toNDArrayBW(final BufferedImage img) {
     final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -324,7 +345,7 @@ public class Util {
     }
     return a;
   }
-  
+
   public static NDArray toNDArrayRGB(final BufferedImage img) {
     final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -336,62 +357,52 @@ public class Util {
     }
     return a;
   }
-  
+
   public static int toOut(final String label) {
     for (int i = 0; i < 10; i++) {
-      if (label.equals("[" + i + "]")) return i;
+      if (label.equals("[" + i + "]"))
+        return i;
     }
     throw new RuntimeException();
   }
-  
+
   public static NDArray toOutNDArray(final int out, final int max) {
     final NDArray ndArray = new NDArray(max);
     ndArray.set(out, 1);
     return ndArray;
   }
-  
+
   public static <T> Stream<T> toStream(final Iterator<T> iterator) {
     return Util.toStream(iterator, 0);
   }
-  
+
   public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size) {
     return Util.toStream(iterator, size, false);
   }
-  
+
   public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
-  
+
   public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
     final String path = "C:/Users/Andrew Charneski/Downloads";
     final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
     final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
-    
+
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
       Iterator<NDArray> imgItr = imgStream.iterator();
       Iterator<byte[]> labelItr = labelStream.iterator();
-      
+
       @Override
       public boolean hasNext() {
         return this.imgItr.hasNext() && this.labelItr.hasNext();
       }
-      
+
       @Override
       public LabeledObject<NDArray> next() {
         return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
       }
     }, 100).limit(10000);
     return merged;
-  }
-
-  public static <T> ThreadLocal<T> copyOnFork(final T localValue) {
-    final ThreadLocal<T> f2 = new ThreadLocal<T>() {
-      @Override
-      protected T initialValue() {
-        return copy(localValue);
-      }
-    };
-    f2.set(localValue);
-    return f2;
   }
 }

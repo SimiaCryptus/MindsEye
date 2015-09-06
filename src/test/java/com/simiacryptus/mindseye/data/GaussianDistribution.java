@@ -13,13 +13,13 @@ public final class GaussianDistribution implements Function<Void, double[]> {
   private int dims;
   private double[] pos;
   private double size = 1;
-  
+
   public GaussianDistribution(final int dims) {
     final Random random = Util.R.get();
     this.size = random.nextDouble();
     this.pos = IntStream.range(0, dims).mapToDouble(i -> random.nextGaussian() * 0.6).toArray();
   }
-  
+
   public GaussianDistribution(final int dims, final double[] pos, final double size) {
     final Random random = Util.R.get();
     this.dims = dims;
@@ -34,11 +34,11 @@ public final class GaussianDistribution implements Function<Void, double[]> {
     }
     final RandomGenerator rng = new JDKRandomGenerator();
     rng.setSeed(random.nextInt());
-    
+
     this.pos = pos;
     this.size = size;
   }
-  
+
   @Override
   public double[] apply(final Void n) {
     final double[] ds = new double[this.dims];

@@ -12,19 +12,19 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
 public class SigmoidActivationLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
-  
+
   public static double sigmiod(final double x) {
     return 1 / (1 + Math.exp(-x));
   }
-  
-  private boolean verbose;
+
   private boolean balanced = true;
-  
+  private boolean verbose;
+
   public SigmoidActivationLayer() {
   }
-  
+
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
@@ -32,7 +32,7 @@ public class SigmoidActivationLayer extends NNLayer {
     final NDArray inputGradient = new NDArray(input.dim());
     final double nonlinearity = getNonlinearity();
     IntStream.range(0, input.dim()).forEach(i -> {
-      
+
       final double x = input.getData()[i];
       double f = 0. == nonlinearity ? x : SigmoidActivationLayer.sigmiod(x * nonlinearity) / nonlinearity;
       final double minDeriv = 0;
@@ -72,34 +72,34 @@ public class SigmoidActivationLayer extends NNLayer {
           inObj[0].feedback(passback, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }
     };
   }
-  
+
   protected double getNonlinearity() {
     return 1;
   }
-  
+
+  public boolean isBalanced() {
+    return this.balanced;
+  }
+
   @Override
   public boolean isVerbose() {
     return this.verbose;
   }
-  
-  public SigmoidActivationLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
+
+  public SigmoidActivationLayer setBalanced(final boolean balanced) {
+    this.balanced = balanced;
     return this;
   }
 
-  public boolean isBalanced() {
-    return balanced;
-  }
-
-  public SigmoidActivationLayer setBalanced(boolean balanced) {
-    this.balanced = balanced;
+  public SigmoidActivationLayer setVerbose(final boolean verbose) {
+    this.verbose = verbose;
     return this;
   }
 }

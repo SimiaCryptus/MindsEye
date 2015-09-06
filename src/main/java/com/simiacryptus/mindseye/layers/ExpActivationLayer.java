@@ -13,14 +13,14 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
 public class ExpActivationLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(ExpActivationLayer.class);
-  
+
   private boolean verbose;
-  
+
   public ExpActivationLayer() {
   }
-  
+
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     assert 1 == inObj.length;
@@ -57,19 +57,19 @@ public class ExpActivationLayer extends NNLayer {
           in.feedback(passback, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return in.isAlive();
       }
     };
   }
-  
+
   @Override
   public boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public ExpActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;

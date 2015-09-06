@@ -13,26 +13,24 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
 public class SoftmaxActivationLayer extends NNLayer {
-  
+
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
-  
+
   double maxInput = 100;
-  
+
   private boolean verbose;
-  
+
   public SoftmaxActivationLayer() {
   }
-  
+
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
-    final NDArray exp = inObj[0].data
-        .map(x -> Math.min(Math.max(x, -this.maxInput), this.maxInput))
-        .map(x -> Math.exp(x));
+    final NDArray exp = inObj[0].data.map(x -> Math.min(Math.max(x, -this.maxInput), this.maxInput)).map(x -> Math.exp(x));
     final double sum1 = exp.sum();
     final double sum = 0. == sum1 ? 1. : sum1;
     final NDArray output = exp.map(x -> x / sum);
-    
+
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     final double[] expdata = exp.getData();
     for (int i = 0; i < expdata.length; i++) {
@@ -50,7 +48,7 @@ public class SoftmaxActivationLayer extends NNLayer {
       ;
     }
     ;
-    
+
     if (isVerbose()) {
       SoftmaxActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
@@ -63,7 +61,7 @@ public class SoftmaxActivationLayer extends NNLayer {
           // if (delta[i].isNegative()) {
           // delta[i] = LogNumber.ZERO;
           // }
-          
+
           final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
           for (int i = 0; i < input.dim(); i++) {
@@ -76,27 +74,27 @@ public class SoftmaxActivationLayer extends NNLayer {
             ;
           }
           ;
-          
+
           if (isVerbose()) {
             SoftmaxActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
           }
           inObj[0].feedback(passback, buffer);
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }
-      
+
     };
   }
-  
+
   @Override
   public boolean isVerbose() {
     return this.verbose;
   }
-  
+
   public SoftmaxActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
