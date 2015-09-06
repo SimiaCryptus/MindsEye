@@ -10,6 +10,7 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
@@ -44,8 +45,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     // net = net.add(new L1NormalizationLayer());
     // net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
-    //net = net.add(new SoftmaxActivationLayer());
-    net = net.add(new SigmoidActivationLayer().setBalanced(false));
+    net = net.add(new SoftmaxActivationLayer());
+    //net = net.add(new SigmoidActivationLayer().setBalanced(false));
     return net;
   }
   

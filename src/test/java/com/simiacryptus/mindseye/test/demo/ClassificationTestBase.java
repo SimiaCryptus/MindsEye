@@ -136,7 +136,7 @@ public abstract class ClassificationTestBase {
             correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
               final NDArray expectedOutput = pt[1];
               final NDArray input = pt[0];
-              final NNResult output = trainer.getInner().getGradientDescentTrainer().getNet().eval(input);
+              final NNResult output = n.eval(input);
               final NDArray actualOutput = output.data;
               correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
                 final double x = expectedOutput.get(i) - actualOutput.get(i);
