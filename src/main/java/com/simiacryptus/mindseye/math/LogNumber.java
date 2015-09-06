@@ -125,7 +125,7 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
   
   public LogNumber multiply(final LogNumber right) {
     if (null == right) return this;
-    assert isFinite();
+    //assert isFinite();
     // assert right.isFinite();
     final LogNumber r = new LogNumber((byte) (this.type * right.type), this.logValue + right.logValue);
     // assert r.isFinite();

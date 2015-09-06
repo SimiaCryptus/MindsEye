@@ -25,7 +25,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   private final double[] target;
   private final NNLayer layer;
   private boolean normalize = true;
-  private LogNumber[] calcVector;
+  private double[] calcVector;
   
   public DeltaFlushBuffer(final double[] values, final DeltaValueAccumulator[] array, final NNLayer layer) {
     this.target = values;
@@ -143,9 +143,9 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     if (null == this.calcVector) {
       this.calcVector = calcVector();
     }
-    final LogNumber[] cpy = Arrays.copyOf(calcVector(), calcVector.length);
+    final double[] cpy = Arrays.copyOf(calcVector(), calcVector.length);
     for (int i = 0; i < this.buffer.length; i++) {
-      cpy[i] = cpy[i].multiply(factor);
+      cpy[i] = cpy[i] * factor;
     }
     if (this.layer.isVerbose()) {
       log.debug(String.format("Write to memory: %s", Arrays.toString(cpy)));
@@ -153,26 +153,34 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     write(cpy);
   }
 
-  private void write(final LogNumber[] cpy) {
+  private void write(final double[] cpy) {
     final int dim = length();
     if (null == cpy) return;
     for (int i = 0; i < dim; i++) {
-      if (null == cpy[i]) {
-        continue;
-      }
-      this.target[i] += cpy[i].doubleValue();
+      this.target[i] += cpy[i];
       if (!Double.isFinite(this.target[i])) {
         this.target[i] = 0;
       }
     }
   }
 
-  public LogNumber[] calcVector() {
+  double linearDecayRate = 0.01;
+  
+  public double[] calcVector() {
     LogNumberVector v = new LogNumberVector(Arrays.stream(this.buffer).map(x->x.logValue()).toArray(i->new LogNumber[i]));
     if (isNormalize()) {
       v = v.scale(1./v.l2());
     }
-    return v.getArray();
+    NumberVector returnValue = v.toDouble();
+    
+    if (0 < linearDecayRate) {
+      NumberVector unitv = returnValue.unitV();
+      NumberVector l1Decay = new NumberVector(this.target).scale(-linearDecayRate);
+      double dotProduct = l1Decay.dotProduct(unitv);
+      if (dotProduct < 0) l1Decay = l1Decay.add(unitv.scale(-dotProduct));
+      returnValue = returnValue.add(l1Decay);
+    }
+    return returnValue.getArray();
   }
   
   public boolean isNormalize() {

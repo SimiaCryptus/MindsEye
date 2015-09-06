@@ -97,5 +97,10 @@ public class LogNumberVector implements VectorLogic<LogNumberVector> {
   public LogNumber[] getArray() {
     return array;
   }
+
+  public NumberVector toDouble() {
+    return new NumberVector(this.array);
+    //return new NumberVector(Arrays.stream(this.array).mapToDouble(x->x.doubleValue()).toArray());
+  }
   
 }
