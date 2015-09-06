@@ -23,7 +23,6 @@ public class MutationTrainer {
 
   private static final Logger log = LoggerFactory.getLogger(MutationTrainer.class);
 
-  private int currentGeneration = 0;
   private final DynamicRateTrainer inner = new DynamicRateTrainer();
   private int maxIterations = 100;
   private double mutationAmplitude = 5.;
@@ -31,10 +30,10 @@ public class MutationTrainer {
   private double stopError = 0.1;
   private boolean verbose = false;
 
-  public boolean continueTraining(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
-    if (this.maxIterations < this.currentGeneration) {
+  public boolean continueTraining(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer, int currentGeneration) {
+    if (this.maxIterations < currentGeneration) {
       if (this.verbose) {
-        MutationTrainer.log.debug("Reached max iterations: " + this.currentGeneration);
+        MutationTrainer.log.debug("Reached max iterations: " + currentGeneration);
       }
       return false;
     }
@@ -267,12 +266,20 @@ public class MutationTrainer {
 
   public Double train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
-    this.currentGeneration = 0;
     final DynamicRateTrainer dynamicRateTrainer = getDynamicRateTrainer();
+    int currentGeneration = trainIndividual(trainingContext, dynamicRateTrainer);
+    final GradientDescentTrainer gradientDescentTrainer = dynamicRateTrainer.getGradientDescentTrainer();
+    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", gradientDescentTrainer.getError(),
+        (System.currentTimeMillis() - startMs) / 1000., currentGeneration, trainingContext));
+    return null == gradientDescentTrainer ? Double.POSITIVE_INFINITY : gradientDescentTrainer.getError();
+  }
+
+  private int trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
+    int currentGeneration = 0;
     DAGNetwork initial = null;
     try {
-      while (continueTraining(trainingContext, dynamicRateTrainer)) {
-        if (0 == this.currentGeneration++) {
+      while (continueTraining(trainingContext, dynamicRateTrainer, currentGeneration)) {
+        if (0 == currentGeneration++) {
           initialize(dynamicRateTrainer);
           initial = Util.kryo().copy(dynamicRateTrainer.getGradientDescentTrainer().getNet());
         } else {
@@ -283,16 +290,13 @@ public class MutationTrainer {
         dynamicRateTrainer.trainToLocalOptimum(trainingContext);
         if (this.verbose) {
           final GradientDescentTrainer gradientDescentTrainer = dynamicRateTrainer.getGradientDescentTrainer();
-          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s with rate %s\n%s", this.currentGeneration, gradientDescentTrainer.getError(),
+          MutationTrainer.log.debug(String.format("Trained Iteration %s Error: %s with rate %s\n%s", currentGeneration, gradientDescentTrainer.getError(),
               gradientDescentTrainer.getRate(), gradientDescentTrainer.getNet()));
         }
       }
     } catch (final TerminationCondition e) {
       MutationTrainer.log.debug("Terminated training", e);
     }
-    final GradientDescentTrainer gradientDescentTrainer = dynamicRateTrainer.getGradientDescentTrainer();
-    MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", gradientDescentTrainer.getError(),
-        (System.currentTimeMillis() - startMs) / 1000., this.currentGeneration, trainingContext));
-    return null == gradientDescentTrainer ? Double.POSITIVE_INFINITY : gradientDescentTrainer.getError();
+    return currentGeneration;
   }
 }
