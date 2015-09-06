@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
 public class TestMNISTDev {
-  public static class Network extends PipelineNetwork {
+  public static class Network extends DAGNetwork {
     final NDArray inputSize = new NDArray(28, 28);
 
     public Network() {
@@ -69,7 +69,7 @@ public class TestMNISTDev {
     return new Network();
   }
 
-  private void report(final List<LabeledObject<NDArray>> buffer, final PipelineNetwork net) throws FileNotFoundException, IOException {
+  private void report(final List<LabeledObject<NDArray>> buffer, final DAGNetwork net) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
@@ -86,13 +86,13 @@ public class TestMNISTDev {
   @Test
   public void test() throws Exception {
     TestMNISTDev.log.info("Starting");
-    final PipelineNetwork net = getNetwork();
+    final DAGNetwork net = getNetwork();
     final List<LabeledObject<NDArray>> buffer = Util.trainingDataStream().collect(Collectors.toList());
     final NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(1000).map(o -> new NDArray[] { o.data, Util.toOutNDArray(Util.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
     net.trainer(data).setMutationAmplitude(2).setStaticRate(0.25).setVerbose(true).verifyConvergence(10000, 0.01, 1);
     {
-      final PipelineNetwork net2 = net;
+      final DAGNetwork net2 = net;
       final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(Util.toOut(o1.label))).average().getAsDouble();
       TestMNISTDev.log.info("Tested RMS Error: {}", prevRms);
     }

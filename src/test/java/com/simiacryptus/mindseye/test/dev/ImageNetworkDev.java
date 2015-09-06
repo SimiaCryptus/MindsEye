@@ -21,7 +21,7 @@ import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.LabeledObject;
@@ -73,7 +73,7 @@ public class ImageNetworkDev {
   }
 
   public NNLayer blur_3x4() {
-    final PipelineNetwork net = new PipelineNetwork();
+    final DAGNetwork net = new DAGNetwork();
     for (int i = 0; i < 3; i++) {
       net.add(blur_3());
     }
@@ -123,7 +123,7 @@ public class ImageNetworkDev {
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
-    final PipelineNetwork forwardConvolutionNet = new PipelineNetwork().add(convolution);
+    final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
 
     Util.report(data.stream().map(obj -> {
       final NDArray[] input = { obj.data };
@@ -132,7 +132,7 @@ public class ImageNetworkDev {
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
 
-      trainer.setParams(new PipelineNetwork().add(bias).add(convolution), new NDArray[][] { { zeroInput, output.data } });
+      trainer.setParams(new DAGNetwork().add(bias).add(convolution), new NDArray[][] { { zeroInput, output.data } });
 
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias),
@@ -169,7 +169,7 @@ public class ImageNetworkDev {
       bias = (BiasLayer) trainer.getInner().getGradientDescentTrainer().getNet().get(0);
       final NNResult recovered = bias.eval(evaluationContext, zeroInput);
       final NDArray[] input1 = { zeroInput };
-      final NNResult tested = new PipelineNetwork().add(bias).add(convolution).eval(input1);
+      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(input1);
 
       return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
           Util.toImage(new NDArray(outSize, tested.data.getData())));

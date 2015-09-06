@@ -12,7 +12,7 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
@@ -38,8 +38,8 @@ public class SimpleMNIST {
 
   int verbose = 1;
 
-  protected PipelineNetwork getNetwork() {
-    final PipelineNetwork net = new PipelineNetwork();
+  protected DAGNetwork getNetwork() {
+    final DAGNetwork net = new DAGNetwork();
     final NDArray[] input = { this.inputSize };
     net.add(new DenseSynapseLayer(net.eval(input).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
     final NDArray[] input1 = { this.inputSize };
@@ -49,7 +49,7 @@ public class SimpleMNIST {
     return net;
   }
 
-  public Tester getTrainer(final PipelineNetwork net, final NDArray[][] data) {
+  public Tester getTrainer(final DAGNetwork net, final NDArray[][] data) {
     return net.trainer(data).setVerbose(this.verbose > 0);
   }
 
@@ -64,7 +64,7 @@ public class SimpleMNIST {
   @Test
   public void test() throws Exception {
     SimpleMNIST.log.info("Starting");
-    final PipelineNetwork net = getNetwork();
+    final DAGNetwork net = getNetwork();
     final List<LabeledObject<NDArray>> buffer = MNIST.trainingDataStream().collect(Collectors.toList());
 
     final NDArray[][] data = getTraining(buffer).map(o -> new NDArray[] { o.data, SimpleMNIST.toOutNDArray(SimpleMNIST.toOut(o.label), 10) }).toArray(i2 -> new NDArray[i2][]);

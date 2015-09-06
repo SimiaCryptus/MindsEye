@@ -13,13 +13,13 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNIST {
 
-  public static void report(final PipelineNetwork net) throws FileNotFoundException, IOException {
+  public static void report(final DAGNetwork net) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];

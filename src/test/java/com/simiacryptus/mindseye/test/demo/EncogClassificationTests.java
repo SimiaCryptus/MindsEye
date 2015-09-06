@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.data.SnakeDistribution;
 import com.simiacryptus.mindseye.data.UnionDistribution;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -78,7 +78,7 @@ public class EncogClassificationTests {
     super();
   }
 
-  public Tester buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
+  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
     return net.trainer(samples);
   }
 
@@ -112,7 +112,7 @@ public class EncogClassificationTests {
   }
 
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
-    final PipelineNetwork net = null;
+    final DAGNetwork net = null;
     final Tester trainer = buildTrainer(samples, net);
     final Map<BufferedImage, String> images = new HashMap<>();
     final int categories = samples[0][1].dim();

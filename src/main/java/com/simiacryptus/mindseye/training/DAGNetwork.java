@@ -16,32 +16,33 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext.LazyResult;
 
 /***
- * Builds a linear pipeline of NNLayer components, applied in sequence
+ * Builds a network NNLayer components, assumed to form a directed acyclic graph with a single output.
+ * Supplied builder methods designed to build linear sequence of units acting on the current output node.
  *
  * @author Andrew Charneski
  */
-public class PipelineNetwork extends NNLayer {
+public class DAGNetwork extends NNLayer {
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(PipelineNetwork.class);
+  private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private final List<NNLayer> children = new ArrayList<NNLayer>();
 
   public LazyResult<NNResult[]> head = new LazyResult<NNResult[]>() {
     @Override
     protected NNResult[] initialValue(final EvaluationContext t) {
-      return (NNResult[]) t.cache.get(PipelineNetwork.this.inputHandle);
+      return (NNResult[]) t.cache.get(DAGNetwork.this.inputHandle);
     }
 
     @Override
     protected JsonObject toJson() {
       final JsonObject json = new JsonObject();
-      json.addProperty("target", PipelineNetwork.this.inputHandle.toString());
+      json.addProperty("target", DAGNetwork.this.inputHandle.toString());
       return json;
     }
   };
   public final UUID inputHandle = UUID.randomUUID();
 
-  public synchronized PipelineNetwork add(final NNLayer layer) {
+  public synchronized DAGNetwork add(final NNLayer layer) {
     this.children.add(layer);
     final LazyResult<NNResult[]> prevHead = this.head;
     this.head = new LazyResult<NNResult[]>() {

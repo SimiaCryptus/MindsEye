@@ -12,7 +12,7 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 
 public class BooleanSigmoidNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSigmoidNetworkTests.class);
@@ -37,7 +37,7 @@ public class BooleanSigmoidNetworkTests {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    new PipelineNetwork()
+    new DAGNetwork()
 
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
 

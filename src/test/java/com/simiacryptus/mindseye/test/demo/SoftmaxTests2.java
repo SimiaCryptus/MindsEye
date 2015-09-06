@@ -6,19 +6,19 @@ import com.simiacryptus.mindseye.layers.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 
 public class SoftmaxTests2 extends SimpleClassificationTests {
 
   @Override
-  public PipelineNetwork buildNetwork() {
+  public DAGNetwork buildNetwork() {
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 10 };
     final int midLayers = 0;
-    PipelineNetwork net = new PipelineNetwork();
+    DAGNetwork net = new DAGNetwork();
 
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(inputSize)).setWeights(()->1.));

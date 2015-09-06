@@ -13,7 +13,7 @@ import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 
 public class BooleanSoftmaxNetworkTests {
   static final Logger log = LoggerFactory.getLogger(BooleanSoftmaxNetworkTests.class);
@@ -38,7 +38,7 @@ public class BooleanSoftmaxNetworkTests {
     final int[] midSize = new int[] { 4 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    new PipelineNetwork()
+    new DAGNetwork()
 
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
 

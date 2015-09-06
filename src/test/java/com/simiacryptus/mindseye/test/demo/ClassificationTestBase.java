@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -71,9 +71,9 @@ public abstract class ClassificationTestBase {
     super();
   }
 
-  public abstract PipelineNetwork buildNetwork();
+  public abstract DAGNetwork buildNetwork();
 
-  public Tester buildTrainer(final NDArray[][] samples, final PipelineNetwork net) {
+  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
     return net.trainer(samples);
   }
 
@@ -107,7 +107,7 @@ public abstract class ClassificationTestBase {
   }
 
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
-    final PipelineNetwork net = buildNetwork();
+    final DAGNetwork net = buildNetwork();
     final Tester trainer = buildTrainer(samples, net);
     final Map<BufferedImage, String> images = new HashMap<>();
     final int categories = samples[0][1].dim();

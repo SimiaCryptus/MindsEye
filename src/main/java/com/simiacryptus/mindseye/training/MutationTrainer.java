@@ -23,7 +23,7 @@ public class MutationTrainer {
   private static final Logger log = LoggerFactory.getLogger(MutationTrainer.class);
 
   private int currentGeneration = 0;
-  private PipelineNetwork initial;
+  private DAGNetwork initial;
   private final DynamicRateTrainer inner = new DynamicRateTrainer();
   private int maxIterations = 100;
   double mutationAmplitude = 5.;
@@ -242,13 +242,13 @@ public class MutationTrainer {
     return this;
   }
 
-  public boolean test(final int maxIter, final double convergence, final TrainingContext trainingContext, final List<BiFunction<PipelineNetwork, TrainingContext, Void>> handler) {
+  public boolean test(final int maxIter, final double convergence, final TrainingContext trainingContext, final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler) {
     boolean hasConverged = false;
     try {
       final Double error = trainingContext.overallTimer.time(() -> {
         return setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
       });
-      final PipelineNetwork net = getGradientDescentTrainer().getNet();
+      final DAGNetwork net = getGradientDescentTrainer().getNet();
       handler.stream().forEach(h -> h.apply(net, trainingContext));
       hasConverged = error <= convergence;
       if (!hasConverged) {

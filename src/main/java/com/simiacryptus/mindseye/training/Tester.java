@@ -21,7 +21,7 @@ public class Tester {
 
   static final Logger log = LoggerFactory.getLogger(Tester.class);
 
-  public final List<BiFunction<PipelineNetwork, TrainingContext, Void>> handler = new ArrayList<>();
+  public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
 
   private MutationTrainer inner = new MutationTrainer();
 
@@ -66,7 +66,7 @@ public class Tester {
     return this;
   }
 
-  public Tester setParams(final PipelineNetwork pipelineNetwork, final NDArray[][] samples) {
+  public Tester setParams(final DAGNetwork pipelineNetwork, final NDArray[][] samples) {
     getInner().getGradientDescentTrainer().setNet(pipelineNetwork);
     this.inner.getGradientDescentTrainer().setMasterTrainingData(samples);
     return this;

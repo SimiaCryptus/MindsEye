@@ -8,17 +8,17 @@ import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNISTClassificationTests2 extends MNISTClassificationTests {
 
   @Override
-  public PipelineNetwork buildNetwork() {
+  public DAGNetwork buildNetwork() {
     final int[] inputSize = new int[] { 28, 28 };
     final int[] midSize = new int[] { 20 };
     final int[] outSize = new int[] { 10 };
-    PipelineNetwork net = new PipelineNetwork();
+    DAGNetwork net = new DAGNetwork();
 
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 8).addWeights(() -> Util.R.get().nextGaussian() * 1.));
     net = net.add(new MaxSubsampleLayer(new int[] { 3, 3, 1 }));

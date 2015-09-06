@@ -8,29 +8,29 @@ import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.SynapseActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.PipelineNetwork;
+import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 
 public class SoftmaxTests3 extends SimpleClassificationTests {
 
   @Override
-  public PipelineNetwork buildNetwork() {
+  public DAGNetwork buildNetwork() {
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 8 };
     final int midLayers = 0;
-    PipelineNetwork net = new PipelineNetwork();
+    DAGNetwork net = new DAGNetwork();
 
-    final NNLayer inputLayer = new PipelineNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
+    final NNLayer inputLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
     net = net.add(inputLayer);
 
     for (int i = 0; i < midLayers; i++) {
-      final NNLayer hiddenLayer = new PipelineNetwork().add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
+      final NNLayer hiddenLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
       net = net.add(hiddenLayer);
     }
 
-    PipelineNetwork outputLayer = new PipelineNetwork();
+    DAGNetwork outputLayer = new DAGNetwork();
     outputLayer = outputLayer.add(new SynapseActivationLayer(NDArray.dim(midSize)));
     outputLayer = outputLayer.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
     outputLayer = outputLayer.add(new BiasLayer(outSize));

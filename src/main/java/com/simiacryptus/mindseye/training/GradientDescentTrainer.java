@@ -26,16 +26,15 @@ public class GradientDescentTrainer {
   private int[] constraintSet;
   private double error = Double.POSITIVE_INFINITY;
   private NDArray[][] masterTrainingData = null;
-  private PipelineNetwork net = null;
+  private DAGNetwork net = null;
   private double rate = 0.1;
   private double[] rates = null;
   private double temperature = 0.005;
   private int[] trainingSet;
   private int[] validationSet;
-
   private boolean verbose = false;
 
-  public DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
+  protected DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
     final List<NNResult> netresults = eval(trainingContext, activeTrainingData);
     final DeltaBuffer buffer = new DeltaBuffer();
     IntStream.range(0, activeTrainingData.length).parallel().forEach(sample -> {
@@ -91,7 +90,7 @@ public class GradientDescentTrainer {
     return this.masterTrainingData;
   }
 
-  public PipelineNetwork getNet() {
+  public DAGNetwork getNet() {
     return this.net;
   }
 
@@ -135,7 +134,7 @@ public class GradientDescentTrainer {
     return this.validationSet;
   }
 
-  protected DeltaBuffer getVector(final TrainingContext trainingContext) {
+  public DeltaBuffer getVector(final TrainingContext trainingContext) {
     final DeltaBuffer primary = calcDelta(trainingContext, getTrainingData(getTrainingSet()));
     if (isVerbose()) {
       // log.debug(String.format("Primary Delta: %s", primary));
@@ -178,7 +177,7 @@ public class GradientDescentTrainer {
     return this;
   }
 
-  public GradientDescentTrainer setNet(final PipelineNetwork net) {
+  public GradientDescentTrainer setNet(final DAGNetwork net) {
     this.net = net;
     return this;
   }
