@@ -13,7 +13,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.EvaluationContext.LazyResult;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph with a single output.
@@ -27,9 +26,9 @@ public class DAGNetwork extends NNLayer {
 
   private final List<NNLayer> children = new ArrayList<NNLayer>();
 
-  public LazyResult<NNResult[]> head = new LazyResult<NNResult[]>() {
+  public LazyResult head = new LazyResult() {
     @Override
-    protected NNResult[] initialValue(final EvaluationContext t) {
+    protected NNResult[] eval(final EvaluationContext t) {
       return (NNResult[]) t.cache.get(DAGNetwork.this.inputHandle);
     }
 
@@ -44,10 +43,10 @@ public class DAGNetwork extends NNLayer {
 
   public synchronized DAGNetwork add(final NNLayer layer) {
     this.children.add(layer);
-    final LazyResult<NNResult[]> prevHead = this.head;
-    this.head = new LazyResult<NNResult[]>() {
+    final LazyResult prevHead = this.head;
+    this.head = new LazyResult() {
       @Override
-      protected NNResult[] initialValue(final EvaluationContext ctx) {
+      protected NNResult[] eval(final EvaluationContext ctx) {
         final NNResult[] input = prevHead.get(ctx);
         final NNResult output = layer.eval(ctx, input);
         return new NNResult[] { output };
