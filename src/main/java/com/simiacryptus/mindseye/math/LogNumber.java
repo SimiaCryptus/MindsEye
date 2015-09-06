@@ -9,9 +9,8 @@ package com.simiacryptus.mindseye.math;
  */
 @SuppressWarnings("serial")
 public class LogNumber extends Number implements Comparable<LogNumber> {
-  public static final int ADDITION_PRECISION = 7;
+  public static final int ADDITION_PRECISION = 10;
   public static final LogNumber ONE = new LogNumber((byte) 1, 0);
-  
   public static final LogNumber ZERO = new LogNumber((byte) 0, 0);
   
   public static LogNumber log(final double v) {
@@ -46,8 +45,14 @@ public class LogNumber extends Number implements Comparable<LogNumber> {
     if (null == right) return left;
     if (0 == right.type) return left;
     if (0 == left.type) return right;
-    if (left.logValue < right.logValue) return right.add(left);
-    if (right.type == left.type && right.logValue - left.logValue < -LogNumber.ADDITION_PRECISION) return this;
+    if (right.type == left.type) {
+      if (left.logValue < right.logValue) {
+        return right.add(left);
+      }
+      if (left.logValue - right.logValue > LogNumber.ADDITION_PRECISION) {
+        return this;
+      }
+    }
     final LogNumber left2 = new LogNumber(left.type, 0.); // left.logValue-left.logValue
     final LogNumber right2 = new LogNumber(right.type, right.logValue - left.logValue);
     final LogNumber result = LogNumber.log(right2.doubleValue() + left2.doubleValue());

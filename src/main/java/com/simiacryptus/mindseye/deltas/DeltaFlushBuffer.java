@@ -22,20 +22,20 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   }
   
   private final DeltaValueAccumulator[] buffer;
-  private final double[] inner;
+  private final double[] target;
   private final NNLayer layer;
   private boolean normalize = true;
   private LogNumber[] calcVector;
   
   public DeltaFlushBuffer(final double[] values, final DeltaValueAccumulator[] array, final NNLayer layer) {
-    this.inner = values;
+    this.target = values;
     this.layer = layer;
     this.buffer = array;
   }
   
   public DeltaFlushBuffer(final double[] values, final NNLayer layer) {
     assert null != values;
-    this.inner = values;
+    this.target = values;
     this.layer = layer;
     this.buffer = new DeltaValueAccumulator1[values.length];
     Arrays.setAll(this.buffer, i -> DeltaFlushBuffer.newAccumulator());
@@ -82,7 +82,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   }
   
   protected <T extends DeltaValueAccumulator<T>> DeltaFlushBuffer join(final DeltaFlushBuffer right, final BiFunction<T, T, T> joiner) {
-    return new DeltaFlushBuffer(this.inner, IntStream.range(0, this.buffer.length).mapToObj(i -> {
+    return new DeltaFlushBuffer(this.target, IntStream.range(0, this.buffer.length).mapToObj(i -> {
       final T l = (T) this.buffer[i];
       final T r = (T) right.buffer[i];
       if (null != l && null != r) return joiner.apply(l, r);
@@ -109,11 +109,11 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   }
   
   public int length() {
-    return this.inner.length;
+    return this.target.length;
   }
   
   protected <T extends DeltaValueAccumulator<T>> DeltaFlushBuffer map(final Function<T, T> mapper) {
-    return new DeltaFlushBuffer(this.inner, Arrays.stream(this.buffer).map(x -> mapper.apply((T) x)).toArray(i -> new DeltaValueAccumulator[i]), this.layer);
+    return new DeltaFlushBuffer(this.target, Arrays.stream(this.buffer).map(x -> mapper.apply((T) x)).toArray(i -> new DeltaValueAccumulator[i]), this.layer);
   }
   
   @Override
@@ -160,9 +160,9 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
       if (null == cpy[i]) {
         continue;
       }
-      this.inner[i] += cpy[i].doubleValue();
-      if (!Double.isFinite(this.inner[i])) {
-        this.inner[i] = 0;
+      this.target[i] += cpy[i].doubleValue();
+      if (!Double.isFinite(this.target[i])) {
+        this.target[i] = 0;
       }
     }
   }
