@@ -33,8 +33,8 @@ public class GradientDescentTrainer {
   private double error = Double.POSITIVE_INFINITY;
   private NDArray[][] masterTrainingData = null;
   private PipelineNetwork net = null;
-  private double rate = 0.3;
-  private double temperature = 0.00005;
+  private double rate = 0.1;
+  private double temperature = 0.005;
   private boolean verbose = false;
   
   double calcConstraintSieve(final TrainingContext trainingContext) {

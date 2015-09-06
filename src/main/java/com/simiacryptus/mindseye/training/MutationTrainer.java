@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -282,5 +283,23 @@ public class MutationTrainer {
         (System.currentTimeMillis() - startMs) / 1000.,
         this.currentGeneration, trainingContext));
     return null == gradientDescentTrainer ? Double.POSITIVE_INFINITY : gradientDescentTrainer.getError();
+  }
+  
+  public boolean test(final int maxIter, final double convergence, TrainingContext trainingContext, List<BiFunction<PipelineNetwork, TrainingContext, Void>> handler) {
+    boolean hasConverged = false;
+    try {
+      final Double error = trainingContext.overallTimer.time(() -> {
+        return this.setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
+      });
+      PipelineNetwork net = this.getGradientDescentTrainer().getNet();
+      handler.stream().forEach(h -> h.apply(net, trainingContext));
+      hasConverged = error <= convergence;
+      if (!hasConverged) {
+        Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
+      }
+    } catch (final Throwable e) {
+      Tester.log.debug("Not Converged", e);
+    }
+    return hasConverged;
   }
 }

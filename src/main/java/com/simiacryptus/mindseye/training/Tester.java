@@ -26,7 +26,7 @@ public class Tester {
   private MutationTrainer inner = new MutationTrainer();
   
   TrainingContext trainingContext = new TrainingContext();
-
+  
   private boolean parallel = true;
   
   public MutationTrainer getInner() {
@@ -73,28 +73,6 @@ public class Tester {
     return this;
   }
   
-  public boolean testCopy(final int maxIter, final double convergence) {
-    boolean hasConverged = false;
-    try {
-      final MutationTrainer copy = Util.kryo().copy(getInner());
-      final TrainingContext trainingContext = Util.kryo().copy(trainingContext());
-      final Double error = trainingContext.overallTimer.time(() -> {
-        return copy.setMaxIterations(maxIter).setStopError(convergence).train(trainingContext);
-      });
-      PipelineNetwork net = copy.getGradientDescentTrainer().getNet();
-      this.handler.stream().forEach(h -> {
-        h.apply(net, trainingContext);
-      });
-      hasConverged = error <= convergence;
-      if (!hasConverged) {
-        Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
-      }
-    } catch (final Throwable e) {
-      Tester.log.debug("Not Converged", e);
-    }
-    return hasConverged;
-  }
-  
   public void train(final int i, final double d, final TrainingContext trainingContext) throws TerminationCondition {
     final MutationTrainer inner = getInner();
     inner.setMaxIterations(i).setStopError(d);
@@ -111,16 +89,20 @@ public class Tester {
   
   public long verifyConvergence(final int maxIter, final double convergence, final int reps, final int minSuccess) {
     IntStream range = IntStream.range(0, reps);
-    if(isParallel()) range = range.parallel();
-    final long succeesses = range.filter(i -> testCopy(maxIter, convergence)).count();
+    if (isParallel()) range = range.parallel();
+    final long succeesses = range.filter(i -> {
+      MutationTrainer trainerCpy = Util.kryo().copy(getInner());
+      TrainingContext contextCpy = Util.kryo().copy(trainingContext());
+      return trainerCpy.test(maxIter, convergence, contextCpy, handler);
+    }).count();
     if (minSuccess > succeesses) throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
     return succeesses;
   }
-
+  
   public boolean isParallel() {
     return parallel;
   }
-
+  
   public Tester setParallel(boolean parallel) {
     this.parallel = parallel;
     return this;
