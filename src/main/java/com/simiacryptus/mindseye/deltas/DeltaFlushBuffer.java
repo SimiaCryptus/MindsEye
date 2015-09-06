@@ -1,12 +1,9 @@
 package com.simiacryptus.mindseye.deltas;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,6 +150,10 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     if (this.layer.isVerbose()) {
       log.debug(String.format("Write to memory: %s", Arrays.toString(cpy)));
     }
+    write(cpy);
+  }
+
+  private void write(final LogNumber[] cpy) {
     final int dim = length();
     if (null == cpy) return;
     for (int i = 0; i < dim; i++) {
@@ -167,17 +168,11 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   }
 
   public LogNumber[] calcVector() {
-    final LogNumber[] v = new LogNumber[this.buffer.length];
-    for (int i = 0; i < this.buffer.length; i++) {
-      v[i] = this.buffer[i].logValue();
-    }
+    LogNumberVector v = new LogNumberVector(Arrays.stream(this.buffer).map(x->x.logValue()).toArray(i->new LogNumber[i]));
     if (isNormalize()) {
-      LogNumber normalizationFactor = Stream.of(this.buffer).map(x -> x.logValue().abs()).max(Comparator.naturalOrder()).get();
-      for (int i = 0; i < this.buffer.length; i++) {
-        v[i] = v[i].divide(normalizationFactor);
-      }
+      v = v.scale(1./v.l2());
     }
-    return v;
+    return v.getArray();
   }
   
   public boolean isNormalize() {
