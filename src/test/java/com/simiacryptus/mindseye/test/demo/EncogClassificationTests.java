@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -29,7 +30,27 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
+import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.Util;
+
+import org.encog.Encog;
+import org.encog.neural.networks.BasicNetwork;
+import org.encog.neural.networks.training.propagation.Propagation;
+import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+import org.encog.persist.EncogDirectoryPersistence;
+import org.encog.util.Format;
+import org.encog.util.normalize.DataNormalization;
+import org.encog.util.obj.SerializeObject;
+import org.encog.util.simple.EncogUtility;
+
+import org.encog.EncogError;
+import org.encog.ml.data.MLData;
+import org.encog.ml.data.MLDataSet;
+import org.encog.ml.data.basic.BasicMLDataSet;
+import org.encog.neural.networks.BasicNetwork;
+import org.encog.persist.EncogDirectoryPersistence;
+import org.encog.platformspecific.j2se.TrainingDialog;
+import org.encog.util.simple.EncogUtility;
 
 public class EncogClassificationTests {
 
@@ -107,16 +128,16 @@ public class EncogClassificationTests {
     return new double[] { xf, yf };
   }
 
-  public Integer outputToClassification(final NDArray actual) {
-    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
+  public Integer outputToClassification(final double[] actual) {
+    return IntStream.range(0, actual.length).mapToObj(o -> o).max(Comparator.comparing(o -> actual[(int) o])).get();
   }
 
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
-    final DAGNetwork net = null;
-    final Tester trainer = buildTrainer(samples, net);
+    
+    
     final Map<BufferedImage, String> images = new HashMap<>();
     final int categories = samples[0][1].dim();
-    trainer.handler.add((n, trainingContext) -> {
+    Function<BasicNetwork, Void> handler = net -> {
       try {
         final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
         final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
@@ -126,8 +147,9 @@ public class EncogClassificationTests {
                 for (int ypx = 0; ypx < getHeight(); ypx++) {
                   final double xf = (xpx * 1. / getWidth() - .5) * 6;
                   final double yf = (ypx * 1. / getHeight() - .5) * 6;
-                  final NNResult eval = trainer.getInner().getNet().eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
-                  final int classificationActual = outputToClassification(eval.data);
+                  final MLData eval = net.compute(new org.encog.ml.data.basic.BasicMLData(new double[] { xf, yf }));
+                      //.eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+                  final int classificationActual = outputToClassification(eval.getData());
                   final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
                   this.setRGB(xpx, ypx, color);
                 }
@@ -138,14 +160,14 @@ public class EncogClassificationTests {
             correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
               final NDArray expectedOutput = pt[1];
               final NDArray input = pt[0];
-              final NNResult output = trainer.getInner().getNet().eval(input);
-              final NDArray actualOutput = output.data;
-              correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
-                final double x = expectedOutput.get(i) - actualOutput.get(i);
+              final MLData output = net.compute(new org.encog.ml.data.basic.BasicMLData(input.getData()));
+              final double[] actualOutput = output.getData();
+              correct.sumSqErr += IntStream.range(0, actualOutput.length).mapToDouble(i -> {
+                final double x = expectedOutput.get(i) - actualOutput[i];
                 return x * x;
               }).average().getAsDouble();
 
-              final int classificationExpected = outputToClassification(expectedOutput);
+              final int classificationExpected = outputToClassification(expectedOutput.getData());
               final int classificationActual = outputToClassification(actualOutput);
               final double[] coords = inputToXY(input, classificationActual, classificationExpected);
               final double xf = coords[0];
@@ -160,16 +182,38 @@ public class EncogClassificationTests {
             }).average().getAsDouble();
           }
         };
-        final String label = correct.toString() + " \n" + trainingContext.toString();
+        final String label = correct.toString();
         EncogClassificationTests.log.debug(label);
         images.put(img, label);
       } catch (final Exception e) {
         e.printStackTrace();
       }
       return null;
-    });
+    };
     try {
-      verify(trainer);
+      IntStream.range(0, 10).parallel().forEach(thread->{
+        BasicNetwork network = EncogUtility.simpleFeedForward(2, 10, 0, 2, false);  
+        BasicMLDataSet trainingSet = new BasicMLDataSet(
+            Stream.of(samples).map(x->x[0].getData()).toArray(i->new double[i][]),
+            Stream.of(samples).map(x->x[1].getData()).toArray(i->new double[i][])
+            );
+        final BasicNetwork network1 = network;
+        final Propagation train = new ResilientPropagation(network1, trainingSet);
+        train.setThreadCount(0);
+        int epoch = 1;
+        System.out.println("Beginning training...");
+        double target = 0.001;
+        long timeout = System.currentTimeMillis()+java.util.concurrent.TimeUnit.SECONDS.toMillis(15);
+        do {
+          train.iteration();
+          System.out.println("Iteration #" + Format.formatInteger(epoch)
+          + " Error:" + Format.formatPercent(train.getError())
+          + " Target Error: " + Format.formatPercent(target));
+          epoch++;
+        } while ((train.getError() > target) && !train.isTrainingDone() && System.currentTimeMillis()<timeout);
+        train.finishTraining();
+        handler.apply(network);
+      });
     } finally {
       final Stream<String> map = images.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
       final String[] array = map.toArray(i -> new String[i]);
@@ -216,6 +260,7 @@ public class EncogClassificationTests {
   }
 
   @Test(expected = RuntimeException.class)
+  //@Ignore
   public void test_O22() throws Exception {
     test(getTrainingData(2,
         Arrays.<Function<Void, double[]>>asList(
@@ -225,7 +270,7 @@ public class EncogClassificationTests {
   }
 
   @Test(expected = RuntimeException.class)
-  // @Ignore
+  //@Ignore
   public void test_O3() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 1)),
         new UnionDistribution(new Simple2DCircle(.5, new double[] { 0, 0 }))), 1000));
@@ -269,10 +314,6 @@ public class EncogClassificationTests {
             new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
             new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))),
         100));
-  }
-
-  public void verify(final Tester trainer) {
-    trainer.verifyConvergence(0.0, 10);
   }
 
 }
