@@ -14,7 +14,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
@@ -35,14 +34,14 @@ public class DenseSynapseLayer extends NNLayer {
       if (isVerbose()) {
         DenseSynapseLayer.log.debug(String.format("Feed back: %s", this.data));
       }
-      final LogNumber[] deltaData = delta.getData();
+      final double[] deltaData = delta.getData();
 
       if (!isFrozen()) {
         final double[] inputData = this.inObj.data.getData();
         final LogNDArray weightDelta = new LogNDArray(DenseSynapseLayer.this.weights.getDims());
         for (int i = 0; i < weightDelta.getDims()[0]; i++) {
           for (int j = 0; j < weightDelta.getDims()[1]; j++) {
-            weightDelta.set(new int[] { i, j }, deltaData[j].multiply(inputData[i]));
+            weightDelta.set(new int[] { i, j }, deltaData[j]*(inputData[i]));
           }
         }
         buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.exp().getData());
@@ -52,7 +51,7 @@ public class DenseSynapseLayer extends NNLayer {
         final LogNDArray passback = new LogNDArray(this.inObj.data.getDims());
         for (int i = 0; i < matrix.columns; i++) {
           for (int j = 0; j < matrix.rows; j++) {
-            passback.add(i, deltaData[j].multiply(matrix.get(j, i)));
+            passback.add(i, deltaData[j]*(matrix.get(j, i)));
           }
         }
         this.inObj.feedback(passback, buffer);

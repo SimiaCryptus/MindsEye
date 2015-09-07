@@ -13,7 +13,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
@@ -34,13 +33,13 @@ public class LinearActivationLayer extends NNLayer {
       if (isVerbose()) {
         LinearActivationLayer.log.debug(String.format("Feed back: %s", this.data));
       }
-      final LogNumber[] deltaData = delta.getData();
+      final double[] deltaData = delta.getData();
 
       if (!isFrozen()) {
         final double[] inputData = this.inObj.data.getData();
         final LogNDArray weightDelta = new LogNDArray(LinearActivationLayer.this.weights.getDims());
         for (int i = 0; i < deltaData.length; i++) {
-          weightDelta.add(0, deltaData[i].multiply(inputData[i]));
+          weightDelta.add(0, deltaData[i]*(inputData[i]));
         }
         buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).feed(weightDelta.exp().getData());
       }
@@ -49,7 +48,7 @@ public class LinearActivationLayer extends NNLayer {
         final int[] dims = this.inObj.data.getDims();
         final LogNDArray passback = new LogNDArray(dims);
         for (int i = 0; i < passback.dim(); i++) {
-          passback.set(i, deltaData[i].multiply(matrix.get(0, 0)));
+          passback.set(i, deltaData[i]*(matrix.get(0, 0)));
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {

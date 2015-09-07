@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
@@ -55,11 +54,11 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   }
 
   public double[] calcVector() {
-    LogNumberVector v = new LogNumberVector(Arrays.stream(this.buffer).map(x -> x.logValue()).toArray(i -> new LogNumber[i]));
+    NumberVector v = new NumberVector(Arrays.stream(this.buffer).mapToDouble(x -> x.logValue()).toArray());
     if (isNormalize()) {
       v = v.scale(1. / v.l2());
     }
-    NumberVector returnValue = v.toDouble();
+    NumberVector returnValue = v;
 
     if (0 < this.linearDecayRate) {
       final NumberVector unitv = returnValue.unitV();
@@ -75,14 +74,10 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
 
   @Override
   public double dotProduct(final DeltaFlushBuffer right) {
-    return sum(right, (l, r) -> l.logValue().multiply(r.logValue()).doubleValue());
+    return sum(right, (l, r) -> l.logValue()*(r.logValue()));
   }
 
   public void feed(final double[] data) {
-    feed(new NDArray(new int[] { data.length }, data).log().getData());
-  }
-
-  public void feed(final LogNumber[] data) {
     assert null == this.calcVector;
     final int dim = length();
     for (int i = 0; i < dim; i++) {

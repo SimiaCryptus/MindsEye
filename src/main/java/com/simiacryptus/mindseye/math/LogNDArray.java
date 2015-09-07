@@ -21,11 +21,11 @@ public class LogNDArray {
     return total;
   }
 
-  private static LogNumber[] log(final double[] data) {
-    return DoubleStream.of(data).mapToObj(x -> LogNumber.log(x)).toArray(i -> new LogNumber[i]);
+  private static double[] log(final double[] data) {
+    return DoubleStream.of(data).toArray();
   }
 
-  protected volatile LogNumber[] data;
+  protected volatile double[] data;
   protected final int[] dims;
 
   protected final int[] skips;
@@ -41,7 +41,7 @@ public class LogNDArray {
     this(dims, null);
   }
 
-  public LogNDArray(final int[] dims, final LogNumber[] data) {
+  public LogNDArray(final int[] dims, final double[] data) {
     this.dims = Arrays.copyOf(dims, dims.length);
     this.skips = new int[dims.length];
     for (int i = 0; i < this.skips.length; i++) {
@@ -66,15 +66,10 @@ public class LogNDArray {
 
   public synchronized void add(final int index, final double value) {
     assert Double.isFinite(value);
-    set(index, getData()[index].add(value));
+    set(index, getData()[index]+(value));
   }
 
-  public synchronized void add(final int index, final LogNumber value) {
-    assert value.isFinite();
-    set(index, getData()[index].add(value));
-  }
-
-  public void add(final int[] coords, final LogNumber value) {
+  public void add(final int[] coords, final double value) {
     add(index(coords), value);
   }
 
@@ -139,30 +134,29 @@ public class LogNDArray {
   }
 
   public NDArray exp() {
-    return new NDArray(getDims(), Stream.of(getData()).mapToDouble(x -> x.doubleValue()).toArray());
+    return new NDArray(getDims(), DoubleStream.of(getData()).toArray());
   }
 
-  public LogNumber get(final Coordinate coords) {
-    final LogNumber v = getData()[coords.index];
-    assert Double.isFinite(v.logValue);
+  public double get(final Coordinate coords) {
+    final double v = getData()[coords.index];
     return v;
   }
 
-  public LogNumber get(final int... coords) {
+  public double get(final int... coords) {
     // assert
     // IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     // assert coords.length==dims.length;
-    final LogNumber v = getData()[index(coords)];
-    assert v.isFinite();
+    final double v = getData()[index(coords)];
+    assert Double.isFinite(v);
     return v;
   }
 
-  public LogNumber[] getData() {
+  public double[] getData() {
     if (null == this.data) {
       synchronized (this) {
         if (null == this.data) {
-          this.data = new LogNumber[NDArray.dim(this.dims)];
-          Arrays.fill(this.data, LogNumber.ZERO);
+          this.data = new double[NDArray.dim(this.dims)];
+          Arrays.fill(this.data, 0);
         }
       }
     }
@@ -197,29 +191,29 @@ public class LogNDArray {
 
   public LogNDArray scale(final double rate) {
     final LogNDArray copy = new LogNDArray(this);
-    final LogNumber log = LogNumber.log(rate);
+    final double log = (rate);
     for (int i = 0; i < this.data.length; i++) {
-      copy.set(i, this.data[i].multiply(log));
+      copy.set(i, this.data[i]*(log));
     }
     return copy;
   }
 
-  public void set(final Coordinate coords, final LogNumber value) {
-    assert value.isFinite();
+  public void set(final Coordinate coords, final double value) {
+    assert Double.isFinite(value);
     set(coords.index, value);
   }
 
-  public void set(final int index, final LogNumber value) {
-    assert value.isFinite();
+  public void set(final int index, final double value) {
+    assert Double.isFinite(value);
     getData()[index] = value;
   }
 
-  public void set(final int[] coords, final LogNumber value) {
-    assert value.isFinite();
+  public void set(final int[] coords, final double value) {
+    assert Double.isFinite(value);
     set(index(coords), value);
   }
 
-  public LogNDArray set(final LogNumber[] data) {
+  public LogNDArray set(final double[] data) {
     for (int i = 0; i < getData().length; i++) {
       getData()[i] = data[i];
     }
@@ -233,7 +227,7 @@ public class LogNDArray {
 
   private String toString(final int... coords) {
     if (coords.length == this.dims.length)
-      return get(coords).toString();
+      return Double.toString(get(coords));
     else {
       List<String> list = IntStream.range(0, this.dims[coords.length]).mapToObj(i -> {
         return toString(concat(coords, i));

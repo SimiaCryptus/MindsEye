@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
@@ -59,19 +58,19 @@ public class SoftmaxActivationLayer extends NNLayer {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
-          final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
+          final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           // for (int i = 0; i < delta.length; i++)
           // if (delta[i].isNegative()) {
-          // delta[i] = LogNumber.ZERO;
+          // delta[i] = double.ZERO;
           // }
 
           final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
           for (int i = 0; i < input.dim(); i++) {
             for (int j = 0; j < output.dim(); j++) {
-              final LogNumber value = inputGradientLog.get(new int[] { i, j });
-              if (value.isFinite()) {
-                passback.add(i, delta[j].multiply(value));
+              final double value = inputGradientLog.get(new int[] { i, j });
+              if (Double.isFinite(value)) {
+                passback.add(i, delta[j]*(value));
               }
             }
             ;
