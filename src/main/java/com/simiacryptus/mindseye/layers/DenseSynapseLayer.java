@@ -18,6 +18,8 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
+import groovy.lang.Tuple2;
+
 public class DenseSynapseLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
@@ -164,5 +166,33 @@ public class DenseSynapseLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.weights.getData());
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    permute.forEach(t -> {
+      Integer from = t.getFirst();
+      Integer to = t.getSecond();
+      int inputs = weights.getDims()[0];
+      for (int input = 0; input < inputs; input++) {
+        double temp = weights.get(input, to);
+        weights.set(new int[] { input, to }, weights.get(input, from));
+        weights.set(new int[] { input, from }, temp);
+      }
+    });
+    return null;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    permute.forEach(t -> {
+      Integer from = t.getFirst();
+      Integer to = t.getSecond();
+      int outputs = weights.getDims()[1];
+      for (int output = 0; output < outputs; output++) {
+        double temp = weights.get(to, output);
+        weights.set(new int[] { to, output }, weights.get(from, output));
+        weights.set(new int[] { from, output }, temp);
+      }
+    });
+    return null;
   }
 }

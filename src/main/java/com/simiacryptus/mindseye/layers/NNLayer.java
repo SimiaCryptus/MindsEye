@@ -96,11 +96,11 @@ public abstract class NNLayer {
   }
 
   public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
-    return null;
+    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
 
   public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
-    return null;
+    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
   
 }

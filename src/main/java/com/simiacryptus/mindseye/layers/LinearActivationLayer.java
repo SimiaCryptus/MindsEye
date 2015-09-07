@@ -18,6 +18,8 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
+import groovy.lang.Tuple2;
+
 public class LinearActivationLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
@@ -155,5 +157,13 @@ public class LinearActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
 
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
 
 }

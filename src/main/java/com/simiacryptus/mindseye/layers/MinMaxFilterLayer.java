@@ -14,6 +14,8 @@ import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
+import groovy.lang.Tuple2;
+
 public class MinMaxFilterLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
@@ -114,6 +116,14 @@ public class MinMaxFilterLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
   }
 
 }

@@ -15,6 +15,8 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
+import groovy.lang.Tuple2;
+
 public class BiasLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
@@ -106,6 +108,28 @@ public class BiasLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.bias);
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    permute.forEach(t->{
+      Integer from = t.getFirst();
+      Integer to = t.getSecond();
+      double temp = bias[to];
+      bias[to] = bias[from];
+      bias[from] = temp;
+    });
+    return permute;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    permute.forEach(t->{
+      Integer from = t.getFirst();
+      Integer to = t.getSecond();
+      double temp = bias[to];
+      bias[to] = bias[from];
+      bias[from] = temp;
+    });
+    return permute;
   }
 
 }

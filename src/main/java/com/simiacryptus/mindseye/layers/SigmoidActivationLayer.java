@@ -13,6 +13,8 @@ import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
+import groovy.lang.Tuple2;
+
 public class SigmoidActivationLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
@@ -108,5 +110,13 @@ public class SigmoidActivationLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
   }
 }

@@ -14,6 +14,8 @@ import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
+import groovy.lang.Tuple2;
+
 public class ExpActivationLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(ExpActivationLayer.class);
@@ -81,4 +83,13 @@ public class ExpActivationLayer extends NNLayer {
   public List<double[]> state() {
     return Arrays.asList();
   }
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
 }

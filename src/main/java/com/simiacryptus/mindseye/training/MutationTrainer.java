@@ -291,8 +291,12 @@ public class MutationTrainer {
         return dynamicRateTrainer;
       }).collect(Collectors.toList());
 
+      align(trainingContext, population);
+      log.debug("This should be a no-op (verify in logs manually):");
+      align(trainingContext, population);
+      measure(trainingContext, population);
+      
       List<DynamicRateTrainer> progenators = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).limit(3).collect(Collectors.toList());
-      measure(population, trainingContext);
       if (generation < getNumberOfGenerations())
         population = recombine(progenators);
     }
@@ -319,8 +323,65 @@ public class MutationTrainer {
     return nextGen;
   }
 
-  private void measure(List<DynamicRateTrainer> p, TrainingContext trainingContext) {
-    
+  private void measure(TrainingContext trainingContext, List<DynamicRateTrainer> population) {
+    population.stream().flatMapToDouble(a -> {
+      List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
+      log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
+      return population.stream()
+          // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
+          .mapToDouble(b -> {
+        List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
+        assert (state1.size() == state2.size());
+        double sum = 0.;
+        int cnt = 0;
+        for (int i = 0; i < state1.size(); i++) {
+          double[] a1 = state1.get(i);
+          double[] a2 = state2.get(i);
+          assert (a1.length == a2.length);
+          for (int j = 0; j < a1.length; j++) {
+            double abs = Math.abs(Math.log(Math.abs(Math.abs(a1[j] - a2[j]) / a2[j])));
+            if (Double.isFinite(abs)) {
+              sum += abs;
+              cnt++;
+            }
+          }
+        }
+        double avg = Math.exp(sum / cnt);
+        log.debug(String.format("Geometric Alignment between %s and %s: %s", a, b, avg));
+        return avg;
+      });
+    }).average().getAsDouble();
+
+    population.stream().flatMapToDouble(a -> {
+      List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
+      log.debug(String.format("Evaluating arithmetic alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
+      return population.stream()
+          // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
+          .mapToDouble(b -> {
+        List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
+        assert (state1.size() == state2.size());
+        double sum = 0.;
+        int cnt = 0;
+        for (int i = 0; i < state1.size(); i++) {
+          double[] a1 = state1.get(i);
+          double[] a2 = state2.get(i);
+          assert (a1.length == a2.length);
+          for (int j = 0; j < a1.length; j++) {
+            double abs = Math.abs(a1[j] - a2[j]);
+            if (Double.isFinite(abs)) {
+              sum += abs;
+              cnt++;
+            }
+          }
+        }
+        double avg = sum / cnt;
+        log.debug(String.format("Arithmetic alignment between %s and %s: %s", a, b, avg));
+        return avg;
+      });
+    }).average().getAsDouble();
+  }
+
+  private void align(TrainingContext trainingContext, List<DynamicRateTrainer> p) {
     List<List<List<double[]>>> signatures = p.stream().map(t->{
       NDArray[][] masterTrainingData = t.getGradientDescentTrainer().getMasterTrainingData();
       DAGNetwork net = t.getGradientDescentTrainer().getNet();
@@ -351,62 +412,6 @@ public class MutationTrainer {
         }
       });
     });
-    
-    p.stream().flatMapToDouble(a -> {
-      List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
-      log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
-      return p.stream()
-          // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
-          .mapToDouble(b -> {
-        List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
-        assert (state1.size() == state2.size());
-        double sum = 0.;
-        int cnt = 0;
-        for (int i = 0; i < state1.size(); i++) {
-          double[] a1 = state1.get(i);
-          double[] a2 = state2.get(i);
-          assert (a1.length == a2.length);
-          for (int j = 0; j < a1.length; j++) {
-            double abs = Math.abs(Math.log(Math.abs(Math.abs(a1[j] - a2[j]) / a2[j])));
-            if (Double.isFinite(abs)) {
-              sum += abs;
-              cnt++;
-            }
-          }
-        }
-        double avg = Math.exp(sum / cnt);
-        log.debug(String.format("Geometric Alignment between %s and %s: %s", a, b, avg));
-        return avg;
-      });
-    }).average().getAsDouble();
-
-    p.stream().flatMapToDouble(a -> {
-      List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
-      log.debug(String.format("Evaluating arithmetic alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
-      return p.stream()
-          // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
-          .mapToDouble(b -> {
-        List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
-        assert (state1.size() == state2.size());
-        double sum = 0.;
-        int cnt = 0;
-        for (int i = 0; i < state1.size(); i++) {
-          double[] a1 = state1.get(i);
-          double[] a2 = state2.get(i);
-          assert (a1.length == a2.length);
-          for (int j = 0; j < a1.length; j++) {
-            double abs = Math.abs(a1[j] - a2[j]);
-            if (Double.isFinite(abs)) {
-              sum += abs;
-              cnt++;
-            }
-          }
-        }
-        double avg = sum / cnt;
-        log.debug(String.format("Arithmetic alignment between %s and %s: %s", a, b, avg));
-        return avg;
-      });
-    }).average().getAsDouble();
   }
 
   public static List<Tuple2<Integer, Integer>> findMapping(List<double[]> a, List<double[]> b) {
