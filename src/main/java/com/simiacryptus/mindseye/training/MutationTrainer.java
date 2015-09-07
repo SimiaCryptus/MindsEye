@@ -269,7 +269,7 @@ public class MutationTrainer {
     return hasConverged;
   }
 
-  private int numberOfGenerations = 1;
+  private int numberOfGenerations = 2;
   private int populationSize = 5;
 
   public Double train(final TrainingContext trainingContext) {
@@ -292,8 +292,11 @@ public class MutationTrainer {
         return dynamicRateTrainer;
       }).collect(Collectors.toList());
 
+      measure(trainingContext, population);
       align(trainingContext, population);
-      log.debug("This should be a no-op (verify in logs manually):");
+      log.debug("Re-alignment:");
+      align(trainingContext, population);
+      log.debug("Re-alignment:");
       align(trainingContext, population);
       measure(trainingContext, population);
 

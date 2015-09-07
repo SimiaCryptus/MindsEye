@@ -113,38 +113,44 @@ public class BiasLayer extends NNLayer {
 
   public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
     java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
+    java.util.stream.IntStream.range(0,bias.length).forEach(i->shuffleMap.put(i, i));;
     permute.forEach(t->{
-      Integer from = t.getFirst();
-      Integer to = t.getSecond();
-
-      from = shuffleMap.getOrDefault(from,from);
-      //assert(!shuffleMap.containsKey(to));
-      //to = shuffleMap.getOrDefault(to,to);
+      int from = t.getFirst();
+      int to = t.getSecond();
+      from = shuffleMap.get(from);
 
       double temp = bias[to];
       bias[to] = bias[from];
       bias[from] = temp;
-      shuffleMap.put(from, to);
-      shuffleMap.put(to, from);
+      
+      for(int k : shuffleMap.keySet()){
+        int value = shuffleMap.get(k);
+        if(value == from) value = to;
+        else if(value == to) value = from;
+        shuffleMap.put(k, value);
+      }
     });
     return permute;
   }
 
   public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
     java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
+    java.util.stream.IntStream.range(0,bias.length).forEach(i->shuffleMap.put(i, i));;
     permute.forEach(t->{
       Integer from = t.getFirst();
       Integer to = t.getSecond();
-
-      from = shuffleMap.getOrDefault(from,from);
-      //assert(!shuffleMap.containsKey(to));
-      //to = shuffleMap.getOrDefault(to,to);
+      from = shuffleMap.get(from);
 
       double temp = bias[to];
       bias[to] = bias[from];
       bias[from] = temp;
-      shuffleMap.put(from, to);
-      shuffleMap.put(to, from);
+      
+      for(int k : shuffleMap.keySet()){
+        int value = shuffleMap.get(k);
+        if(value == from) value = to;
+        else if(value == to) value = from;
+        shuffleMap.put(k, value);
+      }
     });
     return permute;
   }
