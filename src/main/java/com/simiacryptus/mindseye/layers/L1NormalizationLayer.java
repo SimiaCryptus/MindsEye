@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
+import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 import groovy.lang.Tuple2;
@@ -56,12 +57,12 @@ public class L1NormalizationLayer extends NNLayer {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
-          final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
+          final LogNumber[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
           for (int i = 0; i < input.dim(); i++) {
             for (int j = 0; j < output.dim(); j++) {
-              passback.add(i, delta[j]*(inputGradientLog.get(new int[] { i, j })));
+              passback.add(i, delta[j].multiply(inputGradientLog.get(new int[] { i, j })));
             }
             ;
           }

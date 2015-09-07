@@ -2,10 +2,12 @@ package com.simiacryptus.mindseye.deltas;
 
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
+import com.simiacryptus.mindseye.math.LogNumber;
 
 public class DeltaValueAccumulator2 implements DeltaValueAccumulator<DeltaValueAccumulator2> {
-  public TreeSet<Double> numbers = new TreeSet<>();
+  public TreeSet<LogNumber> numbers = new TreeSet<>();
 
   public DeltaValueAccumulator2() {
   }
@@ -22,25 +24,25 @@ public class DeltaValueAccumulator2 implements DeltaValueAccumulator<DeltaValueA
   }
 
   @Override
-  public synchronized DeltaValueAccumulator2 add(final double r) {
+  public synchronized DeltaValueAccumulator2 add(final LogNumber r) {
     this.numbers.add(r);
     return this;
   }
 
   @Override
   public double doubleValue() {
-    return logValue();
+    return logValue().doubleValue();
   }
 
   @Override
-  public synchronized double logValue() {
-    final double[] array = this.numbers.stream().mapToDouble(x->x).toArray();
+  public synchronized LogNumber logValue() {
+    final LogNumber[] array = this.numbers.stream().toArray(i -> new LogNumber[i]);
     if (null == array || 0 == array.length)
-      return 0;
-    return java.util.stream.DoubleStream.of(array).reduce((a, b) -> a+b).getAsDouble()/array.length;
+      return LogNumber.ZERO;
+    return Stream.of(array).reduce((a, b) -> a.add(b)).get().divide(array.length);
   }
 
-  private synchronized DeltaValueAccumulator2 map(final Function<Double, Double> f) {
+  private synchronized DeltaValueAccumulator2 map(final Function<LogNumber, LogNumber> f) {
     final DeltaValueAccumulator2 copy = new DeltaValueAccumulator2();
     this.numbers.stream().map(f).forEach(x -> copy.add(x));
     // copy.sum = f.apply(sum);
@@ -49,7 +51,7 @@ public class DeltaValueAccumulator2 implements DeltaValueAccumulator<DeltaValueA
 
   @Override
   public DeltaValueAccumulator2 multiply(final double r) {
-    return map(x -> x*(r));
+    return map(x -> x.multiply(r));
   }
 
 }
