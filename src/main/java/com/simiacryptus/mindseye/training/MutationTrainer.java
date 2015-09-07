@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.training;
 
 import groovy.lang.Tuple2;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -16,7 +15,6 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
@@ -337,6 +335,9 @@ public class MutationTrainer {
     int bestIndex = mapToObj.sorted(Comparator.comparing(t->t.getSecond().getGradientDescentTrainer().getError())).findFirst().get().getFirst();
     int syncLayers = signatures.get(bestIndex).size();
     assert(signatures.stream().allMatch(s->s.size()==syncLayers));
+    List<PermutationLayer> pl = p.get(bestIndex).getGradientDescentTrainer().getNet().getChildren().stream()
+        .filter(x->x instanceof PermutationLayer).map(x->(PermutationLayer)x)
+        .collect(Collectors.toList());
     IntStream.range(0, signatures.size()).filter(i->i!=bestIndex).forEach(individual->{
       IntStream.range(0, syncLayers).forEach(layerIndex->{
         List<double[]> a = signatures.get(bestIndex).get(layerIndex);
@@ -345,6 +346,8 @@ public class MutationTrainer {
         if(0<a.size()){
           List<Tuple2<Integer,Integer>> permute = findMapping(a,b);
           log.debug(String.format("Permutation in layer %s from %s to %s: %s", layerIndex, individual, bestIndex, permute));
+          DAGNetwork net = p.get(individual).getGradientDescentTrainer().getNet();
+          net.permute(pl.get(layerIndex).getId(), permute);
         }
       });
     });
@@ -415,7 +418,7 @@ public class MutationTrainer {
     double[][] vectorsB = IntStream.range(0, dim).mapToObj(i->b.stream().mapToDouble(x->x[i]).toArray()).toArray(i->new double[i][]);
     
     NDArray covariance = new NDArray(dim,dim);
-    double[][] matrix = IntStream.range(0, dim).mapToObj(i->{
+    IntStream.range(0, dim).mapToObj(i->{
       return IntStream.range(0, dim).mapToDouble(j->{
         double dotProduct = 0;
         double magA = 0;

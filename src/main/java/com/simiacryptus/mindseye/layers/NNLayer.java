@@ -13,6 +13,8 @@ import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
 
+import groovy.lang.Tuple2;
+
 /**
  * Nonlinear Network Layer (aka Neural Network Layer)
  *
@@ -34,7 +36,7 @@ public abstract class NNLayer {
     }).toArray(i -> new NNResult[i]);
   }
 
-  private final String id = UUID.randomUUID().toString();
+  private final UUID id = UUID.randomUUID();
 
   public final NNResult eval(final EvaluationContext evaluationContext, final NDArray... array) {
     return eval(evaluationContext, NNLayer.wrapInput(array));
@@ -46,14 +48,14 @@ public abstract class NNLayer {
     return Arrays.asList(this);
   }
 
-  public String getId() {
+  public UUID getId() {
     return this.id;
   }
 
   public JsonObject getJson() {
     final JsonObject json = new JsonObject();
     json.addProperty("class", getClass().getSimpleName());
-    json.addProperty("id", getId());
+    json.addProperty("id", getId().toString());
     return json;
   }
 
@@ -68,4 +70,37 @@ public abstract class NNLayer {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    NNLayer other = (NNLayer) obj;
+    if (id == null) {
+      if (other.id != null)
+        return false;
+    } else if (!id.equals(other.id))
+      return false;
+    return true;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    return null;
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    return null;
+  }
+  
 }

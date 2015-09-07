@@ -44,7 +44,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
     net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
-    net = net.add(new PermutationLayer());
+    //net = net.add(new PermutationLayer());
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(outSize)).setWeights(()->1.));
     net = net.add(new BiasLayer(outSize));

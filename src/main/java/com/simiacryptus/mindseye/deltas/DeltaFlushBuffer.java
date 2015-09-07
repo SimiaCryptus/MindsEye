@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.deltas;
 
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -90,9 +91,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     }
   }
 
-  public String getId() {
-    if (null == this.layer)
-      return "";
+  public UUID getId() {
     return this.layer.getId();
   }
 
