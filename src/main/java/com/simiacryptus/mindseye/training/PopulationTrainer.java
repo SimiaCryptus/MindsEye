@@ -78,6 +78,7 @@ public class PopulationTrainer {
   private int numberOfGenerations = 2;
   private int populationSize = 5;
   private boolean verbose = false;
+  private boolean align = true;
 
   private void align(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
     final List<List<List<double[]>>> signatures = population.stream().map(t -> {
@@ -350,23 +351,26 @@ public class PopulationTrainer {
 
     for (int generation = 0; generation <= getNumberOfGenerations(); generation++) {
       population = population.stream().map(dynamicRateTrainer -> {
-        final int currentGeneration = trainIndividual(trainingContext, dynamicRateTrainer);
-        PopulationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", dynamicRateTrainer.getGradientDescentTrainer().getError(),
-            (System.currentTimeMillis() - startMs) / 1000., currentGeneration, trainingContext));
+        trainIndividual(trainingContext, dynamicRateTrainer);
+        if (this.verbose) {
+          PopulationTrainer.log.info(String.format("Completed training to %.5f in %.03fs - %s", dynamicRateTrainer.getGradientDescentTrainer().getError(),
+              (System.currentTimeMillis() - startMs) / 1000., trainingContext));
+        }
         return dynamicRateTrainer;
       }).collect(Collectors.toList());
 
       measure(trainingContext, population);
-      align(trainingContext, population);
-      log.debug("Re-alignment:");
-      align(trainingContext, population);
-      log.debug("Re-alignment:");
-      align(trainingContext, population);
-      measure(trainingContext, population);
-
-      final List<DynamicRateTrainer> progenators = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).limit(3)
-          .collect(Collectors.toList());
       if (generation < getNumberOfGenerations()) {
+        if (isAlign()) {
+          align(trainingContext, population);
+          log.debug("Re-alignment:");
+          align(trainingContext, population);
+          log.debug("Re-alignment:");
+          align(trainingContext, population);
+          measure(trainingContext, population);
+        }
+        final List<DynamicRateTrainer> progenators = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).limit(3)
+            .collect(Collectors.toList());
         population = recombine(progenators);
       }
     }
@@ -375,21 +379,21 @@ public class PopulationTrainer {
     return getDynamicRateTrainer().getGradientDescentTrainer().getError();
   }
 
-  private int trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
-    final int currentGeneration = 0;
-    final DAGNetwork initial = Util.kryo().copy(dynamicRateTrainer.getGradientDescentTrainer().getNet());
+  private void trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
     try {
-      if (this.verbose) {
-        final GradientDescentTrainer gradientDescentTrainer = dynamicRateTrainer.getGradientDescentTrainer();
-        PopulationTrainer.log.debug(String.format("Mutating at iteration %s Error: %s with rate %s\n%s", currentGeneration, gradientDescentTrainer.getError(),
-            gradientDescentTrainer.getRate(), gradientDescentTrainer.getNet()));
-      }
       trainingContext.mutations.increment();
-      dynamicRateTrainer.getGradientDescentTrainer().setNet(Util.kryo().copy(initial));
       dynamicRateTrainer.trainToLocalOptimum(trainingContext);
     } catch (final TerminationCondition e) {
       PopulationTrainer.log.debug("Terminated training", e);
     }
-    return currentGeneration;
+  }
+
+  public boolean isAlign() {
+    return align;
+  }
+
+  public PopulationTrainer setAlign(boolean align) {
+    this.align = align;
+    return this;
   }
 }
