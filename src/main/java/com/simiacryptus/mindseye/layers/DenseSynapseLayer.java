@@ -100,16 +100,16 @@ public class DenseSynapseLayer extends NNLayer {
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(this.outputDims);
-    IntStream.range(0, input.dim()).forEach(i -> {
-      IntStream.range(0, output.dim()).forEach(o -> {
+    for(int i=0;i<input.dim();i++) {
+      for(int o=0;o<output.dim();o++) {
         final double a = this.weights.get(i, o);
         final double b = input.getData()[i];
         final double value = b * a;
         if (Double.isFinite(value)) {
           output.add(o, value);
         }
-      });
-    });
+      }
+    }
     if (isVerbose()) {
       DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }

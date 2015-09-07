@@ -65,7 +65,7 @@ public class NDArray {
     add(coords.index, value);
   }
 
-  public synchronized void add(final int index, final double value) {
+  public void add(final int index, final double value) {
     assert Double.isFinite(value);
     getData()[index] += value;
   }
