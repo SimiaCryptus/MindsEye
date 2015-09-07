@@ -78,7 +78,7 @@ public class PopulationTrainer {
   private int numberOfGenerations = 2;
   private int populationSize = 5;
   private boolean verbose = false;
-  private boolean align = true;
+  private boolean alignEnabled = true;
 
   private void align(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
     final List<List<List<double[]>>> signatures = population.stream().map(t -> {
@@ -108,8 +108,10 @@ public class PopulationTrainer {
         if (0 < canonicalSignature.size()) {
           final List<Tuple2<Integer, Integer>> permute = findMapping(individualSignature, canonicalSignature);
           log.debug(String.format("Permutation in layer %s from %s to %s: %s", layerIndex, individual, canonicalIndex, permute));
-          final DAGNetwork net = population.get(individual).getGradientDescentTrainer().getNet();
-          net.permute(syncLayers.get(layerIndex).getId(), permute);
+          if (isAlignEnabled()) {
+            final DAGNetwork net = population.get(individual).getGradientDescentTrainer().getNet();
+            net.permute(syncLayers.get(layerIndex).getId(), permute);
+          }
         }
       });
     });
@@ -361,8 +363,8 @@ public class PopulationTrainer {
 
       measure(trainingContext, population);
       if (generation < getNumberOfGenerations()) {
-        if (isAlign()) {
-          align(trainingContext, population);
+        align(trainingContext, population);
+        if (isAlignEnabled()) {
           log.debug("Re-alignment:");
           align(trainingContext, population);
           log.debug("Re-alignment:");
@@ -388,12 +390,12 @@ public class PopulationTrainer {
     }
   }
 
-  public boolean isAlign() {
-    return align;
+  public boolean isAlignEnabled() {
+    return alignEnabled;
   }
 
-  public PopulationTrainer setAlign(boolean align) {
-    this.align = align;
+  public PopulationTrainer setAlignEnabled(boolean align) {
+    this.alignEnabled = align;
     return this;
   }
 }
