@@ -103,6 +103,16 @@ public class MinMaxFilterLayer extends NNLayer {
     return this.verbose;
   }
 
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
   public MinMaxFilterLayer setThreshold(final double threshold) {
     this.threshold = threshold;
     return this;
@@ -116,14 +126,6 @@ public class MinMaxFilterLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
-    return permute;
   }
 
 }

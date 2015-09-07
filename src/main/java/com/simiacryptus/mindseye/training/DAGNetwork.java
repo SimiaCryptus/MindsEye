@@ -16,8 +16,9 @@ import com.simiacryptus.mindseye.math.NDArray;
 import groovy.lang.Tuple2;
 
 /***
- * Builds a network NNLayer components, assumed to form a directed acyclic graph with a single output.
- * Supplied builder methods designed to build linear sequence of units acting on the current output node.
+ * Builds a network NNLayer components, assumed to form a directed acyclic graph
+ * with a single output. Supplied builder methods designed to build linear
+ * sequence of units acting on the current output node.
  *
  * @author Andrew Charneski
  */
@@ -25,13 +26,13 @@ public class DAGNetwork extends NNLayer {
   private final class InputNode extends LazyResult {
     @Override
     protected NNResult[] eval(final EvaluationContext t) {
-      return (NNResult[]) t.cache.get(inputHandle);
+      return t.cache.get(DAGNetwork.this.inputHandle);
     }
 
     @Override
     protected JsonObject toJson() {
       final JsonObject json = new JsonObject();
-      json.addProperty("target", inputHandle.toString());
+      json.addProperty("target", DAGNetwork.this.inputHandle.toString());
       return json;
     }
   }
@@ -40,23 +41,23 @@ public class DAGNetwork extends NNLayer {
     private final NNLayer layer;
     private final LazyResult prevHead;
 
-    private UnaryNode(NNLayer layer, LazyResult prevHead) {
+    private UnaryNode(final NNLayer layer, final LazyResult prevHead) {
       this.layer = layer;
       this.prevHead = prevHead;
     }
 
     @Override
     protected NNResult[] eval(final EvaluationContext ctx) {
-      final NNResult[] input = prevHead.get(ctx);
-      final NNResult output = layer.eval(ctx, input);
+      final NNResult[] input = this.prevHead.get(ctx);
+      final NNResult output = this.layer.eval(ctx, input);
       return new NNResult[] { output };
     }
 
     @Override
     protected JsonObject toJson() {
       final JsonObject json = new JsonObject();
-      json.add("layer", layer.getJson());
-      json.add("prev", prevHead.toJson());
+      json.add("layer", this.layer.getJson());
+      json.add("prev", this.prevHead.toJson());
       return json;
     }
   }
@@ -65,25 +66,25 @@ public class DAGNetwork extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private final java.util.LinkedHashMap<UUID, NNLayer> byId = new java.util.LinkedHashMap<>();
-  private final java.util.HashMap<NNLayer, NNLayer> prevMap = new java.util.HashMap<>();
-  private final java.util.HashMap<NNLayer, NNLayer> nextMap = new java.util.HashMap<>();
-
   private LazyResult head = new InputNode();
   public final UUID inputHandle = UUID.randomUUID();
 
+  private final java.util.HashMap<NNLayer, NNLayer> nextMap = new java.util.HashMap<>();
+  private final java.util.HashMap<NNLayer, NNLayer> prevMap = new java.util.HashMap<>();
+
   public synchronized DAGNetwork add(final NNLayer layer) {
-    NNLayer headLayer = getHeadLayer();
+    final NNLayer headLayer = getHeadLayer();
     this.byId.put(layer.getId(), layer);
     this.prevMap.put(layer, headLayer);
     this.nextMap.put(headLayer, layer);
-    this.setHead(new UnaryNode(layer, this.getHead()));
+    setHead(new UnaryNode(layer, getHead()));
     return this;
   }
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... array) {
     evaluationContext.cache.put(this.inputHandle, array);
-    return this.getHead().get(evaluationContext)[0];
+    return getHead().get(evaluationContext)[0];
   }
 
   public NNResult eval(final NDArray... array) {
@@ -99,57 +100,59 @@ public class DAGNetwork extends NNLayer {
     return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
 
+  public LazyResult getHead() {
+    return this.head;
+  }
+
+  public NNLayer getHeadLayer() {
+    if (this.head instanceof UnaryNode)
+      return ((UnaryNode) this.head).layer;
+    return null;
+  }
+
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
-    json.add("root", this.getHead().toJson());
+    json.add("root", getHead().toJson());
     // for(NNLayer c : getChildren()){
     // json.add(c.getId(), c.getJson());
     // }
     return json;
   }
 
-  public Tester trainer(final NDArray[][] samples) {
-    return new Tester().setParams(this, samples);
+  private void permutate_back(final NNLayer permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
+    final NNLayer prev = this.prevMap.get(permutationLayer);
+    final List<Tuple2<Integer, Integer>> passback = prev.permuteOutput(permute);
+    if (null != passback) {
+      permutate_back(prev, passback);
+    }
   }
 
+  private void permutate_forward(final NNLayer permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
+    final NNLayer next = this.nextMap.get(permutationLayer);
+    final List<Tuple2<Integer, Integer>> passforward = next.permuteInput(permute);
+    if (null != passforward) {
+      permutate_forward(next, passforward);
+    }
+  }
+
+  public void permute(final UUID id, final List<Tuple2<Integer, Integer>> permute) {
+    final NNLayer permutationLayer = this.byId.get(id);
+    permutate_back(permutationLayer, permute);
+    permutate_forward(permutationLayer, permute);
+
+  }
+
+  public void setHead(final LazyResult head) {
+    this.head = head;
+  }
 
   @Override
   public List<double[]> state() {
-    return getChildren().stream().flatMap(l->l.state().stream()).distinct().collect(Collectors.toList());
+    return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
   }
 
-  public void permute(UUID id, List<Tuple2<Integer, Integer>> permute) {
-    NNLayer permutationLayer = byId.get(id);
-    permutate_back(permutationLayer, permute);
-    permutate_forward(permutationLayer, permute);
-    
-  }
-
-  private void permutate_forward(NNLayer permutationLayer, List<Tuple2<Integer, Integer>> permute) {
-    NNLayer next = this.nextMap.get(permutationLayer);
-    List<Tuple2<Integer, Integer>> passforward = next.permuteInput(permute);
-    if(null != passforward) permutate_forward(next, passforward);
-  }
-
-  private void permutate_back(NNLayer permutationLayer, List<Tuple2<Integer, Integer>> permute) {
-    NNLayer prev = this.prevMap.get(permutationLayer);
-    List<Tuple2<Integer, Integer>> passback = prev.permuteOutput(permute);
-    if(null != passback) permutate_back(prev, passback);
-  }
-
-  public LazyResult getHead() {
-    return head;
-  }
-
-  public NNLayer getHeadLayer() {
-    if(head instanceof UnaryNode) {
-      return ((UnaryNode)head).layer;
-    }
-    return null;
-  }
-
-  public void setHead(LazyResult head) {
-    this.head = head;
+  public Tester trainer(final NDArray[][] samples) {
+    return new Tester().setParams(this, samples);
   }
 }

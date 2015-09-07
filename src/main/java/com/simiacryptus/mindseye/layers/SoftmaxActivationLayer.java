@@ -98,6 +98,16 @@ public class SoftmaxActivationLayer extends NNLayer {
     return this.verbose;
   }
 
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
   public SoftmaxActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
@@ -106,13 +116,5 @@ public class SoftmaxActivationLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
-    return permute;
   }
 }

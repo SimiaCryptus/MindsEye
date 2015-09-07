@@ -73,12 +73,12 @@ public class PopulationTrainer {
     return list;
   }
 
+  private boolean alignEnabled = true;
   private double initAmplitude = 5.;
   private DynamicRateTrainer inner = new DynamicRateTrainer();
   private int numberOfGenerations = 2;
   private int populationSize = 5;
   private boolean verbose = false;
-  private boolean alignEnabled = true;
 
   private void align(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
     final List<List<List<double[]>>> signatures = population.stream().map(t -> {
@@ -207,6 +207,10 @@ public class PopulationTrainer {
     dynamicRateTrainer.getGradientDescentTrainer().setError(Double.NaN);
   }
 
+  public boolean isAlignEnabled() {
+    return this.alignEnabled;
+  }
+
   public boolean isVerbose() {
     return this.verbose;
   }
@@ -292,6 +296,11 @@ public class PopulationTrainer {
       }
     });
     return nextGen;
+  }
+
+  public PopulationTrainer setAlignEnabled(final boolean align) {
+    this.alignEnabled = align;
+    return this;
   }
 
   public PopulationTrainer setAmplitude(final double amplitude) {
@@ -388,14 +397,5 @@ public class PopulationTrainer {
     } catch (final TerminationCondition e) {
       PopulationTrainer.log.debug("Terminated training", e);
     }
-  }
-
-  public boolean isAlignEnabled() {
-    return alignEnabled;
-  }
-
-  public PopulationTrainer setAlignEnabled(boolean align) {
-    this.alignEnabled = align;
-    return this;
   }
 }

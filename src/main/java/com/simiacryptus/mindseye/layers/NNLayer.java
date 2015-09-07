@@ -38,6 +38,23 @@ public abstract class NNLayer {
 
   private final UUID id = UUID.randomUUID();
 
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    final NNLayer other = (NNLayer) obj;
+    if (this.id == null) {
+      if (other.id != null)
+        return false;
+    } else if (!this.id.equals(other.id))
+      return false;
+    return true;
+  }
+
   public final NNResult eval(final EvaluationContext evaluationContext, final NDArray... array) {
     return eval(evaluationContext, NNLayer.wrapInput(array));
   }
@@ -59,48 +76,31 @@ public abstract class NNLayer {
     return json;
   }
 
-  public abstract List<double[]> state();
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (this.id == null ? 0 : this.id.hashCode());
+    return result;
+  }
 
   public boolean isVerbose() {
     return false;
   }
+
+  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
+    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
+  }
+
+  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
+    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
+  }
+
+  public abstract List<double[]> state();
 
   @Override
   public final String toString() {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
 
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    NNLayer other = (NNLayer) obj;
-    if (id == null) {
-      if (other.id != null)
-        return false;
-    } else if (!id.equals(other.id))
-      return false;
-    return true;
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
-    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
-    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
-  }
-  
 }

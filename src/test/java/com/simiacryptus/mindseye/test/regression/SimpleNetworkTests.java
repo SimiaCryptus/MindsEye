@@ -76,9 +76,9 @@ public class SimpleNetworkTests {
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { -1 }), new NDArray(outSize, new double[] { 0 }) },
         { new NDArray(inputSize, new double[] { 0 }), new NDArray(outSize, new double[] { .2 }) },
         { new NDArray(inputSize, new double[] { 1 }), new NDArray(outSize, new double[] { 0 }) } };
-    new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(new double[] { 1, 1 }).freeze())
-        .add(new BiasLayer(midSize).set(new double[] { -1, 1 })).add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze()).trainer(samples).verifyConvergence(0.1, 10);
+    new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(new double[] { 1, 1 }).freeze()).add(new BiasLayer(midSize).set(new double[] { -1, 1 }))
+        .add(new SigmoidActivationLayer()).add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze()).trainer(samples)
+        .verifyConvergence(0.1, 10);
   }
 
   @Test

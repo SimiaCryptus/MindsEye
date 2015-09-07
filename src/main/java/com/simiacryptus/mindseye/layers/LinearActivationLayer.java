@@ -133,6 +133,16 @@ public class LinearActivationLayer extends NNLayer {
     return this.verbose;
   }
 
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
+    return permute;
+  }
+
   public LinearActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
@@ -148,22 +158,13 @@ public class LinearActivationLayer extends NNLayer {
     return this;
   }
 
-  public LinearActivationLayer thaw() {
-    return freeze(false);
-  }
-
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.weights.getData());
   }
 
-
-  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
-    return permute;
+  public LinearActivationLayer thaw() {
+    return freeze(false);
   }
 
 }

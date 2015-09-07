@@ -56,26 +56,26 @@ public class GradientDescentTrainer {
     return eval(trainingContext, trainingData, true);
   }
 
-  public List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData, boolean parallel) {
+  public List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData, final boolean parallel) {
     IntStream stream = IntStream.range(0, trainingData.length);
-    if(parallel) stream = stream.parallel();
+    if (parallel) {
+      stream = stream.parallel();
+    }
     return stream.mapToObj(i -> {
-      NDArray[] sample = trainingData[i];
+      final NDArray[] sample = trainingData[i];
       final NDArray input = sample[0];
       final NDArray output = sample[1];
       trainingContext.evaluations.increment();
       final NNResult eval = getNet().eval(input);
       assert eval.data.dim() == output.dim();
       return new Tuple2<>(eval, i);
-    }).sorted(java.util.Comparator.comparing(x->x.getSecond()))
-      .map(x->x.getFirst())
-      .collect(Collectors.toList());
+    }).sorted(java.util.Comparator.comparing(x -> x.getSecond())).map(x -> x.getFirst()).collect(Collectors.toList());
   }
 
   protected List<NDArray> evalValidationData(final TrainingContext trainingContext) {
     final NDArray[][] validationSet = getValidationData(trainingContext);
     final List<NNResult> eval = eval(trainingContext, validationSet);
-    List<NDArray> collect = eval.stream().map(x -> x.data).collect(Collectors.toList());
+    final List<NDArray> collect = eval.stream().map(x -> x.data).collect(Collectors.toList());
     setError(calcError(trainingContext, collect));
     return collect;
   }

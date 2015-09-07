@@ -148,12 +148,12 @@ public class SynapseActivationLayer extends NNLayer {
     return this;
   }
 
-  public SynapseActivationLayer thaw() {
-    return freeze(false);
-  }
-
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+
+  public SynapseActivationLayer thaw() {
+    return freeze(false);
   }
 }

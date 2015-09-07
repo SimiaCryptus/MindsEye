@@ -145,6 +145,71 @@ public class DenseSynapseLayer extends NNLayer {
     return this.verbose;
   }
 
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
+    final java.util.Map<Integer, Integer> shuffleMap = new HashMap<>();
+    final int inputs = this.weights.getDims()[0];
+    java.util.stream.IntStream.range(0, inputs).forEach(i -> shuffleMap.put(i, i));
+    ;
+
+    permute.forEach(t -> {
+      Integer from = t.getFirst();
+      final Integer to = t.getSecond();
+      from = shuffleMap.get(from);
+
+      final int outputs = this.weights.getDims()[1];
+      for (int output = 0; output < outputs; output++) {
+        final double temp = this.weights.get(to, output);
+        this.weights.set(new int[] { to, output }, this.weights.get(from, output));
+        this.weights.set(new int[] { from, output }, temp);
+      }
+
+      for (final int k : shuffleMap.keySet()) {
+        int value = shuffleMap.get(k);
+        if (value == from) {
+          value = to;
+        } else if (value == to) {
+          value = from;
+        }
+        shuffleMap.put(k, value);
+      }
+    });
+    return null;
+  }
+
+  @Override
+  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
+    final java.util.Map<Integer, Integer> shuffleMap = new HashMap<>();
+    final int outputs = this.weights.getDims()[1];
+    java.util.stream.IntStream.range(0, outputs).forEach(i -> shuffleMap.put(i, i));
+    ;
+
+    permute.forEach(t -> {
+      int from = t.getFirst();
+      final int to = t.getSecond();
+      from = shuffleMap.get(from);
+
+      final int inputs = this.weights.getDims()[0];
+      for (int input = 0; input < inputs; input++) {
+        final double temp = this.weights.get(input, to);
+        final double x = this.weights.get(input, from);
+        this.weights.set(new int[] { input, to }, x);
+        this.weights.set(new int[] { input, from }, temp);
+      }
+
+      for (final int k : shuffleMap.keySet()) {
+        int value = shuffleMap.get(k);
+        if (value == from) {
+          value = to;
+        } else if (value == to) {
+          value = from;
+        }
+        shuffleMap.put(k, value);
+      }
+    });
+    return null;
+  }
+
   public DenseSynapseLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
@@ -160,67 +225,12 @@ public class DenseSynapseLayer extends NNLayer {
     return this;
   }
 
-  public DenseSynapseLayer thaw() {
-    return freeze(false);
-  }
-
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.weights.getData());
   }
 
-  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
-    java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
-    int outputs = weights.getDims()[1];
-    java.util.stream.IntStream.range(0,outputs).forEach(i->shuffleMap.put(i, i));;
-
-    permute.forEach(t -> {
-      int from = t.getFirst();
-      int to = t.getSecond();
-      from = shuffleMap.get(from);
-      
-      int inputs = weights.getDims()[0];
-      for (int input = 0; input < inputs; input++) {
-        double temp = weights.get(input, to);
-        double x = weights.get(input, from);
-        weights.set(new int[] { input, to }, x);
-        weights.set(new int[] { input, from }, temp);
-      }
-
-      for(int k : shuffleMap.keySet()){
-        int value = shuffleMap.get(k);
-        if(value == from) value = to;
-        else if(value == to) value = from;
-        shuffleMap.put(k, value);
-      }
-    });
-    return null;
-  }
-
-  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
-    java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
-    int inputs = weights.getDims()[0];
-    java.util.stream.IntStream.range(0,inputs).forEach(i->shuffleMap.put(i, i));;
-
-    permute.forEach(t -> {
-      Integer from = t.getFirst();
-      Integer to = t.getSecond();
-      from = shuffleMap.get(from);
-
-      int outputs = weights.getDims()[1];
-      for (int output = 0; output < outputs; output++) {
-        double temp = weights.get(to, output);
-        weights.set(new int[] { to, output }, weights.get(from, output));
-        weights.set(new int[] { from, output }, temp);
-      }
-
-      for(int k : shuffleMap.keySet()){
-        int value = shuffleMap.get(k);
-        if(value == from) value = to;
-        else if(value == to) value = from;
-        shuffleMap.put(k, value);
-      }
-    });
-    return null;
+  public DenseSynapseLayer thaw() {
+    return freeze(false);
   }
 }

@@ -17,23 +17,22 @@ public class PermutationLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(PermutationLayer.class);
 
+  private List<double[]> record = null;
+
   private boolean verbose;
 
   public PermutationLayer() {
   }
 
-  private List<double[]> record = null;
-  
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
-    NDArray output = input;
+    final NDArray output = input;
     if (isVerbose()) {
       PermutationLayer.log.debug(String.format("Feed forward: %s => %s", input, output));
     }
-    if(null != record)
-    {
-      record.add(Arrays.copyOf(input.getData(), input.getData().length));
+    if (null != this.record) {
+      this.record.add(Arrays.copyOf(input.getData(), input.getData().length));
     }
     return new NNResult(output) {
       @Override
@@ -57,9 +56,21 @@ public class PermutationLayer extends NNLayer {
     };
   }
 
+  public List<double[]> getRecord() {
+    assert null != this.record;
+    assert 0 < this.record.size();
+    final List<double[]> prev = this.record;
+    this.record = new java.util.ArrayList<>();
+    return prev;
+  }
+
   @Override
   public boolean isVerbose() {
     return this.verbose;
+  }
+
+  public void record() {
+    this.record = new java.util.ArrayList<>();
   }
 
   public PermutationLayer setVerbose(final boolean verbose) {
@@ -70,18 +81,6 @@ public class PermutationLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-
-  public List<double[]> getRecord() {
-    assert(null != record);
-    assert(0 < record.size());
-    List<double[]> prev = record;
-    this.record = new java.util.ArrayList<>();
-    return prev;
-  }
-
-  public void record() {
-    this.record = new java.util.ArrayList<>();
   }
 
 }

@@ -13,11 +13,11 @@ public abstract class LazyResult {
     super();
   }
 
+  protected abstract NNResult[] eval(EvaluationContext t);
+
   public NNResult[] get(final EvaluationContext t) {
     return t.cache.computeIfAbsent(this.key, k -> eval(t));
   }
-
-  protected abstract NNResult[] eval(EvaluationContext t);
 
   protected abstract JsonObject toJson();
 }

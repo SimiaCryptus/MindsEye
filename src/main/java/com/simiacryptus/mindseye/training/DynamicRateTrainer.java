@@ -110,7 +110,7 @@ public class DynamicRateTrainer {
       try {
         optimum = optimizeRates(trainingContext);
         rates = DoubleStream.of(optimum.getKey()).toArray();
-        inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r) && DoubleStream.of(rates).anyMatch(r -> this.getMinRate() < r);
+        inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r) && DoubleStream.of(rates).anyMatch(r -> getMinRate() < r);
         if (inBounds) {
           gradientDescentTrainer.setRates(rates);
           this.lastCalibratedIteration = this.currentIteration;
@@ -179,8 +179,8 @@ public class DynamicRateTrainer {
 
     final PointValuePair x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(numberOfParameters);
     f.value(x.getFirst()); // Leave in optimal state
-    //f.value(new double[numberOfParameters]); // Reset to original state
-    
+    // f.value(new double[numberOfParameters]); // Reset to original state
+
     evalValidationData = inner.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
     final double calcError = inner.calcError(trainingContext, evalValidationData);
     inner.setError(calcError);

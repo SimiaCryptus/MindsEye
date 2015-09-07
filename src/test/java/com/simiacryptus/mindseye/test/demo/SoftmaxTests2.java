@@ -44,7 +44,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
     net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
-    //net = net.add(new PermutationLayer());
+    // net = net.add(new PermutationLayer());
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(outSize)).setWeights(()->1.));
     net = net.add(new BiasLayer(outSize));
@@ -132,8 +132,8 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
   @Override
   public void verify(final Tester trainer) {
-    //trainer.setVerbose(true);
-    //trainer.getInner().setAlignEnabled(false);
+    // trainer.setVerbose(true);
+    // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
     trainer.verifyConvergence(0.01, 10);
   }
