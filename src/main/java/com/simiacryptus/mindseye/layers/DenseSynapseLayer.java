@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
@@ -168,30 +169,46 @@ public class DenseSynapseLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
 
-  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
     permute.forEach(t -> {
       Integer from = t.getFirst();
       Integer to = t.getSecond();
+      
+      from = shuffleMap.getOrDefault(from,from);
+      //assert(!shuffleMap.containsKey(to));
+      //to = shuffleMap.getOrDefault(to,to);
+      
       int inputs = weights.getDims()[0];
       for (int input = 0; input < inputs; input++) {
         double temp = weights.get(input, to);
         weights.set(new int[] { input, to }, weights.get(input, from));
         weights.set(new int[] { input, from }, temp);
       }
+      shuffleMap.put(from, to);
+      shuffleMap.put(to, from);
     });
     return null;
   }
 
-  public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+  public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
     permute.forEach(t -> {
       Integer from = t.getFirst();
       Integer to = t.getSecond();
+
+      from = shuffleMap.getOrDefault(from,from);
+      //assert(!shuffleMap.containsKey(to));
+      //to = shuffleMap.getOrDefault(to,to);
+
       int outputs = weights.getDims()[1];
       for (int output = 0; output < outputs; output++) {
         double temp = weights.get(to, output);
         weights.set(new int[] { to, output }, weights.get(from, output));
         weights.set(new int[] { from, output }, temp);
       }
+      shuffleMap.put(from, to);
+      shuffleMap.put(to, from);
     });
     return null;
   }

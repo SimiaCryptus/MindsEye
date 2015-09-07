@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
@@ -111,23 +112,39 @@ public class BiasLayer extends NNLayer {
   }
 
   public List<Tuple2<Integer, Integer>> permuteOutput(List<Tuple2<Integer, Integer>> permute) {
+    java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
     permute.forEach(t->{
       Integer from = t.getFirst();
       Integer to = t.getSecond();
+
+      from = shuffleMap.getOrDefault(from,from);
+      //assert(!shuffleMap.containsKey(to));
+      //to = shuffleMap.getOrDefault(to,to);
+
       double temp = bias[to];
       bias[to] = bias[from];
       bias[from] = temp;
+      shuffleMap.put(from, to);
+      shuffleMap.put(to, from);
     });
     return permute;
   }
 
   public List<Tuple2<Integer, Integer>> permuteInput(List<Tuple2<Integer, Integer>> permute) {
+    java.util.Map<Integer,Integer> shuffleMap = new HashMap<>();
     permute.forEach(t->{
       Integer from = t.getFirst();
       Integer to = t.getSecond();
+
+      from = shuffleMap.getOrDefault(from,from);
+      //assert(!shuffleMap.containsKey(to));
+      //to = shuffleMap.getOrDefault(to,to);
+
       double temp = bias[to];
       bias[to] = bias[from];
       bias[from] = temp;
+      shuffleMap.put(from, to);
+      shuffleMap.put(to, from);
     });
     return permute;
   }

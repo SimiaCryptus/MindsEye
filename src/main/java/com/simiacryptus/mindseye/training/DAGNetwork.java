@@ -65,8 +65,8 @@ public class DAGNetwork extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private final java.util.LinkedHashMap<UUID, NNLayer> byId = new java.util.LinkedHashMap<>();
-  private final java.util.HashMap<NNLayer, NNLayer> byPrev = new java.util.HashMap<>();
-  private final java.util.HashMap<NNLayer, NNLayer> byNext = new java.util.HashMap<>();
+  private final java.util.HashMap<NNLayer, NNLayer> prevMap = new java.util.HashMap<>();
+  private final java.util.HashMap<NNLayer, NNLayer> nextMap = new java.util.HashMap<>();
 
   private LazyResult head = new InputNode();
   public final UUID inputHandle = UUID.randomUUID();
@@ -74,8 +74,8 @@ public class DAGNetwork extends NNLayer {
   public synchronized DAGNetwork add(final NNLayer layer) {
     NNLayer headLayer = getHeadLayer();
     this.byId.put(layer.getId(), layer);
-    this.byPrev.put(headLayer, layer);
-    this.byNext.put(layer, headLayer);
+    this.prevMap.put(layer, headLayer);
+    this.nextMap.put(headLayer, layer);
     this.setHead(new UnaryNode(layer, this.getHead()));
     return this;
   }
@@ -127,13 +127,13 @@ public class DAGNetwork extends NNLayer {
   }
 
   private void permutate_forward(NNLayer permutationLayer, List<Tuple2<Integer, Integer>> permute) {
-    NNLayer next = this.byNext.get(permutationLayer);
+    NNLayer next = this.nextMap.get(permutationLayer);
     List<Tuple2<Integer, Integer>> passforward = next.permuteInput(permute);
     if(null != passforward) permutate_forward(next, passforward);
   }
 
   private void permutate_back(NNLayer permutationLayer, List<Tuple2<Integer, Integer>> permute) {
-    NNLayer prev = this.byPrev.get(permutationLayer);
+    NNLayer prev = this.prevMap.get(permutationLayer);
     List<Tuple2<Integer, Integer>> passback = prev.permuteOutput(permute);
     if(null != passback) permutate_back(prev, passback);
   }

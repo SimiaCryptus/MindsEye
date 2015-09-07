@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.test.regression;
 import java.util.Random;
 
 import org.junit.Test;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +19,38 @@ import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.SynapseActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.DAGNetwork;
+import groovy.lang.Tuple2;
 
 public class NetworkElementUnitTests {
   static final Logger log = LoggerFactory.getLogger(NetworkElementUnitTests.class);
 
   public static final Random random = new Random();
+
+  @Test
+  public void bias_permute_fwd() throws Exception {
+    BiasLayer layer = new BiasLayer(new int[]{5});
+    java.util.Arrays.setAll(layer.bias, i->i);
+    layer.permuteOutput(java.util.Arrays.asList(
+        new Tuple2<>(1,3),
+        new Tuple2<>(2,1),
+        new Tuple2<>(3,2)
+        ));
+    Assert.assertArrayEquals(layer.bias, new double[]{0,2,3,1,4}, 0.001);
+//    layer.bias = ;
+  }
+
+  @Test
+  public void bias_permute_back() throws Exception {
+    BiasLayer layer = new BiasLayer(new int[]{5});
+    java.util.Arrays.setAll(layer.bias, i->i);
+    layer.permuteInput(java.util.Arrays.asList(
+        new Tuple2<>(1,3),
+        new Tuple2<>(2,1),
+        new Tuple2<>(3,2)
+        ));
+    Assert.assertArrayEquals(layer.bias, new double[]{0,2,3,1,4}, 0.001);
+//    layer.bias = ;
+  }
 
   @Test
   // @Ignore
