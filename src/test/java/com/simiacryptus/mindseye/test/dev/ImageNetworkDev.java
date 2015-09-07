@@ -161,7 +161,7 @@ public class ImageNetworkDev {
 
       final TrainingContext trainingContext = new TrainingContext();
       try {
-        trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0, 0.1, trainingContext);
+        trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.1, trainingContext);
       } catch (final Exception e) {
         e.printStackTrace();
       }

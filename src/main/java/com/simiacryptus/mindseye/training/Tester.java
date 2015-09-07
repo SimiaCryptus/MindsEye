@@ -23,13 +23,13 @@ public class Tester {
 
   public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
 
-  private MutationTrainer inner = new MutationTrainer();
+  private PopulationTrainer inner = new PopulationTrainer();
 
   private boolean parallel = true;
 
   TrainingContext trainingContext = new TrainingContext();
 
-  public MutationTrainer getInner() {
+  public PopulationTrainer getInner() {
     return this.inner;
   }
 
@@ -42,7 +42,7 @@ public class Tester {
     return this;
   }
 
-  public void setInner(final MutationTrainer inner) {
+  public void setInner(final PopulationTrainer inner) {
     this.inner = inner;
   }
 
@@ -57,7 +57,7 @@ public class Tester {
   }
 
   public Tester setMutationAmplitude(final double d) {
-    getInner().setMutationAmplitude(d);
+    getInner().setAmplitude(d);
     return this;
   }
 
@@ -82,8 +82,9 @@ public class Tester {
     return this;
   }
 
-  public void train(final int i, final double d, final TrainingContext trainingContext) throws TerminationCondition {
-    getInner().setMaxIterations(i).setStopError(d).train(trainingContext);
+  public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
+    getInner().getDynamicRateTrainer().setStopError(stopError);
+    getInner().train(trainingContext);
   }
 
   private TrainingContext trainingContext() {
@@ -100,7 +101,7 @@ public class Tester {
       range = range.parallel();
     }
     final long succeesses = range.filter(i -> {
-      final MutationTrainer trainerCpy = Util.kryo().copy(getInner());
+      final PopulationTrainer trainerCpy = Util.kryo().copy(getInner());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
       return trainerCpy.test(maxIter, convergence, contextCpy, this.handler);
     }).count();
