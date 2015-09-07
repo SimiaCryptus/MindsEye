@@ -68,7 +68,8 @@ public class GradientDescentTrainer {
       assert eval.data.dim() == output.dim();
       return new Tuple2<>(eval, i);
     }).sorted(java.util.Comparator.comparing(x->x.getSecond()))
-      .map(x->x.getFirst()).collect(Collectors.toList());
+      .map(x->x.getFirst())
+      .collect(Collectors.toList());
   }
 
   protected List<NDArray> evalValidationData(final TrainingContext trainingContext) {

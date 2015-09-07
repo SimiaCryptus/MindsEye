@@ -1,10 +1,13 @@
 package com.simiacryptus.mindseye.training;
 
+import groovy.lang.Tuple2;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
@@ -13,9 +16,11 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.PermutationLayer;
 import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -266,10 +271,12 @@ public class MutationTrainer {
     return hasConverged;
   }
 
+  private int numberOfGenerations = 1;
+  private int populationSize = 5;
   public Double train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
 
-    List<DynamicRateTrainer> population = IntStream.range(0, 5).mapToObj(i -> {
+    List<DynamicRateTrainer> population = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
       return Util.kryo().copy(getDynamicRateTrainer());
     }).collect(Collectors.toList());
 
@@ -278,8 +285,7 @@ public class MutationTrainer {
       return dynamicRateTrainer;
     }).collect(Collectors.toList());
 
-    int numbGenerations = 4;
-    for (int generation = 0; generation <= numbGenerations; generation++) {
+    for (int generation = 0; generation <= getNumberOfGenerations(); generation++) {
       population = population.stream().map(dynamicRateTrainer -> {
         int currentGeneration = trainIndividual(trainingContext, dynamicRateTrainer);
         MutationTrainer.log.info(String.format("Completed training to %.5f in %.03fs (%s iterations) - %s", dynamicRateTrainer.getGradientDescentTrainer().getError(),
@@ -288,8 +294,8 @@ public class MutationTrainer {
       }).collect(Collectors.toList());
 
       List<DynamicRateTrainer> progenators = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).limit(3).collect(Collectors.toList());
-      measure(population);
-      if (generation < numbGenerations)
+      measure(population, trainingContext);
+      if (generation < getNumberOfGenerations())
         population = recombine(progenators);
     }
 
@@ -299,7 +305,7 @@ public class MutationTrainer {
   }
 
   private List<DynamicRateTrainer> recombine(List<DynamicRateTrainer> progenators) {
-    List<DynamicRateTrainer> nextGen = IntStream.range(0, 5).mapToObj(i -> {
+    List<DynamicRateTrainer> nextGen = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
       return Util.kryo().copy(getDynamicRateTrainer());
     }).collect(Collectors.toList());
     List<List<double[]>> progenators_state = progenators.stream().map(a -> a.getGradientDescentTrainer().getNet().state()).collect(Collectors.toList());
@@ -315,7 +321,34 @@ public class MutationTrainer {
     return nextGen;
   }
 
-  private void measure(List<DynamicRateTrainer> p) {
+  private void measure(List<DynamicRateTrainer> p, TrainingContext trainingContext) {
+    
+    List<List<List<double[]>>> signatures = p.stream().map(t->{
+      NDArray[][] masterTrainingData = t.getGradientDescentTrainer().getMasterTrainingData();
+      DAGNetwork net = t.getGradientDescentTrainer().getNet();
+      List<PermutationLayer> pl = net.getChildren().stream()
+          .filter(x->x instanceof PermutationLayer).map(x->(PermutationLayer)x)
+          .collect(Collectors.toList());
+      pl.stream().forEach(l->l.record());
+      t.getGradientDescentTrainer().eval(trainingContext, masterTrainingData, false);
+      return pl.stream().map(l->l.getRecord()).collect(Collectors.toList());
+    }).collect(Collectors.toList());
+    Stream<Tuple2<Integer, DynamicRateTrainer>> mapToObj = IntStream.range(0, p.size()).mapToObj(i->new Tuple2<>(i,p.get(i)));
+    int bestIndex = mapToObj.sorted(Comparator.comparing(t->t.getSecond().getGradientDescentTrainer().getError())).findFirst().get().getFirst();
+    int syncLayers = signatures.get(bestIndex).size();
+    assert(signatures.stream().allMatch(s->s.size()==syncLayers));
+    IntStream.range(0, signatures.size()).filter(i->i!=bestIndex).forEach(individual->{
+      IntStream.range(0, syncLayers).forEach(layerIndex->{
+        List<double[]> a = signatures.get(bestIndex).get(layerIndex);
+        List<double[]> b = signatures.get(individual).get(layerIndex);
+        assert(a.size()==b.size());
+        if(0<a.size()){
+          List<Tuple2<Integer,Integer>> permute = findMapping(a,b);
+          log.debug(String.format("Permutation in layer %s from %s to %s: %s", layerIndex, individual, bestIndex, permute));
+        }
+      });
+    });
+    
     p.stream().flatMapToDouble(a -> {
       List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
       log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
@@ -373,6 +406,49 @@ public class MutationTrainer {
     }).average().getAsDouble();
   }
 
+  public static List<Tuple2<Integer, Integer>> findMapping(List<double[]> a, List<double[]> b) {
+    int dim = a.get(0).length;
+    assert(a.stream().allMatch(x->dim==x.length));
+    assert(b.stream().allMatch(x->dim==x.length));
+    
+    double[][] vectorsA = IntStream.range(0, dim).mapToObj(i->a.stream().mapToDouble(x->x[i]).toArray()).toArray(i->new double[i][]);
+    double[][] vectorsB = IntStream.range(0, dim).mapToObj(i->b.stream().mapToDouble(x->x[i]).toArray()).toArray(i->new double[i][]);
+    
+    NDArray covariance = new NDArray(dim,dim);
+    double[][] matrix = IntStream.range(0, dim).mapToObj(i->{
+      return IntStream.range(0, dim).mapToDouble(j->{
+        double dotProduct = 0;
+        double magA = 0;
+        double magB = 0;
+        double[] va = vectorsA[i];
+        double[] vb = vectorsB[j];
+        for(int k=0;k<va.length;k++){
+          double vak = va[k];
+          double vbk = vb[k];
+          dotProduct += vak*vbk;
+          magA += vak*vak;
+          magB += vbk*vbk;
+        }
+        dotProduct /= Math.sqrt(magA);
+        dotProduct /= Math.sqrt(magB);
+        covariance.set(new int[]{i,j}, dotProduct);
+        return dotProduct;
+      }).toArray();
+    }).toArray(i->new double[i][]);
+    log.debug(String.format("Covariance: %s", covariance));
+    
+    ArrayList<Tuple2<Integer, Integer>> list = new java.util.ArrayList<>();
+    java.util.Set<Integer> toIndexes = new java.util.HashSet<>(IntStream.range(0, dim).mapToObj(x->x).collect(Collectors.toList()));
+    for(int fromIndex = 0;fromIndex<dim;fromIndex++){
+      int fromIndex1 = fromIndex;
+      int match = toIndexes.stream().filter(x->toIndexes.contains(x)).sorted(java.util.Comparator.comparing(toIndex->-covariance.get(fromIndex1, toIndex))).findFirst().get();
+      toIndexes.remove(match);
+      list.add(new Tuple2<Integer, Integer>(fromIndex1, match));
+    }
+    assert(dim == list.size());
+    return list;
+  }
+
   private int trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
     int currentGeneration = 0;
     DAGNetwork initial = Util.kryo().copy(dynamicRateTrainer.getGradientDescentTrainer().getNet());
@@ -394,5 +470,23 @@ public class MutationTrainer {
       MutationTrainer.log.debug("Terminated training", e);
     }
     return currentGeneration;
+  }
+
+  public int getPopulationSize() {
+    return populationSize;
+  }
+
+  public MutationTrainer setPopulationSize(int populationSize) {
+    this.populationSize = populationSize;
+    return this;
+  }
+
+  public int getNumberOfGenerations() {
+    return numberOfGenerations;
+  }
+
+  public MutationTrainer setNumberOfGenerations(int numberOfGenerations) {
+    this.numberOfGenerations = numberOfGenerations;
+    return this;
   }
 }

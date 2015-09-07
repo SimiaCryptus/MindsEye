@@ -4,6 +4,7 @@ import com.simiacryptus.mindseye.layers.BiasLayer;
 import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
+import com.simiacryptus.mindseye.layers.PermutationLayer;
 import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.DAGNetwork;
@@ -24,6 +25,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     // SynapseActivationLayer(NDArray.dim(inputSize)).setWeights(()->1.));
     net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
     net = net.add(new BiasLayer(midSize));
+    net = net.add(new PermutationLayer());
     // net = net.add(new LinearActivationLayer());
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
@@ -33,6 +35,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     for (int i = 0; i < midLayers; i++) {
       net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), midSize));
       net = net.add(new BiasLayer(midSize));
+      net = net.add(new PermutationLayer());
       // net = net.add(new LinearActivationLayer());
       net = net.add(new MinMaxFilterLayer());
       net = net.add(new SigmoidActivationLayer());
@@ -41,6 +44,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
     net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
+    net = net.add(new PermutationLayer());
     // net = net.add(new
     // SynapseActivationLayer(NDArray.dim(outSize)).setWeights(()->1.));
     net = net.add(new BiasLayer(outSize));

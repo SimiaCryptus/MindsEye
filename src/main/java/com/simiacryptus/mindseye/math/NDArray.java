@@ -275,7 +275,7 @@ public class NDArray {
         list.add("...");
       }
       final Optional<String> str = list.stream().limit(10).reduce((a, b) -> a + "," + b);
-      return "{ " + str.get() + " }";
+      return "[ " + str.get() + " ]";
     }
   }
 

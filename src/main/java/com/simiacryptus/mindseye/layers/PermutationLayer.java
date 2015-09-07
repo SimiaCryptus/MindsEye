@@ -22,15 +22,18 @@ public class PermutationLayer extends NNLayer {
   public PermutationLayer() {
   }
 
+  private List<double[]> record = null;
+  
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
-    final NDArray output = new NDArray(inObj[0].data.getDims());
-    IntStream.range(0, input.dim()).forEach(i -> {
-      output.set(i, input.getData()[i]);
-    });
+    NDArray output = input;
     if (isVerbose()) {
-      PermutationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
+      PermutationLayer.log.debug(String.format("Feed forward: %s => %s", input, output));
+    }
+    if(null != record)
+    {
+      record.add(Arrays.copyOf(input.getData(), input.getData().length));
     }
     return new NNResult(output) {
       @Override
@@ -68,4 +71,17 @@ public class PermutationLayer extends NNLayer {
   public List<double[]> state() {
     return Arrays.asList();
   }
+
+  public List<double[]> getRecord() {
+    assert(null != record);
+    assert(0 < record.size());
+    List<double[]> prev = record;
+    this.record = new java.util.ArrayList<>();
+    return prev;
+  }
+
+  public void record() {
+    this.record = new java.util.ArrayList<>();
+  }
+
 }
