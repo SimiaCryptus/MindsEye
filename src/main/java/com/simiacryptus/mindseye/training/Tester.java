@@ -91,11 +91,11 @@ public class Tester {
     return this.trainingContext;
   }
 
-  public long verifyConvergence(final int maxIter, final double convergence, final int reps) {
-    return verifyConvergence(maxIter, convergence, reps, reps);
+  public long verifyConvergence(final double convergence, final int reps) {
+    return verifyConvergence(convergence, reps, reps);
   }
 
-  public long verifyConvergence(final int maxIter, final double convergence, final int reps, final int minSuccess) {
+  public long verifyConvergence(final double convergence, final int reps, final int minSuccess) {
     IntStream range = IntStream.range(0, reps);
     if (isParallel()) {
       range = range.parallel();
@@ -103,7 +103,7 @@ public class Tester {
     final long succeesses = range.filter(i -> {
       final PopulationTrainer trainerCpy = Util.kryo().copy(getInner());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
-      return trainerCpy.test(maxIter, convergence, contextCpy, this.handler);
+      return trainerCpy.test(convergence, contextCpy, this.handler);
     }).count();
     if (minSuccess > succeesses)
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));

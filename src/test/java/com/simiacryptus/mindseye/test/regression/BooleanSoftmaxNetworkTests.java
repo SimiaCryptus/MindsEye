@@ -44,7 +44,7 @@ public class BooleanSoftmaxNetworkTests {
 
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SoftmaxActivationLayer().setVerbose(false))
 
-        .trainer(samples).verifyConvergence(10, 0.01, 100);
+        .trainer(samples).verifyConvergence(0.01, 100);
   }
 
   @Test

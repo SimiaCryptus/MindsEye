@@ -242,7 +242,7 @@ public class DynamicRateTrainer {
         return false;
       }
       if (this.maxIterations <= this.currentIteration++) {
-        DynamicRateTrainer.log.debug("Maximum steps reached");
+        DynamicRateTrainer.log.debug("Maximum recalibrations reached: " + this.currentIteration);
         return false;
       }
       if (this.lastCalibratedIteration < this.currentIteration - this.recalibrationInterval) {

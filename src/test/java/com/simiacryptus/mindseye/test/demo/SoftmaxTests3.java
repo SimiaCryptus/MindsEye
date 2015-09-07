@@ -115,7 +115,7 @@ public class SoftmaxTests3 extends SimpleClassificationTests {
   @Override
   public void verify(final Tester trainer) {
     // trainer.setVerbose(true).verifyConvergence(0, 0.0, 1);
-    trainer.verifyConvergence(0, 0.0, 5);
+    trainer.verifyConvergence(0.0, 5);
   }
 
 }

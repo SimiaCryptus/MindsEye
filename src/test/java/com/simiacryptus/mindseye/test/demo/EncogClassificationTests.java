@@ -272,7 +272,7 @@ public class EncogClassificationTests {
   }
 
   public void verify(final Tester trainer) {
-    trainer.verifyConvergence(0, 0.0, 10);
+    trainer.verifyConvergence(0.0, 10);
   }
 
 }

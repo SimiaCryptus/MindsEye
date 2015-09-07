@@ -320,7 +320,7 @@ public class PopulationTrainer {
     return this;
   }
 
-  public boolean test(final int maxIter, final double convergence, final TrainingContext trainingContext, final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler) {
+  public boolean test(final double convergence, final TrainingContext trainingContext, final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler) {
     boolean hasConverged = false;
     try {
       final Double error = trainingContext.overallTimer.time(() -> {
