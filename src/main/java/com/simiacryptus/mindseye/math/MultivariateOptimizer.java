@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.optim.PointValuePair;
@@ -81,28 +82,36 @@ public class MultivariateOptimizer {
   public PointValuePair minimize(final PointValuePair initial) {
     final int dims = initial.getFirst().length;
     final ThreadLocal<MultivariateFunction> f2 = Util.copyOnFork(this.f);
-    return IntStream.range(0, (int) Math.min(Math.ceil(Math.sqrt(dims)), 1)).parallel().mapToObj(threadNum -> {
+    IntStream dimensionStream = IntStream.range(0, (int) Math.min(Math.ceil(Math.sqrt(dims)), 1)).parallel();
+    Stream<ArrayList<Integer>> dimensionalPermuation = dimensionStream.mapToObj(threadNum -> {
       final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, dims).mapToObj(x -> x).collect(Collectors.toList()));
       Collections.shuffle(l);
       return l;
-    }).distinct().map(l -> {
+    }).distinct();
+    return dimensionalPermuation.map(l -> {
       PointValuePair accumulator = initial;
       for (int i = 0; i < dims; i++) {
         final Integer d = l.get(i);
-        try {
-          final double[] pos = accumulator.getFirst();
-          final PointValuePair oneD = new UnivariateOptimizer(x1 -> {
-            return f2.get().value(MultivariateOptimizer.copy(pos, d, x1));
-          }).setMaxRate(getMaxRate()).minimize();
-          accumulator = new PointValuePair(MultivariateOptimizer.copy(pos, d, oneD.getFirst()[0]), oneD.getSecond());
-        } catch (final Throwable e) {
-          if (isVerbose()) {
-            MultivariateOptimizer.log.debug("Error optimizing dimension " + d, e);
-          }
-        }
+        accumulator = optimizeVariable(f2, accumulator, d);
       }
       return accumulator;
     }).sorted(Comparator.comparing(p -> p.getSecond())).findFirst().orElse(null);
+  }
+
+  private PointValuePair optimizeVariable(final ThreadLocal<MultivariateFunction> f, final PointValuePair accumulator, final int dimension) {
+    final double[] prevVars = accumulator.getFirst();
+    try {
+      final PointValuePair oneD = new UnivariateOptimizer(x1 -> {
+        return f.get().value(MultivariateOptimizer.copy(prevVars, dimension, x1));
+      }).setMaxRate(getMaxRate()).minimize();
+      double[] nextVars = MultivariateOptimizer.copy(prevVars, dimension, oneD.getFirst()[0]);
+      return new PointValuePair(nextVars, oneD.getSecond());
+    } catch (final Throwable e) {
+      if (isVerbose()) {
+        MultivariateOptimizer.log.debug("Error optimizing dimension " + dimension, e);
+      }
+      return accumulator;
+    }
   }
 
   public MultivariateOptimizer setMaxRate(final double maxRate) {

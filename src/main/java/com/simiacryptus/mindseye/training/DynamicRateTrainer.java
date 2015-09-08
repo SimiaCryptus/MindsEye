@@ -3,7 +3,6 @@ package com.simiacryptus.mindseye.training;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -248,6 +247,7 @@ public class DynamicRateTrainer {
       if (this.lastCalibratedIteration < this.currentIteration - this.recalibrationInterval) {
         if (isVerbose()) {
           DynamicRateTrainer.log.debug("Recalibrating learning rate due to interation schedule at " + this.currentIteration);
+          DynamicRateTrainer.log.debug("Network state: " + getGradientDescentTrainer().getNet().toString());
         }
         if (!recalibrateWRetry(trainingContext))
           return false;
@@ -260,6 +260,7 @@ public class DynamicRateTrainer {
         if (getRecalibrationThreshold() < this.generationsSinceImprovement++) {
           if (isVerbose()) {
             DynamicRateTrainer.log.debug("Recalibrating learning rate due to non-descending step");
+            DynamicRateTrainer.log.debug("Network state: " + getGradientDescentTrainer().getNet().toString());
           }
           if (!recalibrateWRetry(trainingContext))
             return false;
@@ -270,16 +271,17 @@ public class DynamicRateTrainer {
   }
 
   protected void updateConstraintSieve(final List<Tuple2<Double, Double>> rms) {
-    getGradientDescentTrainer()
-        .setConstraintSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))).sorted(Comparator.comparing(t -> t.getSecond().getFirst())).limit(50)
-            // .filter(t -> t.getSecond().getFirst() > 0.9)
-            .mapToInt(t -> t.getFirst()).toArray());
+    getGradientDescentTrainer().setConstraintSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
+        // .sorted(Comparator.comparing(t ->
+        // t.getSecond().getFirst())).limit(50)
+        // .filter(t -> t.getSecond().getFirst() > 0.9)
+        .mapToInt(t -> t.getFirst()).toArray());
   }
 
   protected void updateTrainingSieve(final List<Tuple2<Double, Double>> rms) {
-    getGradientDescentTrainer().setTrainingSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0)))
+    getGradientDescentTrainer().setTrainingSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
         // .filter(t -> t.getSecond().getFirst() < -0.3)
-        .filter(t -> 1.8 * Math.random() > -0.5 - t.getSecond().getFirst())
+        // .filter(t -> 1.8 * Math.random() > -0.5 - t.getSecond().getFirst())
         // .sorted(Comparator.comparing(t ->
         // -t.getSecond().getFirst())).limit(100)
         .mapToInt(t -> t.getFirst()).toArray());
@@ -289,7 +291,8 @@ public class DynamicRateTrainer {
     final List<Tuple2<Integer, Tuple2<Double, Double>>> collect = new ArrayList<>(
         IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))).collect(Collectors.toList()));
     Collections.shuffle(collect);
-    getGradientDescentTrainer().setValidationSet(collect.stream().limit(400)
+    getGradientDescentTrainer().setValidationSet(collect.stream() //
+        // .limit(400)
         // .filter(t -> t.getSecond().getFirst() < -0.3)
         // .filter(t -> 0.5 * Math.random() > -0. - t.getSecond().getFirst())
         // .sorted(Comparator.comparing(t ->

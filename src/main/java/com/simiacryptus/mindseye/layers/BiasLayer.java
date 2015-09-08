@@ -4,15 +4,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.DoubleSupplier;
-import java.util.function.ToDoubleBiFunction;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
@@ -45,7 +42,6 @@ public class BiasLayer extends NNLayer {
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     NDArray r = inObj[0].data;
-    //double[] array = r.coordStream(false).mapToDouble(i1 -> r.get(i1.index) + this.bias[i1.index]).toArray();
     double[] rd = r.getData();
     double[] array = new double[rd.length];
     for(int i=0;i<array.length;i++) {

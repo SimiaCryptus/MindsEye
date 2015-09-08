@@ -51,7 +51,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
     // net = net.add(new ExpActivationLayer());
     // net = net.add(new L1NormalizationLayer());
-    net = net.add(new LinearActivationLayer());
+    //net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
     net = net.add(new SigmoidActivationLayer());
     // net = net.add(new SoftmaxActivationLayer());
@@ -132,10 +132,10 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
   @Override
   public void verify(final Tester trainer) {
-    // trainer.setVerbose(true);
+    trainer.setVerbose(true);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.verifyConvergence(0.01, 10);
+    trainer.verifyConvergence(0.01, 1);
   }
 
 }
