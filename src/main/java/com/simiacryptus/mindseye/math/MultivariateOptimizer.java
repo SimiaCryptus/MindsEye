@@ -81,21 +81,18 @@ public class MultivariateOptimizer {
 
   public PointValuePair minimize(final PointValuePair initial) {
     final int dims = initial.getFirst().length;
-    final ThreadLocal<MultivariateFunction> f2 = Util.copyOnFork(this.f);
-    IntStream dimensionStream = IntStream.range(0, (int) Math.min(Math.ceil(Math.sqrt(dims)), 1)).parallel();
-    Stream<ArrayList<Integer>> dimensionalPermuation = dimensionStream.mapToObj(threadNum -> {
-      final ArrayList<Integer> l = new ArrayList<>(IntStream.range(0, dims).mapToObj(x -> x).collect(Collectors.toList()));
-      Collections.shuffle(l);
-      return l;
-    }).distinct();
-    return dimensionalPermuation.map(l -> {
-      PointValuePair accumulator = initial;
-      for (int i = 0; i < dims; i++) {
-        final Integer d = l.get(i);
-        accumulator = optimizeVariable(f2, accumulator, d);
-      }
-      return accumulator;
-    }).sorted(Comparator.comparing(p -> p.getSecond())).findFirst().orElse(null);
+    final ThreadLocal<MultivariateFunction> f = Util.copyOnFork(this.f);
+    PointValuePair current = initial;
+    Double initialErrror = initial.getSecond();
+    for (int i = 0; i < dims; i++) {
+      PointValuePair prev = current;
+      current = IntStream.range(0, dims).filter(j->0.==prev.getKey()[j])
+          .mapToObj(j -> optimizeVariable(f, prev, j))
+          .sorted(Comparator.comparing(x -> -x.getSecond()))
+          .filter(x->x.getSecond()<initialErrror)
+          .findFirst().get();
+    }
+    return current;
   }
 
   private PointValuePair optimizeVariable(final ThreadLocal<MultivariateFunction> f, final PointValuePair accumulator, final int dimension) {

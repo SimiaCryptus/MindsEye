@@ -68,7 +68,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
       if (dotProduct < 0) {
         l1Decay = l1Decay.add(unitv.scale(-dotProduct));
       }
-      returnValue = returnValue.add(l1Decay);
+      returnValue = returnValue.add(l1Decay); 
     }
     return returnValue.getArray();
   }
@@ -168,9 +168,15 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   @Override
   public String toString() {
     final StringBuilder builder = new StringBuilder();
-    builder.append("DeltaFlushBuffer [");
+    builder.append(getClass().getSimpleName());
+    builder.append("/");
+    builder.append(layer.getClass().getSimpleName());
+    builder.append("/");
+    builder.append(layer.getId());
+    builder.append(" ");
     builder.append(Arrays.toString(this.buffer));
-    builder.append("]");
+    builder.append(" -> ");
+    builder.append(this.layer.state().stream().map(x->Arrays.toString(x)).reduce((a,b)->a+","+b).get());
     return builder.toString();
   }
 
