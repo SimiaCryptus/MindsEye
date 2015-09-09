@@ -22,6 +22,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -404,5 +405,17 @@ public class Util {
       }
     }, 100).limit(10000);
     return merged;
+  }
+
+  private final static String jvmId = UUID.randomUUID().toString();
+  private final static java.util.concurrent.atomic.AtomicInteger idcounter = new java.util.concurrent.atomic.AtomicInteger(0);
+
+  public static UUID uuid() {
+    String index = Integer.toHexString(idcounter.incrementAndGet());
+    while (index.length() < 8) {
+      index = "0" + index;
+    }
+    String tempId = jvmId.substring(0, jvmId.length()-index.length()) + index;
+    return UUID.fromString(tempId);
   }
 }

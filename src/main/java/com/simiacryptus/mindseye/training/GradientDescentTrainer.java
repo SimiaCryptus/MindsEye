@@ -28,7 +28,7 @@ public class GradientDescentTrainer {
   private DAGNetwork net = null;
   private double rate = 0.3;
   private double[] rates = null;
-  private double temperature = 0.01;
+  private double temperature = 0.0;
   private int[] trainingSet;
   private int[] validationSet;
   private boolean verbose = false;
@@ -82,6 +82,10 @@ public class GradientDescentTrainer {
 
   public final NDArray[][] getConstraintData(final TrainingContext trainingContext) {
     return getTrainingData(getConstraintSet());
+  }
+
+  public final NDArray[][] getTrainingData(final TrainingContext trainingContext) {
+    return getTrainingData(getTrainingSet());
   }
 
   public int[] getConstraintSet() {
@@ -246,10 +250,11 @@ public class GradientDescentTrainer {
         GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
       }
       IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(-rates[i]));
-      return prevError;
+      evalValidationData(trainingContext);
+      return 0.;
     } else {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Validated: (%s)", prevError));
+        GradientDescentTrainer.log.debug(String.format("Validated delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
       }
       setError(validationError);
     }

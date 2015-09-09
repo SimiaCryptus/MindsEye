@@ -96,6 +96,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   }
 
   @Override
+  @org.junit.Ignore
   public void test_O3() throws Exception {
     super.test_O3();
   }

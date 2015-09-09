@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
+import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -24,7 +25,21 @@ import com.simiacryptus.mindseye.util.Util;
 import groovy.lang.Tuple2;
 
 public class DynamicRateTrainer {
+  public static class UniformAdaptiveRateParams {
+    public final double endRate;
+    public final double alpha;
+    public final double beta;
+    public final double startRate;
+    public final double convergence;
 
+    public UniformAdaptiveRateParams(double startRate, double endRate, double alpha, double beta, double convergence) {
+      this.endRate = endRate;
+      this.alpha = alpha;
+      this.beta = beta;
+      this.startRate = startRate;
+      this.convergence = convergence;
+    }
+  }
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
 
   int currentIteration = 0;
@@ -239,6 +254,46 @@ public class DynamicRateTrainer {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
+    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-5, 1.1, 2.,0.1));
+    //train2(trainingContext);
+    return false;
+  }
+
+  private void train(final TrainingContext trainingContext, UniformAdaptiveRateParams params) {
+    calcSieves(trainingContext);
+    int rateNumber = probeRateCount(trainingContext);
+    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+    double rate = params.startRate;
+    while (gradientDescentTrainer.getError()>params.convergence) {
+      double rate1 = rate;
+      setRates(trainingContext, IntStream.range(0, rateNumber).mapToDouble(x->rate1).toArray());
+      Double delta = gradientDescentTrainer.step(trainingContext);
+      if(0. <= delta) {
+        calcSieves(trainingContext);
+        rate /= Math.pow(params.alpha, params.beta);
+      } else if(0. > delta) {
+        rate *= params.alpha;
+      } else assert(false);
+      if(rate < params.endRate) break;
+    }
+    if (isVerbose()) {
+      DynamicRateTrainer.log.debug("Final network state: " + getGradientDescentTrainer().getNet().toString());
+    }
+  }
+
+  private int probeRateCount(final TrainingContext trainingContext) {
+    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
+    NNResult probe = gradientDescentTrainer.getNet().eval(getGradientDescentTrainer().getTrainingData(trainingContext)[0][0]);
+    DeltaBuffer buffer = new DeltaBuffer();
+    probe.feedback(new LogNDArray(probe.data.getDims()), buffer);
+    int rateNumber = buffer.vector().size();
+    return rateNumber;
+  }
+
+  public boolean train2(final TrainingContext trainingContext) throws TerminationCondition {
+    this.currentIteration = 0;
+    this.generationsSinceImprovement = 0;
+    this.lastCalibratedIteration = Integer.MIN_VALUE;
     while (true) {
       final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
       if (getStopError() > gradientDescentTrainer.getError()) {
@@ -258,8 +313,7 @@ public class DynamicRateTrainer {
           return false;
         this.generationsSinceImprovement = 0;
       }
-      final double improvement = gradientDescentTrainer.step(trainingContext);
-      if (improvement < 0) {
+      if (0. != gradientDescentTrainer.step(trainingContext)) {
         this.generationsSinceImprovement = 0;
       } else {
         if (getRecalibrationThreshold() < this.generationsSinceImprovement++) {
@@ -279,14 +333,14 @@ public class DynamicRateTrainer {
     getGradientDescentTrainer().setConstraintSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
         // .sorted(Comparator.comparing(t ->
         // t.getSecond().getFirst())).limit(50)
-        // .filter(t -> t.getSecond().getFirst() > 0.9)
+        .filter(t -> t.getSecond().getFirst() > 0.9)
         .mapToInt(t -> t.getFirst()).toArray());
   }
 
   protected void updateTrainingSieve(final List<Tuple2<Double, Double>> rms) {
     getGradientDescentTrainer().setTrainingSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
         // .filter(t -> t.getSecond().getFirst() < -0.3)
-        // .filter(t -> 1.8 * Math.random() > -0.5 - t.getSecond().getFirst())
+        .filter(t -> 1.8 * Math.random() > -0.5 - t.getSecond().getFirst())
         // .sorted(Comparator.comparing(t ->
         // -t.getSecond().getFirst())).limit(100)
         .mapToInt(t -> t.getFirst()).toArray());
@@ -297,13 +351,11 @@ public class DynamicRateTrainer {
         IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))).collect(Collectors.toList()));
     Collections.shuffle(collect);
     getGradientDescentTrainer().setValidationSet(collect.stream() //
-        // .limit(400)
+        .limit(400)
         // .filter(t -> t.getSecond().getFirst() < -0.3)
         // .filter(t -> 0.5 * Math.random() > -0. - t.getSecond().getFirst())
-        // .sorted(Comparator.comparing(t ->
-        // -t.getSecond().getFirst())).limit(100)
-        // .sorted(Comparator.comparing(t ->
-        // -t.getSecond().getFirst())).limit(500)
+        // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
+        // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(500)
         .mapToInt(t -> t.getFirst()).toArray());
   }
 

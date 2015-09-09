@@ -26,7 +26,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   private final DeltaValueAccumulator[] buffer;
   private double[] calcVector;
   private final NNLayer layer;
-  double linearDecayRate = 0.1;
+  double entropyDecayRate = 1.;
   private boolean normalize = false;
 
   private final double[] target;
@@ -60,15 +60,15 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     }
     NumberVector returnValue = v.toDouble();
 
-    if (0 < this.linearDecayRate) {
+    if (0 < this.entropyDecayRate) {
       final NumberVector   unitv = returnValue.unitV();
-      NumberVector l1Decay = new NumberVector(this.target).scale(-this.linearDecayRate);
+      NumberVector l1Decay = new NumberVector(this.target).scale(-this.entropyDecayRate);
       final double dotProduct = l1Decay.dotProduct(unitv);
       if (dotProduct < 0) {
         l1Decay = l1Decay.add(unitv.scale(-dotProduct));
       }
-      l1Decay = l1Decay.scale(v.l2());
-      returnValue = returnValue.add(l1Decay); 
+      //l1Decay = l1Decay.scale(v.l2());
+      //returnValue = returnValue.add(l1Decay); 
     }
     return returnValue.getArray();
   }

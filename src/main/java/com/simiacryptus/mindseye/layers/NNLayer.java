@@ -12,6 +12,7 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.EvaluationContext;
+import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
@@ -36,7 +37,7 @@ public abstract class NNLayer {
     }).toArray(i -> new NNResult[i]);
   }
 
-  private final UUID id = UUID.randomUUID();
+  private final UUID id = Util.uuid();
 
   @Override
   public boolean equals(final Object obj) {
@@ -65,7 +66,7 @@ public abstract class NNLayer {
     return Arrays.asList(this);
   }
 
-  public UUID getId() {
+  public final UUID getId() {
     return this.id;
   }
 
