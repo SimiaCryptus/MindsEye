@@ -46,7 +46,7 @@ public class UnivariateOptimizer {
 
   public final UnivariateFunction f;
   public double growth = 2.;
-  private double maxRate = 1e4;
+  private double maxRate = 5;
   double minRate = 1e-9;
   public double minValue = 0;
   public final List<PointValuePair> points = new PtList();

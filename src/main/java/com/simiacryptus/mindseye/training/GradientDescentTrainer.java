@@ -199,7 +199,7 @@ public class GradientDescentTrainer {
   }
 
   public void setRates(final double[] rates) {
-    this.rates = rates;
+    this.rates = Arrays.copyOf(rates, rates.length);
   }
 
   public GradientDescentTrainer setTemperature(final double temperature) {
@@ -237,7 +237,6 @@ public class GradientDescentTrainer {
     IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(rates[i]));
     evalValidationData(trainingContext);
     final double validationError = getError();
-    ;
     if (prevError == validationError) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));

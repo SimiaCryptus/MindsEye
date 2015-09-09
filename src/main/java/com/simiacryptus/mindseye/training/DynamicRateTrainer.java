@@ -40,24 +40,27 @@ public class DynamicRateTrainer {
   private boolean verbose = false;
 
   protected MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final TrainingContext trainingContext) {
+    List<DeltaFlushBuffer> vector = lessonVector.vector();
+    if (isVerbose()) {
+      String toString = vector.stream().map(x -> x.toString()).reduce((a, b) -> a + "\n\t" + b).get();
+      log.debug(String.format("Optimizing delta vector set: \n\t%s", toString));
+    }
+
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     final double prev = gradientDescentTrainer.getError();
     final MultivariateFunction f = new MultivariateFunction() {
-      double[] pos = new double[lessonVector.vector().size()];
+      double[] pos = new double[vector.size()];
 
       @Override
       public double value(final double x[]) {
-        final List<DeltaFlushBuffer> writeVectors = lessonVector.vector();
-        final int layerCount = writeVectors.size();
+        final int layerCount = vector.size();
         final double[] layerRates = Arrays.copyOf(x, layerCount);
-        // double[] netRates = Arrays.copyOfRange(x, layerCount,
-        // current.getCurrentNetworks().size());
         assert layerRates.length == this.pos.length;
         for (int i = 0; i < layerRates.length; i++) {
           final double prev = this.pos[i];
           final double next = layerRates[i];
           final double adj = next - prev;
-          writeVectors.get(i).write(adj);
+          vector.get(i).write(adj);
         }
         for (int i = 0; i < layerRates.length; i++) {
           this.pos[i] = layerRates[i];
@@ -73,7 +76,8 @@ public class DynamicRateTrainer {
     return f;
   }
 
-  protected synchronized double calcSieves(final TrainingContext trainingContext, final GradientDescentTrainer gradientDescentTrainer) {
+  protected synchronized double calcSieves(final TrainingContext trainingContext) {
+    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     {
       final NDArray[][] data = gradientDescentTrainer.getConstraintData(trainingContext);
       final List<NNResult> results = gradientDescentTrainer.eval(trainingContext, data);
@@ -103,23 +107,16 @@ public class DynamicRateTrainer {
       gradientDescentTrainer.setValidationSet(null);
       gradientDescentTrainer.setConstraintSet(new int[] {});
       // trainingContext.calcSieves(getInner());
-      boolean inBounds = false;
-      PointValuePair optimum;
-      double[] rates = gradientDescentTrainer.getRates();
       try {
-        optimum = optimizeRates(trainingContext);
-        rates = DoubleStream.of(optimum.getKey()).toArray();
-        inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r) && DoubleStream.of(rates).anyMatch(r -> getMinRate() < r);
-        if (inBounds) {
-          gradientDescentTrainer.setRates(rates);
+        double[] key = optimizeRates(trainingContext);
+        if(setRates(trainingContext, key)) {
+          calcSieves(trainingContext);
           this.lastCalibratedIteration = this.currentIteration;
           final double improvement = -gradientDescentTrainer.step(trainingContext);
           if (isVerbose()) {
-            DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s improvement)", Arrays.toString(rates), improvement));
+            DynamicRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s improvement)", Arrays.toString(key), improvement));
           }
-          calcSieves(trainingContext, getGradientDescentTrainer());
           return true;
-          // return improvement > 0;
         }
       } catch (final Exception e) {
         if (isVerbose()) {
@@ -127,10 +124,46 @@ public class DynamicRateTrainer {
         }
       }
       if (isVerbose()) {
-        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", Arrays.toString(rates), gradientDescentTrainer.getError()));
+        DynamicRateTrainer.log.debug(String.format("Calibration rejected at %s with %s error", //
+            Arrays.toString(gradientDescentTrainer.getRates()), // 
+            gradientDescentTrainer.getError()));
       }
       return false;
     }
+  }
+
+  private double[] optimizeRates(final TrainingContext trainingContext) {
+    final GradientDescentTrainer inner = getGradientDescentTrainer();
+    final NDArray[][] validationSet = inner.getValidationData(trainingContext);
+    List<NDArray> evalValidationData = inner.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
+    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, validationSet, evalValidationData);
+    final double prev = Util.rms(trainingContext, rms, null);
+    // regenDataSieve(trainingContext);
+    
+    final DeltaBuffer lessonVector = inner.getVector(trainingContext);
+    final MultivariateFunction f = asMetaF(lessonVector, trainingContext);
+    final int numberOfParameters = lessonVector.vector().size();
+    
+    final PointValuePair x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(numberOfParameters);
+    f.value(x.getFirst()); // Leave in optimal state
+    // f.value(new double[numberOfParameters]); // Reset to original state
+    
+    evalValidationData = inner.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
+    final double calcError = inner.calcError(trainingContext, evalValidationData);
+    inner.setError(calcError);
+    if (this.verbose) {
+      DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(), prev, calcError));
+    }
+    return x.getKey();
+  }
+
+  private boolean setRates(final TrainingContext trainingContext, double[] rates) {
+    boolean inBounds = DoubleStream.of(rates).allMatch(r -> getMaxRate() > r) && DoubleStream.of(rates).anyMatch(r -> getMinRate() < r);
+    if (inBounds) {
+      getGradientDescentTrainer().setRates(rates);
+      return true;
+    }
+    return false;
   }
 
   public int getGenerationsSinceImprovement() {
@@ -159,34 +192,6 @@ public class DynamicRateTrainer {
 
   public boolean isVerbose() {
     return this.verbose;
-  }
-
-  protected PointValuePair optimizeRates(final TrainingContext trainingContext) {
-    final GradientDescentTrainer inner = getGradientDescentTrainer();
-    final NDArray[][] validationSet = inner.getValidationData(trainingContext);
-    List<NDArray> evalValidationData = inner.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
-    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, validationSet, evalValidationData);
-    final double prev = Util.rms(trainingContext, rms, null);
-    // regenDataSieve(trainingContext);
-
-    final DeltaBuffer lessonVector = inner.getVector(trainingContext);
-    if (isVerbose()) {
-      log.debug(String.format("Optimizing delta vector set: \n\t%s", lessonVector.vector().stream().map(x -> x.toString()).reduce((a, b) -> a + "\n\t" + b).get()));
-    }
-    final MultivariateFunction f = asMetaF(lessonVector, trainingContext);
-    final int numberOfParameters = lessonVector.vector().size();
-
-    final PointValuePair x = new MultivariateOptimizer(f).setMaxRate(getMaxRate()).minimize(numberOfParameters);
-    f.value(x.getFirst()); // Leave in optimal state
-    // f.value(new double[numberOfParameters]); // Reset to original state
-
-    evalValidationData = inner.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
-    final double calcError = inner.calcError(trainingContext, evalValidationData);
-    inner.setError(calcError);
-    if (this.verbose) {
-      DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(), prev, calcError));
-    }
-    return x;
   }
 
   protected boolean recalibrateWRetry(final TrainingContext trainingContext) {
@@ -230,7 +235,7 @@ public class DynamicRateTrainer {
     return this;
   }
 
-  public boolean trainToLocalOptimum(final TrainingContext trainingContext) throws TerminationCondition {
+  public boolean train(final TrainingContext trainingContext) throws TerminationCondition {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;

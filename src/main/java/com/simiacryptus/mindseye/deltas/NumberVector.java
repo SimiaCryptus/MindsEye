@@ -74,7 +74,7 @@ public class NumberVector implements VectorLogic<NumberVector> {
 
   @Override
   public double l1() {
-    return Math.sqrt(Arrays.stream(getArray()).map(v -> v).sum());
+    return Arrays.stream(getArray()).map(v -> Math.abs(v)).sum();
   }
 
   @Override

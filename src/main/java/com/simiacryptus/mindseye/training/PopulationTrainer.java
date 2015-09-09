@@ -393,7 +393,7 @@ public class PopulationTrainer {
   private void trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
     try {
       trainingContext.mutations.increment();
-      dynamicRateTrainer.trainToLocalOptimum(trainingContext);
+      dynamicRateTrainer.train(trainingContext);
     } catch (final TerminationCondition e) {
       PopulationTrainer.log.debug("Terminated training", e);
     }

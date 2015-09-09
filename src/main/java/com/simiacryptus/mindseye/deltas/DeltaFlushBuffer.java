@@ -26,8 +26,8 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   private final DeltaValueAccumulator[] buffer;
   private double[] calcVector;
   private final NNLayer layer;
-  double linearDecayRate = 0.01;
-  private boolean normalize = true;
+  double linearDecayRate = 0.1;
+  private boolean normalize = false;
 
   private final double[] target;
 
@@ -45,29 +45,29 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     Arrays.setAll(this.buffer, i -> DeltaFlushBuffer.newAccumulator());
   }
 
-  public DeltaFlushBuffer(final NDArray values, final NNLayer layer) {
-    this(values.getData(), layer);
-  }
-
   @Override
   public DeltaFlushBuffer add(final DeltaFlushBuffer right) {
     return join(right, (l, r) -> l.add(r));
   }
 
   public double[] calcVector() {
+    
+    NumberVector state = new NumberVector(this.layer.state().stream().flatMapToDouble(x->Arrays.stream(x)).toArray());
     LogNumberVector v = new LogNumberVector(Arrays.stream(this.buffer).map(x -> x.logValue()).toArray(i -> new LogNumber[i]));
     if (isNormalize()) {
-      v = v.scale(1. / v.l2());
+      //v = v.scale(1. / v.l2());
+      v = v.scale(1. / state.l1());
     }
     NumberVector returnValue = v.toDouble();
 
     if (0 < this.linearDecayRate) {
-      final NumberVector unitv = returnValue.unitV();
+      final NumberVector   unitv = returnValue.unitV();
       NumberVector l1Decay = new NumberVector(this.target).scale(-this.linearDecayRate);
       final double dotProduct = l1Decay.dotProduct(unitv);
       if (dotProduct < 0) {
         l1Decay = l1Decay.add(unitv.scale(-dotProduct));
       }
+      l1Decay = l1Decay.scale(v.l2());
       returnValue = returnValue.add(l1Decay); 
     }
     return returnValue.getArray();
@@ -174,24 +174,22 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     builder.append("/");
     builder.append(layer.getId());
     builder.append(" ");
-    builder.append(Arrays.toString(this.buffer));
+    builder.append(Arrays.toString(this.getCalcVector()));
     builder.append(" -> ");
     builder.append(this.layer.state().stream().map(x->Arrays.toString(x)).reduce((a,b)->a+","+b).get());
     return builder.toString();
   }
 
   public synchronized void write(final double factor) {
-    if (null == this.calcVector) {
-      this.calcVector = calcVector();
-    }
-    final double[] cpy = Arrays.copyOf(calcVector(), this.calcVector.length);
+    double[] calcVector = this.getCalcVector();
+    calcVector = Arrays.copyOf(calcVector, calcVector.length);
     for (int i = 0; i < this.buffer.length; i++) {
-      cpy[i] = cpy[i] * factor;
+      calcVector[i] = calcVector[i] * factor;
     }
     if (this.layer.isVerbose()) {
-      log.debug(String.format("Write to memory: %s", Arrays.toString(cpy)));
+      log.debug(String.format("Write to memory: %s", Arrays.toString(calcVector)));
     }
-    write(cpy);
+    write(calcVector);
   }
 
   private void write(final double[] cpy) {
@@ -204,6 +202,13 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
         this.target[i] = 0;
       }
     }
+  }
+
+  public double[] getCalcVector() {
+    if (null == this.calcVector) {
+      this.calcVector = calcVector();
+    }
+    return calcVector;
   }
 
 }
