@@ -361,7 +361,7 @@ public class PopulationTrainer {
     }).collect(Collectors.toList());
 
     for (int generation = 0; generation <= getNumberOfGenerations(); generation++) {
-      population = population.stream().map(dynamicRateTrainer -> {
+      population = population.stream().parallel().map(dynamicRateTrainer -> {
         trainIndividual(trainingContext, dynamicRateTrainer);
         if (this.verbose) {
           PopulationTrainer.log.info(String.format("Completed training to %.5f in %.03fs - %s", dynamicRateTrainer.getGradientDescentTrainer().getError(),

@@ -105,7 +105,9 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Override
   public void verify(final Tester trainer) {
-    trainer.setMutationAmplitude(.1).verifyConvergence(0.0, 1);
+    trainer.setMutationAmplitude(.1).setVerbose(true);
+    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
+    trainer.verifyConvergence(0.0, 1);
   }
 
 }

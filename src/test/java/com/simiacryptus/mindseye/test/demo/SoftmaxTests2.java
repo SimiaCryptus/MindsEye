@@ -96,7 +96,6 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   }
 
   @Override
-  @org.junit.Ignore
   public void test_O3() throws Exception {
     super.test_O3();
   }
@@ -135,7 +134,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   public void verify(final Tester trainer) {
     trainer.setVerbose(true);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
+    //trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
     trainer.verifyConvergence(0.01, 1);
   }
 
