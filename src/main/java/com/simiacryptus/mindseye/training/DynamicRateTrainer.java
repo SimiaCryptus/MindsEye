@@ -324,6 +324,9 @@ public class DynamicRateTrainer {
         rate *= params.alpha;
       } else assert(false);
       if(rate < params.endRate) {
+        if (isVerbose()) {
+          log.debug(String.format("TERMINAL rate underflow: %s", rate));
+        }
         break;
       }
     }
