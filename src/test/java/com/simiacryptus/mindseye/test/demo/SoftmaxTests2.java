@@ -17,7 +17,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 10 };
-    final int midLayers = 0;
+    final int midLayers = 1;
     DAGNetwork net = new DAGNetwork();
 
     // net = net.add(new
@@ -131,7 +131,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
   @Override
   public void verify(final Tester trainer) {
-    //trainer.setVerbose(true);
+    trainer.setVerbose(true);
     trainer.setMutationAmplitude(10);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
