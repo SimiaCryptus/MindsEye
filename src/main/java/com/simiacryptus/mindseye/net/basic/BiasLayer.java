@@ -169,4 +169,9 @@ public class BiasLayer extends NNLayer {
     return Arrays.asList(this.bias);
   }
 
+  public BiasLayer setWeights(java.util.function.IntToDoubleFunction f) {
+    for(int i=0;i<bias.length;i++) bias[i] = f.applyAsDouble(i);
+    return this;
+  }
+
 }

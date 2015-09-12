@@ -5,7 +5,6 @@ import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.dev.TreeNodeFunctionalLayer;
 import com.simiacryptus.mindseye.training.Tester;
 
@@ -22,15 +21,15 @@ public class TreeTest1 extends SimpleClassificationTests {
     gate = gate.add(new DenseSynapseLayer(NDArray.dim(inputSize), new int[] { 2 }));
     gate = gate.add(new BiasLayer(new int[] { 2 }));
     gate = gate.add(new SigmoidActivationLayer());
-    net.add(new TreeNodeFunctionalLayer(gate, 2, ()->{
+    net.add(new TreeNodeFunctionalLayer(gate, 2, i->{
       DAGNetwork subnet = new DAGNetwork();
       subnet=subnet.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setWeights(()->0).freeze());
-      subnet=subnet.add(new BiasLayer(outSize));
+      subnet=subnet.add(new BiasLayer(outSize).setWeights(j->i==j?1:0).freeze());
       return subnet;
     }));
     
-    net = net.add(new MinMaxFilterLayer());
-    net = net.add(new SigmoidActivationLayer());
+//    net = net.add(new MinMaxFilterLayer());
+//    net = net.add(new SigmoidActivationLayer());
 
     return net;
   }
@@ -39,7 +38,7 @@ public class TreeTest1 extends SimpleClassificationTests {
   public void verify(final Tester trainer) {
     trainer.setVerbose(true);
     // trainer.getInner().setAlignEnabled(false);
-    //trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
+    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
     trainer.verifyConvergence(0.01, 1);
   }
 

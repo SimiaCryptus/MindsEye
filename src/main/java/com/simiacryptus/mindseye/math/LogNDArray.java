@@ -57,7 +57,7 @@ public class LogNDArray {
   }
 
   public LogNDArray(final LogNDArray copy) {
-    this(copy.dims, Arrays.copyOf(copy.data, copy.data.length));
+    this(copy.dims, null==copy.data?null:Arrays.copyOf(copy.data, copy.data.length));
   }
 
   public LogNDArray(final NDArray ndArray) {
@@ -196,6 +196,7 @@ public class LogNDArray {
   }
 
   public LogNDArray scale(final double rate) {
+    if(null==this.data) return this;
     final LogNDArray copy = new LogNDArray(this);
     final LogNumber log = LogNumber.log(rate);
     for (int i = 0; i < this.data.length; i++) {

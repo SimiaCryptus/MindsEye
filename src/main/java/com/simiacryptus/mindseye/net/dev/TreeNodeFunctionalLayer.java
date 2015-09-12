@@ -3,11 +3,8 @@ package com.simiacryptus.mindseye.net.dev;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +12,9 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
-import com.simiacryptus.mindseye.util.Util;
 
 public class TreeNodeFunctionalLayer extends NNLayer {
 
@@ -68,8 +63,8 @@ public class TreeNodeFunctionalLayer extends NNLayer {
     this(gate,java.util.stream.Stream.of(leafs).collect(java.util.stream.Collectors.toList()));
   }
 
-  public TreeNodeFunctionalLayer(final NNLayer gate, int count, java.util.function.Supplier<NNLayer> leafs) {
-    this(gate, IntStream.range(0, count).mapToObj(x->leafs.get()).collect(java.util.stream.Collectors.toList()));
+  public TreeNodeFunctionalLayer(final NNLayer gate, int count, java.util.function.IntFunction<NNLayer> leafs) {
+    this(gate, IntStream.range(0, count).mapToObj(x->leafs.apply(x)).collect(java.util.stream.Collectors.toList()));
   }
 
   @Override
@@ -79,8 +74,8 @@ public class TreeNodeFunctionalLayer extends NNLayer {
     NNResult[] inObj = inputResultBuffers.stream().toArray(i->new NNResult[i]);
     NNResult gateEval = this.gate.eval(evaluationContext, inObj);
     double[] gateVals = gateEval.data.getData();
-    int[] sorted = IntStream.range(0, gateVals.length).mapToObj(x->x)
-        .sorted(java.util.Comparator.comparing(i->gateVals[i])).mapToInt(x->x).toArray();
+//    int[] sorted = IntStream.range(0, gateVals.length).mapToObj(x->x)
+//        .sorted(java.util.Comparator.comparing(i->gateVals[i])).mapToInt(x->x).toArray();
     
     List<NNResult> outputs = IntStream.range(0, gateVals.length).mapToObj(x->{
       NNLayer leaf = leafs.get(x);
