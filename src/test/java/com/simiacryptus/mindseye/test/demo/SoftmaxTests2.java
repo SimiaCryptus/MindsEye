@@ -131,10 +131,11 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
   @Override
   public void verify(final Tester trainer) {
-    trainer.setVerbose(true).setMutationAmplitude(10);
+    //trainer.setVerbose(true);
+    trainer.setMutationAmplitude(10);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.verifyConvergence(0.01, 1);
+    trainer.verifyConvergence(0.01, 10);
   }
 
 }

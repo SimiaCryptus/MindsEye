@@ -387,13 +387,13 @@ public class DynamicRateTrainer {
     getGradientDescentTrainer().setConstraintSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
         // .sorted(Comparator.comparing(t ->
         // t.getSecond().getFirst())).limit(50)
-        .filter(t -> t.getSecond().getFirst() > 0.8)
+        //.filter(t -> t.getSecond().getFirst() > 0.8)
         .mapToInt(t -> t.getFirst()).toArray());
   }
 
   protected void updateTrainingSieve(final List<Tuple2<Double, Double>> rms) {
     getGradientDescentTrainer().setTrainingSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
-        .filter(t -> t.getSecond().getFirst() < 0.0)
+        //.filter(t -> t.getSecond().getFirst() < 0.0)
         //.filter(t -> 1.8 * Math.random() > -0.5 - t.getSecond().getFirst())
         // .sorted(Comparator.comparing(t ->
         // -t.getSecond().getFirst())).limit(100)
@@ -405,7 +405,7 @@ public class DynamicRateTrainer {
         IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))).collect(Collectors.toList()));
     Collections.shuffle(collect);
     getGradientDescentTrainer().setValidationSet(collect.stream() //
-        .limit(100)
+        //.limit(100)
         // .filter(t -> t.getSecond().getFirst() < -0.3)
         // .filter(t -> 0.5 * Math.random() > -0. - t.getSecond().getFirst())
         // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
