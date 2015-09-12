@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 

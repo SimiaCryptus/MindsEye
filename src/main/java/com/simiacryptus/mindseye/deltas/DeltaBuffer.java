@@ -9,8 +9,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.math.VectorLogic;
+import com.simiacryptus.mindseye.net.NNLayer;
 
 public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
   private final Map<NNLayer, DeltaFlushBuffer> map = new LinkedHashMap<>();

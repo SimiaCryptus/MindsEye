@@ -33,7 +33,7 @@ import com.simiacryptus.mindseye.data.Simple2DLine;
 import com.simiacryptus.mindseye.data.SnakeDistribution;
 import com.simiacryptus.mindseye.data.UnionDistribution;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.Util;
 

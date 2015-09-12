@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.training;
+package com.simiacryptus.mindseye.net.dag;
 
 import java.util.Comparator;
 import java.util.List;
@@ -10,8 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.training.Tester;
 
 import groovy.lang.Tuple2;
 

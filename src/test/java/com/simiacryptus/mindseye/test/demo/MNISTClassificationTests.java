@@ -6,14 +6,14 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
-import com.simiacryptus.mindseye.layers.BiasLayer;
-import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
-import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.basic.BiasLayer;
+import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
-import com.simiacryptus.mindseye.training.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;

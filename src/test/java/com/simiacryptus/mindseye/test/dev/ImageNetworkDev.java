@@ -16,12 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.layers.BiasLayer;
-import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.DAGNetwork;
-import com.simiacryptus.mindseye.training.EvaluationContext;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.basic.BiasLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
+import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.LabeledObject;

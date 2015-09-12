@@ -1,13 +1,13 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import com.simiacryptus.mindseye.layers.BiasLayer;
-import com.simiacryptus.mindseye.layers.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.MaxSubsampleLayer;
-import com.simiacryptus.mindseye.layers.MinMaxFilterLayer;
-import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.DAGNetwork;
+import com.simiacryptus.mindseye.net.basic.BiasLayer;
+import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
+import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNISTClassificationTests3 extends MNISTClassificationTests {

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.net.basic;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,7 +14,8 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.EvaluationContext;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;

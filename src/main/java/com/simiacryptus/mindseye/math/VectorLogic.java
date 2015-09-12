@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.deltas;
+package com.simiacryptus.mindseye.math;
 
 public interface VectorLogic<T extends VectorLogic<T>> {
 

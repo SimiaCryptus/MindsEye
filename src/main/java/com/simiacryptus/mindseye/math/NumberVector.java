@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.deltas;
+package com.simiacryptus.mindseye.math;
 
 import java.util.Arrays;
 import java.util.function.DoubleBinaryOperator;

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.net.basic;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,61 +10,59 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.EvaluationContext;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public class ExpActivationLayer extends NNLayer {
+public abstract class SimpleActivationLayer extends NNLayer {
 
-  private static final Logger log = LoggerFactory.getLogger(ExpActivationLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
+
+  protected abstract void eval(final double x, double[] results);
 
   private boolean verbose;
 
-  public ExpActivationLayer() {
+  public SimpleActivationLayer() {
+    super();
   }
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
-    assert 1 == inObj.length;
-    final NNResult in = inObj[0];
-    final NDArray input = in.data;
-    final NDArray output = new NDArray(in.data.getDims());
+    final NDArray input = inObj[0].data;
+    final NDArray output = new NDArray(inObj[0].data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
-    IntStream.range(0, input.dim()).forEach(i -> {
-      final double x = input.getData()[i];
-      final double max = 700;// Math.log(Double.MAX_VALUE);
-      final double bounded = Math.max(Math.min(max, x), -max);
-      final double ex = Math.exp(bounded);
-      final double d = ex;
-      final double f = ex;
-      inputGradient.set(new int[] { i }, d);
-      output.set(i, f);
-    });
+    double[] results = new double[2];
+    for(int i=0;i<input.dim();i++) {
+      eval(input.getData()[i], results);
+      inputGradient.add(new int[] { i }, results[1]);
+      output.set(i, results[0]);
+    }
     if (isVerbose()) {
-      ExpActivationLayer.log.debug(String.format("Feed forward: %s => %s", in.data, output));
+      log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
     return new NNResult(output) {
       @Override
       public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
-        if (in.isAlive()) {
+        if (inObj[0].isAlive()) {
+          final LogNDArray inputGradientLog = inputGradient.log();
           final LogNDArray passback = new LogNDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
-            final LogNumber x = data.getData()[i];
-            final double dx = inputGradient.getData()[i];
-            passback.set(i, x.multiply(dx));
+            if (inputGradientLog.getData()[i].isFinite()) {
+              passback.set(i, data.getData()[i].multiply(inputGradientLog.getData()[i]));
+            }
           });
           if (isVerbose()) {
-            ExpActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
+            log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
-          in.feedback(passback, buffer);
+          inObj[0].feedback(passback, buffer);
         }
       }
-
+  
       @Override
       public boolean isAlive() {
-        return in.isAlive();
+        return inObj[0].isAlive();
       }
     };
   }
@@ -84,7 +82,7 @@ public class ExpActivationLayer extends NNLayer {
     return permute;
   }
 
-  public ExpActivationLayer setVerbose(final boolean verbose) {
+  public SimpleActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }

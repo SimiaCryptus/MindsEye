@@ -1,14 +1,14 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import com.simiacryptus.mindseye.layers.BiasLayer;
-import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.SynapseActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.DAGNetwork;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.basic.BiasLayer;
+import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
+import com.simiacryptus.mindseye.net.dev.SynapseActivationLayer;
 import com.simiacryptus.mindseye.training.Tester;
 
 public class SoftmaxTests3 extends SimpleClassificationTests {

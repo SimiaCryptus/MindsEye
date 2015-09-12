@@ -1,10 +1,10 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import com.simiacryptus.mindseye.layers.BiasLayer;
-import com.simiacryptus.mindseye.layers.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.DAGNetwork;
+import com.simiacryptus.mindseye.net.basic.BiasLayer;
+import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 
 public class SoftmaxTests1 extends SimpleClassificationTests {
   @Override

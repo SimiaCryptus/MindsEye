@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.net.dev;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,12 +15,11 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.training.EvaluationContext;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
-import groovy.lang.Tuple2;
-
-public class LinearActivationLayer extends NNLayer {
+public class SynapseActivationLayer extends NNLayer {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
 
@@ -32,32 +31,31 @@ public class LinearActivationLayer extends NNLayer {
     @Override
     public void feedback(final LogNDArray delta, final DeltaBuffer buffer) {
       if (isVerbose()) {
-        LinearActivationLayer.log.debug(String.format("Feed back: %s", this.data));
+        SynapseActivationLayer.log.debug(String.format("Feed back: %s", this.data));
       }
       final LogNumber[] deltaData = delta.getData();
 
       if (!isFrozen()) {
         final double[] inputData = this.inObj.data.getData();
-        final LogNDArray weightDelta = new LogNDArray(LinearActivationLayer.this.weights.getDims());
-        for (int i = 0; i < deltaData.length; i++) {
-          weightDelta.add(0, deltaData[i].multiply(inputData[i]));
+        final LogNDArray weightDelta = new LogNDArray(SynapseActivationLayer.this.weights.getDims());
+        for (int i = 0; i < weightDelta.getDims()[0]; i++) {
+          weightDelta.set(i, deltaData[i].multiply(inputData[i]));
         }
-        buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).feed(weightDelta.exp().getData());
+        buffer.get(SynapseActivationLayer.this, SynapseActivationLayer.this.weights).feed(weightDelta.exp().getData());
       }
       if (this.inObj.isAlive()) {
-        final DoubleMatrix matrix = LinearActivationLayer.this.weights.asRowMatrix();
-        final int[] dims = this.inObj.data.getDims();
-        final LogNDArray passback = new LogNDArray(dims);
-        for (int i = 0; i < passback.dim(); i++) {
-          passback.set(i, deltaData[i].multiply(matrix.get(0, 0)));
+        final DoubleMatrix matrix = SynapseActivationLayer.this.weights.asRowMatrix();
+        final LogNDArray passback = new LogNDArray(this.inObj.data.getDims());
+        for (int i = 0; i < matrix.columns; i++) {
+          passback.set(i, deltaData[i].multiply(matrix.get(i, 0)));
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {
-          LinearActivationLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, DenseSynapseResult.this.data, delta, passback));
+          SynapseActivationLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, DenseSynapseResult.this.data, delta, passback));
         }
       } else {
         if (isVerbose()) {
-          LinearActivationLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, DenseSynapseResult.this.data, delta));
+          SynapseActivationLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, DenseSynapseResult.this.data, delta));
         }
       }
     }
@@ -69,19 +67,22 @@ public class LinearActivationLayer extends NNLayer {
 
   }
 
-  private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(SynapseActivationLayer.class);
 
   private boolean frozen = false;
   private boolean verbose = false;
   public final NDArray weights;
 
-  public LinearActivationLayer() {
+  protected SynapseActivationLayer() {
     super();
-    this.weights = new NDArray(1);
-    this.weights.set(0, 1.);
+    this.weights = null;
   }
 
-  public LinearActivationLayer addWeights(final DoubleSupplier f) {
+  public SynapseActivationLayer(final int inputs) {
+    this.weights = new NDArray(inputs);
+  }
+
+  public SynapseActivationLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.weights.getData());
     return this;
   }
@@ -91,7 +92,7 @@ public class LinearActivationLayer extends NNLayer {
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(input.getDims());
     IntStream.range(0, input.dim()).forEach(i -> {
-      final double a = this.weights.get(0);
+      final double a = this.weights.get(i);
       final double b = input.getData()[i];
       final double value = b * a;
       if (Double.isFinite(value)) {
@@ -99,16 +100,16 @@ public class LinearActivationLayer extends NNLayer {
       }
     });
     if (isVerbose()) {
-      LinearActivationLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
+      SynapseActivationLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }
     return new DenseSynapseResult(output, inObj[0]);
   }
 
-  public LinearActivationLayer freeze() {
+  public SynapseActivationLayer freeze() {
     return freeze(true);
   }
 
-  public LinearActivationLayer freeze(final boolean b) {
+  public SynapseActivationLayer freeze(final boolean b) {
     this.frozen = b;
     return this;
   }
@@ -133,38 +134,27 @@ public class LinearActivationLayer extends NNLayer {
     return this.verbose;
   }
 
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  public LinearActivationLayer setVerbose(final boolean verbose) {
+  public SynapseActivationLayer setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return this;
   }
 
-  public LinearActivationLayer setWeights(final double[] data) {
+  public SynapseActivationLayer setWeights(final double[] data) {
     this.weights.set(data);
     return this;
   }
 
-  public LinearActivationLayer setWeights(final DoubleSupplier f) {
+  public SynapseActivationLayer setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;
   }
 
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.weights.getData());
+    return Arrays.asList();
   }
 
-  public LinearActivationLayer thaw() {
+  public SynapseActivationLayer thaw() {
     return freeze(false);
   }
-
 }

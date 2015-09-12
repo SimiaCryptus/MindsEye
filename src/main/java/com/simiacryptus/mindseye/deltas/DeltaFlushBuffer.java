@@ -9,9 +9,12 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.math.LogNumber;
+import com.simiacryptus.mindseye.math.LogNumberVector;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.math.NumberVector;
+import com.simiacryptus.mindseye.math.VectorLogic;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
