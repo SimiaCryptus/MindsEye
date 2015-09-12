@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.net.dev;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -102,7 +103,8 @@ public class TreeNodeFunctionalLayer extends NNLayer {
         output.feedback(data, buffer);
         NDArray evalFeedback = new NDArray(gateEval.data.getDims());
         for(int subnet=0;subnet<outputs.size();subnet++) {
-          NDArray so = outputs.get(subnet).data;
+          NNResult subnetObj = outputs.get(subnet);
+          NDArray so = subnetObj.data;
           double sum1 = 0;
           for(int i=0;i<so.dim();i++){
             sum1 += data.getData()[i].multiply(so.getData()[i]).doubleValue();
@@ -186,5 +188,12 @@ public class TreeNodeFunctionalLayer extends NNLayer {
 
   public TreeNodeFunctionalLayer thaw() {
     return freeze(false);
+  }
+
+  public List<NNLayer> getChildren() {
+    ArrayList<NNLayer> r = new java.util.ArrayList<>();
+    r.addAll(gate.getChildren());
+    this.leafs.stream().forEach(x->r.addAll(x.getChildren()));
+    return r;
   }
 }

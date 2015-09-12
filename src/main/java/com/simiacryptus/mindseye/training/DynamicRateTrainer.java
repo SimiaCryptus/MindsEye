@@ -284,7 +284,7 @@ public class DynamicRateTrainer {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
-    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-8, 1.3, 2.,0.0, java.util.concurrent.TimeUnit.HOURS.toMillis(1)));
+    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.1, 2.,0.0, java.util.concurrent.TimeUnit.HOURS.toMillis(1)));
     //train2(trainingContext);
     return false;
   }

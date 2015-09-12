@@ -36,6 +36,14 @@ public class TreeTest1 extends SimpleClassificationTests {
   }
 
   @Override
+  public void verify(final Tester trainer) {
+    trainer.setVerbose(true);
+    // trainer.getInner().setAlignEnabled(false);
+    //trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
+    trainer.verifyConvergence(0.01, 1);
+  }
+
+  @Override
   public void test_Gaussians() throws Exception {
     super.test_Gaussians();
   }
@@ -104,14 +112,6 @@ public class TreeTest1 extends SimpleClassificationTests {
   @Override
   public void test_xor() throws Exception {
     super.test_xor();
-  }
-
-  @Override
-  public void verify(final Tester trainer) {
-    trainer.setVerbose(true);
-    // trainer.getInner().setAlignEnabled(false);
-    //trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.verifyConvergence(0.01, 1);
   }
 
 }
