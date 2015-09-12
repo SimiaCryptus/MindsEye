@@ -307,14 +307,16 @@ public class DynamicRateTrainer {
         log.debug(String.format("Projected final convergence time: %.3f sec; %s - %s/sec", projectedEndSeconds, error, rateDelta));
       }
       if(trainingContext.timeout<System.currentTimeMillis()) {
-        log.debug(String.format("TIMEOUT err: %s", error));
+        log.debug(String.format("TIMEOUT; current err: %s", error));
         break;
       }
       if(projectedEndSeconds > params.terminalETA) {
         log.debug(String.format("TERMINAL Projected final convergence time: %.3f sec", projectedEndSeconds));
         break;
       }
-      if(error < params.terminalLearningRate && isVerbose()) {
+      if(error < params.terminalLearningRate) {
+        if(isVerbose()) {
+        }
         log.debug(String.format("TERMINAL Final err: %s", error));
       }
       if(0. <= delta) {
@@ -325,8 +327,8 @@ public class DynamicRateTrainer {
       } else assert(false);
       if(rate < params.endRate) {
         if (isVerbose()) {
-          log.debug(String.format("TERMINAL rate underflow: %s", rate));
         }
+        log.debug(String.format("TERMINAL rate underflow: %s", rate));
         break;
       }
     }

@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
@@ -104,7 +105,9 @@ public class Tester {
     final long succeesses = range.filter(i -> {
       final PopulationTrainer trainerCpy = Util.kryo().copy(getInner());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
+      contextCpy.setTimeout(1,TimeUnit.MINUTES);
       return trainerCpy.test(convergence, contextCpy, this.handler);
+      
     }).count();
     if (minSuccess > succeesses)
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));

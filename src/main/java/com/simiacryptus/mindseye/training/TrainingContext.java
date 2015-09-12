@@ -103,7 +103,7 @@ public class TrainingContext {
   public final Counter gradientSteps;
   public final Counter mutations;
   public final Timer overallTimer;
-  public final long timeout = TimeUnit.MINUTES.toMillis(1)+System.currentTimeMillis();
+  public long timeout = TimeUnit.MINUTES.toMillis(1)+System.currentTimeMillis();
 
   public TrainingContext() {
     this.evaluations = new Counter();
@@ -128,6 +128,10 @@ public class TrainingContext {
     builder.append(this.gradientSteps);
     builder.append("]");
     return builder.toString();
+  }
+
+  public void setTimeout(int v, TimeUnit u) {
+    timeout = u.toMillis(v)+System.currentTimeMillis();
   }
 
 }
