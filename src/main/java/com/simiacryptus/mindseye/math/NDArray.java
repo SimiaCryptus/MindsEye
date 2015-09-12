@@ -279,4 +279,15 @@ public class NDArray {
     }
   }
 
+  public NDArray add(NDArray r) {
+    NDArray result = new NDArray(getDims());
+    double[] resultData = result.getData();
+    double[] rdata = r.getData();
+    double[] data = getData();
+    for(int i=0;i<data.length;i++) {
+      resultData[i] = data[i]+rdata[i];
+    }
+    return result;
+  }
+
 }

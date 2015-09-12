@@ -247,4 +247,14 @@ public class LogNDArray {
     }
   }
 
+  public LogNDArray add(LogNDArray right) {
+    LogNDArray sum = new LogNDArray(getDims());
+    for(int i=0;i<dim();i++) {
+      LogNumber[] thisData = getData();
+      LogNumber[] rdata = right.getData();
+      sum.add(i, rdata[i].add(thisData[i]));
+    }
+    return sum;
+  }
+
 }
