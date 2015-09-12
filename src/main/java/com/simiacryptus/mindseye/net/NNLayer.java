@@ -9,7 +9,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
@@ -26,7 +25,7 @@ public abstract class NNLayer {
   public static NNResult[] wrapInput(final NDArray... array) {
     return Stream.of(array).map(a -> new NNResult(a) {
       @Override
-      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
         // Do Nothing
       }
 

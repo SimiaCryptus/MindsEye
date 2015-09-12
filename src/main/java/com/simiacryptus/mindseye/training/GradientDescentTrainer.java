@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -41,7 +40,7 @@ public class GradientDescentTrainer {
       final NDArray idealOutput = activeTrainingData[sample][1];
       final NNResult actualOutput = netresults.get(sample);
       final NDArray delta = actualOutput.delta(idealOutput);
-      final LogNDArray logDelta = delta.log().scale(getRate());
+      final NDArray logDelta = delta.scale(getRate());
       actualOutput.feedback(logDelta, buffer);
     });
     return buffer;

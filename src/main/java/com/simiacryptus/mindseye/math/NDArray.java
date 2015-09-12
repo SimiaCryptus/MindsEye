@@ -190,10 +190,6 @@ public class NDArray {
     // return IntStream.range(0, skips.length).map(i->skips[i]*coords[i]).sum();
   }
 
-  public LogNDArray log() {
-    return new LogNDArray(this);
-  }
-
   public NDArray map(final ToDoubleBiFunction<Double, Coordinate> f) {
     return new NDArray(this.dims, coordStream(false).mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
   }

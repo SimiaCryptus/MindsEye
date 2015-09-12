@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -31,26 +29,26 @@ public class LinearActivationLayer extends NNLayer {
     }
 
     @Override
-    public void feedback(final LogNDArray delta, final DeltaBuffer buffer) {
+    public void feedback(final NDArray delta, final DeltaBuffer buffer) {
       if (isVerbose()) {
         LinearActivationLayer.log.debug(String.format("Feed back: %s", this.data));
       }
-      final LogNumber[] deltaData = delta.getData();
+      final double[] deltaData = delta.getData();
 
       if (!isFrozen()) {
         final double[] inputData = this.inObj.data.getData();
-        final LogNDArray weightDelta = new LogNDArray(LinearActivationLayer.this.weights.getDims());
+        final NDArray weightDelta = new NDArray(LinearActivationLayer.this.weights.getDims());
         for (int i = 0; i < deltaData.length; i++) {
-          weightDelta.add(0, deltaData[i].multiply(inputData[i]));
+          weightDelta.add(0, deltaData[i]*(inputData[i]));
         }
-        buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).feed(weightDelta.exp().getData());
+        buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).feed(weightDelta.getData());
       }
       if (this.inObj.isAlive()) {
         final DoubleMatrix matrix = LinearActivationLayer.this.weights.asRowMatrix();
         final int[] dims = this.inObj.data.getDims();
-        final LogNDArray passback = new LogNDArray(dims);
+        final NDArray passback = new NDArray(dims);
         for (int i = 0; i < passback.dim(); i++) {
-          passback.set(i, deltaData[i].multiply(matrix.get(0, 0)));
+          passback.set(i, deltaData[i]*(matrix.get(0, 0)));
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {

@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -44,13 +43,13 @@ public abstract class SimpleActivationLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
-          final LogNDArray inputGradientLog = inputGradient.log();
-          final LogNDArray passback = new LogNDArray(data.getDims());
+          final NDArray inputGradientLog = inputGradient;
+          final NDArray passback = new NDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
-            if (inputGradientLog.getData()[i].isFinite()) {
-              passback.set(i, data.getData()[i].multiply(inputGradientLog.getData()[i]));
+            if (Double.isFinite(inputGradientLog.getData()[i])) {
+              passback.set(i, data.getData()[i]*(inputGradientLog.getData()[i]));
             }
           });
           if (isVerbose()) {

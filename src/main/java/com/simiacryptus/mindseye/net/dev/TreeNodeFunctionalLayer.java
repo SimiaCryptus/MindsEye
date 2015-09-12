@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -31,11 +30,11 @@ public class TreeNodeFunctionalLayer extends NNLayer {
       return inner.isAlive();
     }
 
-    LogNDArray sum = null;
+    NDArray sum = null;
     @Override
-    public synchronized void feedback(LogNDArray data, DeltaBuffer buffer) {
+    public synchronized void feedback(NDArray data, DeltaBuffer buffer) {
       if (null == sum) {
-        sum = new LogNDArray(data.getDims());
+        sum = new NDArray(data.getDims());
       }
       sum = sum.add(data);
     }
@@ -94,7 +93,7 @@ public class TreeNodeFunctionalLayer extends NNLayer {
       }
       
       @Override
-      public void feedback(LogNDArray data, DeltaBuffer buffer) {
+      public void feedback(NDArray data, DeltaBuffer buffer) {
         output.feedback(data, buffer);
         NDArray evalFeedback = new NDArray(gateEval.data.getDims());
         for(int subnet=0;subnet<outputs.size();subnet++) {
@@ -102,11 +101,11 @@ public class TreeNodeFunctionalLayer extends NNLayer {
           NDArray so = subnetObj.data;
           double sum1 = 0;
           for(int i=0;i<so.dim();i++){
-            sum1 += data.getData()[i].multiply(so.getData()[i]).doubleValue();
+            sum1 += data.getData()[i]*(so.getData()[i]);
           }
           evalFeedback.set(subnet, sum1);
         }
-        gateEval.feedback(evalFeedback.log(), buffer);
+        gateEval.feedback(evalFeedback, buffer);
         inputResultBuffers.stream().forEach(x->x.flush(buffer));
       }
     };
@@ -121,7 +120,7 @@ public class TreeNodeFunctionalLayer extends NNLayer {
       }
       
       @Override
-      public void feedback(LogNDArray data, DeltaBuffer buffer) {
+      public void feedback(NDArray data, DeltaBuffer buffer) {
         a.feedback(data, buffer);
         b.feedback(data, buffer);
       }
@@ -137,7 +136,7 @@ public class TreeNodeFunctionalLayer extends NNLayer {
       }
       
       @Override
-      public void feedback(LogNDArray data, DeltaBuffer buffer) {
+      public void feedback(NDArray data, DeltaBuffer buffer) {
         eval.feedback(data.scale(d), buffer);
       }
     };

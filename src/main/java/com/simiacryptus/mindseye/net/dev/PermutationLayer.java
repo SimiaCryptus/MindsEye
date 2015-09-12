@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -37,9 +36,9 @@ public class PermutationLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
-          final LogNDArray passback = new LogNDArray(data.getDims());
+          final NDArray passback = new NDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
             passback.set(i, data.getData()[i]);
           });

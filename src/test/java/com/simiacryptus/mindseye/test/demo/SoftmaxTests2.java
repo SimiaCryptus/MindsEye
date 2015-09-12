@@ -133,8 +133,8 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   public void verify(final Tester trainer) {
     trainer.setVerbose(true);
     // trainer.getInner().setAlignEnabled(false);
-    //trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.verifyConvergence(0.01, 1);
+    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
+    trainer.verifyConvergence(0.01, 5);
   }
 
 }

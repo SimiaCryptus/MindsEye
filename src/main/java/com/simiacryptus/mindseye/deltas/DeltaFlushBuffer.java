@@ -9,9 +9,6 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.math.LogNumber;
-import com.simiacryptus.mindseye.math.LogNumberVector;
-import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.math.NumberVector;
 import com.simiacryptus.mindseye.math.VectorLogic;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -56,13 +53,11 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
   public double[] calcVector() {
     
     NumberVector state = new NumberVector(this.layer.state().stream().flatMapToDouble(x->Arrays.stream(x)).toArray());
-    LogNumberVector v = new LogNumberVector(Arrays.stream(this.buffer).map(x -> x.logValue()).toArray(i -> new LogNumber[i]));
+    NumberVector returnValue = new NumberVector(Arrays.stream(this.buffer).mapToDouble(x -> x.logValue()).toArray());
     if (isNormalize()) {
       //v = v.scale(1. / v.l2());
-      v = v.scale(1. / state.l1());
+      returnValue = returnValue.scale(1. / state.l1());
     }
-    NumberVector returnValue = v.toDouble();
-
     if (0 < this.entropyDecayRate) {
       final NumberVector   unitv = returnValue.unitV();
       NumberVector l1Decay = new NumberVector(this.target).scale(-this.entropyDecayRate);
@@ -78,14 +73,10 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
 
   @Override
   public double dotProduct(final DeltaFlushBuffer right) {
-    return sum(right, (l, r) -> l.logValue().multiply(r.logValue()).doubleValue());
+    return sum(right, (l, r) -> l.logValue()*(r.logValue()));
   }
 
   public void feed(final double[] data) {
-    feed(new NDArray(new int[] { data.length }, data).log().getData());
-  }
-
-  public void feed(final LogNumber[] data) {
     assert null == this.calcVector;
     final int dim = length();
     for (int i = 0; i < dim; i++) {

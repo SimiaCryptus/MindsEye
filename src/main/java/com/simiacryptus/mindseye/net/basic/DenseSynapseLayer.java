@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -30,28 +28,28 @@ public class DenseSynapseLayer extends NNLayer {
     }
 
     @Override
-    public void feedback(final LogNDArray delta, final DeltaBuffer buffer) {
+    public void feedback(final NDArray delta, final DeltaBuffer buffer) {
       if (isVerbose()) {
         DenseSynapseLayer.log.debug(String.format("Feed back: %s", this.data));
       }
-      final LogNumber[] deltaData = delta.getData();
+      final double[] deltaData = delta.getData();
 
       if (!isFrozen()) {
         final double[] inputData = this.inObj.data.getData();
-        final LogNDArray weightDelta = new LogNDArray(DenseSynapseLayer.this.weights.getDims());
+        final NDArray weightDelta = new NDArray(DenseSynapseLayer.this.weights.getDims());
         for (int i = 0; i < weightDelta.getDims()[0]; i++) {
           for (int j = 0; j < weightDelta.getDims()[1]; j++) {
-            weightDelta.set(new int[] { i, j }, deltaData[j].multiply(inputData[i]));
+            weightDelta.set(new int[] { i, j }, deltaData[j]*(inputData[i]));
           }
         }
-        buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.exp().getData());
+        buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.getData());
       }
       if (this.inObj.isAlive()) {
         final DoubleMatrix matrix = DenseSynapseLayer.this.weights.asMatrix();
-        final LogNDArray passback = new LogNDArray(this.inObj.data.getDims());
+        final NDArray passback = new NDArray(this.inObj.data.getDims());
         for (int i = 0; i < matrix.columns; i++) {
           for (int j = 0; j < matrix.rows; j++) {
-            passback.add(i, deltaData[j].multiply(matrix.get(j, i)));
+            passback.add(i, deltaData[j]*(matrix.get(j, i)));
           }
         }
         this.inObj.feedback(passback, buffer);

@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -27,21 +25,21 @@ public class MinMaxFilterLayer extends NNLayer {
     }
 
     @Override
-    public void feedback(final LogNDArray delta, final DeltaBuffer buffer) {
+    public void feedback(final NDArray delta, final DeltaBuffer buffer) {
       if (isVerbose()) {
         MinMaxFilterLayer.log.debug(String.format("Feed back: %s", this.data));
       }
-      final LogNumber[] deltaData = delta.getData();
+      final double[] deltaData = delta.getData();
       if (this.inObj.isAlive()) {
         final int[] dims = this.inObj.data.getDims();
-        final LogNDArray passback = new LogNDArray(dims);
+        final NDArray passback = new NDArray(dims);
         for (int i = 0; i < passback.dim(); i++) {
           if (this.inObj.data.getData()[i] > getThreshold()) {
-            if (deltaData[i].isNegative()) {
+            if (0>deltaData[i]) {
               passback.set(i, deltaData[i]);
             }
           } else if (this.inObj.data.getData()[i] < -getThreshold()) {
-            if (!deltaData[i].isNegative()) {
+            if (0<=deltaData[i]) {
               passback.set(i, deltaData[i]);
             }
           } else {

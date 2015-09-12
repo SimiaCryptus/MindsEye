@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -54,7 +53,7 @@ public class BiasLayer extends NNLayer {
     }
     return new NNResult(translated) {
       @Override
-      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (isVerbose()) {
           BiasLayer.log.debug(String.format("Feed back: %s", data));
         }

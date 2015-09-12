@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.IntStream;
 
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 
 public abstract class NNResult {
@@ -36,7 +35,7 @@ public abstract class NNResult {
     return this.data.rms(ideal(k));
   }
 
-  public abstract void feedback(final LogNDArray data, DeltaBuffer buffer);
+  public abstract void feedback(final NDArray data, DeltaBuffer buffer);
 
   public final NDArray ideal(final int k) {
     final NDArray delta = new NDArray(this.data.getDims());

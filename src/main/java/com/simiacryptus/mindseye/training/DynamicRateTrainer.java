@@ -16,9 +16,8 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -280,11 +279,13 @@ public class DynamicRateTrainer {
     return this;
   }
 
+  private long etaMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(1);
+  
   public boolean train(final TrainingContext trainingContext) throws TerminationCondition {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
-    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.1, 2.,0.0, java.util.concurrent.TimeUnit.HOURS.toMillis(1)));
+    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.1, 2.,0.0, getEtaMs()));
     //train2(trainingContext);
     return false;
   }
@@ -326,7 +327,7 @@ public class DynamicRateTrainer {
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     NNResult probe = gradientDescentTrainer.getNet().eval(getGradientDescentTrainer().getTrainingData(trainingContext)[0][0]);
     DeltaBuffer buffer = new DeltaBuffer();
-    probe.feedback(new LogNDArray(probe.data.getDims()), buffer);
+    probe.feedback(new NDArray(probe.data.getDims()), buffer);
     int rateNumber = buffer.vector().size();
     return rateNumber;
   }
@@ -398,6 +399,15 @@ public class DynamicRateTrainer {
         // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(100)
         // .sorted(Comparator.comparing(t -> -t.getSecond().getFirst())).limit(500)
         .mapToInt(t -> t.getFirst()).toArray());
+  }
+
+  public long getEtaMs() {
+    return etaMs;
+  }
+
+  public DynamicRateTrainer setEtaEnd(long cnt, java.util.concurrent.TimeUnit units) {
+    this.etaMs = units.toMillis(cnt);
+    return this;
   }
 
 }

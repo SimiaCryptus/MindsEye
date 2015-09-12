@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -48,13 +46,13 @@ public class ExpActivationLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (in.isAlive()) {
-          final LogNDArray passback = new LogNDArray(data.getDims());
+          final NDArray passback = new NDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
-            final LogNumber x = data.getData()[i];
+            final double x = data.getData()[i];
             final double dx = inputGradient.getData()[i];
-            passback.set(i, x.multiply(dx));
+            passback.set(i, x*(dx));
           });
           if (isVerbose()) {
             ExpActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));

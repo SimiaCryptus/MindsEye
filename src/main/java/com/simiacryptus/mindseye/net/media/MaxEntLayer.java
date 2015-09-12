@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.LogNDArray;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -48,12 +47,12 @@ public class MaxEntLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
-          final LogNDArray inputGradientLog = inputGradient.log();
-          final LogNDArray passback = new LogNDArray(input.getDims());
+          final NDArray inputGradientLog = inputGradient;
+          final NDArray passback = new NDArray(input.getDims());
           for (int i = 0; i < passback.getData().length; i++) {
-            if (inputGradientLog.getData()[i].isFinite()) {
+            if (Double.isFinite(inputGradientLog.getData()[i])) {
               // double f = output.data[0];
               // f = Math.pow(f, feedbackAttenuation);
               passback.set(i, inputGradientLog.getData()[i]);

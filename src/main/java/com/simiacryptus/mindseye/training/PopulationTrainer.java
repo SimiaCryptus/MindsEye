@@ -77,8 +77,8 @@ public class PopulationTrainer {
   private boolean alignEnabled = true;
   private double initAmplitude = 5.;
   private DynamicRateTrainer inner = new DynamicRateTrainer();
-  private int numberOfGenerations = 2;
-  private int populationSize = 5;
+  private int numberOfGenerations = 0;
+  private int populationSize = 1;
   private boolean verbose = false;
 
   private void align(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
@@ -217,6 +217,7 @@ public class PopulationTrainer {
   }
 
   private void measure(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
+    if(1 >= population.size()) return;
     population.stream().flatMapToDouble(a -> {
       final List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
       log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));

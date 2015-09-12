@@ -16,8 +16,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
-import com.simiacryptus.mindseye.math.LogNDArray;
-import com.simiacryptus.mindseye.math.LogNumber;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -147,31 +145,31 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final LogNDArray errorSignal, final DeltaBuffer buffer) {
+      public void feedback(final NDArray errorSignal, final DeltaBuffer buffer) {
         if (!isFrozen()) {
-          final LogNDArray weightGradient = new LogNDArray(ConvolutionSynapseLayer.this.kernel.getDims());
+          final NDArray weightGradient = new NDArray(ConvolutionSynapseLayer.this.kernel.getDims());
           Arrays.stream(indexMap).forEach(array -> {
             final int i = array[1];
             final int o = array[2];
             final int k = array[0];
             final double in = input.getData()[i];
-            final LogNumber err = errorSignal.getData()[o];
-            weightGradient.add(k, err.multiply(in));
+            final double err = errorSignal.getData()[o];
+            weightGradient.add(k, err*(in));
           });
-          buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.exp().getData());
+          buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.getData());
         }
         if (inObj[0].isAlive()) {
-          final LogNDArray klog = ConvolutionSynapseLayer.this.kernel.log();
-          final LogNDArray backprop = new LogNDArray(inputDims);
+          final NDArray klog = ConvolutionSynapseLayer.this.kernel;
+          final NDArray backprop = new NDArray(inputDims);
 
           Arrays.stream(indexMap).forEach(array -> {
             final int k = array[0];
             final int o = array[2];
             final int i = array[1];
-            final LogNumber kernelValue = klog.get(k);
-            if (kernelValue.isFinite()) {
-              final LogNumber errorValue = errorSignal.get(o);
-              backprop.add(i, errorValue.multiply(kernelValue));
+            final double kernelValue = klog.get(k);
+            if (Double.isFinite(kernelValue)) {
+              final double errorValue = errorSignal.get(o);
+              backprop.add(i, errorValue*(kernelValue));
             }
           });
           if (isVerbose()) {
