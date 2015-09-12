@@ -80,7 +80,7 @@ public class DynamicRateTrainer {
   private double minRate = 0;
   private int recalibrationInterval = 10;
   private int recalibrationThreshold = 0;
-  private double stopError = 0;
+  private double stopError = 1e-2;
   private boolean verbose = false;
 
   protected MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final TrainingContext trainingContext) {
@@ -279,13 +279,13 @@ public class DynamicRateTrainer {
     return this;
   }
 
-  private long etaMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(1);
+  private long etaSec = java.util.concurrent.TimeUnit.HOURS.toSeconds(1);
   
   public boolean train(final TrainingContext trainingContext) throws TerminationCondition {
     this.currentIteration = 0;
     this.generationsSinceImprovement = 0;
     this.lastCalibratedIteration = Integer.MIN_VALUE;
-    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.1, 2.,0.0, getEtaMs()));
+    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.5, 2.,stopError, getEtaMs()));
     //train2(trainingContext);
     return false;
   }
@@ -300,13 +300,22 @@ public class DynamicRateTrainer {
       double rate1 = rate;
       setRates(trainingContext, IntStream.range(0, rateNumber).mapToDouble(x->rate1).toArray());
       double delta = gradientDescentTrainer.step(trainingContext);
-      double projectedEndSeconds = -gradientDescentTrainer.getError()/(linearLearningRate.add(delta)*1000.);
+      double error = gradientDescentTrainer.getError();
+      double rateDelta = linearLearningRate.add(delta);
+      double projectedEndSeconds = -error/(rateDelta*1000.);
       if (isVerbose()) {
-        log.debug(String.format("Projected final convergence time: %.3f sec", projectedEndSeconds));
+        log.debug(String.format("Projected final convergence time: %.3f sec; %s - %s/sec", projectedEndSeconds, error, rateDelta));
+      }
+      if(trainingContext.timeout<System.currentTimeMillis()) {
+        log.debug(String.format("TIMEOUT err: %s", error));
+        break;
       }
       if(projectedEndSeconds > params.terminalETA) {
         log.debug(String.format("TERMINAL Projected final convergence time: %.3f sec", projectedEndSeconds));
         break;
+      }
+      if(error < params.terminalLearningRate && isVerbose()) {
+        log.debug(String.format("TERMINAL Final err: %s", error));
       }
       if(0. <= delta) {
         calcSieves(trainingContext);
@@ -402,11 +411,11 @@ public class DynamicRateTrainer {
   }
 
   public long getEtaMs() {
-    return etaMs;
+    return etaSec;
   }
 
   public DynamicRateTrainer setEtaEnd(long cnt, java.util.concurrent.TimeUnit units) {
-    this.etaMs = units.toMillis(cnt);
+    this.etaSec = units.toSeconds(cnt);
     return this;
   }
 

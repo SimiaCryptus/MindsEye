@@ -41,7 +41,8 @@ public class BooleanSigmoidNetworkTests {
 
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
 
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()).trainer(samples).setMutationAmplitude(10.)
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer())
+        .trainer(samples).setMutationAmplitude(10.)
         .verifyConvergence(0.01, 100);
   }
 

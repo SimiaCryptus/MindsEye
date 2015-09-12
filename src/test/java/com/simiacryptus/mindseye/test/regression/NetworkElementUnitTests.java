@@ -138,14 +138,17 @@ public class NetworkElementUnitTests {
     final boolean verbose = false;
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, -1 }) },
+    final NDArray[][] samples = new NDArray[][] { 
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, -1 }) },
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
     new DAGNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)) //
         .trainer(samples) //
         // .setStaticRate(.25).setMutationAmount(1)
-        .setVerbose(verbose).verifyConvergence(0.1, 100);
+        //.setVerbose(verbose)
+        .setVerbose(true)
+        .verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -174,6 +177,7 @@ public class NetworkElementUnitTests {
   }
 
   @Test
+  @org.junit.Ignore
   public void expActivationLayer_feedback() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
