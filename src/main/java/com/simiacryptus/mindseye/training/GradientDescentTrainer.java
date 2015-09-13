@@ -246,7 +246,7 @@ public class GradientDescentTrainer {
         GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));
       }
     } else if (!Util.thermalStep(prevError, validationError, getTemperature())) {
-      if (this.verbose) {
+      if (this.verbose) { 
         GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
       }
       IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(-rates[i]));
