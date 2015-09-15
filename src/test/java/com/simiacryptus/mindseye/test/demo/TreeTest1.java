@@ -18,38 +18,36 @@ public class TreeTest1 extends SimpleClassificationTests {
   private static final class TreeNetwork extends DAGNetwork {
     private final int[] inputSize;
     private final int[] outSize;
-    final java.util.function.Supplier<DAGNetwork> gateFactory;
-    final IntFunction<DAGNetwork> constFactory;
+    public DAGNetwork gateFactory() {
+      DAGNetwork gate = new DAGNetwork();
+      gate = gate.add(new DenseSynapseLayer(NDArray.dim(inputSize), new int[] { 2 }));
+      gate = gate.add(new BiasLayer(new int[] { 2 }));
+      gate = gate.add(new SoftmaxActivationLayer());
+      gates.add(gate);
+      return gate;
+    }
+    public DAGNetwork constFactory(int i) {
+      DAGNetwork subnet = new DAGNetwork();
+      subnet=subnet.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setWeights(()->0).freeze());
+      subnet=subnet.add(new BiasLayer(outSize).setWeights(j->i==j?1:0).freeze());
+      return subnet;
+    };
     final java.util.List<WrapperLayer> leafs = new java.util.ArrayList<>();
     final java.util.List<NNLayer> gates = new java.util.ArrayList<>();
-    final IntFunction<NNLayer> leafFactory;
-    final java.util.function.Supplier<TreeNodeFunctionalLayer> nodeFactory;
+    public NNLayer leafFactory(int i){
+      DAGNetwork subnet = constFactory(i);
+      WrapperLayer wrapper = new WrapperLayer(subnet);
+      leafs.add(wrapper);
+      return wrapper;
+    }
+    public TreeNodeFunctionalLayer nodeFactory() {
+      return new TreeNodeFunctionalLayer(gateFactory(), 2, this::leafFactory);
+    };
 
     private TreeNetwork(int[] inputSize, int[] outSize) {
       this.inputSize = inputSize;
       this.outSize = outSize;
-      gateFactory = ()->{
-        DAGNetwork gate = new DAGNetwork();
-        gate = gate.add(new DenseSynapseLayer(NDArray.dim(inputSize), new int[] { 2 }));
-        gate = gate.add(new BiasLayer(new int[] { 2 }));
-        gate = gate.add(new SoftmaxActivationLayer());
-        gates.add(gate);
-        return gate;
-      };
-      constFactory = i->{
-        DAGNetwork subnet = new DAGNetwork();
-        subnet=subnet.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setWeights(()->0).freeze());
-        subnet=subnet.add(new BiasLayer(outSize).setWeights(j->i==j?1:0).freeze());
-        return subnet;
-      };
-      leafFactory = i->{
-        DAGNetwork subnet = constFactory.apply(i);
-        WrapperLayer wrapper = new WrapperLayer(subnet);
-        leafs.add(wrapper);
-        return wrapper;
-      };
-      nodeFactory = ()->new TreeNodeFunctionalLayer(gateFactory.get(), 2, leafFactory);
-      add(nodeFactory.get());
+      add(nodeFactory());
     }
     
     public TreeNetwork evolve() {
@@ -57,7 +55,7 @@ public class TreeTest1 extends SimpleClassificationTests {
       ArrayList<WrapperLayer> lcpy = new java.util.ArrayList<>(leafs);
       leafs.clear();
       for(WrapperLayer l : lcpy) {
-        l.setInner(nodeFactory.get());
+        l.setInner(nodeFactory());
       }
       return this;
     }
