@@ -70,7 +70,7 @@ public class SoftmaxActivationLayer extends NNLayer {
             for (int j = 0; j < output.dim(); j++) {
               final double value = inputGradientLog.get(new int[] { i, j });
               if (Double.isFinite(value)) {
-                passback.add(i, delta[j]*(value));
+                passback.add(i, delta[j] * value);
               }
             }
             ;

@@ -3,7 +3,6 @@ package com.simiacryptus.mindseye.deltas;
 import java.util.TreeSet;
 import java.util.function.Function;
 
-
 public class DeltaValueAccumulator2 implements DeltaValueAccumulator<DeltaValueAccumulator2> {
   public TreeSet<Double> numbers = new TreeSet<>();
 
@@ -34,10 +33,10 @@ public class DeltaValueAccumulator2 implements DeltaValueAccumulator<DeltaValueA
 
   @Override
   public synchronized double logValue() {
-    final double[] array = this.numbers.stream().mapToDouble(x->x).toArray();
+    final double[] array = this.numbers.stream().mapToDouble(x -> x).toArray();
     if (null == array || 0 == array.length)
       return 0;
-    return java.util.stream.DoubleStream.of(array).reduce((a, b) -> a+(b)).getAsDouble()/(array.length);
+    return java.util.stream.DoubleStream.of(array).reduce((a, b) -> a + b).getAsDouble() / array.length;
   }
 
   private synchronized DeltaValueAccumulator2 map(final Function<Double, Double> f) {
@@ -49,7 +48,7 @@ public class DeltaValueAccumulator2 implements DeltaValueAccumulator<DeltaValueA
 
   @Override
   public DeltaValueAccumulator2 multiply(final double r) {
-    return map(x -> x*(r));
+    return map(x -> x * r);
   }
 
 }

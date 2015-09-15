@@ -103,7 +103,7 @@ public class TrainingContext {
   public final Counter gradientSteps;
   public final Counter mutations;
   public final Timer overallTimer;
-  public long timeout = TimeUnit.MINUTES.toMillis(1)+System.currentTimeMillis();
+  public long timeout = TimeUnit.MINUTES.toMillis(1) + System.currentTimeMillis();
 
   public TrainingContext() {
     this.evaluations = new Counter();
@@ -111,6 +111,10 @@ public class TrainingContext {
     this.calibrations = new Counter();
     this.mutations = new Counter();
     this.overallTimer = new Timer();
+  }
+
+  public void setTimeout(final int v, final TimeUnit u) {
+    this.timeout = u.toMillis(v) + System.currentTimeMillis();
   }
 
   @Override
@@ -128,10 +132,6 @@ public class TrainingContext {
     builder.append(this.gradientSteps);
     builder.append("]");
     return builder.toString();
-  }
-
-  public void setTimeout(int v, TimeUnit u) {
-    timeout = u.toMillis(v)+System.currentTimeMillis();
   }
 
 }

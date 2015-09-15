@@ -154,7 +154,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
             final int k = array[0];
             final double in = input.getData()[i];
             final double err = errorSignal.getData()[o];
-            weightGradient.add(k, err*(in));
+            weightGradient.add(k, err * in);
           });
           buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.getData());
         }
@@ -169,7 +169,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
             final double kernelValue = klog.get(k);
             if (Double.isFinite(kernelValue)) {
               final double errorValue = errorSignal.get(o);
-              backprop.add(i, errorValue*(kernelValue));
+              backprop.add(i, errorValue * kernelValue);
             }
           });
           if (isVerbose()) {
@@ -191,6 +191,7 @@ public class ConvolutionSynapseLayer extends NNLayer {
     return this;
   }
 
+  @Override
   public ConvolutionSynapseLayer freeze() {
     return freeze(true);
   }

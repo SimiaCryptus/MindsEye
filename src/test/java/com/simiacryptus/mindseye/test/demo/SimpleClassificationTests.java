@@ -67,7 +67,7 @@ public abstract class SimpleClassificationTests extends ClassificationTestBase {
   }
 
   @Test(expected = RuntimeException.class)
-  //@Ignore
+  // @Ignore
   public void test_O3() throws Exception {
     test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 1)),
         new UnionDistribution(new Simple2DCircle(.5, new double[] { 0, 0 }))), 1000));

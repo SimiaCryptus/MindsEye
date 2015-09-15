@@ -217,7 +217,8 @@ public class PopulationTrainer {
   }
 
   private void measure(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
-    if(1 >= population.size()) return;
+    if (1 >= population.size())
+      return;
     population.stream().flatMapToDouble(a -> {
       final List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
       log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));

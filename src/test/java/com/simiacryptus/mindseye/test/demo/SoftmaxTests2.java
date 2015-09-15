@@ -50,7 +50,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
     // net = net.add(new ExpActivationLayer());
     // net = net.add(new L1NormalizationLayer());
-    //net = net.add(new LinearActivationLayer());
+    // net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
     net = net.add(new SigmoidActivationLayer());
     // net = net.add(new SoftmaxActivationLayer());
@@ -119,7 +119,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     super.test_sos();
   }
 
-  @Override 
+  @Override
   public void test_X() throws Exception {
     super.test_X();
   }

@@ -37,7 +37,7 @@ public class SynapseActivationLayer extends NNLayer {
         final double[] inputData = this.inObj.data.getData();
         final NDArray weightDelta = new NDArray(SynapseActivationLayer.this.weights.getDims());
         for (int i = 0; i < weightDelta.getDims()[0]; i++) {
-          weightDelta.set(i, deltaData[i]*(inputData[i]));
+          weightDelta.set(i, deltaData[i] * inputData[i]);
         }
         buffer.get(SynapseActivationLayer.this, SynapseActivationLayer.this.weights).feed(weightDelta.getData());
       }
@@ -45,7 +45,7 @@ public class SynapseActivationLayer extends NNLayer {
         final DoubleMatrix matrix = SynapseActivationLayer.this.weights.asRowMatrix();
         final NDArray passback = new NDArray(this.inObj.data.getDims());
         for (int i = 0; i < matrix.columns; i++) {
-          passback.set(i, deltaData[i]*(matrix.get(i, 0)));
+          passback.set(i, deltaData[i] * matrix.get(i, 0));
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {
@@ -103,6 +103,7 @@ public class SynapseActivationLayer extends NNLayer {
     return new DenseSynapseResult(output, inObj[0]);
   }
 
+  @Override
   public SynapseActivationLayer freeze() {
     return freeze(true);
   }

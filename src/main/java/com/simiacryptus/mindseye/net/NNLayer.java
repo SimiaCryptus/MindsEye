@@ -61,6 +61,14 @@ public abstract class NNLayer {
 
   public abstract NNResult eval(EvaluationContext evaluationContext, NNResult... array);
 
+  public NNLayer evolve() {
+    return null;
+  }
+
+  public NNLayer freeze() {
+    return this;
+  }
+
   public List<NNLayer> getChildren() {
     return Arrays.asList(this);
   }
@@ -101,14 +109,6 @@ public abstract class NNLayer {
   @Override
   public final String toString() {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
-  }
-
-  public NNLayer freeze() {
-    return this;
-  }
-  
-  public NNLayer evolve() {
-    return null;
   }
 
 }

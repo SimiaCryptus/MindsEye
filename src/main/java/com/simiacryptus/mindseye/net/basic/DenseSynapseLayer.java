@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+
 import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class DenseSynapseLayer extends NNLayer {
         final NDArray weightDelta = new NDArray(DenseSynapseLayer.this.weights.getDims());
         for (int i = 0; i < weightDelta.getDims()[0]; i++) {
           for (int j = 0; j < weightDelta.getDims()[1]; j++) {
-            weightDelta.set(new int[] { i, j }, deltaData[j]*(inputData[i]));
+            weightDelta.set(new int[] { i, j }, deltaData[j] * inputData[i]);
           }
         }
         buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.getData());
@@ -49,7 +50,7 @@ public class DenseSynapseLayer extends NNLayer {
         final NDArray passback = new NDArray(this.inObj.data.getDims());
         for (int i = 0; i < matrix.columns; i++) {
           for (int j = 0; j < matrix.rows; j++) {
-            passback.add(i, deltaData[j]*(matrix.get(j, i)));
+            passback.add(i, deltaData[j] * matrix.get(j, i));
           }
         }
         this.inObj.feedback(passback, buffer);
@@ -97,8 +98,8 @@ public class DenseSynapseLayer extends NNLayer {
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(this.outputDims);
-    for(int i=0;i<input.dim();i++) {
-      for(int o=0;o<output.dim();o++) {
+    for (int i = 0; i < input.dim(); i++) {
+      for (int o = 0; o < output.dim(); o++) {
         final double a = this.weights.get(i, o);
         final double b = input.getData()[i];
         final double value = b * a;
@@ -113,6 +114,7 @@ public class DenseSynapseLayer extends NNLayer {
     return new DenseSynapseResult(output, inObj[0]);
   }
 
+  @Override
   public DenseSynapseLayer freeze() {
     return freeze(true);
   }

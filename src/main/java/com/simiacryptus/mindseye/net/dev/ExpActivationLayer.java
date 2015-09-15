@@ -52,7 +52,7 @@ public class ExpActivationLayer extends NNLayer {
           IntStream.range(0, passback.dim()).forEach(i -> {
             final double x = data.getData()[i];
             final double dx = inputGradient.getData()[i];
-            passback.set(i, x*(dx));
+            passback.set(i, x * dx);
           });
           if (isVerbose()) {
             ExpActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));

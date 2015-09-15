@@ -19,21 +19,21 @@ public abstract class SimpleActivationLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
 
-  protected abstract void eval(final double x, double[] results);
-
   private boolean verbose;
 
   public SimpleActivationLayer() {
     super();
   }
 
+  protected abstract void eval(final double x, double[] results);
+
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(inObj[0].data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
-    double[] results = new double[2];
-    for(int i=0;i<input.dim();i++) {
+    final double[] results = new double[2];
+    for (int i = 0; i < input.dim(); i++) {
       eval(input.getData()[i], results);
       inputGradient.add(new int[] { i }, results[1]);
       output.set(i, results[0]);
@@ -49,7 +49,7 @@ public abstract class SimpleActivationLayer extends NNLayer {
           final NDArray passback = new NDArray(data.getDims());
           IntStream.range(0, passback.dim()).forEach(i -> {
             if (Double.isFinite(inputGradientLog.getData()[i])) {
-              passback.set(i, data.getData()[i]*(inputGradientLog.getData()[i]));
+              passback.set(i, data.getData()[i] * inputGradientLog.getData()[i]);
             }
           });
           if (isVerbose()) {
@@ -58,7 +58,7 @@ public abstract class SimpleActivationLayer extends NNLayer {
           inObj[0].feedback(passback, buffer);
         }
       }
-  
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();

@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.math;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.IntStream;
+
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
@@ -78,14 +79,11 @@ public class MultivariateOptimizer {
     final int dims = initial.getFirst().length;
     final ThreadLocal<MultivariateFunction> f = Util.copyOnFork(this.f);
     PointValuePair current = initial;
-    Double initialErrror = initial.getSecond();
+    final Double initialErrror = initial.getSecond();
     for (int i = 0; i < dims; i++) {
-      PointValuePair prev = current;
-      current = IntStream.range(0, dims).filter(j->0.==prev.getKey()[j])
-          .mapToObj(j -> optimizeVariable(f, prev, j))
-          .sorted(Comparator.comparing(x -> -x.getSecond()))
-          .filter(x->x.getSecond()<initialErrror)
-          .findFirst().get();
+      final PointValuePair prev = current;
+      current = IntStream.range(0, dims).filter(j -> 0. == prev.getKey()[j]).mapToObj(j -> optimizeVariable(f, prev, j)).sorted(Comparator.comparing(x -> -x.getSecond()))
+          .filter(x -> x.getSecond() < initialErrror).findFirst().get();
     }
     return current;
   }
@@ -96,7 +94,7 @@ public class MultivariateOptimizer {
       final PointValuePair oneD = new UnivariateOptimizer(x1 -> {
         return f.get().value(MultivariateOptimizer.copy(prevVars, dimension, x1));
       }).setMaxRate(getMaxRate()).minimize();
-      double[] nextVars = MultivariateOptimizer.copy(prevVars, dimension, oneD.getFirst()[0]);
+      final double[] nextVars = MultivariateOptimizer.copy(prevVars, dimension, oneD.getFirst()[0]);
       return new PointValuePair(nextVars, oneD.getSecond());
     } catch (final Throwable e) {
       if (isVerbose()) {

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +42,10 @@ public class BiasLayer extends NNLayer {
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
-    NDArray r = inObj[0].data;
-    double[] rd = r.getData();
-    double[] array = new double[rd.length];
-    for(int i=0;i<array.length;i++) {
+    final NDArray r = inObj[0].data;
+    final double[] rd = r.getData();
+    final double[] array = new double[rd.length];
+    for (int i = 0; i < array.length; i++) {
       array[i] = rd[i] + this.bias[i];
     }
     final NDArray translated = new NDArray(r.getDims(), array);
@@ -72,6 +73,7 @@ public class BiasLayer extends NNLayer {
     };
   }
 
+  @Override
   public BiasLayer freeze() {
     return setFrozen(true);
   }
@@ -163,14 +165,16 @@ public class BiasLayer extends NNLayer {
     return this;
   }
 
+  public BiasLayer setWeights(final java.util.function.IntToDoubleFunction f) {
+    for (int i = 0; i < this.bias.length; i++) {
+      this.bias[i] = f.applyAsDouble(i);
+    }
+    return this;
+  }
+
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.bias);
-  }
-
-  public BiasLayer setWeights(java.util.function.IntToDoubleFunction f) {
-    for(int i=0;i<bias.length;i++) bias[i] = f.applyAsDouble(i);
-    return this;
   }
 
 }

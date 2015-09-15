@@ -84,10 +84,6 @@ public class GradientDescentTrainer {
     return getTrainingData(getConstraintSet());
   }
 
-  public final NDArray[][] getTrainingData(final TrainingContext trainingContext) {
-    return getTrainingData(getTrainingSet());
-  }
-
   public int[] getConstraintSet() {
     if (null == this.constraintSet)
       return null;
@@ -124,6 +120,10 @@ public class GradientDescentTrainer {
     if (null != activeSet)
       return IntStream.of(activeSet).mapToObj(i -> getMasterTrainingData()[i]).toArray(i -> new NDArray[i][]);
     return getMasterTrainingData();
+  }
+
+  public final NDArray[][] getTrainingData(final TrainingContext trainingContext) {
+    return getTrainingData(getTrainingSet());
   }
 
   public int[] getTrainingSet() {
@@ -246,7 +246,7 @@ public class GradientDescentTrainer {
         GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));
       }
     } else if (!Util.thermalStep(prevError, validationError, getTemperature())) {
-      if (this.verbose) { 
+      if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
       }
       IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(-rates[i]));

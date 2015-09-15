@@ -105,9 +105,9 @@ public class Tester {
     final long succeesses = range.filter(i -> {
       final PopulationTrainer trainerCpy = Util.kryo().copy(getInner());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
-      contextCpy.setTimeout(1,TimeUnit.MINUTES);
+      contextCpy.setTimeout(1, TimeUnit.MINUTES);
       return trainerCpy.test(convergence, contextCpy, this.handler);
-      
+
     }).count();
     if (minSuccess > succeesses)
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));

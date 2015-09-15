@@ -47,6 +47,10 @@ import groovy.lang.Tuple2;
 
 public class Util {
 
+  private final static java.util.concurrent.atomic.AtomicInteger idcounter = new java.util.concurrent.atomic.AtomicInteger(0);
+
+  private final static String jvmId = UUID.randomUUID().toString();
+
   public static final ThreadLocal<Random> R = new ThreadLocal<Random>() {
     public final Random r = new Random(System.nanoTime());
 
@@ -159,23 +163,6 @@ public class Util {
     Util.report(Stream.of(fragments));
   }
 
-  public static double rms(final TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, final int[] activeSet) {
-    @SuppressWarnings("resource")
-    final IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
-    return Math.sqrt(stream.filter(i -> i < rms.size()).mapToDouble(i -> rms.get(i).getSecond()).average().getAsDouble());
-  }
-
-  public static BufferedImage scale(BufferedImage img, final double scale) {
-    final int w = img.getWidth();
-    final int h = img.getHeight();
-    final BufferedImage after = new BufferedImage((int) (w * scale), (int) (h * scale), BufferedImage.TYPE_INT_ARGB);
-    final AffineTransform at = new AffineTransform();
-    at.scale(scale, scale);
-    final AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-    img = scaleOp.filter(img, after);
-    return img;
-  }
-
   //
   // public static Stream<byte[]> binaryStream(final String path, final String
   // name, final int skip, final int recordSize) throws IOException {
@@ -220,6 +207,23 @@ public class Util {
   // return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" +
   // img.label + "\" />";
   // }
+
+  public static double rms(final TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, final int[] activeSet) {
+    @SuppressWarnings("resource")
+    final IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
+    return Math.sqrt(stream.filter(i -> i < rms.size()).mapToDouble(i -> rms.get(i).getSecond()).average().getAsDouble());
+  }
+
+  public static BufferedImage scale(BufferedImage img, final double scale) {
+    final int w = img.getWidth();
+    final int h = img.getHeight();
+    final BufferedImage after = new BufferedImage((int) (w * scale), (int) (h * scale), BufferedImage.TYPE_INT_ARGB);
+    final AffineTransform at = new AffineTransform();
+    at.scale(scale, scale);
+    final AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+    img = scaleOp.filter(img, after);
+    return img;
+  }
 
   public static List<LabeledObject<NDArray>> shuffle(final List<LabeledObject<NDArray>> buffer) {
     return Util.shuffle(buffer, Util.R.get());
@@ -290,6 +294,11 @@ public class Util {
     return img;
   }
 
+  // public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+  // return StreamSupport.stream(Spliterators.spliterator(iterator, 1,
+  // Spliterator.ORDERED), false);
+  // }
+
   public static String toInlineImage(final BufferedImage img, final String alt) {
     return Util.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
   }
@@ -305,11 +314,6 @@ public class Util {
     final String encode = Base64.getEncoder().encodeToString(byteArray);
     return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" + img.label + "\" />";
   }
-
-  // public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
-  // return StreamSupport.stream(Spliterators.spliterator(iterator, 1,
-  // Spliterator.ORDERED), false);
-  // }
 
   public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
@@ -407,15 +411,12 @@ public class Util {
     return merged;
   }
 
-  private final static String jvmId = UUID.randomUUID().toString();
-  private final static java.util.concurrent.atomic.AtomicInteger idcounter = new java.util.concurrent.atomic.AtomicInteger(0);
-
   public static UUID uuid() {
     String index = Integer.toHexString(idcounter.incrementAndGet());
     while (index.length() < 8) {
       index = "0" + index;
     }
-    String tempId = jvmId.substring(0, jvmId.length()-index.length()) + index;
+    final String tempId = jvmId.substring(0, jvmId.length() - index.length()) + index;
     return UUID.fromString(tempId);
   }
 }

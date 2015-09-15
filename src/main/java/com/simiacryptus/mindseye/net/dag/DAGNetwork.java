@@ -92,6 +92,25 @@ public class DAGNetwork extends NNLayer {
     return eval(new EvaluationContext(), array);
   }
 
+  @Override
+  public NNLayer evolve() {
+    if (0 == this.byId.values().stream().filter(l -> {
+      final NNLayer evolve = l.evolve();
+      if (null != evolve && evolve != l)
+        throw new RuntimeException("Not implemented: Substitution via evolution in DAGNetwork");
+      return null != evolve;
+    }).count())
+      return null;
+    else
+      return this;
+  }
+
+  @Override
+  public NNLayer freeze() {
+    this.byId.values().forEach(l -> l.freeze());
+    return super.freeze();
+  }
+
   public NNLayer get(final int i) {
     return this.byId.get(i);
   }
@@ -157,24 +176,4 @@ public class DAGNetwork extends NNLayer {
     return new Tester().setParams(this, samples);
   }
 
-  @Override
-  public NNLayer freeze() {
-    this.byId.values().forEach(l->l.freeze());
-    return super.freeze();
-  }
-
-  @Override
-  public NNLayer evolve() {
-    if(0==this.byId.values().stream().filter(l->{
-      final NNLayer evolve = l.evolve();
-      if(null!=evolve&&evolve!=l) throw new RuntimeException("Not implemented: Substitution via evolution in DAGNetwork");
-      return null!=evolve;
-    }).count()) {
-      return null;
-    } else {
-      return this;
-    }
-  }
-  
-  
 }

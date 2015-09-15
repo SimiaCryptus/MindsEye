@@ -74,6 +74,17 @@ public class NDArray {
     add(index(coords), value);
   }
 
+  public NDArray add(final NDArray r) {
+    final NDArray result = new NDArray(getDims());
+    final double[] resultData = result.getData();
+    final double[] rdata = r.getData();
+    final double[] data = getData();
+    for (int i = 0; i < data.length; i++) {
+      resultData[i] = data[i] + rdata[i];
+    }
+    return result;
+  }
+
   public DoubleMatrix asMatrix() {
     return new DoubleMatrix(this.dims[0], this.dims[1], getData()).transpose();
   }
@@ -273,17 +284,6 @@ public class NDArray {
       final Optional<String> str = list.stream().limit(10).reduce((a, b) -> a + "," + b);
       return "[ " + str.get() + " ]";
     }
-  }
-
-  public NDArray add(NDArray r) {
-    NDArray result = new NDArray(getDims());
-    double[] resultData = result.getData();
-    double[] rdata = r.getData();
-    double[] data = getData();
-    for(int i=0;i<data.length;i++) {
-      resultData[i] = data[i]+rdata[i];
-    }
-    return result;
   }
 
 }

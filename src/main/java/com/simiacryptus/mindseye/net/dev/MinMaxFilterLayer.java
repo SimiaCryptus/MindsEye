@@ -35,11 +35,11 @@ public class MinMaxFilterLayer extends NNLayer {
         final NDArray passback = new NDArray(dims);
         for (int i = 0; i < passback.dim(); i++) {
           if (this.inObj.data.getData()[i] > getThreshold()) {
-            if (0>deltaData[i]) {
+            if (0 > deltaData[i]) {
               passback.set(i, deltaData[i]);
             }
           } else if (this.inObj.data.getData()[i] < -getThreshold()) {
-            if (0<=deltaData[i]) {
+            if (0 <= deltaData[i]) {
               passback.set(i, deltaData[i]);
             }
           } else {

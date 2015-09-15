@@ -1,84 +1,21 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import java.util.ArrayList;
-import java.util.function.IntFunction;
-
-import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dev.TreeNodeFunctionalLayer;
-import com.simiacryptus.mindseye.net.dev.WrapperLayer;
+import com.simiacryptus.mindseye.net.dev.TreeNetwork;
 import com.simiacryptus.mindseye.training.Tester;
 
 public class TreeTest1 extends SimpleClassificationTests {
-
-  private static final class TreeNetwork extends DAGNetwork {
-    private final int[] inputSize;
-    private final int[] outSize;
-    public DAGNetwork gateFactory() {
-      DAGNetwork gate = new DAGNetwork();
-      gate = gate.add(new DenseSynapseLayer(NDArray.dim(inputSize), new int[] { 2 }));
-      gate = gate.add(new BiasLayer(new int[] { 2 }));
-      gate = gate.add(new SoftmaxActivationLayer());
-      gates.add(gate);
-      return gate;
-    }
-    public DAGNetwork constFactory(int i) {
-      DAGNetwork subnet = new DAGNetwork();
-      subnet=subnet.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setWeights(()->0).freeze());
-      subnet=subnet.add(new BiasLayer(outSize).setWeights(j->i==j?1:0).freeze());
-      return subnet;
-    };
-    final java.util.List<WrapperLayer> leafs = new java.util.ArrayList<>();
-    final java.util.List<NNLayer> gates = new java.util.ArrayList<>();
-    public NNLayer leafFactory(int i){
-      DAGNetwork subnet = constFactory(i);
-      WrapperLayer wrapper = new WrapperLayer(subnet);
-      leafs.add(wrapper);
-      return wrapper;
-    }
-    public TreeNodeFunctionalLayer nodeFactory() {
-      return new TreeNodeFunctionalLayer(gateFactory(), 2, this::leafFactory);
-    };
-
-    private TreeNetwork(int[] inputSize, int[] outSize) {
-      this.inputSize = inputSize;
-      this.outSize = outSize;
-      add(nodeFactory());
-    }
-    
-    public TreeNetwork evolve() {
-      gates.stream().forEach(l->l.freeze());
-      ArrayList<WrapperLayer> lcpy = new java.util.ArrayList<>(leafs);
-      leafs.clear();
-      for(WrapperLayer l : lcpy) {
-        l.setInner(nodeFactory());
-      }
-      return this;
-    }
-  }
 
   @Override
   public DAGNetwork buildNetwork() {
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    
-    DAGNetwork net = new TreeNetwork(inputSize, outSize);
-//    net = net.add(new MinMaxFilterLayer());
-//    net = net.add(new SigmoidActivationLayer());
-    return net;
-  }
 
-  @Override
-  public void verify(final Tester trainer) {
-    //trainer.setVerbose(true);
-    // trainer.getInner().setAlignEnabled(false);
-    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.verifyConvergence(0.01, 10);
+    final DAGNetwork net = new TreeNetwork(inputSize, outSize);
+    // net = net.add(new MinMaxFilterLayer());
+    // net = net.add(new SigmoidActivationLayer());
+    return net;
   }
 
   @Override
@@ -150,6 +87,14 @@ public class TreeTest1 extends SimpleClassificationTests {
   @Override
   public void test_xor() throws Exception {
     super.test_xor();
+  }
+
+  @Override
+  public void verify(final Tester trainer) {
+    // trainer.setVerbose(true);
+    // trainer.getInner().setAlignEnabled(false);
+    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
+    trainer.verifyConvergence(0.01, 10);
   }
 
 }

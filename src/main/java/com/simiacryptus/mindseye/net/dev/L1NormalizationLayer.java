@@ -62,7 +62,7 @@ public class L1NormalizationLayer extends NNLayer {
           final NDArray passback = new NDArray(data.getDims());
           for (int i = 0; i < input.dim(); i++) {
             for (int j = 0; j < output.dim(); j++) {
-              passback.add(i, delta[j]*(inputGradientLog.get(new int[] { i, j })));
+              passback.add(i, delta[j] * inputGradientLog.get(new int[] { i, j }));
             }
             ;
           }
