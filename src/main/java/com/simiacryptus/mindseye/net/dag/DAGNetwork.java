@@ -38,26 +38,26 @@ public class DAGNetwork extends NNLayer {
     }
   }
 
-  private static final class UnaryNode extends LazyResult {
-    private final NNLayer layer;
+  private final class UnaryNode extends LazyResult {
+    private final UUID layer;
     private final LazyResult prevHead;
 
     private UnaryNode(final NNLayer layer, final LazyResult prevHead) {
-      this.layer = layer;
+      this.layer = layer.getId();
       this.prevHead = prevHead;
     }
 
     @Override
     protected NNResult[] eval(final EvaluationContext ctx) {
       final NNResult[] input = this.prevHead.get(ctx);
-      final NNResult output = this.layer.eval(ctx, input);
+      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(ctx, input);
       return new NNResult[] { output };
     }
 
     @Override
     protected JsonObject toJson() {
       final JsonObject json = new JsonObject();
-      json.add("layer", this.layer.getJson());
+      json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
       json.add("prev", this.prevHead.toJson());
       return json;
     }
@@ -107,7 +107,7 @@ public class DAGNetwork extends NNLayer {
 
   public NNLayer getHeadLayer() {
     if (this.head instanceof UnaryNode)
-      return ((UnaryNode) this.head).layer;
+      return DAGNetwork.this.byId.get(((UnaryNode) this.head).layer);
     return null;
   }
 
@@ -156,4 +156,25 @@ public class DAGNetwork extends NNLayer {
   public Tester trainer(final NDArray[][] samples) {
     return new Tester().setParams(this, samples);
   }
+
+  @Override
+  public NNLayer freeze() {
+    this.byId.values().forEach(l->l.freeze());
+    return super.freeze();
+  }
+
+  @Override
+  public NNLayer evolve() {
+    if(0==this.byId.values().stream().filter(l->{
+      final NNLayer evolve = l.evolve();
+      if(null!=evolve&&evolve!=l) throw new RuntimeException("Not implemented: Substitution via evolution in DAGNetwork");
+      return null!=evolve;
+    }).count()) {
+      return null;
+    } else {
+      return this;
+    }
+  }
+  
+  
 }

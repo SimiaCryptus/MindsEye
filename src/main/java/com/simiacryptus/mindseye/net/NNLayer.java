@@ -103,4 +103,12 @@ public abstract class NNLayer {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
 
+  public NNLayer freeze() {
+    return this;
+  }
+  
+  public NNLayer evolve() {
+    return null;
+  }
+
 }
