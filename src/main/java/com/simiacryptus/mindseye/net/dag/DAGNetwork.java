@@ -63,22 +63,65 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     }
   }
 
+  private final class BinaryNode extends LazyResult {
+    private final UUID layer;
+    private final LazyResult left;
+    private final LazyResult right;
+
+    private BinaryNode(final NNLayer<?> layer, final LazyResult left, final LazyResult right) {
+      this.layer = layer.getId();
+      this.left = left;
+      this.right = right;
+    }
+
+    @Override
+    protected NNResult[] eval(final EvaluationContext ctx) {
+      final NNResult inputL = this.left.get(ctx)[0];
+      final NNResult inputR = this.right.get(ctx)[0];
+      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(ctx, inputL, inputR);
+      return new NNResult[] { output };
+    }
+
+    @Override
+    protected JsonObject toJson() {
+      final JsonObject json = new JsonObject();
+      json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
+      json.add("left", this.left.toJson());
+      json.add("right", this.right.toJson());
+      return json;
+    }
+  }
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
-  private LazyResult head = new InputNode();
+  public final InputNode inputNode = new InputNode();
+  private LazyResult head = inputNode;
   public final UUID inputHandle = UUID.randomUUID();
 
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
 
-  public synchronized DAGNetwork add(final NNLayer<?> layer) {
-    final NNLayer<?> headLayer = getHeadLayer();
-    this.byId.put(layer.getId(), layer);
-    this.prevMap.put(layer, headLayer);
-    this.nextMap.put(headLayer, layer);
-    setHead(new UnaryNode(layer, getHead()));
+  public synchronized DAGNetwork add(final NNLayer<?> nextHead) {
+    this.byId.put(nextHead.getId(), nextHead);
+    final NNLayer<?> prevHead = getHeadLayer();
+    this.prevMap.put(nextHead, prevHead);
+    this.nextMap.put(prevHead, nextHead);
+    setHead(new UnaryNode(nextHead, getHead()));
+    return this;
+  }
+
+  public synchronized DAGNetwork add2(final NNLayer<?> nextHead) {
+    return add2(nextHead, inputNode);
+  }
+
+  public synchronized DAGNetwork add2(final NNLayer<?> nextHead, InputNode right) {
+    this.byId.put(nextHead.getId(), nextHead);
+    final NNLayer<?> prevHead = getHeadLayer();
+    this.prevMap.put(nextHead, prevHead);
+    this.nextMap.put(prevHead, nextHead);
+    setHead(new BinaryNode(nextHead, getHead(), right));
     return this;
   }
 
@@ -127,7 +170,9 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   public NNLayer<?> getHeadLayer() {
     if (this.head instanceof UnaryNode)
       return DAGNetwork.this.byId.get(((UnaryNode) this.head).layer);
-    return null;
+    else if (this.head instanceof BinaryNode)
+      return DAGNetwork.this.byId.get(((BinaryNode) this.head).layer);
+    else return null;
   }
 
   @Override

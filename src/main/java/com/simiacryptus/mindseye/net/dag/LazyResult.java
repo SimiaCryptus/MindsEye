@@ -7,7 +7,7 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 
 public abstract class LazyResult {
 
-  UUID key = UUID.randomUUID();
+  public final UUID key = UUID.randomUUID();
 
   public LazyResult() {
     super();

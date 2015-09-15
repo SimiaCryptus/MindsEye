@@ -98,8 +98,8 @@ public class PopulationTrainer {
         .sorted(Comparator.comparing(t -> t.getSecond().getGradientDescentTrainer().getError())) //
         .findFirst().get().getFirst();
     assert signatures.stream().allMatch(s -> s.size() == signatures.get(canonicalIndex).size());
-    final List<PermutationLayer> syncLayers = population.get(canonicalIndex).getGradientDescentTrainer().getNet().getChildren().stream().filter(x -> x instanceof PermutationLayer)
-        .map(x -> (PermutationLayer) x).collect(Collectors.toList());
+    final List<PermutationLayer> syncLayers = population.get(canonicalIndex).getGradientDescentTrainer().getNet().getChildren()
+        .stream().filter(x -> x instanceof PermutationLayer).map(x -> (PermutationLayer) x).collect(Collectors.toList());
 
     IntStream.range(0, signatures.size()).filter(i -> i != canonicalIndex).forEach(individual -> {
       IntStream.range(0, syncLayers.size()).forEach(layerIndex -> {

@@ -236,20 +236,20 @@ public class Util {
     return tree.values().stream().collect(Collectors.toList());
   }
 
-  public static List<Tuple2<Double, Double>> stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
+  public static List<Tuple2<Double, Double>> stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results, final List<NDArray> diffs) {
     assert trainingData.length == results.size();
     final List<Tuple2<Double, Double>> rms = IntStream.range(0, results.size()).parallel().mapToObj(sample -> {
       final NDArray actualOutput = results.get(sample);
       final NDArray[] sampleRow = trainingData[sample];
       final NDArray idealOutput = sampleRow[1];
-      final double err = actualOutput.rms(idealOutput);
+      final double err = diffs.get(sample).sum();
 
       final double[] actualOutputData = actualOutput.getData();
       final double max = DoubleStream.of(actualOutputData).max().getAsDouble();
       final double sum = DoubleStream.of(actualOutputData).sum();
       final boolean correct = Util.outputToClassification(actualOutput) == Util.outputToClassification(idealOutput);
       final double certianty = max / sum * (correct ? 1 : -1);
-      return new Tuple2<>(certianty, err * err);
+      return new Tuple2<>(certianty, err);
     }).collect(Collectors.toList());
     return rms;
   }

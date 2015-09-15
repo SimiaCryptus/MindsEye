@@ -13,6 +13,8 @@ import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
+import com.simiacryptus.mindseye.net.dag.LazyResult;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -32,23 +34,17 @@ public class GradientDescentTrainer {
   private int[] trainingSet;
   private int[] validationSet;
   private boolean verbose = false;
+  private LazyResult predictionNode;
 
   protected DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
     final List<NNResult> netresults = eval(trainingContext, activeTrainingData);
     final DeltaBuffer buffer = new DeltaBuffer();
     IntStream.range(0, activeTrainingData.length).parallel().forEach(sample -> {
-      final NDArray idealOutput = activeTrainingData[sample][1];
       final NNResult actualOutput = netresults.get(sample);
-      final NDArray delta = actualOutput.delta(idealOutput);
-      final NDArray logDelta = delta.scale(getRate());
-      actualOutput.feedback(logDelta, buffer);
+      final NDArray delta = new NDArray(new int[]{1},new double[]{-1.}).scale(getRate());
+      actualOutput.feedback(delta, buffer);
     });
     return buffer;
-  }
-
-  protected double calcError(final TrainingContext trainingContext, final List<NDArray> results, final NDArray[][] inputData) {
-    final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, inputData, results);
-    return Util.rms(trainingContext, rms, null);
   }
 
   public List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData) {
@@ -67,15 +63,34 @@ public class GradientDescentTrainer {
     }).sorted(java.util.Comparator.comparing(x -> x.getSecond())).map(x -> x.getFirst()).collect(Collectors.toList());
   }
 
-  protected List<NDArray> evalValidationData(final TrainingContext trainingContext) {
+  protected ValidationResults evalValidationData(final TrainingContext trainingContext) {
     return evalValidationData(trainingContext, getValidationData(trainingContext));
   }
 
-  protected List<NDArray> evalValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
+  public static class ValidationResults {
+    public final List<NDArray> outputs;
+    public final List<Tuple2<Double, Double>> stats;
+    public final double rms;
+    public ValidationResults(List<NDArray> outputs, List<Tuple2<Double, Double>> stats, double rms) {
+      super();
+      this.outputs = outputs;
+      this.stats = stats;
+      this.rms = rms;
+    }
+  }
+  
+  protected ValidationResults evalValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
     final List<NNResult> eval = eval(trainingContext, validationSet);
     final List<NDArray> collect = eval.stream().map(x -> x.data).collect(Collectors.toList());
-    setError(calcError(trainingContext, collect, validationSet));
-    return collect;
+    final List<NDArray> collect2 = eval.stream().map(x -> {
+      EvaluationContext evaluationContext = x.evaluationContext;
+      NNResult[] predictionResult = evaluationContext.cache.get(predictionNode.key);
+      return predictionResult[0].data;
+    }).collect(Collectors.toList());
+    List<Tuple2<Double, Double>> stats = Util.stats(trainingContext, validationSet, collect, collect2);
+    double rms = stats.stream().mapToDouble(x->x.getSecond()).average().getAsDouble();
+    setError(rms);
+    return new ValidationResults(collect, stats, rms);
   }
 
   public final NDArray[][] getConstraintData(final TrainingContext trainingContext) {
@@ -262,6 +277,10 @@ public class GradientDescentTrainer {
           .debug(String.format("Trained Error: %s with rate %s*%s in %.03fs", validationError, getRate(), Arrays.toString(rates), (System.currentTimeMillis() - startMs) / 1000.));
     }
     return validationError - prevError;
+  }
+
+  public void setPredictionNode(LazyResult node) {
+    this.predictionNode = node;
   }
 
 }

@@ -144,9 +144,8 @@ public class NetworkElementUnitTests {
     new DAGNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)) //
         .trainer(samples) //
-        // .setStaticRate(.25).setMutationAmount(1)
-        // .setVerbose(verbose)
-        .setVerbose(true).verifyConvergence(0.1, 100);
+        .setVerbose(true) //
+        .verifyConvergence(0.1, 1);
   }
 
   @Test
