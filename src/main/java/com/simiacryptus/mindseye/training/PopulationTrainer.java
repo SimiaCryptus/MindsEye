@@ -363,6 +363,7 @@ public class PopulationTrainer {
       return dynamicRateTrainer;
     }).collect(Collectors.toList());
 
+    assert(null != getDynamicRateTrainer().getGradientDescentTrainer().predictionNode);
     for (int generation = 0; generation <= getNumberOfGenerations(); generation++) {
       population = population.stream().parallel().map(dynamicRateTrainer -> {
         trainIndividual(trainingContext, dynamicRateTrainer);

@@ -211,8 +211,8 @@ public class DynamicRateTrainer {
   private double[] optimizeRates(final TrainingContext trainingContext) {
     final GradientDescentTrainer inner = getGradientDescentTrainer();
     final NDArray[][] validationSet = inner.getValidationData(trainingContext);
-    inner.evalValidationData(trainingContext, validationSet);
-    final double prev = inner.getError();
+    ;
+    final double prev = inner.evalValidationData(trainingContext, validationSet).rms;
     // regenDataSieve(trainingContext);
 
     final DeltaBuffer lessonVector = inner.getVector(trainingContext);
@@ -223,8 +223,7 @@ public class DynamicRateTrainer {
     f.value(x.getFirst()); // Leave in optimal state
     // f.value(new double[numberOfParameters]); // Reset to original state
 
-    inner.evalValidationData(trainingContext, validationSet);
-    final double calcError = inner.getError();
+    final double calcError = inner.evalValidationData(trainingContext, validationSet).rms;
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(), prev, calcError));
     }
@@ -362,8 +361,9 @@ public class DynamicRateTrainer {
     this.lastCalibratedIteration = Integer.MIN_VALUE;
     while (true) {
       final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-      if (getStopError() > gradientDescentTrainer.getError()) {
-        DynamicRateTrainer.log.debug("Target error reached: " + gradientDescentTrainer.getError());
+      double error = gradientDescentTrainer.getError();
+      if (getStopError() > error) {
+        DynamicRateTrainer.log.debug("Target error reached: " + error);
         return false;
       }
       if (this.maxIterations <= this.currentIteration++) {

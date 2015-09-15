@@ -108,7 +108,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     final NNLayer<?> prevHead = getHeadLayer();
     this.prevMap.put(nextHead, prevHead);
     this.nextMap.put(prevHead, nextHead);
-    setHead(new UnaryNode(nextHead, getHead()));
+    UnaryNode node = new UnaryNode(nextHead, getHead());
+    setHead(node);
     return this;
   }
 

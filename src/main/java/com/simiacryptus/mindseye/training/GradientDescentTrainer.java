@@ -34,12 +34,12 @@ public class GradientDescentTrainer {
   private int[] trainingSet;
   private int[] validationSet;
   private boolean verbose = false;
-  private LazyResult predictionNode;
+  LazyResult predictionNode;
 
-  protected DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] activeTrainingData) {
-    final List<NNResult> netresults = eval(trainingContext, activeTrainingData);
+  protected DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
+    final List<NNResult> netresults = eval(trainingContext, data);
     final DeltaBuffer buffer = new DeltaBuffer();
-    IntStream.range(0, activeTrainingData.length).parallel().forEach(sample -> {
+    IntStream.range(0, data.length).parallel().forEach(sample -> {
       final NNResult actualOutput = netresults.get(sample);
       final NDArray delta = new NDArray(new int[]{1},new double[]{-1.}).scale(getRate());
       actualOutput.feedback(delta, buffer);
@@ -81,16 +81,16 @@ public class GradientDescentTrainer {
   
   protected ValidationResults evalValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
     final List<NNResult> eval = eval(trainingContext, validationSet);
-    final List<NDArray> collect = eval.stream().map(x -> x.data).collect(Collectors.toList());
-    final List<NDArray> collect2 = eval.stream().map(x -> {
-      EvaluationContext evaluationContext = x.evaluationContext;
-      NNResult[] predictionResult = evaluationContext.cache.get(predictionNode.key);
+    final List<NDArray> finaloutput = eval.stream().map(x -> x.data).collect(Collectors.toList());
+    final List<NDArray> predictoroutput = eval.stream().map(x -> {
+      NNResult[] predictionResult = x.evaluationContext.cache.get(predictionNode.key);
+      assert(null != predictionResult);
       return predictionResult[0].data;
     }).collect(Collectors.toList());
-    List<Tuple2<Double, Double>> stats = Util.stats(trainingContext, validationSet, collect, collect2);
+    List<Tuple2<Double, Double>> stats = Util.stats(trainingContext, validationSet, finaloutput, predictoroutput);
     double rms = stats.stream().mapToDouble(x->x.getSecond()).average().getAsDouble();
     setError(rms);
-    return new ValidationResults(collect, stats, rms);
+    return new ValidationResults(finaloutput, stats, rms);
   }
 
   public final NDArray[][] getConstraintData(final TrainingContext trainingContext) {
@@ -195,6 +195,7 @@ public class GradientDescentTrainer {
   }
 
   public GradientDescentTrainer setError(final double error) {
+    //log.debug(String.format("Error: %s -> %s", this.error, error));
     this.error = error;
     return this;
   }
@@ -242,8 +243,7 @@ public class GradientDescentTrainer {
 
   public Double step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
-    evalValidationData(trainingContext);
-    final double prevError = getError();
+    final double prevError = evalValidationData(trainingContext).rms;
     final double[] rates = getRates();
     if (null == rates)
       return Double.POSITIVE_INFINITY;
@@ -252,8 +252,8 @@ public class GradientDescentTrainer {
     final List<DeltaFlushBuffer> deltas = buffer.vector();
     assert null != rates && rates.length == deltas.size();
     IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(rates[i]));
-    evalValidationData(trainingContext);
-    final double validationError = getError();
+    ;
+    final double validationError = evalValidationData(trainingContext).rms;
     if (prevError == validationError) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));

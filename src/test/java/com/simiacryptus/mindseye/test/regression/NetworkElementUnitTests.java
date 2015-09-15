@@ -239,10 +239,13 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.1, 0.9 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize).setVerbose(true)).add(new SoftmaxActivationLayer().setVerbose(true))
-
-        .trainer(samples)
-        // .setVerbose(true).setParallel(false)
+    boolean verbose = false;
+    new DAGNetwork() //
+        .add(new BiasLayer(inputSize).setVerbose(verbose))//
+        .add(new SoftmaxActivationLayer().setVerbose(verbose))//
+        .trainer(samples) //
+        .setVerbose(true) //
+        //.setParallel(false)
         .verifyConvergence(0.1, 100);
 
   }
