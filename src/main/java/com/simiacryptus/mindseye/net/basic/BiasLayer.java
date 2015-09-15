@@ -50,7 +50,7 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     if (isVerbose()) {
       BiasLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, translated));
     }
-    return new NNResult(translated) {
+    return new NNResult(evaluationContext, translated) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (isVerbose()) {

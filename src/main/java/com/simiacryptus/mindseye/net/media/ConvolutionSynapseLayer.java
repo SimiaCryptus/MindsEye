@@ -141,7 +141,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     if (isVerbose()) {
       ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
     }
-    return new NNResult(output) {
+    return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray errorSignal, final DeltaBuffer buffer) {
         if (!isFrozen()) {

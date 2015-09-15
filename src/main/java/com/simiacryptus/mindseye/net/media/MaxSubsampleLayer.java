@@ -53,7 +53,7 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
       gradientMap.put(o, inputCoord);
       output.add(o, input.get(inputCoord));
     });
-    return new NNResult(output) {
+    return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {

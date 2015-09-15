@@ -5,14 +5,17 @@ import java.util.Comparator;
 import java.util.stream.IntStream;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public abstract class NNResult {
 
   public final NDArray data;
+  public EvaluationContext evaluationContext;
 
-  public NNResult(final NDArray data) {
+  public NNResult(EvaluationContext evaluationContext, final NDArray data) {
     super();
     this.data = data;
+    this.evaluationContext = evaluationContext;
   }
 
   public final NDArray delta(final int k) {

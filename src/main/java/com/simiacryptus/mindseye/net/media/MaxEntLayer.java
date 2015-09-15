@@ -43,7 +43,7 @@ public class MaxEntLayer extends NNLayer<MaxEntLayer> {
     if (isVerbose()) {
       MaxEntLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
-    return new NNResult(output) {
+    return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {

@@ -112,7 +112,9 @@ public class DynamicRateTrainer {
         for (int i = 0; i < layerRates.length; i++) {
           this.pos[i] = layerRates[i];
         }
-        final double calcError = gradientDescentTrainer.calcError(trainingContext, gradientDescentTrainer.evalValidationData(trainingContext));
+        List<NDArray> evalValidationData = gradientDescentTrainer.evalValidationData(trainingContext);
+        NDArray[][] validationData = gradientDescentTrainer.getValidationData(trainingContext);
+        final double calcError = gradientDescentTrainer.calcError(trainingContext, evalValidationData, validationData);
         final double err = Util.geomMean(calcError);
         if (isVerbose()) {
           DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s; %s)", Arrays.toString(layerRates), err, calcError, prev - calcError));
@@ -127,14 +129,14 @@ public class DynamicRateTrainer {
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     {
       final NDArray[][] data = gradientDescentTrainer.getConstraintData(trainingContext);
-      final List<NNResult> results = gradientDescentTrainer.eval(trainingContext, data);
-      final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, data, results.stream().map(x -> x.data).collect(Collectors.toList()));
+      final List<NDArray> results = gradientDescentTrainer.evalValidationData(trainingContext, data);
+      final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, data, results);
       updateConstraintSieve(rms);
     }
     {
       final NDArray[][] data = gradientDescentTrainer.getTrainingData(gradientDescentTrainer.getTrainingSet());
-      final List<NNResult> list = gradientDescentTrainer.eval(trainingContext, data);
-      final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, data, list.stream().map(x1 -> x1.data).collect(Collectors.toList()));
+      final List<NDArray> list = gradientDescentTrainer.evalValidationData(trainingContext, data);
+      final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, data, list);
       updateTrainingSieve(rms);
     }
     {
@@ -214,7 +216,7 @@ public class DynamicRateTrainer {
   private double[] optimizeRates(final TrainingContext trainingContext) {
     final GradientDescentTrainer inner = getGradientDescentTrainer();
     final NDArray[][] validationSet = inner.getValidationData(trainingContext);
-    List<NDArray> evalValidationData = inner.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
+    List<NDArray> evalValidationData = inner.evalValidationData(trainingContext, validationSet);
     final List<Tuple2<Double, Double>> rms = Util.stats(trainingContext, validationSet, evalValidationData);
     final double prev = Util.rms(trainingContext, rms, null);
     // regenDataSieve(trainingContext);
@@ -227,9 +229,8 @@ public class DynamicRateTrainer {
     f.value(x.getFirst()); // Leave in optimal state
     // f.value(new double[numberOfParameters]); // Reset to original state
 
-    evalValidationData = inner.eval(trainingContext, validationSet).stream().map(x1 -> x1.data).collect(Collectors.toList());
-    final double calcError = inner.calcError(trainingContext, evalValidationData);
-    inner.setError(calcError);
+    evalValidationData = inner.evalValidationData(trainingContext, validationSet);
+    final double calcError = inner.calcError(trainingContext, evalValidationData, validationSet);
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(), prev, calcError));
     }

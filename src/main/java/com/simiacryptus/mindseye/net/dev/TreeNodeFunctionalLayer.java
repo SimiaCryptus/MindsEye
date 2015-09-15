@@ -23,7 +23,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     NDArray sum = null;
 
     private NNResultBuffer(final NNResult x) {
-      super(x.data);
+      super(x.evaluationContext, x.data);
       this.inner = x;
     }
 
@@ -67,7 +67,8 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
   }
 
   private NNResult add(final NNResult a, final NNResult b) {
-    return new NNResult(a.data.add(b.data)) {
+    assert(a.evaluationContext==b.evaluationContext);
+    return new NNResult(a.evaluationContext, a.data.add(b.data)) {
 
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
@@ -100,7 +101,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     if (isVerbose()) {
       TreeNodeFunctionalLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, gateEval.data, output));
     }
-    return new NNResult(output.data) {
+    return new NNResult(evaluationContext, output.data) {
 
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
@@ -145,7 +146,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
   }
 
   private NNResult scale(final NNResult eval, final double d) {
-    return new NNResult(eval.data.scale(d)) {
+    return new NNResult(eval.evaluationContext, eval.data.scale(d)) {
 
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {

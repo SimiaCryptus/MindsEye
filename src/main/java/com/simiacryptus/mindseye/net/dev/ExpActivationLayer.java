@@ -42,7 +42,7 @@ public class ExpActivationLayer extends NNLayer<ExpActivationLayer> {
     if (isVerbose()) {
       ExpActivationLayer.log.debug(String.format("Feed forward: %s => %s", in.data, output));
     }
-    return new NNResult(output) {
+    return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (in.isAlive()) {

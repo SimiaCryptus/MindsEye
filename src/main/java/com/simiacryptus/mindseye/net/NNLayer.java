@@ -22,8 +22,8 @@ import groovy.lang.Tuple2;
  */
 public abstract class NNLayer<T extends NNLayer<T>> {
 
-  public static NNResult[] wrapInput(final NDArray... array) {
-    return Stream.of(array).map(a -> new NNResult(a) {
+  public static NNResult[] wrapInput(EvaluationContext evaluationContext, final NDArray... array) {
+    return Stream.of(array).map(a -> new NNResult(evaluationContext, a) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         // Do Nothing
@@ -56,7 +56,7 @@ public abstract class NNLayer<T extends NNLayer<T>> {
   }
 
   public final NNResult eval(final EvaluationContext evaluationContext, final NDArray... array) {
-    return eval(evaluationContext, NNLayer.wrapInput(array));
+    return eval(evaluationContext, NNLayer.wrapInput(evaluationContext, array));
   }
 
   public abstract NNResult eval(EvaluationContext evaluationContext, NNResult... array);

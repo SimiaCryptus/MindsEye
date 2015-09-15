@@ -23,8 +23,8 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray data, final NNResult inObj) {
-      super(data);
+    private Result(final NDArray data, final NNResult inObj, EvaluationContext evaluationContext) {
+      super(evaluationContext, data);
       this.inObj = inObj;
     }
 
@@ -98,7 +98,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
     if (isVerbose()) {
       LinearActivationLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }
-    return new Result(output, inObj[0]);
+    return new Result(output, inObj[0], evaluationContext);
   }
 
   @Override

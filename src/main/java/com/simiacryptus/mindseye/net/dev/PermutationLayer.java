@@ -32,7 +32,7 @@ public class PermutationLayer extends NNLayer<PermutationLayer> {
     if (null != this.record) {
       this.record.add(Arrays.copyOf(input.getData(), input.getData().length));
     }
-    return new NNResult(output) {
+    return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {

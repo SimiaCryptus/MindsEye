@@ -22,7 +22,7 @@ public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
     private final NNResult inObj;
 
     private Result(final NDArray data, final NNResult inObj) {
-      super(data);
+      super(inObj.evaluationContext, data);
       this.inObj = inObj;
     }
 

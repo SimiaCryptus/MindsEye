@@ -19,8 +19,8 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
 
-    private DenseSynapseResult(final NDArray data, final NNResult inObj) {
-      super(data);
+    private DenseSynapseResult(final NDArray data, final NNResult inObj, EvaluationContext evaluationContext) {
+      super(evaluationContext, data);
       this.inObj = inObj;
     }
 
@@ -84,7 +84,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
     if (isVerbose()) {
       MinMaxFilterLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
-    return new DenseSynapseResult(output, inObj[0]);
+    return new DenseSynapseResult(output, inObj[0], evaluationContext);
   }
 
   protected double getMobility() {
