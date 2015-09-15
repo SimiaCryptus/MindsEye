@@ -9,10 +9,10 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public final class WrapperLayer extends NNLayer {
-  private NNLayer inner;
+public final class WrapperLayer extends NNLayer<WrapperLayer> {
+  private NNLayer<?> inner;
 
-  public WrapperLayer(final NNLayer inner) {
+  public WrapperLayer(final NNLayer<?> inner) {
     super();
     setInner(inner);
   }
@@ -23,22 +23,17 @@ public final class WrapperLayer extends NNLayer {
   }
 
   @Override
-  public List<NNLayer> getChildren() {
+  public List<NNLayer<?>> getChildren() {
     return super.getChildren();
   }
 
-  public final NNLayer getInner() {
+  public final NNLayer<?> getInner() {
     return this.inner;
   }
 
   @Override
   public JsonObject getJson() {
     return super.getJson();
-  }
-
-  @Override
-  public boolean isVerbose() {
-    return super.isVerbose();
   }
 
   @Override
@@ -51,7 +46,7 @@ public final class WrapperLayer extends NNLayer {
     return super.permuteOutput(permute);
   }
 
-  public final void setInner(final NNLayer inner) {
+  public final void setInner(final NNLayer<?> inner) {
     this.inner = inner;
   }
 

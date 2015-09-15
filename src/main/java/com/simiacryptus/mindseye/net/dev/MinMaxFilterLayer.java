@@ -15,7 +15,7 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public class MinMaxFilterLayer extends NNLayer {
+public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
 
@@ -68,8 +68,6 @@ public class MinMaxFilterLayer extends NNLayer {
 
   private double threshold = 20;
 
-  private boolean verbose = false;
-
   public MinMaxFilterLayer() {
     super();
   }
@@ -98,11 +96,6 @@ public class MinMaxFilterLayer extends NNLayer {
   }
 
   @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
-  @Override
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
   }
@@ -114,11 +107,6 @@ public class MinMaxFilterLayer extends NNLayer {
 
   public MinMaxFilterLayer setThreshold(final double threshold) {
     this.threshold = threshold;
-    return this;
-  }
-
-  public MinMaxFilterLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
     return this;
   }
 

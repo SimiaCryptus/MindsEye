@@ -57,7 +57,7 @@ public class ImageNetworkDev {
     return img;
   }
 
-  public NNLayer blur_3() {
+  public NNLayer<?> blur_3() {
     final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3, 1 }, 1);
     convolution.kernel.set(new int[] { 0, 0, 0, 0 }, 0.333);
     convolution.kernel.set(new int[] { 0, 1, 0, 0 }, 0);
@@ -72,7 +72,7 @@ public class ImageNetworkDev {
     return convolution;
   }
 
-  public NNLayer blur_3x4() {
+  public NNLayer<?> blur_3x4() {
     final DAGNetwork net = new DAGNetwork();
     for (int i = 0; i < 3; i++) {
       net.add(blur_3());
@@ -80,7 +80,7 @@ public class ImageNetworkDev {
     return net;
   }
 
-  public NNLayer blur1() {
+  public NNLayer<?> blur1() {
     final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
     convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, 0.25);
     convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 0.25);
@@ -90,7 +90,7 @@ public class ImageNetworkDev {
     return convolution2;
   }
 
-  public NNLayer edge1() {
+  public NNLayer<?> edge1() {
     final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
     convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, -1);
     convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 1);
@@ -115,7 +115,7 @@ public class ImageNetworkDev {
     // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300},
     // "Hello World"));
 
-    final NNLayer convolution = blur_3x4();
+    final NNLayer<?> convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
     final EvaluationContext evaluationContext = new EvaluationContext();

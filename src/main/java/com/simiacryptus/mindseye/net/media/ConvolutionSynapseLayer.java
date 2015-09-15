@@ -21,7 +21,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
-public class ConvolutionSynapseLayer extends NNLayer {
+public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
   public static final class IndexMapKey {
     int[] input;
     int[] kernel;
@@ -101,10 +101,8 @@ public class ConvolutionSynapseLayer extends NNLayer {
     }
   }
 
-  private boolean frozen = false;
   public final NDArray kernel;
   private boolean paralell = false;
-  private boolean verbose = false;
 
   protected ConvolutionSynapseLayer() {
     super();
@@ -192,16 +190,6 @@ public class ConvolutionSynapseLayer extends NNLayer {
   }
 
   @Override
-  public ConvolutionSynapseLayer freeze() {
-    return freeze(true);
-  }
-
-  public ConvolutionSynapseLayer freeze(final boolean b) {
-    this.frozen = b;
-    return this;
-  }
-
-  @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
     json.addProperty("kernel", this.kernel.toString());
@@ -212,30 +200,12 @@ public class ConvolutionSynapseLayer extends NNLayer {
     return 1;
   }
 
-  public boolean isFrozen() {
-    return this.frozen;
-  }
-
   public boolean isParalell() {
     return this.paralell;
   }
 
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
-  public void setFrozen(final boolean frozen) {
-    this.frozen = frozen;
-  }
-
   public ConvolutionSynapseLayer setParallel(final boolean parallel) {
     this.paralell = parallel;
-    return this;
-  }
-
-  public ConvolutionSynapseLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
     return this;
   }
 

@@ -14,12 +14,12 @@ import com.simiacryptus.mindseye.math.VectorLogic;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
-  private final Map<NNLayer, DeltaFlushBuffer> map = new LinkedHashMap<>();
+  private final Map<NNLayer<?>, DeltaFlushBuffer> map = new LinkedHashMap<>();
 
   public DeltaBuffer() {
   }
 
-  public DeltaBuffer(final Map<NNLayer, DeltaFlushBuffer> collect) {
+  public DeltaBuffer(final Map<NNLayer<?>, DeltaFlushBuffer> collect) {
     this.map.putAll(collect);
   }
 
@@ -33,16 +33,16 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return sum(right, (l, r) -> l.dotProduct(r));
   }
 
-  public synchronized DeltaFlushBuffer get(final NNLayer layer, final double[] ptr) {
+  public synchronized DeltaFlushBuffer get(final NNLayer<?> layer, final double[] ptr) {
     return this.map.computeIfAbsent(layer, l -> new DeltaFlushBuffer(ptr, layer));
   }
 
-  public DeltaFlushBuffer get(final NNLayer layer, final NDArray ptr) {
+  public DeltaFlushBuffer get(final NNLayer<?> layer, final NDArray ptr) {
     return get(layer, ptr.getData());
   }
 
   public DeltaBuffer join(final DeltaBuffer right, final BiFunction<DeltaFlushBuffer, DeltaFlushBuffer, DeltaFlushBuffer> joiner) {
-    final HashSet<NNLayer> keys = new HashSet<>(this.map.keySet());
+    final HashSet<NNLayer<?>> keys = new HashSet<>(this.map.keySet());
     keys.addAll(right.map.keySet());
     return new DeltaBuffer(keys.stream().collect(Collectors.toMap(k -> k, k -> {
       final DeltaFlushBuffer l = this.map.get(k);
@@ -80,7 +80,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
   }
 
   public double sum(final DeltaBuffer right, final BiFunction<DeltaFlushBuffer, DeltaFlushBuffer, Double> joiner) {
-    final HashSet<NNLayer> keys = new HashSet<>(this.map.keySet());
+    final HashSet<NNLayer<?>> keys = new HashSet<>(this.map.keySet());
     keys.addAll(right.map.keySet());
     return keys.stream().mapToDouble(k -> {
       final DeltaFlushBuffer l = this.map.get(k);

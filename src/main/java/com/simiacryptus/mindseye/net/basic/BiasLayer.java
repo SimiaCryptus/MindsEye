@@ -18,13 +18,11 @@ import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
-public class BiasLayer extends NNLayer {
+public class BiasLayer extends NNLayer<BiasLayer> {
 
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
 
   public final double[] bias;
-  private boolean frozen = false;
-  private boolean verbose = false;
 
   protected BiasLayer() {
     super();
@@ -74,25 +72,12 @@ public class BiasLayer extends NNLayer {
   }
 
   @Override
-  public BiasLayer freeze() {
-    return setFrozen(true);
-  }
-
-  @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
     json.addProperty("bias", Arrays.toString(this.bias));
     return json;
   }
 
-  public boolean isFrozen() {
-    return this.frozen;
-  }
-
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
 
   @Override
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
@@ -148,22 +133,13 @@ public class BiasLayer extends NNLayer {
     return permute;
   }
 
-  public NNLayer set(final double[] ds) {
+  public NNLayer<?> set(final double[] ds) {
     for (int i = 0; i < ds.length; i++) {
       this.bias[i] = ds[i];
     }
     return this;
   }
 
-  public BiasLayer setFrozen(final boolean frozen) {
-    this.frozen = frozen;
-    return this;
-  }
-
-  public BiasLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
-  }
 
   public BiasLayer setWeights(final java.util.function.IntToDoubleFunction f) {
     for (int i = 0; i < this.bias.length; i++) {

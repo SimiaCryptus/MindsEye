@@ -20,7 +20,7 @@ import groovy.lang.Tuple2;
  *
  * @author Andrew Charneski
  */
-public abstract class NNLayer {
+public abstract class NNLayer<T extends NNLayer<T>> {
 
   public static NNResult[] wrapInput(final NDArray... array) {
     return Stream.of(array).map(a -> new NNResult(a) {
@@ -46,7 +46,7 @@ public abstract class NNLayer {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    final NNLayer other = (NNLayer) obj;
+    final NNLayer<?> other = (NNLayer<?>) obj;
     if (this.id == null) {
       if (other.id != null)
         return false;
@@ -61,15 +61,11 @@ public abstract class NNLayer {
 
   public abstract NNResult eval(EvaluationContext evaluationContext, NNResult... array);
 
-  public NNLayer evolve() {
+  public NNLayer<?> evolve() {
     return null;
   }
 
-  public NNLayer freeze() {
-    return this;
-  }
-
-  public List<NNLayer> getChildren() {
+  public List<NNLayer<?>> getChildren() {
     return Arrays.asList(this);
   }
 
@@ -92,10 +88,6 @@ public abstract class NNLayer {
     return result;
   }
 
-  public boolean isVerbose() {
-    return false;
-  }
-
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
@@ -111,4 +103,32 @@ public abstract class NNLayer {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
 
+  public T freeze() {
+    return setFrozen(true);
+  }
+  private boolean frozen = false;
+  public final boolean isFrozen() {
+    return this.frozen;
+  }
+  public final T setFrozen(final boolean frozen) {
+    this.frozen = frozen;
+    return self();
+  }
+
+  @SuppressWarnings("unchecked")
+  protected final T self() {
+    return (T) this;
+  }
+
+  private boolean verbose;
+
+  public final boolean isVerbose() {
+    return this.verbose;
+  }
+
+  public final T setVerbose(final boolean verbose) {
+    this.verbose = verbose;
+    return self();
+  }
+  
 }

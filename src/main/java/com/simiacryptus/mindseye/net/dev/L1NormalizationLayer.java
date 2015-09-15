@@ -15,11 +15,9 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import groovy.lang.Tuple2;
 
 // XXX: Actually, L1
-public class L1NormalizationLayer extends NNLayer {
+public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
 
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
-
-  private boolean verbose;
 
   public L1NormalizationLayer() {
   }
@@ -83,11 +81,6 @@ public class L1NormalizationLayer extends NNLayer {
   }
 
   @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
-  @Override
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
   }
@@ -95,11 +88,6 @@ public class L1NormalizationLayer extends NNLayer {
   @Override
   public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
-  }
-
-  public L1NormalizationLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
   }
 
   @Override

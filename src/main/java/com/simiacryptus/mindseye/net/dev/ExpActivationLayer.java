@@ -15,11 +15,9 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public class ExpActivationLayer extends NNLayer {
+public class ExpActivationLayer extends NNLayer<ExpActivationLayer> {
 
   private static final Logger log = LoggerFactory.getLogger(ExpActivationLayer.class);
-
-  private boolean verbose;
 
   public ExpActivationLayer() {
   }
@@ -69,11 +67,6 @@ public class ExpActivationLayer extends NNLayer {
   }
 
   @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
-  @Override
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
   }
@@ -81,11 +74,6 @@ public class ExpActivationLayer extends NNLayer {
   @Override
   public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
-  }
-
-  public ExpActivationLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
   }
 
   @Override

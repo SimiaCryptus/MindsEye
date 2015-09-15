@@ -19,11 +19,11 @@ import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
-public class DenseSynapseLayer extends NNLayer {
-  private final class DenseSynapseResult extends NNResult {
+public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
+  private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private DenseSynapseResult(final NDArray data, final NNResult inObj) {
+    private Result(final NDArray data, final NNResult inObj) {
       super(data);
       this.inObj = inObj;
     }
@@ -55,11 +55,11 @@ public class DenseSynapseLayer extends NNLayer {
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {
-          DenseSynapseLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, DenseSynapseResult.this.data, delta, passback));
+          DenseSynapseLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
         }
       } else {
         if (isVerbose()) {
-          DenseSynapseLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, DenseSynapseResult.this.data, delta));
+          DenseSynapseLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
         }
       }
     }
@@ -73,9 +73,7 @@ public class DenseSynapseLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
 
-  private boolean frozen = false;
   private final int[] outputDims;
-  private boolean verbose = false;
   public final NDArray weights;
 
   protected DenseSynapseLayer() {
@@ -111,17 +109,7 @@ public class DenseSynapseLayer extends NNLayer {
     if (isVerbose()) {
       DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }
-    return new DenseSynapseResult(output, inObj[0]);
-  }
-
-  @Override
-  public DenseSynapseLayer freeze() {
-    return freeze(true);
-  }
-
-  public DenseSynapseLayer freeze(final boolean b) {
-    this.frozen = b;
-    return this;
+    return new Result(output, inObj[0]);
   }
 
   @Override
@@ -133,15 +121,6 @@ public class DenseSynapseLayer extends NNLayer {
 
   protected double getMobility() {
     return 1;
-  }
-
-  public boolean isFrozen() {
-    return this.frozen;
-  }
-
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
   }
 
   @Override
@@ -209,11 +188,6 @@ public class DenseSynapseLayer extends NNLayer {
     return null;
   }
 
-  public DenseSynapseLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
-  }
-
   public DenseSynapseLayer setWeights(final double[] data) {
     this.weights.set(data);
     return this;
@@ -229,7 +203,4 @@ public class DenseSynapseLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
 
-  public DenseSynapseLayer thaw() {
-    return freeze(false);
-  }
 }

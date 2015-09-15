@@ -15,7 +15,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
-public class TreeNodeFunctionalLayer extends NNLayer {
+public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
   private static final class NNResultBuffer extends NNResult {
     private NNResult inner;
@@ -49,22 +49,20 @@ public class TreeNodeFunctionalLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(TreeNodeFunctionalLayer.class);
 
-  private boolean frozen = false;
-  private NNLayer gate;
-  private List<NNLayer> leafs;
-  private boolean verbose = false;
+  private NNLayer<?> gate;
+  private List<NNLayer<?>> leafs;
 
-  public TreeNodeFunctionalLayer(final NNLayer gate, final int count, final java.util.function.IntFunction<NNLayer> leafs) {
+  public TreeNodeFunctionalLayer(final NNLayer<?> gate, final int count, final java.util.function.IntFunction<NNLayer<?>> leafs) {
     this(gate, IntStream.range(0, count).mapToObj(x -> leafs.apply(x)).collect(java.util.stream.Collectors.toList()));
   }
 
-  protected TreeNodeFunctionalLayer(final NNLayer gate, final List<NNLayer> leafs) {
+  protected TreeNodeFunctionalLayer(final NNLayer<?> gate, final List<NNLayer<?>> leafs) {
     super();
     this.gate = gate;
     this.leafs = leafs;
   }
 
-  public TreeNodeFunctionalLayer(final NNLayer gate, final NNLayer... leafs) {
+  public TreeNodeFunctionalLayer(final NNLayer<?> gate, final NNLayer<?>... leafs) {
     this(gate, java.util.stream.Stream.of(leafs).collect(java.util.stream.Collectors.toList()));
   }
 
@@ -94,7 +92,7 @@ public class TreeNodeFunctionalLayer extends NNLayer {
     // .sorted(java.util.Comparator.comparing(i->gateVals[i])).mapToInt(x->x).toArray();
 
     final List<NNResult> outputs = IntStream.range(0, gateVals.length).mapToObj(x -> {
-      final NNLayer leaf = this.leafs.get(x);
+      final NNLayer<?> leaf = this.leafs.get(x);
       final NNResult eval = leaf.eval(evaluationContext, inObj);
       return scale(eval, gateVals[x]);
     }).collect(java.util.stream.Collectors.toList());
@@ -129,18 +127,8 @@ public class TreeNodeFunctionalLayer extends NNLayer {
   }
 
   @Override
-  public TreeNodeFunctionalLayer freeze() {
-    return freeze(true);
-  }
-
-  public TreeNodeFunctionalLayer freeze(final boolean b) {
-    this.frozen = b;
-    return this;
-  }
-
-  @Override
-  public List<NNLayer> getChildren() {
-    final ArrayList<NNLayer> r = new java.util.ArrayList<>();
+  public List<NNLayer<?>> getChildren() {
+    final ArrayList<NNLayer<?>> r = new java.util.ArrayList<>();
     r.addAll(this.gate.getChildren());
     this.leafs.stream().forEach(x -> r.addAll(x.getChildren()));
     return r;
@@ -154,15 +142,6 @@ public class TreeNodeFunctionalLayer extends NNLayer {
     this.leafs.stream().forEach(x -> childArray.add(x.getJson()));
     json.add("children", childArray);
     return json;
-  }
-
-  public boolean isFrozen() {
-    return this.frozen;
-  }
-
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
   }
 
   private NNResult scale(final NNResult eval, final double d) {
@@ -180,17 +159,8 @@ public class TreeNodeFunctionalLayer extends NNLayer {
     };
   }
 
-  public TreeNodeFunctionalLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
-  }
-
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-
-  public TreeNodeFunctionalLayer thaw() {
-    return freeze(false);
   }
 }

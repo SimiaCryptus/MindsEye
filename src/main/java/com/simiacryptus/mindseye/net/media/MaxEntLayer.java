@@ -13,13 +13,11 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
-public class MaxEntLayer extends NNLayer {
+public class MaxEntLayer extends NNLayer<MaxEntLayer> {
 
   private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   private double factor = -1;
   private boolean reverse = false;
-
-  private boolean verbose;
 
   public MaxEntLayer() {
   }
@@ -81,11 +79,6 @@ public class MaxEntLayer extends NNLayer {
     return this.reverse;
   }
 
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
   public MaxEntLayer setFactor(final double factor) {
     this.factor = factor;
     return this;
@@ -93,11 +86,6 @@ public class MaxEntLayer extends NNLayer {
 
   public MaxEntLayer setReverse(final boolean reverse) {
     this.reverse = reverse;
-    return this;
-  }
-
-  public MaxEntLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
     return this;
   }
 

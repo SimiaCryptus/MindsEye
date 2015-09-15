@@ -13,13 +13,11 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
-public class PermutationLayer extends NNLayer {
+public class PermutationLayer extends NNLayer<PermutationLayer> {
 
   private static final Logger log = LoggerFactory.getLogger(PermutationLayer.class);
 
   private List<double[]> record = null;
-
-  private boolean verbose;
 
   public PermutationLayer() {
   }
@@ -64,18 +62,8 @@ public class PermutationLayer extends NNLayer {
     return prev;
   }
 
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
   public void record() {
     this.record = new java.util.ArrayList<>();
-  }
-
-  public PermutationLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
   }
 
   @Override

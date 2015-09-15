@@ -15,11 +15,10 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public abstract class SimpleActivationLayer extends NNLayer {
+public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer<T> {
 
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
 
-  private boolean verbose;
 
   public SimpleActivationLayer() {
     super();
@@ -67,11 +66,6 @@ public abstract class SimpleActivationLayer extends NNLayer {
   }
 
   @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
-  @Override
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
   }
@@ -80,12 +74,6 @@ public abstract class SimpleActivationLayer extends NNLayer {
   public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
   }
-
-  public SimpleActivationLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
-  }
-
   @Override
   public List<double[]> state() {
     return Arrays.asList();

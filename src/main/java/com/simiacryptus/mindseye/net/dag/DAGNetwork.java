@@ -23,7 +23,7 @@ import groovy.lang.Tuple2;
  *
  * @author Andrew Charneski
  */
-public class DAGNetwork extends NNLayer {
+public class DAGNetwork extends NNLayer<DAGNetwork> {
   private final class InputNode extends LazyResult {
     @Override
     protected NNResult[] eval(final EvaluationContext t) {
@@ -42,7 +42,7 @@ public class DAGNetwork extends NNLayer {
     private final UUID layer;
     private final LazyResult prevHead;
 
-    private UnaryNode(final NNLayer layer, final LazyResult prevHead) {
+    private UnaryNode(final NNLayer<?> layer, final LazyResult prevHead) {
       this.layer = layer.getId();
       this.prevHead = prevHead;
     }
@@ -66,15 +66,15 @@ public class DAGNetwork extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
-  private final java.util.LinkedHashMap<UUID, NNLayer> byId = new java.util.LinkedHashMap<>();
+  private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
   private LazyResult head = new InputNode();
   public final UUID inputHandle = UUID.randomUUID();
 
-  private final java.util.HashMap<NNLayer, NNLayer> nextMap = new java.util.HashMap<>();
-  private final java.util.HashMap<NNLayer, NNLayer> prevMap = new java.util.HashMap<>();
+  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
+  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
 
-  public synchronized DAGNetwork add(final NNLayer layer) {
-    final NNLayer headLayer = getHeadLayer();
+  public synchronized DAGNetwork add(final NNLayer<?> layer) {
+    final NNLayer<?> headLayer = getHeadLayer();
     this.byId.put(layer.getId(), layer);
     this.prevMap.put(layer, headLayer);
     this.nextMap.put(headLayer, layer);
@@ -93,9 +93,9 @@ public class DAGNetwork extends NNLayer {
   }
 
   @Override
-  public NNLayer evolve() {
+  public NNLayer<?> evolve() {
     if (0 == this.byId.values().stream().filter(l -> {
-      final NNLayer evolve = l.evolve();
+      final NNLayer<?> evolve = l.evolve();
       if (null != evolve && evolve != l)
         throw new RuntimeException("Not implemented: Substitution via evolution in DAGNetwork");
       return null != evolve;
@@ -106,17 +106,17 @@ public class DAGNetwork extends NNLayer {
   }
 
   @Override
-  public NNLayer freeze() {
+  public DAGNetwork freeze() {
     this.byId.values().forEach(l -> l.freeze());
     return super.freeze();
   }
 
-  public NNLayer get(final int i) {
+  public NNLayer<?> get(final int i) {
     return this.byId.get(i);
   }
 
   @Override
-  public List<NNLayer> getChildren() {
+  public List<NNLayer<?>> getChildren() {
     return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
 
@@ -124,7 +124,7 @@ public class DAGNetwork extends NNLayer {
     return this.head;
   }
 
-  public NNLayer getHeadLayer() {
+  public NNLayer<?> getHeadLayer() {
     if (this.head instanceof UnaryNode)
       return DAGNetwork.this.byId.get(((UnaryNode) this.head).layer);
     return null;
@@ -140,16 +140,16 @@ public class DAGNetwork extends NNLayer {
     return json;
   }
 
-  private void permutate_back(final NNLayer permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
-    final NNLayer prev = this.prevMap.get(permutationLayer);
+  private void permutate_back(final NNLayer<?> permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
+    final NNLayer<?> prev = this.prevMap.get(permutationLayer);
     final List<Tuple2<Integer, Integer>> passback = prev.permuteOutput(permute);
     if (null != passback) {
       permutate_back(prev, passback);
     }
   }
 
-  private void permutate_forward(final NNLayer permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
-    final NNLayer next = this.nextMap.get(permutationLayer);
+  private void permutate_forward(final NNLayer<?> permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
+    final NNLayer<?> next = this.nextMap.get(permutationLayer);
     final List<Tuple2<Integer, Integer>> passforward = next.permuteInput(permute);
     if (null != passforward) {
       permutate_forward(next, passforward);
@@ -157,7 +157,7 @@ public class DAGNetwork extends NNLayer {
   }
 
   public void permute(final UUID id, final List<Tuple2<Integer, Integer>> permute) {
-    final NNLayer permutationLayer = this.byId.get(id);
+    final NNLayer<?> permutationLayer = this.byId.get(id);
     permutate_back(permutationLayer, permute);
     permutate_forward(permutationLayer, permute);
 

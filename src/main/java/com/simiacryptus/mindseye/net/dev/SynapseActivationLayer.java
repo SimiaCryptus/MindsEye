@@ -17,11 +17,11 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
-public class SynapseActivationLayer extends NNLayer {
-  private final class DenseSynapseResult extends NNResult {
+public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
+  private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private DenseSynapseResult(final NDArray data, final NNResult inObj) {
+    private Result(final NDArray data, final NNResult inObj) {
       super(data);
       this.inObj = inObj;
     }
@@ -49,11 +49,11 @@ public class SynapseActivationLayer extends NNLayer {
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {
-          SynapseActivationLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, DenseSynapseResult.this.data, delta, passback));
+          SynapseActivationLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
         }
       } else {
         if (isVerbose()) {
-          SynapseActivationLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, DenseSynapseResult.this.data, delta));
+          SynapseActivationLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
         }
       }
     }
@@ -67,8 +67,6 @@ public class SynapseActivationLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(SynapseActivationLayer.class);
 
-  private boolean frozen = false;
-  private boolean verbose = false;
   public final NDArray weights;
 
   protected SynapseActivationLayer() {
@@ -100,17 +98,7 @@ public class SynapseActivationLayer extends NNLayer {
     if (isVerbose()) {
       SynapseActivationLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }
-    return new DenseSynapseResult(output, inObj[0]);
-  }
-
-  @Override
-  public SynapseActivationLayer freeze() {
-    return freeze(true);
-  }
-
-  public SynapseActivationLayer freeze(final boolean b) {
-    this.frozen = b;
-    return this;
+    return new Result(output, inObj[0]);
   }
 
   @Override
@@ -122,20 +110,6 @@ public class SynapseActivationLayer extends NNLayer {
 
   protected double getMobility() {
     return 1;
-  }
-
-  public boolean isFrozen() {
-    return this.frozen;
-  }
-
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
-  public SynapseActivationLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
   }
 
   public SynapseActivationLayer setWeights(final double[] data) {
@@ -151,9 +125,5 @@ public class SynapseActivationLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-
-  public SynapseActivationLayer thaw() {
-    return freeze(false);
   }
 }

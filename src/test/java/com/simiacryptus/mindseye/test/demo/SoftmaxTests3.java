@@ -22,11 +22,11 @@ public class SoftmaxTests3 extends SimpleClassificationTests {
     final int midLayers = 0;
     DAGNetwork net = new DAGNetwork();
 
-    final NNLayer inputLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
+    final NNLayer<?> inputLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
     net = net.add(inputLayer);
 
     for (int i = 0; i < midLayers; i++) {
-      final NNLayer hiddenLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
+      final NNLayer<?> hiddenLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
       net = net.add(hiddenLayer);
     }
 

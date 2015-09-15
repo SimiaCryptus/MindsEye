@@ -200,7 +200,7 @@ public class PopulationTrainer {
     if (this.verbose) {
       PopulationTrainer.log.debug(String.format("Initialize %s", dynamicRateTrainer));
     }
-    final List<NNLayer> layers = dynamicRateTrainer.getGradientDescentTrainer().getNet().getChildren();
+    final List<NNLayer<?>> layers = dynamicRateTrainer.getGradientDescentTrainer().getNet().getChildren();
     for (int i = 0; i < 5; i++) {
       layers.stream().filter(l -> (l instanceof DenseSynapseLayer)).map(l -> (DenseSynapseLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);
       layers.stream().filter(l -> (l instanceof BiasLayer)).map(l -> (BiasLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);

@@ -19,11 +19,11 @@ import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
-public class LinearActivationLayer extends NNLayer {
-  private final class DenseSynapseResult extends NNResult {
+public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
+  private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private DenseSynapseResult(final NDArray data, final NNResult inObj) {
+    private Result(final NDArray data, final NNResult inObj) {
       super(data);
       this.inObj = inObj;
     }
@@ -52,11 +52,11 @@ public class LinearActivationLayer extends NNLayer {
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {
-          LinearActivationLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, DenseSynapseResult.this.data, delta, passback));
+          LinearActivationLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
         }
       } else {
         if (isVerbose()) {
-          LinearActivationLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, DenseSynapseResult.this.data, delta));
+          LinearActivationLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
         }
       }
     }
@@ -70,8 +70,6 @@ public class LinearActivationLayer extends NNLayer {
 
   private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
 
-  private boolean frozen = false;
-  private boolean verbose = false;
   public final NDArray weights;
 
   public LinearActivationLayer() {
@@ -100,17 +98,7 @@ public class LinearActivationLayer extends NNLayer {
     if (isVerbose()) {
       LinearActivationLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }
-    return new DenseSynapseResult(output, inObj[0]);
-  }
-
-  @Override
-  public LinearActivationLayer freeze() {
-    return freeze(true);
-  }
-
-  public LinearActivationLayer freeze(final boolean b) {
-    this.frozen = b;
-    return this;
+    return new Result(output, inObj[0]);
   }
 
   @Override
@@ -124,15 +112,6 @@ public class LinearActivationLayer extends NNLayer {
     return 1;
   }
 
-  public boolean isFrozen() {
-    return this.frozen;
-  }
-
-  @Override
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
   @Override
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
@@ -141,11 +120,6 @@ public class LinearActivationLayer extends NNLayer {
   @Override
   public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
-  }
-
-  public LinearActivationLayer setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return this;
   }
 
   public LinearActivationLayer setWeights(final double[] data) {
@@ -163,8 +137,5 @@ public class LinearActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
 
-  public LinearActivationLayer thaw() {
-    return freeze(false);
-  }
 
 }

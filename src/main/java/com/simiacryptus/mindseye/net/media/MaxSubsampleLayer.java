@@ -16,7 +16,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
-public class MaxSubsampleLayer extends NNLayer {
+public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
 

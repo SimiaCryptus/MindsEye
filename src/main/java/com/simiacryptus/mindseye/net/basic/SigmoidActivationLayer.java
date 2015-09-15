@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.net.basic;
 
-public final class SigmoidActivationLayer extends SimpleActivationLayer {
+public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
 
 
   private static final double MIN_X = -20;
