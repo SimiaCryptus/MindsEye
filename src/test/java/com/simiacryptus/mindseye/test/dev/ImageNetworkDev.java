@@ -132,7 +132,7 @@ public class ImageNetworkDev {
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
 
-      trainer.setParams(new DAGNetwork().add(bias).add(convolution), new NDArray[][] { { zeroInput, output.data } });
+      trainer.init(new DAGNetwork().add(bias).add(convolution), new NDArray[][] { { zeroInput, output.data } });
 
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias),

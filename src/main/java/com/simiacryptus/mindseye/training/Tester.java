@@ -10,8 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dev.WrapperLayer;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -21,6 +24,21 @@ import com.simiacryptus.mindseye.util.Util;
  * @author Andrew Charneski
  */
 public class Tester {
+
+  private static final class PhasedLossLayer extends WrapperLayer {
+    private PhasedLossLayer() {
+      super(new EntropyLossLayer());
+//      super(new SqLossLayer());
+    }
+
+    @Override
+    public NNLayer<?> evolve() {
+      return null;
+//      if(getInner() instanceof EntropyLossLayer) return null;
+//      setInner(new EntropyLossLayer());
+//      return this;
+    }
+  }
 
   static final Logger log = LoggerFactory.getLogger(Tester.class);
 
@@ -69,11 +87,15 @@ public class Tester {
     return this;
   }
 
-  public Tester setParams(final DAGNetwork pipelineNetwork, final NDArray[][] samples) {
+  public Tester init(final DAGNetwork pipelineNetwork, final NDArray[][] samples) {
+    return init(pipelineNetwork, samples, new PhasedLossLayer());
+  }
+
+  private Tester init(final DAGNetwork pipelineNetwork, final NDArray[][] samples, NNLayer<?> lossLayer) {
     GradientDescentTrainer gradientDescentTrainer = getInner().getDynamicRateTrainer().getGradientDescentTrainer();
     DAGNetwork dagNetwork = new DAGNetwork();
     dagNetwork.add(pipelineNetwork);
-    dagNetwork.add2(new SqLossLayer());
+    dagNetwork.add2(lossLayer);
     gradientDescentTrainer.setNet(dagNetwork);
     gradientDescentTrainer.setMasterTrainingData(samples);
     return this;

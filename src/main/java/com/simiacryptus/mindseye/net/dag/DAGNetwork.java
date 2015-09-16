@@ -137,7 +137,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   @Override
-  public NNLayer<?> evolve() {
+  public DAGNetwork evolve() {
     if (0 == this.byId.values().stream().filter(l -> {
       final NNLayer<?> evolve = l.evolve();
       if (null != evolve && evolve != l)
@@ -219,7 +219,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   public Tester trainer(final NDArray[][] samples) {
-    return new Tester().setParams(this, samples);
+    return new Tester().init(this, samples);
   }
 
   @Override

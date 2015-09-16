@@ -9,7 +9,7 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public final class WrapperLayer extends NNLayer<WrapperLayer> {
+public class WrapperLayer extends NNLayer<WrapperLayer> {
   private NNLayer<?> inner;
 
   public WrapperLayer(final NNLayer<?> inner) {
@@ -33,7 +33,7 @@ public final class WrapperLayer extends NNLayer<WrapperLayer> {
 
   @Override
   public JsonObject getJson() {
-    return super.getJson();
+    return inner.getJson();
   }
 
   @Override

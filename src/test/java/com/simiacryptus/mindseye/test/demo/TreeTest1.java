@@ -91,7 +91,7 @@ public class TreeTest1 extends SimpleClassificationTests {
 
   @Override
   public void verify(final Tester trainer) {
-    // trainer.setVerbose(true);
+    trainer.setVerbose(true);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
     trainer.verifyConvergence(0.01, 10);

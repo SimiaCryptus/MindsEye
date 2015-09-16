@@ -8,6 +8,7 @@ import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.util.Util;
 
 public final class TreeNetwork extends DAGNetwork {
   
@@ -42,7 +43,7 @@ public final class TreeNetwork extends DAGNetwork {
 
   public DAGNetwork gateFactory() {
     DAGNetwork gate = new DAGNetwork();
-    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }));
+    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(()->Util.R.get().nextGaussian()));
     gate = gate.add(new BiasLayer(new int[] { 2 }));
     gate = gate.add(new SoftmaxActivationLayer());
     this.gates.add(gate);

@@ -4,6 +4,7 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.dev.PermutationLayer;
@@ -17,7 +18,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 10 };
-    final int midLayers = 1;
+    final int midLayers = 0;
     DAGNetwork net = new DAGNetwork();
 
     // net = net.add(new
@@ -52,8 +53,8 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     // net = net.add(new L1NormalizationLayer());
     // net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
-    net = net.add(new SigmoidActivationLayer());
-    // net = net.add(new SoftmaxActivationLayer());
+    //net = net.add(new SigmoidActivationLayer());
+    net = net.add(new SoftmaxActivationLayer());
 
     return net;
   }
@@ -131,11 +132,11 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
   @Override
   public void verify(final Tester trainer) {
-    //trainer.setVerbose(true);
-    trainer.setMutationAmplitude(10);
+    trainer.setVerbose(true);
+    trainer.setMutationAmplitude(.5);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.verifyConvergence(0.01, 10);
+    trainer.verifyConvergence(0.01, 1);
   }
 
 }

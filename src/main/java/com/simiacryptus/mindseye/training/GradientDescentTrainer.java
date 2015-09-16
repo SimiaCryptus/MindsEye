@@ -25,7 +25,7 @@ public class GradientDescentTrainer {
   private double error = Double.POSITIVE_INFINITY;
   private NDArray[][] masterTrainingData = null;
   private DAGNetwork net = null;
-  private double rate = 0.3;
+  private double rate = 0.1;
   private double[] rates = null;
   private double temperature = 0.0;
   private boolean verbose = false;

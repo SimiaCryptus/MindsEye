@@ -271,7 +271,7 @@ public class DynamicRateTrainer {
     int lifecycle = 0;
     do {
       train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.5, 2., this.stopError, getEtaMs()));
-    } while (lifecycle++ < 1 && null != getGradientDescentTrainer().getNet().evolve());
+    } while (lifecycle++ < 2 && null != getGradientDescentTrainer().getNet().evolve());
     // train2(trainingContext);
     return false;
   }
