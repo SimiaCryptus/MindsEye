@@ -77,7 +77,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     @Override
     protected NNResult[] eval(final EvaluationContext ctx) {
       final NNResult inputL = this.left.get(ctx)[0];
-      final NNResult inputR = this.right.get(ctx)[0];
+      final NNResult inputR = this.right.get(ctx)[1];
       final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(ctx, inputL, inputR);
       return new NNResult[] { output };
     }

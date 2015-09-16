@@ -85,7 +85,8 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj2) {
-    final List<NNResultBuffer> inputResultBuffers = java.util.stream.Stream.of(inObj2).map(x -> new NNResultBuffer(x)).collect(java.util.stream.Collectors.toList());
+    final List<NNResultBuffer> inputResultBuffers = java.util.stream.Stream.of(inObj2)
+        .map(x -> new NNResultBuffer(x)).collect(java.util.stream.Collectors.toList());
     final NNResult[] inObj = inputResultBuffers.stream().toArray(i -> new NNResult[i]);
     final NNResult gateEval = this.gate.eval(evaluationContext, inObj);
     final double[] gateVals = gateEval.data.getData();
@@ -145,7 +146,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     return json;
   }
 
-  private NNResult scale(final NNResult eval, final double d) {
+  private static NNResult scale(final NNResult eval, final double d) {
     return new NNResult(eval.evaluationContext, eval.data.scale(d)) {
 
       @Override

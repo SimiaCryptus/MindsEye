@@ -202,7 +202,7 @@ public class DynamicRateTrainer {
 
   private int probeRateCount(final TrainingContext trainingContext) {
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-    final NNResult probe = gradientDescentTrainer.getNet().eval(getGradientDescentTrainer().getMasterTrainingData()[0][0]);
+    final NNResult probe = gradientDescentTrainer.getNet().eval(getGradientDescentTrainer().getMasterTrainingData()[0]);
     final DeltaBuffer buffer = new DeltaBuffer();
     probe.feedback(new NDArray(probe.data.getDims()), buffer);
     final int rateNumber = buffer.vector().size();
