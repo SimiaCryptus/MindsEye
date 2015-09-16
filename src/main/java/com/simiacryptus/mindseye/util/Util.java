@@ -25,7 +25,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -236,21 +235,13 @@ public class Util {
     return tree.values().stream().collect(Collectors.toList());
   }
 
-  public static List<Tuple2<Double, Double>> stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results, final List<NDArray> predictors) {
+  public static double[] stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
     assert trainingData.length == results.size();
-    final List<Tuple2<Double, Double>> rms = IntStream.range(0, results.size()).parallel().mapToObj(sample -> {
+    final double[] rms = IntStream.range(0, results.size()).parallel().mapToDouble(sample -> {
       final NDArray actualOutput = results.get(sample);
-      final NDArray[] sampleRow = trainingData[sample];
-      final NDArray idealOutput = sampleRow[1];
       final double err = actualOutput.sum();
-
-      final double[] actualOutputData = predictors.get(sample).getData();
-      final double max = DoubleStream.of(actualOutputData).max().getAsDouble();
-      final double sum = DoubleStream.of(actualOutputData).sum();
-      final boolean correct = Util.outputToClassification(actualOutput) == Util.outputToClassification(idealOutput);
-      final double certianty = max / sum * (correct ? 1 : -1);
-      return new Tuple2<>(certianty, err);
-    }).collect(Collectors.toList());
+      return err;
+    }).toArray();
     return rms;
   }
 

@@ -33,12 +33,12 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1, 2 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize))
+    new DAGNetwork().add(new BiasLayer(inputSize).setVerbose(true))
         // .add(new BiasLayer(inputSize).addWeights(() -> 10 *
         // SimpleNetworkTests.random.nextGaussian()).freeze())
         .trainer(samples)//
         .setVerbose(true)
-        .verifyConvergence(0.1, 100);
+        .verifyConvergence(0.1, 1);
   }
 
   @Test

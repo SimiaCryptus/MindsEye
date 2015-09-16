@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.RMSLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dag.LazyResult;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -74,10 +73,8 @@ public class Tester {
     GradientDescentTrainer gradientDescentTrainer = getInner().getDynamicRateTrainer().getGradientDescentTrainer();
     DAGNetwork dagNetwork = new DAGNetwork();
     dagNetwork.add(pipelineNetwork);
-    LazyResult predictorHandle = dagNetwork.getHead();
     dagNetwork.add2(new RMSLayer());
     gradientDescentTrainer.setNet(dagNetwork);
-    gradientDescentTrainer.setPredictionNode(predictorHandle);
     gradientDescentTrainer.setMasterTrainingData(samples);
     return this;
   }

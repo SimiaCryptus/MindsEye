@@ -1,10 +1,7 @@
 package com.simiacryptus.mindseye.training;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -20,9 +17,6 @@ import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer.ValidationResults;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
-import com.simiacryptus.mindseye.util.Util;
-
-import groovy.lang.Tuple2;
 
 public class DynamicRateTrainer {
   public static class RateMonitor {
@@ -113,7 +107,7 @@ public class DynamicRateTrainer {
         for (int i = 0; i < layerRates.length; i++) {
           this.pos[i] = layerRates[i];
         }
-        ValidationResults evalValidationData = gradientDescentTrainer.evalValidationData(trainingContext);
+        ValidationResults evalValidationData = gradientDescentTrainer.evalClassificationValidationData(trainingContext);
         if (isVerbose()) {
           DynamicRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(layerRates), evalValidationData.rms, prev - evalValidationData.rms));
         }
@@ -123,38 +117,14 @@ public class DynamicRateTrainer {
     return f;
   }
 
-  protected synchronized double calcSieves(final TrainingContext trainingContext) {
-    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-    {
-      final NDArray[][] data = gradientDescentTrainer.getConstraintData(trainingContext);
-      final ValidationResults results = gradientDescentTrainer.evalValidationData(trainingContext, data);
-      updateConstraintSieve(results.stats);
-    }
-    {
-      final NDArray[][] data = gradientDescentTrainer.getTrainingData(gradientDescentTrainer.getTrainingSet());
-      final ValidationResults results = gradientDescentTrainer.evalValidationData(trainingContext, data);
-      updateTrainingSieve(results.stats);
-    }
-    {
-      final NDArray[][] data = gradientDescentTrainer.getValidationData(trainingContext);
-      final ValidationResults results = gradientDescentTrainer.evalValidationData(trainingContext, data);
-      updateValidationSieve(results.stats);
-      return Util.rms(trainingContext, results.stats, gradientDescentTrainer.getValidationSet());
-    }
-  }
-
   protected synchronized boolean calibrate(final TrainingContext trainingContext) {
     synchronized (trainingContext) {
       trainingContext.calibrations.increment();
       final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-      gradientDescentTrainer.setTrainingSet(null);
-      gradientDescentTrainer.setValidationSet(null);
-      gradientDescentTrainer.setConstraintSet(new int[] {});
       // trainingContext.calcSieves(getInner());
       try {
         final double[] key = optimizeRates(trainingContext);
         if (setRates(trainingContext, key)) {
-          calcSieves(trainingContext);
           this.lastCalibratedIteration = this.currentIteration;
           final double improvement = -gradientDescentTrainer.step(trainingContext);
           if (isVerbose()) {
@@ -210,9 +180,9 @@ public class DynamicRateTrainer {
 
   private double[] optimizeRates(final TrainingContext trainingContext) {
     final GradientDescentTrainer inner = getGradientDescentTrainer();
-    final NDArray[][] validationSet = inner.getValidationData(trainingContext);
+    final NDArray[][] validationSet = inner.getMasterTrainingData();
     ;
-    final double prev = inner.evalValidationData(trainingContext, validationSet).rms;
+    final double prev = inner.evalClassificationValidationData(trainingContext, validationSet).rms;
     // regenDataSieve(trainingContext);
 
     final DeltaBuffer lessonVector = inner.getVector(trainingContext);
@@ -223,7 +193,7 @@ public class DynamicRateTrainer {
     f.value(x.getFirst()); // Leave in optimal state
     // f.value(new double[numberOfParameters]); // Reset to original state
 
-    final double calcError = inner.evalValidationData(trainingContext, validationSet).rms;
+    final double calcError = inner.evalClassificationValidationData(trainingContext, validationSet).rms;
     if (this.verbose) {
       DynamicRateTrainer.log.debug(String.format("Terminated search at position: %s (%s), error %s->%s", Arrays.toString(x.getKey()), x.getValue(), prev, calcError));
     }
@@ -232,7 +202,7 @@ public class DynamicRateTrainer {
 
   private int probeRateCount(final TrainingContext trainingContext) {
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-    final NNResult probe = gradientDescentTrainer.getNet().eval(getGradientDescentTrainer().getTrainingData(trainingContext)[0][0]);
+    final NNResult probe = gradientDescentTrainer.getNet().eval(getGradientDescentTrainer().getMasterTrainingData()[0][0]);
     final DeltaBuffer buffer = new DeltaBuffer();
     probe.feedback(new NDArray(probe.data.getDims()), buffer);
     final int rateNumber = buffer.vector().size();
@@ -307,12 +277,11 @@ public class DynamicRateTrainer {
   }
 
   private void train(final TrainingContext trainingContext, final UniformAdaptiveRateParams params) {
-    calcSieves(trainingContext);
     final int rateNumber = probeRateCount(trainingContext);
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     double rate = params.startRate;
     final RateMonitor linearLearningRate = new RateMonitor(params.terminalETA / 32);
-    while (gradientDescentTrainer.getError() > params.terminalLearningRate) {
+    while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > params.terminalLearningRate) {
       final double rate1 = rate;
       setRates(trainingContext, IntStream.range(0, rateNumber).mapToDouble(x -> rate1).toArray());
       final double delta = gradientDescentTrainer.step(trainingContext);
@@ -336,7 +305,6 @@ public class DynamicRateTrainer {
         log.debug(String.format("TERMINAL Final err: %s", error));
       }
       if (0. <= delta) {
-        calcSieves(trainingContext);
         rate /= Math.pow(params.alpha, params.beta);
       } else if (0. > delta) {
         rate *= params.alpha;
@@ -393,38 +361,6 @@ public class DynamicRateTrainer {
         }
       }
     }
-  }
-
-  protected void updateConstraintSieve(final List<Tuple2<Double, Double>> rms) {
-    getGradientDescentTrainer().setConstraintSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
-        // .sorted(Comparator.comparing(t ->
-        // t.getSecond().getFirst())).limit(50)
-        // .filter(t -> t.getSecond().getFirst() > 0.8)
-        .mapToInt(t -> t.getFirst()).toArray());
-  }
-
-  protected void updateTrainingSieve(final List<Tuple2<Double, Double>> rms) {
-    getGradientDescentTrainer().setTrainingSet(IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))) //
-        // .filter(t -> t.getSecond().getFirst() < 0.0)
-        // .filter(t -> 1.8 * Math.random() > -0.5 - t.getSecond().getFirst())
-        // .sorted(Comparator.comparing(t ->
-        // -t.getSecond().getFirst())).limit(100)
-        .mapToInt(t -> t.getFirst()).toArray());
-  }
-
-  protected void updateValidationSieve(final List<Tuple2<Double, Double>> rms) {
-    final List<Tuple2<Integer, Tuple2<Double, Double>>> collect = new ArrayList<>(
-        IntStream.range(0, rms.size()).mapToObj(i -> new Tuple2<>(i, rms.get(0))).collect(Collectors.toList()));
-    Collections.shuffle(collect);
-    getGradientDescentTrainer().setValidationSet(collect.stream() //
-        // .limit(100)
-        // .filter(t -> t.getSecond().getFirst() < -0.3)
-        // .filter(t -> 0.5 * Math.random() > -0. - t.getSecond().getFirst())
-        // .sorted(Comparator.comparing(t ->
-        // -t.getSecond().getFirst())).limit(100)
-        // .sorted(Comparator.comparing(t ->
-        // -t.getSecond().getFirst())).limit(500)
-        .mapToInt(t -> t.getFirst()).toArray());
   }
 
 }
