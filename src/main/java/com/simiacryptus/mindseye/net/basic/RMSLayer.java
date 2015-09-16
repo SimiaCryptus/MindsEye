@@ -43,7 +43,7 @@ public class RMSLayer extends NNLayer<RMSLayer> {
         if (inObj[0].isAlive()||inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
           for (int i = 0; i < a.dim(); i++) {
-            passback.set(i, -r.get(i) * 2 / a.dim());
+            passback.set(i, data.get(0) * (1/(2*rms)) * r.get(i) * 2 / a.dim());
           }
           if (isVerbose()) {
             RMSLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
@@ -52,7 +52,7 @@ public class RMSLayer extends NNLayer<RMSLayer> {
             inObj[0].feedback(passback, buffer);
           }
           if (inObj[1].isAlive()) {
-            inObj[1].feedback(passback, buffer.scale(-1));
+            inObj[1].feedback(passback.scale(-1), buffer);
           }
         }
       }

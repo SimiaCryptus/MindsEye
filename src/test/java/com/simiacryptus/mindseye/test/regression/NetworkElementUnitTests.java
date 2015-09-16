@@ -36,7 +36,9 @@ public class NetworkElementUnitTests {
     new DAGNetwork().add(new BiasLayer(inputSize))
         // .add(new BiasLayer(inputSize).addWeights(() -> 10 *
         // SimpleNetworkTests.random.nextGaussian()).freeze())
-        .trainer(samples).verifyConvergence(0.1, 100);
+        .trainer(samples)//
+        .setVerbose(true)
+        .verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -223,7 +225,26 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new DAGNetwork().add(new ExpActivationLayer()).add(new L1NormalizationLayer())).trainer(samples).verifyConvergence(0.1, 100);
+    new DAGNetwork() //
+        .add(new BiasLayer(inputSize)) //
+        .add(new DAGNetwork() //
+            .add(new ExpActivationLayer())//
+            .add(new L1NormalizationLayer()))//
+        .trainer(samples)//
+        .verifyConvergence(0.1, 100);
+  }
+
+  @Test
+  public void nestingLayer_feedback2() throws Exception {
+    final int[] inputSize = new int[] { 2 };
+    final int[] outSize = new int[] { 2 };
+    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
+    new DAGNetwork() //
+        .add(new BiasLayer(inputSize)) //
+        .add(new DAGNetwork() //
+            .add(new SoftmaxActivationLayer()))//
+        .trainer(samples)//
+        .verifyConvergence(0.1, 100);
   }
 
   @Test

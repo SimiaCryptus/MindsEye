@@ -30,9 +30,9 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
     final double sum1 = exp.sum();
     final double sum = 0. == sum1 ? 1. : sum1;
     final NDArray output = exp.map(x -> x / sum);
-
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     final double[] expdata = exp.getData();
+    
     for (int i = 0; i < expdata.length; i++) {
       for (int j = 0; j < expdata.length; j++) {
         double value = 0;
@@ -45,9 +45,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
           inputGradient.add(new int[] { i, j }, value);
         }
       }
-      ;
     }
-    ;
 
     if (isVerbose()) {
       SoftmaxActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
