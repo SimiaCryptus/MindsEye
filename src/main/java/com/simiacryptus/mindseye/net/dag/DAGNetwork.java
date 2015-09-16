@@ -222,4 +222,11 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return new Tester().setParams(this, samples);
   }
 
+  @Override
+  public NNLayer<?> getChild(UUID id) {
+    if(this.id.equals(id)) return this;
+    if(byId.containsKey(id)) return byId.get(id);
+    return this.byId.values().stream().map(x->x.getChild(id)).findAny().orElse(null);
+  }
+
 }

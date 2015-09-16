@@ -36,7 +36,7 @@ public abstract class NNLayer<T extends NNLayer<T>> {
     }).toArray(i -> new NNResult[i]);
   }
 
-  private final UUID id = Util.uuid();
+  public final UUID id = Util.uuid();
 
   @Override
   public boolean equals(final Object obj) {
@@ -129,6 +129,11 @@ public abstract class NNLayer<T extends NNLayer<T>> {
   public final T setVerbose(final boolean verbose) {
     this.verbose = verbose;
     return self();
+  }
+
+  public NNLayer<?> getChild(UUID id) {
+    if(this.id.equals(id)) return this;
+    return null;
   }
   
 }
