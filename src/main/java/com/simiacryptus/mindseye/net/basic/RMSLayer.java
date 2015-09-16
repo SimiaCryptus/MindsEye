@@ -32,7 +32,7 @@ public class RMSLayer extends NNLayer<RMSLayer> {
       r.getData()[i] = x;
       total += x*x;
     }
-    double rms = Math.sqrt(total/a.dim());
+    double rms = total/a.dim();
     final NDArray output = new NDArray(new int[]{1}, new double[]{rms});
     if (isVerbose()) {
       RMSLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
@@ -43,7 +43,7 @@ public class RMSLayer extends NNLayer<RMSLayer> {
         if (inObj[0].isAlive()||inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
           for (int i = 0; i < a.dim(); i++) {
-            passback.set(i, data.get(0) * (1/(2*rms)) * r.get(i) * 2 / a.dim());
+            passback.set(i, data.get(0) * r.get(i) * 2 / a.dim());// * (1/(2*rms))
           }
           if (isVerbose()) {
             RMSLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));

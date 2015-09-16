@@ -235,16 +235,6 @@ public class Util {
     return tree.values().stream().collect(Collectors.toList());
   }
 
-  public static double[] stats(final TrainingContext trainingContext, final NDArray[][] trainingData, final List<NDArray> results) {
-    assert trainingData.length == results.size();
-    final double[] rms = IntStream.range(0, results.size()).parallel().mapToDouble(sample -> {
-      final NDArray actualOutput = results.get(sample);
-      final double err = actualOutput.sum();
-      return err;
-    }).toArray();
-    return rms;
-  }
-
   public static boolean thermalStep(final double prev, final double next, final double temp) {
     if (next < prev)
       return true;

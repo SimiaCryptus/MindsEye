@@ -76,8 +76,12 @@ public class SimpleNetworkTests {
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { -1 }), new NDArray(outSize, new double[] { 0 }) },
         { new NDArray(inputSize, new double[] { 0 }), new NDArray(outSize, new double[] { .2 }) },
         { new NDArray(inputSize, new double[] { 1 }), new NDArray(outSize, new double[] { 0 }) } };
-    new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(new double[] { 1, 1 }).freeze()).add(new BiasLayer(midSize).set(new double[] { -1, 1 }))
-        .add(new SigmoidActivationLayer()).add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze()).trainer(samples)
+    new DAGNetwork()//
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(new double[] { 1, 1 }).freeze())//
+        .add(new BiasLayer(midSize).set(new double[] { -1, 1 }))//
+        .add(new SigmoidActivationLayer())//
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze())//
+        .trainer(samples)//
         .verifyConvergence(0.1, 10);
   }
 
@@ -98,27 +102,34 @@ public class SimpleNetworkTests {
   public void testDenseLinearLayer_2Layer() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
-        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) } };
+    final NDArray[][] samples = new NDArray[][] { 
+        { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
+        { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, 1 }) } 
+      };
 
     final DoubleSupplier f = () -> {
       double x = 15.0 * SimpleNetworkTests.random.nextGaussian();
       if (x < 0 && x > -0.001) {
         x -= 1;
       }
-      if (x > 0 && x < 0.001) {
+      if (x >= 0 && x < 0.001) {
         x += 1;
       }
       return x;
     };
     new DAGNetwork() //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(f).freeze()).add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples).setStaticRate(0.01).verifyConvergence(0.01, 100);
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(f).freeze()) //
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
+        .trainer(samples)//
+        //.setVerbose(true)//
+        .setStaticRate(0.01)//
+        .verifyConvergence(0.01, 1);
 
     new DAGNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(f).freeze()) //
-        .trainer(samples).setStaticRate(0.01)
+        .trainer(samples)//
+        //.setStaticRate(0.01)
         // .setVerbose(true).setParallel(false)
         .verifyConvergence(0.01, 100, 90);
 

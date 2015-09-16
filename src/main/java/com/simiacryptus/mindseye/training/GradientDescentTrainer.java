@@ -73,11 +73,11 @@ public class GradientDescentTrainer {
   
   protected ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
     final List<NNResult> eval = eval(trainingContext, validationSet);
-    final List<NDArray> finaloutput = eval.stream().map(x -> x.data).collect(Collectors.toList());
-    double[] stats = Util.stats(trainingContext, validationSet, finaloutput);
-    double rms = java.util.stream.DoubleStream.of(stats).sum();
+    final List<NDArray> evalData = eval.stream().map(x -> x.data).collect(Collectors.toList());
+    assert validationSet.length == evalData.size();
+    double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).sum();
     setError(rms);
-    return new ValidationResults(finaloutput, rms);
+    return new ValidationResults(evalData, rms);
   }
 
   public synchronized double getError() {
@@ -172,7 +172,7 @@ public class GradientDescentTrainer {
     return this;
   }
 
-  public Double step(final TrainingContext trainingContext) throws TerminationCondition {
+  public double step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     final double prevError = evalClassificationValidationData(trainingContext).rms;
     final double[] rates = getRates();
