@@ -14,11 +14,11 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public class RMSLayer extends NNLayer<RMSLayer> {
+public class SqLossLayer extends NNLayer<SqLossLayer> {
 
-  private static final Logger log = LoggerFactory.getLogger(RMSLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(SqLossLayer.class);
 
-  public RMSLayer() {
+  public SqLossLayer() {
   }
 
   @Override
@@ -35,7 +35,7 @@ public class RMSLayer extends NNLayer<RMSLayer> {
     double rms = total/a.dim();
     final NDArray output = new NDArray(new int[]{1}, new double[]{rms});
     if (isVerbose()) {
-      RMSLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
+      SqLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
     }
     return new NNResult(evaluationContext, output) {
       @Override
@@ -46,7 +46,7 @@ public class RMSLayer extends NNLayer<RMSLayer> {
             passback.set(i, data.get(0) * r.get(i) * 2 / a.dim());// * (1/(2*rms))
           }
           if (isVerbose()) {
-            RMSLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
+            SqLossLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
           if (inObj[0].isAlive()) {
             inObj[0].feedback(passback, buffer);
