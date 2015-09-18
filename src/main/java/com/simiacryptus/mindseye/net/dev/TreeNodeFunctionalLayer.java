@@ -123,7 +123,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
       @Override
       public boolean isAlive() {
-        return output.isAlive() || java.util.stream.Stream.of(inObj).anyMatch(x -> x.isAlive());
+        return gateEval.isAlive() || output.isAlive() || java.util.stream.Stream.of(inObj).anyMatch(x -> x.isAlive());
       }
     };
   }

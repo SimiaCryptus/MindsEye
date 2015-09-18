@@ -32,7 +32,7 @@ public class TreeTest1 extends SimpleClassificationTests {
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.getInner().getDynamicRateTrainer().setEvolutionPhases(0);
+    trainer.getInner().getDynamicRateTrainer().setEvolutionPhases(2);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.01, 1);
   }

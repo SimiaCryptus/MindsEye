@@ -43,9 +43,9 @@ public final class TreeNetwork extends DAGNetwork {
 
   public DAGNetwork gateFactory() {
     DAGNetwork gate = new DAGNetwork();
-    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(()->Util.R.get().nextGaussian()).setVerbose(true));
-    gate = gate.add(new BiasLayer(new int[] { 2 }).setVerbose(true));
-    gate = gate.add(new SoftmaxActivationLayer().setVerbose(true));
+    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(()->Util.R.get().nextGaussian()));
+    gate = gate.add(new BiasLayer(new int[] { 2 }));
+    gate = gate.add(new SoftmaxActivationLayer());
     this.gates.add(gate);
     return gate;
   }
