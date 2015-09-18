@@ -18,9 +18,9 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
   private static final class NNResultBuffer extends NNResult {
+    
     private NNResult inner;
-
-    NDArray sum = null;
+    private NDArray sum = null;
 
     private NNResultBuffer(final NNResult x) {
       super(x.evaluationContext, x.data);
@@ -66,41 +66,24 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     this(gate, java.util.stream.Stream.of(leafs).collect(java.util.stream.Collectors.toList()));
   }
 
-  private NNResult add(final NNResult a, final NNResult b) {
-    assert(a.evaluationContext==b.evaluationContext);
-    return new NNResult(a.evaluationContext, a.data.add(b.data)) {
-
-      @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
-        a.feedback(data, buffer);
-        b.feedback(data, buffer);
-      }
-
-      @Override
-      public boolean isAlive() {
-        return a.isAlive() || b.isAlive();
-      }
-    };
-  }
-
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj2) {
     final List<NNResultBuffer> inputResultBuffers = java.util.stream.Stream.of(inObj2)
         .map(x -> new NNResultBuffer(x)).collect(java.util.stream.Collectors.toList());
-    final NNResult[] inObj = inputResultBuffers.stream().toArray(i -> new NNResult[i]);
-    final NNResult gateEval = this.gate.eval(evaluationContext, inObj);
+    final NNResult[] input = inputResultBuffers.stream().toArray(i -> new NNResult[i]);
+    final NNResult gateEval = this.gate.eval(evaluationContext, input);
     final double[] gateVals = gateEval.data.getData();
     // int[] sorted = IntStream.range(0, gateVals.length).mapToObj(x->x)
     // .sorted(java.util.Comparator.comparing(i->gateVals[i])).mapToInt(x->x).toArray();
 
     final List<NNResult> outputs = IntStream.range(0, gateVals.length).mapToObj(x -> {
       final NNLayer<?> leaf = this.leafs.get(x);
-      final NNResult eval = leaf.eval(evaluationContext, inObj);
-      return scale(eval, gateVals[x]);
+      final NNResult eval = leaf.eval(evaluationContext, input);
+      return NNResult.scale(eval, gateVals[x]);
     }).collect(java.util.stream.Collectors.toList());
-    final NNResult output = outputs.stream().reduce((l, r) -> add(l, r)).get();
+    final NNResult output = outputs.stream().reduce((l, r) -> NNResult.add(l, r)).get();
     if (isVerbose()) {
-      TreeNodeFunctionalLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, gateEval.data, output));
+      TreeNodeFunctionalLayer.log.debug(String.format("Feed forward: %s * %s => %s", input[0].data, gateEval.data, output));
     }
     return new NNResult(evaluationContext, output.data) {
 
@@ -123,7 +106,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
       @Override
       public boolean isAlive() {
-        return gateEval.isAlive() || output.isAlive() || java.util.stream.Stream.of(inObj).anyMatch(x -> x.isAlive());
+        return gateEval.isAlive() || output.isAlive();
       }
     };
   }
@@ -144,21 +127,6 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     this.leafs.stream().forEach(x -> childArray.add(x.getJson()));
     json.add("children", childArray);
     return json;
-  }
-
-  private static NNResult scale(final NNResult eval, final double d) {
-    return new NNResult(eval.evaluationContext, eval.data.scale(d)) {
-
-      @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
-        eval.feedback(data.scale(d), buffer);
-      }
-
-      @Override
-      public boolean isAlive() {
-        return eval.isAlive();
-      }
-    };
   }
 
   @Override

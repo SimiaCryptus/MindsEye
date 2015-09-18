@@ -14,7 +14,7 @@ public class TreeTest1 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
 
-    final DAGNetwork net = new TreeNetwork(inputSize, outSize);
+    final DAGNetwork net = new TreeNetwork(inputSize, outSize).setVerbose(true);
     // net = net.add(new MinMaxFilterLayer());
     // net = net.add(new SigmoidActivationLayer());
     return net;
@@ -32,9 +32,9 @@ public class TreeTest1 extends SimpleClassificationTests {
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.getInner().getDynamicRateTrainer().setEvolutionPhases(2);
+    trainer.getInner().getDynamicRateTrainer().setEvolutionPhases(1);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
-    trainer.verifyConvergence(0.01, 1);
+    trainer.verifyConvergence(0.01, 10);
   }
   @Override
   public void test_Gaussians() throws Exception {

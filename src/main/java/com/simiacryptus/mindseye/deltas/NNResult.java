@@ -10,7 +10,7 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 public abstract class NNResult {
 
   public final NDArray data;
-  public EvaluationContext evaluationContext;
+  public final EvaluationContext evaluationContext;
 
   public NNResult(EvaluationContext evaluationContext, final NDArray data) {
     super();
@@ -47,5 +47,37 @@ public abstract class NNResult {
   }
 
   public abstract boolean isAlive();
+
+  public static NNResult scale(final NNResult eval, final double d) {
+    return new NNResult(eval.evaluationContext, eval.data.scale(d)) {
+  
+      @Override
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+        eval.feedback(data.scale(d), buffer);
+      }
+  
+      @Override
+      public boolean isAlive() {
+        return eval.isAlive();
+      }
+    };
+  }
+
+  public static NNResult add(final NNResult a, final NNResult b) {
+    assert(a.evaluationContext==b.evaluationContext);
+    return new NNResult(a.evaluationContext, a.data.add(b.data)) {
+  
+      @Override
+      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+        a.feedback(data, buffer);
+        b.feedback(data, buffer);
+      }
+  
+      @Override
+      public boolean isAlive() {
+        return a.isAlive() || b.isAlive();
+      }
+    };
+  }
 
 }

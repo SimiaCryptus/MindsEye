@@ -270,10 +270,21 @@ public class DynamicRateTrainer {
     this.lastCalibratedIteration = Integer.MIN_VALUE;
     int lifecycle = 0;
     do {
-      train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-15, 1.1, 3., this.stopError, getEtaMs()));
-    } while (lifecycle++ < getEvolutionPhases() && null != getGradientDescentTrainer().getNet().evolve());
+      
+      train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.2, 2., this.stopError, getEtaMs()));
+    } while (lifecycle++ < getEvolutionPhases() && evolve(trainingContext));
     // train2(trainingContext);
     return false;
+  }
+
+  private boolean evolve(TrainingContext trainingContext) {
+    boolean isValid = null != getGradientDescentTrainer().getNet().evolve();
+    if(isValid) {
+      final int rateNumber = probeRateCount(trainingContext);
+      getGradientDescentTrainer().setRates(new double[rateNumber]);
+      getGradientDescentTrainer().step(trainingContext);
+    }
+    return isValid;
   }
 
   private void train(final TrainingContext trainingContext, final UniformAdaptiveRateParams params) {

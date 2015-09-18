@@ -179,6 +179,9 @@ public class GradientDescentTrainer {
     if (null == rates)
       return Double.POSITIVE_INFINITY;
     final DeltaBuffer buffer = getVector(trainingContext);
+    if(rates.length != buffer.vector().size()) {
+      GradientDescentTrainer.log.debug(String.format("%s != %s", rates.length, buffer.vector().size()));
+    }
     assert null != rates && rates.length == buffer.vector().size();
     final List<DeltaFlushBuffer> deltas = buffer.vector();
     assert null != rates && rates.length == deltas.size();
