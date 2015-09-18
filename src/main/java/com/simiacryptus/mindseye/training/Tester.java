@@ -12,9 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
-import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dev.WrapperLayer;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -25,20 +23,21 @@ import com.simiacryptus.mindseye.util.Util;
  */
 public class Tester {
 
-  private static final class PhasedLossLayer extends WrapperLayer {
-    private PhasedLossLayer() {
-      super(new EntropyLossLayer());
-//      super(new SqLossLayer());
-    }
-
-    @Override
-    public NNLayer<?> evolve() {
-      return null;
-//      if(getInner() instanceof EntropyLossLayer) return null;
-//      setInner(new EntropyLossLayer());
-//      return this;
-    }
-  }
+//  private static final class PhasedLossLayer extends WrapperLayer {
+//    private PhasedLossLayer() {
+////      super(new MaxEntropyLossLayer());
+//     super(new EntropyLossLayer());
+////      super(new SqLossLayer());
+//    }
+//
+//    @Override
+//    public NNLayer<?> evolve() {
+//      return null;
+////      if(getInner() instanceof EntropyLossLayer) return null;
+////      setInner(new EntropyLossLayer());
+////      return this;
+//    }
+//  }
 
   static final Logger log = LoggerFactory.getLogger(Tester.class);
 
@@ -87,18 +86,36 @@ public class Tester {
     return this;
   }
 
-  public Tester init(final DAGNetwork pipelineNetwork, final NDArray[][] samples) {
-    return init(pipelineNetwork, samples, new PhasedLossLayer());
+  /**
+   * @deprecated Use {@link #init(NDArray[][],DAGNetwork,EntropyLossLayer)} instead
+   */
+  public Tester initEntropy(final NDArray[][] samples, final DAGNetwork pipelineNetwork) {
+    return init(samples, pipelineNetwork, new EntropyLossLayer());
   }
 
-  private Tester init(final DAGNetwork pipelineNetwork, final NDArray[][] samples, NNLayer<?> lossLayer) {
+  /**
+   * @deprecated Use {@link #init(NDArray[][],DAGNetwork,NNLayer<?>)} instead
+   */
+  public Tester init(final DAGNetwork pipelineNetwork, final NDArray[][] samples, NNLayer<?> lossLayer) {
+    return init(samples, pipelineNetwork, lossLayer);
+  }
+
+  public Tester init(final NDArray[][] samples, final DAGNetwork pipelineNetwork, NNLayer<?> lossLayer) {
+    return init(samples, initPredictionNetwork(pipelineNetwork, lossLayer));
+  }
+
+  public Tester init(final NDArray[][] samples, DAGNetwork univariateNetwork) {
     GradientDescentTrainer gradientDescentTrainer = getInner().getDynamicRateTrainer().getGradientDescentTrainer();
-    DAGNetwork dagNetwork = new DAGNetwork();
-    dagNetwork.add(pipelineNetwork);
-    dagNetwork.add2(lossLayer);
-    gradientDescentTrainer.setNet(dagNetwork);
+    gradientDescentTrainer.setNet(univariateNetwork);
     gradientDescentTrainer.setMasterTrainingData(samples);
     return this;
+  }
+
+  public static DAGNetwork initPredictionNetwork(final NNLayer<?> predictor, NNLayer<?> loss) {
+    DAGNetwork dagNetwork = new DAGNetwork();
+    dagNetwork.add(predictor);
+    dagNetwork.add2(loss);
+    return dagNetwork;
   }
 
   public Tester setStaticRate(final double d) {

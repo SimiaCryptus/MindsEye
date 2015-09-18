@@ -123,7 +123,6 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
-    assert 1 == inObj.length;
     final NDArray input = inObj[0].data;
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();

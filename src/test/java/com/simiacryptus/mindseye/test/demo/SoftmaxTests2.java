@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.test.demo;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
@@ -131,12 +132,19 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   }
 
   @Override
+  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
+    return net.trainer(samples, new EntropyLossLayer());
+  }
+
+  @Override
   public void verify(final Tester trainer) {
     trainer.setVerbose(true);
-    trainer.setMutationAmplitude(.5);
+    trainer.setMutationAmplitude(2);
+    //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
     trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.verifyConvergence(0.01, 1);
+    //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
+    trainer.verifyConvergence(0.01, 10);
   }
 
 }

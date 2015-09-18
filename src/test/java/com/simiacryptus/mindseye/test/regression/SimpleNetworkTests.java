@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 
 public class SimpleNetworkTests {
@@ -27,7 +29,7 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.5 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) } };
     new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)).add(new BiasLayer(inputSize)).add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)).add(new BiasLayer(outSize)).trainer(samples).verifyConvergence(0.1, 10);
+        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)).add(new BiasLayer(outSize)).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 10);
   }
 
   @Test
@@ -41,9 +43,14 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 1 }) },
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1 }) } };
-    new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer())
-        .trainer(samples).verifyConvergence(0.01, 100);
+    new DAGNetwork()//
+      .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))//
+      .add(new BiasLayer(midSize))//
+      .add(new SigmoidActivationLayer())//
+      .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))//
+      .add(new BiasLayer(outSize))//
+      .add(new SigmoidActivationLayer())//
+      .trainer(samples, new SqLossLayer()).verifyConvergence(0.01, 100);
   }
 
   @Test
@@ -65,7 +72,7 @@ public class SimpleNetworkTests {
 
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer())
 
-        .trainer(samples).setMutationAmplitude(10.).verifyConvergence(0.01, 00);
+        .trainer(samples, new EntropyLossLayer()).setMutationAmplitude(10.).verifyConvergence(0.01, 00);
   }
 
   @Test
@@ -81,7 +88,7 @@ public class SimpleNetworkTests {
         .add(new BiasLayer(midSize).set(new double[] { -1, 1 }))//
         .add(new SigmoidActivationLayer())//
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze())//
-        .trainer(samples)//
+        .trainer(samples, new EntropyLossLayer())//
         .verifyConvergence(0.1, 10);
   }
 
@@ -95,7 +102,7 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { -1 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 0 }) } };
     new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new DenseSynapseLayer(NDArray.dim(midSize), midSize))
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).trainer(samples).setVerbose(false).verifyConvergence(0.1, 100);
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).trainer(samples, new EntropyLossLayer()).setVerbose(false).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -120,7 +127,7 @@ public class SimpleNetworkTests {
     new DAGNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(f).freeze()) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples)//
+        .trainer(samples, new EntropyLossLayer())//
         //.setVerbose(true)//
         .setStaticRate(0.01)//
         .verifyConvergence(0.01, 1);
@@ -128,7 +135,7 @@ public class SimpleNetworkTests {
     new DAGNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(f).freeze()) //
-        .trainer(samples)//
+        .trainer(samples, new EntropyLossLayer())//
         //.setStaticRate(0.01)
         // .setVerbose(true).setParallel(false)
         .verifyConvergence(0.01, 100, 90);
@@ -136,13 +143,13 @@ public class SimpleNetworkTests {
     new DAGNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples).setStaticRate(0.01).verifyConvergence(0.01, 100, 80);
+        .trainer(samples, new EntropyLossLayer()).setStaticRate(0.01).verifyConvergence(0.01, 100, 80);
 
     new DAGNetwork() //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)) //
-        .trainer(samples).verifyConvergence(0.01, 100, 50);
+        .trainer(samples, new EntropyLossLayer()).verifyConvergence(0.01, 100, 50);
   }
 
 }

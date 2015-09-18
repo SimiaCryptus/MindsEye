@@ -11,7 +11,9 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 
 public class BooleanSigmoidNetworkTests {
@@ -41,7 +43,7 @@ public class BooleanSigmoidNetworkTests {
 
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
 
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()).trainer(samples).setMutationAmplitude(10.)
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()).trainer(samples, new SqLossLayer()).setMutationAmplitude(10.)
         .verifyConvergence(0.01, 100);
   }
 

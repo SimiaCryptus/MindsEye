@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.training.Tester;
@@ -75,7 +76,7 @@ public abstract class ClassificationTestBase {
   public abstract DAGNetwork buildNetwork();
 
   public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
-    return net.trainer(samples);
+    return net.trainer(samples, new EntropyLossLayer());
   }
 
   public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {

@@ -12,6 +12,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.training.Tester;
 
 import groovy.lang.Tuple2;
@@ -219,7 +220,11 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   public Tester trainer(final NDArray[][] samples) {
-    return new Tester().init(this, samples);
+    return trainer(samples, new EntropyLossLayer());
+  }
+
+  public Tester trainer(final NDArray[][] samples, NNLayer<?> lossLayer) {
+    return new Tester().init(samples, this, lossLayer);
   }
 
   @Override

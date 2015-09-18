@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.Tester;
@@ -50,7 +51,7 @@ public class SimpleMNIST {
   }
 
   public Tester getTrainer(final DAGNetwork net, final NDArray[][] data) {
-    return net.trainer(data).setVerbose(this.verbose > 0);
+    return net.trainer(data, new EntropyLossLayer()).setVerbose(this.verbose > 0);
   }
 
   public Stream<LabeledObject<NDArray>> getTraining(final List<LabeledObject<NDArray>> buffer) {

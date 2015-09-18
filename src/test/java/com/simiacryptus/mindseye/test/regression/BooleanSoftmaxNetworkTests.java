@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
@@ -44,7 +45,7 @@ public class BooleanSoftmaxNetworkTests {
 
         .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SoftmaxActivationLayer().setVerbose(false))
 
-        .trainer(samples).verifyConvergence(0.01, 100);
+        .trainer(samples, new EntropyLossLayer()).verifyConvergence(0.01, 100);
   }
 
   @Test

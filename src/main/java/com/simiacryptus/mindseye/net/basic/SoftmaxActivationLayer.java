@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.net.basic;
 
 import java.util.Arrays;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
 
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
 
-  double maxInput = 100;
+  double maxInput = 50;
 
   public SoftmaxActivationLayer() {
   }
@@ -26,9 +27,12 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
-    final NDArray exp = inObj[0].data.map(x -> Math.min(Math.max(x, -this.maxInput), this.maxInput)).map(x -> Math.exp(x));
-    final double sum1 = exp.sum();
-    final double sum = 0. == sum1 ? 1. : sum1;
+    assert(1 < input.dim());
+    DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(inObj[0].data.getData()).filter(x->Double.isFinite(x)).summaryStatistics();
+    double max = summaryStatistics.getMax();
+    final NDArray exp = inObj[0].data.map(x -> Double.isFinite(x)?x:summaryStatistics.getMin()).map(x -> Math.exp(x-max));
+    final double sum = exp.sum();
+    assert(0.<sum);
     final NDArray output = exp.map(x -> x / sum);
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     final double[] expdata = exp.getData();

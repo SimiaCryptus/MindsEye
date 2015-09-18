@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
@@ -90,7 +91,7 @@ public class TestMNISTDev {
     final List<LabeledObject<NDArray>> buffer = Util.trainingDataStream().collect(Collectors.toList());
     final NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(1000).map(o -> new NDArray[] { o.data, Util.toOutNDArray(Util.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
-    net.trainer(data).setMutationAmplitude(2).setStaticRate(0.25).setVerbose(true).verifyConvergence(0.01, 1);
+    net.trainer(data, new EntropyLossLayer()).setMutationAmplitude(2).setStaticRate(0.25).setVerbose(true).verifyConvergence(0.01, 1);
     {
       final DAGNetwork net2 = net;
       final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(Util.toOut(o1.label))).average().getAsDouble();

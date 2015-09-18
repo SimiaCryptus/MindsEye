@@ -53,14 +53,14 @@ public class DynamicRateTrainer {
     public final double endRate;
     public final double startRate;
     public final double terminalETA;
-    public final double terminalLearningRate;
+    public final double terminalErr;
 
     public UniformAdaptiveRateParams(final double startRate, final double endRate, final double alpha, final double beta, final double convergence, final double terminalETA) {
       this.endRate = endRate;
       this.alpha = alpha;
       this.beta = beta;
       this.startRate = startRate;
-      this.terminalLearningRate = convergence;
+      this.terminalErr = convergence;
       this.terminalETA = terminalETA;
     }
   }
@@ -78,7 +78,6 @@ public class DynamicRateTrainer {
   private int recalibrationInterval = 10;
   private int recalibrationThreshold = 0;
   private double stopError = 1e-2;
-
   private boolean verbose = false;
 
   protected MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final TrainingContext trainingContext) {
@@ -263,6 +262,7 @@ public class DynamicRateTrainer {
     getGradientDescentTrainer().setVerbose(verbose);
     return this;
   }
+  private int evolutionPhases = 2;
 
   public boolean train(final TrainingContext trainingContext) throws TerminationCondition {
     this.currentIteration = 0;
@@ -270,8 +270,8 @@ public class DynamicRateTrainer {
     this.lastCalibratedIteration = Integer.MIN_VALUE;
     int lifecycle = 0;
     do {
-      train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.5, 2., this.stopError, getEtaMs()));
-    } while (lifecycle++ < 2 && null != getGradientDescentTrainer().getNet().evolve());
+      train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-15, 1.1, 3., this.stopError, getEtaMs()));
+    } while (lifecycle++ < getEvolutionPhases() && null != getGradientDescentTrainer().getNet().evolve());
     // train2(trainingContext);
     return false;
   }
@@ -281,7 +281,7 @@ public class DynamicRateTrainer {
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     double rate = params.startRate;
     final RateMonitor linearLearningRate = new RateMonitor(params.terminalETA / 32);
-    while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > params.terminalLearningRate) {
+    while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > params.terminalErr) {
       final double rate1 = rate;
       setRates(trainingContext, IntStream.range(0, rateNumber).mapToDouble(x -> rate1).toArray());
       final double delta = gradientDescentTrainer.step(trainingContext);
@@ -299,7 +299,7 @@ public class DynamicRateTrainer {
         log.debug(String.format("TERMINAL Projected final convergence time: %.3f sec", projectedEndSeconds));
         break;
       }
-      if (error < params.terminalLearningRate) {
+      if (error <= params.terminalErr) {
         if (isVerbose()) {
         }
         log.debug(String.format("TERMINAL Final err: %s", error));
@@ -361,6 +361,15 @@ public class DynamicRateTrainer {
         }
       }
     }
+  }
+
+  public int getEvolutionPhases() {
+    return evolutionPhases;
+  }
+
+  public DynamicRateTrainer setEvolutionPhases(int evolutionPhases) {
+    this.evolutionPhases = evolutionPhases;
+    return this;
   }
 
 }
