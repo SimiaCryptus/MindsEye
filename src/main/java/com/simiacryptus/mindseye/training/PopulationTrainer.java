@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -25,11 +24,11 @@ import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
-public class PopulationTrainer {
+public class PopulationTrainer implements TrainingComponent {
 
   private static final Logger log = LoggerFactory.getLogger(PopulationTrainer.class);
 
-  public static List<Tuple2<Integer, Integer>> findMapping(final List<double[]> from, final List<double[]> to) {
+  private static List<Tuple2<Integer, Integer>> findMapping(final List<double[]> from, final List<double[]> to) {
     final int dim = from.get(0).length;
     assert from.stream().allMatch(x -> dim == x.length);
     assert to.stream().allMatch(x -> dim == x.length);
@@ -83,13 +82,21 @@ public class PopulationTrainer {
 
   private void align(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
     final List<List<List<double[]>>> signatures = population.stream().map(t -> {
-      final NDArray[][] masterTrainingData = t.getGradientDescentTrainer().getMasterTrainingData();
-      final DAGNetwork net = t.getGradientDescentTrainer().getNet();
+      GradientDescentTrainer gd = t.getGradientDescentTrainer();
+      
+      final DAGNetwork net = gd.getNet();
       final List<PermutationLayer> pl = net.getChildren().stream() //
           .filter(x -> x instanceof PermutationLayer).map(x -> (PermutationLayer) x) //
           .collect(Collectors.toList());
       pl.stream().forEach(l -> l.record());
-      t.getGradientDescentTrainer().eval(trainingContext, masterTrainingData, false);
+      
+      double prevRate = gd.getRate();
+      gd.setRate(0);
+      gd.setParallelTraining(false);
+      gd.step(trainingContext);
+      gd.setRate(prevRate);
+      gd.setParallelTraining(true);
+      
       return pl.stream().map(l -> l.getRecord()).collect(Collectors.toList());
     }).collect(Collectors.toList());
 
@@ -161,7 +168,7 @@ public class PopulationTrainer {
     return this.populationSize;
   }
 
-  protected int initialize(final BiasLayer l) {
+  private int initialize(final BiasLayer l) {
     final double[] a = l.bias;
     final Random random = Util.R.get();
     int sum = 0;
@@ -179,7 +186,7 @@ public class PopulationTrainer {
     return sum;
   }
 
-  protected int initialize(final DenseSynapseLayer l) {
+  private int initialize(final DenseSynapseLayer l) {
     final double[] a = l.weights.getData();
     final Random random = Util.R.get();
     return l.weights.coordStream().mapToInt(idx -> {
@@ -196,7 +203,7 @@ public class PopulationTrainer {
     }).sum();
   }
 
-  protected void initialize(final DynamicRateTrainer dynamicRateTrainer) {
+  private void initialize(final DynamicRateTrainer dynamicRateTrainer) {
     if (this.verbose) {
       PopulationTrainer.log.debug(String.format("Initialize %s", dynamicRateTrainer));
     }
@@ -301,22 +308,22 @@ public class PopulationTrainer {
     return nextGen;
   }
 
-  public PopulationTrainer setAlignEnabled(final boolean align) {
+  public TrainingComponent setAlignEnabled(final boolean align) {
     this.alignEnabled = align;
     return this;
   }
 
-  public PopulationTrainer setAmplitude(final double amplitude) {
+  public TrainingComponent setAmplitude(final double amplitude) {
     this.initAmplitude = amplitude;
     return this;
   }
 
-  public PopulationTrainer setGenerationsSinceImprovement(final int generationsSinceImprovement) {
+  public TrainingComponent setGenerationsSinceImprovement(final int generationsSinceImprovement) {
     getDynamicRateTrainer().generationsSinceImprovement = generationsSinceImprovement;
     return this;
   }
 
-  public PopulationTrainer setNumberOfGenerations(final int numberOfGenerations) {
+  public TrainingComponent setNumberOfGenerations(final int numberOfGenerations) {
     this.numberOfGenerations = numberOfGenerations;
     return this;
   }
@@ -326,32 +333,20 @@ public class PopulationTrainer {
     return this;
   }
 
-  public PopulationTrainer setVerbose(final boolean verbose) {
+  public TrainingComponent setVerbose(final boolean verbose) {
     this.verbose = verbose;
     getDynamicRateTrainer().setVerbose(verbose);
     return this;
   }
 
-  public boolean test(final double convergence, final TrainingContext trainingContext, final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler) {
-    boolean hasConverged = false;
-    try {
-      final Double error = trainingContext.overallTimer.time(() -> {
-        getDynamicRateTrainer().setStopError(convergence);
-        return train(trainingContext);
-      });
-      final DAGNetwork net = getNet();
-      handler.stream().forEach(h -> h.apply(net, trainingContext));
-      hasConverged = error <= convergence;
-      if (!hasConverged) {
-        Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
-      }
-    } catch (final Throwable e) {
-      Tester.log.debug("Not Converged", e);
-    }
-    return hasConverged;
+  public double step(final TrainingContext trainingContext) {
+    final Double error = trainingContext.overallTimer.time(() -> {
+      return train(trainingContext);
+    });
+    return error;
   }
 
-  public Double train(final TrainingContext trainingContext) {
+  private Double train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
 
     List<DynamicRateTrainer> population = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
@@ -393,12 +388,17 @@ public class PopulationTrainer {
     return getDynamicRateTrainer().getGradientDescentTrainer().getError();
   }
 
-  private void trainIndividual(final TrainingContext trainingContext, final DynamicRateTrainer dynamicRateTrainer) {
+  private void trainIndividual(final TrainingContext trainingContext, final TrainingComponent dynamicRateTrainer) {
     try {
       trainingContext.mutations.increment();
-      dynamicRateTrainer.train(trainingContext);
+      dynamicRateTrainer.step(trainingContext);
     } catch (final TerminationCondition e) {
       PopulationTrainer.log.debug("Terminated training", e);
     }
+  }
+
+  @Override
+  public double getError() {
+    return getDynamicRateTrainer().getError();
   }
 }

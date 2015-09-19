@@ -128,11 +128,6 @@ public class Tester {
     return this;
   }
 
-  public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
-    getInner().getDynamicRateTrainer().setStopError(stopError);
-    getInner().train(trainingContext);
-  }
-
   private TrainingContext trainingContext() {
     return this.trainingContext;
   }
@@ -150,12 +145,34 @@ public class Tester {
       final PopulationTrainer trainerCpy = Util.kryo().copy(getInner());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
       contextCpy.setTimeout(1, TimeUnit.MINUTES);
-      return trainerCpy.test(convergence, contextCpy, this.handler);
-
+      return Tester.test(trainerCpy, convergence, contextCpy, this.handler);
     }).count();
     if (minSuccess > succeesses)
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
     return succeesses;
+  }
+
+  public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
+    getInner().getDynamicRateTrainer().setStopError(stopError);
+    getInner().step(trainingContext);
+  }
+
+  public static boolean test(PopulationTrainer self, final double convergence, final TrainingContext trainingContext,
+      final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler) {
+    boolean hasConverged = false;
+    try {
+      self.getDynamicRateTrainer().setStopError(convergence);
+      final double error = self.step(trainingContext);
+      final DAGNetwork net = self.getNet();
+      handler.stream().forEach(h -> h.apply(net, trainingContext));
+      hasConverged = error <= convergence;
+      if (!hasConverged) {
+        log.debug(String.format("Not Converged: %s <= %s", error, convergence));
+      }
+    } catch (final Throwable e) {
+      log.debug("Not Converged", e);
+    }
+    return hasConverged;
   }
 
 }

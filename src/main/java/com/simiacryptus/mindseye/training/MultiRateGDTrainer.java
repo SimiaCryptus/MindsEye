@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.training;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -17,18 +18,19 @@ import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
-public class GradientDescentTrainer implements TrainingComponent {
+public class MultiRateGDTrainer implements TrainingComponent {
 
-  private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
+  private static final Logger log = LoggerFactory.getLogger(MultiRateGDTrainer.class);
 
   private double error = Double.POSITIVE_INFINITY;
   private NDArray[][] masterTrainingData = null;
   private DAGNetwork net = null;
   private double rate = 0.1;
+  private double[] rates = null;
   private double temperature = 0.05;
   private boolean verbose = false;
 
-  private DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
+  protected DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
     final List<NNResult> netresults = eval(trainingContext, data);
     final DeltaBuffer buffer = new DeltaBuffer();
     IntStream.range(0, data.length).parallel().forEach(sample -> {
@@ -39,10 +41,8 @@ public class GradientDescentTrainer implements TrainingComponent {
     return buffer;
   }
 
-  private boolean parallelTraining = true;
-  
   private List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData) {
-    return eval(trainingContext, trainingData, isParallelTraining());
+    return eval(trainingContext, trainingData, true);
   }
 
   private List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData, final boolean parallel) {
@@ -57,11 +57,11 @@ public class GradientDescentTrainer implements TrainingComponent {
     }).sorted(java.util.Comparator.comparing(x -> x.getSecond())).map(x -> x.getFirst()).collect(Collectors.toList());
   }
 
-  private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext) {
+  protected ValidationResults evalClassificationValidationData(final TrainingContext trainingContext) {
     return evalClassificationValidationData(trainingContext, getMasterTrainingData());
   }
 
-  private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
+  protected ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
     final List<NNResult> eval = eval(trainingContext, validationSet);
     final List<NDArray> evalData = eval.stream().map(x -> x.data).collect(Collectors.toList());
     assert validationSet.length == evalData.size();
@@ -70,10 +70,6 @@ public class GradientDescentTrainer implements TrainingComponent {
     return new ValidationResults(evalData, rms);
   }
 
-  /* (non-Javadoc)
-   * @see com.simiacryptus.mindseye.training.TrainingComponent#getError()
-   */
-  @Override
   public synchronized double getError() {
     return this.error;
   }
@@ -82,10 +78,6 @@ public class GradientDescentTrainer implements TrainingComponent {
     return this.masterTrainingData;
   }
 
-  /* (non-Javadoc)
-   * @see com.simiacryptus.mindseye.training.TrainingComponent#getNet()
-   */
-  @Override
   public DAGNetwork getNet() {
     return this.net;
   }
@@ -94,11 +86,15 @@ public class GradientDescentTrainer implements TrainingComponent {
     return this.rate;
   }
 
+  public double[] getRates() {
+    return this.rates;
+  }
+
   public double getTemperature() {
     return this.temperature;
   }
 
-  private DeltaBuffer getVector(final TrainingContext trainingContext) {
+  public DeltaBuffer getVector(final TrainingContext trainingContext) {
     final DeltaBuffer primary = calcDelta(trainingContext, getMasterTrainingData());
     if (isVerbose()) {
       // log.debug(String.format("Primary Delta: %s", primary));
@@ -149,6 +145,10 @@ public class GradientDescentTrainer implements TrainingComponent {
     return this;
   }
 
+  public void setRates(final double[] rates) {
+    this.rates = Arrays.copyOf(rates, rates.length);
+  }
+
   public TrainingComponent setTemperature(final double temperature) {
     this.temperature = temperature;
     return this;
@@ -162,51 +162,45 @@ public class GradientDescentTrainer implements TrainingComponent {
     return this;
   }
 
-  /* (non-Javadoc)
-   * @see com.simiacryptus.mindseye.training.TrainingComponent#step(com.simiacryptus.mindseye.training.TrainingContext)
-   */
-  @Override
   public double step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     final double prevError = evalClassificationValidationData(trainingContext).rms;
+    final double[] rates = getRates();
+    if (null == rates)
+      return Double.POSITIVE_INFINITY;
     final DeltaBuffer buffer = getVector(trainingContext);
+    if(rates.length != buffer.vector().size()) {
+      MultiRateGDTrainer.log.debug(String.format("%s != %s", rates.length, buffer.vector().size()));
+    }
+    assert null != rates && rates.length == buffer.vector().size();
     final List<DeltaFlushBuffer> deltas = buffer.vector();
-    IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(rate));
-
+    assert null != rates && rates.length == deltas.size();
+    IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(rates[i]));
+    ;
     final double validationError = evalClassificationValidationData(trainingContext).rms;
     if (prevError == validationError) {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Static: (%s)", prevError));
+        MultiRateGDTrainer.log.debug(String.format("Static: (%s)", prevError));
       }
     } else if (!Util.thermalStep(prevError, validationError, getTemperature())) {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", //
-            prevError, validationError, validationError - prevError));
+        MultiRateGDTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
       }
-      IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(-rate));
+      IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(-rates[i]));
       evalClassificationValidationData(trainingContext);
       return 0.;
     } else {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Validated delta: (%s -> %s) - %s", //
-            prevError, validationError, validationError - prevError));
+        MultiRateGDTrainer.log.debug(String.format("Validated delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
       }
       setError(validationError);
     }
     trainingContext.gradientSteps.increment();
     if (this.verbose) {
-      GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s*%s in %.03fs", // 
-              validationError, getRate(), rate, (System.currentTimeMillis() - startMs) / 1000.));
+      MultiRateGDTrainer.log
+          .debug(String.format("Trained Error: %s with rate %s*%s in %.03fs", validationError, getRate(), Arrays.toString(rates), (System.currentTimeMillis() - startMs) / 1000.));
     }
     return validationError - prevError;
-  }
-
-  public boolean isParallelTraining() {
-    return parallelTraining;
-  }
-
-  public void setParallelTraining(boolean parallelTraining) {
-    this.parallelTraining = parallelTraining;
   }
 
 }
