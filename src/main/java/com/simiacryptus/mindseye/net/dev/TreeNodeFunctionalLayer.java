@@ -78,8 +78,8 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
     final List<NNResult> outputs = IntStream.range(0, gateVals.length).mapToObj(x -> {
       final NNLayer<?> leaf = this.leafs.get(x);
-      final NNResult eval = leaf.eval(evaluationContext, input);
-      return NNResult.scale(eval, gateVals[x]);
+      final NNResult leafEval = leaf.eval(evaluationContext, input);
+      return NNResult.scale(leafEval, gateVals[x]);
     }).collect(java.util.stream.Collectors.toList());
     final NNResult output = outputs.stream().reduce((l, r) -> NNResult.add(l, r)).get();
     if (isVerbose()) {
@@ -92,11 +92,10 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
         output.feedback(data, buffer);
         final NDArray evalFeedback = new NDArray(gateEval.data.getDims());
         for (int subnet = 0; subnet < outputs.size(); subnet++) {
-          final NNResult subnetObj = outputs.get(subnet);
-          final NDArray so = subnetObj.data;
+          final NDArray leafEval = outputs.get(subnet).data.copy().scale(1./gateVals[subnet]);
           double sum1 = 0;
-          for (int i = 0; i < so.dim(); i++) {
-            sum1 += data.getData()[i] * so.getData()[i];
+          for (int i = 0; i < leafEval.dim(); i++) {
+            sum1 += data.getData()[i] * leafEval.getData()[i];
           }
           evalFeedback.set(subnet, sum1);
         }
@@ -106,7 +105,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
       @Override
       public boolean isAlive() {
-        return gateEval.isAlive() || output.isAlive();
+        return gateEval.isAlive() || output.isAlive() || java.util.stream.Stream.of(inObj2).anyMatch(x->x.isAlive());
       }
     };
   }

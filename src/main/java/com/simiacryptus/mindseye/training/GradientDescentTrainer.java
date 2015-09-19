@@ -27,7 +27,7 @@ public class GradientDescentTrainer {
   private DAGNetwork net = null;
   private double rate = 0.1;
   private double[] rates = null;
-  private double temperature = 0.0;
+  private double temperature = 0.05;
   private boolean verbose = false;
 
   protected DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
@@ -75,7 +75,7 @@ public class GradientDescentTrainer {
     final List<NNResult> eval = eval(trainingContext, validationSet);
     final List<NDArray> evalData = eval.stream().map(x -> x.data).collect(Collectors.toList());
     assert validationSet.length == evalData.size();
-    double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).sum();
+    double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
     setError(rms);
     return new ValidationResults(evalData, rms);
   }

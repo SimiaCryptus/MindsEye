@@ -91,11 +91,15 @@ public abstract class ClassificationTestBase {
   public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException, IOException {
     final int[] inputSize = new int[] { dimensions };
     final int[] outSize = new int[] { populations.size() };
-    final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x).flatMap(p -> IntStream.range(0, sampleN).mapToObj(i -> {
+    final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x).flatMap(p -> IntStream.range(0, getSampleSize(p,sampleN)).mapToObj(i -> {
       return new NDArray[] { new NDArray(inputSize, populations.get(p).apply(null)),
           new NDArray(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
     })).toArray(i -> new NDArray[i][]);
     return samples;
+  }
+
+  protected int getSampleSize(Integer populationIndex, int defaultNum) {
+    return defaultNum;
   }
 
   public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {

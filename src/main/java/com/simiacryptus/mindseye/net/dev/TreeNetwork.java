@@ -10,12 +10,12 @@ import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.util.Util;
 
-public final class TreeNetwork extends DAGNetwork {
+public class TreeNetwork extends DAGNetwork {
   
   private final java.util.List<NNLayer<?>> gates = new java.util.ArrayList<>();
-  private final int[] inputSize;
+  protected final int[] inputSize;
   private final java.util.List<WrapperLayer> leafs = new java.util.ArrayList<>();
-  private final int[] outSize;
+  protected final int[] outSize;
 
   public TreeNetwork(final int[] inputSize, final int[] outSize) {
     this.inputSize = inputSize;
@@ -23,10 +23,11 @@ public final class TreeNetwork extends DAGNetwork {
     add(nodeFactory());
   }
 
-  public DAGNetwork constFactory(final int i) {
+  public DAGNetwork getLeaf(final int i) {
     DAGNetwork subnet = new DAGNetwork();
     subnet = subnet.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), this.outSize).setWeights(() -> 0).freeze());
-    subnet = subnet.add(new BiasLayer(this.outSize).setWeights(j -> i == j ? 1 : 0).freeze());
+    subnet = subnet.add(new BiasLayer(this.outSize).setWeights(j -> i == j ? 20 : 0));
+    subnet = subnet.add(new SoftmaxActivationLayer());
     return subnet;
   }
 
@@ -41,17 +42,22 @@ public final class TreeNetwork extends DAGNetwork {
     return this;
   }
 
-  public DAGNetwork gateFactory() {
-    DAGNetwork gate = new DAGNetwork();
-    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(()->Util.R.get().nextGaussian()));
-    gate = gate.add(new BiasLayer(new int[] { 2 }));
-    gate = gate.add(new SoftmaxActivationLayer());
+  public final DAGNetwork gateFactory() {
+    DAGNetwork gate = buildGate();
     this.gates.add(gate);
     return gate;
   }
 
+  protected DAGNetwork buildGate() {
+    DAGNetwork gate = new DAGNetwork();
+    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(()->Util.R.get().nextGaussian()));
+    gate = gate.add(new BiasLayer(new int[] { 2 }));
+    gate = gate.add(new SoftmaxActivationLayer());
+    return gate;
+  }
+
   public WrapperLayer leafFactory(final int i) {
-    final DAGNetwork subnet = constFactory(i);
+    final DAGNetwork subnet = getLeaf(i);
     final WrapperLayer wrapper = new WrapperLayer(subnet);
     this.leafs.add(wrapper);
     return wrapper;

@@ -291,7 +291,7 @@ public class DynamicRateTrainer {
     final int rateNumber = probeRateCount(trainingContext);
     final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     double rate = params.startRate;
-    final RateMonitor linearLearningRate = new RateMonitor(params.terminalETA / 32);
+    final RateMonitor linearLearningRate = new RateMonitor(5000);
     while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > params.terminalErr) {
       final double rate1 = rate;
       setRates(trainingContext, IntStream.range(0, rateNumber).mapToDouble(x -> rate1).toArray());
@@ -306,7 +306,7 @@ public class DynamicRateTrainer {
         log.debug(String.format("TIMEOUT; current err: %s", error));
         break;
       }
-      if (projectedEndSeconds > params.terminalETA) {
+      if (Double.isFinite(projectedEndSeconds) && projectedEndSeconds > params.terminalETA) {
         log.debug(String.format("TERMINAL Projected final convergence time: %.3f sec", projectedEndSeconds));
         break;
       }

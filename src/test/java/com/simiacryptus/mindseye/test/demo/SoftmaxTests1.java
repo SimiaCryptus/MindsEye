@@ -35,4 +35,11 @@ public class SoftmaxTests1 extends SimpleClassificationTests {
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.01, 10);
   }
+
+  @Override
+  public void test_xor() throws Exception {
+    super.test_xor();
+  }
+  
+  
 }

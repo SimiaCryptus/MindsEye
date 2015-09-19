@@ -29,7 +29,7 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
     double total = 0;
     for(int i=0;i<a.dim();i++) {
       double bd = b.getData()[i];
-      double ad = Math.max(Math.min(a.getData()[i], 1.), 1e-2);
+      double ad = Math.max(Math.min(a.getData()[i], 1.), 1e-12);
       r.getData()[i] = -bd / ad;
       total += -bd * Math.log(ad);
     }
@@ -43,8 +43,9 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()||inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
+          double v = data.get(0) * a.dim();
           for (int i = 0; i < a.dim(); i++) {
-            passback.set(i, data.get(0) * r.get(i) * a.dim());
+            passback.set(i, v * r.get(i));
           }
           if (isVerbose()) {
             EntropyLossLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
