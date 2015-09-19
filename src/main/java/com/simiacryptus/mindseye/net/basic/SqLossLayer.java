@@ -27,23 +27,24 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
     final NDArray b = inObj[1].data;
     final NDArray r = new NDArray(a.getDims());
     double total = 0;
-    for(int i=0;i<a.dim();i++) {
-      double x = a.getData()[i] - b.getData()[i];
+    for (int i = 0; i < a.dim(); i++) {
+      final double x = a.getData()[i] - b.getData()[i];
       r.getData()[i] = x;
-      total += x*x;
+      total += x * x;
     }
-    double rms = total/a.dim();
-    final NDArray output = new NDArray(new int[]{1}, new double[]{rms});
+    final double rms = total / a.dim();
+    final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
     if (isVerbose()) {
       SqLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
     }
     return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
-        if (inObj[0].isAlive()||inObj[1].isAlive()) {
+        if (inObj[0].isAlive() || inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
           for (int i = 0; i < a.dim(); i++) {
-            passback.set(i, data.get(0) * r.get(i) * 2 / a.dim());// * (1/(2*rms))
+            passback.set(i, data.get(0) * r.get(i) * 2 / a.dim());// *
+                                                                  // (1/(2*rms))
           }
           if (isVerbose()) {
             SqLossLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));

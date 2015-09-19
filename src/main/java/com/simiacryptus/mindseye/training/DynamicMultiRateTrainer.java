@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.training;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.DoubleStream;
+
 import org.apache.commons.math3.analysis.MultivariateFunction;
 import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
@@ -58,7 +59,7 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
         for (int i = 0; i < layerRates.length; i++) {
           this.pos[i] = layerRates[i];
         }
-        ValidationResults evalValidationData = gradientDescentTrainer.evalClassificationValidationData(trainingContext);
+        final ValidationResults evalValidationData = gradientDescentTrainer.evalClassificationValidationData(trainingContext);
         if (isVerbose()) {
           DynamicMultiRateTrainer.log.debug(String.format("f[%s] = %s (%s)", Arrays.toString(layerRates), evalValidationData.rms, prev - evalValidationData.rms));
         }
@@ -97,6 +98,11 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
     }
   }
 
+  @Override
+  public double getError() {
+    return getGradientDescentTrainer().getError();
+  }
+
   public long getEtaMs() {
     return this.etaSec;
   }
@@ -115,6 +121,11 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
 
   public double getMinRate() {
     return this.minRate;
+  }
+
+  @Override
+  public DAGNetwork getNet() {
+    return getGradientDescentTrainer().getNet();
   }
 
   public int getRecalibrationThreshold() {
@@ -206,6 +217,7 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
     return this;
   }
 
+  @Override
   public double step(final TrainingContext trainingContext) throws TerminationCondition {
     step2(trainingContext);
     return getError();
@@ -217,7 +229,7 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
     this.lastCalibratedIteration = Integer.MIN_VALUE;
     while (true) {
       final TrainingComponent gradientDescentTrainer = getGradientDescentTrainer();
-      double error = gradientDescentTrainer.getError();
+      final double error = gradientDescentTrainer.getError();
       if (getStopError() > error) {
         DynamicMultiRateTrainer.log.debug("Target error reached: " + error);
         return false;
@@ -249,16 +261,6 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
         }
       }
     }
-  }
-
-  @Override
-  public double getError() {
-    return getGradientDescentTrainer().getError();
-  }
-
-  @Override
-  public DAGNetwork getNet() {
-    return getGradientDescentTrainer().getNet();
   }
 
 }

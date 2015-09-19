@@ -23,7 +23,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray data, final NNResult inObj, EvaluationContext evaluationContext) {
+    private Result(final NDArray data, final NNResult inObj, final EvaluationContext evaluationContext) {
       super(evaluationContext, data);
       this.inObj = inObj;
     }
@@ -136,6 +136,5 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
   public List<double[]> state() {
     return Arrays.asList(this.weights.getData());
   }
-
 
 }

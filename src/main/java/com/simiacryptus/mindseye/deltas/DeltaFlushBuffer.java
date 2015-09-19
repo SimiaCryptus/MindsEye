@@ -52,7 +52,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
 
   public double[] calcVector() {
 
-    final NumberVector state = new NumberVector(this.layer.state().stream().flatMapToDouble(x -> Arrays.stream((double[])x)).toArray());
+    final NumberVector state = new NumberVector(this.layer.state().stream().flatMapToDouble(x -> Arrays.stream((double[]) x)).toArray());
     NumberVector returnValue = new NumberVector(Arrays.stream(this.buffer).mapToDouble(x -> x.logValue()).toArray());
     if (isNormalize()) {
       // v = v.scale(1. / v.l2());
@@ -177,7 +177,7 @@ public class DeltaFlushBuffer implements VectorLogic<DeltaFlushBuffer> {
     builder.append(" ");
     builder.append(Arrays.toString(getCalcVector()));
     builder.append(" -> ");
-    builder.append(this.layer.state().stream().map(x -> Arrays.toString((double[])x)).reduce((a, b) -> a + "," + b).get());
+    builder.append(this.layer.state().stream().map(x -> Arrays.toString((double[]) x)).reduce((a, b) -> a + "," + b).get());
     return builder.toString();
   }
 

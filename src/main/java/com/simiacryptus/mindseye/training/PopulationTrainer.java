@@ -82,21 +82,21 @@ public class PopulationTrainer implements TrainingComponent {
 
   private void align(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
     final List<List<List<double[]>>> signatures = population.stream().map(t -> {
-      GradientDescentTrainer gd = t.getGradientDescentTrainer();
-      
+      final GradientDescentTrainer gd = t.getGradientDescentTrainer();
+
       final DAGNetwork net = gd.getNet();
       final List<PermutationLayer> pl = net.getChildren().stream() //
           .filter(x -> x instanceof PermutationLayer).map(x -> (PermutationLayer) x) //
           .collect(Collectors.toList());
       pl.stream().forEach(l -> l.record());
-      
-      double prevRate = gd.getRate();
+
+      final double prevRate = gd.getRate();
       gd.setRate(0);
       gd.setParallelTraining(false);
       gd.step(trainingContext);
       gd.setRate(prevRate);
       gd.setParallelTraining(true);
-      
+
       return pl.stream().map(l -> l.getRecord()).collect(Collectors.toList());
     }).collect(Collectors.toList());
 
@@ -105,8 +105,8 @@ public class PopulationTrainer implements TrainingComponent {
         .sorted(Comparator.comparing(t -> t.getSecond().getGradientDescentTrainer().getError())) //
         .findFirst().get().getFirst();
     assert signatures.stream().allMatch(s -> s.size() == signatures.get(canonicalIndex).size());
-    final List<PermutationLayer> syncLayers = population.get(canonicalIndex).getGradientDescentTrainer().getNet().getChildren()
-        .stream().filter(x -> x instanceof PermutationLayer).map(x -> (PermutationLayer) x).collect(Collectors.toList());
+    final List<PermutationLayer> syncLayers = population.get(canonicalIndex).getGradientDescentTrainer().getNet().getChildren().stream().filter(x -> x instanceof PermutationLayer)
+        .map(x -> (PermutationLayer) x).collect(Collectors.toList());
 
     IntStream.range(0, signatures.size()).filter(i -> i != canonicalIndex).forEach(individual -> {
       IntStream.range(0, syncLayers.size()).forEach(layerIndex -> {
@@ -156,6 +156,12 @@ public class PopulationTrainer implements TrainingComponent {
     return this.inner;
   }
 
+  @Override
+  public double getError() {
+    return getDynamicRateTrainer().getError();
+  }
+
+  @Override
   public DAGNetwork getNet() {
     return getDynamicRateTrainer().getGradientDescentTrainer().getNet();
   }
@@ -339,6 +345,7 @@ public class PopulationTrainer implements TrainingComponent {
     return this;
   }
 
+  @Override
   public double step(final TrainingContext trainingContext) {
     final Double error = trainingContext.overallTimer.time(() -> {
       return train(trainingContext);
@@ -395,10 +402,5 @@ public class PopulationTrainer implements TrainingComponent {
     } catch (final TerminationCondition e) {
       PopulationTrainer.log.debug("Terminated training", e);
     }
-  }
-
-  @Override
-  public double getError() {
-    return getDynamicRateTrainer().getError();
   }
 }

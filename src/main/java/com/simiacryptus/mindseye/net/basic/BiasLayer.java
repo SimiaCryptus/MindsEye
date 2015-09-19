@@ -78,7 +78,6 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     return json;
   }
 
-
   @Override
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     final java.util.Map<Integer, Integer> shuffleMap = new HashMap<>();
@@ -139,7 +138,6 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     }
     return this;
   }
-
 
   public BiasLayer setWeights(final java.util.function.IntToDoubleFunction f) {
     for (int i = 0; i < this.bias.length; i++) {

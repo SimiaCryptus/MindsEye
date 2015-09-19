@@ -19,7 +19,6 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
 
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
 
-
   public SimpleActivationLayer() {
     super();
   }
@@ -74,6 +73,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
     return permute;
   }
+
   @Override
   public List<double[]> state() {
     return Arrays.asList();

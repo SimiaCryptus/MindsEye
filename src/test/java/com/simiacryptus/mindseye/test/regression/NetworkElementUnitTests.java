@@ -159,8 +159,11 @@ public class NetworkElementUnitTests {
     new DAGNetwork().add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
     new DAGNetwork().add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).trainer(samples, new EntropyLossLayer())
-        .verifyConvergence(0.1, 100);
+    new DAGNetwork()
+      .add(new BiasLayer(inputSize))
+      .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
+      .trainer(samples, new EntropyLossLayer())
+      .verifyConvergence(0.1, 100);
     new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
         .add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
     new DAGNetwork().add(new BiasLayer(inputSize))

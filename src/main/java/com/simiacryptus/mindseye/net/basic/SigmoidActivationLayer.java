@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.net.basic;
 
 public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
 
-
   private static final double MIN_X = -20;
   private static final double MAX_X = -MIN_X;
   private static final double MIN_F = Math.exp(MIN_X);

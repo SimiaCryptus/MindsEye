@@ -33,7 +33,7 @@ public class WrapperLayer extends NNLayer<WrapperLayer> {
 
   @Override
   public JsonObject getJson() {
-    return inner.getJson();
+    return this.inner.getJson();
   }
 
   @Override

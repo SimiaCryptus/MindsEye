@@ -18,7 +18,7 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
   private static final class NNResultBuffer extends NNResult {
-    
+
     private NNResult inner;
     private NDArray sum = null;
 
@@ -68,8 +68,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj2) {
-    final List<NNResultBuffer> inputResultBuffers = java.util.stream.Stream.of(inObj2)
-        .map(x -> new NNResultBuffer(x)).collect(java.util.stream.Collectors.toList());
+    final List<NNResultBuffer> inputResultBuffers = java.util.stream.Stream.of(inObj2).map(x -> new NNResultBuffer(x)).collect(java.util.stream.Collectors.toList());
     final NNResult[] input = inputResultBuffers.stream().toArray(i -> new NNResult[i]);
     final NNResult gateEval = this.gate.eval(evaluationContext, input);
     final double[] gateVals = gateEval.data.getData();
@@ -92,7 +91,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
         output.feedback(data, buffer);
         final NDArray evalFeedback = new NDArray(gateEval.data.getDims());
         for (int subnet = 0; subnet < outputs.size(); subnet++) {
-          final NDArray leafEval = outputs.get(subnet).data.copy().scale(1./gateVals[subnet]);
+          final NDArray leafEval = outputs.get(subnet).data.copy().scale(1. / gateVals[subnet]);
           double sum1 = 0;
           for (int i = 0; i < leafEval.dim(); i++) {
             sum1 += data.getData()[i] * leafEval.getData()[i];
@@ -105,7 +104,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
       @Override
       public boolean isAlive() {
-        return gateEval.isAlive() || output.isAlive() || java.util.stream.Stream.of(inObj2).anyMatch(x->x.isAlive());
+        return gateEval.isAlive() || output.isAlive() || java.util.stream.Stream.of(inObj2).anyMatch(x -> x.isAlive());
       }
     };
   }

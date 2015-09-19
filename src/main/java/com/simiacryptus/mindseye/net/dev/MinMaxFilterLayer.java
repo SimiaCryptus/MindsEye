@@ -19,7 +19,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
 
-    private DenseSynapseResult(final NDArray data, final NNResult inObj, EvaluationContext evaluationContext) {
+    private DenseSynapseResult(final NDArray data, final NNResult inObj, final EvaluationContext evaluationContext) {
       super(evaluationContext, data);
       this.inObj = inObj;
     }

@@ -22,21 +22,34 @@ import groovy.lang.Tuple2;
  */
 public abstract class NNLayer<T extends NNLayer<T>> {
 
-  public static NNResult[] wrapInput(EvaluationContext evaluationContext, final NDArray... array) {
-    return Stream.of(array).map(a -> new NNResult(evaluationContext, a) {
-      @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
-        // Do Nothing
-      }
+  private static final class ConstNNResult extends NNResult {
+    
+    //public final String[] created = Util.currentStack();
+    
+    private ConstNNResult(EvaluationContext evaluationContext, NDArray data) {
+      super(evaluationContext, data);
+    }
 
-      @Override
-      public boolean isAlive() {
-        return false;
-      }
-    }).toArray(i -> new NNResult[i]);
+    @Override
+    public void feedback(final NDArray data, final DeltaBuffer buffer) {
+      // Do Nothing
+    }
+
+    @Override
+    public boolean isAlive() {
+      return false;
+    }
   }
 
+  public static NNResult[] getConstResult(final EvaluationContext evaluationContext, final NDArray... array) {
+    return Stream.of(array).map(a -> new ConstNNResult(evaluationContext, a)).toArray(i -> new NNResult[i]);
+  }
+
+  private boolean frozen = false;
+
   public final UUID id = Util.uuid();
+
+  private boolean verbose;
 
   @Override
   public boolean equals(final Object obj) {
@@ -56,12 +69,22 @@ public abstract class NNLayer<T extends NNLayer<T>> {
   }
 
   public final NNResult eval(final EvaluationContext evaluationContext, final NDArray... array) {
-    return eval(evaluationContext, NNLayer.wrapInput(evaluationContext, array));
+    return eval(evaluationContext, NNLayer.getConstResult(evaluationContext, array));
   }
 
   public abstract NNResult eval(EvaluationContext evaluationContext, NNResult... array);
 
   public NNLayer<?> evolve() {
+    return null;
+  }
+
+  public T freeze() {
+    return setFrozen(true);
+  }
+
+  public NNLayer<?> getChild(final UUID id) {
+    if (this.id.equals(id))
+      return this;
     return null;
   }
 
@@ -88,12 +111,35 @@ public abstract class NNLayer<T extends NNLayer<T>> {
     return result;
   }
 
+  public final boolean isFrozen() {
+    return this.frozen;
+  }
+
+  public final boolean isVerbose() {
+    return this.verbose;
+  }
+
   public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
 
   public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
     throw new RuntimeException("Not Implemented: permuteOutput:" + this);
+  }
+
+  @SuppressWarnings("unchecked")
+  protected final T self() {
+    return (T) this;
+  }
+
+  public final T setFrozen(final boolean frozen) {
+    this.frozen = frozen;
+    return self();
+  }
+
+  public final T setVerbose(final boolean verbose) {
+    this.verbose = verbose;
+    return self();
   }
 
   public abstract List<double[]> state();
@@ -103,37 +149,4 @@ public abstract class NNLayer<T extends NNLayer<T>> {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
 
-  public T freeze() {
-    return setFrozen(true);
-  }
-  private boolean frozen = false;
-  public final boolean isFrozen() {
-    return this.frozen;
-  }
-  public final T setFrozen(final boolean frozen) {
-    this.frozen = frozen;
-    return self();
-  }
-
-  @SuppressWarnings("unchecked")
-  protected final T self() {
-    return (T) this;
-  }
-
-  private boolean verbose;
-
-  public final boolean isVerbose() {
-    return this.verbose;
-  }
-
-  public final T setVerbose(final boolean verbose) {
-    this.verbose = verbose;
-    return self();
-  }
-
-  public NNLayer<?> getChild(UUID id) {
-    if(this.id.equals(id)) return this;
-    return null;
-  }
-  
 }

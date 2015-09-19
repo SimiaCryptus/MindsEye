@@ -25,45 +25,6 @@ import groovy.lang.Tuple2;
  * @author Andrew Charneski
  */
 public class DAGNetwork extends NNLayer<DAGNetwork> {
-  private final class InputNode extends LazyResult {
-    @Override
-    protected NNResult[] eval(final EvaluationContext t) {
-      return t.cache.get(DAGNetwork.this.inputHandle);
-    }
-
-    @Override
-    protected JsonObject toJson() {
-      final JsonObject json = new JsonObject();
-      json.addProperty("target", DAGNetwork.this.inputHandle.toString());
-      return json;
-    }
-  }
-
-  private final class UnaryNode extends LazyResult {
-    private final UUID layer;
-    private final LazyResult prevHead;
-
-    private UnaryNode(final NNLayer<?> layer, final LazyResult prevHead) {
-      this.layer = layer.getId();
-      this.prevHead = prevHead;
-    }
-
-    @Override
-    protected NNResult[] eval(final EvaluationContext ctx) {
-      final NNResult[] input = this.prevHead.get(ctx);
-      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(ctx, input);
-      return new NNResult[] { output };
-    }
-
-    @Override
-    protected JsonObject toJson() {
-      final JsonObject json = new JsonObject();
-      json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
-      json.add("prev", this.prevHead.toJson());
-      return json;
-    }
-  }
-
   private final class BinaryNode extends LazyResult {
     private final UUID layer;
     private final LazyResult left;
@@ -93,13 +54,53 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     }
   }
 
+  private final class InputNode extends LazyResult {
+    @Override
+    protected NNResult[] eval(final EvaluationContext t) {
+      return t.cache.get(DAGNetwork.this.inputHandle);
+    }
+
+    @Override
+    protected JsonObject toJson() {
+      final JsonObject json = new JsonObject();
+      json.addProperty("target", DAGNetwork.this.inputHandle.toString());
+      return json;
+    }
+  }
+
+  private final class UnaryNode extends LazyResult {
+    private final UUID layer;
+    private final LazyResult prevHead;
+
+    private UnaryNode(final NNLayer<?> layer, final LazyResult prevHead) {
+      assert(null != prevHead);
+      this.layer = layer.getId();
+      this.prevHead = prevHead;
+    }
+
+    @Override
+    protected NNResult[] eval(final EvaluationContext ctx) {
+      final NNResult[] input = this.prevHead.get(ctx);
+      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(ctx, input);
+      return new NNResult[] { output };
+    }
+
+    @Override
+    protected JsonObject toJson() {
+      final JsonObject json = new JsonObject();
+      json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
+      json.add("prev", this.prevHead.toJson());
+      return json;
+    }
+  }
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
-  public final InputNode inputNode = new InputNode();
-  private LazyResult head = inputNode;
   public final UUID inputHandle = UUID.randomUUID();
+  public final InputNode inputNode = new InputNode();
+  private LazyResult head = this.inputNode;
 
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
@@ -109,16 +110,17 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     final NNLayer<?> prevHead = getHeadLayer();
     this.prevMap.put(nextHead, prevHead);
     this.nextMap.put(prevHead, nextHead);
-    UnaryNode node = new UnaryNode(nextHead, getHead());
+    assert(null != this.inputNode);
+    final UnaryNode node = new UnaryNode(nextHead, this.head);
     setHead(node);
     return this;
   }
 
   public synchronized DAGNetwork add2(final NNLayer<?> nextHead) {
-    return add2(nextHead, inputNode);
+    return add2(nextHead, this.inputNode);
   }
 
-  public synchronized DAGNetwork add2(final NNLayer<?> nextHead, InputNode right) {
+  public synchronized DAGNetwork add2(final NNLayer<?> nextHead, final InputNode right) {
     this.byId.put(nextHead.getId(), nextHead);
     final NNLayer<?> prevHead = getHeadLayer();
     this.prevMap.put(nextHead, prevHead);
@@ -161,6 +163,15 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   @Override
+  public NNLayer<?> getChild(final UUID id) {
+    if (this.id.equals(id))
+      return this;
+    if (this.byId.containsKey(id))
+      return this.byId.get(id);
+    return this.byId.values().stream().map(x -> x.getChild(id)).findAny().orElse(null);
+  }
+
+  @Override
   public List<NNLayer<?>> getChildren() {
     return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
@@ -174,7 +185,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
       return DAGNetwork.this.byId.get(((UnaryNode) this.head).layer);
     else if (this.head instanceof BinaryNode)
       return DAGNetwork.this.byId.get(((BinaryNode) this.head).layer);
-    else return null;
+    else
+      return null;
   }
 
   @Override
@@ -223,15 +235,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return trainer(samples, new EntropyLossLayer());
   }
 
-  public Tester trainer(final NDArray[][] samples, NNLayer<?> lossLayer) {
+  public Tester trainer(final NDArray[][] samples, final NNLayer<?> lossLayer) {
     return new Tester().init(samples, this, lossLayer);
-  }
-
-  @Override
-  public NNLayer<?> getChild(UUID id) {
-    if(this.id.equals(id)) return this;
-    if(byId.containsKey(id)) return byId.get(id);
-    return this.byId.values().stream().map(x->x.getChild(id)).findAny().orElse(null);
   }
 
 }

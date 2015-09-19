@@ -400,4 +400,8 @@ public class Util {
     final String tempId = jvmId.substring(0, jvmId.length() - index.length()) + index;
     return UUID.fromString(tempId);
   }
+
+  public static String[] currentStack() {
+    return java.util.stream.Stream.of(Thread.currentThread().getStackTrace()).map(Object::toString).toArray(i->new String[i]);
+  }
 }

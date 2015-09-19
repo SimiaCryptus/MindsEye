@@ -27,23 +27,23 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
     final NDArray b = inObj[1].data;
     final NDArray r = new NDArray(a.getDims());
     double total = 0;
-    for(int i=0;i<a.dim();i++) {
-      double bd = b.getData()[i];
-      double ad = Math.max(Math.min(a.getData()[i], 1.), 1e-12);
+    for (int i = 0; i < a.dim(); i++) {
+      final double bd = b.getData()[i];
+      final double ad = Math.max(Math.min(a.getData()[i], 1.), 1e-12);
       r.getData()[i] = -bd / ad;
       total += -bd * Math.log(ad);
     }
-    double rms = total/a.dim();
-    final NDArray output = new NDArray(new int[]{1}, new double[]{rms});
+    final double rms = total / a.dim();
+    final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
     if (isVerbose()) {
       EntropyLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
     }
     return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
-        if (inObj[0].isAlive()||inObj[1].isAlive()) {
+        if (inObj[0].isAlive() || inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
-          double v = data.get(0) * a.dim();
+          final double v = data.get(0) * a.dim();
           for (int i = 0; i < a.dim(); i++) {
             passback.set(i, v * r.get(i));
           }
@@ -53,9 +53,8 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
           if (inObj[0].isAlive()) {
             inObj[0].feedback(passback, buffer);
           }
-          if (inObj[1].isAlive()) {
+          if (inObj[1].isAlive())
             throw new RuntimeException();
-          }
         }
       }
 

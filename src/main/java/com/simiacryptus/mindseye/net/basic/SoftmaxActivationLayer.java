@@ -27,16 +27,16 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
-    assert(1 < input.dim());
-    DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(inObj[0].data.getData()).filter(x->Double.isFinite(x)).summaryStatistics();
-    double max = summaryStatistics.getMax();
-    final NDArray exp = inObj[0].data.map(x -> Double.isFinite(x)?x:summaryStatistics.getMin()).map(x -> Math.exp(x-max));
+    assert 1 < input.dim();
+    final DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(inObj[0].data.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
+    final double max = summaryStatistics.getMax();
+    final NDArray exp = inObj[0].data.map(x -> Double.isFinite(x) ? x : summaryStatistics.getMin()).map(x -> Math.exp(x - max));
     final double sum = exp.sum();
-    assert(0.<sum);
+    assert 0. < sum;
     final NDArray output = exp.map(x -> x / sum);
     final NDArray inputGradient = new NDArray(input.dim(), input.dim());
     final double[] expdata = exp.getData();
-    
+
     for (int i = 0; i < expdata.length; i++) {
       for (int j = 0; j < expdata.length; j++) {
         double value = 0;

@@ -35,7 +35,7 @@ public class MultiRateGDTrainer implements TrainingComponent {
     final DeltaBuffer buffer = new DeltaBuffer();
     IntStream.range(0, data.length).parallel().forEach(sample -> {
       final NNResult actualOutput = netresults.get(sample);
-      final NDArray delta = new NDArray(new int[]{1},new double[]{-1.}).scale(getRate());
+      final NDArray delta = new NDArray(new int[] { 1 }, new double[] { -1. }).scale(getRate());
       actualOutput.feedback(delta, buffer);
     });
     return buffer;
@@ -65,11 +65,12 @@ public class MultiRateGDTrainer implements TrainingComponent {
     final List<NNResult> eval = eval(trainingContext, validationSet);
     final List<NDArray> evalData = eval.stream().map(x -> x.data).collect(Collectors.toList());
     assert validationSet.length == evalData.size();
-    double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
+    final double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
     setError(rms);
     return new ValidationResults(evalData, rms);
   }
 
+  @Override
   public synchronized double getError() {
     return this.error;
   }
@@ -78,6 +79,7 @@ public class MultiRateGDTrainer implements TrainingComponent {
     return this.masterTrainingData;
   }
 
+  @Override
   public DAGNetwork getNet() {
     return this.net;
   }
@@ -124,7 +126,7 @@ public class MultiRateGDTrainer implements TrainingComponent {
   }
 
   public TrainingComponent setError(final double error) {
-    //log.debug(String.format("Error: %s -> %s", this.error, error));
+    // log.debug(String.format("Error: %s -> %s", this.error, error));
     this.error = error;
     return this;
   }
@@ -162,6 +164,7 @@ public class MultiRateGDTrainer implements TrainingComponent {
     return this;
   }
 
+  @Override
   public double step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     final double prevError = evalClassificationValidationData(trainingContext).rms;
@@ -169,7 +172,7 @@ public class MultiRateGDTrainer implements TrainingComponent {
     if (null == rates)
       return Double.POSITIVE_INFINITY;
     final DeltaBuffer buffer = getVector(trainingContext);
-    if(rates.length != buffer.vector().size()) {
+    if (rates.length != buffer.vector().size()) {
       MultiRateGDTrainer.log.debug(String.format("%s != %s", rates.length, buffer.vector().size()));
     }
     assert null != rates && rates.length == buffer.vector().size();

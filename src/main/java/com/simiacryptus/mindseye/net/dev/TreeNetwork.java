@@ -11,7 +11,7 @@ import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.util.Util;
 
 public class TreeNetwork extends DAGNetwork {
-  
+
   private final java.util.List<NNLayer<?>> gates = new java.util.ArrayList<>();
   protected final int[] inputSize;
   private final java.util.List<WrapperLayer> leafs = new java.util.ArrayList<>();
@@ -23,12 +23,12 @@ public class TreeNetwork extends DAGNetwork {
     add(nodeFactory());
   }
 
-  public DAGNetwork getLeaf(final int i) {
-    DAGNetwork subnet = new DAGNetwork();
-    subnet = subnet.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), this.outSize).setWeights(() -> 0).freeze());
-    subnet = subnet.add(new BiasLayer(this.outSize).setWeights(j -> i == j ? 20 : 0));
-    subnet = subnet.add(new SoftmaxActivationLayer());
-    return subnet;
+  protected DAGNetwork buildGate() {
+    DAGNetwork gate = new DAGNetwork();
+    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(() -> Util.R.get().nextGaussian()));
+    gate = gate.add(new BiasLayer(new int[] { 2 }));
+    gate = gate.add(new SoftmaxActivationLayer());
+    return gate;
   }
 
   @Override
@@ -43,17 +43,17 @@ public class TreeNetwork extends DAGNetwork {
   }
 
   public final DAGNetwork gateFactory() {
-    DAGNetwork gate = buildGate();
+    final DAGNetwork gate = buildGate();
     this.gates.add(gate);
     return gate;
   }
 
-  protected DAGNetwork buildGate() {
-    DAGNetwork gate = new DAGNetwork();
-    gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(()->Util.R.get().nextGaussian()));
-    gate = gate.add(new BiasLayer(new int[] { 2 }));
-    gate = gate.add(new SoftmaxActivationLayer());
-    return gate;
+  public DAGNetwork getLeaf(final int i) {
+    DAGNetwork subnet = new DAGNetwork();
+    subnet = subnet.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), this.outSize).setWeights(() -> 0).freeze());
+    subnet = subnet.add(new BiasLayer(this.outSize).setWeights(j -> i == j ? 20 : 0));
+    subnet = subnet.add(new SoftmaxActivationLayer());
+    return subnet;
   }
 
   public WrapperLayer leafFactory(final int i) {

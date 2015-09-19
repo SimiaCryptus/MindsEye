@@ -11,8 +11,8 @@ public class DynamicRateTrainer implements TrainingComponent {
     public final double beta;
     public final double endRate;
     public final double startRate;
-    public final double terminalETA;
     public final double terminalErr;
+    public final double terminalETA;
 
     public UniformAdaptiveRateParams(final double startRate, final double endRate, final double alpha, final double beta, final double convergence, final double terminalETA) {
       this.endRate = endRate;
@@ -28,6 +28,7 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   int currentIteration = 0;
   private long etaSec = java.util.concurrent.TimeUnit.HOURS.toSeconds(1);
+  private int evolutionPhases = 2;
   int generationsSinceImprovement = 0;
   private final GradientDescentTrainer inner = new GradientDescentTrainer();
   int lastCalibratedIteration = Integer.MIN_VALUE;
@@ -37,8 +38,26 @@ public class DynamicRateTrainer implements TrainingComponent {
   private double stopError = 1e-2;
   private boolean verbose = false;
 
+  private boolean evolve(final TrainingContext trainingContext) {
+    final boolean isValid = null != getGradientDescentTrainer().getNet().evolve();
+    if (isValid) {
+      getGradientDescentTrainer().setRate(0);
+      getGradientDescentTrainer().step(trainingContext);
+    }
+    return isValid;
+  }
+
+  @Override
+  public double getError() {
+    return getGradientDescentTrainer().getError();
+  }
+
   public long getEtaMs() {
     return this.etaSec;
+  }
+
+  public int getEvolutionPhases() {
+    return this.evolutionPhases;
   }
 
   public int getGenerationsSinceImprovement() {
@@ -57,6 +76,11 @@ public class DynamicRateTrainer implements TrainingComponent {
     return this.minRate;
   }
 
+  @Override
+  public DAGNetwork getNet() {
+    return getGradientDescentTrainer().getNet();
+  }
+
   public double getStopError() {
     return this.stopError;
   }
@@ -67,6 +91,11 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   public TrainingComponent setEtaEnd(final long cnt, final java.util.concurrent.TimeUnit units) {
     this.etaSec = units.toSeconds(cnt);
+    return this;
+  }
+
+  public TrainingComponent setEvolutionPhases(final int evolutionPhases) {
+    this.evolutionPhases = evolutionPhases;
     return this;
   }
 
@@ -95,8 +124,6 @@ public class DynamicRateTrainer implements TrainingComponent {
     getGradientDescentTrainer().setVerbose(verbose);
     return this;
   }
-  
-  private int evolutionPhases = 2;
 
   @Override
   public double step(final TrainingContext trainingContext) {
@@ -109,15 +136,6 @@ public class DynamicRateTrainer implements TrainingComponent {
     } while (lifecycle++ < getEvolutionPhases() && evolve(trainingContext));
     // train2(trainingContext);
     return getError();
-  }
-
-  private boolean evolve(TrainingContext trainingContext) {
-    boolean isValid = null != getGradientDescentTrainer().getNet().evolve();
-    if(isValid) {
-      getGradientDescentTrainer().setRate(0);
-      getGradientDescentTrainer().step(trainingContext);
-    }
-    return isValid;
   }
 
   private void train(final TrainingContext trainingContext, final UniformAdaptiveRateParams params) {
@@ -163,25 +181,6 @@ public class DynamicRateTrainer implements TrainingComponent {
     if (isVerbose()) {
       DynamicRateTrainer.log.debug("Final network state: " + getGradientDescentTrainer().getNet().toString());
     }
-  }
-
-  public int getEvolutionPhases() {
-    return evolutionPhases;
-  }
-
-  public TrainingComponent setEvolutionPhases(int evolutionPhases) {
-    this.evolutionPhases = evolutionPhases;
-    return this;
-  }
-
-  @Override
-  public double getError() {
-    return getGradientDescentTrainer().getError();
-  }
-
-  @Override
-  public DAGNetwork getNet() {
-    return getGradientDescentTrainer().getNet();
   }
 
 }
