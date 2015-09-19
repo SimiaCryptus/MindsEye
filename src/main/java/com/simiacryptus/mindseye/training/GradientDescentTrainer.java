@@ -17,7 +17,7 @@ import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
-public class GradientDescentTrainer implements TrainingComponent {
+public class GradientDescentTrainer implements RateTrainingComponent {
 
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
 
@@ -80,7 +80,7 @@ public class GradientDescentTrainer implements TrainingComponent {
     return this.error;
   }
 
-  public NDArray[][] getMasterTrainingData() {
+  private NDArray[][] getMasterTrainingData() {
     return this.masterTrainingData;
   }
 
@@ -155,7 +155,7 @@ public class GradientDescentTrainer implements TrainingComponent {
     this.parallelTraining = parallelTraining;
   }
 
-  public TrainingComponent setRate(final double dynamicRate) {
+  public RateTrainingComponent setRate(final double dynamicRate) {
     assert Double.isFinite(dynamicRate);
     this.rate = dynamicRate;
     return this;
@@ -215,6 +215,15 @@ public class GradientDescentTrainer implements TrainingComponent {
           validationError, getRate(), this.rate, (System.currentTimeMillis() - startMs) / 1000.));
     }
     return validationError - prevError;
+  }
+
+  public NDArray[][] getData() {
+    return masterTrainingData;
+  }
+
+  @Override
+  public void refresh() {
+    setError(Double.NaN);
   }
 
 }

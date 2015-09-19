@@ -20,12 +20,12 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
 
   private static final Logger log = LoggerFactory.getLogger(DynamicMultiRateTrainer.class);
 
-  int currentIteration = 0;
+  private int currentIteration = 0;
   private long etaSec = java.util.concurrent.TimeUnit.HOURS.toSeconds(1);
-  int generationsSinceImprovement = 0;
+  private int generationsSinceImprovement = 0;
   private final MultiRateGDTrainer inner = new MultiRateGDTrainer();
-  int lastCalibratedIteration = Integer.MIN_VALUE;
-  int maxIterations = 100;
+  private int lastCalibratedIteration = Integer.MIN_VALUE;
+  private int maxIterations = 100;
   private double maxRate = 10000;
   private double minRate = 0;
   private int recalibrationInterval = 10;
@@ -107,19 +107,15 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
     return this.etaSec;
   }
 
-  public int getGenerationsSinceImprovement() {
-    return this.generationsSinceImprovement;
-  }
-
-  public MultiRateGDTrainer getGradientDescentTrainer() {
+  private MultiRateGDTrainer getGradientDescentTrainer() {
     return this.inner;
   }
 
-  public double getMaxRate() {
+  private double getMaxRate() {
     return this.maxRate;
   }
 
-  public double getMinRate() {
+  private double getMinRate() {
     return this.minRate;
   }
 
@@ -261,6 +257,15 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
         }
       }
     }
+  }
+
+  public NDArray[][] getData() {
+    return inner.getData();
+  }
+
+  @Override
+  public void refresh() {
+    inner.refresh();
   }
 
 }

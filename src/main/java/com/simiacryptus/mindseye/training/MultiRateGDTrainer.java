@@ -18,7 +18,7 @@ import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
 
-public class MultiRateGDTrainer implements TrainingComponent {
+public class MultiRateGDTrainer implements RateTrainingComponent {
 
   private static final Logger log = LoggerFactory.getLogger(MultiRateGDTrainer.class);
 
@@ -141,7 +141,7 @@ public class MultiRateGDTrainer implements TrainingComponent {
     return this;
   }
 
-  public TrainingComponent setRate(final double dynamicRate) {
+  public RateTrainingComponent setRate(final double dynamicRate) {
     assert Double.isFinite(dynamicRate);
     this.rate = dynamicRate;
     return this;
@@ -204,6 +204,15 @@ public class MultiRateGDTrainer implements TrainingComponent {
           .debug(String.format("Trained Error: %s with rate %s*%s in %.03fs", validationError, getRate(), Arrays.toString(rates), (System.currentTimeMillis() - startMs) / 1000.));
     }
     return validationError - prevError;
+  }
+
+  public NDArray[][] getData() {
+    return masterTrainingData;
+  }
+
+  @Override
+  public void refresh() {
+    setError(Double.NaN);
   }
 
 }

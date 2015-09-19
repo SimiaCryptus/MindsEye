@@ -105,6 +105,8 @@ public class TrainingContext {
   public final Timer overallTimer;
   public long timeout = TimeUnit.MINUTES.toMillis(1) + System.currentTimeMillis();
 
+  public double terminalErr;
+
   public TrainingContext() {
     this.evaluations = new Counter();
     this.gradientSteps = new Counter();

@@ -48,11 +48,11 @@ public class Tester {
     return dagNetwork;
   }
 
-  public static boolean test(final PopulationTrainer self, final double convergence, final TrainingContext trainingContext,
+  public static boolean test(final TrainingComponent self, final double convergence, final TrainingContext trainingContext,
       final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler) {
     boolean hasConverged = false;
     try {
-      self.getDynamicRateTrainer().setStopError(convergence);
+      trainingContext.terminalErr = convergence;
       final double error = self.step(trainingContext);
       final DAGNetwork net = self.getNet();
       handler.stream().forEach(h -> h.apply(net, trainingContext));
@@ -68,14 +68,14 @@ public class Tester {
 
   public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
 
-  private PopulationTrainer inner = new PopulationTrainer();
-
+  private GradientDescentTrainer gradientTrainer = new GradientDescentTrainer();
+  private DynamicRateTrainer dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
+  private PopulationTrainer populationTrainer = new PopulationTrainer(dynamicTrainer);
   private boolean parallel = true;
+  private TrainingContext trainingContext = new TrainingContext();
 
-  TrainingContext trainingContext = new TrainingContext();
-
-  public PopulationTrainer getInner() {
-    return this.inner;
+  public PopulationTrainer getPopulationTrainer() {
+    return this.populationTrainer;
   }
 
   /**
@@ -87,7 +87,7 @@ public class Tester {
   }
 
   public Tester init(final NDArray[][] samples, final DAGNetwork univariateNetwork) {
-    final GradientDescentTrainer gradientDescentTrainer = getInner().getDynamicRateTrainer().getGradientDescentTrainer();
+    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
     gradientDescentTrainer.setNet(univariateNetwork);
     gradientDescentTrainer.setMasterTrainingData(samples);
     return this;
@@ -111,26 +111,26 @@ public class Tester {
   }
 
   public Tester setDynamicRate(final double d) {
-    getInner().getDynamicRateTrainer().getGradientDescentTrainer().setRate(d);
+    getGradientDescentTrainer().setRate(d);
     return this;
   }
 
   public void setInner(final PopulationTrainer inner) {
-    this.inner = inner;
+    this.populationTrainer = inner;
   }
 
   public Tester setMaxDynamicRate(final double d) {
-    getInner().getDynamicRateTrainer().setMaxRate(d);
+    getDynamicRateTrainer().setMaxRate(d);
     return this;
   }
 
   public Tester setMinDynamicRate(final double d) {
-    getInner().getDynamicRateTrainer().setMinRate(d);
+    getDynamicRateTrainer().setMinRate(d);
     return this;
   }
 
   public Tester setMutationAmplitude(final double d) {
-    getInner().setAmplitude(d);
+    getPopulationTrainer().setAmplitude(d);
     return this;
   }
 
@@ -140,18 +140,28 @@ public class Tester {
   }
 
   public Tester setStaticRate(final double d) {
-    getInner().getDynamicRateTrainer().getGradientDescentTrainer().setRate(d);
+    getGradientDescentTrainer().setRate(d);
     return this;
   }
 
+  public GradientDescentTrainer getGradientDescentTrainer() {
+    return gradientTrainer;
+  }
+
+  public DynamicRateTrainer getDynamicRateTrainer() {
+    return dynamicTrainer;
+  }
+
   public Tester setVerbose(final boolean b) {
-    getInner().setVerbose(b);
+    getPopulationTrainer().setVerbose(b);
+    getGradientDescentTrainer().setVerbose(b);
+    getDynamicRateTrainer().setVerbose(b);
     return this;
   }
 
   public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
-    getInner().getDynamicRateTrainer().setStopError(stopError);
-    getInner().step(trainingContext);
+    trainingContext.terminalErr = stopError;
+    getPopulationTrainer().step(trainingContext);
   }
 
   private TrainingContext trainingContext() {
@@ -168,7 +178,7 @@ public class Tester {
       //range = range.parallel();
     }
     final long succeesses = range.filter(i -> {
-      final PopulationTrainer trainerCpy = Util.kryo().copy(getInner());
+      final PopulationTrainer trainerCpy = Util.kryo().copy(getPopulationTrainer());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
       contextCpy.setTimeout(1, TimeUnit.MINUTES);
       return Tester.test(trainerCpy, convergence, contextCpy, this.handler);

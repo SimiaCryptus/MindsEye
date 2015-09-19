@@ -60,9 +60,10 @@ public class TreeTest1 extends SimpleClassificationTests {
     trainer.setMutationAmplitude(2);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
-    trainer.getInner().getDynamicRateTrainer().setEvolutionPhases(0);
-    trainer.getInner().getDynamicRateTrainer().setEtaEnd(10, java.util.concurrent.TimeUnit.MINUTES);
+    trainer.getPopulationTrainer().setPopulationSize(1);
+    trainer.getPopulationTrainer().setNumberOfGenerations(0);
+    trainer.getDynamicRateTrainer().setEvolutionPhases(0);
+    trainer.getDynamicRateTrainer().setEtaEnd(10, java.util.concurrent.TimeUnit.MINUTES);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.0, 10);
   }

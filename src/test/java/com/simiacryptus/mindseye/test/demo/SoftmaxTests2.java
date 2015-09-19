@@ -142,7 +142,8 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     trainer.setMutationAmplitude(2);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getInner().setPopulationSize(1).setNumberOfGenerations(0);
+    trainer.getPopulationTrainer().setPopulationSize(1);
+    trainer.getPopulationTrainer().setNumberOfGenerations(0);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.01, 10);
   }

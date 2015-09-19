@@ -75,37 +75,45 @@ public class PopulationTrainer implements TrainingComponent {
 
   private boolean alignEnabled = true;
   private double initAmplitude = 5.;
-  private DynamicRateTrainer inner = new DynamicRateTrainer();
+  private TrainingComponent inner;
   private int numberOfGenerations = 0;
   private int populationSize = 1;
   private boolean verbose = false;
 
-  private void align(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
-    final List<List<List<double[]>>> signatures = population.stream().map(t -> {
-      final GradientDescentTrainer gd = t.getGradientDescentTrainer();
+  public PopulationTrainer() {
+    super();
+    inner = new DynamicRateTrainer(new GradientDescentTrainer());
+  }
 
-      final DAGNetwork net = gd.getNet();
+  public PopulationTrainer(TrainingComponent inner) {
+    super();
+    this.inner = inner;
+  }
+
+  private void align(final TrainingContext trainingContext, final List<TrainingComponent> population) {
+    final List<List<List<double[]>>> signatures = population.stream().map(t -> {
+
+      final DAGNetwork net = getNet();
       final List<PermutationLayer> pl = net.getChildren().stream() //
           .filter(x -> x instanceof PermutationLayer).map(x -> (PermutationLayer) x) //
           .collect(Collectors.toList());
       pl.stream().forEach(l -> l.record());
 
-      final double prevRate = gd.getRate();
-      gd.setRate(0);
+      final GradientDescentTrainer gd = new GradientDescentTrainer();
+      gd.setMasterTrainingData(getData());
       gd.setParallelTraining(false);
-      gd.step(trainingContext);
-      gd.setRate(prevRate);
-      gd.setParallelTraining(true);
-
+      gd.setNet(getNet());
+      gd.setRate(0.);
+      //final double prevRate = gd.getRate();
       return pl.stream().map(l -> l.getRecord()).collect(Collectors.toList());
     }).collect(Collectors.toList());
 
     final int canonicalIndex = IntStream.range(0, population.size()) //
         .mapToObj(i -> new Tuple2<>(i, population.get(i))) //
-        .sorted(Comparator.comparing(t -> t.getSecond().getGradientDescentTrainer().getError())) //
+        .sorted(Comparator.comparing(t -> t.getSecond().getError())) //
         .findFirst().get().getFirst();
     assert signatures.stream().allMatch(s -> s.size() == signatures.get(canonicalIndex).size());
-    final List<PermutationLayer> syncLayers = population.get(canonicalIndex).getGradientDescentTrainer().getNet().getChildren().stream().filter(x -> x instanceof PermutationLayer)
+    final List<PermutationLayer> syncLayers = population.get(canonicalIndex).getNet().getChildren().stream().filter(x -> x instanceof PermutationLayer)
         .map(x -> (PermutationLayer) x).collect(Collectors.toList());
 
     IntStream.range(0, signatures.size()).filter(i -> i != canonicalIndex).forEach(individual -> {
@@ -117,12 +125,17 @@ public class PopulationTrainer implements TrainingComponent {
           final List<Tuple2<Integer, Integer>> permute = findMapping(individualSignature, canonicalSignature);
           log.debug(String.format("Permutation in layer %s from %s to %s: %s", layerIndex, individual, canonicalIndex, permute));
           if (isAlignEnabled()) {
-            final DAGNetwork net = population.get(individual).getGradientDescentTrainer().getNet();
+            final DAGNetwork net = population.get(individual).getNet();
             net.permute(syncLayers.get(layerIndex).getId(), permute);
           }
         }
       });
     });
+  }
+
+  @Override
+  public NDArray[][] getData() {
+    return inner.getData();
   }
 
   private double entropy(final BiasLayer l) {
@@ -152,18 +165,14 @@ public class PopulationTrainer implements TrainingComponent {
     }).average().getAsDouble();
   }
 
-  public DynamicRateTrainer getDynamicRateTrainer() {
-    return this.inner;
-  }
-
   @Override
   public double getError() {
-    return getDynamicRateTrainer().getError();
+    return this.inner.getError();
   }
 
   @Override
   public DAGNetwork getNet() {
-    return getDynamicRateTrainer().getGradientDescentTrainer().getNet();
+    return this.inner.getNet();
   }
 
   public int getNumberOfGenerations() {
@@ -209,16 +218,16 @@ public class PopulationTrainer implements TrainingComponent {
     }).sum();
   }
 
-  private void initialize(final DynamicRateTrainer dynamicRateTrainer) {
+  private void initialize(final TrainingComponent dynamicRateTrainer) {
     if (this.verbose) {
       PopulationTrainer.log.debug(String.format("Initialize %s", dynamicRateTrainer));
     }
-    final List<NNLayer<?>> layers = dynamicRateTrainer.getGradientDescentTrainer().getNet().getChildren();
+    final List<NNLayer<?>> layers = dynamicRateTrainer.getNet().getChildren();
     for (int i = 0; i < 5; i++) {
       layers.stream().filter(l -> (l instanceof DenseSynapseLayer)).map(l -> (DenseSynapseLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);
       layers.stream().filter(l -> (l instanceof BiasLayer)).map(l -> (BiasLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);
     }
-    dynamicRateTrainer.getGradientDescentTrainer().setError(Double.NaN);
+    dynamicRateTrainer.refresh();
   }
 
   public boolean isAlignEnabled() {
@@ -229,16 +238,16 @@ public class PopulationTrainer implements TrainingComponent {
     return this.verbose;
   }
 
-  private void measure(final TrainingContext trainingContext, final List<DynamicRateTrainer> population) {
+  private void measure(final TrainingContext trainingContext, final List<TrainingComponent> population) {
     if (1 >= population.size())
       return;
     population.stream().flatMapToDouble(a -> {
-      final List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
-      log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
+      final List<double[]> state1 = a.getNet().state();
+      log.debug(String.format("Evaluating geometric alignment for %s (%s err)", a, a.getError()));
       return population.stream()
           // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
           .mapToDouble(b -> {
-        final List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
+        final List<double[]> state2 = b.getNet().state();
         assert state1.size() == state2.size();
         double sum = 0.;
         int cnt = 0;
@@ -261,12 +270,12 @@ public class PopulationTrainer implements TrainingComponent {
     }).average().getAsDouble();
 
     population.stream().flatMapToDouble(a -> {
-      final List<double[]> state1 = a.getGradientDescentTrainer().getNet().state();
-      log.debug(String.format("Evaluating arithmetic alignment for %s (%s err)", a, a.getGradientDescentTrainer().getError()));
+      final List<double[]> state1 = a.getNet().state();
+      log.debug(String.format("Evaluating arithmetic alignment for %s (%s err)", a, a.getError()));
       return population.stream()
           // .filter(b->System.identityHashCode(b)<System.identityHashCode(a))
           .mapToDouble(b -> {
-        final List<double[]> state2 = b.getGradientDescentTrainer().getNet().state();
+        final List<double[]> state2 = b.getNet().state();
         assert state1.size() == state2.size();
         double sum = 0.;
         int cnt = 0;
@@ -297,13 +306,13 @@ public class PopulationTrainer implements TrainingComponent {
     return this.initAmplitude * random.nextGaussian() / Math.sqrt(l.weights.getDims()[0]);
   }
 
-  private List<DynamicRateTrainer> recombine(final List<DynamicRateTrainer> progenators) {
-    final List<DynamicRateTrainer> nextGen = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
-      return Util.kryo().copy(getDynamicRateTrainer());
+  private List<TrainingComponent> recombine(final List<TrainingComponent> progenators) {
+    final List<TrainingComponent> nextGen = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
+      return Util.kryo().copy(this.inner);
     }).collect(Collectors.toList());
-    final List<List<double[]>> progenators_state = progenators.stream().map(a -> a.getGradientDescentTrainer().getNet().state()).collect(Collectors.toList());
+    final List<List<double[]>> progenators_state = progenators.stream().map(a -> a.getNet().state()).collect(Collectors.toList());
     nextGen.stream().forEach(a -> {
-      final List<double[]> state = a.getGradientDescentTrainer().getNet().state();
+      final List<double[]> state = a.getNet().state();
       for (int i = 0; i < state.size(); i++) {
         final double[] a1 = state.get(i);
         for (int j = 0; j < a1.length; j++) {
@@ -324,24 +333,18 @@ public class PopulationTrainer implements TrainingComponent {
     return this;
   }
 
-  public TrainingComponent setGenerationsSinceImprovement(final int generationsSinceImprovement) {
-    getDynamicRateTrainer().generationsSinceImprovement = generationsSinceImprovement;
-    return this;
-  }
-
   public TrainingComponent setNumberOfGenerations(final int numberOfGenerations) {
     this.numberOfGenerations = numberOfGenerations;
     return this;
   }
 
-  public PopulationTrainer setPopulationSize(final int populationSize) {
+  public TrainingComponent setPopulationSize(final int populationSize) {
     this.populationSize = populationSize;
     return this;
   }
 
   public TrainingComponent setVerbose(final boolean verbose) {
     this.verbose = verbose;
-    getDynamicRateTrainer().setVerbose(verbose);
     return this;
   }
 
@@ -356,8 +359,8 @@ public class PopulationTrainer implements TrainingComponent {
   private Double train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
 
-    List<DynamicRateTrainer> population = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
-      return Util.kryo().copy(getDynamicRateTrainer());
+    List<TrainingComponent> population = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
+      return Util.kryo().copy(this.inner);
     }).collect(Collectors.toList());
 
     population = population.stream().map(dynamicRateTrainer -> {
@@ -369,7 +372,7 @@ public class PopulationTrainer implements TrainingComponent {
       population = population.stream().parallel().map(dynamicRateTrainer -> {
         trainIndividual(trainingContext, dynamicRateTrainer);
         if (this.verbose) {
-          PopulationTrainer.log.info(String.format("Completed training to %.5f in %.03fs - %s", dynamicRateTrainer.getGradientDescentTrainer().getError(),
+          PopulationTrainer.log.info(String.format("Completed training to %.5f in %.03fs - %s", dynamicRateTrainer.getError(),
               (System.currentTimeMillis() - startMs) / 1000., trainingContext));
         }
         return dynamicRateTrainer;
@@ -385,14 +388,14 @@ public class PopulationTrainer implements TrainingComponent {
           align(trainingContext, population);
           measure(trainingContext, population);
         }
-        final List<DynamicRateTrainer> progenators = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).limit(3)
+        final List<TrainingComponent> progenators = population.stream().sorted(Comparator.comparing(x -> x.getError())).limit(3)
             .collect(Collectors.toList());
         population = recombine(progenators);
       }
     }
 
-    this.inner = population.stream().sorted(Comparator.comparing(x -> x.getGradientDescentTrainer().getError())).findFirst().get();
-    return getDynamicRateTrainer().getGradientDescentTrainer().getError();
+    this.inner = population.stream().sorted(Comparator.comparing(x -> x.getError())).findFirst().get();
+    return this.inner.getError();
   }
 
   private void trainIndividual(final TrainingContext trainingContext, final TrainingComponent dynamicRateTrainer) {
@@ -402,5 +405,10 @@ public class PopulationTrainer implements TrainingComponent {
     } catch (final TerminationCondition e) {
       PopulationTrainer.log.debug("Terminated training", e);
     }
+  }
+
+  @Override
+  public void refresh() {
+    inner.refresh();
   }
 }
