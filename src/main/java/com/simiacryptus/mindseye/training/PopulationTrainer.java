@@ -3,20 +3,13 @@ package com.simiacryptus.mindseye.training;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.math3.linear.ArrayRealVector;
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.PermutationLayer;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
@@ -74,15 +67,15 @@ public class PopulationTrainer implements TrainingComponent {
   }
 
   private boolean alignEnabled = true;
-  private double initAmplitude = 5.;
   private TrainingComponent inner;
   private int numberOfGenerations = 0;
   private int populationSize = 1;
   private boolean verbose = false;
+  private NetInitializer netInitializer = new NetInitializer();
 
-  public PopulationTrainer() {
+  protected PopulationTrainer() {
     super();
-    inner = new DynamicRateTrainer(new GradientDescentTrainer());
+    inner = new DevelopmentTrainer();
   }
 
   public PopulationTrainer(TrainingComponent inner) {
@@ -91,19 +84,19 @@ public class PopulationTrainer implements TrainingComponent {
   }
 
   private void align(final TrainingContext trainingContext, final List<TrainingComponent> population) {
-    final List<List<List<double[]>>> signatures = population.stream().map(t -> {
 
+    final List<List<List<double[]>>> signatures = population.stream().map(t -> {
       final DAGNetwork net = getNet();
       final List<PermutationLayer> pl = net.getChildren().stream() //
           .filter(x -> x instanceof PermutationLayer).map(x -> (PermutationLayer) x) //
           .collect(Collectors.toList());
       pl.stream().forEach(l -> l.record());
-
       final GradientDescentTrainer gd = new GradientDescentTrainer();
-      gd.setMasterTrainingData(getData());
+      gd.setTrainingData(getData());
       gd.setParallelTraining(false);
       gd.setNet(getNet());
       gd.setRate(0.);
+      gd.step(trainingContext);
       //final double prevRate = gd.getRate();
       return pl.stream().map(l -> l.getRecord()).collect(Collectors.toList());
     }).collect(Collectors.toList());
@@ -138,33 +131,6 @@ public class PopulationTrainer implements TrainingComponent {
     return inner.getData();
   }
 
-  private double entropy(final BiasLayer l) {
-    return 0;
-  }
-
-  private double entropy(final DenseSynapseLayer l, final Coordinate idx) {
-    final NDArray weights = l.weights;
-    final int[] dims = weights.getDims();
-    final int columns = dims[0];
-    final int rows = dims[1];
-    final DoubleMatrix matrix = new DoubleMatrix(columns, rows, weights.getData()).transpose();
-    // DoubleMatrix matrix = new DoubleMatrix(rows, columns,
-    // l.weights.getData());
-    return IntStream.range(0, rows).filter(i -> i == idx.coords[1]).mapToDouble(i -> i).flatMap(i -> {
-      return IntStream.range(0, rows).mapToDouble(j -> {
-        final ArrayRealVector vi = new ArrayRealVector(matrix.getRow((int) i).toArray());
-        if (vi.getNorm() <= 0.)
-          return 0.;
-        vi.unitize();
-        final ArrayRealVector vj = new ArrayRealVector(matrix.getRow(j).toArray());
-        if (vj.getNorm() <= 0.)
-          return 0.;
-        vj.unitize();
-        return Math.acos(vi.cosine(vj));
-      });
-    }).average().getAsDouble();
-  }
-
   @Override
   public double getError() {
     return this.inner.getError();
@@ -181,53 +147,6 @@ public class PopulationTrainer implements TrainingComponent {
 
   public int getPopulationSize() {
     return this.populationSize;
-  }
-
-  private int initialize(final BiasLayer l) {
-    final double[] a = l.bias;
-    final Random random = Util.R.get();
-    int sum = 0;
-    for (int i = 0; i < a.length; i++) {
-      final double prev = a[i];
-      final double prevEntropy = entropy(l);
-      a[i] = randomWeight(l, random);
-      final double nextEntropy = entropy(l);
-      if (nextEntropy < prevEntropy) {
-        a[i] = prev;
-      } else {
-        sum += 1;
-      }
-    }
-    return sum;
-  }
-
-  private int initialize(final DenseSynapseLayer l) {
-    final double[] a = l.weights.getData();
-    final Random random = Util.R.get();
-    return l.weights.coordStream().mapToInt(idx -> {
-      final int i = idx.index;
-      final double prev = a[i];
-      final double prevEntropy = entropy(l, idx);
-      a[i] = randomWeight(l, random);
-      final double nextEntropy = entropy(l, idx);
-      if (nextEntropy < prevEntropy) {
-        a[i] = prev;
-        return 0;
-      } else
-        return 1;
-    }).sum();
-  }
-
-  private void initialize(final TrainingComponent dynamicRateTrainer) {
-    if (this.verbose) {
-      PopulationTrainer.log.debug(String.format("Initialize %s", dynamicRateTrainer));
-    }
-    final List<NNLayer<?>> layers = dynamicRateTrainer.getNet().getChildren();
-    for (int i = 0; i < 5; i++) {
-      layers.stream().filter(l -> (l instanceof DenseSynapseLayer)).map(l -> (DenseSynapseLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);
-      layers.stream().filter(l -> (l instanceof BiasLayer)).map(l -> (BiasLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);
-    }
-    dynamicRateTrainer.refresh();
   }
 
   public boolean isAlignEnabled() {
@@ -298,14 +217,6 @@ public class PopulationTrainer implements TrainingComponent {
     }).average().getAsDouble();
   }
 
-  protected double randomWeight(final BiasLayer l, final Random random) {
-    return this.initAmplitude * random.nextGaussian() * 0.2;
-  }
-
-  protected double randomWeight(final DenseSynapseLayer l, final Random random) {
-    return this.initAmplitude * random.nextGaussian() / Math.sqrt(l.weights.getDims()[0]);
-  }
-
   private List<TrainingComponent> recombine(final List<TrainingComponent> progenators) {
     final List<TrainingComponent> nextGen = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
       return Util.kryo().copy(this.inner);
@@ -329,7 +240,7 @@ public class PopulationTrainer implements TrainingComponent {
   }
 
   public TrainingComponent setAmplitude(final double amplitude) {
-    this.initAmplitude = amplitude;
+    netInitializer.setAmplitude(amplitude);
     return this;
   }
 
@@ -364,7 +275,9 @@ public class PopulationTrainer implements TrainingComponent {
     }).collect(Collectors.toList());
 
     population = population.stream().map(dynamicRateTrainer -> {
-      initialize(dynamicRateTrainer);
+      final TrainingComponent dynamicRateTrainer1 = dynamicRateTrainer;
+      netInitializer.initialize(dynamicRateTrainer1.getNet());
+      dynamicRateTrainer1.refresh();
       return dynamicRateTrainer;
     }).collect(Collectors.toList());
 

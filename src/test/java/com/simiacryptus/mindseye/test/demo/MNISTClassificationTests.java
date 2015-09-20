@@ -12,9 +12,9 @@ import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
+import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
-import com.simiacryptus.mindseye.training.Tester;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -105,9 +105,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Override
   public void verify(final Tester trainer) {
-    trainer.setMutationAmplitude(.1).setVerbose(true);
-    trainer.getPopulationTrainer().setPopulationSize(1);
-    trainer.getPopulationTrainer().setNumberOfGenerations(0);
+    trainer.setVerbose(true);
     trainer.verifyConvergence(0.0, 1);
   }
 

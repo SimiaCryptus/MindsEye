@@ -13,7 +13,7 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
-import com.simiacryptus.mindseye.training.Tester;
+import com.simiacryptus.mindseye.test.Tester;
 
 import groovy.lang.Tuple2;
 

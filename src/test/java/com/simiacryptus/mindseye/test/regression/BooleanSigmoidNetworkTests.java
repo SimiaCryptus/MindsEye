@@ -39,10 +39,9 @@ public class BooleanSigmoidNetworkTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     new DAGNetwork()
-
         .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-
-        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()).trainer(samples, new SqLossLayer()).setMutationAmplitude(10.)
+        .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer())
+        .trainer(samples, new SqLossLayer())
         .verifyConvergence(0.01, 100);
   }
 

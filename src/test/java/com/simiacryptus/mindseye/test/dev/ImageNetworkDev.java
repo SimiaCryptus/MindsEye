@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.training.Tester;
+import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
@@ -167,7 +167,7 @@ public class ImageNetworkDev {
         e.printStackTrace();
       }
 
-      bias = (BiasLayer) trainer.getPopulationTrainer().getNet().get(0);
+      bias = (BiasLayer) trainer.getDynamicRateTrainer().getNet().get(0);
       final NNResult recovered = bias.eval(evaluationContext, zeroInput);
       final NDArray[] input1 = { zeroInput };
       final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(input1);

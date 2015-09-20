@@ -35,7 +35,7 @@ import com.simiacryptus.mindseye.data.UnionDistribution;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.training.Tester;
+import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
 public class EncogClassificationTests {

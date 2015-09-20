@@ -9,7 +9,7 @@ import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.dev.SynapseActivationLayer;
-import com.simiacryptus.mindseye.training.Tester;
+import com.simiacryptus.mindseye.test.Tester;
 
 public class SoftmaxTests3 extends SimpleClassificationTests {
 

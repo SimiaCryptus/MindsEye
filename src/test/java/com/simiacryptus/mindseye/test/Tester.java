@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.training;
+package com.simiacryptus.mindseye.test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +13,12 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.training.DevelopmentTrainer;
+import com.simiacryptus.mindseye.training.DynamicRateTrainer;
+import com.simiacryptus.mindseye.training.GradientDescentTrainer;
+import com.simiacryptus.mindseye.training.NetInitializer;
+import com.simiacryptus.mindseye.training.TrainingComponent;
+import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -22,22 +28,6 @@ import com.simiacryptus.mindseye.util.Util;
  * @author Andrew Charneski
  */
 public class Tester {
-
-  // private static final class PhasedLossLayer extends WrapperLayer {
-  // private PhasedLossLayer() {
-  //// super(new MaxEntropyLossLayer());
-  // super(new EntropyLossLayer());
-  //// super(new SqLossLayer());
-  // }
-  //
-  // @Override
-  // public NNLayer<?> evolve() {
-  // return null;
-  //// if(getInner() instanceof EntropyLossLayer) return null;
-  //// setInner(new EntropyLossLayer());
-  //// return this;
-  // }
-  // }
 
   static final Logger log = LoggerFactory.getLogger(Tester.class);
 
@@ -70,31 +60,17 @@ public class Tester {
 
   private GradientDescentTrainer gradientTrainer = new GradientDescentTrainer();
   private DynamicRateTrainer dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
-  private PopulationTrainer populationTrainer = new PopulationTrainer(dynamicTrainer);
+  private DevelopmentTrainer devtrainer = new DevelopmentTrainer(dynamicTrainer);
   private boolean parallel = true;
   private TrainingContext trainingContext = new TrainingContext();
 
-  public PopulationTrainer getPopulationTrainer() {
-    return this.populationTrainer;
-  }
-
-  /**
-   * @deprecated Use {@link #init(NDArray[][],DAGNetwork,NNLayer<?>)} instead
-   */
-  @Deprecated
-  public Tester init(final DAGNetwork pipelineNetwork, final NDArray[][] samples, final NNLayer<?> lossLayer) {
-    return init(samples, pipelineNetwork, lossLayer);
-  }
-
-  public Tester init(final NDArray[][] samples, final DAGNetwork univariateNetwork) {
-    final GradientDescentTrainer gradientDescentTrainer = getGradientDescentTrainer();
-    gradientDescentTrainer.setNet(univariateNetwork);
-    gradientDescentTrainer.setMasterTrainingData(samples);
-    return this;
-  }
 
   public Tester init(final NDArray[][] samples, final DAGNetwork pipelineNetwork, final NNLayer<?> lossLayer) {
-    return init(samples, initPredictionNetwork(pipelineNetwork, lossLayer));
+    DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
+    new NetInitializer().initialize(initPredictionNetwork);
+    gradientTrainer.setNet(initPredictionNetwork);
+    gradientTrainer.setTrainingData(samples);
+    return this;
   }
 
   /**
@@ -115,10 +91,6 @@ public class Tester {
     return this;
   }
 
-  public void setInner(final PopulationTrainer inner) {
-    this.populationTrainer = inner;
-  }
-
   public Tester setMaxDynamicRate(final double d) {
     getDynamicRateTrainer().setMaxRate(d);
     return this;
@@ -126,11 +98,6 @@ public class Tester {
 
   public Tester setMinDynamicRate(final double d) {
     getDynamicRateTrainer().setMinRate(d);
-    return this;
-  }
-
-  public Tester setMutationAmplitude(final double d) {
-    getPopulationTrainer().setAmplitude(d);
     return this;
   }
 
@@ -153,7 +120,6 @@ public class Tester {
   }
 
   public Tester setVerbose(final boolean b) {
-    getPopulationTrainer().setVerbose(b);
     getGradientDescentTrainer().setVerbose(b);
     getDynamicRateTrainer().setVerbose(b);
     return this;
@@ -161,7 +127,7 @@ public class Tester {
 
   public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
     trainingContext.terminalErr = stopError;
-    getPopulationTrainer().step(trainingContext);
+    getDynamicRateTrainer().step(trainingContext);
   }
 
   private TrainingContext trainingContext() {
@@ -178,7 +144,7 @@ public class Tester {
       //range = range.parallel();
     }
     final long succeesses = range.filter(i -> {
-      final PopulationTrainer trainerCpy = Util.kryo().copy(getPopulationTrainer());
+      final DynamicRateTrainer trainerCpy = Util.kryo().copy(getDynamicRateTrainer());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
       contextCpy.setTimeout(1, TimeUnit.MINUTES);
       return Tester.test(trainerCpy, convergence, contextCpy, this.handler);
@@ -186,6 +152,14 @@ public class Tester {
     if (minSuccess > succeesses)
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
     return succeesses;
+  }
+
+  public DevelopmentTrainer getDevtrainer() {
+    return devtrainer;
+  }
+
+  public void setDevtrainer(DevelopmentTrainer devtrainer) {
+    this.devtrainer = devtrainer;
   }
 
 }

@@ -25,13 +25,8 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
 
-  int currentIteration = 0;
   private long etaSec = java.util.concurrent.TimeUnit.HOURS.toSeconds(1);
-  private int evolutionPhases = 2;
-  int generationsSinceImprovement = 0;
   private final RateTrainingComponent inner;
-  int lastCalibratedIteration = Integer.MIN_VALUE;
-  int maxIterations = 100;
   private double maxRate = 10000;
   private double minRate = 0;
   private boolean verbose = false;
@@ -46,15 +41,6 @@ public class DynamicRateTrainer implements TrainingComponent {
     inner = new GradientDescentTrainer();
   }
 
-  private boolean evolve(final TrainingContext trainingContext) {
-    final boolean isValid = null != this.inner.getNet().evolve();
-    if (isValid) {
-      this.inner.refresh();
-      this.inner.step(trainingContext);
-    }
-    return isValid;
-  }
-
   @Override
   public double getError() {
     return this.inner.getError();
@@ -62,14 +48,6 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   public long getEtaMs() {
     return this.etaSec;
-  }
-
-  public int getEvolutionPhases() {
-    return this.evolutionPhases;
-  }
-
-  public int getGenerationsSinceImprovement() {
-    return this.generationsSinceImprovement;
   }
 
   public double getMaxRate() {
@@ -94,16 +72,6 @@ public class DynamicRateTrainer implements TrainingComponent {
     return this;
   }
 
-  public TrainingComponent setEvolutionPhases(final int evolutionPhases) {
-    this.evolutionPhases = evolutionPhases;
-    return this;
-  }
-
-  public TrainingComponent setGenerationsSinceImprovement(final int generationsSinceImprovement) {
-    this.generationsSinceImprovement = generationsSinceImprovement;
-    return this;
-  }
-
   public TrainingComponent setMaxRate(final double maxRate) {
     this.maxRate = maxRate;
     return this;
@@ -121,14 +89,7 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   @Override
   public double step(final TrainingContext trainingContext) {
-    this.currentIteration = 0;
-    this.generationsSinceImprovement = 0;
-    this.lastCalibratedIteration = Integer.MIN_VALUE;
-    int lifecycle = 0;
-    do {
-      train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.2, 2., getEtaMs()));
-    } while (lifecycle++ < getEvolutionPhases() && evolve(trainingContext));
-    // train2(trainingContext);
+    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.2, 2., getEtaMs()));
     return getError();
   }
 
@@ -138,7 +99,8 @@ public class DynamicRateTrainer implements TrainingComponent {
     final RateMonitor linearLearningRate = new RateMonitor(5000);
     while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > trainingContext.terminalErr) {
       this.inner.setRate(rate);
-      final double delta = gradientDescentTrainer.step(trainingContext);
+      double prevError = gradientDescentTrainer.getError();
+      final double delta = gradientDescentTrainer.step(trainingContext)-prevError;
       final double error = gradientDescentTrainer.getError();
       final double rateDelta = linearLearningRate.add(delta);
       final double projectedEndSeconds = -error / (rateDelta * 1000.);

@@ -7,7 +7,7 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.TreeNetwork;
-import com.simiacryptus.mindseye.training.Tester;
+import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
 public class TreeTest1 extends SimpleClassificationTests {
@@ -57,12 +57,9 @@ public class TreeTest1 extends SimpleClassificationTests {
   @Override
   public void verify(final Tester trainer) {
     trainer.setVerbose(true);
-    trainer.setMutationAmplitude(2);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getPopulationTrainer().setPopulationSize(1);
-    trainer.getPopulationTrainer().setNumberOfGenerations(0);
-    trainer.getDynamicRateTrainer().setEvolutionPhases(0);
+    trainer.getDevtrainer().setEvolutionPhases(0);
     trainer.getDynamicRateTrainer().setEtaEnd(10, java.util.concurrent.TimeUnit.MINUTES);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.0, 10);
