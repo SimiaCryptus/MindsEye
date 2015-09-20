@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.test.demo;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
@@ -14,15 +15,15 @@ import com.simiacryptus.mindseye.util.Util;
 public class TreeTest2 extends SimpleClassificationTests {
 
   @Override
-  public DAGNetwork buildNetwork() {
+  public NNLayer<DAGNetwork> buildNetwork() {
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
 
-    final DAGNetwork net = new TreeNetwork(inputSize, outSize){
+    final NNLayer<DAGNetwork> net = new TreeNetwork(inputSize, outSize){
 
       @Override
-      public DAGNetwork buildGate() {
+      public NNLayer<DAGNetwork> buildGate() {
         DAGNetwork gate = new DAGNetwork();
         int mid = 10;
         gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { mid }).setWeights(()->Util.R.get().nextGaussian()));
@@ -42,8 +43,8 @@ public class TreeTest2 extends SimpleClassificationTests {
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
-    return net.trainer(samples, new EntropyLossLayer());
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
     //return net.trainer(samples, new MaxEntropyLossLayer());
   }
 

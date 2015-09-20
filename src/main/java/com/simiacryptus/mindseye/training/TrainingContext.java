@@ -115,8 +115,9 @@ public class TrainingContext {
     this.overallTimer = new Timer();
   }
 
-  public void setTimeout(final int v, final TimeUnit u) {
+  public TrainingContext setTimeout(final int v, final TimeUnit u) {
     this.timeout = u.toMillis(v) + System.currentTimeMillis();
+    return this;
   }
 
   @Override

@@ -12,6 +12,7 @@ import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -48,7 +49,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     }
     return stream.mapToObj(i -> {
       trainingContext.evaluations.increment();
-      final NNResult eval = getNet().eval(trainingData[i]);
+      final NNResult eval = getNet().eval(new EvaluationContext(), trainingData[i]);
       return new Tuple2<>(eval, i);
     }).sorted(java.util.Comparator.comparing(x -> x.getSecond())).map(x -> x.getFirst()).collect(Collectors.toList());
   }

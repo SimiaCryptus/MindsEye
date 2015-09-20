@@ -124,11 +124,11 @@ public class ImageNetworkDev {
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
-    final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
+    final NNLayer<DAGNetwork> forwardConvolutionNet = new DAGNetwork().add(convolution);
 
     Util.report(data.stream().map(obj -> {
       final NDArray[] input = { obj.data };
-      final NNResult output = forwardConvolutionNet.eval(input);
+      final NNResult output = forwardConvolutionNet.eval(new EvaluationContext(), input);
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
@@ -160,17 +160,17 @@ public class ImageNetworkDev {
       // com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1).setReverse(true)),
       // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-0.1));
 
-      final TrainingContext trainingContext = new TrainingContext();
+      final TrainingContext trainingContext = new TrainingContext().setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.1, trainingContext);
       } catch (final Exception e) {
         e.printStackTrace();
       }
 
-      bias = (BiasLayer) trainer.getDynamicRateTrainer().getNet().get(0);
+      bias = (BiasLayer) trainer.getNet().get(0);
       final NNResult recovered = bias.eval(evaluationContext, zeroInput);
       final NDArray[] input1 = { zeroInput };
-      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(input1);
+      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(new EvaluationContext(), input1);
 
       return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
           Util.toImage(new NDArray(outSize, tested.data.getData())));

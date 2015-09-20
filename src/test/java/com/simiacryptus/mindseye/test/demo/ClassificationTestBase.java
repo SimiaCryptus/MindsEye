@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -73,10 +74,10 @@ public abstract class ClassificationTestBase {
     super();
   }
 
-  public abstract DAGNetwork buildNetwork();
+  public abstract NNLayer<DAGNetwork> buildNetwork();
 
-  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
-    return net.trainer(samples, new EntropyLossLayer());
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
   }
 
   public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {
@@ -113,12 +114,13 @@ public abstract class ClassificationTestBase {
   }
 
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
-    final DAGNetwork net = buildNetwork();
+    final NNLayer<DAGNetwork> net = buildNetwork();
     final Tester trainer = buildTrainer(samples, net);
     final Map<BufferedImage, String> images = new HashMap<>();
     final int categories = samples[0][1].dim();
     trainer.handler.add((n, trainingContext) -> {
       try {
+        NNLayer<?> mainNetwork = n.getChild(net.id);
         final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
         final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
           {
@@ -127,7 +129,7 @@ public abstract class ClassificationTestBase {
                 for (int ypx = 0; ypx < getHeight(); ypx++) {
                   final double xf = (xpx * 1. / getWidth() - .5) * 6;
                   final double yf = (ypx * 1. / getHeight() - .5) * 6;
-                  final NNResult eval = n.getChild(net.id).eval(new EvaluationContext(),new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+                  final NNResult eval = mainNetwork.eval(new EvaluationContext(),new NDArray(new int[] { 2 }, new double[] { xf, yf }));
                   final int classificationActual = outputToClassification(eval.data);
                   final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
                   this.setRGB(xpx, ypx, color);
@@ -139,7 +141,8 @@ public abstract class ClassificationTestBase {
             correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
               final NDArray expectedOutput = pt[1];
               final NDArray input = pt[0];
-              final NNResult output = n.eval(pt);
+              final NDArray[] array = pt;
+              final NNResult output = mainNetwork.eval(new EvaluationContext(), array);
               final NDArray actualOutput = output.data;
               correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
                 final double x = expectedOutput.get(i) - actualOutput.get(i);

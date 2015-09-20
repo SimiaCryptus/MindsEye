@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.DevelopmentTrainer;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
@@ -38,48 +37,21 @@ public class Tester {
     return dagNetwork;
   }
 
-  public static boolean test(final TrainingComponent self, final double convergence, final TrainingContext trainingContext,
-      final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler) {
-    boolean hasConverged = false;
-    try {
-      trainingContext.terminalErr = convergence;
-      final double error = self.step(trainingContext);
-      final DAGNetwork net = self.getNet();
-      handler.stream().forEach(h -> h.apply(net, trainingContext));
-      hasConverged = error <= convergence;
-      if (!hasConverged) {
-        log.debug(String.format("Not Converged: %s <= %s", error, convergence));
-      }
-    } catch (final Throwable e) {
-      log.debug("Not Converged", e);
-    }
-    return hasConverged;
-  }
-
   public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
 
   private GradientDescentTrainer gradientTrainer = new GradientDescentTrainer();
   private DynamicRateTrainer dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
   private DevelopmentTrainer devtrainer = new DevelopmentTrainer(dynamicTrainer);
   private boolean parallel = true;
-  private TrainingContext trainingContext = new TrainingContext();
+  private TrainingContext trainingContext = new TrainingContext().setTimeout(1, TimeUnit.MINUTES);
 
 
-  public Tester init(final NDArray[][] samples, final DAGNetwork pipelineNetwork, final NNLayer<?> lossLayer) {
+  public Tester init(final NDArray[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
     DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
-    new NetInitializer().initialize(initPredictionNetwork);
+    //new NetInitializer().initialize(initPredictionNetwork);
     gradientTrainer.setNet(initPredictionNetwork);
     gradientTrainer.setTrainingData(samples);
     return this;
-  }
-
-  /**
-   * @deprecated Use {@link #init(NDArray[][],DAGNetwork,EntropyLossLayer)}
-   *             instead
-   */
-  @Deprecated
-  public Tester initEntropy(final NDArray[][] samples, final DAGNetwork pipelineNetwork) {
-    return init(samples, pipelineNetwork, new EntropyLossLayer());
   }
 
   public boolean isParallel() {
@@ -122,15 +94,16 @@ public class Tester {
   public Tester setVerbose(final boolean b) {
     getGradientDescentTrainer().setVerbose(b);
     getDynamicRateTrainer().setVerbose(b);
+    getDevtrainer().setVerbose(b);
     return this;
   }
 
   public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
     trainingContext.terminalErr = stopError;
-    getDynamicRateTrainer().step(trainingContext);
+    getDevtrainer().step(trainingContext);
   }
 
-  private TrainingContext trainingContext() {
+  public TrainingContext trainingContext() {
     return this.trainingContext;
   }
 
@@ -141,13 +114,27 @@ public class Tester {
   public long verifyConvergence(final double convergence, final int reps, final int minSuccess) {
     IntStream range = IntStream.range(0, reps);
     if (isParallel()) {
-      //range = range.parallel();
+      range = range.parallel();
     }
     final long succeesses = range.filter(i -> {
-      final DynamicRateTrainer trainerCpy = Util.kryo().copy(getDynamicRateTrainer());
+      final TrainingComponent trainerCpy = Util.kryo().copy(getDevtrainer());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
-      contextCpy.setTimeout(1, TimeUnit.MINUTES);
-      return Tester.test(trainerCpy, convergence, contextCpy, this.handler);
+      new NetInitializer().initialize(trainerCpy.getNet());
+      //contextCpy.setTimeout(1, TimeUnit.MINUTES);
+      boolean hasConverged = false;
+      try {
+        contextCpy.terminalErr = convergence;
+        final double error = trainerCpy.step(contextCpy);
+        final DAGNetwork net = trainerCpy.getNet();
+        this.handler.stream().forEach(h -> h.apply(net, contextCpy));
+        hasConverged = error <= convergence;
+        if (!hasConverged) {
+          Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
+        }
+      } catch (final Throwable e) {
+        Tester.log.debug("Not Converged", e);
+      }
+      return hasConverged;
     }).count();
     if (minSuccess > succeesses)
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
@@ -160,6 +147,10 @@ public class Tester {
 
   public void setDevtrainer(DevelopmentTrainer devtrainer) {
     this.devtrainer = devtrainer;
+  }
+
+  public DAGNetwork getNet() {
+    return getDevtrainer().getNet();
   }
 
 }

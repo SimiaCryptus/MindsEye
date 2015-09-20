@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
@@ -20,6 +21,7 @@ import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.dev.SynapseActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
+import com.simiacryptus.mindseye.test.Tester;
 
 import groovy.lang.Tuple2;
 
@@ -34,10 +36,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1, 2 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize).setVerbose(true))
-        // .add(new BiasLayer(inputSize).addWeights(() -> 10 *
-        // SimpleNetworkTests.random.nextGaussian()).freeze())
-        .trainer(samples, new EntropyLossLayer())//
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize).setVerbose(true)), (NNLayer<?>) new EntropyLossLayer())//
         .setVerbose(true)
         .verifyConvergence(0.1, 1);
   }
@@ -63,8 +62,8 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1, 1 }) } };
-    new DAGNetwork() //
-        .add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork() //
+    .add(new BiasLayer(inputSize)), (NNLayer<?>) new EntropyLossLayer())
         // .setVerbose(true)
         .verifyConvergence(0.01, 100);
   }
@@ -75,7 +74,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1, 1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).add(new BiasLayer(inputSize)), (NNLayer<?>) new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
   }
 
@@ -85,8 +84,8 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize))
-        .add(new ConvolutionSynapseLayer(inputSize, 1).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setVerbose(verbose).freeze()).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize))
+    .add(new ConvolutionSynapseLayer(inputSize, 1).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setVerbose(verbose).freeze()), (NNLayer<?>) new EntropyLossLayer())
         .setVerbose(verbose).setStaticRate(.1).verifyConvergence(0.1, 100);
   }
 
@@ -98,9 +97,8 @@ public class NetworkElementUnitTests {
     final int[] outSize = new int[] { 1 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { -1 }) },
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1 }) } };
-    new DAGNetwork() //
-        .add(new ConvolutionSynapseLayer(inputSize, 1).setVerbose(verbose)) //
-        .trainer(samples, new EntropyLossLayer()) //
+    new Tester().init(samples, new DAGNetwork() //
+    .add(new ConvolutionSynapseLayer(inputSize, 1).setVerbose(verbose)), (NNLayer<?>) new EntropyLossLayer()) //
         // .setStaticRate(.5)
         .setVerbose(verbose).verifyConvergence(0.1, 100);
   }
@@ -111,8 +109,8 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1 }) } };
-    new DAGNetwork().add(new ConvolutionSynapseLayer(inputSize, 1).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setVerbose(verbose).freeze())
-        .add(new BiasLayer(outSize)).trainer(samples, new EntropyLossLayer()).setVerbose(verbose).setStaticRate(.1).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new ConvolutionSynapseLayer(inputSize, 1).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setVerbose(verbose).freeze())
+    .add(new BiasLayer(outSize)), (NNLayer<?>) new EntropyLossLayer()).setVerbose(verbose).setStaticRate(.1).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -120,8 +118,8 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize))
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize))
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()), (NNLayer<?>) new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
   }
 
@@ -131,8 +129,8 @@ public class NetworkElementUnitTests {
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
 
-    new DAGNetwork().add(new BiasLayer(inputSize))
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize))
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()), (NNLayer<?>) new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
   }
 
@@ -144,9 +142,8 @@ public class NetworkElementUnitTests {
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, -1 }) },
         { new NDArray(inputSize, new double[] { 0, 1 }), new NDArray(outSize, new double[] { 1, 0 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
-    new DAGNetwork() //
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)) //
-        .trainer(samples, new EntropyLossLayer()) //
+    new Tester().init(samples, new DAGNetwork() //
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)), (NNLayer<?>) new EntropyLossLayer()) //
         .setVerbose(true) //
         .verifyConvergence(0.1, 1);
   }
@@ -156,18 +153,17 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
-    new DAGNetwork().add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).add(new BiasLayer(inputSize)), (NNLayer<?>) new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
-    new DAGNetwork()
-      .add(new BiasLayer(inputSize))
-      .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
-      .trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork()
+    .add(new BiasLayer(inputSize))
+    .add(new BiasLayer(inputSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()), (NNLayer<?>) new EntropyLossLayer())
       .verifyConvergence(0.1, 100);
-    new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .add(new BiasLayer(inputSize)).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
-    new DAGNetwork().add(new BiasLayer(inputSize))
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
+    .add(new BiasLayer(inputSize)), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize))
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()), (NNLayer<?>) new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
   }
 
@@ -177,7 +173,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new ExpActivationLayer()).add(new L1NormalizationLayer()).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new ExpActivationLayer()).add(new L1NormalizationLayer()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -186,7 +182,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.01, 100. }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new ExpActivationLayer()).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new ExpActivationLayer()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -195,7 +191,7 @@ public class NetworkElementUnitTests {
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
 
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new LinearActivationLayer().addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()).trainer(samples, new EntropyLossLayer())
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new LinearActivationLayer().addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()), (NNLayer<?>) new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
   }
 
@@ -205,7 +201,7 @@ public class NetworkElementUnitTests {
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0.5, 2 }), new NDArray(outSize, new double[] { 1, 4 }) } };
 
-    new DAGNetwork().add(new LinearActivationLayer()).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new LinearActivationLayer()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -214,7 +210,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, -1 }), new NDArray(outSize, new double[] { 1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new MaxSubsampleLayer(2)).trainer(samples, new EntropyLossLayer()).setVerbose(verbose).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new MaxSubsampleLayer(2)), (NNLayer<?>) new EntropyLossLayer()).setVerbose(verbose).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -222,7 +218,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 4 };
     final int[] outSize = inputSize;
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0, 0, 0 }), new NDArray(outSize, new double[] { 0.2, 0.3, 0.4, 0.1 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new L1NormalizationLayer()).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new L1NormalizationLayer()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -230,12 +226,11 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
-    new DAGNetwork() //
-        .add(new BiasLayer(inputSize)) //
-        .add(new DAGNetwork() //
-            .add(new ExpActivationLayer())//
-            .add(new L1NormalizationLayer()))//
-        .trainer(samples, new EntropyLossLayer())//
+    new Tester().init(samples, new DAGNetwork() //
+    .add(new BiasLayer(inputSize)) //
+    .add(new DAGNetwork() //
+        .add(new ExpActivationLayer())//
+        .add(new L1NormalizationLayer())), (NNLayer<?>) new EntropyLossLayer())//
         .verifyConvergence(0.1, 100);
   }
 
@@ -244,11 +239,10 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
-    new DAGNetwork() //
-        .add(new BiasLayer(inputSize)) //
-        .add(new DAGNetwork() //
-            .add(new SoftmaxActivationLayer()))//
-        .trainer(samples, new EntropyLossLayer())//
+    new Tester().init(samples, new DAGNetwork() //
+    .add(new BiasLayer(inputSize)) //
+    .add(new DAGNetwork() //
+        .add(new SoftmaxActivationLayer())), (NNLayer<?>) new EntropyLossLayer())//
         .verifyConvergence(0.1, 100);
   }
 
@@ -257,7 +251,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, -.9 }) } };
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new SigmoidActivationLayer()).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new SigmoidActivationLayer()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -266,10 +260,9 @@ public class NetworkElementUnitTests {
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.1, 0.9 }) } };
     boolean verbose = true;
-    new DAGNetwork() //
-        .add(new BiasLayer(inputSize).setVerbose(verbose))//
-        .add(new SoftmaxActivationLayer().setVerbose(verbose))//
-        .trainer(samples, new EntropyLossLayer()) //
+    new Tester().init(samples, new DAGNetwork() //
+    .add(new BiasLayer(inputSize).setVerbose(verbose))//
+    .add(new SoftmaxActivationLayer().setVerbose(verbose)), (NNLayer<?>) new EntropyLossLayer()) //
         .setVerbose(true) //
         //.setParallel(false)
         .verifyConvergence(0.1, 1);
@@ -282,8 +275,7 @@ public class NetworkElementUnitTests {
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
 
-    new DAGNetwork().add(new BiasLayer(inputSize)).add(new SynapseActivationLayer(NDArray.dim(inputSize)).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze())
-        .trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new SynapseActivationLayer(NDArray.dim(inputSize)).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -292,7 +284,7 @@ public class NetworkElementUnitTests {
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0.5, 2 }), new NDArray(outSize, new double[] { 1, -1 }) } };
 
-    new DAGNetwork().add(new SynapseActivationLayer(NDArray.dim(inputSize))).trainer(samples, new EntropyLossLayer()).verifyConvergence(0.1, 100);
+    new Tester().init(samples, new DAGNetwork().add(new SynapseActivationLayer(NDArray.dim(inputSize))), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
 }

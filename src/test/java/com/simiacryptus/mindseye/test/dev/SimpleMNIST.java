@@ -9,11 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
@@ -39,19 +41,19 @@ public class SimpleMNIST {
 
   int verbose = 1;
 
-  protected DAGNetwork getNetwork() {
+  protected NNLayer<DAGNetwork> getNetwork() {
     final DAGNetwork net = new DAGNetwork();
     final NDArray[] input = { this.inputSize };
-    net.add(new DenseSynapseLayer(net.eval(input).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
+    net.add(new DenseSynapseLayer(net.eval(new EvaluationContext(), input).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
     final NDArray[] input1 = { this.inputSize };
-    net.add(new BiasLayer(net.eval(input1).data.getDims()).setVerbose(this.verbose > 1));
+    net.add(new BiasLayer(net.eval(new EvaluationContext(), input1).data.getDims()).setVerbose(this.verbose > 1));
     // net.add(new SigmoidActivationLayer().setVerbose(verbose));
     net.add(new SoftmaxActivationLayer().setVerbose(this.verbose > 1));
     return net;
   }
 
-  public Tester getTrainer(final DAGNetwork net, final NDArray[][] data) {
-    return net.trainer(data, new EntropyLossLayer()).setVerbose(this.verbose > 0);
+  public Tester getTrainer(final NNLayer<DAGNetwork> net, final NDArray[][] data) {
+    return new Tester().init(data, net, (NNLayer<?>) new EntropyLossLayer()).setVerbose(this.verbose > 0);
   }
 
   public Stream<LabeledObject<NDArray>> getTraining(final List<LabeledObject<NDArray>> buffer) {
@@ -65,13 +67,13 @@ public class SimpleMNIST {
   @Test
   public void test() throws Exception {
     SimpleMNIST.log.info("Starting");
-    final DAGNetwork net = getNetwork();
+    final NNLayer<DAGNetwork> net = getNetwork();
     final List<LabeledObject<NDArray>> buffer = MNIST.trainingDataStream().collect(Collectors.toList());
 
     final NDArray[][] data = getTraining(buffer).map(o -> new NDArray[] { o.data, SimpleMNIST.toOutNDArray(SimpleMNIST.toOut(o.label), 10) }).toArray(i2 -> new NDArray[i2][]);
 
     getTrainer(net, data).verifyConvergence(0.01, 1);
-    final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average().getAsDouble();
+    final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(new EvaluationContext(), o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average().getAsDouble();
     SimpleMNIST.log.info("Tested RMS Error: {}", prevRms);
     MNIST.report(net);
   }

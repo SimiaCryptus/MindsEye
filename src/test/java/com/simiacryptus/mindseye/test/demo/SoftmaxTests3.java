@@ -14,7 +14,7 @@ import com.simiacryptus.mindseye.test.Tester;
 public class SoftmaxTests3 extends SimpleClassificationTests {
 
   @Override
-  public DAGNetwork buildNetwork() {
+  public NNLayer<DAGNetwork> buildNetwork() {
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };

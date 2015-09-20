@@ -7,9 +7,13 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.test.Tester;
@@ -26,7 +30,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   }
 
   @Override
-  public DAGNetwork buildNetwork() {
+  public NNLayer<DAGNetwork> buildNetwork() {
     final int[] inputSize = new int[] { 28, 28 };
     final int[] midSize = new int[] { 20 };
     final int[] outSize = new int[] { 10 };
@@ -44,14 +48,19 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     // net = net.add(new L1NormalizationLayer());
     // net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
-    // net = net.add(new SoftmaxActivationLayer());
+    //net = net.add(new SoftmaxActivationLayer());
     net = net.add(new SigmoidActivationLayer().setBalanced(false));
     return net;
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
-    return super.buildTrainer(samples, net).setVerbose(true);
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    SqLossLayer lossLayer = new SqLossLayer();
+    //EntropyLossLayer lossLayer = new EntropyLossLayer();
+    Tester trainer = new Tester().init(samples, net, lossLayer).setVerbose(true);
+    trainer.setVerbose(true);
+    trainer.trainingContext().setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
+    return trainer;
   }
 
   public boolean filter(final LabeledObject<NDArray> item) {
@@ -105,7 +114,6 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Override
   public void verify(final Tester trainer) {
-    trainer.setVerbose(true);
     trainer.verifyConvergence(0.0, 1);
   }
 

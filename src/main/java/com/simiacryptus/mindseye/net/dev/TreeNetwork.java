@@ -23,7 +23,7 @@ public class TreeNetwork extends DAGNetwork {
     add(nodeFactory());
   }
 
-  protected DAGNetwork buildGate() {
+  protected NNLayer<DAGNetwork> buildGate() {
     DAGNetwork gate = new DAGNetwork();
     gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { 2 }).setWeights(() -> Util.R.get().nextGaussian()));
     gate = gate.add(new BiasLayer(new int[] { 2 }));
@@ -42,13 +42,13 @@ public class TreeNetwork extends DAGNetwork {
     return this;
   }
 
-  public final DAGNetwork gateFactory() {
-    final DAGNetwork gate = buildGate();
+  public final NNLayer<DAGNetwork> gateFactory() {
+    final NNLayer<DAGNetwork> gate = buildGate();
     this.gates.add(gate);
     return gate;
   }
 
-  public DAGNetwork getLeaf(final int i) {
+  public NNLayer<DAGNetwork> getLeaf(final int i) {
     DAGNetwork subnet = new DAGNetwork();
     subnet = subnet.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), this.outSize).setWeights(() -> 0).freeze());
     subnet = subnet.add(new BiasLayer(this.outSize).setWeights(j -> i == j ? 20 : 0));
@@ -57,7 +57,7 @@ public class TreeNetwork extends DAGNetwork {
   }
 
   public WrapperLayer leafFactory(final int i) {
-    final DAGNetwork subnet = getLeaf(i);
+    final NNLayer<DAGNetwork> subnet = getLeaf(i);
     final WrapperLayer wrapper = new WrapperLayer(subnet);
     this.leafs.add(wrapper);
     return wrapper;

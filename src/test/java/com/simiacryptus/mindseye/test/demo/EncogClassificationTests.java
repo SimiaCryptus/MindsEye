@@ -33,6 +33,7 @@ import com.simiacryptus.mindseye.data.Simple2DLine;
 import com.simiacryptus.mindseye.data.SnakeDistribution;
 import com.simiacryptus.mindseye.data.UnionDistribution;
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.test.Tester;
@@ -85,8 +86,8 @@ public class EncogClassificationTests {
     super();
   }
 
-  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
-    return net.trainer(samples, new EntropyLossLayer());
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
   }
 
   public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {

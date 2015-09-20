@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.test.demo;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
@@ -13,15 +14,15 @@ import com.simiacryptus.mindseye.util.Util;
 public class TreeTest1 extends SimpleClassificationTests {
 
   @Override
-  public DAGNetwork buildNetwork() {
+  public NNLayer<DAGNetwork> buildNetwork() {
 
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
 
-    final DAGNetwork net = new TreeNetwork(inputSize, outSize){
+    final NNLayer<DAGNetwork> net = new TreeNetwork(inputSize, outSize){
 
       @Override
-      public DAGNetwork buildGate() {
+      public NNLayer<DAGNetwork> buildGate() {
         DAGNetwork gate = new DAGNetwork();
         gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), this.outSize).setWeights(()->Util.R.get().nextGaussian()));
         gate = gate.add(new BiasLayer(this.outSize));
@@ -48,8 +49,8 @@ public class TreeTest1 extends SimpleClassificationTests {
 
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final DAGNetwork net) {
-    return net.trainer(samples, new EntropyLossLayer());
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
     //return net.trainer(samples, new SqLossLayer());
     //return net.trainer(samples, new MaxEntropyLossLayer());
   }
@@ -59,7 +60,7 @@ public class TreeTest1 extends SimpleClassificationTests {
     trainer.setVerbose(true);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getDevtrainer().setEvolutionPhases(0);
+    trainer.getDevtrainer().setEvolutionPhases(1);
     trainer.getDynamicRateTrainer().setEtaEnd(10, java.util.concurrent.TimeUnit.MINUTES);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.0, 10);

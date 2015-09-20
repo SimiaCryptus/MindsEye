@@ -13,13 +13,15 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNIST {
 
-  public static void report(final DAGNetwork net) throws FileNotFoundException, IOException {
+  public static void report(final NNLayer<DAGNetwork> net) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
@@ -27,7 +29,7 @@ public class MNIST {
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
     MNIST.trainingDataStream().sorted(Comparator.comparing(img -> img.label))
-        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>").forEach(out::println);
+        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(Util::toImage)) + net.eval(new EvaluationContext(), x.data).data.toString() + "</p>").forEach(out::println);
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());

@@ -10,11 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
-import com.simiacryptus.mindseye.test.Tester;
-
 import groovy.lang.Tuple2;
 
 /***
@@ -116,11 +112,11 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return this;
   }
 
-  public synchronized DAGNetwork add2(final NNLayer<?> nextHead) {
+  public synchronized NNLayer<DAGNetwork> add2(final NNLayer<?> nextHead) {
     return add2(nextHead, this.inputNode);
   }
 
-  public synchronized DAGNetwork add2(final NNLayer<?> nextHead, final InputNode right) {
+  public synchronized NNLayer<DAGNetwork> add2(final NNLayer<?> nextHead, final InputNode right) {
     this.byId.put(nextHead.getId(), nextHead);
     final NNLayer<?> prevHead = getHeadLayer();
     this.prevMap.put(nextHead, prevHead);
@@ -135,12 +131,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return getHead().get(evaluationContext)[0];
   }
 
-  public NNResult eval(final NDArray... array) {
-    return eval(new EvaluationContext(), array);
-  }
-
   @Override
-  public DAGNetwork evolve() {
+  public NNLayer<DAGNetwork> evolve() {
     if (0 == this.byId.values().stream().filter(l -> {
       final NNLayer<?> evolve = l.evolve();
       if (null != evolve && evolve != l)
@@ -229,14 +221,6 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   @Override
   public List<double[]> state() {
     return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
-  }
-
-  public Tester trainer(final NDArray[][] samples) {
-    return trainer(samples, new EntropyLossLayer());
-  }
-
-  public Tester trainer(final NDArray[][] samples, final NNLayer<?> lossLayer) {
-    return new Tester().init(samples, this, lossLayer);
   }
 
 }
