@@ -135,7 +135,9 @@ public class DynamicRateTrainer implements TrainingComponent {
       }
     }
     if (isVerbose()) {
-      DynamicRateTrainer.log.debug("Final network state: " + this.getNet().toString());
+      String string = this.getNet().toString();
+      if(string.length()>1024) string=string.substring(0,1924);
+      DynamicRateTrainer.log.debug("Final network state: " + string);
     }
   }
 
