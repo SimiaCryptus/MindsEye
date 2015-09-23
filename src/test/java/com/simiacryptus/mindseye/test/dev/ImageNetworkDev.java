@@ -163,7 +163,7 @@ public class ImageNetworkDev {
 
       final TrainingContext trainingContext = new TrainingContext().setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
       try {
-        trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.1, trainingContext);
+        trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);
         trainer.getDevtrainer().refresh();
       } catch (final Exception e) {
         e.printStackTrace();
