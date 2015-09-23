@@ -19,6 +19,10 @@ import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
+import com.simiacryptus.mindseye.training.DevelopmentTrainer;
+import com.simiacryptus.mindseye.training.DynamicRateTrainer;
+import com.simiacryptus.mindseye.training.GradientDescentTrainer;
+import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -32,24 +36,12 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
     final int[] inputSize = new int[] { 28, 28 };
-    final int[] midSize = new int[] { 20 };
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
-    net = net.add(new BiasLayer(midSize));
-
-    net = net.add(new MinMaxFilterLayer());
-    net = net.add(new SigmoidActivationLayer());
-
-    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
+    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize));
     net = net.add(new BiasLayer(outSize));
-
-    // net = net.add(new ExpActivationLayer())
-    // net = net.add(new L1NormalizationLayer());
-    // net = net.add(new LinearActivationLayer());
-    net = net.add(new MinMaxFilterLayer());
-    //net = net.add(new SoftmaxActivationLayer());
-    net = net.add(new SigmoidActivationLayer().setBalanced(false));
+    //net = net.add(new MinMaxFilterLayer());
+    net = net.add(new SoftmaxActivationLayer());
     return net;
   }
 
@@ -57,9 +49,18 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
     SqLossLayer lossLayer = new SqLossLayer();
     //EntropyLossLayer lossLayer = new EntropyLossLayer();
-    Tester trainer = new Tester().init(samples, net, lossLayer).setVerbose(true);
+    Tester trainer = new Tester(){
+      
+      @Override
+      public NetInitializer getInitializer() {
+        NetInitializer netInitializer = new NetInitializer();
+        netInitializer.setAmplitude(0.1);
+        return netInitializer;
+      }
+
+    }.init(samples, net, lossLayer).setVerbose(true);
     trainer.setVerbose(true);
-    trainer.trainingContext().setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
+    trainer.trainingContext().setTimeout(10, java.util.concurrent.TimeUnit.MINUTES);
     return trainer;
   }
 

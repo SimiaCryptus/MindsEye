@@ -4,13 +4,16 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
+import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNISTClassificationTests2 extends MNISTClassificationTests {
@@ -24,9 +27,9 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
 
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 8).addWeights(() -> Util.R.get().nextGaussian() * 1.));
     net = net.add(new MaxSubsampleLayer(new int[] { 3, 3, 1 }));
-    NDArray[] array = { new NDArray(inputSize) };
 
-    net = net.add(new DenseSynapseLayer(net.eval(new EvaluationContext(), array).data.dim(), midSize));
+    int headSize = net.eval(new EvaluationContext(), new NDArray(inputSize)).data.dim();
+    net = net.add(new DenseSynapseLayer(headSize, midSize));
     net = net.add(new BiasLayer(midSize));
 
     net = net.add(new MinMaxFilterLayer());
@@ -41,6 +44,16 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
     net = net.add(new MinMaxFilterLayer());
     net = net.add(new SoftmaxActivationLayer());
     return net;
+  }
+
+  @Override
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    //SqLossLayer lossLayer = new SqLossLayer();
+    EntropyLossLayer lossLayer = new EntropyLossLayer();
+    Tester trainer = new Tester().init(samples, net, lossLayer).setVerbose(true);
+    trainer.setVerbose(true);
+    trainer.trainingContext().setTimeout(1, java.util.concurrent.TimeUnit.HOURS);
+    return trainer;
   }
 
 }

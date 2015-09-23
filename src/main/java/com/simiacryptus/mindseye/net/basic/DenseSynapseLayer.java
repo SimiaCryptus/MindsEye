@@ -20,6 +20,8 @@ import com.simiacryptus.mindseye.util.Util;
 import groovy.lang.Tuple2;
 
 public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
+
+
   private final class Result extends NNResult {
     private final NNResult inObj;
 
@@ -33,27 +35,11 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
       if (isVerbose()) {
         DenseSynapseLayer.log.debug(String.format("Feed back: %s", this.data));
       }
-      final double[] deltaData = delta.getData();
-
       if (!isFrozen()) {
-        final double[] inputData = this.inObj.data.getData();
-        final NDArray weightDelta = new NDArray(DenseSynapseLayer.this.weights.getDims());
-        for (int i = 0; i < weightDelta.getDims()[0]; i++) {
-          for (int j = 0; j < weightDelta.getDims()[1]; j++) {
-            weightDelta.set(new int[] { i, j }, deltaData[j] * inputData[i]);
-          }
-        }
-        buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.getData());
+        learn(delta, buffer);
       }
       if (this.inObj.isAlive()) {
-        final DoubleMatrix matrix = DenseSynapseLayer.this.weights.asMatrix();
-        final NDArray passback = new NDArray(this.inObj.data.getDims());
-        for (int i = 0; i < matrix.columns; i++) {
-          for (int j = 0; j < matrix.rows; j++) {
-            passback.add(i, deltaData[j] * matrix.get(j, i));
-          }
-        }
-        this.inObj.feedback(passback, buffer);
+        final NDArray passback = backprop(delta, buffer);
         if (isVerbose()) {
           DenseSynapseLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
         }
@@ -62,6 +48,26 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
           DenseSynapseLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
         }
       }
+    }
+
+    private NDArray backprop(final NDArray delta, final DeltaBuffer buffer) {
+      final double[] deltaData = delta.getData();
+      final DoubleMatrix matrix = DenseSynapseLayer.this.weights.asMatrix();
+      final NDArray passback = new NDArray(this.inObj.data.getDims());
+      for (int i = 0; i < matrix.columns; i++) {
+        for (int j = 0; j < matrix.rows; j++) {
+          passback.add(i, deltaData[j] * matrix.get(j, i));
+        }
+      }
+      this.inObj.feedback(passback, buffer);
+      return passback;
+    }
+
+    private void learn(final NDArray delta, final DeltaBuffer buffer) {
+      final double[] deltaData = delta.getData();
+      final double[] inputData = this.inObj.data.getData();
+      final NDArray weightDelta = multiply(deltaData, inputData);
+      buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.getData());
     }
 
     @Override
@@ -95,21 +101,43 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
     final NDArray input = inObj[0].data;
+    final NDArray output = multiply2(this.weights.getData(), input.getData());
+    if (isVerbose()) {
+      DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
+    }
+    return new Result(output, inObj[0], evaluationContext);
+  }
+
+  private NDArray multiply2(double[] wdata, double[] indata) {
+    int idx = 0;
     final NDArray output = new NDArray(this.outputDims);
-    for (int i = 0; i < input.dim(); i++) {
-      for (int o = 0; o < output.dim(); o++) {
-        final double a = this.weights.get(i, o);
-        final double b = input.getData()[i];
+    int outdim = output.dim();
+    for (int i = 0; i < indata.length; i++) {
+      for (int o = 0; o < outdim; o++) {
+        final double a = wdata[idx++];
+        final double b = indata[i];
         final double value = b * a;
         if (Double.isFinite(value)) {
           output.add(o, value);
         }
       }
     }
-    if (isVerbose()) {
-      DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
+    return output;
+  }
+  
+  private static NDArray multiply(final double[] deltaData, final double[] inputData) {
+    final NDArray weightDelta = new NDArray(inputData.length, deltaData.length);
+    multiply(deltaData, inputData, weightDelta);
+    return weightDelta;
+  }
+
+  private static void multiply(final double[] deltaData, final double[] inputData, final NDArray weightDelta) {
+    int k = 0;
+    for (int i = 0; i < inputData.length; i++) {
+      for (int j = 0; j < deltaData.length; j++) {
+        weightDelta.set(k++, deltaData[j] * inputData[i]);
+      }
     }
-    return new Result(output, inObj[0], evaluationContext);
   }
 
   @Override

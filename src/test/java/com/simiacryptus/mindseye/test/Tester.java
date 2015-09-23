@@ -39,12 +39,24 @@ public class Tester {
 
   public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
 
-  private GradientDescentTrainer gradientTrainer = new GradientDescentTrainer();
-  private DynamicRateTrainer dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
-  private DevelopmentTrainer devtrainer = new DevelopmentTrainer(dynamicTrainer);
+  protected GradientDescentTrainer gradientTrainer;
+  protected DynamicRateTrainer dynamicTrainer;
+  protected DevelopmentTrainer devtrainer;
   private boolean parallel = true;
-  private TrainingContext trainingContext = new TrainingContext().setTimeout(1, TimeUnit.MINUTES);
+  private final TrainingContext trainingContext;
 
+
+  public Tester() {
+    super();
+    initLayers();
+    trainingContext = new TrainingContext().setTimeout(1, TimeUnit.MINUTES);
+  }
+
+  public void initLayers() {
+    gradientTrainer = new GradientDescentTrainer();
+    dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
+    devtrainer = new DevelopmentTrainer(dynamicTrainer);
+  }
 
   public Tester init(final NDArray[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
     DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
@@ -119,7 +131,7 @@ public class Tester {
     final long succeesses = range.filter(i -> {
       final TrainingComponent trainerCpy = Util.kryo().copy(getDevtrainer());
       final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
-      new NetInitializer().initialize(trainerCpy.getNet());
+      getInitializer().initialize(trainerCpy.getNet());
       //contextCpy.setTimeout(1, TimeUnit.MINUTES);
       boolean hasConverged = false;
       try {
@@ -141,12 +153,12 @@ public class Tester {
     return succeesses;
   }
 
-  public DevelopmentTrainer getDevtrainer() {
-    return devtrainer;
+  public NetInitializer getInitializer() {
+    return new NetInitializer();
   }
 
-  public void setDevtrainer(DevelopmentTrainer devtrainer) {
-    this.devtrainer = devtrainer;
+  public DevelopmentTrainer getDevtrainer() {
+    return devtrainer;
   }
 
   public DAGNetwork getNet() {

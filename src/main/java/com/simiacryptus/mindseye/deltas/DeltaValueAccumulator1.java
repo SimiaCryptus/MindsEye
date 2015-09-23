@@ -1,7 +1,5 @@
 package com.simiacryptus.mindseye.deltas;
 
-import java.util.function.Function;
-
 public class DeltaValueAccumulator1 implements DeltaValueAccumulator<DeltaValueAccumulator1> {
   double sum = 0;
 
@@ -9,18 +7,17 @@ public class DeltaValueAccumulator1 implements DeltaValueAccumulator<DeltaValueA
   }
 
   public DeltaValueAccumulator1(final DeltaValueAccumulator1 toCopy) {
-    this.sum = this.sum + toCopy.sum;
+    this.sum = toCopy.sum;
   }
 
   @Override
   public DeltaValueAccumulator1 add(final DeltaValueAccumulator1 r) {
-    final DeltaValueAccumulator1 copy = new DeltaValueAccumulator1(this);
-    this.sum = this.sum + r.sum;
-    return copy;
+    this.sum += r.sum;
+    return this;
   }
 
   @Override
-  public synchronized DeltaValueAccumulator1 add(final double r) {
+  public final DeltaValueAccumulator1 add(final double r) {
     this.sum = this.sum + r;
     return this;
   }
@@ -35,15 +32,10 @@ public class DeltaValueAccumulator1 implements DeltaValueAccumulator<DeltaValueA
     return this.sum;
   }
 
-  private synchronized DeltaValueAccumulator1 map(final Function<Double, Double> f) {
-    final DeltaValueAccumulator1 copy = new DeltaValueAccumulator1();
-    copy.sum = f.apply(this.sum);
-    return copy;
-  }
-
   @Override
   public DeltaValueAccumulator1 multiply(final double r) {
-    return map(x -> x * r);
+    this.sum *= r;
+    return this;
   }
 
   @Override

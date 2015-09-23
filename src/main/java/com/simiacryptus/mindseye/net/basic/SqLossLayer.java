@@ -42,9 +42,10 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
-          for (int i = 0; i < a.dim(); i++) {
-            passback.set(i, data.get(0) * r.get(i) * 2 / a.dim());// *
-                                                                  // (1/(2*rms))
+          int adim = a.dim();
+          double data0 = data.get(0);
+          for (int i = 0; i < adim; i++) {
+            passback.set(i, data0 * r.get(i) * 2 / adim);
           }
           if (isVerbose()) {
             SqLossLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));

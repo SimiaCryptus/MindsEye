@@ -27,7 +27,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private DAGNetwork net = null;
   private boolean parallelTraining = true;
   private double rate = 0.1;
-  private double temperature = 0.05;
+  private double temperature = 0.0;
 
   private boolean verbose = false;
 
@@ -191,8 +191,8 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       }
     } else if (!Util.thermalStep(result.prevError, result.finalError, getTemperature())) {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s", //
-            result.prevError, result.finalError, result.finalError - result.prevError));
+        GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s (rate %s)", //
+            result.prevError, result.finalError, result.finalError - result.prevError, getRate()));
       }
       result.revert();
       return result.prevError;
@@ -205,8 +205,8 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     }
     trainingContext.gradientSteps.increment();
     if (this.verbose) {
-      GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s*%s in %.03fs", //
-          result.finalError, getRate(), this.rate, (System.currentTimeMillis() - startMs) / 1000.));
+      GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s in %.03fs", //
+          result.finalError, getRate(), (System.currentTimeMillis() - startMs) / 1000.));
     }
     
     return result.finalError;
