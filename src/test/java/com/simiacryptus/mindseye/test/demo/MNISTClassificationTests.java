@@ -47,8 +47,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    SqLossLayer lossLayer = new SqLossLayer();
-    //EntropyLossLayer lossLayer = new EntropyLossLayer();
+    //SqLossLayer lossLayer = new SqLossLayer();
+    EntropyLossLayer lossLayer = new EntropyLossLayer();
     Tester trainer = new Tester(){
       
       @Override
@@ -60,7 +60,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
     }.init(samples, net, lossLayer).setVerbose(true);
     trainer.setVerbose(true);
-    trainer.trainingContext().setTimeout(10, java.util.concurrent.TimeUnit.MINUTES);
+    trainer.trainingContext().setTimeout(2, java.util.concurrent.TimeUnit.MINUTES);
     return trainer;
   }
 

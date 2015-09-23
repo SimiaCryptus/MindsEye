@@ -1,6 +1,7 @@
 package com.simiacryptus.mindseye.net.media;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.DoubleSupplier;
@@ -88,7 +89,13 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
           final int input_index = input.index(inputCoords);
           return new int[] { k.index, input_index, o.index };
         });
-      }).filter(x -> null != x).toArray(i -> new int[i][]);
+      }).filter(x -> null != x).sorted(new Comparator<int[]>(){
+        @Override
+        public int compare(int[] o1, int[] o2) {
+          int r = 0;
+          for(int idx=0;0==r&&idx<o1.length;idx++) r=Integer.compare(o1[idx], o2[idx]);
+          return r;
+        }}).toArray(i -> new int[i][]);
     }
   });
   private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
@@ -129,14 +136,9 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final int[] newDims = IntStream.range(0, kernelDims.length).map(i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1).toArray();
     final NDArray output = new NDArray(newDims);
     final int[][] indexMap = ConvolutionSynapseLayer.getIndexMap(this.kernel, input, output);
-    Arrays.stream(indexMap).forEach(array -> {
-      final int k = array[0];
-      final int i = array[1];
-      final int o = array[2];
-      assert Double.isFinite(this.kernel.getData()[k]);
-      assert Double.isFinite(input.getData()[i]);
-      output.add(o, input.getData()[i] * this.kernel.getData()[k]);
-    });
+    double[] indata = input.getData();
+    double[] kdata = this.kernel.getData();
+    convolve(indata, kdata, indexMap, output);
     if (isVerbose()) {
       ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
     }
@@ -149,7 +151,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
             final int i = array[1];
             final int o = array[2];
             final int k = array[0];
-            final double in = input.getData()[i];
+            final double in = indata[i];
             final double err = errorSignal.getData()[o];
             weightGradient.add(k, err * in);
           });
@@ -180,6 +182,30 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       public boolean isAlive() {
         return inObj[0].isAlive() || !isFrozen();
       }
+    };
+  }
+
+  private static void convolve(final double[] indata, final double[] kdata, final int[][] indexMap, final NDArray output) {
+    int i = -1;
+    int k = -1;
+    double k2 = -1;
+    double i2 = -1;
+    for(int x=0;x<indexMap.length;x++) {
+      int[] array = indexMap[x];
+      int i0 = array[1];
+      if(i != i0) {
+        i = i0;
+        i2 = indata[i];
+      }
+      int k0 = array[0];
+      if(k != k0){
+        k = k0;
+        k2 = kdata[k];
+      }
+      int o = array[2];
+      //assert Double.isFinite(kdata[k]);
+      //assert Double.isFinite(indata[i]);
+      output.add(o, i2 * k2);
     };
   }
 

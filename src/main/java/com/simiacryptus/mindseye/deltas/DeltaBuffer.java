@@ -14,7 +14,7 @@ import com.simiacryptus.mindseye.math.VectorLogic;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
-  private final Map<NNLayer<?>, DeltaFlushBuffer> map = new LinkedHashMap<>();
+  private final java.util.concurrent.ConcurrentHashMap<NNLayer<?>, DeltaFlushBuffer> map = new java.util.concurrent.ConcurrentHashMap<>();
 
   public DeltaBuffer() {
   }
@@ -33,7 +33,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return sum(right, (l, r) -> l.dotProduct(r));
   }
 
-  public synchronized DeltaFlushBuffer get(final NNLayer<?> layer, final double[] ptr) {
+  public DeltaFlushBuffer get(final NNLayer<?> layer, final double[] ptr) {
     return this.map.computeIfAbsent(layer, l -> new DeltaFlushBuffer(ptr, layer));
   }
 

@@ -108,21 +108,23 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
     return new Result(output, inObj[0], evaluationContext);
   }
 
-  private NDArray multiply2(double[] wdata, double[] indata) {
-    int idx = 0;
+  private NDArray multiply2(final double[] wdata, final double[] indata) {
     final NDArray output = new NDArray(this.outputDims);
-    int outdim = output.dim();
+    multiply2(wdata, indata, output);
+    return output;
+  }
+
+  private static void multiply2(final double[] wdata, final double[] indata, final NDArray output) {
+    final int outdim = output.dim();
+    int idx = 0;
     for (int i = 0; i < indata.length; i++) {
+      final double b = indata[i];
       for (int o = 0; o < outdim; o++) {
         final double a = wdata[idx++];
-        final double b = indata[i];
         final double value = b * a;
-        if (Double.isFinite(value)) {
-          output.add(o, value);
-        }
+        output.add(o, value);
       }
     }
-    return output;
   }
   
   private static NDArray multiply(final double[] deltaData, final double[] inputData) {

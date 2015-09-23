@@ -23,7 +23,7 @@ public class NDArray {
     return total;
   }
 
-  protected volatile double[] data;
+  private volatile double[] data;
   protected final int[] dims;
   protected final int[] skips;
 
@@ -65,8 +65,8 @@ public class NDArray {
     add(coords.index, value);
   }
 
-  public void add(final int index, final double value) {
-    assert Double.isFinite(value);
+  public final void add(final int index, final double value) {
+    //assert Double.isFinite(value);
     getData()[index] += value;
   }
 
@@ -164,7 +164,7 @@ public class NDArray {
     return v;
   }
 
-  public double[] getData() {
+  public final double[] getData() {
     if (null == this.data) {
       synchronized (this) {
         if (null == this.data) {
@@ -175,7 +175,7 @@ public class NDArray {
     return this.data;
   }
 
-  public int[] getDims() {
+  public final int[] getDims() {
     return this.dims;
   }
 

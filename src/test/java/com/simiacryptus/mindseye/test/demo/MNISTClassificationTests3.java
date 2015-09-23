@@ -44,8 +44,8 @@ public class MNISTClassificationTests3 extends MNISTClassificationTests {
 
   @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    SqLossLayer lossLayer = new SqLossLayer();
-    //EntropyLossLayer lossLayer = new EntropyLossLayer();
+    //SqLossLayer lossLayer = new SqLossLayer();
+    EntropyLossLayer lossLayer = new EntropyLossLayer();
     Tester trainer = new Tester(){
       
       @Override
