@@ -161,7 +161,7 @@ public class ImageNetworkDev {
       // com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1).setReverse(true)),
       // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-0.1));
 
-      final TrainingContext trainingContext = new TrainingContext().setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
+      final TrainingContext trainingContext = new TrainingContext().setTimeout(15, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);
         trainer.getDevtrainer().refresh();
