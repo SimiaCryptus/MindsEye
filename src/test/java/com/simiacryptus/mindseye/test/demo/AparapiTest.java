@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 
 import com.amd.aparapi.Kernel.EXECUTION_MODE;
+import com.amd.aparapi.Range;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
@@ -41,6 +42,7 @@ public class AparapiTest  {
 
   public static class TestKernel extends com.amd.aparapi.Kernel {
 
+    public final int[] input = new int[10240];
     public final int[] results = new int[10240];
     
     @Override
@@ -48,7 +50,7 @@ public class AparapiTest  {
       int i = getGlobalId();
       if(i>1)
       {
-        results[i] += (1 + results[i-1] + results[i+1]);
+        results[i] += (1 + results[i-1] + results[i+1])*input[i];
       }
     }
     
@@ -65,11 +67,16 @@ public class AparapiTest  {
     //final Convolution convolution = openclDevice.bind(Convolution.class);
     TestKernel testKernel = new TestKernel();
     testKernel.setExecutionMode(EXECUTION_MODE.GPU);
-    testKernel.execute(1000);
-    for(int i=0;i<2048;i++)
+    testKernel.setExplicit(true);
+    Range range = openclDevice.createRange3D(100, 100,8);
+    for(int j=0;j<20480;j++)
     {
-      System.out.println(String.format("%s => %s ", i, testKernel.results[i]));
+      testKernel.put(testKernel.input);
+      testKernel.execute(range);
+      testKernel.get(testKernel.results);
+      System.out.println("OK:"+j);
     }
+    testKernel.dispose();
   }
 
 
