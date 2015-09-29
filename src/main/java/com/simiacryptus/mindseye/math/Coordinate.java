@@ -45,7 +45,7 @@ public class Coordinate {
 
   @Override
   public String toString() {
-    return Arrays.toString(this.coords);
+    return Arrays.toString(this.coords) + "<" + this.index + ">";
   }
 
 }

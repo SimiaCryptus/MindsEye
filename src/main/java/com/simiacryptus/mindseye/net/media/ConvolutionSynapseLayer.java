@@ -32,6 +32,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 
   
   public static class Convolve {
+    
     public final int[] outputs;
     public final int[] script;
 
@@ -72,7 +73,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     @Override
     public String toString() {
       StringBuilder builder = new StringBuilder();
-      builder.append("Convolve [outputs=");
+      builder.append(String.format("Convolve (%sx%s) [outputs=", outputs.length, script.length));
       builder.append(Arrays.toString(outputs));
       builder.append(", script=");
       builder.append(Arrays.toString(script));
@@ -156,21 +157,33 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
   }
 
   public static final java.util.function.Function<IndexMapKey, List<Convolve>> indexMapCache = cache((IndexMapKey key) -> {
+    
+    int outDim = new NDArray(key.output).dim();
+    int inDim = new NDArray(key.input).dim();
+    log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
+    
     final NDArray kernel = new NDArray(key.kernel);
     Stream<int[]> productTuples = kernel.coordStream(false).flatMap(k -> {
       final NDArray output = new NDArray(key.output);
       return output.coordStream(false).map(o -> {
         final NDArray input = new NDArray(key.input);
-        final int[] inputCoords = Coordinate.add(k.coords, o.coords);
-        for (int d = 0; d < input.getDims().length; d++) {
-          if (inputCoords[d] < 0)
-            return null;
-          if (inputCoords[d] >= input.getDims()[d])
-            return null;
+        if(o.coords[o.coords.length-1]!=o.coords[o.coords.length-1]) {
+          return null;
+        }else {
+          final int[] add = Coordinate.add(k.coords, o.coords);
+          final int[] inputCoords = Arrays.copyOfRange(add, 0, add.length-1);
+          for (int d = 0; d < input.getDims().length; d++) {
+            if (inputCoords[d] < 0)
+              return null;
+            if (inputCoords[d] >= input.getDims()[d])
+              return null;
+          }
+          final Coordinate input_index = new Coordinate(input.index(inputCoords), inputCoords);
+          int[] arr = new int[] { k.index, input_index.index, o.index };
+          //log.debug(String.format("key %s: i=%s k=%s o=%s", key, input_index, k, o));
+          return arr;
         }
-        final int input_index = input.index(inputCoords);
-        return new int[] { k.index, input_index, o.index };
-      });
+      }).filter(x->null!=x);
     });
 
     Comparator<int[]> orderBy = new Comparator<int[]>() {
@@ -195,7 +208,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     Function<Entry<Set<List<Integer>>, Set<Integer>>, Convolve> mapper = e->{
       int[] outputIndexes = e.getValue().stream().mapToInt(x->x).sorted().toArray();
       // tuples of (in_idx-out_idx,k_idx)
-      int[] script = e.getKey().stream().flatMap(x->{
+      int[] script = e.getKey().stream().sorted(Comparator.comparing(a->a.get(0))).flatMap(x->{
         assert(x.size()==2);
         return x.stream();
       }).mapToInt(x->x).toArray();
