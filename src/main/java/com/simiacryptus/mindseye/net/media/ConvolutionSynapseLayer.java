@@ -33,54 +33,94 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
   
   public static class Convolve {
     
-    public final int[] outputs;
-    public final int[] script;
+    
+//    public int[] outputs;
+//    public int[] script;
+    private int[] inputSize;
+    private int[] kernelSize;
+    private int[] outputSize;
 
-    public Convolve(int[] outputIndexes, int[] scripts) {
-      this.outputs = outputIndexes;
-      this.script = scripts;
+    public Convolve(int[] inputSize, int[] kernelSize) {
+      this.inputSize=inputSize;
+      this.kernelSize=kernelSize;
+      this.outputSize=getOutputDims(inputSize, kernelSize);
+      assert(this.outputSize.length==3);
+      assert(this.kernelSize.length==3);
+      assert(this.inputSize.length==2);
     }
 
     public void convolve1(double[] input, double[] weights, double[] output) {
-      for(int o=0;o<this.outputs.length;o++){
-        int oo = this.outputs[o];
-        double sum = 0;
-        for(int s=0;s<this.script.length/2;s++){
-          sum += input[oo+this.script[s*2]] * weights[this.script[s*2+1]];
-        } 
-        output[oo] = sum;
+      assert(this.outputSize[0]*this.outputSize[1]*this.outputSize[2]==output.length);
+      assert(this.inputSize[0]*this.inputSize[1]==input.length);
+      assert(this.kernelSize[0]*this.kernelSize[1]*this.kernelSize[2]==weights.length);
+      for(int k1=0;k1<kernelSize[0];k1++){
+        for(int k2=0;k2<kernelSize[1];k2++){
+          for(int i1=0;i1<inputSize[1];i1++){
+            for(int i2=0;i2<inputSize[1];i2++){
+              int o1 = i1+k1;
+              int o2 = i2+k2;
+              int o = o1 + o2 * this.outputSize[0];
+              int i = i1 + i2 * this.inputSize[0];
+              int k = k1 + k2 * this.kernelSize[0];
+              output[o] += input[i] * weights[k];
+            }            
+          }
+        }
       }
     }
 
     public void calGradient(double[] input, double[] output, double[] weights) {
-      for(int o=0;o<this.outputs.length;o++){
-        for(int s=0;s<this.script.length/2;s++){
-          int oo = this.outputs[o];
-          weights[this.script[s*2+1]] += output[oo] * input[oo+this.script[s*2]];
-        } 
+      assert(this.outputSize[0]*this.outputSize[1]*this.outputSize[2]==output.length);
+      assert(this.inputSize[0]*this.inputSize[1]==input.length);
+      assert(this.kernelSize[0]*this.kernelSize[1]*this.kernelSize[2]==weights.length);
+      for(int k1=0;k1<kernelSize[0];k1++){
+        for(int k2=0;k2<kernelSize[1];k2++){
+          for(int i1=0;i1<inputSize[0];i1++){
+            for(int i2=0;i2<inputSize[1];i2++){
+              int o1 = i1+k1;
+              int o2 = i2+k2;
+              int o = o1 + o2 * this.outputSize[0];
+              int i = i1 + i2 * this.inputSize[0];
+              int k = k1 + k2 * this.kernelSize[0];
+              weights[k] += input[i] * output[o];
+            }            
+          }
+        }
       }
     }
 
     public void backprop(double[] output, double[] weights, double[] input) {
-      for(int o=0;o<this.outputs.length;o++){
-        for(int s=0;s<this.script.length/2;s++){
-          int oo = this.outputs[o];
-          input[oo+this.script[s*2]] += weights[this.script[s*2+1]] * output[oo];
-        } 
+      assert(this.outputSize[0]*this.outputSize[1]*this.outputSize[2]==output.length);
+      assert(this.inputSize[0]*this.inputSize[1]==input.length);
+      assert(this.kernelSize[0]*this.kernelSize[1]*this.kernelSize[2]==weights.length);
+      for(int k1=0;k1<kernelSize[0];k1++){
+        for(int k2=0;k2<kernelSize[1];k2++){
+          for(int i1=0;i1<inputSize[0];i1++){
+            for(int i2=0;i2<inputSize[1];i2++){
+              int o1 = i1+k1;
+              int o2 = i2+k2;
+              int o = o1 + o2 * this.outputSize[0];
+              int i = i1 + i2 * this.inputSize[0];
+              int k = k1 + k2 * this.kernelSize[0];
+              input[i] += weights[k] * output[o];
+            }            
+          }
+        }
       }
     }
 
     @Override
     public String toString() {
       StringBuilder builder = new StringBuilder();
-      builder.append(String.format("Convolve (%sx%s) [outputs=", outputs.length, script.length));
-      builder.append(Arrays.toString(outputs));
-      builder.append(", script=");
-      builder.append(Arrays.toString(script));
+      builder.append("Convolve [inputSize=");
+      builder.append(Arrays.toString(inputSize));
+      builder.append(", kernelSize=");
+      builder.append(Arrays.toString(kernelSize));
+      builder.append(", outputSize=");
+      builder.append(Arrays.toString(outputSize));
       builder.append("]");
       return builder.toString();
     }
-    
     
   }
   
@@ -162,63 +202,12 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     int inDim = new NDArray(key.input).dim();
     log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
     
-    final NDArray kernel = new NDArray(key.kernel);
-    Stream<int[]> productTuples = kernel.coordStream(false).flatMap(k -> {
-      final NDArray output = new NDArray(key.output);
-      return output.coordStream(false).map(o -> {
-        final NDArray input = new NDArray(key.input);
-        if(o.coords[o.coords.length-1]!=o.coords[o.coords.length-1]) {
-          return null;
-        }else {
-          final int[] add = Coordinate.add(k.coords, o.coords);
-          final int[] inputCoords = Arrays.copyOfRange(add, 0, add.length-1);
-          for (int d = 0; d < input.getDims().length; d++) {
-            if (inputCoords[d] < 0)
-              return null;
-            if (inputCoords[d] >= input.getDims()[d])
-              return null;
-          }
-          final Coordinate input_index = new Coordinate(input.index(inputCoords), inputCoords);
-          int[] arr = new int[] { k.index, input_index.index, o.index };
-          //log.debug(String.format("key %s: i=%s k=%s o=%s", key, input_index, k, o));
-          return arr;
-        }
-      }).filter(x->null!=x);
-    });
-
-    Comparator<int[]> orderBy = new Comparator<int[]>() {
-      @Override
-      public int compare(int[] o1, int[] o2) {
-        int r = 0;
-        for (int idx = 0; 0 == r && idx < o1.length; idx++)
-          r = Integer.compare(o1[idx], o2[idx]);
-        return r;
-      }
-    };
-
-    int[][] array = productTuples.filter(x -> null != x).sorted(orderBy).toArray(i -> new int[i][]);
-    
-    Map<Set<List<Integer>>, Set<Integer>> collect = Stream.of(array) //
-        .map(a->new int[]{a[2],a[1]-a[2], a[0]}) //
-        .collect(java.util.stream.Collectors.groupingBy(a->a[0], // 
-            java.util.stream.Collectors.mapping(a->Arrays.<Integer>asList(a[1],a[2]),java.util.stream.Collectors.toSet()))) //
-        .entrySet().stream().collect(java.util.stream.Collectors.groupingBy(e->e.getValue(), //
-            java.util.stream.Collectors.mapping(e->e.getKey(), java.util.stream.Collectors.toSet())));
-    
-    Function<Entry<Set<List<Integer>>, Set<Integer>>, Convolve> mapper = e->{
-      int[] outputIndexes = e.getValue().stream().mapToInt(x->x).sorted().toArray();
-      // tuples of (in_idx-out_idx,k_idx)
-      int[] script = e.getKey().stream().sorted(Comparator.comparing(a->a.get(0))).flatMap(x->{
-        assert(x.size()==2);
-        return x.stream();
-      }).mapToInt(x->x).toArray();
-      Convolve k = new Convolve(outputIndexes, script);
-      return k;
-    };
-    
-    List<Convolve> kernels = collect.entrySet().stream().map(mapper).collect(java.util.stream.Collectors.toList());
+    assert(2 == key.input.length);
+    assert(3 == key.kernel.length);
+    List<Convolve> kernels = Arrays.asList(new Convolve(key.input, key.kernel));
     log.debug("Commputed kernels for " + key + ": " + kernels.stream().map(x->x.toString()).reduce((a,b)->a+"\n\t"+b).get());
     return kernels;
+    
   });
   
 
@@ -249,8 +238,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final NDArray input = inObj[0].data;
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();
-    final int[] newDims = IntStream.range(0, kernelDims.length).map(i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1).toArray();
-    final NDArray output = new NDArray(newDims);
+    final NDArray output = new NDArray(getOutputDims(inputDims, kernelDims));
     final List<Convolve> indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
     double[] indata = input.getData();
     double[] kdata = this.kernel.getData();
@@ -274,9 +262,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
           buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.getData());
         }
         if (inObj[0].isAlive()) {
-          final NDArray klog = ConvolutionSynapseLayer.this.kernel;
           final NDArray backprop = new NDArray(inputDims);
-
           indexMap.stream().forEach(array -> {
             array.backprop(errorSignal.getData(), kernel.getData(), backprop.getData());
           });
@@ -292,6 +278,11 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
         return inObj[0].isAlive() || !isFrozen();
       }
     };
+  }
+
+  private static int[] getOutputDims(final int[] inputDims, final int[] kernelDims) {
+    final int[] newDims = IntStream.range(0, kernelDims.length).map(i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1).toArray();
+    return newDims;
   }
 
   public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {
