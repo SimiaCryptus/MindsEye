@@ -3,9 +3,13 @@ package com.simiacryptus.mindseye.net.media;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +27,62 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
 public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
+
+  private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
+
+  
+  public static class Convolve {
+    public final int[] outputs;
+    public final int[] script;
+
+    public Convolve(int[] outputIndexes, int[] scripts) {
+      this.outputs = outputIndexes;
+      this.script = scripts;
+    }
+
+    public void convolve1(double[] input, double[] weights, double[] output) {
+      for(int o=0;o<this.outputs.length;o++){
+        int oo = this.outputs[o];
+        double sum = 0;
+        for(int s=0;s<this.script.length/2;s++){
+          sum += input[oo+this.script[s*2]] * weights[this.script[s*2+1]];
+        } 
+        output[oo] = sum;
+      }
+    }
+
+    public void calGradient(double[] input, double[] output, double[] weights) {
+      for(int o=0;o<this.outputs.length;o++){
+        for(int s=0;s<this.script.length/2;s++){
+          int oo = this.outputs[o];
+          weights[this.script[s*2+1]] += output[oo] * input[oo+this.script[s*2]];
+        } 
+      }
+    }
+
+    public void backprop(double[] output, double[] weights, double[] input) {
+      for(int o=0;o<this.outputs.length;o++){
+        for(int s=0;s<this.script.length/2;s++){
+          int oo = this.outputs[o];
+          input[oo+this.script[s*2]] += weights[this.script[s*2+1]] * output[oo];
+        } 
+      }
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append("Convolve [outputs=");
+      builder.append(Arrays.toString(outputs));
+      builder.append(", script=");
+      builder.append(Arrays.toString(script));
+      builder.append("]");
+      return builder.toString();
+    }
+    
+    
+  }
+  
   public static final class IndexMapKey {
     int[] input;
     int[] kernel;
@@ -69,45 +129,88 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       result = prime * result + Arrays.hashCode(this.output);
       return result;
     }
-  }
 
-  public static final LoadingCache<IndexMapKey, int[][]> indexMapCache = CacheBuilder.newBuilder().build(new CacheLoader<IndexMapKey, int[][]>() {
     @Override
-    public int[][] load(final IndexMapKey key) throws Exception {
-      final NDArray kernel = new NDArray(key.kernel);
-      return kernel.coordStream(false).flatMap(k -> {
-        final NDArray output = new NDArray(key.output);
-        return output.coordStream(false).map(o -> {
-          final NDArray input = new NDArray(key.input);
-          final int[] inputCoords = Coordinate.add(k.coords, o.coords);
-          for (int d = 0; d < input.getDims().length; d++) {
-            if (inputCoords[d] < 0)
-              return null;
-            if (inputCoords[d] >= input.getDims()[d])
-              return null;
-          }
-          final int input_index = input.index(inputCoords);
-          return new int[] { k.index, input_index, o.index };
-        });
-      }).filter(x -> null != x).sorted(new Comparator<int[]>(){
-        @Override
-        public int compare(int[] o1, int[] o2) {
-          int r = 0;
-          for(int idx=0;0==r&&idx<o1.length;idx++) r=Integer.compare(o1[idx], o2[idx]);
-          return r;
-        }}).toArray(i -> new int[i][]);
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append("IndexMapKey [input=");
+      builder.append(Arrays.toString(input));
+      builder.append(", kernel=");
+      builder.append(Arrays.toString(kernel));
+      builder.append(", output=");
+      builder.append(Arrays.toString(output));
+      builder.append("]");
+      return builder.toString();
     }
-  });
-  private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
-
-  public static int[][] getIndexMap(final NDArray kernel, final NDArray input, final NDArray output) {
-    try {
-      return ConvolutionSynapseLayer.indexMapCache.get(new IndexMapKey(kernel, input, output));
-    } catch (final ExecutionException e) {
-      throw new RuntimeException(e);
-    }
+    
+  }
+  
+  @SuppressWarnings("deprecation")
+  public static <F,T> java.util.function.Function<F,T> cache(java.util.function.Function<F,T> inner) {
+    LoadingCache<F,T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>(){
+      @Override
+      public T load(F key) throws Exception {
+        return inner.apply(key);
+      }});
+    return cache::apply;
   }
 
+  public static final java.util.function.Function<IndexMapKey, List<Convolve>> indexMapCache = cache((IndexMapKey key) -> {
+    final NDArray kernel = new NDArray(key.kernel);
+    Stream<int[]> productTuples = kernel.coordStream(false).flatMap(k -> {
+      final NDArray output = new NDArray(key.output);
+      return output.coordStream(false).map(o -> {
+        final NDArray input = new NDArray(key.input);
+        final int[] inputCoords = Coordinate.add(k.coords, o.coords);
+        for (int d = 0; d < input.getDims().length; d++) {
+          if (inputCoords[d] < 0)
+            return null;
+          if (inputCoords[d] >= input.getDims()[d])
+            return null;
+        }
+        final int input_index = input.index(inputCoords);
+        return new int[] { k.index, input_index, o.index };
+      });
+    });
+
+    Comparator<int[]> orderBy = new Comparator<int[]>() {
+      @Override
+      public int compare(int[] o1, int[] o2) {
+        int r = 0;
+        for (int idx = 0; 0 == r && idx < o1.length; idx++)
+          r = Integer.compare(o1[idx], o2[idx]);
+        return r;
+      }
+    };
+
+    int[][] array = productTuples.filter(x -> null != x).sorted(orderBy).toArray(i -> new int[i][]);
+    
+    Map<Set<List<Integer>>, Set<Integer>> collect = Stream.of(array) //
+        .map(a->new int[]{a[2],a[1]-a[2], a[0]}) //
+        .collect(java.util.stream.Collectors.groupingBy(a->a[0], // 
+            java.util.stream.Collectors.mapping(a->Arrays.<Integer>asList(a[1],a[2]),java.util.stream.Collectors.toSet()))) //
+        .entrySet().stream().collect(java.util.stream.Collectors.groupingBy(e->e.getValue(), //
+            java.util.stream.Collectors.mapping(e->e.getKey(), java.util.stream.Collectors.toSet())));
+    
+    Function<Entry<Set<List<Integer>>, Set<Integer>>, Convolve> mapper = e->{
+      int[] outputIndexes = e.getValue().stream().mapToInt(x->x).sorted().toArray();
+      // tuples of (in_idx-out_idx,k_idx)
+      int[] script = e.getKey().stream().flatMap(x->{
+        assert(x.size()==2);
+        return x.stream();
+      }).mapToInt(x->x).toArray();
+      Convolve k = new Convolve(outputIndexes, script);
+      return k;
+    };
+    
+    List<Convolve> kernels = collect.entrySet().stream().map(mapper).collect(java.util.stream.Collectors.toList());
+    log.debug("Commputed kernels for " + key + ": " + kernels.stream().map(x->x.toString()).reduce((a,b)->a+"\n\t"+b).get());
+    return kernels;
+  });
+  
+
+
+  
   public final NDArray kernel;
   private boolean paralell = false;
 
@@ -135,10 +238,15 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final int[] kernelDims = this.kernel.getDims();
     final int[] newDims = IntStream.range(0, kernelDims.length).map(i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1).toArray();
     final NDArray output = new NDArray(newDims);
-    final int[][] indexMap = ConvolutionSynapseLayer.getIndexMap(this.kernel, input, output);
+    final List<Convolve> indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
     double[] indata = input.getData();
     double[] kdata = this.kernel.getData();
-    convolve(indata, kdata, indexMap, output);
+    final double[] indata1 = indata;
+    final double[] kdata1 = kdata;
+    double[] outdata = output.getData();
+    for(Convolve k : indexMap) {
+      k.convolve1(indata1, kdata1, outdata);
+    };
     if (isVerbose()) {
       ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
     }
@@ -147,13 +255,8 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       public void feedback(final NDArray errorSignal, final DeltaBuffer buffer) {
         if (!isFrozen()) {
           final NDArray weightGradient = new NDArray(ConvolutionSynapseLayer.this.kernel.getDims());
-          Arrays.stream(indexMap).forEach(array -> {
-            final int i = array[1];
-            final int o = array[2];
-            final int k = array[0];
-            final double in = indata[i];
-            final double err = errorSignal.getData()[o];
-            weightGradient.add(k, err * in);
+          indexMap.stream().forEach(array -> {
+            array.calGradient(indata,errorSignal.getData(),weightGradient.getData());
           });
           buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.getData());
         }
@@ -161,15 +264,8 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
           final NDArray klog = ConvolutionSynapseLayer.this.kernel;
           final NDArray backprop = new NDArray(inputDims);
 
-          Arrays.stream(indexMap).forEach(array -> {
-            final int k = array[0];
-            final int o = array[2];
-            final int i = array[1];
-            final double kernelValue = klog.get(k);
-            if (Double.isFinite(kernelValue)) {
-              final double errorValue = errorSignal.get(o);
-              backprop.add(i, errorValue * kernelValue);
-            }
+          indexMap.stream().forEach(array -> {
+            array.backprop(errorSignal.getData(), kernel.getData(), backprop.getData());
           });
           if (isVerbose()) {
             ConvolutionSynapseLayer.log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
@@ -182,30 +278,6 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       public boolean isAlive() {
         return inObj[0].isAlive() || !isFrozen();
       }
-    };
-  }
-
-  private static void convolve(final double[] indata, final double[] kdata, final int[][] indexMap, final NDArray output) {
-    int i = -1;
-    int k = -1;
-    double k2 = -1;
-    double i2 = -1;
-    for(int x=0;x<indexMap.length;x++) {
-      int[] array = indexMap[x];
-      int i0 = array[1];
-      if(i != i0) {
-        i = i0;
-        i2 = indata[i];
-      }
-      int k0 = array[0];
-      if(k != k0){
-        k = k0;
-        k2 = kdata[k];
-      }
-      int o = array[2];
-      //assert Double.isFinite(kdata[k]);
-      //assert Double.isFinite(indata[i]);
-      output.add(o, i2 * k2);
     };
   }
 
