@@ -1,11 +1,11 @@
 package com.simiacryptus.mindseye.net.media;
 
 public final class BackpropKernel extends com.amd.aparapi.Kernel {
-  private final int[] inputSize;
+  final int[] inputSize;
   double[] input;
-  private final int[] kernelSize;
+  final int[] kernelSize;
   double[] weights;
-  private final int[] outputSize;
+  final int[] outputSize;
   double[] output;
 
   public BackpropKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
@@ -21,7 +21,7 @@ public final class BackpropKernel extends com.amd.aparapi.Kernel {
   public void run() {
     int i1 = getGlobalId(0);
     int i2 = getGlobalId(1);
-    int i3 = getGlobalId(1);
+    int i3 = getGlobalId(2);
     for (int k1 = 0; k1 < kernelSize[0]; k1++) {
       for (int k2 = 0; k2 < kernelSize[1]; k2++) {
         for (int o3 = 0; o3 < outputSize[2]; o3++) {
@@ -35,5 +35,9 @@ public final class BackpropKernel extends com.amd.aparapi.Kernel {
         }
       }
     }
+  }
+ 
+  public void exe(com.amd.aparapi.device.Device device){
+    execute(device.createRange3D(inputSize[0], inputSize[1], inputSize[2], 1, 1, 1));
   }
 }

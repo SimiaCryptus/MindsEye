@@ -1,11 +1,11 @@
 package com.simiacryptus.mindseye.net.media;
 
 public final class ConvolveKernel extends com.amd.aparapi.Kernel {
-  private final int[] inputSize;
+  final int[] inputSize;
+  final int[] kernelSize;
+  final int[] outputSize;
   double[] input;
-  private final int[] kernelSize;
   double[] weights;
-  private final int[] outputSize;
   double[] output;
 
   public ConvolveKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
@@ -19,22 +19,38 @@ public final class ConvolveKernel extends com.amd.aparapi.Kernel {
 
   @Override
   public void run() {
-    int i1 = getGlobalId(0);
-    int i2 = getGlobalId(1);
-    int i3 = getGlobalId(1);
-    int i = i1 + inputSize[0] * (i2 + inputSize[1] * i3);
-    double in_i = input[i];
-    for (int k1 = 0; k1 < kernelSize[0]; k1++) {
-      int o1 = i1 + k1;
-      for (int k2 = 0; k2 < kernelSize[1]; k2++) {
-        int o2 = i2 + k2;
-        for (int o3 = 0; o3 < outputSize[2]; o3++) {
-          int k3 = i3 * outputSize[2] + o3;
-          int o = o1 + outputSize[0] * (o2 + outputSize[1] * o3);
-          int k = k1 + kernelSize[0] * (k2 + kernelSize[1] * k3);
-          output[o] += in_i * weights[k];
+    int o = getGlobalId();
+    int o3 = o / (outputSize[0] * outputSize[1]);
+    int o2 = (o - o3*outputSize[0] * outputSize[1]) / outputSize[1];
+    int o1 = (o - (o3 * outputSize[1] + o2)*outputSize[0]);
+    
+    double accum = 0;
+    for(int i=0;i<input.length;i++){
+      int i3 = i / (inputSize[0] * inputSize[1]);
+      int i2 = (i - i3*inputSize[0] * inputSize[1]) / inputSize[1];
+      int i1 = (i - (i3 * inputSize[1] + i2)*inputSize[0]);
+      
+      int k1 = o1-i1;
+      int k2 = o2-i2;
+      int k3 = i3 * outputSize[2] + o3;
+      
+      double in_i = input[i];
+      if(0. != in_i){
+        if(0 <= k1 && k1 < kernelSize[0]) {
+          if(0 <= k2 && k2 < kernelSize[1]) {
+            if(0 <= k3 && k3 < kernelSize[2]) {
+              int k = k1 + kernelSize[0] * (k2 + kernelSize[1] * k3);
+              accum += in_i * weights[k];
+            }
+          }
         }
       }
     }
+
+    output[o] = accum;
+  }
+  
+  public void exe(com.amd.aparapi.device.Device device){
+    execute(device.createRange(outputSize[0]*outputSize[1]*outputSize[2],1));
   }
 }

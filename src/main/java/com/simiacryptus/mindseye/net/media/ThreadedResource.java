@@ -2,7 +2,7 @@ package com.simiacryptus.mindseye.net.media;
 
 public abstract class ThreadedResource<T> {
 
-  final int maxItems = 1;
+  final int maxItems = 16;
   public java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
   public java.util.HashSet<T> all = new java.util.HashSet<>(maxItems);
 
