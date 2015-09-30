@@ -1,32 +1,7 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.junit.Test;
-
 import com.amd.aparapi.Kernel.EXECUTION_MODE;
 import com.amd.aparapi.Range;
-import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
-import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SqLossLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
-import com.simiacryptus.mindseye.test.Tester;
-import com.simiacryptus.mindseye.test.dev.MNIST;
-import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
-import com.simiacryptus.mindseye.training.DevelopmentTrainer;
-import com.simiacryptus.mindseye.training.DynamicRateTrainer;
-import com.simiacryptus.mindseye.training.GradientDescentTrainer;
-import com.simiacryptus.mindseye.training.NetInitializer;
-import com.simiacryptus.mindseye.util.LabeledObject;
-import com.simiacryptus.mindseye.util.Util;
 
 public class AparapiTest  {
 

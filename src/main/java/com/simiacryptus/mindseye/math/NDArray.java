@@ -209,9 +209,9 @@ public class NDArray {
     final double[] cpy = new double[getData().length];
     for (int i = 0; i < getData().length; i++) {
       final double x = getData()[i];
-      assert Double.isFinite(x);
+      //assert Double.isFinite(x);
       final double v = f.apply(x);
-      assert Double.isFinite(v);
+      //assert Double.isFinite(v);
       cpy[i] = v;
     }
     ;
@@ -247,7 +247,7 @@ public class NDArray {
   }
 
   public void set(final int index, final double value) {
-    assert Double.isFinite(value);
+    //assert Double.isFinite(value);
     getData()[index] = value;
   }
 
@@ -261,7 +261,7 @@ public class NDArray {
     for (final double element : getData()) {
       v += element;
     }
-    assert Double.isFinite(v);
+    //assert Double.isFinite(v);
     return v;
   }
 
@@ -284,6 +284,10 @@ public class NDArray {
       final Optional<String> str = list.stream().limit(10).reduce((a, b) -> a + "," + b);
       return "[ " + str.get() + " ]";
     }
+  }
+
+  public NDArray reformat(int... dims) {
+    return new NDArray(dims, getData());
   }
 
 }

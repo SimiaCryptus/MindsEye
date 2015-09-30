@@ -44,11 +44,13 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
     final NDArray output = new NDArray(newDims);
     final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
     List<Tuple2<Coordinate, List<Coordinate>>> regions = calcRegionsCache.apply(new CalcRegionsParameter(inputDims, kernelDims));
-    regions.stream().forEach(tuple -> {
-      final Coordinate inputCoord = tuple.getSecond().stream().max(Comparator.comparing(inputCoords -> input.get(inputCoords))).get();
+    regions.stream().parallel().forEach(tuple -> {
+      final Coordinate inputCoord = tuple.getSecond().stream().max(Comparator.comparingDouble(inputCoords -> input.get(inputCoords))).get();
       Coordinate o = tuple.getFirst();
-      gradientMap.put(o, inputCoord);
-      output.add(o, input.get(inputCoord));
+      synchronized (gradientMap) {
+        gradientMap.put(o, inputCoord);
+      }
+      output.set(o, input.get(inputCoord));
     });
     return new NNResult(evaluationContext, output) {
       @Override

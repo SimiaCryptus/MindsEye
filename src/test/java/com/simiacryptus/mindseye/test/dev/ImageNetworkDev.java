@@ -19,7 +19,6 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -60,16 +59,18 @@ public class ImageNetworkDev {
   }
 
   public NNLayer<?> blur_3() {
-    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3, 1 }, 1);
-    convolution.kernel.set(new int[] { 0, 0, 0, 0 }, 0.333);
-    convolution.kernel.set(new int[] { 0, 1, 0, 0 }, 0);
-    convolution.kernel.set(new int[] { 0, 2, 0, 0 }, 0);
-    convolution.kernel.set(new int[] { 1, 0, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 1, 1, 0, 0 }, 0.333);
-    convolution.kernel.set(new int[] { 1, 2, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 2, 0, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 2, 1, 0, 0 }, 0.);
-    convolution.kernel.set(new int[] { 2, 2, 0, 0 }, 0.333);
+    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 3);
+    for(int i=0;i<3;i++){
+      convolution.kernel.set(new int[] { 0, 0, i }, 0.333);
+      convolution.kernel.set(new int[] { 0, 1, i }, 0);
+      convolution.kernel.set(new int[] { 0, 2, i }, 0);
+      convolution.kernel.set(new int[] { 1, 0, i }, 0.);
+      convolution.kernel.set(new int[] { 1, 1, i }, 0.333);
+      convolution.kernel.set(new int[] { 1, 2, i }, 0.);
+      convolution.kernel.set(new int[] { 2, 0, i }, 0.);
+      convolution.kernel.set(new int[] { 2, 1, i }, 0.);
+      convolution.kernel.set(new int[] { 2, 2, i }, 0.333);
+    }
     convolution.freeze();
     return convolution;
   }
@@ -83,7 +84,7 @@ public class ImageNetworkDev {
   }
 
   public NNLayer<?> blur1() {
-    final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
+    final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 3 }, 1);
     convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, 0.25);
     convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 0.25);
     convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 0.25);
@@ -93,7 +94,7 @@ public class ImageNetworkDev {
   }
 
   public NNLayer<?> edge1() {
-    final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 1 }, 1);
+    final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 3 }, 1);
     convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, -1);
     convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 1);
     convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 1);

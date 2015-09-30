@@ -62,6 +62,7 @@ public class NetInitializer {
     if (this.verbose) {
       log.debug(String.format("Initialize %s", net));
     }
+    if(this.getAmplitude()<=0.) return;
     final List<NNLayer<?>> layers = net.getChildren();
     for (int i = 0; i < 5; i++) {
       layers.stream().filter(l -> (l instanceof DenseSynapseLayer)).map(l -> (DenseSynapseLayer) l).filter(l -> !l.isFrozen()).forEach(this::initialize);

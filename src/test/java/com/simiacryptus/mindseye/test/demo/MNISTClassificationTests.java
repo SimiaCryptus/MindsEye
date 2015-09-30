@@ -11,17 +11,11 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
-import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
-import com.simiacryptus.mindseye.training.DevelopmentTrainer;
-import com.simiacryptus.mindseye.training.DynamicRateTrainer;
-import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
@@ -35,7 +29,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
-    final int[] inputSize = new int[] { 28, 28 };
+    final int[] inputSize = new int[] { 28, 28, 1 };
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
     net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize));
@@ -105,17 +99,19 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   public NDArray[][] trainingData() throws IOException {
     final int maxSize = 1000;
     final List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream().filter(this::filter).collect(Collectors.toList()));
-    final NDArray[][] trainingData = data.parallelStream().limit(maxSize).map(obj -> {
-      final int out = SimpleMNIST.toOut(remap(obj.label));
-      final NDArray output = SimpleMNIST.toOutNDArray(out, 10);
-      return new NDArray[] { obj.data, output };
-    }).toArray(i -> new NDArray[i][]);
+    final NDArray[][] trainingData = data.parallelStream().limit(maxSize)
+      .map(obj->new LabeledObject<>(obj.data.reformat(28,28,1), obj.label))
+      .map(obj -> {
+        final int out = SimpleMNIST.toOut(remap(obj.label));
+        final NDArray output = SimpleMNIST.toOutNDArray(out, 10);
+        return new NDArray[] { obj.data, output };
+      }).toArray(i -> new NDArray[i][]);
     return trainingData;
   }
 
   @Override
   public void verify(final Tester trainer) {
-    trainer.verifyConvergence(0.0, 1);
+    trainer.verifyConvergence(0.00001, 1);
   }
 
 }

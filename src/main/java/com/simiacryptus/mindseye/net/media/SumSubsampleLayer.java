@@ -19,7 +19,6 @@ import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
-import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer.IndexMapKey;
 
 public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
 

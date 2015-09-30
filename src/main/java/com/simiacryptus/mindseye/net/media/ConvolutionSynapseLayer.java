@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.net.media;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
@@ -33,6 +34,8 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       this.kernel = kernel;
       this.input = input;
       this.output = output;
+      assert (3 == input.length);
+      assert (3 == kernel.length);
     }
 
     public IndexMapKey(final NDArray kernel, final NDArray input, final NDArray output) {
@@ -40,6 +43,8 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       this.kernel = kernel.getDims();
       this.input = input.getDims();
       this.output = output.getDims();
+      assert (3 == this.input.length);
+      assert (3 == this.kernel.length);
     }
 
     @Override
@@ -96,16 +101,16 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     return cache::apply;
   }
 
-  public static final java.util.function.Function<IndexMapKey, List<ConvolveImpl>> indexMapCache = cache((IndexMapKey key) -> {
+  public static final java.util.function.Function<IndexMapKey, ConvolutionController> indexMapCache = cache((IndexMapKey key) -> {
 
     int outDim = new NDArray(key.output).dim();
     int inDim = new NDArray(key.input).dim();
     log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
 
-    assert (2 == key.input.length);
+    assert (3 == key.input.length);
     assert (3 == key.kernel.length);
-    List<ConvolveImpl> kernels = Arrays.asList(new ConvolveImpl(key.input, key.kernel));
-    log.debug("Commputed kernels for " + key + ": " + kernels.stream().map(x -> x.toString()).reduce((a, b) -> a + "\n\t" + b).get());
+    ConvolutionController kernels = new ConvolutionController(key.input, key.kernel);
+    log.debug("Commputed kernels for " + key + ": " + kernels.toString());
     return kernels;
 
   });
@@ -119,10 +124,10 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
   }
 
   public ConvolutionSynapseLayer(final int[] kernelDims, final int bandwidth) {
-
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
+    assert (3 == this.kernel.getDims().length);
   }
 
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
@@ -136,34 +141,28 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final int[] inputDims = input.getDims();
     final int[] kernelDims = this.kernel.getDims();
     final NDArray output = new NDArray(getOutputDims(inputDims, kernelDims));
-    final List<ConvolveImpl> indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
+    final ConvolutionController indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
     double[] indata = input.getData();
     double[] kdata = this.kernel.getData();
     final double[] indata1 = indata;
     final double[] kdata1 = kdata;
     double[] outdata = output.getData();
-    for (ConvolveImpl k : indexMap) {
-      k.convolve1(indata1, kdata1, outdata);
-    }
-    ;
+    //com.amd.aparapi.device.Device.firstCPU().
+    indexMap.convolve(indata1, kdata1, outdata);
     if (isVerbose()) {
-      ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
+      //ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
     }
     return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray errorSignal, final DeltaBuffer buffer) {
         if (!isFrozen()) {
           final NDArray weightGradient = new NDArray(ConvolutionSynapseLayer.this.kernel.getDims());
-          indexMap.stream().forEach(array -> {
-            array.calGradient(indata, errorSignal.getData(), weightGradient.getData());
-          });
+          indexMap.gradient(indata, errorSignal.getData(), weightGradient.getData());
           buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.getData());
         }
         if (inObj[0].isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
-          indexMap.stream().forEach(array -> {
-            array.backprop(errorSignal.getData(), kernel.getData(), backprop.getData());
-          });
+          indexMap.backprop(errorSignal.getData(), kernel.getData(), backprop.getData());
           if (isVerbose()) {
             ConvolutionSynapseLayer.log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
           }
