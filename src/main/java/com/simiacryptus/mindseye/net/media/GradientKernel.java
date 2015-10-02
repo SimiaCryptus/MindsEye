@@ -20,36 +20,43 @@ public final class GradientKernel extends com.amd.aparapi.Kernel {
 
   @Override
   public void run() {
-    int o = getGlobalId(0);
-    double accum = 0;
+    weights[getGlobalId()] = run(getGlobalId());
+  }
+
+  public double run(int k) {
+    int k3 = k / (kernelSize[0] * kernelSize[1]);
+    int k2 = (k - k3*kernelSize[0] * kernelSize[1]) / kernelSize[1];
+    int k1 = (k - (k3 * kernelSize[1] + k2)*kernelSize[0]);
+
+    double accum = 0.;
     for(int i=0;i<input.length;i++){
+      if(0. == input[i]) continue;
+      
       int i3 = i / (inputSize[0] * inputSize[1]);
       int i2 = (i - i3*inputSize[0] * inputSize[1]) / inputSize[1];
       int i1 = (i - (i3 * inputSize[1] + i2)*inputSize[0]);
+
+      int o3 = (k3 - i3) / inputSize[2];
+      int o2 = i2+k2;
+      int o1 = i1+k1;      
+      int o = o1 + outputSize[0] * (o2 + outputSize[1] * o3);
       
-      int o3 = o / (outputSize[0] * outputSize[1]);
-      int o2 = (o - o3*outputSize[0] * outputSize[1]) / outputSize[1];
-      int o1 = (o - (o3 * outputSize[1] + o2)*outputSize[0]);
-      
-      int k1 = o1-i1;
-      int k2 = o2-i2;
-      int k3 = i3 * outputSize[2] + o3;
-      
-      double in_i = input[i];
-      if(0. != in_i){
-        if(0 <= k1 && k1 < kernelSize[0]) {
-          if(0 <= k2 && k2 < kernelSize[1]) {
-            if(0 <= k3 && k3 < kernelSize[2]) {
-              int k = k1 + kernelSize[0] * (k2 + kernelSize[1] * k3);
-              weights[k] += in_i * output[o];
-            }
+      if(0 <= o1 && o1 < outputSize[0]) {
+        if(0 <= o2 && o2 < outputSize[1]) {
+          if(0 <= o3 && o3 < outputSize[2]) {
+            if(0. == output[o]) continue;
+            accum += input[i] * output[o];
+            //System.out.println(String.format("[%s](%s) += [%s](%s) * [%s](%s) [%s,%s,%s]",k,weights[k],o,accum,i,input[i],k1,k2,k3));
+            //System.out.println(String.format("k=[%s,%s,%s]  i=[%s,%s,%s]  o=[%s,%s,%s]",k1,k2,k3,i1,i2,i3,o1,o2,o3));
           }
         }
       }
     }
+    return accum;
   }
   
   public void exe(com.amd.aparapi.device.Device device){
-    execute(device.createRange(outputSize[0]*outputSize[1]*outputSize[2]));
+    //for(int k=0;k<weights.length;k++){ weights[k] = run(k); }
+    execute(device.createRange(kernelSize[0]*kernelSize[1]*kernelSize[2]));
   }
 }

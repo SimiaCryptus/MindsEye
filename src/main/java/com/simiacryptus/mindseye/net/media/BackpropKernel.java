@@ -38,6 +38,6 @@ public final class BackpropKernel extends com.amd.aparapi.Kernel {
   }
  
   public void exe(com.amd.aparapi.device.Device device){
-    execute(device.createRange3D(inputSize[0], inputSize[1], inputSize[2], 1, 1, 1));
+    execute(device.createRange3D(inputSize[0], inputSize[1], inputSize[2]));
   }
 }
