@@ -72,7 +72,7 @@ public class SimpleNetworkTests {
     .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
     
     .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()), (NNLayer<?>) new EntropyLossLayer())
-        .verifyConvergence(0.01, 00);
+        .verifyConvergence(0.01, 100);
   }
 
   @Test

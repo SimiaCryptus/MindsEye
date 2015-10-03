@@ -14,6 +14,7 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
+import com.simiacryptus.mindseye.net.dev.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
@@ -86,6 +87,14 @@ public class DeltaValidationTest  {
     NDArray outputPrototype = new NDArray(3);
     NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new SigmoidActivationLayer();
+    test(outputPrototype, inputPrototype, component);
+  }
+  
+  @org.junit.Test
+  public void testL1NormalizationLayer() throws Exception{
+    NDArray outputPrototype = new NDArray(3);
+    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new L1NormalizationLayer();
     test(outputPrototype, inputPrototype, component);
   }
 
