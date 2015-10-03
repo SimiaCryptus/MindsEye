@@ -52,11 +52,12 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
     private NDArray backprop(final NDArray delta, final DeltaBuffer buffer) {
       final double[] deltaData = delta.getData();
-      final DoubleMatrix matrix = DenseSynapseLayer.this.weights.asMatrix();
+      NDArray r = DenseSynapseLayer.this.weights;
+      final DoubleMatrix matrix = new DoubleMatrix(r.getDims()[1], r.getDims()[0], r.getData());
       final NDArray passback = new NDArray(this.inObj.data.getDims());
       for (int i = 0; i < matrix.columns; i++) {
         for (int j = 0; j < matrix.rows; j++) {
-          passback.add(i, deltaData[j] * matrix.get(j, i));
+          passback.add(i, deltaData[j] * matrix.get(j,i));
         }
       }
       this.inObj.feedback(passback, buffer);
@@ -118,11 +119,11 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
     final int outdim = output.dim();
     int idx = 0;
     for (int i = 0; i < indata.length; i++) {
-      final double b = indata[i];
+      final double inval = indata[i];
       for (int o = 0; o < outdim; o++) {
-        final double a = wdata[idx++];
-        final double value = b * a;
-        output.add(o, value);
+        final double wval = wdata[idx++];
+        final double ovalue = inval * wval;
+        output.add(o, ovalue);
       }
     }
   }

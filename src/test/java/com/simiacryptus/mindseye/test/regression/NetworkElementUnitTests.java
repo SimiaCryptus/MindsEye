@@ -15,7 +15,6 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dev.ExpActivationLayer;
 import com.simiacryptus.mindseye.net.dev.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.dev.SynapseActivationLayer;
@@ -104,16 +103,6 @@ public class NetworkElementUnitTests {
   }
 
   @Test
-  public void convolutionSynapseLayer_train2() throws Exception {
-    final boolean verbose = false;
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 1 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1 }) } };
-    new Tester().init(samples, new DAGNetwork().add(new ConvolutionSynapseLayer(inputSize, 1).addWeights(() -> 10.5 * SimpleNetworkTests.random.nextGaussian()).setVerbose(verbose).freeze())
-    .add(new BiasLayer(outSize)), (NNLayer<?>) new EntropyLossLayer()).setVerbose(verbose).setStaticRate(.1).verifyConvergence(0.1, 100);
-  }
-
-  @Test
   public void denseSynapseLayer_feedback() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
@@ -168,24 +157,6 @@ public class NetworkElementUnitTests {
   }
 
   @Test
-  @org.junit.Ignore
-  public void effectiveSoftmaxActivationLayer_feedback() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
-    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new ExpActivationLayer()).add(new L1NormalizationLayer()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
-  }
-
-  @Test
-  @org.junit.Ignore
-  public void expActivationLayer_feedback() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.01, 100. }) } };
-    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)).add(new ExpActivationLayer()), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.1, 100);
-  }
-
-  @Test
   public void linearActivationLayer_feedback() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
@@ -222,28 +193,14 @@ public class NetworkElementUnitTests {
   }
 
   @Test
-  public void nestingLayer_feedback() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
-    new Tester().init(samples, new DAGNetwork() //
-    .add(new BiasLayer(inputSize)) //
-    .add(new DAGNetwork() //
-        .add(new ExpActivationLayer())//
-        .add(new L1NormalizationLayer())), (NNLayer<?>) new EntropyLossLayer())//
-        .verifyConvergence(0.1, 100);
-  }
-
-  @Test
   public void nestingLayer_feedback2() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.9, 0.1 }) } };
-    new Tester().init(samples, new DAGNetwork() //
+    DAGNetwork net = new DAGNetwork() //
     .add(new BiasLayer(inputSize)) //
-    .add(new DAGNetwork() //
-        .add(new SoftmaxActivationLayer())), (NNLayer<?>) new EntropyLossLayer())//
-        .verifyConvergence(0.1, 100);
+    .add(new SoftmaxActivationLayer());
+    new Tester().init(samples, net, new EntropyLossLayer()).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -265,7 +222,7 @@ public class NetworkElementUnitTests {
     .add(new SoftmaxActivationLayer().setVerbose(verbose)), (NNLayer<?>) new EntropyLossLayer()) //
         .setVerbose(true) //
         //.setParallel(false)
-        .verifyConvergence(0.1, 1);
+        .verifyConvergence(0.1, 100);
 
   }
 

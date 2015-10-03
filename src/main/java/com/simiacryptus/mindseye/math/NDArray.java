@@ -87,10 +87,6 @@ public class NDArray {
     return result;
   }
 
-  public DoubleMatrix asMatrix() {
-    return new DoubleMatrix(this.dims[0], this.dims[1], getData()).transpose();
-  }
-
   public DoubleMatrix asRowMatrix() {
     return new DoubleMatrix(this.dims[0], 1, getData()).transpose();
   }

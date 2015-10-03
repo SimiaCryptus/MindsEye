@@ -13,7 +13,7 @@ import com.simiacryptus.mindseye.math.VectorLogic;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
-  private final java.util.concurrent.ConcurrentHashMap<NNLayer<?>, DeltaFlushBuffer> map = new java.util.concurrent.ConcurrentHashMap<>();
+  public final java.util.concurrent.ConcurrentHashMap<NNLayer<?>, DeltaFlushBuffer> map = new java.util.concurrent.ConcurrentHashMap<>();
 
   public DeltaBuffer() {
   }
