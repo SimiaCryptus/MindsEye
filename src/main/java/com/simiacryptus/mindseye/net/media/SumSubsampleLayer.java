@@ -67,13 +67,13 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
   public static final LoadingCache<IndexMapKey, java.util.Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder().build(new CacheLoader<IndexMapKey, java.util.Map<Coordinate, List<int[]>>>() {
     @Override
     public java.util.Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
-      int[] kernelDims = key.kernel;
+      int[] ksize = key.kernel;
       java.util.Map<Coordinate,List<int[]>> coordMap = new NDArray(key.output).coordStream(false).collect(java.util.stream.Collectors.toMap(o->o, 
           o -> {
-            return new NDArray(kernelDims).coordStream(false).map(kernelCoord -> {
+            return new NDArray(ksize).coordStream(false).map(kernelCoord -> {
               final int[] r = new int[o.coords.length];
-              for (int i1 = 0; i1 < o.coords.length; i1++) {
-                r[i1] = o.coords[i1] * kernelDims[i1] + kernelCoord.coords[i1];
+              for (int i = 0; i < o.coords.length; i++) {
+                r[i] = o.coords[i] * ksize[i] + kernelCoord.coords[i];
               }
               return r;
             }).collect(java.util.stream.Collectors.toList());
@@ -121,19 +121,27 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
       for(int[] inputCoord : outputMapping.getValue()) {
         sum += input.get(inputCoord);
       }
-      if(Double.isFinite(sum)) output.add(outputMapping.getKey(), sum/kernelSize);
+      if(Double.isFinite(sum)) {
+        output.add(outputMapping.getKey(), sum/kernelSize);
+      }
     }
     return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
           final NDArray backSignal = new NDArray(inputDims);
-          output.coordStream(false).forEach(o -> {
-            double outV = output.get(o);
-            getKernelInputCoords(o).forEach(i->{
-              backSignal.add(i, outV/kernelSize);
-            });
-          });
+          for(Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()){
+            double outputValue = data.get(outputMapping.getKey());
+            for(int[] inputCoord : outputMapping.getValue()) {
+              backSignal.add(inputCoord, outputValue/kernelSize);
+            }
+          }
+//          output.coordStream(false).forEach(o -> {
+//            double outV = output.get(o);
+//            getKernelInputCoords(o).forEach(i->{
+//              backSignal.add(i, outV/kernelSize);
+//            });
+//          });
           inObj[0].feedback(backSignal, buffer);
         }
       }
@@ -145,17 +153,17 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
     };
   }
 
-  public Stream<int[]> getKernelInputCoords(Coordinate outCoord) {
-    List<int[]> kernelCoords = new NDArray(this.kernelDims).coordStream(false).map(kernelCoord -> {
-      final int[] r = new int[outCoord.coords.length];
-      for (int i1 = 0; i1 < outCoord.coords.length; i1++) {
-        r[i1] = outCoord.coords[i1] * this.kernelDims[i1] + kernelCoord.coords[i1];
-      }
-      return r;
-    }).collect(java.util.stream.Collectors.toList());
-    Stream<int[]> stream = kernelCoords.stream();
-    return stream;
-  }
+//  public Stream<int[]> getKernelInputCoords(Coordinate outCoord) {
+//    List<int[]> kernelCoords = new NDArray(this.kernelDims).coordStream(false).map(kernelCoord -> {
+//      final int[] r = new int[outCoord.coords.length];
+//      for (int i1 = 0; i1 < outCoord.coords.length; i1++) {
+//        r[i1] = outCoord.coords[i1] * this.kernelDims[i1] + kernelCoord.coords[i1];
+//      }
+//      return r;
+//    }).collect(java.util.stream.Collectors.toList());
+//    Stream<int[]> stream = kernelCoords.stream();
+//    return stream;
+//  }
 
   @Override
   public List<double[]> state() {

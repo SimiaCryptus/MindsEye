@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
 
+import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.util.Util;
 
 public class NDArray {
@@ -246,9 +248,10 @@ public class NDArray {
     return this;
   }
 
-  public void set(final int index, final double value) {
+  public NDArray set(final int index, final double value) {
     //assert Double.isFinite(value);
     getData()[index] = value;
+    return this;
   }
 
   public void set(final int[] coords, final double value) {
@@ -289,5 +292,22 @@ public class NDArray {
   public NDArray reformat(int... dims) {
     return new NDArray(dims, getData());
   }
+
+  public NDArray fill(final DoubleSupplier f) {
+    Arrays.parallelSetAll(this.getData(), i -> f.getAsDouble());
+    return this;
+  }
+
+
+  public NDArray minus(NDArray right) {
+    assert(Arrays.equals(getDims(), right.getDims()));
+    NDArray copy = new NDArray(getDims());
+    double[] thisData = getData();
+    double[] rightData = right.getData();
+    Arrays.parallelSetAll(copy.getData(), i -> thisData[i] - rightData[i]);
+    return copy;
+  }
+
+
 
 }

@@ -19,14 +19,14 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
-    final int[] inputSize = new int[] { 28, 28, 1 };
+    //final int[] inputSize = new int[] { 28, 28, 1 };
     //final int[] midSize = new int[] { 20 };
-    final int[] outSize = new int[] { 10 };
+    //final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
 
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
     //int headSize = new NDArray(inputSize).getData().length;
-    net = net.add(new SumSubsampleLayer(new int[] { 26, 26, 1 }));
+    net = net.add(new SumSubsampleLayer(new int[] { 27, 27, 1 }));
 
     //int headSize = net.eval(new EvaluationContext(), new NDArray(inputSize)).data.dim();
     //net = net.add(new DenseSynapseLayer(headSize, outSize).addWeights(() -> Util.R.get().nextGaussian() * .005));
@@ -61,7 +61,7 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
 
     }.init(samples, net, lossLayer).setVerbose(true);
     trainer.setVerbose(true);
-    trainer.trainingContext().setTimeout(2, java.util.concurrent.TimeUnit.MINUTES);
+    trainer.trainingContext().setTimeout(30, java.util.concurrent.TimeUnit.MINUTES);
     return trainer;
   }
 

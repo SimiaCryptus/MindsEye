@@ -142,13 +142,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final int[] kernelDims = this.kernel.getDims();
     final NDArray output = new NDArray(getOutputDims(inputDims, kernelDims));
     final ConvolutionController indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
-    double[] indata = input.getData();
-    double[] kdata = this.kernel.getData();
-    final double[] indata1 = indata;
-    final double[] kdata1 = kdata;
-    double[] outdata = output.getData();
-    //com.amd.aparapi.device.Device.firstCPU().
-    indexMap.convolve(indata1, kdata1, outdata);
+    indexMap.convolve(input.getData(), this.kernel.getData(), output.getData());
     if (isVerbose()) {
       //ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
     }
@@ -156,13 +150,14 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       @Override
       public void feedback(final NDArray errorSignal, final DeltaBuffer buffer) {
         if (!isFrozen()) {
-          final NDArray weightGradient = new NDArray(ConvolutionSynapseLayer.this.kernel.getDims());
-          indexMap.gradient(indata, errorSignal.getData(), weightGradient.getData());
-          buffer.get(ConvolutionSynapseLayer.this, ConvolutionSynapseLayer.this.kernel).feed(weightGradient.getData());
+          NDArray kernel = ConvolutionSynapseLayer.this.kernel;
+          final NDArray weightGradient = new NDArray(kernel.getDims());
+          indexMap.gradient(input.getData(), weightGradient.getData(), errorSignal.getData());
+          buffer.get(ConvolutionSynapseLayer.this, kernel).feed(weightGradient.getData());
         }
         if (inObj[0].isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
-          indexMap.backprop(errorSignal.getData(), kernel.getData(), backprop.getData());
+          indexMap.backprop(backprop.getData(), kernel.getData(), errorSignal.getData());
           if (isVerbose()) {
             ConvolutionSynapseLayer.log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
           }
@@ -183,7 +178,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       if (i == (kernelSize.length - 1)) {        
         x = kernelSize[i] / inputSize[i];
       } else {
-        x = inputSize[i] - kernelSize[i] + 1;
+        x = 1 + inputSize[i] - kernelSize[i];
       }
       if (0 >= x) {
         assert (false);

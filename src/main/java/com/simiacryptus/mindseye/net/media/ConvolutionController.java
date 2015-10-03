@@ -111,31 +111,31 @@ public final class ConvolutionController {
       convolveTask.output = output;
       convolveTask.put(convolveTask.input);
       convolveTask.put(convolveTask.weights);
-      convolveTask.put(convolveTask.output);
       range.with(range -> convolveTask.exe(range));
       convolveTask.get(convolveTask.output);
     });
   }
 
-  public void gradient(double[] input, double[] output, double[] weights) {
+  public void gradient(double[] input, double[] weights, double[] output) {
     kernelTask.with(kernelTask -> {
       kernelTask.input = input;
       kernelTask.weights = weights;
       kernelTask.output = output;
       kernelTask.put(kernelTask.input);
-      kernelTask.put(kernelTask.weights);
       kernelTask.put(kernelTask.output);
       range.with(range -> kernelTask.exe(range));
       kernelTask.get(kernelTask.weights);
     });
   }
 
-  public void backprop(double[] output, double[] weights, double[] input) {
+  public void backprop(double[] input, double[] weights, double[] output) {
+    assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+    assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
+    assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
     backpropTask.with(backpropTask -> {
       backpropTask.input = input;
       backpropTask.weights = weights;
       backpropTask.output = output;
-      backpropTask.put(backpropTask.input);
       backpropTask.put(backpropTask.weights);
       backpropTask.put(backpropTask.output);
       range.with(range -> backpropTask.exe(range));
@@ -157,7 +157,7 @@ public final class ConvolutionController {
   }
 
   public EXECUTION_MODE getExecutionMode() {
-    return EXECUTION_MODE.CPU;
+    return EXECUTION_MODE.GPU;
   }
 
 }

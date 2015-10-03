@@ -59,12 +59,12 @@ public class ImageNetworkDev {
   }
 
   public NNLayer<?> blur_3() {
-    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 9);
-    for(int ii=0;ii<3;ii++){
+    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 1);
+    for(int ii=0;ii<1;ii++){
       int i = ii+ii*3;
-      convolution.kernel.set(new int[] { 0, 0, i }, 0.333);
+      convolution.kernel.set(new int[] { 0, 2, i }, 0.333);
       convolution.kernel.set(new int[] { 1, 1, i }, 0.333);
-      convolution.kernel.set(new int[] { 2, 2, i }, 0.333);
+      convolution.kernel.set(new int[] { 2, 0, i }, 0.333);
     }
     convolution.freeze();
     return convolution;
@@ -84,6 +84,52 @@ public class ImageNetworkDev {
 
   @Test
   public void testDeconvolution() throws Exception {
+
+    // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
+    //final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
+    //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
+
+    //final NNLayer<?> convolution = blur_3x4();
+    final NNLayer<?> convolution = blur_3();
+    
+    final int[] inputSize = inputImage.getDims();
+    final EvaluationContext evaluationContext = new EvaluationContext();
+    final int[] outSize = convolution.eval(evaluationContext, new NDArray(inputSize)).data.getDims();
+    final List<LabeledObject<NDArray>> data = new ArrayList<>();
+    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
+
+    Util.report(data.stream().map(obj -> {
+
+      final NNResult blurredImage = convolution.eval(new EvaluationContext(), new NDArray[] { obj.data });
+      
+      final NDArray zeroInput = new NDArray(inputSize);
+      BiasLayer bias = new BiasLayer(inputSize);
+      DAGNetwork convolutionNet = new DAGNetwork().add(bias).add(convolution);
+      SqLossLayer lossLayer = new SqLossLayer();
+
+      final Tester trainer = new Tester().setStaticRate(1.);
+      trainer.init(new NDArray[][] { { zeroInput, blurredImage.data } }, convolutionNet, lossLayer);
+      final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
+      try {
+        trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);
+        trainer.getDevtrainer().refresh();
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+
+      bias = (BiasLayer) trainer.getNet().getChild(bias.getId());
+      final NNResult recovered = bias.eval(evaluationContext, zeroInput);
+      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(new EvaluationContext(), zeroInput);
+
+      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, blurredImage.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
+          Util.toImage(new NDArray(outSize, tested.data.getData())));
+    }));
+
+  }
+  
+  @Test
+  public void testDeconvolution2() throws Exception {
 
     // List<LabeledObject<NDArray>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
