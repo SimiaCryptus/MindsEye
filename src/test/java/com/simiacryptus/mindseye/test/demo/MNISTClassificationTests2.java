@@ -9,6 +9,8 @@ import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
+import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.util.Util;
@@ -22,12 +24,12 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
 
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 8).addWeights(() -> Util.R.get().nextGaussian() * .1));
-    //net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
-
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
     //int headSize = new NDArray(inputSize).getData().length;
-    int headSize = net.eval(new EvaluationContext(), new NDArray(inputSize)).data.dim();
-    net = net.add(new DenseSynapseLayer(headSize, outSize).addWeights(() -> Util.R.get().nextGaussian() * .005));
+    net = net.add(new SumSubsampleLayer(new int[] { 26, 26, 1 }));
+
+    //int headSize = net.eval(new EvaluationContext(), new NDArray(inputSize)).data.dim();
+    //net = net.add(new DenseSynapseLayer(headSize, outSize).addWeights(() -> Util.R.get().nextGaussian() * .005));
 
 //    net = net.add(new BiasLayer(midSize).addWeights(() -> Util.R.get().nextGaussian() * .1));
 //    net = net.add(new MinMaxFilterLayer());

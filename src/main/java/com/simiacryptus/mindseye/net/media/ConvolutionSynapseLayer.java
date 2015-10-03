@@ -177,9 +177,19 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     };
   }
 
-  static int[] getOutputDims(final int[] inputDims, final int[] kernelDims) {
-    final int[] newDims = IntStream.range(0, kernelDims.length).map(i -> i == kernelDims.length - 1 ? kernelDims[i] : inputDims[i] - kernelDims[i] + 1).toArray();
-    return newDims;
+  public static int[] getOutputDims(final int[] inputSize, final int[] kernelSize) {
+    return IntStream.range(0, kernelSize.length).map(i -> {
+      int x;
+      if (i == (kernelSize.length - 1)) {        
+        x = kernelSize[i] / inputSize[i];
+      } else {
+        x = inputSize[i] - kernelSize[i] + 1;
+      }
+      if (0 >= x) {
+        assert (false);
+      }
+      return x;
+    }).toArray();
   }
 
   public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {

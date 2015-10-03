@@ -121,13 +121,8 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
       for(int[] inputCoord : outputMapping.getValue()) {
         sum += input.get(inputCoord);
       }
-      sum /= outputMapping.getValue().size();
-      if(Double.isFinite(sum)) output.add(outputMapping.getKey(), sum);
+      if(Double.isFinite(sum)) output.add(outputMapping.getKey(), sum/kernelSize);
     }
-//    final double x = kernelCoords
-//        .mapToDouble(i->input.get(i))
-//        .sum();
-//    if(Double.isFinite(x) && kernelSize>0) output.add(o, x/kernelSize);
     return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {

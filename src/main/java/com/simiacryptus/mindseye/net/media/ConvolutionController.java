@@ -23,18 +23,7 @@ public final class ConvolutionController {
   public ConvolutionController(int[] inputSize, int[] kernelSize) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
-    this.outputSize = IntStream.range(0, kernelSize.length).map(i -> {
-      int x;
-      if (i == (kernelSize.length - 1)) {
-        x = kernelSize[i] / inputSize[i];
-      } else {
-        x = inputSize[i] - kernelSize[i] + 1;
-      }
-      if (0 >= x) {
-        assert (false);
-      }
-      return x;
-    }).toArray();
+    this.outputSize = ConvolutionSynapseLayer.getOutputDims(inputSize, kernelSize);
     assert (this.outputSize.length == 3);
     assert (this.kernelSize.length == 3);
     assert (this.inputSize.length == 3);
@@ -115,6 +104,7 @@ public final class ConvolutionController {
   }
 
   public void convolve(double[] input, double[] weights, double[] output) {
+    assert(outputSize[0]*outputSize[1]*outputSize[2] == output.length);
     convolveTask.with(convolveTask -> {
       convolveTask.input = input;
       convolveTask.weights = weights;

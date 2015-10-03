@@ -59,16 +59,11 @@ public class ImageNetworkDev {
   }
 
   public NNLayer<?> blur_3() {
-    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 3);
-    for(int i=0;i<3;i++){
+    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 9);
+    for(int ii=0;ii<3;ii++){
+      int i = ii+ii*3;
       convolution.kernel.set(new int[] { 0, 0, i }, 0.333);
-      convolution.kernel.set(new int[] { 0, 1, i }, 0);
-      convolution.kernel.set(new int[] { 0, 2, i }, 0);
-      convolution.kernel.set(new int[] { 1, 0, i }, 0.);
       convolution.kernel.set(new int[] { 1, 1, i }, 0.333);
-      convolution.kernel.set(new int[] { 1, 2, i }, 0.);
-      convolution.kernel.set(new int[] { 2, 0, i }, 0.);
-      convolution.kernel.set(new int[] { 2, 1, i }, 0.);
       convolution.kernel.set(new int[] { 2, 2, i }, 0.333);
     }
     convolution.freeze();
@@ -83,26 +78,6 @@ public class ImageNetworkDev {
     return net;
   }
 
-  public NNLayer<?> blur1() {
-    final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 3 }, 1);
-    convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, 0.25);
-    convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 0.25);
-    convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 0.25);
-    convolution2.kernel.set(new int[] { 1, 1, 0, 0 }, 0.25);
-    convolution2.freeze();
-    return convolution2;
-  }
-
-  public NNLayer<?> edge1() {
-    final ConvolutionSynapseLayer convolution2 = new ConvolutionSynapseLayer(new int[] { 2, 2, 3 }, 1);
-    convolution2.kernel.set(new int[] { 0, 0, 0, 0 }, -1);
-    convolution2.kernel.set(new int[] { 1, 0, 0, 0 }, 1);
-    convolution2.kernel.set(new int[] { 0, 1, 0, 0 }, 1);
-    convolution2.kernel.set(new int[] { 1, 1, 0, 0 }, -1);
-    convolution2.freeze();
-    return convolution2;
-  }
-
   public int[] outsize(final int[] inputSize, final int[] kernelSize) {
     return new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1, inputSize[2] - kernelSize[2] + 1 };
   }
@@ -113,10 +88,8 @@ public class ImageNetworkDev {
     // List<LabeledObject<NDArray>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
     final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 },
-    // "Hello World"));
-    // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300},
-    // "Hello World"));
+    //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
+//     NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();
 
@@ -176,6 +149,35 @@ public class ImageNetworkDev {
 
       return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
           Util.toImage(new NDArray(outSize, tested.data.getData())));
+    }));
+
+  }
+
+  @Test
+  public void testConvolution() throws Exception {
+
+    final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
+
+    final NNLayer<?> convolution = blur_3x4();
+    //final NNLayer<?> convolution = blur_3();
+
+    final int[] inputSize = inputImage.getDims();
+    final EvaluationContext evaluationContext = new EvaluationContext();
+    final int[] outSize = convolution.eval(evaluationContext, new NDArray(inputSize)).data.getDims();
+    final List<LabeledObject<NDArray>> data = new ArrayList<>();
+    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
+
+    final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
+
+    Util.report(data.stream().map(obj -> {
+      final NDArray[] input = { obj.data };
+      final NNResult output = forwardConvolutionNet.eval(new EvaluationContext(), input);
+
+      return Util.imageHtml(
+          Util.toImage(obj.data), 
+          Util.toImage(new NDArray(outSize, output.data.getData()))
+        );
     }));
 
   }

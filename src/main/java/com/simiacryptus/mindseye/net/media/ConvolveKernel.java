@@ -15,25 +15,25 @@ public final class ConvolveKernel extends com.amd.aparapi.Kernel {
     this.weights = weights;
     this.outputSize = outputSize;
     this.output = output;
+    assert(outputSize[0]*outputSize[1]*outputSize[2] == output.length);
   }
 
   @Override
   public void run() {
-    int o = getGlobalId();
-    output[o] = run(o);
+    output[getGlobalId()] = run(getGlobalId());
   }
 
   public double run(int o) {
     int o3 = o / (outputSize[0] * outputSize[1]);
-    int o2 = (o - o3*outputSize[0] * outputSize[1]) / outputSize[1];
-    int o1 = (o - (o3 * outputSize[1] + o2)*outputSize[0]);
+    int o2 = (o % (outputSize[0]*outputSize[1])) / outputSize[0];
+    int o1 = o % outputSize[0];
     
     double accum = 0;
     for(int k=0;k<weights.length;k++){
       if(0. == weights[k]) continue;
       int k3 = k / (kernelSize[0] * kernelSize[1]);
-      int k2 = (k - k3*kernelSize[0] * kernelSize[1]) / kernelSize[1];
-      int k1 = (k - (k3 * kernelSize[1] + k2)*kernelSize[0]);
+      int k2 = (k % (kernelSize[0]*kernelSize[1])) / kernelSize[0];
+      int k1 = k % kernelSize[0];
       
       int i3 = k3 - inputSize[2] * o3;
       int i2 = o2-k2;
@@ -55,6 +55,7 @@ public final class ConvolveKernel extends com.amd.aparapi.Kernel {
   }
   
   public void exe(com.amd.aparapi.device.Device device){
+    assert(outputSize[0]*outputSize[1]*outputSize[2] == output.length);
     //for(int o=0;o<output.length;o++){ output[o] = run(o); }
     execute(device.createRange(outputSize[0]*outputSize[1]*outputSize[2]));
   }
