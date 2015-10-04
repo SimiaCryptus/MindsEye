@@ -10,7 +10,6 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
@@ -24,7 +23,7 @@ import com.simiacryptus.mindseye.util.Util;
 public class DeltaValidationTest  {
   private static final Logger log = LoggerFactory.getLogger(DeltaValidationTest.class);
   
-  double deltaFactor = 1e-6;
+  public static final double deltaFactor = 1e-6;
 
   @org.junit.Test
   public void testDenseSynapseLayer1() throws Exception{
@@ -107,7 +106,7 @@ public class DeltaValidationTest  {
   }
 
 
-  public void test(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) throws Exception {
+  public static void test(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) throws Exception {
     {
       NDArray measuredGradient = measureFeedbackGradient(outputPrototype, inputPrototype, component);
       NDArray implementedGradient = getFeedbackGradient(outputPrototype, inputPrototype, component);
@@ -123,7 +122,7 @@ public class DeltaValidationTest  {
 
 
 
-  public void assertEquals(NDArray measuredGradient, NDArray implementedGradient) throws Exception {
+  public static void assertEquals(NDArray measuredGradient, NDArray implementedGradient) throws Exception {
     try {
       for (int i = 0; i < measuredGradient.dim(); i++) {
         org.junit.Assert.assertEquals(measuredGradient.getData()[i], implementedGradient.getData()[i], 1e-4);
@@ -137,7 +136,7 @@ public class DeltaValidationTest  {
   }
 
 
-  public NDArray measureFeedbackGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) {
+  public static NDArray measureFeedbackGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) {
     NDArray measuredGradient = new NDArray(inputPrototype.dim(), outputPrototype.dim());
     NDArray baseOutput = component.eval(new EvaluationContext(), inputPrototype).data;
     for(int i=0;i<inputPrototype.dim();i++) {
@@ -152,7 +151,7 @@ public class DeltaValidationTest  {
     return measuredGradient;
   }
 
-  public NDArray measureLearningGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component, int layerNum) {
+  public static NDArray measureLearningGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component, int layerNum) {
     int stateLen = component.state().get(layerNum).length;
     NDArray gradient = new NDArray(stateLen, outputPrototype.dim());
     NDArray baseOutput = component.eval(new EvaluationContext(), inputPrototype).data;
@@ -169,7 +168,7 @@ public class DeltaValidationTest  {
   }
 
 
-  private NDArray getLearningGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component, int layerNum) {
+  private static NDArray getLearningGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component, int layerNum) {
     double[] stateArray = component.state().get(layerNum);
     int stateLen = stateArray.length;
     NDArray gradient = new NDArray(stateLen, outputPrototype.dim());
@@ -186,7 +185,7 @@ public class DeltaValidationTest  {
     return gradient;
   }
 
-  public NDArray getFeedbackGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) {
+  public static NDArray getFeedbackGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) {
     NDArray gradient = new NDArray(inputPrototype.dim(), outputPrototype.dim());
     for(int j=0;j<outputPrototype.dim();j++){
       int j_ = j;

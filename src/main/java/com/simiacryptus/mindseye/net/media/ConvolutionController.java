@@ -1,11 +1,7 @@
 package com.simiacryptus.mindseye.net.media;
 
 import java.util.Arrays;
-import java.util.stream.IntStream;
-
-import com.amd.aparapi.Range;
 import com.amd.aparapi.device.Device.TYPE;
-import com.amd.aparapi.device.OpenCLDevice;
 import com.amd.aparapi.Kernel.EXECUTION_MODE;
 
 public final class ConvolutionController {

@@ -18,7 +18,6 @@ import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.dev.SynapseActivationLayer;
-import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.util.Util;

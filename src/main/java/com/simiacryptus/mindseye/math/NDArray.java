@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
 
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.util.Util;
 
 public class NDArray {
