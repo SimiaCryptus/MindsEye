@@ -102,12 +102,13 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
 
   public synchronized DAGNetwork add(final NNLayer<?> nextHead) {
+    LazyResult head = this.head;
     this.byId.put(nextHead.getId(), nextHead);
-    final NNLayer<?> prevHead = getHeadLayer();
+    final NNLayer<?> prevHead = getLayer(head);
     this.prevMap.put(nextHead, prevHead);
     this.nextMap.put(prevHead, nextHead);
     assert(null != this.inputNode);
-    final UnaryNode node = new UnaryNode(nextHead, this.head);
+    final UnaryNode node = new UnaryNode(nextHead, head);
     setHead(node);
     return this;
   }
@@ -173,10 +174,14 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   public NNLayer<?> getHeadLayer() {
-    if (this.head instanceof UnaryNode)
-      return DAGNetwork.this.byId.get(((UnaryNode) this.head).layer);
-    else if (this.head instanceof BinaryNode)
-      return DAGNetwork.this.byId.get(((BinaryNode) this.head).layer);
+    return getLayer(this.head);
+  }
+
+  public NNLayer<?> getLayer(LazyResult head) {
+    if (head instanceof UnaryNode)
+      return DAGNetwork.this.byId.get(((UnaryNode) head).layer);
+    else if (head instanceof BinaryNode)
+      return DAGNetwork.this.byId.get(((BinaryNode) head).layer);
     else
       return null;
   }

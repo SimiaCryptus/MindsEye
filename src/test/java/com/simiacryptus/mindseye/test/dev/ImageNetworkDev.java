@@ -106,9 +106,11 @@ public class ImageNetworkDev {
       
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
-      DAGNetwork convolutionNet = new DAGNetwork().add(bias).add(convolution);
       final DAGNetwork dagNetwork = new DAGNetwork();
-      dagNetwork.add(convolutionNet);
+      dagNetwork.add(new DAGNetwork().add(bias).add(convolution));
+
+      dagNetwork.add(new DAGNetwork().add(bias).add(convolution));
+
       dagNetwork.add2(new SqLossLayer());
       
       final Tester trainer = new Tester().setStaticRate(1.);

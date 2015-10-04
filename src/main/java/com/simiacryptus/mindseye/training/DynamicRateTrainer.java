@@ -113,7 +113,7 @@ public class DynamicRateTrainer implements TrainingComponent {
       }
       if (Double.isFinite(projectedEndSeconds) && projectedEndSeconds > params.terminalETA) {
         log.debug(String.format("TERMINAL Projected final convergence time: %.3f sec", projectedEndSeconds));
-        break;
+        //break;
       }
       if (error <= trainingContext.terminalErr) {
         if (isVerbose()) {
