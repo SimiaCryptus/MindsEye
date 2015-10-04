@@ -60,10 +60,18 @@ public class DeltaValidationTest  {
   }
 
   @org.junit.Test
-  public void testSumSubsampleLayer() throws Throwable{
+  public void testSumSubsampleLayer1() throws Throwable{
     NDArray outputPrototype = new NDArray(1,1,1);
     NDArray inputPrototype = new NDArray(2,2,1).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new SumSubsampleLayer(2,2,1);
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testSumSubsampleLayer2() throws Throwable{
+    NDArray outputPrototype = new NDArray(1,1,2);
+    NDArray inputPrototype = new NDArray(3,5,2).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new SumSubsampleLayer(3,5,1);
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -94,8 +102,8 @@ public class DeltaValidationTest  {
   @org.junit.Test
   public void testConvolutionSynapseLayer4() throws Throwable{
     NDArray outputPrototype = new NDArray(2,3,2);
-    NDArray inputPrototype = new NDArray(3,4,2).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,2},4).addWeights(()->Util.R.get().nextGaussian());
+    NDArray inputPrototype = new NDArray(3,5,2).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,3},4).addWeights(()->Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
