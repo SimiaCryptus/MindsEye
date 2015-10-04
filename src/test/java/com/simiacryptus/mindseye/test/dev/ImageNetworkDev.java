@@ -20,11 +20,9 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
-import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork.DAGNode;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
-import com.simiacryptus.mindseye.net.dag.LazyResult;
-import com.simiacryptus.mindseye.net.dev.MinActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
@@ -90,9 +88,9 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
 
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    //final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
-    //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
+    NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();
     //final NNLayer<?> convolution = blur_3();
@@ -108,18 +106,44 @@ public class ImageNetworkDev {
       final NNResult blurredImage = convolution.eval(new EvaluationContext(), new NDArray[] { obj.data });
       
       final NDArray zeroInput = new NDArray(inputSize);
-      BiasLayer bias = new BiasLayer(inputSize);
       final DAGNetwork dagNetwork = new DAGNetwork();
+      BiasLayer bias = new BiasLayer(inputSize);
       dagNetwork.add(bias);
-      LazyResult biasNode = dagNetwork.getHead();
+      DAGNode biasNode = dagNetwork.getHead();
+      
       dagNetwork.add(convolution);
       dagNetwork.addLossComponent(new SqLossLayer());
-      List<LazyResult> outs = new ArrayList<>();
-      outs.add(dagNetwork.getHead());
-      dagNetwork.add(new DAGNetwork().add(new MinActivationLayer()).add(new SumLayer()), biasNode);
-      outs.add(dagNetwork.getHead());
-      dagNetwork.add(new SumLayer(), outs.toArray(new LazyResult[]{}));
       
+      List<DAGNode> outs = new ArrayList<>();
+      outs.add(dagNetwork.getHead());
+      
+//
+//      dagNetwork.add(new MinActivationLayer(), biasNode);
+//      dagNetwork.add(new SumLayer(){
+//
+//        @Override
+//        public NNResult eval(EvaluationContext evaluationContext, NNResult... inObj) {
+//          NNResult result = super.eval(evaluationContext, inObj);
+//          result.data.set(0, 1);
+//          log.debug(String.format("%s", result.data));
+//          return result;
+//        }
+//        
+//      });
+//      outs.add(dagNetwork.getHead());
+//      
+
+      
+//      dagNetwork.add(new com.simiacryptus.mindseye.net.basic.ProductLayer(){
+//
+//        @Override
+//        public NNResult eval(EvaluationContext evaluationContext, NNResult... inObj) {
+//          NNResult result = super.eval(evaluationContext, inObj);
+//          log.debug(String.format("%s => %s", java.util.Arrays.stream(inObj).map(l->l.data).collect(java.util.stream.Collectors.toList()), result.data));
+//          return result;
+//        }
+//      }, outs.toArray(new DAGNode[]{}));
+
       final Tester trainer = new Tester().setStaticRate(1.);
       
       //new NetInitializer().initialize(initPredictionNetwork);

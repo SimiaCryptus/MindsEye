@@ -14,29 +14,30 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
-public class SumLayer extends NNLayer<SumLayer> {
+public class ProductLayer extends NNLayer<ProductLayer> {
 
   /**
    * 
    */
   private static final long serialVersionUID = -5171545060770814729L;
-  private static final Logger log = LoggerFactory.getLogger(SumLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
 
-  public SumLayer() {
+  public ProductLayer() {
   }
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
-    double sum = 0;
+    double sum = 1;
     for(int l=0;l<inObj.length;l++){
       final double[] input = inObj[l].data.getData();
       for (int i = 0; i < input.length; i++) {
-        sum += input[i];
+        sum *= input[i];
       }
     }
+    final double sum_ = sum;
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { sum });
     if (isVerbose()) {
-      SumLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, sum));
+      ProductLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, sum));
     }
     return new NNResult(evaluationContext, output) {
       @Override
@@ -47,10 +48,10 @@ public class SumLayer extends NNLayer<SumLayer> {
           if (in_l.isAlive()) {
             final NDArray passback = new NDArray(in_l.data.getDims());
             for (int i = 0; i < in_l.data.dim(); i++) {
-              passback.set(i, delta);
+              passback.set(i, delta * sum_ / inObj[l].data.getData()[i]);
             }
             if (isVerbose()) {
-              SumLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
+              ProductLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
             }
             in_l.feedback(passback, buffer);
           }

@@ -4,10 +4,6 @@ import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
 
 public final class MinActivationLayer extends SimpleActivationLayer<MinActivationLayer> {
 
-
-  /**
-   * 
-   */
   private static final long serialVersionUID = 7627314158757648516L;
 
   public MinActivationLayer() {
@@ -18,29 +14,27 @@ public final class MinActivationLayer extends SimpleActivationLayer<MinActivatio
   
   @Override
   protected final void eval(final double x, final double[] results) {
-    final double minDeriv = 0;
     double d = x<getThreshold()?getFactor():0;
     double f = Math.min(x,getThreshold())*getFactor();
     assert Double.isFinite(d);
-    assert minDeriv <= Math.abs(d);
     results[0] = f;
     results[1] = d;
   }
 
-  double getThreshold() {
+  public double getThreshold() {
     return threshold;
   }
 
-  MinActivationLayer setThreshold(double threshold) {
+  public MinActivationLayer setThreshold(double threshold) {
     this.threshold = threshold;
     return this;
   }
 
-  double getFactor() {
+  public double getFactor() {
     return factor;
   }
 
-  MinActivationLayer setFactor(double factor) {
+  public MinActivationLayer setFactor(double factor) {
     this.factor = factor;
     return this;
   }

@@ -11,6 +11,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
+import com.simiacryptus.mindseye.net.basic.ProductLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
@@ -124,6 +125,15 @@ public class DeltaValidationTest  {
     NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
     NDArray inputPrototype2 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new SqLossLayer();
+    test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+
+  @org.junit.Test
+  public void testProductLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(1);
+    NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
+    NDArray inputPrototype2 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new ProductLayer();
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
 
