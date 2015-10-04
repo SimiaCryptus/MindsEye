@@ -21,9 +21,9 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
     //final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
 
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
     //int headSize = new NDArray(inputSize).getData().length;
-    net = net.add(new SumSubsampleLayer(new int[] { 27, 27, 1 }));
+    net = net.add(new SumSubsampleLayer(new int[] { 26, 26, 1 }));
 
     //int headSize = net.eval(new EvaluationContext(), new NDArray(inputSize)).data.dim();
     //net = net.add(new DenseSynapseLayer(headSize, outSize).addWeights(() -> Util.R.get().nextGaussian() * .005));

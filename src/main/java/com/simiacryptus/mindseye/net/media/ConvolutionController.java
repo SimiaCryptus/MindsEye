@@ -81,6 +81,8 @@ public final class ConvolutionController {
         com.amd.aparapi.device.Device openclDevice;
         if (getExecutionMode() == EXECUTION_MODE.CPU) {
           openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.firstCPU();
+        } else if (getExecutionMode() == EXECUTION_MODE.ACC) {
+          openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.firstACC();
         } else if (getExecutionMode() == EXECUTION_MODE.GPU) {
           openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.bestGPU();
         } else {
@@ -153,7 +155,7 @@ public final class ConvolutionController {
   }
 
   public EXECUTION_MODE getExecutionMode() {
-    return EXECUTION_MODE.GPU;
+    return EXECUTION_MODE.CPU;
   }
 
 }

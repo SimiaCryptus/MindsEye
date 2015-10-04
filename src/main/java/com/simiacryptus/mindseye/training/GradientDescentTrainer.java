@@ -29,6 +29,8 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private double rate = 0.1;
   private double temperature = 0.0;
   private boolean verbose = false;
+  private long hash = Util.R.get().nextLong();
+  private int trainingSize = 100;
 
   private DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
     final List<NNResult> netresults = eval(trainingContext, data, isParallelTraining());
@@ -65,7 +67,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   @Override
   public synchronized double getError() {
     if(Double.isNaN(error)){
-      return evalClassificationValidationData(new TrainingContext(), getData()).rms;
+      return evalClassificationValidationData(new TrainingContext(), getTrainingData()).rms;
     }
     return this.error;
   }
@@ -136,6 +138,8 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   public RateTrainingComponent setRate(final double dynamicRate) {
     assert Double.isFinite(dynamicRate);
     this.rate = dynamicRate;
+    updateHash();
+    setError(Double.NaN);
     return this;
   }
 
@@ -195,7 +199,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   public StepResult _step(final TrainingContext trainingContext) {
-    NDArray[][] data = getData();
+    NDArray[][] data = getTrainingData();
     final double prevError = evalClassificationValidationData(trainingContext, data).rms;
     final List<DeltaFlushBuffer> deltas = getVector(trainingContext, data).vector();
     deltas.stream().forEach(d->d.write(rate));
@@ -208,6 +212,19 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       }
     };
   }
+  
+  public NDArray[][] getTrainingData() {
+    NDArray[][] data = java.util.Arrays.stream(getData())
+        .parallel()
+        .sorted(java.util.Comparator.comparingLong(y->System.identityHashCode(y) ^ hash))
+        .limit(getTrainingSize())
+        .toArray(i->new NDArray[i][]);
+    return data;
+  }
+
+  private void updateHash() {
+    hash = Util.R.get().nextLong();
+  }
 
   public NDArray[][] getData() {
     return trainingData;
@@ -216,6 +233,15 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   @Override
   public void refresh() {
     setError(Double.NaN);
+  }
+
+  public int getTrainingSize() {
+    return trainingSize;
+  }
+
+  public GradientDescentTrainer setTrainingSize(int trainingSize) {
+    this.trainingSize = trainingSize;
+    return this;
   }
 
 }
