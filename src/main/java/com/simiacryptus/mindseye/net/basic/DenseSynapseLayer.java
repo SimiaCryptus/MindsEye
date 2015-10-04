@@ -22,6 +22,11 @@ import groovy.lang.Tuple2;
 public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 3538627887600182889L;
+
   private final class Result extends NNResult {
     private final NNResult inObj;
 

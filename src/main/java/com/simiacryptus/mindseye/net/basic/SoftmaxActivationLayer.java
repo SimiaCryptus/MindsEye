@@ -17,6 +17,11 @@ import groovy.lang.Tuple2;
 
 public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 2373420906380031927L;
+
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
 
   double maxInput = 50;

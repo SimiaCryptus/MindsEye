@@ -16,6 +16,10 @@ import groovy.lang.Tuple2;
 
 public class SumLayer extends NNLayer<SumLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5171545060770814729L;
   private static final Logger log = LoggerFactory.getLogger(SumLayer.class);
 
   public SumLayer() {

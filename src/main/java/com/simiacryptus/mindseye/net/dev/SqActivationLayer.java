@@ -5,6 +5,11 @@ import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
 
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5520500379591109767L;
+
   public SqActivationLayer() {
   }
 

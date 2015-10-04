@@ -12,6 +12,10 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class TreeNetwork extends DAGNetwork {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -4007937775688095219L;
   private final java.util.List<NNLayer<?>> gates = new java.util.ArrayList<>();
   protected final int[] inputSize;
   private final java.util.List<WrapperLayer> leafs = new java.util.ArrayList<>();

@@ -10,6 +10,10 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import groovy.lang.Tuple2;
 
 public class WrapperLayer extends NNLayer<WrapperLayer> {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 6284058717982209085L;
   private NNLayer<?> inner;
 
   public WrapperLayer(final NNLayer<?> inner) {

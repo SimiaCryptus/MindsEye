@@ -21,6 +21,11 @@ public class TreeTest1 extends SimpleClassificationTests {
 
     final NNLayer<DAGNetwork> net = new TreeNetwork(inputSize, outSize){
 
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1883285093126563281L;
+
       @Override
       public NNLayer<DAGNetwork> buildGate() {
         DAGNetwork gate = new DAGNetwork();

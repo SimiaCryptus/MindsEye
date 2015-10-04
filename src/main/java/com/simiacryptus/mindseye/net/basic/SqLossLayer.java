@@ -16,6 +16,10 @@ import groovy.lang.Tuple2;
 
 public class SqLossLayer extends NNLayer<SqLossLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 7589211270512485408L;
   private static final Logger log = LoggerFactory.getLogger(SqLossLayer.class);
 
   public SqLossLayer() {

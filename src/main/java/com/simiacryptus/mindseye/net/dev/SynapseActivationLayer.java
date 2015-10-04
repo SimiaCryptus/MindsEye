@@ -18,6 +18,11 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
 public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -3526706430472468300L;
+
   private final class Result extends NNResult {
     private final NNResult inObj;
 

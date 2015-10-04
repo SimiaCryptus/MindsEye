@@ -16,6 +16,11 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import groovy.lang.Tuple2;
 
 public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -3791321603590434332L;
+
   private final class DenseSynapseResult extends NNResult {
     private final NNResult inObj;
 

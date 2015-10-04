@@ -19,6 +19,11 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import groovy.lang.Tuple2;
 
 public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -4486788592198117530L;
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
 

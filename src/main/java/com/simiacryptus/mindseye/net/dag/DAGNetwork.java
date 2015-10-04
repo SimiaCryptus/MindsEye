@@ -21,12 +21,17 @@ import groovy.lang.Tuple2;
  * @author Andrew Charneski
  */
 public class DAGNetwork extends NNLayer<DAGNetwork> {
-  public final class BinaryNode extends LazyResult<NNResult> {
+  
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5683282519002886564L;
+  public final class BinaryNode extends LazyResult {
     private final UUID layer;
-    private final LazyResult<NNResult> left;
-    private final LazyResult<NNResult> right;
+    private final LazyResult left;
+    private final LazyResult right;
 
-    private BinaryNode(final NNLayer<?> layer, final LazyResult<NNResult> left, final LazyResult<NNResult> right) {
+    private BinaryNode(final NNLayer<?> layer, final LazyResult left, final LazyResult right) {
       this.layer = layer.getId();
       this.left = left;
       this.right = right;
@@ -50,26 +55,37 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     }
   }
 
-  private final class InputNode extends LazyResult<NNResult[]> {
+  public final class ConstNode extends LazyResult {
+    public final UUID handle;
+
+    private ConstNode() {
+      this(null);
+    }
+
+    public ConstNode(UUID handle) {
+      super(handle);
+      this.handle = handle;
+    }
+
     @Override
-    protected NNResult[] eval(final EvaluationContext t) {
-      return (NNResult[]) t.cache.get(DAGNetwork.this.inputHandle);
+    protected NNResult eval(final EvaluationContext t) {
+      return t.cache.get(handle);
     }
 
     @Override
     protected JsonObject toJson() {
       final JsonObject json = new JsonObject();
-      json.addProperty("target", DAGNetwork.this.inputHandle.toString());
+      json.addProperty("target", DAGNetwork.this.inputHandles.toString());
       return json;
     }
   }
 
-  private final class UnaryNode extends LazyResult<NNResult> {
+  private final class UnaryNode extends LazyResult {
     private final UUID layer;
-    private final LazyResult<NNResult>[] prevHead;
+    private final LazyResult[] prevHead;
 
     @SafeVarargs
-    private UnaryNode(final NNLayer<?> layer, final LazyResult<NNResult>... head) {
+    private UnaryNode(final NNLayer<?> layer, final LazyResult... head) {
       assert(null != head);
       this.layer = layer.getId();
       this.prevHead = head;
@@ -77,8 +93,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
 
     @Override
     protected NNResult eval(final EvaluationContext ctx) {
-      final NNResult input = (NNResult) this.prevHead[0].get(ctx);
-      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(ctx, input);
+      NNResult[] in = java.util.Arrays.stream(this.prevHead).map(x->x.get(ctx)).toArray(i->new NNResult[i]);
+      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(ctx, in);
       return output;
     }
 
@@ -95,9 +111,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
-  public final UUID inputHandle = UUID.randomUUID();
-  private final InputNode inputNode = new InputNode();
-  private LazyResult<NNResult> head = this.getInput().map(input->input[0]);
+  public final List<UUID> inputHandles = new java.util.ArrayList<>(java.util.Arrays.asList(UUID.randomUUID(),UUID.randomUUID()));
+  private LazyResult head = this.getInput().get(0);
 
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
@@ -107,7 +122,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   @SafeVarargs
-  public final DAGNetwork add(final NNLayer<?> nextHead, LazyResult<NNResult>... head) {
+  public final DAGNetwork add(final NNLayer<?> nextHead, LazyResult... head) {
     this.byId.put(nextHead.getId(), nextHead);
     {
       final NNLayer<?> prevHead = getLayer(head[0]);
@@ -121,9 +136,9 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   public synchronized NNLayer<DAGNetwork> addLossComponent(final NNLayer<?> nextHead) {
-    LazyResult<NNResult> idealNode = this.getInput().map(input->input[1]);
+    LazyResult idealNode = this.getInput().get(1);
     this.byId.put(nextHead.getId(), nextHead);
-    LazyResult<NNResult> head = this.getHead();
+    LazyResult head = this.getHead();
     final NNLayer<?> prevHead = getLayer(head);
     this.prevMap.put(nextHead, prevHead);
     this.nextMap.put(prevHead, nextHead);
@@ -133,7 +148,9 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... array) {
-    evaluationContext.cache.put(this.inputHandle, array);
+    for(int i=0;i<array.length;i++){
+      evaluationContext.cache.put(this.inputHandles.get(i), array[i]);
+    }
     return (NNResult) getHead().get(evaluationContext);
   }
 
@@ -174,7 +191,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
 
-  public LazyResult<NNResult> getHead() {
+  public LazyResult getHead() {
     return this.head;
   }
 
@@ -182,7 +199,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return getLayer(this.getHead());
   }
 
-  public NNLayer<?> getLayer(LazyResult<NNResult> head) {
+  public NNLayer<?> getLayer(LazyResult head) {
     if (head instanceof UnaryNode)
       return DAGNetwork.this.byId.get(((UnaryNode) head).layer);
     else if (head instanceof BinaryNode)
@@ -224,7 +241,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
 
   }
 
-  public void setHead(final LazyResult<NNResult> head) {
+  public void setHead(final LazyResult head) {
     this.head = head;
   }
 
@@ -233,8 +250,9 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
   }
 
-  public LazyResult<NNResult[]> getInput() {
-    return inputNode;
+  LazyResult inputNode = new ConstNode();
+  public List<LazyResult> getInput() {
+    return com.google.common.collect.Lists.transform(inputHandles, h->new ConstNode(h));
   }
 
 }

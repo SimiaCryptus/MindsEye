@@ -20,6 +20,11 @@ import groovy.lang.Tuple2;
 
 public class BiasLayer extends NNLayer<BiasLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1022169631431441049L;
+
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
 
   public final double[] bias;

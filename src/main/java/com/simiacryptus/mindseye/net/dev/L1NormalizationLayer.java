@@ -17,6 +17,10 @@ import groovy.lang.Tuple2;
 // XXX: Actually, L1
 public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -8028442822064680557L;
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
 
   public L1NormalizationLayer() {

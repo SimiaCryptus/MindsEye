@@ -17,6 +17,11 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -8951110316929643421L;
+
   private static final class NNResultBuffer extends NNResult {
 
     private NNResult inner;

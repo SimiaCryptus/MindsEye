@@ -33,6 +33,10 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class TestMNISTDev {
   public static class Network extends DAGNetwork {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2958566888774127417L;
     final NDArray inputSize = new NDArray(28, 28);
 
     public Network() {

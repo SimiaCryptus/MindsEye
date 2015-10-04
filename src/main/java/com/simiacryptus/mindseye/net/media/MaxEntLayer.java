@@ -15,6 +15,10 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public class MaxEntLayer extends NNLayer<MaxEntLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 2650922287017029894L;
   private static final Logger log = LoggerFactory.getLogger(MaxEntLayer.class);
   private double factor = -1;
   private boolean reverse = false;

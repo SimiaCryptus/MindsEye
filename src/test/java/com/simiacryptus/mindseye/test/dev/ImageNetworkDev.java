@@ -86,7 +86,6 @@ public class ImageNetworkDev {
     return new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1, inputSize[2] - kernelSize[2] + 1 };
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testDeconvolution() throws Exception {
 
@@ -112,10 +111,10 @@ public class ImageNetworkDev {
       BiasLayer bias = new BiasLayer(inputSize);
       final DAGNetwork dagNetwork = new DAGNetwork();
       dagNetwork.add(bias);
-      LazyResult<NNResult> biasNode = dagNetwork.getHead();
+      LazyResult biasNode = dagNetwork.getHead();
       dagNetwork.add(convolution);
       dagNetwork.addLossComponent(new SqLossLayer());
-      List<LazyResult<NNResult>> outs = new ArrayList<>();
+      List<LazyResult> outs = new ArrayList<>();
       outs.add(dagNetwork.getHead());
       dagNetwork.add(new DAGNetwork().add(new MinActivationLayer()).add(new SumLayer()), biasNode);
       outs.add(dagNetwork.getHead());

@@ -20,7 +20,12 @@ import groovy.lang.Tuple2;
  *
  * @author Andrew Charneski
  */
-public abstract class NNLayer<T extends NNLayer<T>> {
+public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializable {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 8741041477497062122L;
 
   private static final class ConstNNResult extends NNResult {
     

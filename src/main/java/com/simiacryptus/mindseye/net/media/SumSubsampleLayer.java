@@ -20,6 +20,11 @@ import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 7441695931197085499L;
+
   public static final class IndexMapKey {
     int[] kernel;
     int[] output;

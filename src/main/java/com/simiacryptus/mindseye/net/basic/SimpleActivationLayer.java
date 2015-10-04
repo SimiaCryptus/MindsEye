@@ -17,6 +17,10 @@ import groovy.lang.Tuple2;
 
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer<T> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5439874559292833041L;
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
 
   public SimpleActivationLayer() {

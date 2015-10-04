@@ -16,6 +16,10 @@ import groovy.lang.Tuple2;
 
 public class MaxEntropyLossLayer extends NNLayer<MaxEntropyLossLayer> {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 4246204583991554340L;
   private static final Logger log = LoggerFactory.getLogger(MaxEntropyLossLayer.class);
 
   public MaxEntropyLossLayer() {

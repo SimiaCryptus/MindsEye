@@ -20,6 +20,11 @@ import com.simiacryptus.mindseye.util.Util;
 import groovy.lang.Tuple2;
 
 public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -2105152439043901220L;
+
   private final class Result extends NNResult {
     private final NNResult inObj;
 
