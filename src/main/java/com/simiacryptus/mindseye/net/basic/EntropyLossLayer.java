@@ -23,29 +23,33 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
 
   @Override
   public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
-    final NDArray a = inObj[0].data;
+    final NDArray l = inObj[0].data;
     final NDArray b = inObj[1].data;
-    final NDArray r = new NDArray(a.getDims());
-    double total = 0;
-    for (int i = 0; i < a.dim(); i++) {
-      final double bd = b.getData()[i];
-      final double ad = Math.max(Math.min(a.getData()[i], 1.), 1e-12);
-      r.getData()[i] = -bd / ad;
-      total += -bd * Math.log(ad);
+    final NDArray gradient = new NDArray(l.getDims());
+    double[] gradientData = gradient.getData();
+    final double descriptiveNats;
+    {
+      double total = 0;
+      for (int i = 0; i < l.dim(); i++) {
+        final double ad = Math.max(Math.min(l.getData()[i], 1.), 1e-12);
+        final double bd = b.getData()[i];
+        gradientData[i] = -bd / ad;
+        total += -bd * Math.log(ad);
+      }
+      descriptiveNats = total;
     }
-    final double rms = total / a.dim();
-    final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
+    
+    final NDArray output = new NDArray(new int[] { 1 }, new double[] { descriptiveNats });
     if (isVerbose()) {
-      EntropyLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
+      EntropyLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, descriptiveNats));
     }
     return new NNResult(evaluationContext, output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          final NDArray passback = new NDArray(r.getDims());
-          final double v = data.get(0) * a.dim();
-          for (int i = 0; i < a.dim(); i++) {
-            passback.set(i, v * r.get(i));
+          final NDArray passback = new NDArray(gradient.getDims());
+          for (int i = 0; i < l.dim(); i++) {
+            passback.set(i, data.get(0) * gradient.get(i));
           }
           if (isVerbose()) {
             EntropyLossLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));

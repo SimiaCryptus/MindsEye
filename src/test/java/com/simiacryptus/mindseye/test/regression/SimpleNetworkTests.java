@@ -51,7 +51,7 @@ public class SimpleNetworkTests {
     .add(new SigmoidActivationLayer())//
     .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))//
     .add(new BiasLayer(outSize))//
-    .add(new SigmoidActivationLayer()), (NNLayer<?>) new SqLossLayer()).verifyConvergence(0.01, 100);
+    .add(new SigmoidActivationLayer()), (NNLayer<?>) new SqLossLayer()).verifyConvergence(0.01, 100, 95);
   }
 
   @Test

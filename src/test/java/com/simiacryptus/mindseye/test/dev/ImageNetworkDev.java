@@ -59,8 +59,8 @@ public class ImageNetworkDev {
   }
 
   public NNLayer<?> blur_3() {
-    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 1);
-    for(int ii=0;ii<1;ii++){
+    final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 9);
+    for(int ii=0;ii<3;ii++){
       int i = ii+ii*3;
       convolution.kernel.set(new int[] { 0, 2, i }, 0.333);
       convolution.kernel.set(new int[] { 1, 1, i }, 0.333);
@@ -86,12 +86,12 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
 
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    //final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
+    final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
     //NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
 
-    //final NNLayer<?> convolution = blur_3x4();
-    final NNLayer<?> convolution = blur_3();
+    final NNLayer<?> convolution = blur_3x4();
+    //final NNLayer<?> convolution = blur_3();
     
     final int[] inputSize = inputImage.getDims();
     final EvaluationContext evaluationContext = new EvaluationContext();

@@ -42,10 +42,13 @@ public class BooleanSoftmaxNetworkTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     new Tester().init(samples, new DAGNetwork()
-    
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-    
-    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SoftmaxActivationLayer().setVerbose(false)), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.01, 100);
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize))
+    .add(new BiasLayer(midSize))
+    .add(new SigmoidActivationLayer())
+    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize))
+    .add(new BiasLayer(outSize))
+    .add(new SoftmaxActivationLayer().setVerbose(false)), new EntropyLossLayer())
+    .verifyConvergence(0.01, 100);
   }
 
   @Test

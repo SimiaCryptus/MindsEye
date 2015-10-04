@@ -43,11 +43,12 @@ public final class GradientKernel extends com.amd.aparapi.Kernel {
       int i2 = (i % is1) / is0;
       int i1 = i % is0;
 
+      if(0 != ((k3 - i3) % inputSize[2])) continue;
       int o3 = (k3 - i3) / inputSize[2];
       if (0 > o3 || o3 >= outputSize[2]) continue;
-      int o2 = i2 + k2;
+      int o2 = i2 - k2;
       if (0 > o2 || o2 >= outputSize[1]) continue;
-      int o1 = i1 + k1;
+      int o1 = i1 - k1;
       if (0 > o1 || o1 >= outputSize[0]) continue;
       int o = o1 + outputSize[0] * (o2 + outputSize[1] * o3);
       if (0. == output[o]) continue;

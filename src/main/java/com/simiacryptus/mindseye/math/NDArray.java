@@ -303,6 +303,19 @@ public class NDArray {
     return copy;
   }
 
+  public void set(NDArray right) {
+    double[] rightData = right.getData();
+    Arrays.parallelSetAll(getData(), i -> rightData[i]);
+  }
+
+  public double l2() {
+    return Math.sqrt(Arrays.stream(getData()).map(x->x*x).sum());
+  }
+
+  public double l1() {
+    return Arrays.stream(getData()).sum();
+  }
+
 
 
 }

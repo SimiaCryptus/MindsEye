@@ -10,8 +10,10 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.dev.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
@@ -26,123 +28,191 @@ public class DeltaValidationTest  {
   public static final double deltaFactor = 1e-6;
 
   @org.junit.Test
-  public void testDenseSynapseLayer1() throws Exception{
+  public void testDenseSynapseLayer1() throws Throwable{
     NDArray outputPrototype = new NDArray(2);
     NDArray inputPrototype = new NDArray(2).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(()->Util.R.get().nextGaussian());
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testDenseSynapseLayer2() throws Exception{
+  public void testDenseSynapseLayer2() throws Throwable{
     NDArray outputPrototype = new NDArray(2);
     NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(()->Util.R.get().nextGaussian());
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testMinMaxLayer() throws Exception{
+  public void testMinMaxLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(2);
     NDArray inputPrototype = new NDArray(2).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new MinMaxFilterLayer();
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testMaxSubsampleLayer() throws Exception{
+  public void testMaxSubsampleLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(1,1,1);
     NDArray inputPrototype = new NDArray(2,2,1).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new MaxSubsampleLayer(2,2,1);
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testSumSubsampleLayer() throws Exception{
+  public void testSumSubsampleLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(1,1,1);
     NDArray inputPrototype = new NDArray(2,2,1).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new SumSubsampleLayer(2,2,1);
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testConvolutionSynapseLayer() throws Exception{
+  public void testConvolutionSynapseLayer1() throws Throwable{
     NDArray outputPrototype = new NDArray(1,1,1);
     NDArray inputPrototype = new NDArray(2,2,1).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,2},1);
-    test(outputPrototype, inputPrototype, component);
+    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,2},1).addWeights(()->Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testBiasLayer() throws Exception{
+  public void testConvolutionSynapseLayer2() throws Throwable{
+    NDArray outputPrototype = new NDArray(1,2,1);
+    NDArray inputPrototype = new NDArray(2,3,1).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,2},1).addWeights(()->Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testConvolutionSynapseLayer3() throws Throwable{
+    NDArray outputPrototype = new NDArray(1,1,2);
+    NDArray inputPrototype = new NDArray(1,1,2).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{1,1},4).addWeights(()->Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testConvolutionSynapseLayer4() throws Throwable{
+    NDArray outputPrototype = new NDArray(2,3,2);
+    NDArray inputPrototype = new NDArray(3,4,2).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,2},4).addWeights(()->Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testBiasLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(3);
     NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new BiasLayer(outputPrototype.getDims()).setWeights(i->Util.R.get().nextGaussian());
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testSigmoidLayer() throws Exception{
+  public void testSqLossLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(1);
+    NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
+    NDArray inputPrototype2 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new SqLossLayer();
+    test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+
+  @org.junit.Test
+  public void testEntropyLossLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(1);
+    NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextDouble());
+    inputPrototype1 = inputPrototype1.scale(1./inputPrototype1.l1());
+    NDArray inputPrototype2 = new NDArray(2).fill(()->Util.R.get().nextDouble());
+    inputPrototype2 = inputPrototype2.scale(1./inputPrototype2.l1());
+    NNLayer<?> component = new EntropyLossLayer();
+    NDArray[] inputPrototype = { inputPrototype1, inputPrototype2 };
+    testFeedback(component, 0, outputPrototype, inputPrototype); 
+    int layers = component.state().size();
+    for(int i=0;i<layers;i++){
+      testLearning(component, i, outputPrototype, inputPrototype); 
+    }
+  }
+
+  @org.junit.Test
+  public void testSigmoidLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(3);
     NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new SigmoidActivationLayer();
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
   
   @org.junit.Test
-  public void testL1NormalizationLayer() throws Exception{
+  public void testL1NormalizationLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(3);
     NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new L1NormalizationLayer();
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testSoftmaxLayer() throws Exception{
+  public void testSoftmaxLayer() throws Throwable{
     NDArray inputPrototype = new NDArray(2).fill(()->Util.R.get().nextGaussian());
     NDArray outputPrototype = inputPrototype.copy();
     NNLayer<?> component = new SoftmaxActivationLayer();
-    test(outputPrototype, inputPrototype, component);
+    test(component, outputPrototype, inputPrototype);
   }
 
 
-  public static void test(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) throws Exception {
-    {
-      NDArray measuredGradient = measureFeedbackGradient(outputPrototype, inputPrototype, component);
-      NDArray implementedGradient = getFeedbackGradient(outputPrototype, inputPrototype, component);
-      assertEquals(measuredGradient, implementedGradient);
+  public static void test(NNLayer<?> component, NDArray outputPrototype, NDArray... inputPrototype) throws Throwable {
+    for(int i=0;i<inputPrototype.length;i++){
+      testFeedback(component, i, outputPrototype, inputPrototype); 
     }
     int layers = component.state().size();
     for(int i=0;i<layers;i++){
-      NDArray measuredGradient = measureLearningGradient(outputPrototype, inputPrototype, component,i);
-      NDArray implementedGradient = getLearningGradient(outputPrototype, inputPrototype, component,i);
-      assertEquals(measuredGradient, implementedGradient);
+      testLearning(component, i, outputPrototype, inputPrototype); 
+    }
+  }
+
+  public static void testLearning(NNLayer<?> component, int i, NDArray outputPrototype, NDArray... inputPrototype) throws Throwable {
+    NDArray measuredGradient = measureLearningGradient(component, i, outputPrototype,inputPrototype);
+    NDArray implementedGradient = getLearningGradient(component, i, outputPrototype,inputPrototype);
+    for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
+      try {
+        org.junit.Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], 1e-4);
+      } catch (Throwable e) {
+        log.debug(String.format("Error Comparing element %s",i1));
+        log.debug(String.format("Component: %s\nInputs: %s",component, java.util.Arrays.toString(inputPrototype)));
+        log.debug(String.format("%s",measuredGradient));
+        log.debug(String.format("%s",implementedGradient));
+        log.debug(String.format("%s",measuredGradient.minus(implementedGradient)));
+        throw e;
+      }
+    }
+  }
+
+  public static void testFeedback(NNLayer<?> component, int i, NDArray outputPrototype, NDArray... inputPrototype) throws Throwable {
+    NDArray measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
+    NDArray implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
+    for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
+      try {
+        org.junit.Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], 1e-4);
+      } catch (Throwable e) {
+        log.debug(String.format("Error Comparing element %s",i1));
+        log.debug(String.format("Component: %s\nInputs: %s\noutput=%s",component, java.util.Arrays.toString(inputPrototype), outputPrototype));
+        log.debug(String.format("%s",measuredGradient));
+        log.debug(String.format("%s",implementedGradient));
+        log.debug(String.format("%s",measuredGradient.minus(implementedGradient)));
+        throw e;
+      }
     }
   }
 
 
 
-  public static void assertEquals(NDArray measuredGradient, NDArray implementedGradient) throws Exception {
-    try {
-      for (int i = 0; i < measuredGradient.dim(); i++) {
-        org.junit.Assert.assertEquals(measuredGradient.getData()[i], implementedGradient.getData()[i], 1e-4);
-      } 
-    } catch (Throwable e) {
-      log.debug(String.format("%s",measuredGradient));
-      log.debug(String.format("%s",implementedGradient));
-      log.debug(String.format("%s",measuredGradient.minus(implementedGradient)));
-      throw e;
-    }
-  }
-
-
-  public static NDArray measureFeedbackGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) {
-    NDArray measuredGradient = new NDArray(inputPrototype.dim(), outputPrototype.dim());
+  public static NDArray measureFeedbackGradient(NNLayer<?> component, int inputIndex, NDArray outputPrototype, NDArray... inputPrototype) {
+    NDArray measuredGradient = new NDArray(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     NDArray baseOutput = component.eval(new EvaluationContext(), inputPrototype).data;
-    for(int i=0;i<inputPrototype.dim();i++) {
-      NDArray inputProbe = inputPrototype.copy();
+    outputPrototype.set(baseOutput);
+    for(int i=0;i<inputPrototype[inputIndex].dim();i++) {
+      NDArray inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, deltaFactor * 1);
-      NDArray evalProbe = component.eval(new EvaluationContext(), inputProbe).data;
+      NDArray[] copyInput = java.util.Arrays.copyOf(inputPrototype, inputPrototype.length);
+      copyInput[inputIndex] = inputProbe;
+      NDArray evalProbe = component.eval(new EvaluationContext(), copyInput).data;
       NDArray delta = evalProbe.minus(baseOutput).scale(1./deltaFactor);
       for(int j=0;j<delta.dim();j++){
         measuredGradient.set(new int[]{i,j}, delta.getData()[j]);
@@ -151,7 +221,7 @@ public class DeltaValidationTest  {
     return measuredGradient;
   }
 
-  public static NDArray measureLearningGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component, int layerNum) {
+  public static NDArray measureLearningGradient(NNLayer<?> component, int layerNum, NDArray outputPrototype, NDArray... inputPrototype) {
     int stateLen = component.state().get(layerNum).length;
     NDArray gradient = new NDArray(stateLen, outputPrototype.dim());
     NDArray baseOutput = component.eval(new EvaluationContext(), inputPrototype).data;
@@ -168,7 +238,7 @@ public class DeltaValidationTest  {
   }
 
 
-  private static NDArray getLearningGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component, int layerNum) {
+  private static NDArray getLearningGradient(NNLayer<?> component, int layerNum, NDArray outputPrototype, NDArray... inputPrototype) {
     double[] stateArray = component.state().get(layerNum);
     int stateLen = stateArray.length;
     NDArray gradient = new NDArray(stateLen, outputPrototype.dim());
@@ -185,25 +255,35 @@ public class DeltaValidationTest  {
     return gradient;
   }
 
-  public static NDArray getFeedbackGradient(NDArray outputPrototype, NDArray inputPrototype, NNLayer<?> component) {
-    NDArray gradient = new NDArray(inputPrototype.dim(), outputPrototype.dim());
-    for(int j=0;j<outputPrototype.dim();j++){
+  public static NDArray getFeedbackGradient(NNLayer<?> component, int inputIndex, NDArray outputPrototype, NDArray... inputPrototype) {
+    NDArray gradient = new NDArray(inputPrototype[inputIndex].dim(), outputPrototype.dim());
+    for (int j = 0; j < outputPrototype.dim(); j++) {
       int j_ = j;
       EvaluationContext evaluationContext = new EvaluationContext();
-      component.eval(evaluationContext, new NNResult(evaluationContext, inputPrototype) {
-        
+      NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new NNResult(evaluationContext, x) {
+        @Override
+        public void feedback(NDArray data, DeltaBuffer buffer) {
+        }
+
+        @Override
+        public boolean isAlive() {
+          return false;
+        }
+      }).toArray(i -> new NNResult[i]);
+      copyInput[inputIndex] = new NNResult(evaluationContext, inputPrototype[inputIndex]) {
         @Override
         public boolean isAlive() {
           return true;
         }
-        
+
         @Override
         public void feedback(NDArray data, DeltaBuffer buffer) {
-          for(int i=0;i<inputPrototype.dim();i++) {
-            gradient.set(new int[]{i,j_}, data.getData()[i]);
+          for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
+            gradient.set(new int[] { i, j_ }, data.getData()[i]);
           }
         }
-      }).feedback(new NDArray(outputPrototype.getDims()).set(j, 1), new DeltaBuffer());
+      };
+      component.eval(evaluationContext, copyInput).feedback(new NDArray(outputPrototype.getDims()).set(j, 1), new DeltaBuffer());
     }
     return gradient;
   }
