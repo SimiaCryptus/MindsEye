@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
@@ -106,10 +107,17 @@ public class ImageNetworkDev {
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       DAGNetwork convolutionNet = new DAGNetwork().add(bias).add(convolution);
-      SqLossLayer lossLayer = new SqLossLayer();
-
+      final DAGNetwork dagNetwork = new DAGNetwork();
+      dagNetwork.add(convolutionNet);
+      dagNetwork.add2(new SqLossLayer());
+      
       final Tester trainer = new Tester().setStaticRate(1.);
-      trainer.init(new NDArray[][] { { zeroInput, blurredImage.data } }, convolutionNet, lossLayer);
+      
+      //new NetInitializer().initialize(initPredictionNetwork);
+      GradientDescentTrainer gradientDescentTrainer = trainer.getGradientDescentTrainer();
+      gradientDescentTrainer.setNet(dagNetwork);
+      gradientDescentTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
+      Tester init = trainer;
       final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);

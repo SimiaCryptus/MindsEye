@@ -14,9 +14,12 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
+import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.dev.L1NormalizationLayer;
+import com.simiacryptus.mindseye.net.dev.MinActivationLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
+import com.simiacryptus.mindseye.net.dev.SqActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
@@ -125,6 +128,15 @@ public class DeltaValidationTest  {
   }
 
   @org.junit.Test
+  public void testSumLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(1);
+    NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
+    NDArray inputPrototype2 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new SumLayer();
+    test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+
+  @org.junit.Test
   public void testEntropyLossLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(1);
     NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextDouble());
@@ -138,6 +150,22 @@ public class DeltaValidationTest  {
     for(int i=0;i<layers;i++){
       testLearning(component, i, outputPrototype, inputPrototype); 
     }
+  }
+
+  @org.junit.Test
+  public void testSqActivationLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(3);
+    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new SqActivationLayer();
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testMinActivationLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(3);
+    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new MinActivationLayer();
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test

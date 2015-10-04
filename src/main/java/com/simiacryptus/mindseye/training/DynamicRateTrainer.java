@@ -25,7 +25,7 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
 
-  private long etaSec = java.util.concurrent.TimeUnit.HOURS.toSeconds(1);
+  private long etaSec = java.util.concurrent.TimeUnit.DAYS.toSeconds(10);
   private final RateTrainingComponent inner;
   private double maxRate = 10000;
   private double minRate = 0;

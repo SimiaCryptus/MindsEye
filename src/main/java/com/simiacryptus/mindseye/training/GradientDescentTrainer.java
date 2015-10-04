@@ -30,7 +30,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private double temperature = 0.0;
   private boolean verbose = false;
   private long hash = Util.R.get().nextLong();
-  private int trainingSize = 100;
+  private int trainingSize = 300;
 
   private DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
     final List<NNResult> netresults = eval(trainingContext, data, isParallelTraining());
