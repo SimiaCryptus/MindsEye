@@ -33,7 +33,7 @@ public class Tester {
   public static DAGNetwork initPredictionNetwork(final NNLayer<?> predictor, final NNLayer<?> loss) {
     final DAGNetwork dagNetwork = new DAGNetwork();
     dagNetwork.add(predictor);
-    dagNetwork.add2(loss);
+    dagNetwork.addLossComponent(loss);
     return dagNetwork;
   }
 

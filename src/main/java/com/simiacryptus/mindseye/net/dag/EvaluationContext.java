@@ -4,10 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.simiacryptus.mindseye.deltas.NNResult;
-
 public class EvaluationContext {
 
-  public final Map<UUID, NNResult[]> cache = new HashMap<>();
+  public final Map<UUID, Object> cache = new HashMap<>();
 
 }

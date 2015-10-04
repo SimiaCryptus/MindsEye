@@ -20,8 +20,11 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
+import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.EvaluationContext;
+import com.simiacryptus.mindseye.net.dag.LazyResult;
+import com.simiacryptus.mindseye.net.dev.MinActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
@@ -83,6 +86,7 @@ public class ImageNetworkDev {
     return new int[] { inputSize[0] - kernelSize[0] + 1, inputSize[1] - kernelSize[1] + 1, inputSize[2] - kernelSize[2] + 1 };
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testDeconvolution() throws Exception {
 
@@ -107,11 +111,15 @@ public class ImageNetworkDev {
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       final DAGNetwork dagNetwork = new DAGNetwork();
-      dagNetwork.add(new DAGNetwork().add(bias).add(convolution));
-
-      dagNetwork.add(new DAGNetwork().add(bias).add(convolution));
-
-      dagNetwork.add2(new SqLossLayer());
+      dagNetwork.add(bias);
+      LazyResult<NNResult> biasNode = dagNetwork.getHead();
+      dagNetwork.add(convolution);
+      dagNetwork.addLossComponent(new SqLossLayer());
+      List<LazyResult<NNResult>> outs = new ArrayList<>();
+      outs.add(dagNetwork.getHead());
+      dagNetwork.add(new DAGNetwork().add(new MinActivationLayer()).add(new SumLayer()), biasNode);
+      outs.add(dagNetwork.getHead());
+      dagNetwork.add(new SumLayer(), outs.toArray(new LazyResult[]{}));
       
       final Tester trainer = new Tester().setStaticRate(1.);
       
@@ -119,7 +127,6 @@ public class ImageNetworkDev {
       GradientDescentTrainer gradientDescentTrainer = trainer.getGradientDescentTrainer();
       gradientDescentTrainer.setNet(dagNetwork);
       gradientDescentTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
-      Tester init = trainer;
       final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);
