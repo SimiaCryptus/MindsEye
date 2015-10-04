@@ -62,7 +62,7 @@ public class Tester {
     DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
     //new NetInitializer().initialize(initPredictionNetwork);
     gradientTrainer.setNet(initPredictionNetwork);
-    gradientTrainer.setTrainingData(samples);
+    gradientTrainer.setData(samples);
     return this;
   }
 

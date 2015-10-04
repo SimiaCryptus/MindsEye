@@ -92,7 +92,7 @@ public class PopulationTrainer implements TrainingComponent {
           .collect(Collectors.toList());
       pl.stream().forEach(l -> l.record());
       final GradientDescentTrainer gd = new GradientDescentTrainer();
-      gd.setTrainingData(getData());
+      gd.setData(getData());
       gd.setParallelTraining(false);
       gd.setNet(getNet());
       gd.setRate(0.);
