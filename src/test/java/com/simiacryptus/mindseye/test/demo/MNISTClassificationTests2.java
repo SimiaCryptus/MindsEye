@@ -23,16 +23,16 @@ public class MNISTClassificationTests2 extends MNISTClassificationTests {
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
 
-    int n = 3;
+    int n = 2;
     int m = 28-n+1;
     net = net.add(new ConvolutionSynapseLayer(new int[] { n, n }, 10).addWeights(() -> Util.R.get().nextGaussian() * .001));
     net = net.add(new SqActivationLayer());
     //int headSize = new NDArray(inputSize).getData().length;
     net = net.add(new SumSubsampleLayer(new int[] { m, m, 1 }));
 
-    int headSize = net.eval(new NDArray(inputSize)).data.dim();
-    net = net.add(new BiasLayer(midSize).addWeights(() -> Util.R.get().nextGaussian() * .1));
-    net = net.add(new DenseSynapseLayer(headSize, outSize).addWeights(() -> Util.R.get().nextGaussian() * .005));
+//    int headSize = net.eval(new NDArray(inputSize)).data.dim();
+//    net = net.add(new BiasLayer(midSize).addWeights(() -> Util.R.get().nextGaussian() * .1));
+//    net = net.add(new DenseSynapseLayer(headSize, outSize).addWeights(() -> Util.R.get().nextGaussian() * .005));
 
 //    net = net.add(new MinMaxFilterLayer());
 //    net = net.add(new SigmoidActivationLayer());

@@ -20,9 +20,6 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = -139062498597441290L;
 
   private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);

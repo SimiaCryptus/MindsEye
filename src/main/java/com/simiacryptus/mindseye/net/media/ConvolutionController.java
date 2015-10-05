@@ -1,10 +1,255 @@
 package com.simiacryptus.mindseye.net.media;
 
 import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amd.aparapi.device.Device.TYPE;
 import com.amd.aparapi.Kernel.EXECUTION_MODE;
 
 public final class ConvolutionController {
+  private static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
+
+  public static final class BackpropKernel extends com.amd.aparapi.Kernel {
+
+    private static final boolean DEBUG = false;
+    final int[] outputSize;
+    final int[] kernelSize;
+    final int[] inputSize;
+    double[] output;
+    double[] weights;
+    double[] input;
+
+    public BackpropKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
+      this.outputSize = outputSize;
+      this.output = output;
+      this.kernelSize = kernelSize;
+      this.weights = weights;
+      this.inputSize = inputSize;
+      this.input = input;
+      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+      assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
+      assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
+    }
+
+    @Override
+    public void run() {
+      int i = getGlobalId();
+      input[i] = run(i);
+    }
+
+    public final double run(int i) {
+      int is0 = inputSize[0];
+      int is1 = is0 * inputSize[1];
+      int i3 = i / is1;
+      int i2 = (i % is1) / is0;
+      int i1 = i % is0;
+
+      double accum = 0;
+      for (int k = 0; k < weights.length; k++) {
+        if (0. == weights[k])
+          continue;
+        int ks0 = kernelSize[0];
+        int ks1 = ks0 * kernelSize[1];
+        int k3 = k / ks1;
+        int k2 = (k % ks1) / ks0;
+        int k1 = k % ks0;
+
+        // i3 = k3 - inputSize[2] * o3;
+        if (0 != ((k3 - i3) % inputSize[2]))
+          continue;
+        int o3 = (k3 - i3) / inputSize[2];
+        if (0 > o3 || o3 >= outputSize[2])
+          continue;
+        int o2 = (i2 - k2);
+        if (0 > o2 || o2 >= outputSize[1])
+          continue;
+        int o1 = (i1 - k1);
+        if (0 > o1 || o1 >= outputSize[0])
+          continue;
+        int o = o1 + outputSize[0] * (o2 + outputSize[1] * o3);
+        if (0. == output[o])
+          continue;
+
+        accum += output[o] * weights[k];
+        if (DEBUG) {
+          log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s) [%s,%s,%s]", i, accum, o, output[o], k, weights[k], k1, k2, k3));
+          log.debug(String.format("k=[%s,%s,%s]  i=[%s,%s,%s]  o=[%s,%s,%s]", k1, k2, k3, i1, i2, i3, o1, o2, o3));
+        }
+      }
+      return accum;
+    }
+
+    public void exe(com.amd.aparapi.device.Device device) {
+      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+      assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
+      assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
+      if (DEBUG) {
+        for (int i = 0; i < input.length; i++) {
+          input[i] = run(i);
+        }
+      } else {
+        execute(device.createRange(input.length));
+      }
+    }
+  }
+
+  public static final class GradientKernel extends com.amd.aparapi.Kernel {
+    final int[] inputSize;
+    double[] input;
+    final int[] kernelSize;
+    double[] weights;
+    final int[] outputSize;
+    double[] output;
+
+    public GradientKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
+      this.inputSize = inputSize;
+      this.input = input;
+      this.kernelSize = kernelSize;
+      this.weights = weights;
+      this.outputSize = outputSize;
+      assert (0 < this.outputSize[2]);
+      this.output = output;
+      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+      assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
+      assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
+    }
+
+    @Override
+    public void run() {
+      weights[getGlobalId()] = run(getGlobalId());
+    }
+
+    public double run(int k) {
+      int ks0 = kernelSize[0];
+      int ks1 = ks0 * kernelSize[1];
+      int k3 = k / ks1;
+      int k2 = (k % ks1) / ks0;
+      int k1 = k % ks0;
+
+      double accum = 0.;
+      for (int i = 0; i < input.length; i++) {
+        if (0. == input[i])
+          continue;
+
+        int is0 = inputSize[0];
+        int is1 = is0 * inputSize[1];
+        int i3 = i / is1;
+        int i2 = (i % is1) / is0;
+        int i1 = i % is0;
+
+        if (0 != ((k3 - i3) % inputSize[2]))
+          continue;
+        int o3 = (k3 - i3) / inputSize[2];
+        if (0 > o3 || o3 >= outputSize[2])
+          continue;
+        int o2 = i2 - k2;
+        if (0 > o2 || o2 >= outputSize[1])
+          continue;
+        int o1 = i1 - k1;
+        if (0 > o1 || o1 >= outputSize[0])
+          continue;
+        int o = o1 + outputSize[0] * (o2 + outputSize[1] * o3);
+        if (0. == output[o])
+          continue;
+
+        accum += input[i] * output[o];
+        // System.out.println(String.format("[%s](%s) += [%s](%s) * [%s](%s)
+        // [%s,%s,%s]",k,weights[k],o,accum,i,input[i],k1,k2,k3));
+        // System.out.println(String.format("k=[%s,%s,%s] i=[%s,%s,%s]
+        // o=[%s,%s,%s]",k1,k2,k3,i1,i2,i3,o1,o2,o3));
+      }
+      return accum;
+    }
+
+    public void exe(com.amd.aparapi.device.Device device) {
+      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+      assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
+      assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
+      // for(int k=0;k<weights.length;k++){ weights[k] = run(k); }
+      execute(device.createRange(kernelSize[0] * kernelSize[1] * kernelSize[2]));
+    }
+  }
+
+  public static final class ConvolveKernel extends com.amd.aparapi.Kernel {
+
+    private static final boolean DEBUG = false;
+    final int[] inputSize;
+    final int[] kernelSize;
+    final int[] outputSize;
+    double[] input;
+    double[] weights;
+    double[] output;
+
+    public ConvolveKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
+      this.inputSize = inputSize;
+      this.input = input;
+      this.kernelSize = kernelSize;
+      this.weights = weights;
+      this.outputSize = outputSize;
+      this.output = output;
+      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+    }
+
+    @Override
+    public void run() {
+      int i = getGlobalId();
+      output[i] = run(i);
+    }
+
+    public double run(int o) {
+      int os0 = outputSize[0];
+      int os1 = os0 * outputSize[1];
+      int o3 = (o / os1);
+      int o2 = ((o % os1) / os0);
+      int o1 = (o % os0);
+
+      double accum = 0;
+      for (int k = 0; k < weights.length; k++) {
+        if (0. == weights[k])
+          continue;
+        int ks0 = kernelSize[0];
+        int ks1 = ks0 * kernelSize[1];
+        int k3 = k / ks1;
+        int k2 = (k % ks1) / ks0;
+        int k1 = k % ks0;
+
+        int i3 = k3 - inputSize[2] * o3;
+        if (0 > i3 || i3 >= inputSize[2])
+          continue;
+        int i2 = o2 + k2;
+        if (0 > i2 || i2 >= inputSize[1])
+          continue;
+        int i1 = o1 + k1;
+        if (0 > i1 || i1 >= inputSize[0])
+          continue;
+        int i = i1 + inputSize[0] * (i2 + inputSize[1] * i3);
+        if (0. == input[i])
+          continue;
+
+        accum += input[i] * weights[k];
+        if (DEBUG) {
+          log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s)[%s,%s,%s]", o, accum, i, input[i], k, weights[k], k1, k2, k3));
+          log.debug(String.format("k=[%s,%s,%s] i=[%s,%s,%s] o=[%s,%s,%s]", k1, k2, k3, i1, i2, i3, o1, o2, o3));
+        }
+      }
+      return accum;
+    }
+
+    public void exe(com.amd.aparapi.device.Device device) {
+      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+      assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
+      assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
+      if (DEBUG) {
+        for (int o = 0; o < output.length; o++) {
+          output[o] = run(o);
+        }
+      } else {
+        execute(device.createRange(outputSize[0] * outputSize[1] * outputSize[2]));
+      }
+    }
+  }
 
   // public int[] outputs;
   // public int[] script;
@@ -30,7 +275,8 @@ public final class ConvolutionController {
     this.convolveTask = new ThreadedResource<ConvolveKernel>() {
       @Override
       public ConvolveKernel create() {
-        ConvolveKernel convolveTask = new ConvolveKernel(ConvolutionController.this.inputSize, input, ConvolutionController.this.kernelSize, weights, ConvolutionController.this.outputSize, output);
+        ConvolveKernel convolveTask = new ConvolveKernel(ConvolutionController.this.inputSize, input, ConvolutionController.this.kernelSize, weights,
+            ConvolutionController.this.outputSize, output);
         convolveTask.setExecutionMode(getExecutionMode());
         convolveTask.addExecutionModes(getExecutionMode(), EXECUTION_MODE.SEQ);
         convolveTask.setExplicit(true);
@@ -87,8 +333,7 @@ public final class ConvolutionController {
           openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.bestGPU();
         } else {
           openclDevice = com.amd.aparapi.device.Device.first(TYPE.SEQ);
-          if(null==openclDevice)
-          {
+          if (null == openclDevice) {
             openclDevice = com.amd.aparapi.device.Device.firstCPU();
             openclDevice.setType(TYPE.SEQ);
           }
@@ -102,7 +347,7 @@ public final class ConvolutionController {
   }
 
   public void convolve(double[] input, double[] weights, double[] output) {
-    assert(outputSize[0]*outputSize[1]*outputSize[2] == output.length);
+    assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
     convolveTask.with(convolveTask -> {
       convolveTask.input = input;
       convolveTask.weights = weights;

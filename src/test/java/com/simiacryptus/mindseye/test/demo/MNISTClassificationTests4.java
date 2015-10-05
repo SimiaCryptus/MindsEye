@@ -24,11 +24,12 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
 
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 5).addWeights(() -> Util.R.get().nextGaussian() * 1.));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 10).addWeights(() -> Util.R.get().nextGaussian() * 1.));
     net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 50).addWeights(() -> Util.R.get().nextGaussian() * 1.));
-    net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
-    net = net.add(new SumSubsampleLayer(new int[] { 6, 6, 1 }));
+    //net = net.add(new SigmoidActivationLayer());
+//    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 100).addWeights(() -> Util.R.get().nextGaussian() * 1.));
+//    net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
+    net = net.add(new SumSubsampleLayer(new int[] { 13, 13, 1 }));
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }
