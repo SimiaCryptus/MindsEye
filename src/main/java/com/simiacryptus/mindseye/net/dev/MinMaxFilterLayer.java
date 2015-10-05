@@ -11,8 +11,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
-
 import groovy.lang.Tuple2;
 
 public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
@@ -21,11 +19,11 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
    */
   private static final long serialVersionUID = -3791321603590434332L;
 
-  private final class DenseSynapseResult extends NNResult {
+  private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private DenseSynapseResult(final NDArray data, final NNResult inObj, final EvaluationContext evaluationContext) {
-      super(evaluationContext, data);
+    private Result(final NDArray data, final NNResult inObj) {
+      super(data);
       this.inObj = inObj;
     }
 
@@ -53,11 +51,11 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
         }
         this.inObj.feedback(passback, buffer);
         if (isVerbose()) {
-          MinMaxFilterLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, DenseSynapseResult.this.data, delta, passback));
+          MinMaxFilterLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
         }
       } else {
         if (isVerbose()) {
-          MinMaxFilterLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, DenseSynapseResult.this.data, delta));
+          MinMaxFilterLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
         }
       }
     }
@@ -78,7 +76,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(input.getDims());
     IntStream.range(0, input.dim()).forEach(i -> {
@@ -89,7 +87,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
     if (isVerbose()) {
       MinMaxFilterLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
-    return new DenseSynapseResult(output, inObj[0], evaluationContext);
+    return new Result(output, inObj[0]);
   }
 
   protected double getMobility() {

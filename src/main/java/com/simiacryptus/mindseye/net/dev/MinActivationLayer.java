@@ -17,6 +17,9 @@ public final class MinActivationLayer extends SimpleActivationLayer<MinActivatio
     double d = x<getThreshold()?getFactor():0;
     double f = Math.min(x,getThreshold())*getFactor();
     assert Double.isFinite(d);
+    if(0>f){
+      assert(0<=f);
+    }
     results[0] = f;
     results[1] = d;
   }

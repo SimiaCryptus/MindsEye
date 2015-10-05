@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
@@ -45,25 +44,25 @@ public class TestMNISTDev {
       add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 2));
       add(new MaxSubsampleLayer(4, 4, 1));
       final NDArray[] input = { this.inputSize };
-      add(new BiasLayer(eval(new EvaluationContext(), input).data.getDims()));
+      add(new BiasLayer(eval(input).data.getDims()));
       add(new SigmoidActivationLayer());
 
       add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2));
       add(new MaxSubsampleLayer(2, 2, 1, 1));
       final NDArray[] input1 = { this.inputSize };
-      add(new BiasLayer(eval(new EvaluationContext(), input1).data.getDims()));
+      add(new BiasLayer(eval(input1).data.getDims()));
       add(new SigmoidActivationLayer());
       final NDArray[] input2 = { this.inputSize };
 
-      add(new DenseSynapseLayer(eval(new EvaluationContext(), input2).data.dim(), new int[] { 16 }));
+      add(new DenseSynapseLayer(eval(input2).data.dim(), new int[] { 16 }));
       final NDArray[] input3 = { this.inputSize };
-      add(new BiasLayer(eval(new EvaluationContext(), input3).data.getDims()));
+      add(new BiasLayer(eval(input3).data.getDims()));
       getChildren().add(new SigmoidActivationLayer());
       final NDArray[] input4 = { this.inputSize };
 
-      add(new DenseSynapseLayer(eval(new EvaluationContext(), input4).data.dim(), new int[] { 10 }));
+      add(new DenseSynapseLayer(eval(input4).data.dim(), new int[] { 10 }));
       final NDArray[] input5 = { this.inputSize };
-      add(new BiasLayer(eval(new EvaluationContext(), input5).data.getDims()));
+      add(new BiasLayer(eval(input5).data.getDims()));
       add(new SoftmaxActivationLayer());
     }
 
@@ -85,7 +84,7 @@ public class TestMNISTDev {
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
     buffer.stream().sorted(Comparator.comparing(img -> img.label))
-        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(Util::toImage)) + net.eval(new EvaluationContext(), x.data).data.toString() + "</p>").forEach(out::println);
+        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>").forEach(out::println);
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());
@@ -101,7 +100,7 @@ public class TestMNISTDev {
     new Tester().init(data, net, (NNLayer<?>) new EntropyLossLayer()).setStaticRate(0.25).setVerbose(true).verifyConvergence(0.01, 1);
     {
       final NNLayer<DAGNetwork> net2 = net;
-      final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(new EvaluationContext(), o1.data).errMisclassification(Util.toOut(o1.label))).average().getAsDouble();
+      final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(Util.toOut(o1.label))).average().getAsDouble();
       TestMNISTDev.log.info("Tested RMS Error: {}", prevRms);
     }
     report(buffer, net);

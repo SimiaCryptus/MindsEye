@@ -8,7 +8,6 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
@@ -20,21 +19,17 @@ public class MNISTClassificationTests3 extends MNISTClassificationTests {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
-    final int[] inputSize = new int[] { 28, 28 };
+    final int[] inputSize = new int[] { 28, 28, 1 };
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
 
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 8).addWeights(() -> Util.R.get().nextGaussian() * 1.));
-    net = net.add(new SumSubsampleLayer(new int[] { 27, 27, 1 }));
-    NDArray midSize = net.eval(new EvaluationContext(), new NDArray(inputSize)).data;
-    
-    net = net.add(new BiasLayer(midSize.getDims()));
-    net = net.add(new MinMaxFilterLayer());
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 4).addWeights(() -> Util.R.get().nextGaussian() * 1.));
+    net = net.add(new BiasLayer(net.eval(new NDArray(inputSize)).data.getDims()));
     net = net.add(new SigmoidActivationLayer());
-    
-    net = net.add(new DenseSynapseLayer(midSize.dim(), outSize));
-    net = net.add(new BiasLayer(outSize));
-    net = net.add(new MinMaxFilterLayer());
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 1, 1 }, 40).addWeights(() -> Util.R.get().nextGaussian() * 1.));
+    net = net.add(new BiasLayer(net.eval(new NDArray(inputSize)).data.getDims()));
+    net = net.add(new SigmoidActivationLayer());
+    net = net.add(new SumSubsampleLayer(new int[] { 27, 27, 1 }));
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }

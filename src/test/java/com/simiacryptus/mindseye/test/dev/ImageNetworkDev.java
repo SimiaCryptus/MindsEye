@@ -19,10 +19,15 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
+import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
+import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork.DAGNode;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
+import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
+import com.simiacryptus.mindseye.net.dev.MinActivationLayer;
+import com.simiacryptus.mindseye.net.dev.SqActivationLayer;
+import com.simiacryptus.mindseye.net.dev.VerboseWrapper;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
@@ -88,61 +93,64 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
 
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    //final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
-    NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello World"));
+    //NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();
     //final NNLayer<?> convolution = blur_3();
     
     final int[] inputSize = inputImage.getDims();
-    final EvaluationContext evaluationContext = new EvaluationContext();
-    final int[] outSize = convolution.eval(evaluationContext, new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
     Util.report(data.stream().map(obj -> {
 
-      final NNResult blurredImage = convolution.eval(new EvaluationContext(), new NDArray[] { obj.data });
+      final NNResult blurredImage = convolution.eval(new NDArray[] { obj.data });
       
       final NDArray zeroInput = new NDArray(inputSize);
       final DAGNetwork dagNetwork = new DAGNetwork();
       BiasLayer bias = new BiasLayer(inputSize);
       dagNetwork.add(bias);
-      DAGNode biasNode = dagNetwork.getHead();
+      DAGNode modeledImageNode = dagNetwork.getHead();
       
       dagNetwork.add(convolution);
       dagNetwork.addLossComponent(new SqLossLayer());
-      
       List<DAGNode> outs = new ArrayList<>();
       outs.add(dagNetwork.getHead());
-      
-//
-//      dagNetwork.add(new MinActivationLayer(), biasNode);
-//      dagNetwork.add(new SumLayer(){
-//
-//        @Override
-//        public NNResult eval(EvaluationContext evaluationContext, NNResult... inObj) {
-//          NNResult result = super.eval(evaluationContext, inObj);
-//          result.data.set(0, 1);
-//          log.debug(String.format("%s", result.data));
-//          return result;
-//        }
-//        
-//      });
-//      outs.add(dagNetwork.getHead());
-//      
 
+      // Non-negativity constraint. Today's cameras do not image negative energy.
+      MinActivationLayer negativeClamp = new MinActivationLayer();
+//      dagNetwork.add(negativeClamp.setFactor(-0.0), modeledImageNode);
+//      dagNetwork.add(new com.simiacryptus.mindseye.net.dev.SqActivationLayer());
+//      dagNetwork.add(new SumLayer());
+//      dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+//      outs.add(dagNetwork.getHead());
+
+      // Non-negativity constraint. Today's cameras do not image negative energy.
+      LinearActivationLayer edgeGate;
+      {
+        final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 1, 2 }, 9);
+        for(int ii=0;ii<3;ii++){
+          int i = ii+ii*3;
+          edgeFilter.kernel.set(new int[] { 0, 0, i }, -1);
+          edgeFilter.kernel.set(new int[] { 0, 1, i }, 1);
+        }
+        edgeFilter.freeze();
+        dagNetwork.add(edgeFilter, modeledImageNode);
+        dagNetwork.add(new LinearActivationLayer().setWeights(new double[]{1}).freeze());
+        dagNetwork.add(new SqActivationLayer());
+        dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
+        dagNetwork.add(new SumLayer());
+        edgeGate = new LinearActivationLayer().setWeights(new double[]{0.}).freeze();
+        dagNetwork.add(edgeGate);
+        dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        outs.add(dagNetwork.getHead());
+      }
+
+      dagNetwork.add(new VerboseWrapper("endprod", new com.simiacryptus.mindseye.net.basic.ProductLayer()), outs.toArray(new DAGNode[]{}));
       
-//      dagNetwork.add(new com.simiacryptus.mindseye.net.basic.ProductLayer(){
-//
-//        @Override
-//        public NNResult eval(EvaluationContext evaluationContext, NNResult... inObj) {
-//          NNResult result = super.eval(evaluationContext, inObj);
-//          log.debug(String.format("%s => %s", java.util.Arrays.stream(inObj).map(l->l.data).collect(java.util.stream.Collectors.toList()), result.data));
-//          return result;
-//        }
-//      }, outs.toArray(new DAGNode[]{}));
 
       final Tester trainer = new Tester().setStaticRate(1.);
       
@@ -152,18 +160,26 @@ public class ImageNetworkDev {
       gradientDescentTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
       final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
       try {
-        trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);
-        trainer.getDevtrainer().refresh();
+        trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
+        trainer.train(0.5, trainingContext);
+        trainer.getDevtrainer().reset();
+        edgeGate.setWeights(new double[]{0.001});
+        //negativeClamp.setFactor(-1);
+        trainer.train(0.0, trainingContext);        
+        trainer.getDevtrainer().reset();
       } catch (final Exception e) {
         e.printStackTrace();
       }
 
       bias = (BiasLayer) trainer.getNet().getChild(bias.getId());
-      final NNResult recovered = bias.eval(evaluationContext, zeroInput);
-      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(new EvaluationContext(), zeroInput);
+      final NNResult recovered = bias.eval(zeroInput);
+      final NNResult verification = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
-      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, blurredImage.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
-          Util.toImage(new NDArray(outSize, tested.data.getData())));
+      return Util.imageHtml( //
+          Util.toImage(obj.data), //
+          Util.toImage(new NDArray(outSize, blurredImage.data.getData())), // 
+          Util.toImage(new NDArray(inputSize, recovered.data.getData())), //
+          Util.toImage(new NDArray(outSize, verification.data.getData())));
     }));
 
   }
@@ -180,8 +196,7 @@ public class ImageNetworkDev {
     final NNLayer<?> convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
-    final EvaluationContext evaluationContext = new EvaluationContext();
-    final int[] outSize = convolution.eval(evaluationContext, new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
@@ -189,7 +204,7 @@ public class ImageNetworkDev {
 
     Util.report(data.stream().map(obj -> {
       final NDArray[] input = { obj.data };
-      final NNResult output = forwardConvolutionNet.eval(new EvaluationContext(), input);
+      final NNResult output = forwardConvolutionNet.eval(input);
       final NDArray zeroInput = new NDArray(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
@@ -224,14 +239,14 @@ public class ImageNetworkDev {
       final TrainingContext trainingContext = new TrainingContext().setTimeout(15, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);
-        trainer.getDevtrainer().refresh();
+        trainer.getDevtrainer().reset();
       } catch (final Exception e) {
         e.printStackTrace();
       }
 
       bias = (BiasLayer) trainer.getNet().getChild(bias.getId());
-      final NNResult recovered = bias.eval(evaluationContext, zeroInput);
-      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(new EvaluationContext(), zeroInput);
+      final NNResult recovered = bias.eval(zeroInput);
+      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
       return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
           Util.toImage(new NDArray(outSize, tested.data.getData())));
@@ -249,8 +264,7 @@ public class ImageNetworkDev {
     //final NNLayer<?> convolution = blur_3();
 
     final int[] inputSize = inputImage.getDims();
-    final EvaluationContext evaluationContext = new EvaluationContext();
-    final int[] outSize = convolution.eval(evaluationContext, new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
@@ -258,7 +272,7 @@ public class ImageNetworkDev {
 
     Util.report(data.stream().map(obj -> {
       final NDArray[] input = { obj.data };
-      final NNResult output = forwardConvolutionNet.eval(new EvaluationContext(), input);
+      final NNResult output = forwardConvolutionNet.eval(input);
 
       return Util.imageHtml(
           Util.toImage(obj.data), 

@@ -277,7 +277,7 @@ public class PopulationTrainer implements TrainingComponent {
     population = population.stream().map(dynamicRateTrainer -> {
       final TrainingComponent dynamicRateTrainer1 = dynamicRateTrainer;
       netInitializer.initialize(dynamicRateTrainer1.getNet());
-      dynamicRateTrainer1.refresh();
+      dynamicRateTrainer1.reset();
       return dynamicRateTrainer;
     }).collect(Collectors.toList());
 
@@ -321,7 +321,7 @@ public class PopulationTrainer implements TrainingComponent {
   }
 
   @Override
-  public void refresh() {
-    inner.refresh();
+  public void reset() {
+    inner.reset();
   }
 }

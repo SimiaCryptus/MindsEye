@@ -5,13 +5,11 @@ import java.util.Comparator;
 import java.util.stream.IntStream;
 
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public abstract class NNResult {
 
   public static NNResult add(final NNResult a, final NNResult b) {
-    assert a.evaluationContext == b.evaluationContext;
-    return new NNResult(a.evaluationContext, a.data.add(b.data)) {
+    return new NNResult(a.data.add(b.data)) {
 
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
@@ -27,7 +25,7 @@ public abstract class NNResult {
   }
 
   public static NNResult scale(final NNResult eval, final double d) {
-    return new NNResult(eval.evaluationContext, eval.data.scale(d)) {
+    return new NNResult(eval.data.scale(d)) {
 
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
@@ -43,12 +41,10 @@ public abstract class NNResult {
 
   public final NDArray data;
 
-  public final EvaluationContext evaluationContext;
 
-  public NNResult(final EvaluationContext evaluationContext, final NDArray data) {
+  public NNResult(final NDArray data) {
     super();
     this.data = data;
-    this.evaluationContext = evaluationContext;
   }
 
   public final NDArray delta(final int k) {

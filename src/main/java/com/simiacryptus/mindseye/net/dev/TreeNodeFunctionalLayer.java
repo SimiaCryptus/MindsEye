@@ -13,7 +13,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
@@ -28,7 +27,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     private NDArray sum = null;
 
     private NNResultBuffer(final NNResult x) {
-      super(x.evaluationContext, x.data);
+      super(x.data);
       this.inner = x;
     }
 
@@ -72,24 +71,24 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj2) {
+  public NNResult eval(final NNResult... inObj2) {
     final List<NNResultBuffer> inputResultBuffers = java.util.stream.Stream.of(inObj2).map(x -> new NNResultBuffer(x)).collect(java.util.stream.Collectors.toList());
     final NNResult[] input = inputResultBuffers.stream().toArray(i -> new NNResult[i]);
-    final NNResult gateEval = this.gate.eval(evaluationContext, input);
+    final NNResult gateEval = this.gate.eval(input);
     final double[] gateVals = gateEval.data.getData();
     // int[] sorted = IntStream.range(0, gateVals.length).mapToObj(x->x)
     // .sorted(java.util.Comparator.comparing(i->gateVals[i])).mapToInt(x->x).toArray();
 
     final List<NNResult> outputs = IntStream.range(0, gateVals.length).mapToObj(x -> {
       final NNLayer<?> leaf = this.leafs.get(x);
-      final NNResult leafEval = leaf.eval(evaluationContext, input);
+      final NNResult leafEval = leaf.eval(input);
       return NNResult.scale(leafEval, gateVals[x]);
     }).collect(java.util.stream.Collectors.toList());
     final NNResult output = outputs.stream().reduce((l, r) -> NNResult.add(l, r)).get();
     if (isVerbose()) {
       TreeNodeFunctionalLayer.log.debug(String.format("Feed forward: %s * %s => %s", input[0].data, gateEval.data, output));
     }
-    return new NNResult(evaluationContext, output.data) {
+    return new NNResult(output.data) {
 
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {

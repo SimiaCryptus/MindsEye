@@ -5,7 +5,6 @@ import java.util.List;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
@@ -22,8 +21,8 @@ public class WrapperLayer extends NNLayer<WrapperLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... array) {
-    return getInner().eval(evaluationContext, array);
+  public NNResult eval(final NNResult... array) {
+    return getInner().eval(array);
   }
 
   @Override

@@ -13,7 +13,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
@@ -44,7 +43,7 @@ public class BiasLayer extends NNLayer<BiasLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NDArray r = inObj[0].data;
     final double[] rd = r.getData();
     final double[] array = new double[rd.length];
@@ -55,7 +54,7 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     if (isVerbose()) {
       BiasLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, translated));
     }
-    return new NNResult(evaluationContext, translated) {
+    return new NNResult(translated) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (isVerbose()) {

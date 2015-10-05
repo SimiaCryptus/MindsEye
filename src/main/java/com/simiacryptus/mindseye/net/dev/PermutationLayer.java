@@ -11,7 +11,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public class PermutationLayer extends NNLayer<PermutationLayer> {
 
@@ -28,7 +27,7 @@ public class PermutationLayer extends NNLayer<PermutationLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = input;
     if (isVerbose()) {
@@ -37,7 +36,7 @@ public class PermutationLayer extends NNLayer<PermutationLayer> {
     if (null != this.record) {
       this.record.add(Arrays.copyOf(input.getData(), input.getData().length));
     }
-    return new NNResult(evaluationContext, output) {
+    return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {

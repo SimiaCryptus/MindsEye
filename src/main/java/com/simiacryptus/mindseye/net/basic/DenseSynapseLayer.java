@@ -14,7 +14,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
@@ -30,8 +29,8 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray data, final NNResult inObj, final EvaluationContext evaluationContext) {
-      super(evaluationContext, data);
+    private Result(final NDArray data, final NNResult inObj) {
+      super(data);
       this.inObj = inObj;
     }
 
@@ -105,13 +104,13 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = multiply2(this.weights.getData(), input.getData());
     if (isVerbose()) {
       DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
     }
-    return new Result(output, inObj[0], evaluationContext);
+    return new Result(output, inObj[0]);
   }
 
   private NDArray multiply2(final double[] wdata, final double[] indata) {

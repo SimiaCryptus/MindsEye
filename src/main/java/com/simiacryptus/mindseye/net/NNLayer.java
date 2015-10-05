@@ -10,7 +10,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.util.Util;
 
 import groovy.lang.Tuple2;
@@ -31,8 +30,8 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
     
     //public final String[] created = Util.currentStack();
     
-    private ConstNNResult(EvaluationContext evaluationContext, NDArray data) {
-      super(evaluationContext, data);
+    private ConstNNResult(NDArray data) {
+      super(data);
     }
 
     @Override
@@ -46,8 +45,8 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
     }
   }
 
-  public static NNResult[] getConstResult(final EvaluationContext evaluationContext, final NDArray... array) {
-    return Stream.of(array).map(a -> new ConstNNResult(evaluationContext, a)).toArray(i -> new NNResult[i]);
+  public static NNResult[] getConstResult(final NDArray... array) {
+    return Stream.of(array).map(a -> new ConstNNResult(a)).toArray(i -> new NNResult[i]);
   }
 
   private boolean frozen = false;
@@ -73,11 +72,11 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
     return true;
   }
 
-  public final NNResult eval(final EvaluationContext evaluationContext, final NDArray... array) {
-    return eval(evaluationContext, NNLayer.getConstResult(evaluationContext, array));
+  public final NNResult eval(final NDArray... array) {
+    return eval(NNLayer.getConstResult(array));
   }
 
-  public abstract NNResult eval(EvaluationContext evaluationContext, NNResult... array);
+  public abstract NNResult eval(NNResult... array);
 
   public NNLayer<?> evolve() {
     return null;

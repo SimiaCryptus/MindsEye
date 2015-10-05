@@ -27,7 +27,7 @@ public class DevelopmentTrainer implements TrainingComponent {
   private boolean evolve(final TrainingContext trainingContext) {
     final boolean isValid = null != this.inner.getNet().evolve();
     if (isValid) {
-      this.inner.refresh();
+      this.inner.reset();
       this.inner.step(trainingContext);
     }
     return isValid;
@@ -77,7 +77,7 @@ public class DevelopmentTrainer implements TrainingComponent {
   }
 
   @Override
-  public void refresh() {
-    inner.refresh();
+  public void reset() {
+    inner.reset();
   }
 }

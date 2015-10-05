@@ -89,7 +89,7 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   @Override
   public double step(final TrainingContext trainingContext) {
-    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.2, 5., getEtaMs()));
+    train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 1.5, 3., getEtaMs()));
     return getError();
   }
 
@@ -146,7 +146,7 @@ public class DynamicRateTrainer implements TrainingComponent {
   }
 
   @Override
-  public void refresh() {
-    inner.refresh();
+  public void reset() {
+    inner.reset();
   }
 }

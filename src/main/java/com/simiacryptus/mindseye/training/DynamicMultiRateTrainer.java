@@ -264,8 +264,8 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
   }
 
   @Override
-  public void refresh() {
-    inner.refresh();
+  public void reset() {
+    inner.reset();
   }
 
 }

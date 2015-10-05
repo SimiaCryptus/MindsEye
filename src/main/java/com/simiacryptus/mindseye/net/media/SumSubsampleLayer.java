@@ -16,7 +16,6 @@ import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
 
@@ -109,7 +108,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     int kernelSize = new NDArray(this.kernelDims).dim();
     final NDArray input = inObj[0].data;
     final int[] inputDims = input.getDims();
@@ -128,7 +127,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
         output.add(outputMapping.getKey(), sum/kernelSize);
       }
     }
-    return new NNResult(evaluationContext, output) {
+    return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {

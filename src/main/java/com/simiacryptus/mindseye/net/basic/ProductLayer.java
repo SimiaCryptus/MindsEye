@@ -10,7 +10,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
@@ -26,7 +25,7 @@ public class ProductLayer extends NNLayer<ProductLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     double sum = 1;
     for(int l=0;l<inObj.length;l++){
       final double[] input = inObj[l].data.getData();
@@ -39,7 +38,7 @@ public class ProductLayer extends NNLayer<ProductLayer> {
     if (isVerbose()) {
       ProductLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, sum));
     }
-    return new NNResult(evaluationContext, output) {
+    return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         double delta = data.get(0);

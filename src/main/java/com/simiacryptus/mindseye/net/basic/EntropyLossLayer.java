@@ -10,7 +10,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
@@ -26,7 +25,7 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
   }
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NDArray l = inObj[0].data;
     final NDArray b = inObj[1].data;
     final NDArray gradient = new NDArray(l.getDims());
@@ -47,7 +46,7 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
     if (isVerbose()) {
       EntropyLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, descriptiveNats));
     }
-    return new NNResult(evaluationContext, output) {
+    return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {

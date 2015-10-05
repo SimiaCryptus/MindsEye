@@ -15,7 +15,6 @@ import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
@@ -44,9 +43,9 @@ public class SimpleMNIST {
   protected NNLayer<DAGNetwork> getNetwork() {
     final DAGNetwork net = new DAGNetwork();
     final NDArray[] input = { this.inputSize };
-    net.add(new DenseSynapseLayer(net.eval(new EvaluationContext(), input).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
+    net.add(new DenseSynapseLayer(net.eval(input).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
     final NDArray[] input1 = { this.inputSize };
-    net.add(new BiasLayer(net.eval(new EvaluationContext(), input1).data.getDims()).setVerbose(this.verbose > 1));
+    net.add(new BiasLayer(net.eval(input1).data.getDims()).setVerbose(this.verbose > 1));
     // net.add(new SigmoidActivationLayer().setVerbose(verbose));
     net.add(new SoftmaxActivationLayer().setVerbose(this.verbose > 1));
     return net;
@@ -73,7 +72,7 @@ public class SimpleMNIST {
     final NDArray[][] data = getTraining(buffer).map(o -> new NDArray[] { o.data, SimpleMNIST.toOutNDArray(SimpleMNIST.toOut(o.label), 10) }).toArray(i2 -> new NDArray[i2][]);
 
     getTrainer(net, data).verifyConvergence(0.01, 1);
-    final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(new EvaluationContext(), o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average().getAsDouble();
+    final double prevRms = getVerification(buffer).mapToDouble(o1 -> net.eval(o1.data).errMisclassification(SimpleMNIST.toOut(o1.label))).average().getAsDouble();
     SimpleMNIST.log.info("Tested RMS Error: {}", prevRms);
     MNIST.report(net);
   }

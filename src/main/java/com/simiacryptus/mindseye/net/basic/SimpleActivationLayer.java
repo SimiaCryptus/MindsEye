@@ -11,7 +11,6 @@ import com.simiacryptus.mindseye.deltas.DeltaBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
@@ -30,28 +29,30 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   protected abstract void eval(final double x, double[] results);
 
   @Override
-  public NNResult eval(final EvaluationContext evaluationContext, final NNResult... inObj) {
+  public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = new NDArray(inObj[0].data.getDims());
     final NDArray inputGradient = new NDArray(input.dim());
     final double[] results = new double[2];
     for (int i = 0; i < input.dim(); i++) {
       eval(input.getData()[i], results);
-      inputGradient.add(new int[] { i }, results[1]);
+      inputGradient.set(i, results[1]);
       output.set(i, results[0]);
     }
     if (isVerbose()) {
       log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
     }
-    return new NNResult(evaluationContext, output) {
+    return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaBuffer buffer) {
         if (inObj[0].isAlive()) {
           final NDArray inputGradientLog = inputGradient;
           final NDArray passback = new NDArray(data.getDims());
+          double[] gradientData = inputGradientLog.getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
-            if (Double.isFinite(inputGradientLog.getData()[i])) {
-              passback.set(i, data.getData()[i] * inputGradientLog.getData()[i]);
+            double v = gradientData[i];
+            if (Double.isFinite(v)) {
+              passback.set(i, data.getData()[i] * v);
             }
           });
           if (isVerbose()) {

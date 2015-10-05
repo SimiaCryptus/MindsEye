@@ -14,6 +14,6 @@ public interface TrainingComponent {
 
   NDArray[][] getData();
 
-  void refresh();
+  void reset();
 
 }

@@ -304,6 +304,7 @@ public class NDArray {
   }
 
   public void set(NDArray right) {
+    assert(dim()==right.dim());
     double[] rightData = right.getData();
     Arrays.parallelSetAll(getData(), i -> rightData[i]);
   }

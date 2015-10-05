@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.util.Util;
 
@@ -129,7 +128,7 @@ public abstract class ClassificationTestBase {
                 for (int ypx = 0; ypx < getHeight(); ypx++) {
                   final double xf = (xpx * 1. / getWidth() - .5) * 6;
                   final double yf = (ypx * 1. / getHeight() - .5) * 6;
-                  final NNResult eval = mainNetwork.eval(new EvaluationContext(),new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+                  final NNResult eval = mainNetwork.eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
                   final int classificationActual = outputToClassification(eval.data);
                   final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
                   this.setRGB(xpx, ypx, color);
@@ -142,7 +141,7 @@ public abstract class ClassificationTestBase {
               final NDArray expectedOutput = pt[1];
               final NDArray input = pt[0];
               final NDArray[] array = pt;
-              final NNResult output = mainNetwork.eval(new EvaluationContext(), array);
+              final NNResult output = mainNetwork.eval(array);
               final NDArray actualOutput = output.data;
               correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
                 final double x = expectedOutput.get(i) - actualOutput.get(i);
