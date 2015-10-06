@@ -121,7 +121,7 @@ public abstract class ClassificationTestBase {
       try {
         NNLayer<?> mainNetwork = n.getChild(net.id);
         final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
-        final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
+        final BufferedImage img = new BufferedImage(width(), height(), BufferedImage.TYPE_INT_RGB) {
           {
             if (ClassificationTestBase.this.drawBG) {
               for (int xpx = 0; xpx < getWidth(); xpx++) {
@@ -178,6 +178,14 @@ public abstract class ClassificationTestBase {
       final String[] array = map.toArray(i -> new String[i]);
       Util.report(array);
     }
+  }
+
+  public int height() {
+    return 500;
+  }
+
+  public int width() {
+    return 500;
   }
 
   public void verify(final Tester trainer) {

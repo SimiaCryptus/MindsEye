@@ -136,7 +136,7 @@ public class Tester {
       boolean hasConverged = false;
       try {
         contextCpy.terminalErr = convergence;
-        final double error = trainerCpy.step(contextCpy);
+        final double error = trainerCpy.step(contextCpy).finalError();
         final DAGNetwork net = trainerCpy.getNet();
         this.handler.stream().forEach(h -> h.apply(net, contextCpy));
         hasConverged = error <= convergence;

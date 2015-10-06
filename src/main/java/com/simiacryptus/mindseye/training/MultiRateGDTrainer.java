@@ -165,12 +165,11 @@ public class MultiRateGDTrainer implements RateTrainingComponent {
   }
 
   @Override
-  public double step(final TrainingContext trainingContext) throws TerminationCondition {
+  public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     final double prevError = evalClassificationValidationData(trainingContext).rms;
     final double[] rates = getRates();
-    if (null == rates)
-      return Double.POSITIVE_INFINITY;
+    if (null == rates) return null;
     final DeltaBuffer buffer = getVector(trainingContext);
     if (rates.length != buffer.vector().size()) {
       MultiRateGDTrainer.log.debug(String.format("%s != %s", rates.length, buffer.vector().size()));
@@ -191,7 +190,7 @@ public class MultiRateGDTrainer implements RateTrainingComponent {
       }
       IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(-rates[i]));
       evalClassificationValidationData(trainingContext);
-      return 0.;
+      return null;
     } else {
       if (this.verbose) {
         MultiRateGDTrainer.log.debug(String.format("Validated delta: (%s -> %s) - %s", prevError, validationError, validationError - prevError));
@@ -203,7 +202,7 @@ public class MultiRateGDTrainer implements RateTrainingComponent {
       MultiRateGDTrainer.log
           .debug(String.format("Trained Error: %s with rate %s*%s in %.03fs", validationError, getRate(), Arrays.toString(rates), (System.currentTimeMillis() - startMs) / 1000.));
     }
-    return validationError - prevError;
+    return new TrainingStep(prevError,validationError,true);
   }
 
   public NDArray[][] getData() {

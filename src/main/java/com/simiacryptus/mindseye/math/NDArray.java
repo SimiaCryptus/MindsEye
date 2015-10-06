@@ -157,7 +157,7 @@ public class NDArray {
     // IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     // assert coords.length==dims.length;
     final double v = getData()[index(coords)];
-    assert Double.isFinite(v);
+    //assert Double.isFinite(v);
     return v;
   }
 

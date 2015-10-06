@@ -260,15 +260,15 @@ public class PopulationTrainer implements TrainingComponent {
   }
 
   @Override
-  public double step(final TrainingContext trainingContext) {
-    final Double error = trainingContext.overallTimer.time(() -> {
+  public TrainingStep step(final TrainingContext trainingContext) {
+    return trainingContext.overallTimer.time(() -> {
       return train(trainingContext);
     });
-    return error;
   }
 
-  private Double train(final TrainingContext trainingContext) {
+  private TrainingStep train(final TrainingContext trainingContext) {
     final long startMs = System.currentTimeMillis();
+    double prevError = this.inner.getError();
 
     List<TrainingComponent> population = IntStream.range(0, getPopulationSize()).mapToObj(i -> {
       return Util.kryo().copy(this.inner);
@@ -308,7 +308,8 @@ public class PopulationTrainer implements TrainingComponent {
     }
 
     this.inner = population.stream().sorted(Comparator.comparing(x -> x.getError())).findFirst().get();
-    return this.inner.getError();
+    double nextError = this.inner.getError();
+    return new TrainingStep(prevError, nextError, true);
   }
 
   private void trainIndividual(final TrainingContext trainingContext, final TrainingComponent dynamicRateTrainer) {

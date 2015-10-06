@@ -10,16 +10,16 @@ import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.util.LabeledObject;
 import com.simiacryptus.mindseye.util.Util;
 
-public class MNISTClassificationTests2 extends MNISTClassificationTests {
+public class MNISTClassificationTests5 extends MNISTClassificationTests {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
     DAGNetwork net = new DAGNetwork();
-    int n = 2;
-    int m = 28-n+1;
-    net = net.add(new ConvolutionSynapseLayer(new int[] { n, n }, 10).addWeights(() -> Util.R.get().nextGaussian() * .001));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 10).addWeights(() -> Util.R.get().nextGaussian() * .1));
     net = net.add(new SqActivationLayer());
-    net = net.add(new SumSubsampleLayer(new int[] { m, m, 1 }));
+    net = net.add(new SumSubsampleLayer(new int[] { 25, 25, 1 }));
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }

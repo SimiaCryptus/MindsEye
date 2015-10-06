@@ -62,13 +62,17 @@ public class DevelopmentTrainer implements TrainingComponent {
   }
 
   @Override
-  public double step(final TrainingContext trainingContext) {
+  public TrainingStep step(final TrainingContext trainingContext) {
+    double prevError = getError();
     int lifecycle = 0;
+    double endError;
     do {
-      inner.step(trainingContext);
+      TrainingStep step = inner.step(trainingContext);
+      if(!Double.isFinite(prevError)) prevError = step.startError;
+      endError = step.finalError();
     } while (lifecycle++ < getEvolutionPhases() && evolve(trainingContext));
     // train2(trainingContext);
-    return getError();
+    return new TrainingStep(prevError, endError, true);
   }
 
 

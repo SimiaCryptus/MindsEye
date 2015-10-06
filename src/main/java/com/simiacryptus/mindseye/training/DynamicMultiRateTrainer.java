@@ -78,7 +78,7 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
         final double[] key = optimizeRates(trainingContext);
         if (setRates(trainingContext, key)) {
           this.lastCalibratedIteration = this.currentIteration;
-          final double improvement = -gradientDescentTrainer.step(trainingContext);
+          final double improvement = gradientDescentTrainer.step(trainingContext).improvement();
           if (isVerbose()) {
             DynamicMultiRateTrainer.log.debug(String.format("Adjusting rates by %s: (%s improvement)", Arrays.toString(key), improvement));
           }
@@ -214,9 +214,10 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
   }
 
   @Override
-  public double step(final TrainingContext trainingContext) throws TerminationCondition {
+  public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
+    double prev = getError();
     step2(trainingContext);
-    return getError();
+    return new TrainingStep(prev, getError(), true);
   }
 
   private boolean step2(final TrainingContext trainingContext) throws TerminationCondition {
@@ -243,7 +244,7 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
           return false;
         this.generationsSinceImprovement = 0;
       }
-      if (0. != gradientDescentTrainer.step(trainingContext)) {
+      if (gradientDescentTrainer.step(trainingContext).changed) {
         this.generationsSinceImprovement = 0;
       } else {
         if (getRecalibrationThreshold() < this.generationsSinceImprovement++) {

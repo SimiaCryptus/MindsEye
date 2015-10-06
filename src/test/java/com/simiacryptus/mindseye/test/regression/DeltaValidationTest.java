@@ -18,7 +18,7 @@ import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.L1NormalizationLayer;
-import com.simiacryptus.mindseye.net.dev.MinActivationLayer;
+import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.dev.SqActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
@@ -184,7 +184,7 @@ public class DeltaValidationTest  {
   public void testMinActivationLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(3);
     NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new MinActivationLayer();
+    NNLayer<?> component = new ThresholdActivationLayer();
     test(component, outputPrototype, inputPrototype);
   }
 

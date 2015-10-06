@@ -29,7 +29,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private double temperature = 0.0;
   private boolean verbose = false;
   private long hash = Util.R.get().nextLong();
-  private int trainingSize = 300;
+  private int trainingSize = Integer.MAX_VALUE;
 
   private DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
     final List<NNResult> netresults = eval(trainingContext, data, isParallelTraining());
@@ -167,20 +167,21 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
   
   @Override
-  public double step(final TrainingContext trainingContext) throws TerminationCondition {
+  public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     StepResult result = _step(trainingContext);
     if (result.prevError == result.finalError) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Static: (%s)", result.prevError));
       }
+      setError(result.finalError);
     } else if (!Util.thermalStep(result.prevError, result.finalError, getTemperature())) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s (rate %s)", //
             result.prevError, result.finalError, result.finalError - result.prevError, getRate()));
       }
       result.revert();
-      return result.prevError;
+      return new TrainingStep(result.prevError, result.finalError, false);
     } else {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Validated delta: (%s -> %s) - %s", //
@@ -193,8 +194,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s in %.03fs", //
           result.finalError, getRate(), (System.currentTimeMillis() - startMs) / 1000.));
     }
-    
-    return result.finalError;
+    return new TrainingStep(result.prevError, result.finalError, true);
   }
 
   public StepResult _step(final TrainingContext trainingContext) {

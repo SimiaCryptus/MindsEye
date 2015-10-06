@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork.DAGNode;
 import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
-import com.simiacryptus.mindseye.net.dev.MinActivationLayer;
+import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.dev.SqActivationLayer;
 import com.simiacryptus.mindseye.net.dev.VerboseWrapper;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
@@ -121,7 +121,7 @@ public class ImageNetworkDev {
       outs.add(dagNetwork.getHead());
 
       // Non-negativity constraint. Today's cameras do not image negative energy.
-      MinActivationLayer negativeClamp = new MinActivationLayer();
+      ThresholdActivationLayer negativeClamp = new ThresholdActivationLayer();
 //      dagNetwork.add(negativeClamp.setFactor(-0.0), modeledImageNode);
 //      dagNetwork.add(new com.simiacryptus.mindseye.net.dev.SqActivationLayer());
 //      dagNetwork.add(new SumLayer());

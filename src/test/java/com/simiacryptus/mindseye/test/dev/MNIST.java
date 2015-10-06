@@ -52,7 +52,7 @@ public class MNIST {
       public LabeledObject<NDArray> next() {
         return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
       }
-    }, 100).limit(10000);
+    }, 100);
     return merged;
   }
 

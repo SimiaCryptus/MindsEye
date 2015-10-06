@@ -33,7 +33,7 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     this.bias = null;
   }
 
-  public BiasLayer(final int[] outputDims) {
+  public BiasLayer(final int... outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
   }
 

@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.test.demo;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -41,20 +42,19 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    //SqLossLayer lossLayer = new SqLossLayer();
     EntropyLossLayer lossLayer = new EntropyLossLayer();
     Tester trainer = new Tester(){
       
       @Override
       public NetInitializer getInitializer() {
         NetInitializer netInitializer = new NetInitializer();
-        netInitializer.setAmplitude(0.1);
+        netInitializer.setAmplitude(0.);
         return netInitializer;
       }
 
     }.init(samples, net, lossLayer).setVerbose(true);
     trainer.setVerbose(true);
-    trainer.trainingContext().setTimeout(2, java.util.concurrent.TimeUnit.MINUTES);
+    trainer.trainingContext().setTimeout(10, java.util.concurrent.TimeUnit.MINUTES);
     return trainer;
   }
 
@@ -70,12 +70,16 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Override
   public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
-    final double n = 10.;
+    final double n = numberOfSymbols();
     final double[] c = new double[] { //
         (classificationActual + Util.R.get().nextDouble()) / (n + 1), //
         (classificationExpected + Util.R.get().nextDouble()) / (n + 1) //
     };
     return new double[] { c[0] * 6 - 3, c[1] * 6 - 3 };
+  }
+
+  public double numberOfSymbols() {
+    return 10.;
   }
 
   private String remap(final String label) {
@@ -93,12 +97,11 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Test
   public void test() throws Exception {
-    test(trainingData());
+    test(trainingData(1000));
   }
 
-  public NDArray[][] trainingData() throws IOException {
-    final int maxSize = 1000;
-    final List<LabeledObject<NDArray>> data = Util.shuffle(MNIST.trainingDataStream().filter(this::filter).collect(Collectors.toList()));
+  public NDArray[][] trainingData(final int maxSize) throws IOException {
+    final List<LabeledObject<NDArray>> data = getTrainingData().collect(Collectors.toList());
     final NDArray[][] trainingData = data.parallelStream().limit(maxSize)
       .map(obj->new LabeledObject<>(obj.data.reformat(28,28,1), obj.label))
       .map(obj -> {
@@ -107,6 +110,15 @@ public class MNISTClassificationTests extends ClassificationTestBase {
         return new NDArray[] { obj.data, output };
       }).toArray(i -> new NDArray[i][]);
     return trainingData;
+  }
+
+  public Stream<LabeledObject<NDArray>> getTrainingData() throws IOException {
+    int hash = Util.R.get().nextInt();
+    log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
+    return MNIST.trainingDataStream().filter(this::filter)
+        .collect(java.util.stream.Collectors.toList()).stream()
+        .sorted(java.util.Comparator.comparingInt(obj->0xEFFFFFFF & (System.identityHashCode(obj)^hash))).limit(1000)
+        .collect(java.util.stream.Collectors.toList()).stream();
   }
 
   @Override
