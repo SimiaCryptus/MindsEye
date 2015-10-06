@@ -1,12 +1,16 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import java.io.IOException;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.Test;
 
+import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
@@ -23,9 +27,46 @@ import com.simiacryptus.mindseye.util.Util;
 
 public class MNISTClassificationTests extends ClassificationTestBase {
 
+  public BufferedImage draw(final NDArray[][] samples, NNLayer<?> mainNetwork, final ClassificationResultMetrics correct) {
+    final BufferedImage img = new BufferedImage(width(), height(), BufferedImage.TYPE_INT_RGB) {
+      {
+        final Graphics2D g = (Graphics2D) getGraphics();
+        correct.pts++;
+        correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
+          final NDArray expectedOutput = pt[1];
+          final NDArray[] array = pt;
+          final NNResult output = mainNetwork.eval(array);
+          final NDArray actualOutput = output.data;
+          correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
+            final double x = expectedOutput.get(i) - actualOutput.get(i);
+            return x * x;
+          }).average().getAsDouble();
+
+          final int classificationExpected = outputToClassification(expectedOutput);
+          final int classificationActual = outputToClassification(actualOutput);
+          final double n = numberOfSymbols();
+          final double[] c = new double[] { //
+              (classificationActual + Util.R.get().nextDouble()) / (n + 1), //
+              (classificationExpected + Util.R.get().nextDouble()) / (n + 1) //
+          };
+          final double[] coords = new double[] { c[0] * 6 - 3, c[1] * 6 - 3 };
+          final double xf = coords[0];
+          final double yf = coords[1];
+          final int xpx = (int) ((xf + 3) / 6 * getHeight());
+          final int ypx = (int) ((yf + 3) / 6 * getHeight());
+          final Color color = getColorMap().get(classificationExpected);
+          g.setColor(color);
+          g.drawOval(xpx, ypx, 1, 1);
+          correct.classificationMatrix.add(new int[] { classificationExpected, classificationActual }, 1.);
+          return classificationExpected == classificationActual ? 1. : 0.;
+        }).average().getAsDouble();
+      }
+    };
+    return img;
+  }
+
   public MNISTClassificationTests() {
     super();
-    this.drawBG = false;
   }
 
   @Override
@@ -68,16 +109,6 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     return true;
   }
 
-  @Override
-  public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
-    final double n = numberOfSymbols();
-    final double[] c = new double[] { //
-        (classificationActual + Util.R.get().nextDouble()) / (n + 1), //
-        (classificationExpected + Util.R.get().nextDouble()) / (n + 1) //
-    };
-    return new double[] { c[0] * 6 - 3, c[1] * 6 - 3 };
-  }
-
   public double numberOfSymbols() {
     return 10.;
   }
@@ -97,33 +128,45 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
   @Test
   public void test() throws Exception {
-    test(trainingData(1000));
-  }
-
-  public NDArray[][] trainingData(final int maxSize) throws IOException {
-    final List<LabeledObject<NDArray>> data = getTrainingData().collect(Collectors.toList());
-    final NDArray[][] trainingData = data.parallelStream().limit(maxSize)
-      .map(obj->new LabeledObject<>(obj.data.reformat(28,28,1), obj.label))
-      .map(obj -> {
-        final int out = SimpleMNIST.toOut(remap(obj.label));
-        final NDArray output = SimpleMNIST.toOutNDArray(out, 10);
-        return new NDArray[] { obj.data, output };
-      }).toArray(i -> new NDArray[i][]);
-    return trainingData;
-  }
-
-  public Stream<LabeledObject<NDArray>> getTrainingData() throws IOException {
     int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    return MNIST.trainingDataStream().filter(this::filter)
+    final NDArray[][] data = MNIST.trainingDataStream()
+        .filter(this::filter)
         .collect(java.util.stream.Collectors.toList()).stream()
-        .sorted(java.util.Comparator.comparingInt(obj->0xEFFFFFFF & (System.identityHashCode(obj)^hash))).limit(1000)
-        .collect(java.util.stream.Collectors.toList()).stream();
+        .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
+        //.limit(1000)
+        .collect(java.util.stream.Collectors.toList()).parallelStream()
+        //.limit(1000)
+        .map(obj -> new LabeledObject<>(obj.data.reformat(28, 28, 1), obj.label))
+        .map(obj -> {
+          final int out = SimpleMNIST.toOut(remap(obj.label));
+          final NDArray output = SimpleMNIST.toOutNDArray(out, 10);
+          return new NDArray[] { obj.data, output };
+        }).toArray(i -> new NDArray[i][]);
+    NDArray[][] trainingData = java.util.Arrays.copyOfRange(data, 0, 1000);
+    NDArray[][] validationData = java.util.Arrays.copyOfRange(data, trainingData.length, data.length);
+    test(trainingData,validationData);
   }
 
   @Override
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0.00001, 1);
+  }
+
+  private static final List<Color> colorMap = Arrays.asList(
+      Color.WHITE, 
+      Color.RED, 
+      Color.ORANGE, 
+      Color.YELLOW, 
+      Color.GREEN, 
+      Color.BLUE, 
+      Color.decode("0xee82ee"), 
+      Color.PINK, 
+      Color.GRAY, 
+      ClassificationTestBase.randomColor(), 
+      ClassificationTestBase.randomColor());
+  public List<Color> getColorMap() {
+    return colorMap;
   }
 
 }

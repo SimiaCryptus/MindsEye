@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.net.media;
 
 import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
 
+@SuppressWarnings("serial")
 public class MaxEntLayer extends SimpleActivationLayer<MaxEntLayer> {
 
   @Override

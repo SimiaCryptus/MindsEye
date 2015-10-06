@@ -16,8 +16,6 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
-    final int[] inputSize = new int[] { 28, 28, 1 };
-    final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
 
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 10).addWeights(() -> Util.R.get().nextGaussian() * 1.));

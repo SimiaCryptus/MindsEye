@@ -120,13 +120,7 @@ public class ImageNetworkDev {
       List<DAGNode> outs = new ArrayList<>();
       outs.add(dagNetwork.getHead());
 
-      // Non-negativity constraint. Today's cameras do not image negative energy.
-      ThresholdActivationLayer negativeClamp = new ThresholdActivationLayer();
-//      dagNetwork.add(negativeClamp.setFactor(-0.0), modeledImageNode);
-//      dagNetwork.add(new com.simiacryptus.mindseye.net.dev.SqActivationLayer());
-//      dagNetwork.add(new SumLayer());
-//      dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
-//      outs.add(dagNetwork.getHead());
+      new ThresholdActivationLayer();
 
       // Non-negativity constraint. Today's cameras do not image negative energy.
       LinearActivationLayer edgeGate;

@@ -56,18 +56,12 @@ public abstract class ClassificationTestBase {
 
   }
 
-  static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN, ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
-      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
-      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor());
-
   static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
 
   public static Color randomColor() {
     final Random r = Util.R.get();
     return new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
   }
-
-  boolean drawBG = true;
 
   public ClassificationTestBase() {
     super();
@@ -77,11 +71,6 @@ public abstract class ClassificationTestBase {
 
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
     return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
-  }
-
-  public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {
-    final Color color = ClassificationTestBase.colorMap.get(classificationExpected);
-    return color;
   }
 
   public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
@@ -102,67 +91,24 @@ public abstract class ClassificationTestBase {
     return defaultNum;
   }
 
-  public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
-    final double xf = input.get(0);
-    final double yf = input.get(1);
-    return new double[] { xf, yf };
-  }
-
   public Integer outputToClassification(final NDArray actual) {
     return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
 
   public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
+    test(samples,samples);
+  }
+
+  public void test(final NDArray[][] trainingsamples,final NDArray[][] validationsamples) throws FileNotFoundException, IOException {
     final NNLayer<DAGNetwork> net = buildNetwork();
-    final Tester trainer = buildTrainer(samples, net);
+    final Tester trainer = buildTrainer(trainingsamples, net);
     final Map<BufferedImage, String> images = new HashMap<>();
-    final int categories = samples[0][1].dim();
+    final int categories = trainingsamples[0][1].dim();
     trainer.handler.add((n, trainingContext) -> {
       try {
         NNLayer<?> mainNetwork = n.getChild(net.id);
         final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
-        final BufferedImage img = new BufferedImage(width(), height(), BufferedImage.TYPE_INT_RGB) {
-          {
-            if (ClassificationTestBase.this.drawBG) {
-              for (int xpx = 0; xpx < getWidth(); xpx++) {
-                for (int ypx = 0; ypx < getHeight(); ypx++) {
-                  final double xf = (xpx * 1. / getWidth() - .5) * 6;
-                  final double yf = (ypx * 1. / getHeight() - .5) * 6;
-                  final NNResult eval = mainNetwork.eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
-                  final int classificationActual = outputToClassification(eval.data);
-                  final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
-                  this.setRGB(xpx, ypx, color);
-                }
-              }
-            }
-            final Graphics2D g = (Graphics2D) getGraphics();
-            correct.pts++;
-            correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
-              final NDArray expectedOutput = pt[1];
-              final NDArray input = pt[0];
-              final NDArray[] array = pt;
-              final NNResult output = mainNetwork.eval(array);
-              final NDArray actualOutput = output.data;
-              correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
-                final double x = expectedOutput.get(i) - actualOutput.get(i);
-                return x * x;
-              }).average().getAsDouble();
-
-              final int classificationExpected = outputToClassification(expectedOutput);
-              final int classificationActual = outputToClassification(actualOutput);
-              final double[] coords = inputToXY(input, classificationActual, classificationExpected);
-              final double xf = coords[0];
-              final double yf = coords[1];
-              final int xpx = (int) ((xf + 3) / 6 * getHeight());
-              final int ypx = (int) ((yf + 3) / 6 * getHeight());
-              final Color color = getColor(input, classificationActual, classificationExpected);
-              g.setColor(color);
-              g.drawOval(xpx, ypx, 1, 1);
-              correct.classificationMatrix.add(new int[] { classificationExpected, classificationActual }, 1.);
-              return classificationExpected == classificationActual ? 1. : 0.;
-            }).average().getAsDouble();
-          }
-        };
+        final BufferedImage img = draw(validationsamples, mainNetwork, correct);
         final String label = correct.toString() + " \n" + trainingContext.toString();
         ClassificationTestBase.log.debug(label);
         images.put(img, label);
@@ -180,6 +126,48 @@ public abstract class ClassificationTestBase {
     }
   }
 
+  public BufferedImage draw(final NDArray[][] samples, NNLayer<?> mainNetwork, final ClassificationResultMetrics correct) {
+    final BufferedImage img = new BufferedImage(width(), height(), BufferedImage.TYPE_INT_RGB) {
+      {
+        for (int xpx = 0; xpx < getWidth(); xpx++) {
+          for (int ypx = 0; ypx < getHeight(); ypx++) {
+            final double xf = (xpx * 1. / getWidth() - .5) * 6;
+            final double yf = (ypx * 1. / getHeight() - .5) * 6;
+            final NNResult eval = mainNetwork.eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
+            final int classificationActual = outputToClassification(eval.data);
+            final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
+            this.setRGB(xpx, ypx, color);
+          }
+        }
+
+        final Graphics2D g = (Graphics2D) getGraphics();
+        correct.pts++;
+        correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
+          final NDArray expectedOutput = pt[1];
+          final NDArray input = pt[0];
+          final NDArray[] array = pt;
+          final NNResult output = mainNetwork.eval(array);
+          final NDArray actualOutput = output.data;
+          correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
+            final double x = expectedOutput.get(i) - actualOutput.get(i);
+            return x * x;
+          }).average().getAsDouble();
+
+          final int classificationExpected = outputToClassification(expectedOutput);
+          final int classificationActual = outputToClassification(actualOutput);
+          final int xpx = (int) ((input.get(0) + 3) / 6 * getHeight());
+          final int ypx = (int) ((input.get(1) + 3) / 6 * getHeight());
+          final Color color = getColorMap().get(classificationExpected);
+          g.setColor(color);
+          g.drawOval(xpx, ypx, 1, 1);
+          correct.classificationMatrix.add(new int[] { classificationExpected, classificationActual }, 1.);
+          return classificationExpected == classificationActual ? 1. : 0.;
+        }).average().getAsDouble();
+      }
+    };
+    return img;
+  }
+
   public int height() {
     return 500;
   }
@@ -190,6 +178,14 @@ public abstract class ClassificationTestBase {
 
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0.0, 10);
+  }
+
+
+  private static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN, ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
+      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
+      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor());
+  public List<Color> getColorMap() {
+    return colorMap;
   }
 
 }
