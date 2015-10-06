@@ -34,10 +34,32 @@ public class MNIST {
     Desktop.getDesktop().browse(report.toURI());
   }
 
+  private static final String path = System.getProperty("MNIST_DIR", "C:/Users/Andrew Charneski/Downloads");
+  
   public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
-    final String path = "C:/Users/Andrew Charneski/Downloads";
     final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
     final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
+
+    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
+      Iterator<NDArray> imgItr = imgStream.iterator();
+      Iterator<byte[]> labelItr = labelStream.iterator();
+
+      @Override
+      public boolean hasNext() {
+        return this.imgItr.hasNext() && this.labelItr.hasNext();
+      }
+
+      @Override
+      public LabeledObject<NDArray> next() {
+        return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
+      }
+    }, 100);
+    return merged;
+  }
+
+  public static Stream<LabeledObject<NDArray>> validationDataStream() throws IOException {
+    final Stream<NDArray> imgStream = Util.binaryStream(path, "t10k-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
+    final Stream<byte[]> labelStream = Util.binaryStream(path, "t10k-labels-idx1-ubyte.gz", 8, 1);
 
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
       Iterator<NDArray> imgItr = imgStream.iterator();

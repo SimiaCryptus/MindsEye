@@ -54,7 +54,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
           final double yf = coords[1];
           final int xpx = (int) ((xf + 3) / 6 * getHeight());
           final int ypx = (int) ((yf + 3) / 6 * getHeight());
-          final Color color = getColorMap().get(classificationExpected);
+          final Color color = getColorMap().get(Util.R.get().nextBoolean()?classificationActual:classificationExpected);
           g.setColor(color);
           g.drawOval(xpx, ypx, 1, 1);
           correct.classificationMatrix.add(new int[] { classificationExpected, classificationActual }, 1.);
@@ -130,7 +130,14 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   public void test() throws Exception {
     int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    final NDArray[][] data = MNIST.trainingDataStream()
+    final NDArray[][] data = transformTrainingData(hash, MNIST.trainingDataStream());
+    NDArray[][] trainingData = java.util.Arrays.copyOfRange(data, 0, 1000);
+    NDArray[][] validationData = transformTrainingData(hash, MNIST.validationDataStream());
+    test(trainingData,validationData);
+  }
+
+  public NDArray[][] transformTrainingData(int hash, Stream<LabeledObject<NDArray>> mnistStream) {
+    final NDArray[][] data = mnistStream
         .filter(this::filter)
         .collect(java.util.stream.Collectors.toList()).stream()
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
@@ -143,9 +150,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
           final NDArray output = SimpleMNIST.toOutNDArray(out, 10);
           return new NDArray[] { obj.data, output };
         }).toArray(i -> new NDArray[i][]);
-    NDArray[][] trainingData = java.util.Arrays.copyOfRange(data, 0, 1000);
-    NDArray[][] validationData = java.util.Arrays.copyOfRange(data, trainingData.length, data.length);
-    test(trainingData,validationData);
+    return data;
   }
 
   @Override
