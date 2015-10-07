@@ -24,9 +24,13 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
 
     net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 4).addWeights(() -> Util.R.get().nextGaussian() * .1));
     net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
+    
     net = net.add(new SigmoidActivationLayer());
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 4).addWeights(() -> Util.R.get().nextGaussian() * .1));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
     net = net.add(new MaxSubsampleLayer(new int[] { 3, 3, 1 }));
+
+    net = net.add(new SigmoidActivationLayer());
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
     
     //net = net.add(new SumSubsampleLayer(new int[] { 4, 4, 1 }));
     

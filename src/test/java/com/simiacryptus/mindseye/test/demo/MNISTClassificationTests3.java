@@ -23,7 +23,7 @@ public class MNISTClassificationTests3 extends MNISTClassificationTests {
     net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
     net = net.add(new SigmoidActivationLayer());
     
-    net = net.add(new SumSubsampleLayer(new int[] { 13, 13, 1 }));
+    //net = net.add(new SumSubsampleLayer(new int[] { 13, 13, 1 }));
     
     int[] size = net.eval(new NDArray(inputSize)).data.getDims();
     net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));
