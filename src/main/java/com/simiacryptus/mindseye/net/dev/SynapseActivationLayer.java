@@ -10,11 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.deltas.DeltaSet;
-import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.DeltaSet;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.NNResult;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.util.Util;
 
 public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
   /**

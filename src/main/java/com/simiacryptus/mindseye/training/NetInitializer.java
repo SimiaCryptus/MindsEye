@@ -9,13 +9,13 @@ import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.math.Coordinate;
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.Coordinate;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.util.Util;
 
 public class NetInitializer {
   private static final Logger log = LoggerFactory.getLogger(NetInitializer.class);

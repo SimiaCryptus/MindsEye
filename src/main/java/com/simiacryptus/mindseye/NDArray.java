@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.math;
+package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -11,8 +11,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.jblas.DoubleMatrix;
-
-import com.simiacryptus.mindseye.util.Util;
 
 public class NDArray {
 

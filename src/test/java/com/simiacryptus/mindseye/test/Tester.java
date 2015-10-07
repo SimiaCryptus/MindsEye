@@ -9,7 +9,8 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.DevelopmentTrainer;
@@ -19,7 +20,6 @@ import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.training.TrainingComponent;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
-import com.simiacryptus.mindseye.util.Util;
 
 /**
  * Encapsulates overall network architecture, training method and data.

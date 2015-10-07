@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.test.demo;
 
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;

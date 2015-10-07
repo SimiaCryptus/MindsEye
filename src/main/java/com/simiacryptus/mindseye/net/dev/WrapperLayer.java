@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.net.dev;
 import java.util.List;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.deltas.NNResult;
+import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 import groovy.lang.Tuple2;

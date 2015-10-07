@@ -9,10 +9,10 @@ import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.deltas.DeltaSet;
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
-import com.simiacryptus.mindseye.math.MultivariateOptimizer;
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.DeltaBuffer;
+import com.simiacryptus.mindseye.DeltaSet;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.dev.MultivariateOptimizer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 

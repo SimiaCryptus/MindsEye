@@ -7,7 +7,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.simiacryptus.mindseye.util.Util;
+import com.simiacryptus.mindseye.Util;
 
 public final class GaussianDistribution implements Function<Void, double[]> {
   private int dims;

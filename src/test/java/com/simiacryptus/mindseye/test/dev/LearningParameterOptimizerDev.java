@@ -11,8 +11,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.math.MultivariateOptimizer;
-import com.simiacryptus.mindseye.math.UnivariateOptimizer;
+import com.simiacryptus.mindseye.dev.MultivariateOptimizer;
+import com.simiacryptus.mindseye.dev.UnivariateOptimizer;
 
 public class LearningParameterOptimizerDev {
   static final Logger log = LoggerFactory.getLogger(LearningParameterOptimizerDev.class);

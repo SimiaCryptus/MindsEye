@@ -18,13 +18,13 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.NNResult;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.test.Tester;
-import com.simiacryptus.mindseye.util.Util;
 
 public abstract class ClassificationTestBase {
 

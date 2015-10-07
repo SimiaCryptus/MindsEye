@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.util;
+package com.simiacryptus.mindseye;
 
 import java.io.DataInputStream;
 import java.io.IOException;

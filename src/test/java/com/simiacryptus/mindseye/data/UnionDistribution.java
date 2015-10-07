@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
-import com.simiacryptus.mindseye.util.Util;
+import com.simiacryptus.mindseye.Util;
 
 @SuppressWarnings("serial")
 public final class UnionDistribution extends ArrayList<Function<Void, double[]>> implements Function<Void, double[]> {

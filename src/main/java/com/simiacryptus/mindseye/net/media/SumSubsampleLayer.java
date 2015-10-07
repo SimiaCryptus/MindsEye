@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.simiacryptus.mindseye.deltas.DeltaSet;
-import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.Coordinate;
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.Coordinate;
+import com.simiacryptus.mindseye.DeltaSet;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {

@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.LabeledObject;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
@@ -16,8 +18,6 @@ import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.training.TrainingContext;
-import com.simiacryptus.mindseye.util.LabeledObject;
-import com.simiacryptus.mindseye.util.Util;
 
 public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
 

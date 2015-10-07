@@ -8,7 +8,7 @@ import java.util.function.Function;
 import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
-import com.simiacryptus.mindseye.util.Util;
+import com.simiacryptus.mindseye.Util;
 
 public final class SnakeDistribution implements Function<Void, double[]> {
   public final int dims;

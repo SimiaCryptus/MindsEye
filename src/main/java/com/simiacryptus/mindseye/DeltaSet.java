@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.deltas;
+package com.simiacryptus.mindseye;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -8,8 +8,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.simiacryptus.mindseye.math.NDArray;
-import com.simiacryptus.mindseye.math.VectorLogic;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 public class DeltaSet implements VectorLogic<DeltaSet> {

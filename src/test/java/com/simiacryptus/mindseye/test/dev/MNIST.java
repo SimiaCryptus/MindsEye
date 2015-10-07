@@ -12,11 +12,11 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.LabeledObject;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.mindseye.util.LabeledObject;
-import com.simiacryptus.mindseye.util.Util;
 
 public class MNIST {
 

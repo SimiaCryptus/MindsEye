@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.math;
+package com.simiacryptus.mindseye;
 
 import java.util.Arrays;
 

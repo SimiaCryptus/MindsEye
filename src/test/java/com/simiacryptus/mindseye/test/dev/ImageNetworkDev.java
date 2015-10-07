@@ -15,8 +15,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.LabeledObject;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.NNResult;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
@@ -32,8 +34,6 @@ import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingContext;
-import com.simiacryptus.mindseye.util.LabeledObject;
-import com.simiacryptus.mindseye.util.Util;
 
 public class ImageNetworkDev {
   static final Logger log = LoggerFactory.getLogger(ImageNetworkDev.class);

@@ -6,12 +6,12 @@ import java.util.function.Function;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.data.GaussianDistribution;
 import com.simiacryptus.mindseye.data.Simple2DCircle;
 import com.simiacryptus.mindseye.data.Simple2DLine;
 import com.simiacryptus.mindseye.data.SnakeDistribution;
 import com.simiacryptus.mindseye.data.UnionDistribution;
-import com.simiacryptus.mindseye.util.Util;
 
 public abstract class SimpleClassificationTests extends ClassificationTestBase {
 

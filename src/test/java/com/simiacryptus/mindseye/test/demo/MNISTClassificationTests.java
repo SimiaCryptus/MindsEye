@@ -10,8 +10,10 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import com.simiacryptus.mindseye.deltas.NNResult;
-import com.simiacryptus.mindseye.math.NDArray;
+import com.simiacryptus.mindseye.LabeledObject;
+import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.NNResult;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
@@ -22,8 +24,6 @@ import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
 import com.simiacryptus.mindseye.training.NetInitializer;
-import com.simiacryptus.mindseye.util.LabeledObject;
-import com.simiacryptus.mindseye.util.Util;
 
 public class MNISTClassificationTests extends ClassificationTestBase {
 

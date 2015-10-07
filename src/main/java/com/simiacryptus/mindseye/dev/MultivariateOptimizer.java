@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.math;
+package com.simiacryptus.mindseye.dev;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -9,7 +9,7 @@ import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.util.Util;
+import com.simiacryptus.mindseye.Util;
 
 /**
  * Specialized multivariate optimizer for discovering a learning rate

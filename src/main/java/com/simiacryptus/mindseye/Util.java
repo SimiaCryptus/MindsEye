@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.util;
+package com.simiacryptus.mindseye;
 
 import java.awt.Desktop;
 import java.awt.geom.AffineTransform;
@@ -36,7 +36,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
-import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
 import de.javakaffee.kryoserializers.EnumMapSerializer;
