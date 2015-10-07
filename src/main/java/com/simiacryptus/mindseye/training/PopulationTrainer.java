@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.dev.PermutationLayer;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 

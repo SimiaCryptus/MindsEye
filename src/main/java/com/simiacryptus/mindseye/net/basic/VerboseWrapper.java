@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.dev;
+package com.simiacryptus.mindseye.net.basic;
 
 import java.util.List;
 

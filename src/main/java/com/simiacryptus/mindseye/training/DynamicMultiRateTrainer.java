@@ -13,7 +13,7 @@ import com.simiacryptus.mindseye.DeltaBuffer;
 import com.simiacryptus.mindseye.DeltaSet;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.dev.MultivariateOptimizer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 
 public class DynamicMultiRateTrainer implements TrainingComponent {

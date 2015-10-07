@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.dag;
+package com.simiacryptus.mindseye.net;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.NNResult;
-import com.simiacryptus.mindseye.net.NNLayer;
+
 import groovy.lang.Tuple2;
 
 /***
