@@ -12,7 +12,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -148,7 +148,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray errorSignal, final DeltaBuffer buffer) {
+      public void feedback(final NDArray errorSignal, final DeltaSet buffer) {
         if (!isFrozen()) {
           NDArray kernel = ConvolutionSynapseLayer.this.kernel;
           final NDArray weightGradient = new NDArray(kernel.getDims());

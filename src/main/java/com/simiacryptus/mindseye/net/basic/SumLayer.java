@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -39,7 +39,7 @@ public class SumLayer extends NNLayer<SumLayer> {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaSet buffer) {
         double delta = data.get(0);
         for(int l=0;l<inObj.length;l++){
           NNResult in_l = inObj[l];

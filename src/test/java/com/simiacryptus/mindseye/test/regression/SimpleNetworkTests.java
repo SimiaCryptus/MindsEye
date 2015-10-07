@@ -65,14 +65,11 @@ public class SimpleNetworkTests {
         { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 1 }) },
         { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { -1 }) },
         { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1 }) } };
-    new Tester().init(samples, new DAGNetwork()
-    
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-    
-    .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-    
-    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()), (NNLayer<?>) new EntropyLossLayer())
-        .verifyConvergence(0.01, 100);
+    DAGNetwork net = new DAGNetwork()
+      .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
+      .add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
+      .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer());
+    new Tester().init(samples, net, new EntropyLossLayer()).verifyConvergence(0.01, 100);
   }
 
   @Test

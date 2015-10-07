@@ -202,12 +202,12 @@ public class NDArray {
     return new NDArray(this.dims, coordStream(false).mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
   }
 
-  public NDArray map(final UnivariateFunction f) {
+  public NDArray map(final java.util.function.DoubleUnaryOperator f) {
     final double[] cpy = new double[getData().length];
     for (int i = 0; i < getData().length; i++) {
       final double x = getData()[i];
       //assert Double.isFinite(x);
-      final double v = f.apply(x);
+      final double v = f.applyAsDouble(x);
       //assert Double.isFinite(v);
       cpy[i] = v;
     }

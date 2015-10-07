@@ -7,8 +7,8 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
-import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
@@ -31,9 +31,9 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
 
-  private DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
+  private DeltaSet calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
     final List<NNResult> netresults = eval(trainingContext, data, isParallelTraining());
-    final DeltaBuffer buffer = new DeltaBuffer();
+    final DeltaSet buffer = new DeltaSet();
     IntStream.range(0, data.length).parallel().forEach(sample -> {
       final NNResult actualOutput = netresults.get(sample);
       final NDArray delta = new NDArray(new int[] { 1 }, new double[] { -1. }).scale(getRate());
@@ -85,8 +85,8 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return this.temperature;
   }
 
-  private DeltaBuffer getVector(final TrainingContext trainingContext, NDArray[][] data) {
-    final DeltaBuffer primary = calcDelta(trainingContext, data);
+  private DeltaSet getVector(final TrainingContext trainingContext, NDArray[][] data) {
+    final DeltaSet primary = calcDelta(trainingContext, data);
     if (isVerbose()) {
       // log.debug(String.format("Primary Delta: %s", primary));
     }
@@ -200,7 +200,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   public StepResult _step(final TrainingContext trainingContext) {
     NDArray[][] data = getTrainingData();
     final double prevError = evalClassificationValidationData(trainingContext, data).rms;
-    final List<DeltaFlushBuffer> deltas = getVector(trainingContext, data).vector();
+    final List<DeltaBuffer> deltas = getVector(trainingContext, data).vector();
     deltas.stream().forEach(d->d.write(rate));
     final double validationError = evalClassificationValidationData(trainingContext, data).rms;
     return new StepResult(prevError,validationError){

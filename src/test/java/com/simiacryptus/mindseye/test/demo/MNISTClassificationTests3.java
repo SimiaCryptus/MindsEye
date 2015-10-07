@@ -9,7 +9,6 @@ import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
-import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.util.Util;
 
 public class MNISTClassificationTests3 extends MNISTClassificationTests {

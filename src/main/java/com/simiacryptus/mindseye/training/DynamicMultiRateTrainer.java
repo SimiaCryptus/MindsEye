@@ -9,8 +9,8 @@ import org.apache.commons.math3.optim.PointValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
-import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.math.MultivariateOptimizer;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
@@ -33,8 +33,8 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
   private double stopError = 1e-2;
   private boolean verbose = false;
 
-  private MultivariateFunction asMetaF(final DeltaBuffer lessonVector, final TrainingContext trainingContext) {
-    final List<DeltaFlushBuffer> vector = lessonVector.vector();
+  private MultivariateFunction asMetaF(final DeltaSet lessonVector, final TrainingContext trainingContext) {
+    final List<DeltaBuffer> vector = lessonVector.vector();
     if (isVerbose()) {
       final String toString = vector.stream().map(x -> x.toString()).reduce((a, b) -> a + "\n\t" + b).get();
       log.debug(String.format("Optimizing delta vector set: \n\t%s", toString));
@@ -143,7 +143,7 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
     final double prev = inner.evalClassificationValidationData(trainingContext, validationSet).rms;
     // regenDataSieve(trainingContext);
 
-    final DeltaBuffer lessonVector = inner.getVector(trainingContext);
+    final DeltaSet lessonVector = inner.getVector(trainingContext);
     final MultivariateFunction f = asMetaF(lessonVector, trainingContext);
     final int numberOfParameters = lessonVector.vector().size();
 

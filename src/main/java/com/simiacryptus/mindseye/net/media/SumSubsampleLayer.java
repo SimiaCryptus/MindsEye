@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.Coordinate;
 import com.simiacryptus.mindseye.math.NDArray;
@@ -129,7 +129,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaSet buffer) {
         if (inObj[0].isAlive()) {
           final NDArray backSignal = new NDArray(inputDims);
           for(Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()){

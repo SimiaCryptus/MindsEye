@@ -8,8 +8,8 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
-import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.dag.DAGNetwork;
@@ -30,9 +30,9 @@ public class MultiRateGDTrainer implements RateTrainingComponent {
   private double temperature = 0.05;
   private boolean verbose = false;
 
-  protected DeltaBuffer calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
+  protected DeltaSet calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
     final List<NNResult> netresults = eval(trainingContext, data);
-    final DeltaBuffer buffer = new DeltaBuffer();
+    final DeltaSet buffer = new DeltaSet();
     IntStream.range(0, data.length).parallel().forEach(sample -> {
       final NNResult actualOutput = netresults.get(sample);
       final NDArray delta = new NDArray(new int[] { 1 }, new double[] { -1. }).scale(getRate());
@@ -96,12 +96,12 @@ public class MultiRateGDTrainer implements RateTrainingComponent {
     return this.temperature;
   }
 
-  public DeltaBuffer getVector(final TrainingContext trainingContext) {
-    final DeltaBuffer primary = calcDelta(trainingContext, getMasterTrainingData());
+  public DeltaSet getVector(final TrainingContext trainingContext) {
+    final DeltaSet primary = calcDelta(trainingContext, getMasterTrainingData());
     if (isVerbose()) {
       // log.debug(String.format("Primary Delta: %s", primary));
     }
-    final DeltaBuffer constraint = calcDelta(trainingContext, getMasterTrainingData()).unitV();
+    final DeltaSet constraint = calcDelta(trainingContext, getMasterTrainingData()).unitV();
     if (isVerbose()) {
       // log.debug(String.format("Constraint Delta: %s", constraint));
     }
@@ -170,12 +170,12 @@ public class MultiRateGDTrainer implements RateTrainingComponent {
     final double prevError = evalClassificationValidationData(trainingContext).rms;
     final double[] rates = getRates();
     if (null == rates) return null;
-    final DeltaBuffer buffer = getVector(trainingContext);
+    final DeltaSet buffer = getVector(trainingContext);
     if (rates.length != buffer.vector().size()) {
       MultiRateGDTrainer.log.debug(String.format("%s != %s", rates.length, buffer.vector().size()));
     }
     assert null != rates && rates.length == buffer.vector().size();
-    final List<DeltaFlushBuffer> deltas = buffer.vector();
+    final List<DeltaBuffer> deltas = buffer.vector();
     assert null != rates && rates.length == deltas.size();
     IntStream.range(0, deltas.size()).forEach(i -> deltas.get(i).write(rates[i]));
     ;

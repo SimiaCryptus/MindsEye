@@ -12,7 +12,7 @@ public abstract class NNResult {
     return new NNResult(a.data.add(b.data)) {
 
       @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaSet buffer) {
         a.feedback(data, buffer);
         b.feedback(data, buffer);
       }
@@ -28,7 +28,7 @@ public abstract class NNResult {
     return new NNResult(eval.data.scale(d)) {
 
       @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaSet buffer) {
         eval.feedback(data.scale(d), buffer);
       }
 
@@ -67,7 +67,7 @@ public abstract class NNResult {
     return this.data.rms(ideal(k));
   }
 
-  public abstract void feedback(final NDArray data, DeltaBuffer buffer);
+  public abstract void feedback(final NDArray data, DeltaSet buffer);
 
   public final NDArray ideal(final int k) {
     final NDArray delta = new NDArray(this.data.getDims());

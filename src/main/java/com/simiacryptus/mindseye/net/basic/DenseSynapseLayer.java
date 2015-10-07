@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -35,7 +35,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
     }
 
     @Override
-    public void feedback(final NDArray delta, final DeltaBuffer buffer) {
+    public void feedback(final NDArray delta, final DeltaSet buffer) {
       if (isVerbose()) {
         DenseSynapseLayer.log.debug(String.format("Feed back: %s", this.data));
       }
@@ -54,7 +54,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
       }
     }
 
-    private NDArray backprop(final NDArray delta, final DeltaBuffer buffer) {
+    private NDArray backprop(final NDArray delta, final DeltaSet buffer) {
       final double[] deltaData = delta.getData();
       NDArray r = DenseSynapseLayer.this.weights;
       final DoubleMatrix matrix = new DoubleMatrix(r.getDims()[1], r.getDims()[0], r.getData());
@@ -68,7 +68,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
       return passback;
     }
 
-    private void learn(final NDArray delta, final DeltaBuffer buffer) {
+    private void learn(final NDArray delta, final DeltaSet buffer) {
       final double[] deltaData = delta.getData();
       final double[] inputData = this.inObj.data.getData();
       final NDArray weightDelta = multiply(deltaData, inputData);

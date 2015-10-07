@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -32,7 +32,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     }
 
     @Override
-    public synchronized void feedback(final NDArray data, final DeltaBuffer buffer) {
+    public synchronized void feedback(final NDArray data, final DeltaSet buffer) {
       if (null == data)
         return;
       if (null == this.sum) {
@@ -41,7 +41,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
       this.sum = this.sum.add(data);
     }
 
-    public void flush(final DeltaBuffer buffer) {
+    public void flush(final DeltaSet buffer) {
       this.inner.feedback(this.sum, buffer);
     }
 
@@ -91,7 +91,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     return new NNResult(output.data) {
 
       @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaSet buffer) {
         output.feedback(data, buffer);
         final NDArray evalFeedback = new NDArray(gateEval.data.getDims());
         for (int subnet = 0; subnet < outputs.size(); subnet++) {

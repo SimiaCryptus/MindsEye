@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -33,7 +33,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
     }
 
     @Override
-    public void feedback(final NDArray delta, final DeltaBuffer buffer) {
+    public void feedback(final NDArray delta, final DeltaSet buffer) {
       if (isVerbose()) {
         LinearActivationLayer.log.debug(String.format("Feed back: %s", this.data));
       }

@@ -3,8 +3,8 @@ package com.simiacryptus.mindseye.test.regression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.DeltaBuffer;
-import com.simiacryptus.mindseye.deltas.DeltaFlushBuffer;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -300,9 +300,9 @@ public class DeltaValidationTest  {
     NDArray gradient = new NDArray(stateLen, outputPrototype.dim());
     for(int j=0;j<outputPrototype.dim();j++){
       int j_ = j;
-      DeltaBuffer buffer = new DeltaBuffer();
+      DeltaSet buffer = new DeltaSet();
       component.eval(inputPrototype).feedback(new NDArray(outputPrototype.getDims()).set(j, 1), buffer);
-      DeltaFlushBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x->x.target==stateArray).findFirst().get();
+      DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x->x.target==stateArray).findFirst().get();
       for(int i=0;i<stateLen;i++) {
         gradient.set(new int[]{i,j_}, deltaFlushBuffer.getCalcVector()[i]);
       }
@@ -316,7 +316,7 @@ public class DeltaValidationTest  {
       int j_ = j;
       NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
         @Override
-        public void feedback(NDArray data, DeltaBuffer buffer) {
+        public void feedback(NDArray data, DeltaSet buffer) {
         }
 
         @Override
@@ -331,13 +331,13 @@ public class DeltaValidationTest  {
         }
 
         @Override
-        public void feedback(NDArray data, DeltaBuffer buffer) {
+        public void feedback(NDArray data, DeltaSet buffer) {
           for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
             gradient.set(new int[] { i, j_ }, data.getData()[i]);
           }
         }
       };
-      component.eval(copyInput).feedback(new NDArray(outputPrototype.getDims()).set(j, 1), new DeltaBuffer());
+      component.eval(copyInput).feedback(new NDArray(outputPrototype.getDims()).set(j, 1), new DeltaSet());
     }
     return gradient;
   }

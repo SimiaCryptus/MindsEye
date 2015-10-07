@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.util.Util;
@@ -35,7 +35,7 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
     }
 
     @Override
-    public void feedback(final NDArray data, final DeltaBuffer buffer) {
+    public void feedback(final NDArray data, final DeltaSet buffer) {
       // Do Nothing
     }
 

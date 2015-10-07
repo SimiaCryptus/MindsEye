@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.deltas.DeltaBuffer;
+import com.simiacryptus.mindseye.deltas.DeltaSet;
 import com.simiacryptus.mindseye.deltas.NNResult;
 import com.simiacryptus.mindseye.math.NDArray;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -52,7 +52,7 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaBuffer buffer) {
+      public void feedback(final NDArray data, final DeltaSet buffer) {
         if (inObj[0].isAlive()) {
           final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           final NDArray inputGradientLog = inputGradient;
