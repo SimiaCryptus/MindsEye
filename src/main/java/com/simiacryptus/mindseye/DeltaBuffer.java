@@ -167,8 +167,9 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return builder.toString();
   }
 
-  public synchronized void write(final double factor) {
+  public synchronized final void write(final double factor) {
     double[] calcVector = getCalcVector();
+    if (null == calcVector) return;
     calcVector = Arrays.copyOf(calcVector, calcVector.length);
     for (int i = 0; i < this.buffer.length; i++) {
       calcVector[i] = calcVector[i] * factor;
@@ -176,19 +177,14 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     if (this.layer.isVerbose()) {
       log.debug(String.format("Write to memory: %s", Arrays.toString(calcVector)));
     }
-    write(calcVector);
+    final int dim = length();
+    for (int i = 0; i < dim; i++) {
+      this.target[i] = addDelta(this.target[i], calcVector[i]);
+    }
   }
 
-  private void write(final double[] cpy) {
-    final int dim = length();
-    if (null == cpy)
-      return;
-    for (int i = 0; i < dim; i++) {
-      this.target[i] += cpy[i];
-      if (!Double.isFinite(this.target[i])) {
-        this.target[i] = 0;
-      }
-    }
+  public double addDelta(double prev, double delta) {
+    return prev + delta;
   }
 
 }
