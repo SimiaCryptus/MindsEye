@@ -8,7 +8,6 @@ import com.simiacryptus.mindseye.DeltaSet;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
