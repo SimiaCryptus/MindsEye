@@ -7,20 +7,32 @@ import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 public interface TrainingComponent {
 
   public static class TrainingStep {
-    double startError;
+    private double startError;
     double testError;
-    boolean changed;
+    private boolean changed;
     public TrainingStep(double startError, double endError, boolean changed) {
       super();
-      this.startError = startError;
+      this.setStartError(startError);
       this.testError = endError;
-      this.changed = changed;
+      this.setChanged(changed);
     }
     public double improvement() {
-      return startError - testError;
+      return getStartError() - testError;
     }
     public double finalError() {
-      return changed?testError:startError;
+      return isChanged()?testError:getStartError();
+    }
+    public double getStartError() {
+      return startError;
+    }
+    public void setStartError(double startError) {
+      this.startError = startError;
+    }
+    public boolean isChanged() {
+      return changed;
+    }
+    public void setChanged(boolean changed) {
+      this.changed = changed;
     }
   }
   

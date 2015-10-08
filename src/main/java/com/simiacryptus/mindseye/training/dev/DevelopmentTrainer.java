@@ -1,10 +1,14 @@
-package com.simiacryptus.mindseye.training;
+package com.simiacryptus.mindseye.training.dev;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.training.GradientDescentTrainer;
+import com.simiacryptus.mindseye.training.TrainingComponent;
+import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.training.TrainingComponent.TrainingStep;
 
 public class DevelopmentTrainer implements TrainingComponent {
   @SuppressWarnings("unused")
@@ -68,7 +72,7 @@ public class DevelopmentTrainer implements TrainingComponent {
     double endError;
     do {
       TrainingStep step = inner.step(trainingContext);
-      if(!Double.isFinite(prevError)) prevError = step.startError;
+      if(!Double.isFinite(prevError)) prevError = step.getStartError();
       endError = step.finalError();
     } while (lifecycle++ < getEvolutionPhases() && evolve(trainingContext));
     // train2(trainingContext);

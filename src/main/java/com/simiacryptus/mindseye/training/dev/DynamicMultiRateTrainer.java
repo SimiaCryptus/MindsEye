@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.training;
+package com.simiacryptus.mindseye.training.dev;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +14,10 @@ import com.simiacryptus.mindseye.DeltaSet;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.dev.MultivariateOptimizer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.training.TrainingComponent;
+import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.training.ValidationResults;
+import com.simiacryptus.mindseye.training.TrainingComponent.TrainingStep;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 
 public class DynamicMultiRateTrainer implements TrainingComponent {
@@ -244,7 +248,7 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
           return false;
         this.generationsSinceImprovement = 0;
       }
-      if (gradientDescentTrainer.step(trainingContext).changed) {
+      if (gradientDescentTrainer.step(trainingContext).isChanged()) {
         this.generationsSinceImprovement = 0;
       } else {
         if (getRecalibrationThreshold() < this.generationsSinceImprovement++) {

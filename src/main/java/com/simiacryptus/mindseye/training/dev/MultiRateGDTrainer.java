@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.training;
+package com.simiacryptus.mindseye.training.dev;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +14,11 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.training.RateTrainingComponent;
+import com.simiacryptus.mindseye.training.TrainingComponent;
+import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.training.ValidationResults;
+import com.simiacryptus.mindseye.training.TrainingComponent.TrainingStep;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 
 import groovy.lang.Tuple2;

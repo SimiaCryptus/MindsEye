@@ -100,7 +100,7 @@ public class DynamicRateTrainer implements TrainingComponent {
     while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > trainingContext.terminalErr) {
       this.inner.setRate(rate);
       TrainingStep step = gradientDescentTrainer.step(trainingContext);
-      if(!Double.isFinite(prevError)) prevError = step.startError;
+      if(!Double.isFinite(prevError)) prevError = step.getStartError();
       final double rateDelta = linearLearningRate.add(step.improvement());
       final double projectedEndSeconds = -step.finalError() / (rateDelta * 1000.);
       if (isVerbose()) {
@@ -119,7 +119,7 @@ public class DynamicRateTrainer implements TrainingComponent {
         }
         log.debug(String.format("TERMINAL Final err: %s", step));
       }
-      if (step.startError < step.testError) {
+      if (step.getStartError() < step.testError) {
         rate /= Math.pow(params.alpha, params.beta);
       } else {
         rate *= params.alpha;

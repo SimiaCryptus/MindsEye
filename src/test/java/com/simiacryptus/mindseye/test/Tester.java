@@ -13,13 +13,13 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.training.DevelopmentTrainer;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.training.TrainingComponent;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
+import com.simiacryptus.mindseye.training.dev.DevelopmentTrainer;
 
 /**
  * Encapsulates overall network architecture, training method and data.
