@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.demo.shapes;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -12,6 +12,7 @@ import com.simiacryptus.mindseye.data.Simple2DCircle;
 import com.simiacryptus.mindseye.data.Simple2DLine;
 import com.simiacryptus.mindseye.data.SnakeDistribution;
 import com.simiacryptus.mindseye.data.UnionDistribution;
+import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 
 public abstract class SimpleClassificationTests extends ClassificationTestBase {
 

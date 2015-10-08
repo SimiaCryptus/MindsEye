@@ -56,7 +56,7 @@ public abstract class ClassificationTestBase {
 
   }
 
-  static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
+  protected static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
 
   public static Color randomColor() {
     final Random r = Util.R.get();

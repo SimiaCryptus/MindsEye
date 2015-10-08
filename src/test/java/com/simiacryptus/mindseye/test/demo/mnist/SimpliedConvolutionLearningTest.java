@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.demo.mnist;
 
 import java.awt.Graphics2D;
 import java.io.IOException;

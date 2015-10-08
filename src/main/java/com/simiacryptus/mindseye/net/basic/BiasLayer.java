@@ -19,9 +19,6 @@ import groovy.lang.Tuple2;
 
 public class BiasLayer extends NNLayer<BiasLayer> {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1022169631431441049L;
 
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
@@ -45,12 +42,7 @@ public class BiasLayer extends NNLayer<BiasLayer> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NDArray r = inObj[0].data;
-    final double[] rd = r.getData();
-    final double[] array = new double[rd.length];
-    for (int i = 0; i < array.length; i++) {
-      array[i] = rd[i] + this.bias[i];
-    }
-    final NDArray translated = new NDArray(r.getDims(), array);
+    final NDArray translated = new NDArray(r.getDims(), add(r.getData()));
     if (isVerbose()) {
       BiasLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, translated));
     }
@@ -73,6 +65,14 @@ public class BiasLayer extends NNLayer<BiasLayer> {
         return inObj[0].isAlive() || !isFrozen();
       }
     };
+  }
+
+  public double[] add(final double[] input) {
+    final double[] array = new double[input.length];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = input[i] + this.bias[i];
+    }
+    return array;
   }
 
   @Override

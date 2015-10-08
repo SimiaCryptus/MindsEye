@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.demo.shapes;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -28,7 +28,7 @@ public class SoftmaxTests1 extends SimpleClassificationTests {
 
   @Override
   public void verify(final Tester trainer) {
-    trainer.setVerbose(true);
+    //trainer.setVerbose(true);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);

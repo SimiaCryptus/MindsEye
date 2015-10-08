@@ -46,7 +46,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return join(right, (l, r) -> l+r);
   }
 
-  public double[] calcVector() {
+  private double[] calcVector() {
 
     final NumberVector state = new NumberVector(this.layer.state().stream().flatMapToDouble(x -> Arrays.stream((double[]) x)).toArray());
     NumberVector returnValue = new NumberVector(this.buffer);
@@ -110,7 +110,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     }).toArray(), this.layer);
   }
 
-  public Double f(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner, int i) {
+  private Double f(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner, int i) {
     final double l = this.buffer[i];
     final double r = right.buffer[i];
     return (Double)joiner.applyAsDouble(l, r);
@@ -179,12 +179,8 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      this.target[i] = addDelta(this.target[i], calcVector[i]);
+      this.target[i] = this.target[i] + calcVector[i];
     }
-  }
-
-  public double addDelta(double prev, double delta) {
-    return prev + delta;
   }
 
 }

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.regression;
 /*
 Copyright (c) 2010-2011, Advanced Micro Devices, Inc.
 All rights reserved.

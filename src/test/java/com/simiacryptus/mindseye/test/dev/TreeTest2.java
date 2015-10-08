@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.dev;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
@@ -7,11 +7,13 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
+import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.dev.TreeNetwork;
 import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.test.demo.shapes.SimpleClassificationTests;
 
-public class TreeTest1 extends SimpleClassificationTests {
+public class TreeTest2 extends SimpleClassificationTests {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
@@ -24,12 +26,17 @@ public class TreeTest1 extends SimpleClassificationTests {
       /**
        * 
        */
-      private static final long serialVersionUID = 1883285093126563281L;
+      private static final long serialVersionUID = 8233151944966481700L;
 
       @Override
       public NNLayer<DAGNetwork> buildGate() {
         DAGNetwork gate = new DAGNetwork();
-        gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), this.outSize).setWeights(()->Util.R.get().nextGaussian()));
+        int mid = 10;
+        gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { mid }).setWeights(()->Util.R.get().nextGaussian()));
+        //gate = gate.add(new DenseSynapseLayer(mid, new int[] { mid }).setWeights(()->Util.R.get().nextGaussian()));
+        gate = gate.add(new BiasLayer(new int[]{mid}));
+        gate = gate.add(new SigmoidActivationLayer());
+        gate = gate.add(new DenseSynapseLayer(mid, this.outSize).setWeights(()->Util.R.get().nextGaussian()));
         gate = gate.add(new BiasLayer(this.outSize));
         gate = gate.add(new SoftmaxActivationLayer());
         return gate;
@@ -42,21 +49,8 @@ public class TreeTest1 extends SimpleClassificationTests {
   }
 
   @Override
-  protected int getSampleSize(Integer populationIndex, int defaultNum) {
-    //if(populationIndex==0) return 100;
-    return defaultNum;
-  }
-
-  @Override
-  protected int getNumberOfTrainingPoints() {
-    return 100;
-  }
-
-
-  @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
     return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
-    //return net.trainer(samples, new SqLossLayer());
     //return net.trainer(samples, new MaxEntropyLossLayer());
   }
 
@@ -65,10 +59,9 @@ public class TreeTest1 extends SimpleClassificationTests {
     trainer.setVerbose(true);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getDevtrainer().setEvolutionPhases(1);
-    trainer.getDynamicRateTrainer().setEtaEnd(10, java.util.concurrent.TimeUnit.MINUTES);
+    trainer.getDevtrainer().setEvolutionPhases(0);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
-    trainer.verifyConvergence(0.0, 10);
+    trainer.verifyConvergence(0.01, 10);
   }
   @Override
   public void test_Gaussians() throws Exception {

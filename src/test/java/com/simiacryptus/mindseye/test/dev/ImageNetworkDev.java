@@ -111,7 +111,19 @@ public class ImageNetworkDev {
       
       final NDArray zeroInput = new NDArray(inputSize);
       final DAGNetwork dagNetwork = new DAGNetwork();
-      BiasLayer bias = new BiasLayer(inputSize);
+      BiasLayer bias = new BiasLayer(inputSize){
+
+        @Override
+        public double[] add(double[] input) {
+          final double[] array = new double[input.length];
+          for (int i = 0; i < array.length; i++) {
+            double v = input[i] + this.bias[i];
+            array[i] = v<0?0:v;
+          }
+          return array;
+        }
+        
+      };
       dagNetwork.add(bias);
       DAGNode modeledImageNode = dagNetwork.getHead();
       
@@ -122,7 +134,6 @@ public class ImageNetworkDev {
 
       new ThresholdActivationLayer();
 
-      // Non-negativity constraint. Today's cameras do not image negative energy.
       LinearActivationLayer edgeGate;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 1, 2 }, 9);
@@ -134,11 +145,15 @@ public class ImageNetworkDev {
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
         dagNetwork.add(new LinearActivationLayer().setWeights(new double[]{1}).freeze());
+        
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
         dagNetwork.add(new SqActivationLayer());
         dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
         dagNetwork.add(new SumLayer());
+        
         edgeGate = new LinearActivationLayer().setWeights(new double[]{0.}).freeze();
         dagNetwork.add(edgeGate);
+        // Add 1 to output so product stays above 0 since this fitness function is secondary
         dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
         outs.add(dagNetwork.getHead());
       }
@@ -157,7 +172,7 @@ public class ImageNetworkDev {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
         trainer.train(0.5, trainingContext);
         trainer.getDevtrainer().reset();
-        edgeGate.setWeights(new double[]{0.001});
+        edgeGate.setWeights(new double[]{0.1});
         //negativeClamp.setFactor(-1);
         trainer.train(0.0, trainingContext);        
         trainer.getDevtrainer().reset();

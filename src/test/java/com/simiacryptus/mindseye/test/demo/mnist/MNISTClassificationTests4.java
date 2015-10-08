@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.demo.mnist;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;

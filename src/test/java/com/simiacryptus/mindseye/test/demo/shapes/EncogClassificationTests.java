@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.demo.shapes;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo;
+package com.simiacryptus.mindseye.test.demo.mnist;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -21,6 +21,8 @@ import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
+import com.simiacryptus.mindseye.test.demo.ClassificationTestBase.ClassificationResultMetrics;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
 import com.simiacryptus.mindseye.training.NetInitializer;
