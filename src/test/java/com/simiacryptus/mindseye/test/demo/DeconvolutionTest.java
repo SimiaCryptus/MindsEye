@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.dev;
+package com.simiacryptus.mindseye.test.demo;
 
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -31,12 +31,13 @@ import com.simiacryptus.mindseye.net.basic.VerboseWrapper;
 import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.net.media.MaxConstLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
-public class ImageNetworkDev {
-  static final Logger log = LoggerFactory.getLogger(ImageNetworkDev.class);
+public class DeconvolutionTest {
+  static final Logger log = LoggerFactory.getLogger(DeconvolutionTest.class);
 
   public static final Random random = new Random();
 
@@ -93,7 +94,7 @@ public class ImageNetworkDev {
   public void testDeconvolution() throws Exception {
 
     // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
     //NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello World"));
 
@@ -129,12 +130,15 @@ public class ImageNetworkDev {
       
       dagNetwork.add(convolution);
       dagNetwork.addLossComponent(new SqLossLayer());
+      //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->.5).freeze());
+      //dagNetwork.add(new MaxConstLayer().setValue(10));
+
       List<DAGNode> outs = new ArrayList<>();
       outs.add(dagNetwork.getHead());
 
       new ThresholdActivationLayer();
 
-      LinearActivationLayer edgeGate;
+      final LinearActivationLayer edgeGateH;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 1, 2 }, 9);
         for(int ii=0;ii<3;ii++){
@@ -144,21 +148,43 @@ public class ImageNetworkDev {
         }
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
-        dagNetwork.add(new LinearActivationLayer().setWeights(new double[]{1}).freeze());
         
+        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.L1SimpleNormalizationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
-        dagNetwork.add(new SqActivationLayer());
         dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
         dagNetwork.add(new SumLayer());
         
-        edgeGate = new LinearActivationLayer().setWeights(new double[]{0.}).freeze();
-        dagNetwork.add(edgeGate);
+        edgeGateH = new LinearActivationLayer().setWeights(new double[]{0.}).freeze();
+        dagNetwork.add(edgeGateH);
         // Add 1 to output so product stays above 0 since this fitness function is secondary
         dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
         outs.add(dagNetwork.getHead());
       }
 
-      dagNetwork.add(new VerboseWrapper("endprod", new com.simiacryptus.mindseye.net.basic.ProductLayer()), outs.toArray(new DAGNode[]{}));
+      final LinearActivationLayer edgeGateV;
+      {
+        final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 2, 1 }, 9);
+        for(int ii=0;ii<3;ii++){
+          int i = ii+ii*3;
+          edgeFilter.kernel.set(new int[] { 0, 0, i }, -1);
+          edgeFilter.kernel.set(new int[] { 1, 0, i }, 1);
+        }
+        edgeFilter.freeze();
+        dagNetwork.add(edgeFilter, modeledImageNode);
+        
+        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.L1SimpleNormalizationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
+        dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
+        dagNetwork.add(new SumLayer());
+        
+        edgeGateV = new LinearActivationLayer().setWeights(new double[]{0.}).freeze();
+        dagNetwork.add(edgeGateV);
+        // Add 1 to output so product stays above 0 since this fitness function is secondary
+        dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        outs.add(dagNetwork.getHead());
+      }
+
+      dagNetwork.add(new VerboseWrapper("endprod", new com.simiacryptus.mindseye.net.dev.StrangeProductLayer()), outs.toArray(new DAGNode[]{}));
       
 
       final Tester trainer = new Tester().setStaticRate(1.);
@@ -170,9 +196,10 @@ public class ImageNetworkDev {
       final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
-        trainer.train(0.5, trainingContext);
+        trainer.train(15., trainingContext);
         trainer.getDevtrainer().reset();
-        edgeGate.setWeights(new double[]{0.1});
+        //edgeGateH.setWeights(new double[]{1.});
+        edgeGateV.setWeights(new double[]{1.});
         //negativeClamp.setFactor(-1);
         trainer.train(0.0, trainingContext);        
         trainer.getDevtrainer().reset();
@@ -198,7 +225,7 @@ public class ImageNetworkDev {
 
     // List<LabeledObject<NDArray>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
 //     NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
 
@@ -266,7 +293,7 @@ public class ImageNetworkDev {
   @Test
   public void testConvolution() throws Exception {
 
-    final NDArray inputImage = Util.toNDArray3(ImageNetworkDev.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();

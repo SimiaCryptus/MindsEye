@@ -10,9 +10,11 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dev.L1NormalizationLayer;
+import com.simiacryptus.mindseye.net.dev.L1SimpleNormalizationLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.net.media.MaxConstLayer;
 import com.simiacryptus.mindseye.net.media.MaxEntLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
@@ -72,12 +74,28 @@ public class MediaComponentValidationTests  {
   }
 
   @org.junit.Test
+  public void testL1SimpleNormalizationLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(3);
+    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new L1SimpleNormalizationLayer();
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
   public void testMaxEntLayer() throws Throwable{
     NDArray outputPrototype = new NDArray(1);
     NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
     NDArray inputPrototype2 = new NDArray(2).fill(()->Util.R.get().nextGaussian());
     NNLayer<?> component = new DAGNetwork().add(new SoftmaxActivationLayer()).add(new MaxEntLayer()).add(new SumLayer());
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+
+  @org.junit.Test
+  public void testMaxConstLayer() throws Throwable{
+    NDArray outputPrototype = new NDArray(3);
+    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
+    NNLayer<?> component = new MaxConstLayer();
+    test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test

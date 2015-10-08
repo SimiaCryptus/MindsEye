@@ -26,7 +26,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private DAGNetwork net = null;
   private boolean parallelTraining = true;
   private double rate = 0.1;
-  private double temperature = 0.0;
+  private double temperature = 0.1;
   private boolean verbose = false;
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
