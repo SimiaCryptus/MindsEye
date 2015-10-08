@@ -196,7 +196,7 @@ public class DeconvolutionTest {
       final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
-        trainer.train(15., trainingContext);
+        trainer.train(1500., trainingContext);
         trainer.getDevtrainer().reset();
         //edgeGateH.setWeights(new double[]{1.});
         edgeGateV.setWeights(new double[]{1.});

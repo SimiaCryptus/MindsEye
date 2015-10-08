@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amd.aparapi.device.Device.TYPE;
+import com.amd.aparapi.Kernel;
 import com.amd.aparapi.Kernel.EXECUTION_MODE;
 
 public final class ConvolutionController {
@@ -14,23 +15,14 @@ public final class ConvolutionController {
   public static final class BackpropKernel extends com.amd.aparapi.Kernel {
 
     private static final boolean DEBUG = false;
-    final int[] outputSize;
-    final int[] kernelSize;
-    final int[] inputSize;
+    int[] outputSize;
+    int[] kernelSize;
+    int[] inputSize;
     double[] output;
     double[] weights;
     double[] input;
 
-    public BackpropKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
-      this.outputSize = outputSize;
-      this.output = output;
-      this.kernelSize = kernelSize;
-      this.weights = weights;
-      this.inputSize = inputSize;
-      this.input = input;
-      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
-      assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
-      assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
+    public BackpropKernel() {
     }
 
     @Override
@@ -96,24 +88,14 @@ public final class ConvolutionController {
   }
 
   public static final class GradientKernel extends com.amd.aparapi.Kernel {
-    final int[] inputSize;
+    int[] inputSize;
     double[] input;
-    final int[] kernelSize;
+    int[] kernelSize;
     double[] weights;
-    final int[] outputSize;
+    int[] outputSize;
     double[] output;
 
-    public GradientKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
-      this.inputSize = inputSize;
-      this.input = input;
-      this.kernelSize = kernelSize;
-      this.weights = weights;
-      this.outputSize = outputSize;
-      assert (0 < this.outputSize[2]);
-      this.output = output;
-      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
-      assert (inputSize[0] * inputSize[1] * inputSize[2] == input.length);
-      assert (kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length);
+    public GradientKernel() {
     }
 
     @Override
@@ -175,21 +157,14 @@ public final class ConvolutionController {
   public static final class ConvolveKernel extends com.amd.aparapi.Kernel {
 
     private static final boolean DEBUG = false;
-    final int[] inputSize;
-    final int[] kernelSize;
-    final int[] outputSize;
+    int[] inputSize;
+    int[] kernelSize;
+    int[] outputSize;
     double[] input;
     double[] weights;
     double[] output;
 
-    public ConvolveKernel(int[] inputSize, double[] input, int[] kernelSize, double[] weights, int[] outputSize, double[] output) {
-      this.inputSize = inputSize;
-      this.input = input;
-      this.kernelSize = kernelSize;
-      this.weights = weights;
-      this.outputSize = outputSize;
-      this.output = output;
-      assert (outputSize[0] * outputSize[1] * outputSize[2] == output.length);
+    public ConvolveKernel() {
     }
 
     @Override
@@ -256,10 +231,53 @@ public final class ConvolutionController {
   private int[] inputSize;
   private int[] kernelSize;
   private int[] outputSize;
-  private final ThreadedResource<? extends ConvolveKernel> convolveTask;
-  private final ThreadedResource<? extends GradientKernel> kernelTask;
-  private final ThreadedResource<? extends BackpropKernel> backpropTask;
-  private final ThreadedResource<com.amd.aparapi.device.Device> range;
+  private static final ThreadedResource<? extends ConvolveKernel> convolveTask = new ThreadedResource<ConvolveKernel>() {
+    @Override
+    public ConvolveKernel create() {
+      ConvolveKernel convolveTask = new ConvolveKernel();
+      init(convolveTask);
+      convolveTask.setExplicit(true);
+      return convolveTask;
+    }
+  };
+  private static final ThreadedResource<? extends GradientKernel> kernelTask = new ThreadedResource<GradientKernel>() {
+    @Override
+    public GradientKernel create() {
+      GradientKernel kernelTask = new GradientKernel();
+      init(kernelTask);
+      kernelTask.setExplicit(true);
+      return kernelTask;
+    }
+  };
+  private static final ThreadedResource<? extends BackpropKernel> backpropTask = new ThreadedResource<BackpropKernel>() {
+    @Override
+    public BackpropKernel create() {
+      BackpropKernel backpropTask = new BackpropKernel();
+      init(backpropTask);
+      backpropTask.setExplicit(true);
+      return backpropTask;
+    }
+  };
+  private static final ThreadedResource<com.amd.aparapi.device.Device> range = new ThreadedResource<com.amd.aparapi.device.Device>() {
+    @Override
+    public com.amd.aparapi.device.Device create() {
+      com.amd.aparapi.device.Device openclDevice;
+      if (getExecutionMode() == EXECUTION_MODE.CPU) {
+        openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.firstCPU();
+      } else if (getExecutionMode() == EXECUTION_MODE.ACC) {
+        openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.firstACC();
+      } else if (getExecutionMode() == EXECUTION_MODE.GPU) {
+        openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.bestGPU();
+      } else {
+        openclDevice = com.amd.aparapi.device.Device.first(TYPE.SEQ);
+        if (null == openclDevice) {
+          openclDevice = com.amd.aparapi.device.Device.firstCPU();
+          openclDevice.setType(TYPE.SEQ);
+        }
+      }
+      return openclDevice;
+    }
+  };
 
   public ConvolutionController(int[] inputSize, int[] kernelSize) {
     this.inputSize = inputSize;
@@ -268,81 +286,6 @@ public final class ConvolutionController {
     assert (this.outputSize.length == 3);
     assert (this.kernelSize.length == 3);
     assert (this.inputSize.length == 3);
-    double[] input = new double[this.inputSize[0] * this.inputSize[1] * this.inputSize[2]];
-    double[] weights = new double[this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2]];
-    double[] output = new double[this.outputSize[0] * this.outputSize[1] * this.outputSize[2]];
-
-    this.convolveTask = new ThreadedResource<ConvolveKernel>() {
-      @Override
-      public ConvolveKernel create() {
-        ConvolveKernel convolveTask = new ConvolveKernel(ConvolutionController.this.inputSize, input, ConvolutionController.this.kernelSize, weights,
-            ConvolutionController.this.outputSize, output);
-        convolveTask.setExecutionMode(getExecutionMode());
-        convolveTask.addExecutionModes(getExecutionMode(), EXECUTION_MODE.SEQ);
-        convolveTask.setExplicit(true);
-        convolveTask.put(convolveTask.inputSize);
-        convolveTask.put(convolveTask.kernelSize);
-        convolveTask.put(convolveTask.outputSize);
-        return convolveTask;
-      }
-    };
-    this.convolveTask.with(x -> {
-    });
-
-    this.kernelTask = new ThreadedResource<GradientKernel>() {
-      @Override
-      public GradientKernel create() {
-        GradientKernel kernelTask = new GradientKernel(inputSize, input, kernelSize, weights, outputSize, output);
-        kernelTask.setExecutionMode(getExecutionMode());
-        kernelTask.addExecutionModes(getExecutionMode(), EXECUTION_MODE.SEQ);
-        kernelTask.setExplicit(true);
-        kernelTask.put(kernelTask.inputSize);
-        kernelTask.put(kernelTask.kernelSize);
-        kernelTask.put(kernelTask.outputSize);
-        return kernelTask;
-      }
-    };
-    this.kernelTask.with(x -> {
-    });
-
-    this.backpropTask = new ThreadedResource<BackpropKernel>() {
-      @Override
-      public BackpropKernel create() {
-        BackpropKernel backpropTask = new BackpropKernel(inputSize, input, kernelSize, weights, outputSize, output);
-        backpropTask.setExecutionMode(getExecutionMode());
-        backpropTask.addExecutionModes(getExecutionMode(), EXECUTION_MODE.SEQ);
-        backpropTask.setExplicit(true);
-        backpropTask.put(backpropTask.inputSize);
-        backpropTask.put(backpropTask.kernelSize);
-        backpropTask.put(backpropTask.outputSize);
-        return backpropTask;
-      }
-    };
-    this.backpropTask.with(x -> {
-    });
-
-    this.range = new ThreadedResource<com.amd.aparapi.device.Device>() {
-      @Override
-      public com.amd.aparapi.device.Device create() {
-        com.amd.aparapi.device.Device openclDevice;
-        if (getExecutionMode() == EXECUTION_MODE.CPU) {
-          openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.firstCPU();
-        } else if (getExecutionMode() == EXECUTION_MODE.ACC) {
-          openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.firstACC();
-        } else if (getExecutionMode() == EXECUTION_MODE.GPU) {
-          openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.bestGPU();
-        } else {
-          openclDevice = com.amd.aparapi.device.Device.first(TYPE.SEQ);
-          if (null == openclDevice) {
-            openclDevice = com.amd.aparapi.device.Device.firstCPU();
-            openclDevice.setType(TYPE.SEQ);
-          }
-        }
-        return openclDevice;
-      }
-    };
-    this.range.with(x -> {
-    });
 
   }
 
@@ -352,6 +295,12 @@ public final class ConvolutionController {
       convolveTask.input = input;
       convolveTask.weights = weights;
       convolveTask.output = output;
+      convolveTask.outputSize = outputSize;
+      convolveTask.inputSize = inputSize;
+      convolveTask.kernelSize = kernelSize;
+      convolveTask.put(convolveTask.outputSize);
+      convolveTask.put(convolveTask.inputSize);
+      convolveTask.put(convolveTask.kernelSize);
       convolveTask.put(convolveTask.input);
       convolveTask.put(convolveTask.weights);
       range.with(range -> convolveTask.exe(range));
@@ -364,6 +313,12 @@ public final class ConvolutionController {
       kernelTask.input = input;
       kernelTask.weights = weights;
       kernelTask.output = output;
+      kernelTask.outputSize = outputSize;
+      kernelTask.inputSize = inputSize;
+      kernelTask.kernelSize = kernelSize;
+      kernelTask.put(kernelTask.outputSize);
+      kernelTask.put(kernelTask.inputSize);
+      kernelTask.put(kernelTask.kernelSize);
       kernelTask.put(kernelTask.input);
       kernelTask.put(kernelTask.output);
       range.with(range -> kernelTask.exe(range));
@@ -379,6 +334,12 @@ public final class ConvolutionController {
       backpropTask.input = input;
       backpropTask.weights = weights;
       backpropTask.output = output;
+      backpropTask.outputSize = outputSize;
+      backpropTask.inputSize = inputSize;
+      backpropTask.kernelSize = kernelSize;
+      backpropTask.put(backpropTask.outputSize);
+      backpropTask.put(backpropTask.inputSize);
+      backpropTask.put(backpropTask.kernelSize);
       backpropTask.put(backpropTask.weights);
       backpropTask.put(backpropTask.output);
       range.with(range -> backpropTask.exe(range));
@@ -399,8 +360,14 @@ public final class ConvolutionController {
     return builder.toString();
   }
 
-  public EXECUTION_MODE getExecutionMode() {
+  public static EXECUTION_MODE getExecutionMode() {
     return EXECUTION_MODE.CPU;
+  }
+
+  public static Kernel init(com.amd.aparapi.Kernel kernel) {
+    kernel.setExecutionMode(EXECUTION_MODE.CPU);
+    kernel.addExecutionModes(EXECUTION_MODE.CPU, EXECUTION_MODE.GPU, EXECUTION_MODE.SEQ);
+    return kernel;
   }
 
 }

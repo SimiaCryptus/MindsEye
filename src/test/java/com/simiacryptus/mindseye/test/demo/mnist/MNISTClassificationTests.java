@@ -133,7 +133,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
     final NDArray[][] data = transformTrainingData(hash, MNIST.trainingDataStream());
-    NDArray[][] trainingData = java.util.Arrays.copyOfRange(data, 0, 1000);
+    NDArray[][] trainingData = java.util.Arrays.copyOfRange(data, 0, data.length);
     NDArray[][] validationData = transformTrainingData(hash, MNIST.validationDataStream());
     test(trainingData,validationData);
   }

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -25,6 +26,7 @@ import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.training.TrainingContext;
 
 public abstract class ClassificationTestBase {
 
@@ -101,10 +103,9 @@ public abstract class ClassificationTestBase {
 
   public void test(final NDArray[][] trainingsamples,final NDArray[][] validationsamples) throws FileNotFoundException, IOException {
     final NNLayer<DAGNetwork> net = buildNetwork();
-    final Tester trainer = buildTrainer(trainingsamples, net);
     final Map<BufferedImage, String> images = new HashMap<>();
     final int categories = trainingsamples[0][1].dim();
-    trainer.handler.add((n, trainingContext) -> {
+    BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (n, trainingContext) -> {
       try {
         NNLayer<?> mainNetwork = n.getChild(net.id);
         final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
@@ -116,13 +117,34 @@ public abstract class ClassificationTestBase {
         e.printStackTrace();
       }
       return null;
-    });
+    };
     try {
-      verify(trainer);
+      train(net, trainingsamples, resultHandler);
     } finally {
       final Stream<String> map = images.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
       final String[] array = map.toArray(i -> new String[i]);
       Util.report(array);
+    }
+  }
+
+  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+    {
+      NDArray[][] epochData = java.util.Arrays.copyOfRange(trainingsamples, 0, 100);
+      final Tester trainer = buildTrainer(trainingsamples, net);
+      trainer.handler.add(resultHandler);
+      trainer.verifyConvergence(0.01, 10);
+    }
+    {
+      NDArray[][] epochData = java.util.Arrays.copyOfRange(trainingsamples, 0, 1000);
+      final Tester trainer = buildTrainer(trainingsamples, net);
+      trainer.handler.add(resultHandler);
+      trainer.verifyConvergence(0.01, 10);
+    }
+    {
+      NDArray[][] epochData = java.util.Arrays.copyOfRange(trainingsamples, 0, trainingsamples.length);
+      final Tester trainer = buildTrainer(trainingsamples, net);
+      trainer.handler.add(resultHandler);
+      trainer.verifyConvergence(0.0, 10);
     }
   }
 
