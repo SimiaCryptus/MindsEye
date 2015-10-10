@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.net.dev;
 
-import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
+import com.simiacryptus.mindseye.net.activation.SimpleActivationLayer;
 
 public final class ThresholdActivationLayer extends SimpleActivationLayer<ThresholdActivationLayer> {
 

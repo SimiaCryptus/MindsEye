@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.basic;
+package com.simiacryptus.mindseye.net.activation;
 
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
 

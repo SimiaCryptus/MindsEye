@@ -9,15 +9,15 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
-import com.simiacryptus.mindseye.net.basic.ProductLayer;
-import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SqActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SqLossLayer;
-import com.simiacryptus.mindseye.net.basic.SumLayer;
+import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
+import com.simiacryptus.mindseye.net.loss.SqLossLayer;
+import com.simiacryptus.mindseye.net.reducers.ProductLayer;
+import com.simiacryptus.mindseye.net.reducers.SumLayer;
 
 public class BasicComponentValidationTests {
   public static final double deltaFactor = 1e-6;

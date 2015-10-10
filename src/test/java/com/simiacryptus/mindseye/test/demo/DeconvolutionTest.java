@@ -21,13 +21,13 @@ import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
+import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.SqLossLayer;
-import com.simiacryptus.mindseye.net.basic.SumLayer;
-import com.simiacryptus.mindseye.net.basic.VerboseWrapper;
-import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
+import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.net.reducers.SumLayer;
+import com.simiacryptus.mindseye.net.util.VerboseWrapper;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
 import com.simiacryptus.mindseye.training.TrainingContext;
@@ -161,9 +161,9 @@ public class DeconvolutionTest {
 
       DAGNode image_entropy;
       {
-        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.AbsActivationLayer(), modeledImageNode);
-        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer(), modeledImageNode);
+        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
         dagNetwork.add(new SumLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));
@@ -186,9 +186,9 @@ public class DeconvolutionTest {
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
 
-        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.AbsActivationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
         dagNetwork.add(new SumLayer());
 
         // Add 1 to output so product stays above 0 since this fitness function
@@ -209,9 +209,9 @@ public class DeconvolutionTest {
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
 
-        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.AbsActivationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
         dagNetwork.add(new SumLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));
@@ -234,7 +234,7 @@ public class DeconvolutionTest {
       outs.add(dagNetwork.add(gate_entropy, image_entropy).getHead());
       // outs.add(dagNetwork.add(gate_h, edge_entropy_horizontal).getHead());
       // outs.add(dagNetwork.add(gate_v, edge_entropy_vertical).getHead());
-      final VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.basic.SumLayer());
+      final VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.reducers.SumLayer());
       final DAGNode combine = dagNetwork.add(combiner, outs.stream().toArray(i -> new DAGNode[i])).getHead();
 
       final ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();

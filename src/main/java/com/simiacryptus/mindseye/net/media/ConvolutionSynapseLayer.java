@@ -17,6 +17,7 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.opencl.ConvolutionController;
 
 public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 

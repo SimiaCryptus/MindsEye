@@ -1,6 +1,6 @@
-package com.simiacryptus.mindseye.net.dev;
+package com.simiacryptus.mindseye.net.media;
 
-import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
+import com.simiacryptus.mindseye.net.activation.SimpleActivationLayer;
 
 @SuppressWarnings("serial")
 public class MaxEntLayer extends SimpleActivationLayer<MaxEntLayer> {

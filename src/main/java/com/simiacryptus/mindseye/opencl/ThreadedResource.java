@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.media;
+package com.simiacryptus.mindseye.opencl;
 
 public abstract class ThreadedResource<T> {
 

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.media;
+package com.simiacryptus.mindseye.opencl;
 
 import java.util.Arrays;
 
@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.amd.aparapi.Kernel;
 import com.amd.aparapi.Kernel.EXECUTION_MODE;
 import com.amd.aparapi.device.Device.TYPE;
+import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 
 public final class ConvolutionController {
   public static final class BackpropKernel extends com.amd.aparapi.Kernel {

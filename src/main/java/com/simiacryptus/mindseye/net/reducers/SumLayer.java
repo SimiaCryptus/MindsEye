@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.basic;
+package com.simiacryptus.mindseye.net.reducers;
 
 import java.util.Arrays;
 import java.util.List;

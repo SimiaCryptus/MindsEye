@@ -1,6 +1,4 @@
-package com.simiacryptus.mindseye.net.media;
-
-import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
+package com.simiacryptus.mindseye.net.activation;
 
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {

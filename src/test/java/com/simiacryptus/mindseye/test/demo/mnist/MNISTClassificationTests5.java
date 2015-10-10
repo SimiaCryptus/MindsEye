@@ -5,8 +5,8 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SqActivationLayer;
+import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 

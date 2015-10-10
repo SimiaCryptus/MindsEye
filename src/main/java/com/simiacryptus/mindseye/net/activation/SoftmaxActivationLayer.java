@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.basic;
+package com.simiacryptus.mindseye.net.activation;
 
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
