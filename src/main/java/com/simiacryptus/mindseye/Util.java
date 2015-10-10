@@ -89,8 +89,9 @@ public class Util {
   }
 
   public static Stream<byte[]> binaryStream(final String path, final String name, final int skip, final int recordSize) throws IOException {
-    final DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(new File(path, name))));
-    in.skip(skip);
+    File file = new File(path, name);
+    java.io.BufferedInputStream bufferedIn = new java.io.BufferedInputStream(new FileInputStream(file),1024*1024);
+    final DataInputStream in = new DataInputStream(new GZIPInputStream(bufferedIn));
     return Util.toIterator(new BinaryChunkIterator(in, recordSize));
   }
 

@@ -39,8 +39,11 @@ public class GradientDescentTrainer implements RateTrainingComponent {
 
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
 
-  public static <T> List<T> collect(final Stream<Tuple2<T, Integer>> results) {
-    return results.sorted(java.util.Comparator.comparingInt(x -> x.getSecond())).map(x -> x.getFirst()).collect(Collectors.toList());
+  public static <T> List<T> collectOrderedValues(final Stream<Tuple2<T, Integer>> results) {
+    return results
+        .sorted(java.util.Comparator.comparingInt(x -> x.getSecond()))
+        .map(x -> x.getFirst())
+        .collect(Collectors.toList());
   }
 
   public static DeltaSet collectVector(final List<NNResult> netresults) {
@@ -89,25 +92,28 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   protected DeltaSet calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
-    final List<Tuple2<EvaluationContext, Integer>> contexts = initContexts(trainingContext, data, isParallelTraining(), getPrimaryNode());
+    final List<Tuple2<EvaluationContext, Integer>> contexts = initContexts(trainingContext, data, getPrimaryNode());
     return collectVector(getPrimaryNode(), contexts);
   }
 
   protected DeltaSet collectVector(final DAGNode primaryNode, final List<Tuple2<EvaluationContext, Integer>> collect) {
-    final List<NNResult> eval = collect(collect.stream().map(t -> new Tuple2<>(primaryNode.get(t.getFirst()), t.getSecond())));
-    final DeltaSet buffer = collectVector(eval).scale(-getRate());
-    return buffer;
+    final List<NNResult> eval = collectOrderedValues(collect.stream().map(t -> new Tuple2<>(primaryNode.get(t.getFirst()), t.getSecond())));
+    return collectVector(eval).scale(-getRate());
   }
 
-  private List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData, final boolean parallel, final DAGNode primaryNode) {
-    final List<Tuple2<EvaluationContext, Integer>> collect = initContexts(trainingContext, trainingData, parallel, primaryNode);
-    final Stream<Tuple2<NNResult, Integer>> results = collect.stream().map(t -> new Tuple2<>(primaryNode.get(t.getFirst()), t.getSecond()));
-    return collect(results);
+  private List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
+    final List<Tuple2<EvaluationContext, Integer>> collect = initContexts(trainingContext, trainingData, primaryNode);
+    Stream<Tuple2<EvaluationContext, Integer>> stream = collect.stream();
+    if (isParallelTraining()) {
+      stream = stream.parallel();
+    }
+    final Stream<Tuple2<NNResult, Integer>> results = stream.map(t -> new Tuple2<>(primaryNode.get(t.getFirst()), t.getSecond()));
+    return collectOrderedValues(results);
   }
 
   private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
     assert 0 < validationSet.length;
-    final List<NNResult> eval = eval(trainingContext, validationSet, isParallelTraining(), getPrimaryNode());
+    final List<NNResult> eval = eval(trainingContext, validationSet, getPrimaryNode());
     assert 0 < eval.size();
     final List<NDArray> evalData = eval.stream().map(x -> x.data).collect(Collectors.toList());
     assert 0 < evalData.size();
@@ -163,11 +169,10 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return this.trainingSize;
   }
 
-  public List<Tuple2<EvaluationContext, Integer>> initContexts(final TrainingContext trainingContext, final NDArray[][] trainingData, final boolean parallel,
-      final DAGNode primaryNode) {
+  public List<Tuple2<EvaluationContext, Integer>> initContexts(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
     final DAGNetwork net = getNet();
     IntStream stream = IntStream.range(0, trainingData.length);
-    if (parallel) {
+    if (isParallelTraining()) {
       stream = stream.parallel();
     }
     final List<Tuple2<EvaluationContext, Integer>> collect = stream.mapToObj(i -> {
