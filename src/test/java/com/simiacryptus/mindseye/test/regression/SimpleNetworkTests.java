@@ -122,26 +122,27 @@ public class SimpleNetworkTests {
     };
     new Tester().init(samples, new DAGNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize).addWeights(f).freeze()) //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)), (NNLayer<?>) new EntropyLossLayer())//
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)), (NNLayer<?>) new SqLossLayer())//
         //.setVerbose(true)//
         .setStaticRate(0.01)//
-        .verifyConvergence(0.01, 1);
+        .verifyConvergence(0.01, 100);
 
     new Tester().init(samples, new DAGNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(f).freeze()), (NNLayer<?>) new EntropyLossLayer())//
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).addWeights(f).freeze()), (NNLayer<?>) new SqLossLayer())//
         //.setStaticRate(0.01)
         // .setVerbose(true).setParallel(false)
-        .verifyConvergence(0.01, 100, 90);
+        .verifyConvergence(0.01, 100);
 
     new Tester().init(samples, new DAGNetwork() //
     .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)), (NNLayer<?>) new EntropyLossLayer()).setStaticRate(0.01).verifyConvergence(0.01, 100, 80);
+    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)), (NNLayer<?>) new SqLossLayer()).setStaticRate(0.01).verifyConvergence(0.01, 100, 80);
 
     new Tester().init(samples, new DAGNetwork() //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)), (NNLayer<?>) new EntropyLossLayer()).verifyConvergence(0.01, 100, 50);
+      .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
+      .add(new DenseSynapseLayer(NDArray.dim(inputSize), inputSize)) //
+      .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)), 
+    new SqLossLayer()).verifyConvergence(0.01, 100);
   }
 
 }

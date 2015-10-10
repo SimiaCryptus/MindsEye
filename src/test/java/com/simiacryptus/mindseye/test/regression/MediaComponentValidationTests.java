@@ -20,7 +20,7 @@ public class MediaComponentValidationTests  {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MediaComponentValidationTests.class);
   
-  public static final double deltaFactor = 1e-6;
+  public static final double deltaFactor = 1e-5;
 
   private static void test(NNLayer<?> component, NDArray outputPrototype, NDArray inputPrototype) throws Throwable {
     BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);

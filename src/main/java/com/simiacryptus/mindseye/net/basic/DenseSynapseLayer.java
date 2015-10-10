@@ -93,6 +93,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
+    setWeights(()->(1-2*Util.R.get().nextDouble())*Math.sqrt(6/(inputs+NDArray.dim(outputDims))));
   }
 
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {

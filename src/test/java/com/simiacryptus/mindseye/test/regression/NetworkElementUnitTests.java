@@ -41,22 +41,6 @@ public class NetworkElementUnitTests {
   }
 
   @Test
-  public void bias_permute_back() throws Exception {
-    final BiasLayer layer = new BiasLayer(new int[] { 5 });
-    java.util.Arrays.setAll(layer.bias, i -> i);
-    layer.permuteOutput(java.util.Arrays.asList(new Tuple2<>(1, 3), new Tuple2<>(2, 1), new Tuple2<>(3, 2)));
-    Assert.assertArrayEquals(layer.bias, new double[] { 0, 2, 3, 1, 4 }, 0.001);
-  }
-
-  @Test
-  public void bias_permute_fwd() throws Exception {
-    final BiasLayer layer = new BiasLayer(new int[] { 5 });
-    java.util.Arrays.setAll(layer.bias, i -> i);
-    layer.permuteInput(java.util.Arrays.asList(new Tuple2<>(1, 3), new Tuple2<>(2, 1), new Tuple2<>(3, 2)));
-    Assert.assertArrayEquals(layer.bias, new double[] { 0, 2, 3, 1, 4 }, 0.001);
-  }
-
-  @Test
   public void bias_train() throws Exception {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
