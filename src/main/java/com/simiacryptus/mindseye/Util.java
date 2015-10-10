@@ -92,6 +92,7 @@ public class Util {
     File file = new File(path, name);
     java.io.BufferedInputStream bufferedIn = new java.io.BufferedInputStream(new FileInputStream(file),1024*1024);
     final DataInputStream in = new DataInputStream(new GZIPInputStream(bufferedIn));
+    in.skip(skip);
     return Util.toIterator(new BinaryChunkIterator(in, recordSize));
   }
 
