@@ -20,7 +20,7 @@ import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 public class NetInitializer {
   private static final Logger log = LoggerFactory.getLogger(NetInitializer.class);
 
-  private double amplitude = 5.;
+  private double amplitude = 0.;
   private boolean verbose;
 
   private int initialize(final BiasLayer l) {
