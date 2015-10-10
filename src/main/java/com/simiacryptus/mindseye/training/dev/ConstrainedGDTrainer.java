@@ -37,12 +37,20 @@ public class ConstrainedGDTrainer extends GradientDescentTrainer {
     return super.getPrimaryNode();
   }
 
+  public void setPrimaryNode(DAGNode primaryNode) {
+    super.setPrimaryNode(primaryNode);
+  }
+  
   public List<DAGNode> getConstraintNodes() {
     return constraintNodes;
   }
 
   public void addConstraintNodes(List<DAGNode> constraintNodes) {
     this.constraintNodes.addAll(constraintNodes);
+  }
+
+  public void addConstraintNodes(DAGNode... constraintNodes) {
+    java.util.Arrays.stream(constraintNodes).forEach(x->this.constraintNodes.add(x));
   }
 
 }

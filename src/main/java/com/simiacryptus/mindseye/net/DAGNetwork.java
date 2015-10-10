@@ -244,8 +244,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
 
   }
 
-  public void setHead(final LazyResult head) {
-    this.head = head;
+  public void setHead(final DAGNode imageRMS) {
+    this.head = (LazyResult) imageRMS;
   }
 
   @Override

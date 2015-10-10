@@ -131,17 +131,17 @@ public class DeconvolutionTest {
       
       dagNetwork.add(convolution);
       dagNetwork.addLossComponent(new SqLossLayer());
+      dagNetwork.add(new VerboseWrapper("rms", new BiasLayer().freeze()));
       //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->.5).freeze());
       //dagNetwork.add(new MaxConstLayer().setValue(10));
       DAGNode imageRMS = dagNetwork.getHead();
 
-      List<DAGNode> outs = new ArrayList<>();
-      outs.add(imageRMS);
+//      List<DAGNode> outs = new ArrayList<>();
+//      outs.add(imageRMS);
 
       new ThresholdActivationLayer();
 
       DAGNode edge_entropy_horizontal;
-      final LinearActivationLayer edgeGateH;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 1, 2 }, 9);
         for(int ii=0;ii<3;ii++){
@@ -157,15 +157,13 @@ public class DeconvolutionTest {
         dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
         dagNetwork.add(new SumLayer());
         
-        edgeGateH = new LinearActivationLayer().setWeights(new double[]{0.}).freeze();
-        dagNetwork.add(edgeGateH);
         // Add 1 to output so product stays above 0 since this fitness function is secondary
         dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        dagNetwork.add(new VerboseWrapper("edgeh", new BiasLayer().freeze()));
         edge_entropy_horizontal = dagNetwork.getHead();
-        outs.add(edge_entropy_horizontal);
+//        outs.add(edge_entropy_horizontal);
       }
 
-      final LinearActivationLayer edgeGateV;
       DAGNode edge_entropy_vertical;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 2, 1 }, 9);
@@ -182,16 +180,15 @@ public class DeconvolutionTest {
         dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
         dagNetwork.add(new SumLayer());
         
-        edgeGateV = new LinearActivationLayer().setWeights(new double[]{0.}).freeze();
-        dagNetwork.add(edgeGateV);
         // Add 1 to output so product stays above 0 since this fitness function is secondary
         dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        dagNetwork.add(new VerboseWrapper("edgev", new BiasLayer().freeze()));
         edge_entropy_vertical = dagNetwork.getHead();
-        outs.add(edge_entropy_vertical);
+        //outs.add(edge_entropy_vertical);
       }
 
-      dagNetwork.add(new VerboseWrapper("endprod", new com.simiacryptus.mindseye.net.dev.StrangeProductLayer()), outs.toArray(new DAGNode[]{}));
-      
+      //dagNetwork.add(new VerboseWrapper("endprod", new com.simiacryptus.mindseye.net.dev.StrangeProductLayer()), outs.toArray(new DAGNode[]{}));
+      dagNetwork.setHead(imageRMS);
 
       ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();
       final Tester trainer = new Tester(){
@@ -208,13 +205,21 @@ public class DeconvolutionTest {
       final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
-        trainer.train(1500., trainingContext);
+
+        constrainedGDTrainer.setPrimaryNode(imageRMS);
+        trainer.train(1., trainingContext);
         trainer.getDevtrainer().reset();
-        //edgeGateH.setWeights(new double[]{1.});
-        edgeGateV.setWeights(new double[]{1.});
-        //negativeClamp.setFactor(-1);
-        trainer.train(0.0, trainingContext);        
+        
+        constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
+        //constrainedGDTrainer.addConstraintNodes(imageRMS);
+        trainer.train(1., trainingContext);
         trainer.getDevtrainer().reset();
+        
+        constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
+        constrainedGDTrainer.addConstraintNodes(imageRMS);
+        trainer.train(1., trainingContext);
+        trainer.getDevtrainer().reset();
+        
       } catch (final Exception e) {
         e.printStackTrace();
       }

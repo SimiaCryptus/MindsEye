@@ -134,7 +134,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
 
   public TrainingComponent setNet(final DAGNetwork net) {
     this.net = net;
-    this.primaryNode = net.getHead();
+    this.setPrimaryNode(net.getHead());
     return this;
   }
 
@@ -253,5 +253,9 @@ public class GradientDescentTrainer implements RateTrainingComponent {
 
   protected DAGNode getPrimaryNode() {
     return primaryNode;
+  }
+
+  protected void setPrimaryNode(DAGNode primaryNode) {
+    this.primaryNode = primaryNode;
   }
 }
