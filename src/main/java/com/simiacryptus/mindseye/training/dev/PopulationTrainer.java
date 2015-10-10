@@ -328,4 +328,8 @@ public class PopulationTrainer implements TrainingComponent {
   public void reset() {
     inner.reset();
   }
+
+  public TrainingComponent setData(NDArray[][] data) {
+    return inner.setData(data);
+  }
 }

@@ -44,6 +44,8 @@ public interface TrainingComponent {
 
   NDArray[][] getData();
 
+  TrainingComponent setData(NDArray[][] data);
+
   void reset();
 
 }

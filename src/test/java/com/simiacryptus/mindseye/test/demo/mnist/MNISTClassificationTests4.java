@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye.test.demo.mnist;
 
+import java.util.function.BiFunction;
+
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -10,6 +12,9 @@ import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
+import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
+import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.training.TrainingContext;
 
 public class MNISTClassificationTests4 extends MNISTClassificationTests {
 
@@ -28,7 +33,7 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
     net = net.add(new SigmoidActivationLayer());
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
     
-    //net = net.add(new SumSubsampleLayer(new int[] { 4, 4, 1 }));
+    net = net.add(new SumSubsampleLayer(new int[] { 4, 4, 1 }));
     
     int[] size = net.eval(new NDArray(inputSize)).data.getDims();
     net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));
@@ -37,4 +42,15 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
     return net;
   }
   
+
+  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+    final Tester trainer = buildTrainer(trainingsamples, net);
+    trainer.handler.add(resultHandler);
+    trainer.getGradientDescentTrainer().setTrainingSize(100);
+    trainer.verifyConvergence(0.01, 1);
+    trainer.getGradientDescentTrainer().setTrainingSize(1000);
+    trainer.verifyConvergence(0.01, 1);
+    trainer.getGradientDescentTrainer().setTrainingSize(Integer.MAX_VALUE);
+    trainer.verifyConvergence(0.0, 1);
+  }
 }

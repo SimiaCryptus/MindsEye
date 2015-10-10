@@ -272,4 +272,8 @@ public class DynamicMultiRateTrainer implements TrainingComponent {
     inner.reset();
   }
 
+  public TrainingComponent setData(NDArray[][] data) {
+    return inner.setData(data);
+  }
+
 }

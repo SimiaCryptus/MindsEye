@@ -128,24 +128,9 @@ public abstract class ClassificationTestBase {
   }
 
   public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
-    {
-      NDArray[][] epochData = java.util.Arrays.copyOfRange(trainingsamples, 0, 100);
-      final Tester trainer = buildTrainer(trainingsamples, net);
-      trainer.handler.add(resultHandler);
-      trainer.verifyConvergence(0.01, 10);
-    }
-    {
-      NDArray[][] epochData = java.util.Arrays.copyOfRange(trainingsamples, 0, 1000);
-      final Tester trainer = buildTrainer(trainingsamples, net);
-      trainer.handler.add(resultHandler);
-      trainer.verifyConvergence(0.01, 10);
-    }
-    {
-      NDArray[][] epochData = java.util.Arrays.copyOfRange(trainingsamples, 0, trainingsamples.length);
-      final Tester trainer = buildTrainer(trainingsamples, net);
-      trainer.handler.add(resultHandler);
-      trainer.verifyConvergence(0.0, 10);
-    }
+    final Tester trainer = buildTrainer(trainingsamples, net);
+    trainer.handler.add(resultHandler);
+    trainer.verifyConvergence(0.0, 1);
   }
 
   public BufferedImage draw(final NDArray[][] samples, NNLayer<?> mainNetwork, final ClassificationResultMetrics correct) {

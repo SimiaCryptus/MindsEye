@@ -78,6 +78,10 @@ public class DevelopmentTrainer implements TrainingComponent {
   }
 
 
+  public TrainingComponent setData(NDArray[][] data) {
+    return inner.setData(data);
+  }
+
   public NDArray[][] getData() {
     return inner.getData();
   }

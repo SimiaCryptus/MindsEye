@@ -129,8 +129,19 @@ public class Tester {
       range = range.parallel();
     }
     final long succeesses = range.filter(i -> {
-      final TrainingComponent trainerCpy = Util.kryo().copy(getDevtrainer());
-      final TrainingContext contextCpy = Util.kryo().copy(trainingContext());
+      final TrainingComponent trainerCpy;
+      if (reps>1) {
+        DevelopmentTrainer devtrainer = getDevtrainer();
+        NDArray[][] trainingData = devtrainer.getData();
+        devtrainer.setData(null);
+        trainerCpy = reps == 1 ? devtrainer : Util.kryo().copy(devtrainer);
+        trainerCpy.setData(trainingData);
+        devtrainer.setData(trainingData);
+      }else {
+        trainerCpy = devtrainer;
+      }
+      TrainingContext trainingContext2 = trainingContext();
+      final TrainingContext contextCpy = reps==1?trainingContext2:Util.kryo().copy(trainingContext2);
       getInitializer().initialize(trainerCpy.getNet());
       //contextCpy.setTimeout(1, TimeUnit.MINUTES);
       boolean hasConverged = false;

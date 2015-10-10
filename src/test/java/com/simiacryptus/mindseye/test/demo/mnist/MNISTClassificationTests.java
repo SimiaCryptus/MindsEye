@@ -96,7 +96,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
 
     }.init(samples, net, lossLayer).setVerbose(true);
     trainer.setVerbose(true);
-    trainer.trainingContext().setTimeout(60, java.util.concurrent.TimeUnit.MINUTES);
+    trainer.trainingContext().setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
     return trainer;
   }
 

@@ -218,4 +218,9 @@ public class MultiRateGDTrainer implements RateTrainingComponent {
     setError(Double.NaN);
   }
 
+
+  public TrainingComponent setData(NDArray[][] data) {
+    masterTrainingData = data;
+    return this;
+  }
 }

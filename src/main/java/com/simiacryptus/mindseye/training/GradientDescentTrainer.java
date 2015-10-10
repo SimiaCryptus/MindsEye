@@ -84,8 +84,11 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
+    assert(0<validationSet.length);
     final List<NNResult> eval = eval(trainingContext, validationSet, isParallelTraining(), getPrimaryNode());
+    assert(0<eval.size());
     final List<NDArray> evalData = eval.stream().map(x -> x.data).collect(Collectors.toList());
+    assert(0<evalData.size());
     assert validationSet.length == evalData.size();
     final double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
     setError(rms);
@@ -145,7 +148,6 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   public RateTrainingComponent setRate(final double dynamicRate) {
     assert Double.isFinite(dynamicRate);
     this.rate = dynamicRate;
-    updateHash();
     setError(Double.NaN);
     return this;
   }
@@ -213,6 +215,11 @@ public class GradientDescentTrainer implements RateTrainingComponent {
 
   public StepResult _step(final TrainingContext trainingContext) {
     NDArray[][] data = getTrainingData();
+    if(data.length==0) return new StepResult(Double.NaN,Double.NaN){
+      @Override
+      public void revert() {
+      }
+    };
     final double prevError = evalClassificationValidationData(trainingContext, data).rms;
     final List<DeltaBuffer> deltas = calcDelta(trainingContext, data).vector();
     deltas.stream().forEach(d->d.write(rate));
@@ -227,7 +234,11 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
   
   public NDArray[][] getTrainingData() {
-    NDArray[][] data = java.util.Arrays.stream(getData())
+    
+    NDArray[][] data2 = getData();
+    assert(0 < data2.length);
+    assert(0 < getTrainingSize());
+    NDArray[][] data = java.util.Arrays.stream(data2)
         .parallel()
         .sorted(java.util.Comparator.comparingLong(y->System.identityHashCode(y) ^ hash))
         .limit(getTrainingSize())
@@ -240,7 +251,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   public NDArray[][] getData() {
-    return trainingData;
+    return null==trainingData?new NDArray[][]{}:trainingData;
   }
 
   @Override
@@ -253,6 +264,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   public GradientDescentTrainer setTrainingSize(int trainingSize) {
+    updateHash();
     this.trainingSize = trainingSize;
     return this;
   }

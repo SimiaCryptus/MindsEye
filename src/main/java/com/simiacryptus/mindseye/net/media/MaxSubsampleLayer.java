@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -48,8 +49,9 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
     final NDArray output = new NDArray(newDims);
     final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
     List<Tuple2<Coordinate, List<Coordinate>>> regions = calcRegionsCache.apply(new CalcRegionsParameter(inputDims, kernelDims));
+    ToDoubleFunction<? super Coordinate> keyExtractor = inputCoords -> input.get(inputCoords);
     regions.stream().parallel().forEach(tuple -> {
-      final Coordinate inputCoord = tuple.getSecond().stream().max(Comparator.comparingDouble(inputCoords -> input.get(inputCoords))).get();
+      final Coordinate inputCoord = tuple.getSecond().stream().max(Comparator.comparingDouble(keyExtractor)).get();
       Coordinate o = tuple.getFirst();
       synchronized (gradientMap) {
         gradientMap.put(o, inputCoord);
