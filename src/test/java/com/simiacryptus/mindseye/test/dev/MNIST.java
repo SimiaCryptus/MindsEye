@@ -37,7 +37,9 @@ public class MNIST {
   }
 
   public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
-    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
+    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(b->{
+      return Util.fillImage(b, new NDArray(28,28,1));
+    });
     final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
 
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
@@ -58,7 +60,9 @@ public class MNIST {
   }
 
   public static Stream<LabeledObject<NDArray>> validationDataStream() throws IOException {
-    final Stream<NDArray> imgStream = Util.binaryStream(path, "t10k-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
+    final Stream<NDArray> imgStream = Util.binaryStream(path, "t10k-images-idx3-ubyte.gz", 16, 28 * 28).map(b->{
+      return Util.fillImage(b, new NDArray(28,28,1));
+    });
     final Stream<byte[]> labelStream = Util.binaryStream(path, "t10k-labels-idx1-ubyte.gz", 8, 1);
 
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {

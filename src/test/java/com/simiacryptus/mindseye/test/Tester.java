@@ -120,10 +120,6 @@ public class Tester {
   }
 
   public long verifyConvergence(final double convergence, final int reps, final int minSuccess) {
-    {
-      final NDArray[][] trainingData = this.dynamicTrainer.getData();
-      assert null != trainingData && 0 < trainingData.length;
-    }
     IntStream range = IntStream.range(0, reps);
     if (isParallel()) {
       range = range.parallel();

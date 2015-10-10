@@ -98,7 +98,13 @@ public class Util {
   public static double bounds(final double value) {
     final int max = 0xFF;
     final int min = 0;
-    return value < min ? min : value > max ? max : value;
+    return (value < min) ? min : ((value > max) ? max : value);
+  }
+
+  public static int bounds(final int value) {
+    final int max = 0xFF;
+    final int min = 0;
+    return (value < min) ? min : ((value > max) ? max : value);
   }
 
   public static <T> T copy(final T original) {
@@ -252,11 +258,10 @@ public class Util {
     return step;
   }
 
-  public static NDArray toImage(final byte[] b) {
-    final NDArray ndArray = new NDArray(28, 28);
+  public static NDArray fillImage(final byte[] b, final NDArray ndArray) {
     for (int x = 0; x < 28; x++) {
       for (int y = 0; y < 28; y++) {
-        ndArray.set(new int[] { x, y }, b[x + y * 28]);
+        ndArray.set(new int[] { x, y }, b[x + y * 28]&0xFF);
       }
     }
     return ndArray;
@@ -274,8 +279,8 @@ public class Util {
       for (int y = 0; y < img.getHeight(); y++) {
         if (ndArray.getDims()[2] == 1) {
           final double value = ndArray.get(x, y, 0);
-          final int asByte = (int) Util.bounds(value) & 0xFF;
-          img.setRGB(x, y, asByte * 0x010101);
+          //int asInt = ((byte) value) & 0xFF;
+          img.setRGB(x, y, bounds((int)value) * 0x010101);
         } else {
           final double red = Util.bounds(ndArray.get(x, y, 0));
           final double green = Util.bounds(ndArray.get(x, y, 1));
@@ -379,7 +384,9 @@ public class Util {
 
   public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
     final String path = "C:/Users/Andrew Charneski/Downloads";
-    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
+    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(b->{
+      return Util.fillImage(b, new NDArray(28,28,1));
+    });
     final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
 
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {

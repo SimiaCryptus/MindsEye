@@ -3,6 +3,7 @@ package com.simiacryptus.mindseye.test.demo.mnist;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,13 +69,13 @@ public class MNISTAutoencoderTests {
   public void test() throws Exception {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 100, hash);
-    final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 100, hash);
+    final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 10, hash);
+    final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 10, hash);
     final NNLayer<DAGNetwork> net = buildNetwork();
-    final Map<BufferedImage, String> report = new HashMap<>();
-    final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (n, trainingContext) -> {
-      evaluateImageList(n, trainingData, net.id).stream().forEach(i->report.put(i, ""));
-      evaluateImageList(n, validationData, net.id).stream().forEach(i->report.put(i, ""));
+    final Map<BufferedImage, String> report = new java.util.LinkedHashMap<>();
+    final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (trainedNetwork, trainingContext) -> {
+      evaluateImageList(trainedNetwork, trainingData, net.id).stream().forEach(i->report.put(i, "TRAINING"));
+      evaluateImageList(trainedNetwork, validationData, net.id).stream().forEach(i->report.put(i, "TEST"));
       return null;
     };
     try {
@@ -86,7 +87,7 @@ public class MNISTAutoencoderTests {
       trainer.setData(trainingData);
       tester.handler.add(resultHandler);
       tester.trainingContext().setTimeout(10, java.util.concurrent.TimeUnit.MINUTES);
-      tester.verifyConvergence(0.1, 1);
+      tester.verifyConvergence(1, 1);
     } finally {
       final Stream<String> map = report.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
       Util.report(map.toArray(i -> new String[i]));
@@ -95,11 +96,13 @@ public class MNISTAutoencoderTests {
 
   public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, UUID id) {
     final NNLayer<?> mainNetwork = n.getChild(id);
-    final List<BufferedImage> img = java.util.Arrays.stream(validationData).map(array->{
-      final NNResult output = mainNetwork.eval(array);
-      return Util.toImage(output.data);
-    }).collect(java.util.stream.Collectors.toList());
-    return img;
+    ArrayList<BufferedImage> results = new java.util.ArrayList<>();
+    results.addAll(java.util.Arrays.stream(validationData).map(x->Util.toImage(x[0])).collect(java.util.stream.Collectors.toList()));
+    results.addAll(java.util.Arrays.stream(validationData).map(array->{
+      final NDArray output = mainNetwork.eval(array).data;
+      return Util.toImage(output);
+    }).collect(java.util.stream.Collectors.toList()));
+    return results;
   }
 
   public NDArray[][] transformDataSet(Stream<LabeledObject<NDArray>> trainingDataStream, int limit, final int hash) {
