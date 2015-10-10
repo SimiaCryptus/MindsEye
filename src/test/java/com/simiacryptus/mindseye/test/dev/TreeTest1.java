@@ -66,7 +66,6 @@ public class TreeTest1 extends SimpleClassificationTests {
     trainer.setVerbose(true);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getDevtrainer().setEvolutionPhases(1);
     trainer.getDynamicRateTrainer().setEtaEnd(10, java.util.concurrent.TimeUnit.MINUTES);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.0, 10);

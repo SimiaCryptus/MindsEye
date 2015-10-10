@@ -12,8 +12,6 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.net.NNLayer;
 
-import groovy.lang.Tuple2;
-
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer<T> {
 
   /**
@@ -67,16 +65,6 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         return inObj[0].isAlive();
       }
     };
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
   }
 
   @Override

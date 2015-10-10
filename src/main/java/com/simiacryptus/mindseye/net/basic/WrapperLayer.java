@@ -6,8 +6,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.net.NNLayer;
 
-import groovy.lang.Tuple2;
-
 public class WrapperLayer extends NNLayer<WrapperLayer> {
   /**
    * 
@@ -37,16 +35,6 @@ public class WrapperLayer extends NNLayer<WrapperLayer> {
   @Override
   public JsonObject getJson() {
     return this.inner.getJson();
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
-    return super.permuteInput(permute);
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
-    return super.permuteOutput(permute);
   }
 
   public final void setInner(final NNLayer<?> inner) {

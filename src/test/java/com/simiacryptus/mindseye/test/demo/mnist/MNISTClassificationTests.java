@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
-import com.simiacryptus.mindseye.training.NetInitializer;
 
 public class MNISTClassificationTests extends ClassificationTestBase {
 
@@ -85,16 +84,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
     EntropyLossLayer lossLayer = new EntropyLossLayer();
-    Tester trainer = new Tester(){
-      
-      @Override
-      public NetInitializer getInitializer() {
-        NetInitializer netInitializer = new NetInitializer();
-        netInitializer.setAmplitude(0.);
-        return netInitializer;
-      }
-
-    }.init(samples, net, lossLayer).setVerbose(true);
+    Tester trainer = new Tester().init(samples, net, lossLayer).setVerbose(true);
     trainer.setVerbose(true);
     trainer.trainingContext().setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
     return trainer;

@@ -123,11 +123,11 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
     return this.verbose;
   }
 
-  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
+  public final List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
 
-  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
+  public final List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
     throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
 

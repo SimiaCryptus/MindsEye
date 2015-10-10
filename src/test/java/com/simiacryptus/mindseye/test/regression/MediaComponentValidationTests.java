@@ -8,8 +8,6 @@ import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.L1NormalizationLayer;
-import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.dev.MaxEntLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;

@@ -1,7 +1,6 @@
 package com.simiacryptus.mindseye.net.basic;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
@@ -14,8 +13,6 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
-
-import groovy.lang.Tuple2;
 
 public class BiasLayer extends NNLayer<BiasLayer> {
 
@@ -80,60 +77,6 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     final JsonObject json = super.getJson();
     json.addProperty("bias", Arrays.toString(this.bias));
     return json;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
-    final java.util.Map<Integer, Integer> shuffleMap = new HashMap<>();
-    java.util.stream.IntStream.range(0, this.bias.length).forEach(i -> shuffleMap.put(i, i));
-    ;
-    permute.forEach(t -> {
-      Integer from = t.getFirst();
-      final Integer to = t.getSecond();
-      from = shuffleMap.get(from);
-
-      final double temp = this.bias[to];
-      this.bias[to] = this.bias[from];
-      this.bias[from] = temp;
-
-      for (final int k : shuffleMap.keySet()) {
-        int value = shuffleMap.get(k);
-        if (value == from) {
-          value = to;
-        } else if (value == to) {
-          value = from;
-        }
-        shuffleMap.put(k, value);
-      }
-    });
-    return permute;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
-    final java.util.Map<Integer, Integer> shuffleMap = new HashMap<>();
-    java.util.stream.IntStream.range(0, this.bias.length).forEach(i -> shuffleMap.put(i, i));
-    ;
-    permute.forEach(t -> {
-      int from = t.getFirst();
-      final int to = t.getSecond();
-      from = shuffleMap.get(from);
-
-      final double temp = this.bias[to];
-      this.bias[to] = this.bias[from];
-      this.bias[from] = temp;
-
-      for (final int k : shuffleMap.keySet()) {
-        int value = shuffleMap.get(k);
-        if (value == from) {
-          value = to;
-        } else if (value == to) {
-          value = from;
-        }
-        shuffleMap.put(k, value);
-      }
-    });
-    return permute;
   }
 
   public NNLayer<?> set(final double[] ds) {

@@ -59,7 +59,6 @@ public class TreeTest2 extends SimpleClassificationTests {
     trainer.setVerbose(true);
     //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    trainer.getDevtrainer().setEvolutionPhases(0);
     //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.01, 10);
   }

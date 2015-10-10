@@ -15,11 +15,9 @@ import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
-import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.training.TrainingComponent;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
-import com.simiacryptus.mindseye.training.dev.DevelopmentTrainer;
 
 /**
  * Encapsulates overall network architecture, training method and data.
@@ -41,7 +39,6 @@ public class Tester {
 
   protected GradientDescentTrainer gradientTrainer;
   protected DynamicRateTrainer dynamicTrainer;
-  protected DevelopmentTrainer devtrainer;
   private boolean parallel = true;
   private final TrainingContext trainingContext;
 
@@ -55,12 +52,10 @@ public class Tester {
   public void initLayers() {
     gradientTrainer = new GradientDescentTrainer();
     dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
-    devtrainer = new DevelopmentTrainer(dynamicTrainer);
   }
 
   public Tester init(final NDArray[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
     DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
-    //new NetInitializer().initialize(initPredictionNetwork);
     gradientTrainer.setNet(initPredictionNetwork);
     gradientTrainer.setData(samples);
     return this;
@@ -106,13 +101,12 @@ public class Tester {
   public Tester setVerbose(final boolean b) {
     getGradientDescentTrainer().setVerbose(b);
     getDynamicRateTrainer().setVerbose(b);
-    getDevtrainer().setVerbose(b);
     return this;
   }
 
   public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
     trainingContext.terminalErr = stopError;
-    getDevtrainer().step(trainingContext);
+    dynamicTrainer.step(trainingContext);
   }
 
   public TrainingContext trainingContext() {
@@ -124,6 +118,10 @@ public class Tester {
   }
 
   public long verifyConvergence(final double convergence, final int reps, final int minSuccess) {
+    {
+      NDArray[][] trainingData = dynamicTrainer.getData();
+      assert(null != trainingData && 0 < trainingData.length);
+    }
     IntStream range = IntStream.range(0, reps);
     if (isParallel()) {
       range = range.parallel();
@@ -131,18 +129,21 @@ public class Tester {
     final long succeesses = range.filter(i -> {
       final TrainingComponent trainerCpy;
       if (reps>1) {
-        DevelopmentTrainer devtrainer = getDevtrainer();
-        NDArray[][] trainingData = devtrainer.getData();
-        devtrainer.setData(null);
-        trainerCpy = reps == 1 ? devtrainer : Util.kryo().copy(devtrainer);
-        trainerCpy.setData(trainingData);
-        devtrainer.setData(trainingData);
+        synchronized (dynamicTrainer) {
+          NDArray[][] trainingData = dynamicTrainer.getData();
+          assert (null != trainingData && 0 < trainingData.length);
+          dynamicTrainer.setData(null);
+          trainerCpy = reps == 1 ? dynamicTrainer : Util.kryo().copy(dynamicTrainer);
+          trainerCpy.setData(trainingData);
+          dynamicTrainer.setData(trainingData);
+        }
       }else {
-        trainerCpy = devtrainer;
+        trainerCpy = dynamicTrainer;
+        NDArray[][] trainingData = dynamicTrainer.getData();
+        assert(null != trainingData && 0 < trainingData.length);
       }
       TrainingContext trainingContext2 = trainingContext();
       final TrainingContext contextCpy = reps==1?trainingContext2:Util.kryo().copy(trainingContext2);
-      getInitializer().initialize(trainerCpy.getNet());
       //contextCpy.setTimeout(1, TimeUnit.MINUTES);
       boolean hasConverged = false;
       try {
@@ -164,16 +165,8 @@ public class Tester {
     return succeesses;
   }
 
-  public NetInitializer getInitializer() {
-    return new NetInitializer();
-  }
-
-  public DevelopmentTrainer getDevtrainer() {
-    return devtrainer;
-  }
-
   public DAGNetwork getNet() {
-    return getDevtrainer().getNet();
+    return dynamicTrainer.getNet();
   }
 
 }

@@ -27,13 +27,11 @@ import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.basic.VerboseWrapper;
 import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
-import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.dev.ConstrainedGDTrainer;
-import com.simiacryptus.mindseye.training.dev.DevelopmentTrainer;
 
 public class DeconvolutionTest {
   static final Logger log = LoggerFactory.getLogger(DeconvolutionTest.class);
@@ -207,7 +205,6 @@ public class DeconvolutionTest {
         public void initLayers() {
           gradientTrainer = constrainedGDTrainer;
           dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
-          devtrainer = new DevelopmentTrainer(dynamicTrainer);
         }
       }.setStaticRate(1.);
       
@@ -221,14 +218,14 @@ public class DeconvolutionTest {
         constrainedGDTrainer.setPrimaryNode(combine);
         //constrainedGDTrainer.setPrimaryNode(imageRMS);
         trainer.train(1., trainingContext);
-        trainer.getDevtrainer().reset();
+        trainer.getDynamicRateTrainer().reset();
         
         //constrainedGDTrainer.setPrimaryNode(combine);
         //constrainedGDTrainer.setPrimaryNode(image_entropy);
         //constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
         //constrainedGDTrainer.addConstraintNodes(imageRMS);
         trainer.train(-Double.MAX_VALUE, trainingContext);
-        trainer.getDevtrainer().reset();
+        trainer.getDynamicRateTrainer().reset();
         
 //        constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
 //        constrainedGDTrainer.addConstraintNodes(imageRMS);
@@ -307,7 +304,7 @@ public class DeconvolutionTest {
       final TrainingContext trainingContext = new TrainingContext().setTimeout(15, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true).train(0.0, trainingContext);
-        trainer.getDevtrainer().reset();
+        trainer.getDynamicRateTrainer().reset();
       } catch (final Exception e) {
         e.printStackTrace();
       }

@@ -16,7 +16,6 @@ import com.simiacryptus.mindseye.net.basic.SqActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
-import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
 public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
@@ -79,14 +78,7 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
   @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
     EntropyLossLayer lossLayer = new EntropyLossLayer();
-    Tester trainer = new Tester(){
-      @Override
-      public NetInitializer getInitializer() {
-        NetInitializer netInitializer = new NetInitializer();
-        netInitializer.setAmplitude(0.);
-        return netInitializer;
-      }
-    }.setMaxDynamicRate(1000).init(samples, net, lossLayer);
+    Tester trainer = new Tester().setMaxDynamicRate(1000).init(samples, net, lossLayer);
     trainer.setVerbose(true);
     TrainingContext trainingContext = trainer.trainingContext();
     trainingContext.setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);

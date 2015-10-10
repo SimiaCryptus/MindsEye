@@ -16,8 +16,6 @@ import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 
-import groovy.lang.Tuple2;
-
 public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
   /**
    * 
@@ -114,16 +112,6 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
 
   protected double getMobility() {
     return 1;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
   }
 
   public LinearActivationLayer setWeights(final double[] data) {

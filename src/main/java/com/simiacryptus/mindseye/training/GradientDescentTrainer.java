@@ -251,7 +251,9 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   public NDArray[][] getData() {
-    return null==trainingData?new NDArray[][]{}:trainingData;
+    return trainingData;
+//    assert(null!=trainingData);
+//    return null==trainingData?new NDArray[][]{}:trainingData;
   }
 
   @Override

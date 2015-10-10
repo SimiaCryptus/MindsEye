@@ -11,7 +11,6 @@ import com.simiacryptus.mindseye.DeltaSet;
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.net.NNLayer;
-import groovy.lang.Tuple2;
 
 public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
   /**
@@ -96,16 +95,6 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
 
   public double getThreshold() {
     return this.threshold;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
-  }
-
-  @Override
-  public List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
-    return permute;
   }
 
   public MinMaxFilterLayer setThreshold(final double threshold) {
