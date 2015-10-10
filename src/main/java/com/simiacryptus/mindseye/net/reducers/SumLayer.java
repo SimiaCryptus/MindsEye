@@ -35,7 +35,7 @@ public class SumLayer extends NNLayer<SumLayer> {
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { sum });
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         final double delta = data.get(0);
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
@@ -43,7 +43,7 @@ public class SumLayer extends NNLayer<SumLayer> {
             for (int i = 0; i < in_l.data.dim(); i++) {
               passback.set(i, delta);
             }
-            in_l.feedback(passback, buffer);
+            in_l.accumulate(buffer, passback);
           }
         }
       }

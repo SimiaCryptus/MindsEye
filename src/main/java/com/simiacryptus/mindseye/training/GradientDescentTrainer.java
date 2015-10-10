@@ -43,12 +43,12 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return results.sorted(java.util.Comparator.comparingInt(x -> x.getSecond())).map(x -> x.getFirst()).collect(Collectors.toList());
   }
 
-  public static DeltaSet collectVector(final List<NNResult> netresults, final NDArray delta) {
+  public static DeltaSet collectVector(final List<NNResult> netresults) {
     final DeltaSet buffer = new DeltaSet();
     IntStream.range(0, netresults.size()).parallel().mapToObj(sample -> {
       return netresults.get(sample);
     }).forEach(actualOutput -> {
-      actualOutput.feedback(delta, buffer);
+      actualOutput.accumulate(buffer);
     });
     return buffer;
   }
@@ -95,8 +95,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
 
   protected DeltaSet collectVector(final DAGNode primaryNode, final List<Tuple2<EvaluationContext, Integer>> collect) {
     final List<NNResult> eval = collect(collect.stream().map(t -> new Tuple2<>(primaryNode.get(t.getFirst()), t.getSecond())));
-    final NDArray delta = new NDArray(new int[] { 1 }, new double[] { -getRate() });
-    final DeltaSet buffer = collectVector(eval, delta);
+    final DeltaSet buffer = collectVector(eval).scale(-getRate());
     return buffer;
   }
 

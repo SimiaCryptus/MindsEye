@@ -51,12 +51,12 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     final NDArray translated = new NDArray(r.getDims(), add(r.getData()));
     return new NNResult(translated) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (!isFrozen()) {
           buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data.getData());
         }
         if (inObj[0].isAlive()) {
-          inObj[0].feedback(data, buffer);
+          inObj[0].accumulate(buffer, data);
         }
       }
 

@@ -129,7 +129,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive()) {
           final NDArray backSignal = new NDArray(inputDims);
           for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
@@ -144,7 +144,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
           // backSignal.add(i, outV/kernelSize);
           // });
           // });
-          inObj[0].feedback(backSignal, buffer);
+          inObj[0].accumulate(buffer, backSignal);
         }
       }
 

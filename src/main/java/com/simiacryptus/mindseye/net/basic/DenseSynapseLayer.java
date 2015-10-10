@@ -35,12 +35,12 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
           passback.add(i, deltaData[j] * matrix.get(j, i));
         }
       }
-      this.inObj.feedback(passback, buffer);
+      this.inObj.accumulate(buffer, passback);
       return passback;
     }
 
     @Override
-    public void feedback(final NDArray delta, final DeltaSet buffer) {
+    public void accumulate(final DeltaSet buffer, final NDArray delta) {
       if (!isFrozen()) {
         learn(delta, buffer);
       }

@@ -36,7 +36,7 @@ public class ProductLayer extends NNLayer<ProductLayer> {
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { sum });
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         final double delta = data.get(0);
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
@@ -44,7 +44,7 @@ public class ProductLayer extends NNLayer<ProductLayer> {
             for (int i = 0; i < in_l.data.dim(); i++) {
               passback.set(i, delta * sum_ / in_l.data.getData()[i]);
             }
-            in_l.feedback(passback, buffer);
+            in_l.accumulate(buffer, passback);
           }
         }
       }

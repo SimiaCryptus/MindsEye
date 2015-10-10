@@ -40,14 +40,14 @@ public class MaxEntropyLossLayer extends NNLayer<MaxEntropyLossLayer> {
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
           final double v = data.get(0) / a.dim();
           for (int i = 0; i < a.dim(); i++) {
             passback.set(i, v * r.get(i));
           }
-          inObj[0].feedback(passback, buffer);
+          inObj[0].accumulate(buffer, passback);
         }
         if (inObj[1].isAlive())
           throw new RuntimeException();

@@ -38,7 +38,7 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
           final int adim = a.dim();
@@ -47,10 +47,10 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
             passback.set(i, data0 * r.get(i) * 2 / adim);
           }
           if (inObj[0].isAlive()) {
-            inObj[0].feedback(passback, buffer);
+            inObj[0].accumulate(buffer, passback);
           }
           if (inObj[1].isAlive()) {
-            inObj[1].feedback(passback.scale(-1), buffer);
+            inObj[1].accumulate(buffer, passback.scale(-1));
           }
         }
       }

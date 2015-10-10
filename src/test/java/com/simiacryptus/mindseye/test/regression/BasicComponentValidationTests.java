@@ -30,7 +30,7 @@ public class BasicComponentValidationTests {
       final int j_ = j;
       final NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
         @Override
-        public void feedback(final NDArray data, final DeltaSet buffer) {
+        public void accumulate(final DeltaSet buffer, final NDArray data) {
         }
 
         @Override
@@ -40,7 +40,7 @@ public class BasicComponentValidationTests {
       }).toArray(i -> new NNResult[i]);
       copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
         @Override
-        public void feedback(final NDArray data, final DeltaSet buffer) {
+        public void accumulate(final DeltaSet buffer, final NDArray data) {
           for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
             gradient.set(new int[] { i, j_ }, data.getData()[i]);
           }
@@ -51,7 +51,7 @@ public class BasicComponentValidationTests {
           return true;
         }
       };
-      component.eval(copyInput).feedback(new NDArray(outputPrototype.getDims()).set(j, 1), new DeltaSet());
+      component.eval(copyInput).accumulate(new DeltaSet(), new NDArray(outputPrototype.getDims()).set(j, 1));
     }
     return gradient;
   }
@@ -63,7 +63,7 @@ public class BasicComponentValidationTests {
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final DeltaSet buffer = new DeltaSet();
-      component.eval(inputPrototype).feedback(new NDArray(outputPrototype.getDims()).set(j, 1), buffer);
+      component.eval(inputPrototype).accumulate(buffer, new NDArray(outputPrototype.getDims()).set(j, 1));
       final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[] { i, j_ }, deltaFlushBuffer.getCalcVector()[i]);

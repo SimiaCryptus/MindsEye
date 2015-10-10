@@ -44,14 +44,14 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { descriptiveNats });
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
           final NDArray passback = new NDArray(gradient.getDims());
           for (int i = 0; i < l.dim(); i++) {
             passback.set(i, data.get(0) * gradient.get(i));
           }
           if (inObj[0].isAlive()) {
-            inObj[0].feedback(passback, buffer);
+            inObj[0].accumulate(buffer, passback);
           }
           if (inObj[1].isAlive())
             throw new RuntimeException();

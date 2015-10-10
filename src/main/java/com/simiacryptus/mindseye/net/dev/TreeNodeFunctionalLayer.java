@@ -27,7 +27,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     }
 
     @Override
-    public synchronized void feedback(final NDArray data, final DeltaSet buffer) {
+    public synchronized void accumulate(final DeltaSet buffer, final NDArray data) {
       if (null == data)
         return;
       if (null == this.sum) {
@@ -37,7 +37,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     }
 
     public void flush(final DeltaSet buffer) {
-      this.inner.feedback(this.sum, buffer);
+      this.inner.accumulate(buffer, this.sum);
     }
 
     @Override
@@ -89,8 +89,8 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     return new NNResult(output.data) {
 
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
-        output.feedback(data, buffer);
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
+        output.accumulate(buffer, data);
         final NDArray evalFeedback = new NDArray(gateEval.data.getDims());
         for (int subnet = 0; subnet < outputs.size(); subnet++) {
           final NDArray leafEval = outputs.get(subnet).data.copy().scale(1. / gateVals[subnet]);
@@ -100,7 +100,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
           }
           evalFeedback.set(subnet, sum1);
         }
-        gateEval.feedback(evalFeedback, buffer);
+        gateEval.accumulate(buffer, evalFeedback);
         inputResultBuffers.stream().forEach(x -> x.flush(buffer));
       }
 

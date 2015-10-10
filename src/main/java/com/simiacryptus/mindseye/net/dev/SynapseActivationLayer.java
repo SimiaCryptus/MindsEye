@@ -26,7 +26,7 @@ public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
     }
 
     @Override
-    public void feedback(final NDArray delta, final DeltaSet buffer) {
+    public void accumulate(final DeltaSet buffer, final NDArray delta) {
       final double[] deltaData = delta.getData();
 
       if (!isFrozen()) {
@@ -43,7 +43,7 @@ public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
         for (int i = 0; i < matrix.columns; i++) {
           passback.set(i, deltaData[i] * matrix.get(i, 0));
         }
-        this.inObj.feedback(passback, buffer);
+        this.inObj.accumulate(buffer, passback);
       }
     }
 

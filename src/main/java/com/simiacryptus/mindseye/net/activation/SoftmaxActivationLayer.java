@@ -47,7 +47,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
     final NDArray output = exp.map(x -> x / sum);
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive()) {
           final double[] delta = data.getData();
           new NDArray(input.dim(), input.dim());
@@ -67,7 +67,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
               }
             }
           }
-          inObj[0].feedback(passback, buffer);
+          inObj[0].accumulate(buffer, passback);
         }
       }
 

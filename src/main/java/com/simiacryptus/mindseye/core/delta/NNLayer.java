@@ -26,7 +26,7 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
     }
 
     @Override
-    public void feedback(final NDArray data, final DeltaSet buffer) {
+    public void accumulate(final DeltaSet buffer, final NDArray data) {
       // Do Nothing
     }
 

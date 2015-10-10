@@ -29,7 +29,7 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
 
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive()) {
           final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
           final double[] indata = input.getData();
@@ -42,7 +42,7 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
             final double d = delta[i];
             passback.set(i, isZeroInput ? d : (d * sum - dot) / (sum * sum));
           }
-          inObj[0].feedback(passback, buffer);
+          inObj[0].accumulate(buffer, passback);
         }
       }
 

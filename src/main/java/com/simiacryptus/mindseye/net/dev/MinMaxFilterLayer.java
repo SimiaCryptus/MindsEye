@@ -22,7 +22,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
     }
 
     @Override
-    public void feedback(final NDArray delta, final DeltaSet buffer) {
+    public void accumulate(final DeltaSet buffer, final NDArray delta) {
       final double[] deltaData = delta.getData();
       if (this.inObj.isAlive()) {
         final int[] dims = this.inObj.data.getDims();
@@ -40,7 +40,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
             passback.set(i, deltaData[i]);
           }
         }
-        this.inObj.feedback(passback, buffer);
+        this.inObj.accumulate(buffer, passback);
       } else {
       }
     }

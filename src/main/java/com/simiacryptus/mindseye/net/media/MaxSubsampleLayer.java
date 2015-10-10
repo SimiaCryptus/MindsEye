@@ -120,11 +120,11 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
     });
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive()) {
           final NDArray backSignal = new NDArray(inputDims);
           gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().index, data.get(e.getKey().index)));
-          inObj[0].feedback(backSignal, buffer);
+          inObj[0].accumulate(buffer, backSignal);
         }
       }
 

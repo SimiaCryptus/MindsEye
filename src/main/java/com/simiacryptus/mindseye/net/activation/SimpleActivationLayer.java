@@ -40,7 +40,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     }
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray data, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray data) {
         if (inObj[0].isAlive()) {
           final NDArray inputGradientLog = inputGradient;
           final NDArray passback = new NDArray(data.getDims());
@@ -51,7 +51,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
               passback.set(i, data.getData()[i] * v);
             }
           });
-          inObj[0].feedback(passback, buffer);
+          inObj[0].accumulate(buffer, passback);
         }
       }
 

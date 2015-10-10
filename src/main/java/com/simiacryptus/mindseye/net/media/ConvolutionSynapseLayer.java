@@ -163,7 +163,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     indexMap.convolve(input.getData(), this.kernel.getData(), output.getData());
     return new NNResult(output) {
       @Override
-      public void feedback(final NDArray errorSignal, final DeltaSet buffer) {
+      public void accumulate(final DeltaSet buffer, final NDArray errorSignal) {
         if (!isFrozen()) {
           final NDArray kernel = ConvolutionSynapseLayer.this.kernel;
           final NDArray weightGradient = new NDArray(kernel.getDims());
@@ -173,7 +173,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
         if (inObj[0].isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
           indexMap.backprop(backprop.getData(), ConvolutionSynapseLayer.this.kernel.getData(), errorSignal.getData());
-          inObj[0].feedback(backprop, buffer);
+          inObj[0].accumulate(buffer, backprop);
         }
       }
 

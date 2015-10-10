@@ -26,7 +26,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
     }
 
     @Override
-    public void feedback(final NDArray delta, final DeltaSet buffer) {
+    public void accumulate(final DeltaSet buffer, final NDArray delta) {
       final double[] deltaData = delta.getData();
 
       if (!isFrozen()) {
@@ -44,7 +44,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
         for (int i = 0; i < passback.dim(); i++) {
           passback.set(i, deltaData[i] * matrix.get(0, 0));
         }
-        this.inObj.feedback(passback, buffer);
+        this.inObj.accumulate(buffer, passback);
       }
     }
 
