@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
@@ -36,13 +35,15 @@ public class BooleanSigmoidNetworkTests {
     return samples;
   }
 
-  public void test(final NDArray[][] samples, int min) {
+  public void test(final NDArray[][] samples, final int min) {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    new Tester().init(samples, new DAGNetwork()
-    .add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-    .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()), (NNLayer<?>) new SqLossLayer())
+    new Tester()
+        .init(samples,
+            new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
+                .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()),
+            new SqLossLayer())
         .verifyConvergence(0.01, 100, min);
   }
 

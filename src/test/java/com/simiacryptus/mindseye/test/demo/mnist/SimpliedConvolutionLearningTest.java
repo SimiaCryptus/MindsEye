@@ -23,8 +23,8 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
     DAGNetwork net = new DAGNetwork();
-    int n = 2;
-    int m = 28-n+1;
+    final int n = 2;
+    final int m = 28 - n + 1;
     net = net.add(new ConvolutionSynapseLayer(new int[] { n, n }, 10).addWeights(() -> Util.R.get().nextGaussian() * .001));
     net = net.add(new SqActivationLayer());
     net = net.add(new SumSubsampleLayer(new int[] { m, m, 1 }));
@@ -32,41 +32,55 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
     return net;
   }
 
+  @Override
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    final EntropyLossLayer lossLayer = new EntropyLossLayer();
+    final Tester trainer = new Tester().setMaxDynamicRate(1000).init(samples, net, lossLayer);
+    trainer.setVerbose(true);
+    final TrainingContext trainingContext = trainer.trainingContext();
+    trainingContext.setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
+    return trainer;
+  }
+
   public Stream<LabeledObject<NDArray>> getTrainingData() throws IOException {
-    
+
     final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
+      int cnt = 0;
+
       @Override
       public boolean hasNext() {
         return true;
       }
 
-      int cnt=0;
       @Override
       public LabeledObject<NDArray> next() {
-        int index = cnt++;
+        final int index = this.cnt++;
         String id = "";
         NDArray imgData;
-        while(true){
-          java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(28,28,java.awt.image.BufferedImage.TYPE_BYTE_GRAY);
-          Graphics2D g = img.createGraphics();
-          int cardinality = index%2;
-          if(0==cardinality)
-          {
-            int x1 = Util.R.get().nextInt(28);
-            int x2 = Util.R.get().nextInt(28);
-            int y = Util.R.get().nextInt(28);
-            if(Math.abs(x1-x2)<1) continue;
+        while (true) {
+          final java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(28, 28, java.awt.image.BufferedImage.TYPE_BYTE_GRAY);
+          final Graphics2D g = img.createGraphics();
+          final int cardinality = index % 2;
+          if (0 == cardinality) {
+            final int x1 = Util.R.get().nextInt(28);
+            final int x2 = Util.R.get().nextInt(28);
+            final int y = Util.R.get().nextInt(28);
+            if (Math.abs(x1 - x2) < 1) {
+              continue;
+            }
             g.drawLine(x1, y, x2, y);
             id = "[0]";
-          } else if(1==cardinality) {
-            int x = Util.R.get().nextInt(28);
-            int y1 = Util.R.get().nextInt(28);
-            int y2 = Util.R.get().nextInt(28);
-            if(Math.abs(y1-y2)<1) continue;
+          } else if (1 == cardinality) {
+            final int x = Util.R.get().nextInt(28);
+            final int y1 = Util.R.get().nextInt(28);
+            final int y2 = Util.R.get().nextInt(28);
+            if (Math.abs(y1 - y2) < 1) {
+              continue;
+            }
             g.drawLine(x, y1, x, y2);
             id = "[1]";
           }
-          imgData = new NDArray(new int[]{28,28,1}, img.getData().getSamples(0, 0, 28, 28, 0, (double[])null));
+          imgData = new NDArray(new int[] { 28, 28, 1 }, img.getData().getSamples(0, 0, 28, 28, 0, (double[]) null));
           break;
         }
         return new LabeledObject<NDArray>(imgData, id);
@@ -76,30 +90,23 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    EntropyLossLayer lossLayer = new EntropyLossLayer();
-    Tester trainer = new Tester().setMaxDynamicRate(1000).init(samples, net, lossLayer);
-    trainer.setVerbose(true);
-    TrainingContext trainingContext = trainer.trainingContext();
-    trainingContext.setTimeout(5, java.util.concurrent.TimeUnit.MINUTES);
-    return trainer;
+  public int height() {
+    return 300;
+  }
+
+  @Override
+  public double numberOfSymbols() {
+    return 2.;
   }
 
   @Override
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0.05, 1);
   }
-  public int height() {
-    return 300;
-  }
 
+  @Override
   public int width() {
     return 300;
   }
-
-  public double numberOfSymbols() {
-    return 2.;
-  }
-
 
 }

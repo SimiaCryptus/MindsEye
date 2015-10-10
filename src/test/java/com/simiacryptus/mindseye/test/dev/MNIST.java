@@ -20,6 +20,8 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class MNIST {
 
+  private static final String path = System.getProperty("MNIST_DIR", "C:/Users/Andrew Charneski/Downloads");
+
   public static void report(final NNLayer<DAGNetwork> net) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
@@ -34,8 +36,6 @@ public class MNIST {
     Desktop.getDesktop().browse(report.toURI());
   }
 
-  private static final String path = System.getProperty("MNIST_DIR", "C:/Users/Andrew Charneski/Downloads");
-  
   public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
     final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(Util::toImage);
     final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);

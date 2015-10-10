@@ -14,12 +14,12 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
 
+  private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
+
   /**
    * 
    */
   private static final long serialVersionUID = 2373420906380031927L;
-
-  private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
 
   double maxInput = 50;
 
@@ -30,7 +30,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
   public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     assert 1 < input.dim();
-    
+
     final NDArray exp;
     {
       final DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
@@ -40,7 +40,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
         return Double.isFinite(x) ? x : min;
       }).map(x -> Math.exp(x - max));
     }
-    
+
     final double sum = exp.sum();
     assert 0. < sum;
     final NDArray output = exp.map(x -> x / sum);
@@ -55,14 +55,14 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
           final NDArray inputGradient = new NDArray(input.dim(), input.dim());
           final double[] expdata = exp.getData();
           final NDArray passback = new NDArray(data.getDims());
-          int dim = expdata.length;
+          final int dim = expdata.length;
           for (int i = 0; i < dim; i++) {
             for (int j = 0; j < dim; j++) {
               double value = 0;
               if (i == j) {
-                value = expdata[i] * (sum - expdata[i]) / (sum*sum);
+                value = expdata[i] * (sum - expdata[i]) / (sum * sum);
               } else {
-                value = -(expdata[i] * expdata[j]) / (sum*sum);
+                value = -(expdata[i] * expdata[j]) / (sum * sum);
               }
               if (Double.isFinite(value)) {
                 passback.add(i, delta[j] * value);

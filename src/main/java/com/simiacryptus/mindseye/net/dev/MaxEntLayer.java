@@ -6,15 +6,15 @@ import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
 public class MaxEntLayer extends SimpleActivationLayer<MaxEntLayer> {
 
   @Override
-  protected void eval(double x, double[] results) {
+  protected void eval(final double x, final double[] results) {
     final double minDeriv = 0;
     double d;
     double f;
-    if (0.==x) {
+    if (0. == x) {
       d = 0;
       f = 0;
     } else {
-      double log = Math.log(Math.abs(x));
+      final double log = Math.log(Math.abs(x));
       d = -(1 + log);
       f = -x * log;
     }

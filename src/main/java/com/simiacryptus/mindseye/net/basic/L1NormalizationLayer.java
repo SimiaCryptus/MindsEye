@@ -13,8 +13,8 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
 
-  private static final long serialVersionUID = -8028442822064680557L;
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
+  private static final long serialVersionUID = -8028442822064680557L;
 
   public L1NormalizationLayer() {
   }
@@ -23,8 +23,8 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
   public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final double sum = input.sum();
-    boolean isZeroInput = sum == 0.;
-    final NDArray output = input.map(x -> isZeroInput ? x : (x / sum));
+    final boolean isZeroInput = sum == 0.;
+    final NDArray output = input.map(x -> isZeroInput ? x : x / sum);
 
     if (isVerbose()) {
       L1NormalizationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
@@ -34,15 +34,15 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
       public void feedback(final NDArray data, final DeltaSet buffer) {
         if (inObj[0].isAlive()) {
           final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
-          double[] indata = input.getData();
+          final double[] indata = input.getData();
           final NDArray passback = new NDArray(data.getDims());
           double dot = 0;
           for (int i = 0; i < indata.length; i++) {
             dot += delta[i] * indata[i];
           }
           for (int i = 0; i < indata.length; i++) {
-            double d = delta[i];
-            passback.set(i, isZeroInput?d:((d*sum-dot)/(sum*sum)));
+            final double d = delta[i];
+            passback.set(i, isZeroInput ? d : (d * sum - dot) / (sum * sum));
           }
           if (isVerbose()) {
             L1NormalizationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));

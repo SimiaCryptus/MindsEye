@@ -34,33 +34,33 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
 
   }
 
-  private abstract static class LazyResult implements DAGNode {
+  private final class InnerNode extends LazyResult {
+    private final UUID layer;
+    private final DAGNode[] prevHead;
 
-    public final UUID key;
-
-    public LazyResult() {
-      this(UUID.randomUUID());
+    @SafeVarargs
+    private InnerNode(final NNLayer<?> layer, final DAGNode... head) {
+      assert null != head;
+      this.layer = layer.getId();
+      this.prevHead = head;
     }
 
-    protected LazyResult(UUID key) {
-      super();
-      this.key = key;
+    @Override
+    protected NNResult eval(final EvaluationContext ctx) {
+      final NNResult[] in = java.util.Arrays.stream(this.prevHead).map(x -> ((LazyResult) x).get(ctx)).toArray(i -> new NNResult[i]);
+      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(in);
+      return output;
     }
 
-    protected abstract NNResult eval(EvaluationContext t);
-
-    public NNResult get(final EvaluationContext t) {
-      return (NNResult) t.cache.computeIfAbsent(this.key, k -> eval(t));
+    @Override
+    public JsonObject toJson() {
+      final JsonObject json = new JsonObject();
+      json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
+      json.add("prev", ((LazyResult) this.prevHead[0]).toJson());
+      return json;
     }
-
-    public abstract JsonObject toJson();
-
   }
-  /**
-   * 
-   */
-  private static final long serialVersionUID = -5683282519002886564L;
-  
+
   private final class InputNode extends LazyResult {
     public final UUID handle;
 
@@ -68,14 +68,14 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
       this(null);
     }
 
-    public InputNode(UUID handle) {
+    public InputNode(final UUID handle) {
       super(handle);
       this.handle = handle;
     }
 
     @Override
     protected NNResult eval(final EvaluationContext t) {
-      return t.cache.get(handle);
+      return t.cache.get(this.handle);
     }
 
     @Override
@@ -86,49 +86,53 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     }
   }
 
-  private final class InnerNode extends LazyResult {
-    private final UUID layer;
-    private final DAGNode[] prevHead;
+  private abstract static class LazyResult implements DAGNode {
 
-    @SafeVarargs
-    private InnerNode(final NNLayer<?> layer, final DAGNode... head) {
-      assert(null != head);
-      this.layer = layer.getId();
-      this.prevHead = head;
+    public final UUID key;
+
+    public LazyResult() {
+      this(UUID.randomUUID());
     }
 
-    @Override
-    protected NNResult eval(final EvaluationContext ctx) {
-      NNResult[] in = java.util.Arrays.stream(this.prevHead).map(x->((LazyResult)x).get(ctx)).toArray(i->new NNResult[i]);
-      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(in);
-      return output;
+    protected LazyResult(final UUID key) {
+      super();
+      this.key = key;
     }
+
+    protected abstract NNResult eval(EvaluationContext t);
 
     @Override
-    public JsonObject toJson() {
-      final JsonObject json = new JsonObject();
-      json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
-      json.add("prev", ((LazyResult)this.prevHead[0]).toJson());
-      return json;
+    public NNResult get(final EvaluationContext t) {
+      return t.cache.computeIfAbsent(this.key, k -> eval(t));
     }
+
+    public abstract JsonObject toJson();
+
   }
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
-  private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
-  public final List<UUID> inputHandles = new java.util.ArrayList<>(java.util.Arrays.asList(UUID.randomUUID(),UUID.randomUUID()));
-  private LazyResult head = this.getInput().get(0);
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5683282519002886564L;
 
+  private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
+  public final List<UUID> inputHandles = new java.util.ArrayList<>(java.util.Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+  private LazyResult head = getInput().get(0);
+
+  LazyResult inputNode = new InputNode();
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
+
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
 
   public synchronized DAGNetwork add(final NNLayer<?> nextHead) {
-    return add(nextHead, this.getHead());
+    return add(nextHead, getHead());
   }
 
   @SafeVarargs
-  public final DAGNetwork add(final NNLayer<?> nextHead, DAGNode... head) {
+  public final DAGNetwork add(final NNLayer<?> nextHead, final DAGNode... head) {
     this.byId.put(nextHead.getId(), nextHead);
     {
       // XXX: Prev/next linking only tracks first input node
@@ -136,27 +140,27 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
       this.prevMap.put(nextHead, prevHead);
       this.nextMap.put(prevHead, nextHead);
     }
-    assert(null != this.getInput());
+    assert null != getInput();
     final InnerNode node = new InnerNode(nextHead, head);
     setHead(node);
     return this;
   }
 
   public synchronized NNLayer<DAGNetwork> addLossComponent(final NNLayer<?> nextHead) {
-    return add(nextHead, this.getHead(), this.getInput().get(1));
+    return add(nextHead, getHead(), getInput().get(1));
+  }
+
+  public EvaluationContext buildExeCtx(final NNResult... array) {
+    final EvaluationContext evaluationContext = new EvaluationContext();
+    for (int i = 0; i < array.length; i++) {
+      evaluationContext.cache.put(this.inputHandles.get(i), array[i]);
+    }
+    return evaluationContext;
   }
 
   @Override
   public NNResult eval(final NNResult... array) {
-    return (NNResult) ((LazyResult)getHead()).get(buildExeCtx(array));
-  }
-
-  public EvaluationContext buildExeCtx(final NNResult... array) {
-    EvaluationContext evaluationContext = new EvaluationContext();
-    for(int i=0;i<array.length;i++){
-      evaluationContext.cache.put(this.inputHandles.get(i), array[i]);
-    }
-    return evaluationContext;
+    return ((LazyResult) getHead()).get(buildExeCtx(array));
   }
 
   @Override
@@ -201,24 +205,28 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   }
 
   public NNLayer<?> getHeadLayer() {
-    return getLayer(this.getHead());
+    return getLayer(getHead());
   }
 
-  public NNLayer<?> getLayer(DAGNode head) {
-    if (head instanceof InnerNode)
-      return DAGNetwork.this.byId.get(((InnerNode) head).layer);
-    else
-      return null;
+  public List<LazyResult> getInput() {
+    return com.google.common.collect.Lists.transform(this.inputHandles, h -> new InputNode(h));
   }
 
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
-    json.add("root", ((LazyResult)getHead()).toJson());
+    json.add("root", ((LazyResult) getHead()).toJson());
     // for(NNLayer c : getChildren()){
     // json.add(c.getId(), c.getJson());
     // }
     return json;
+  }
+
+  public NNLayer<?> getLayer(final DAGNode head) {
+    if (head instanceof InnerNode)
+      return DAGNetwork.this.byId.get(((InnerNode) head).layer);
+    else
+      return null;
   }
 
   private void permutate_back(final NNLayer<?> permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
@@ -251,11 +259,6 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   @Override
   public List<double[]> state() {
     return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
-  }
-
-  LazyResult inputNode = new InputNode();
-  public List<LazyResult> getInput() {
-    return com.google.common.collect.Lists.transform(inputHandles, h->new InputNode(h));
   }
 
 }

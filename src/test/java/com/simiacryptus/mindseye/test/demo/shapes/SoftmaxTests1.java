@@ -23,22 +23,21 @@ public class SoftmaxTests1 extends SimpleClassificationTests {
 
   @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
-  }
-
-  @Override
-  public void verify(final Tester trainer) {
-    //trainer.setVerbose(true);
-    //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
-    // trainer.getInner().setAlignEnabled(false);
-    //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
-    trainer.verifyConvergence(0.01, 10);
+    return new Tester().init(samples, net, new EntropyLossLayer());
   }
 
   @Override
   public void test_xor() throws Exception {
     super.test_xor();
   }
-  
-  
+
+  @Override
+  public void verify(final Tester trainer) {
+    // trainer.setVerbose(true);
+    // trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
+    // trainer.getInner().setAlignEnabled(false);
+    // trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
+    trainer.verifyConvergence(0.01, 10);
+  }
+
 }

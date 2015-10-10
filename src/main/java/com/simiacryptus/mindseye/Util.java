@@ -112,6 +112,10 @@ public class Util {
     return f2;
   }
 
+  public static String[] currentStack() {
+    return java.util.stream.Stream.of(Thread.currentThread().getStackTrace()).map(Object::toString).toArray(i -> new String[i]);
+  }
+
   public static double geomMean(final double... error) {
     double sumLog = 0;
     for (final double element : error) {
@@ -155,10 +159,6 @@ public class Util {
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());
-  }
-
-  public static void report(final String... fragments) throws FileNotFoundException, IOException {
-    Util.report(Stream.of(fragments));
   }
 
   //
@@ -205,6 +205,10 @@ public class Util {
   // return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" +
   // img.label + "\" />";
   // }
+
+  public static void report(final String... fragments) throws FileNotFoundException, IOException {
+    Util.report(Stream.of(fragments));
+  }
 
   public static double rms(final TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, final int[] activeSet) {
     @SuppressWarnings("resource")
@@ -254,6 +258,11 @@ public class Util {
     return ndArray;
   }
 
+  // public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+  // return StreamSupport.stream(Spliterators.spliterator(iterator, 1,
+  // Spliterator.ORDERED), false);
+  // }
+
   public static BufferedImage toImage(final NDArray ndArray) {
     final int[] dims = ndArray.getDims();
     final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
@@ -273,11 +282,6 @@ public class Util {
     }
     return img;
   }
-
-  // public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
-  // return StreamSupport.stream(Spliterators.spliterator(iterator, 1,
-  // Spliterator.ORDERED), false);
-  // }
 
   public static String toInlineImage(final BufferedImage img, final String alt) {
     return Util.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
@@ -398,9 +402,5 @@ public class Util {
     }
     final String tempId = jvmId.substring(0, jvmId.length() - index.length()) + index;
     return UUID.fromString(tempId);
-  }
-
-  public static String[] currentStack() {
-    return java.util.stream.Stream.of(Thread.currentThread().getStackTrace()).map(Object::toString).toArray(i->new String[i]);
   }
 }

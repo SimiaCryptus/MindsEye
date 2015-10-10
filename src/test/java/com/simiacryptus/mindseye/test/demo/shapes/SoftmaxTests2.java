@@ -55,10 +55,15 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     // net = net.add(new L1NormalizationLayer());
     // net = net.add(new LinearActivationLayer());
     net = net.add(new MinMaxFilterLayer());
-    //net = net.add(new SigmoidActivationLayer());
+    // net = net.add(new SigmoidActivationLayer());
     net = net.add(new SoftmaxActivationLayer());
 
     return net;
+  }
+
+  @Override
+  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+    return new Tester().init(samples, net, new EntropyLossLayer());
   }
 
   @Override
@@ -133,16 +138,11 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
-  }
-
-  @Override
   public void verify(final Tester trainer) {
     trainer.setVerbose(true);
-    //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
+    // trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
     // trainer.getInner().setAlignEnabled(false);
-    //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
+    // trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.01, 10);
   }
 

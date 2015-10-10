@@ -21,7 +21,7 @@ public class TreeTest2 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
 
-    final NNLayer<DAGNetwork> net = new TreeNetwork(inputSize, outSize){
+    final NNLayer<DAGNetwork> net = new TreeNetwork(inputSize, outSize) {
 
       /**
        * 
@@ -31,17 +31,18 @@ public class TreeTest2 extends SimpleClassificationTests {
       @Override
       public NNLayer<DAGNetwork> buildGate() {
         DAGNetwork gate = new DAGNetwork();
-        int mid = 10;
-        gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { mid }).setWeights(()->Util.R.get().nextGaussian()));
-        //gate = gate.add(new DenseSynapseLayer(mid, new int[] { mid }).setWeights(()->Util.R.get().nextGaussian()));
-        gate = gate.add(new BiasLayer(new int[]{mid}));
+        final int mid = 10;
+        gate = gate.add(new DenseSynapseLayer(NDArray.dim(this.inputSize), new int[] { mid }).setWeights(() -> Util.R.get().nextGaussian()));
+        // gate = gate.add(new DenseSynapseLayer(mid, new int[] { mid
+        // }).setWeights(()->Util.R.get().nextGaussian()));
+        gate = gate.add(new BiasLayer(new int[] { mid }));
         gate = gate.add(new SigmoidActivationLayer());
-        gate = gate.add(new DenseSynapseLayer(mid, this.outSize).setWeights(()->Util.R.get().nextGaussian()));
+        gate = gate.add(new DenseSynapseLayer(mid, this.outSize).setWeights(() -> Util.R.get().nextGaussian()));
         gate = gate.add(new BiasLayer(this.outSize));
         gate = gate.add(new SoftmaxActivationLayer());
         return gate;
       }
-      
+
     }.setVerbose(true);
     // net = net.add(new MinMaxFilterLayer());
     // net = net.add(new SigmoidActivationLayer());
@@ -50,18 +51,10 @@ public class TreeTest2 extends SimpleClassificationTests {
 
   @Override
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
-    //return net.trainer(samples, new MaxEntropyLossLayer());
+    return new Tester().init(samples, net, new EntropyLossLayer());
+    // return net.trainer(samples, new MaxEntropyLossLayer());
   }
 
-  @Override
-  public void verify(final Tester trainer) {
-    trainer.setVerbose(true);
-    //trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
-    // trainer.getInner().setAlignEnabled(false);
-    //trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
-    trainer.verifyConvergence(0.01, 10);
-  }
   @Override
   public void test_Gaussians() throws Exception {
     super.test_Gaussians();
@@ -133,5 +126,13 @@ public class TreeTest2 extends SimpleClassificationTests {
     super.test_xor();
   }
 
+  @Override
+  public void verify(final Tester trainer) {
+    trainer.setVerbose(true);
+    // trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
+    // trainer.getInner().setAlignEnabled(false);
+    // trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
+    trainer.verifyConvergence(0.01, 10);
+  }
 
 }

@@ -30,15 +30,20 @@ public class DynamicRateTrainer implements TrainingComponent {
   private double maxRate = 10000;
   private double minRate = 0;
   private boolean verbose = false;
-  
-  public DynamicRateTrainer(RateTrainingComponent inner) {
+
+  protected DynamicRateTrainer() {
+    super();
+    this.inner = new GradientDescentTrainer();
+  }
+
+  public DynamicRateTrainer(final RateTrainingComponent inner) {
     super();
     this.inner = inner;
   }
 
-  protected DynamicRateTrainer() {
-    super();
-    inner = new GradientDescentTrainer();
+  @Override
+  public NDArray[][] getData() {
+    return this.inner.getData();
   }
 
   @Override
@@ -65,6 +70,16 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   public boolean isVerbose() {
     return this.verbose;
+  }
+
+  @Override
+  public void reset() {
+    this.inner.reset();
+  }
+
+  @Override
+  public TrainingComponent setData(final NDArray[][] data) {
+    return this.inner.setData(data);
   }
 
   public TrainingComponent setEtaEnd(final long cnt, final java.util.concurrent.TimeUnit units) {
@@ -99,8 +114,10 @@ public class DynamicRateTrainer implements TrainingComponent {
     final RateMonitor linearLearningRate = new RateMonitor(5000);
     while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > trainingContext.terminalErr) {
       this.inner.setRate(rate);
-      TrainingStep step = gradientDescentTrainer.step(trainingContext);
-      if(!Double.isFinite(prevError)) prevError = step.getStartError();
+      final TrainingStep step = gradientDescentTrainer.step(trainingContext);
+      if (!Double.isFinite(prevError)) {
+        prevError = step.getStartError();
+      }
       final double rateDelta = linearLearningRate.add(step.improvement());
       final double projectedEndSeconds = -step.finalError() / (rateDelta * 1000.);
       if (isVerbose()) {
@@ -112,7 +129,7 @@ public class DynamicRateTrainer implements TrainingComponent {
       }
       if (Double.isFinite(projectedEndSeconds) && projectedEndSeconds > params.terminalETA) {
         log.debug(String.format("TERMINAL Projected final convergence time: %.3f sec", projectedEndSeconds));
-        //break;
+        // break;
       }
       if (step.finalError() <= trainingContext.terminalErr) {
         if (isVerbose()) {
@@ -122,9 +139,11 @@ public class DynamicRateTrainer implements TrainingComponent {
       if (step.getStartError() < step.testError) {
         rate /= Math.pow(params.alpha, params.beta);
       } else {
-        if (rate > maxRate) {
-          if(isVerbose()) log.debug(String.format("rate overflow: %s", rate));
-//          break;
+        if (rate > this.maxRate) {
+          if (isVerbose()) {
+            log.debug(String.format("rate overflow: %s", rate));
+            // break;
+          }
         } else {
           rate *= params.alpha;
         }
@@ -137,24 +156,13 @@ public class DynamicRateTrainer implements TrainingComponent {
       }
     }
     if (isVerbose()) {
-      String string = this.getNet().toString();
-      if(string.length()>1024) string=string.substring(0,1924);
+      String string = getNet().toString();
+      if (string.length() > 1024) {
+        string = string.substring(0, 1924);
+      }
       DynamicRateTrainer.log.debug("Final network state: " + string);
     }
-    double endError = getError();
-    return new TrainingStep(prevError,endError,true);
-  }
-
-  public NDArray[][] getData() {
-    return inner.getData();
-  }
-
-  @Override
-  public void reset() {
-    inner.reset();
-  }
-
-  public TrainingComponent setData(NDArray[][] data) {
-    return inner.setData(data);
+    final double endError = getError();
+    return new TrainingStep(prevError, endError, true);
   }
 }

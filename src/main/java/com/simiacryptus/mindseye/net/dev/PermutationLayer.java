@@ -14,12 +14,12 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class PermutationLayer extends NNLayer<PermutationLayer> {
 
+  private static final Logger log = LoggerFactory.getLogger(PermutationLayer.class);
+
   /**
    * 
    */
   private static final long serialVersionUID = -4908444887182647449L;
-
-  private static final Logger log = LoggerFactory.getLogger(PermutationLayer.class);
 
   private List<double[]> record = null;
 

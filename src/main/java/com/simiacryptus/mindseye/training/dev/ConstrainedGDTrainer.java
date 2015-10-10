@@ -19,38 +19,40 @@ public class ConstrainedGDTrainer extends GradientDescentTrainer {
     super();
   }
 
+  public void addConstraintNodes(final DAGNode... constraintNodes) {
+    java.util.Arrays.stream(constraintNodes).forEach(x -> this.constraintNodes.add(x));
+  }
+
+  public void addConstraintNodes(final List<DAGNode> constraintNodes) {
+    this.constraintNodes.addAll(constraintNodes);
+  }
+
   @Override
   protected DeltaSet calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
-    List<Tuple2<EvaluationContext, Integer>> contexts = initContexts(trainingContext, data, isParallelTraining(), getPrimaryNode());
+    final List<Tuple2<EvaluationContext, Integer>> contexts = initContexts(trainingContext, data, isParallelTraining(), getPrimaryNode());
     DeltaSet primaryDelta = collectVector(getPrimaryNode(), contexts);
-    for(DAGNode node : getConstraintNodes()) {
+    for (final DAGNode node : getConstraintNodes()) {
       final DeltaSet constraintDelta = collectVector(node, contexts).unitV();
-      double dotProduct = primaryDelta.dotProduct(constraintDelta);
-      if(dotProduct<0) {
+      final double dotProduct = primaryDelta.dotProduct(constraintDelta);
+      if (dotProduct < 0) {
         primaryDelta = primaryDelta.add(constraintDelta.scale(dotProduct));
       }
     }
     return primaryDelta;
   }
 
+  public List<DAGNode> getConstraintNodes() {
+    return this.constraintNodes;
+  }
+
+  @Override
   public DAGNode getPrimaryNode() {
     return super.getPrimaryNode();
   }
 
-  public void setPrimaryNode(DAGNode primaryNode) {
+  @Override
+  public void setPrimaryNode(final DAGNode primaryNode) {
     super.setPrimaryNode(primaryNode);
-  }
-  
-  public List<DAGNode> getConstraintNodes() {
-    return constraintNodes;
-  }
-
-  public void addConstraintNodes(List<DAGNode> constraintNodes) {
-    this.constraintNodes.addAll(constraintNodes);
-  }
-
-  public void addConstraintNodes(DAGNode... constraintNodes) {
-    java.util.Arrays.stream(constraintNodes).forEach(x->this.constraintNodes.add(x));
   }
 
 }

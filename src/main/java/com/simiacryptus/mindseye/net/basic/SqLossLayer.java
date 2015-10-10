@@ -13,11 +13,11 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SqLossLayer extends NNLayer<SqLossLayer> {
 
+  private static final Logger log = LoggerFactory.getLogger(SqLossLayer.class);
   /**
    * 
    */
   private static final long serialVersionUID = 7589211270512485408L;
-  private static final Logger log = LoggerFactory.getLogger(SqLossLayer.class);
 
   public SqLossLayer() {
   }
@@ -43,8 +43,8 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
       public void feedback(final NDArray data, final DeltaSet buffer) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
           final NDArray passback = new NDArray(r.getDims());
-          int adim = a.dim();
-          double data0 = data.get(0);
+          final int adim = a.dim();
+          final double data0 = data.get(0);
           for (int i = 0; i < adim; i++) {
             passback.set(i, data0 * r.get(i) * 2 / adim);
           }

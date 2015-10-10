@@ -20,10 +20,6 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 
-  private static final long serialVersionUID = -139062498597441290L;
-
-  private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
-
   public static final class IndexMapKey {
     int[] input;
     int[] kernel;
@@ -34,8 +30,8 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       this.kernel = kernel;
       this.input = input;
       this.output = output;
-      assert (3 == input.length);
-      assert (3 == kernel.length);
+      assert 3 == input.length;
+      assert 3 == kernel.length;
     }
 
     public IndexMapKey(final NDArray kernel, final NDArray input, final NDArray output) {
@@ -43,8 +39,8 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       this.kernel = kernel.getDims();
       this.input = input.getDims();
       this.output = output.getDims();
-      assert (3 == this.input.length);
-      assert (3 == this.kernel.length);
+      assert 3 == this.input.length;
+      assert 3 == this.kernel.length;
     }
 
     @Override
@@ -77,45 +73,66 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 
     @Override
     public String toString() {
-      StringBuilder builder = new StringBuilder();
+      final StringBuilder builder = new StringBuilder();
       builder.append("IndexMapKey [input=");
-      builder.append(Arrays.toString(input));
+      builder.append(Arrays.toString(this.input));
       builder.append(", kernel=");
-      builder.append(Arrays.toString(kernel));
+      builder.append(Arrays.toString(this.kernel));
       builder.append(", output=");
-      builder.append(Arrays.toString(output));
+      builder.append(Arrays.toString(this.output));
       builder.append("]");
       return builder.toString();
     }
 
   }
 
+  private static final Logger log = LoggerFactory.getLogger(ConvolutionSynapseLayer.class);
+  
+  public static final java.util.function.Function<IndexMapKey, ConvolutionController> indexMapCache = cache((final IndexMapKey key) -> {
+
+    final int outDim = new NDArray(key.output).dim();
+    final int inDim = new NDArray(key.input).dim();
+    log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
+
+    assert 3 == key.input.length;
+    assert 3 == key.kernel.length;
+    final ConvolutionController kernels = new ConvolutionController(key.input, key.kernel);
+    log.debug("Commputed kernels for " + key + ": " + kernels.toString());
+    return kernels;
+
+  });
+
+
+  private static final long serialVersionUID = -139062498597441290L;
+
   @SuppressWarnings("deprecation")
-  public static <F, T> java.util.function.Function<F, T> cache(java.util.function.Function<F, T> inner) {
-    LoadingCache<F, T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>() {
+  public static <F, T> java.util.function.Function<F, T> cache(final java.util.function.Function<F, T> inner) {
+    final LoadingCache<F, T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>() {
       @Override
-      public T load(F key) throws Exception {
+      public T load(final F key) throws Exception {
         return inner.apply(key);
       }
     });
     return cache::apply;
   }
 
-  public static final java.util.function.Function<IndexMapKey, ConvolutionController> indexMapCache = cache((IndexMapKey key) -> {
-
-    int outDim = new NDArray(key.output).dim();
-    int inDim = new NDArray(key.input).dim();
-    log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
-
-    assert (3 == key.input.length);
-    assert (3 == key.kernel.length);
-    ConvolutionController kernels = new ConvolutionController(key.input, key.kernel);
-    log.debug("Commputed kernels for " + key + ": " + kernels.toString());
-    return kernels;
-
-  });
+  public static int[] getOutputDims(final int[] inputSize, final int[] kernelSize) {
+    return IntStream.range(0, kernelSize.length).map(i -> {
+      int x;
+      if (i == kernelSize.length - 1) {
+        x = kernelSize[i] / inputSize[i];
+      } else {
+        x = 1 + inputSize[i] - kernelSize[i];
+      }
+      if (0 >= x) {
+        assert false;
+      }
+      return x;
+    }).toArray();
+  }
 
   public final NDArray kernel;
+
   private boolean paralell = false;
 
   protected ConvolutionSynapseLayer() {
@@ -127,7 +144,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final int[] kernelDims2 = Arrays.copyOf(kernelDims, kernelDims.length + 1);
     kernelDims2[kernelDims2.length - 1] = bandwidth;
     this.kernel = new NDArray(kernelDims2);
-    assert (3 == this.kernel.getDims().length);
+    assert 3 == this.kernel.getDims().length;
   }
 
   public ConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
@@ -144,20 +161,21 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final ConvolutionController indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
     indexMap.convolve(input.getData(), this.kernel.getData(), output.getData());
     if (isVerbose()) {
-      //ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s %n\t=> %s", inObj[0].data, this.kernel, output));
+      // ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s
+      // %n\t=> %s", inObj[0].data, this.kernel, output));
     }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray errorSignal, final DeltaSet buffer) {
         if (!isFrozen()) {
-          NDArray kernel = ConvolutionSynapseLayer.this.kernel;
+          final NDArray kernel = ConvolutionSynapseLayer.this.kernel;
           final NDArray weightGradient = new NDArray(kernel.getDims());
           indexMap.gradient(input.getData(), weightGradient.getData(), errorSignal.getData());
           buffer.get(ConvolutionSynapseLayer.this, kernel).feed(weightGradient.getData());
         }
         if (inObj[0].isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
-          indexMap.backprop(backprop.getData(), kernel.getData(), errorSignal.getData());
+          indexMap.backprop(backprop.getData(), ConvolutionSynapseLayer.this.kernel.getData(), errorSignal.getData());
           if (isVerbose()) {
             ConvolutionSynapseLayer.log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
           }
@@ -170,21 +188,6 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
         return inObj[0].isAlive() || !isFrozen();
       }
     };
-  }
-
-  public static int[] getOutputDims(final int[] inputSize, final int[] kernelSize) {
-    return IntStream.range(0, kernelSize.length).map(i -> {
-      int x;
-      if (i == (kernelSize.length - 1)) {        
-        x = kernelSize[i] / inputSize[i];
-      } else {
-        x = 1 + inputSize[i] - kernelSize[i];
-      }
-      if (0 >= x) {
-        assert (false);
-      }
-      return x;
-    }).toArray();
   }
 
   public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {

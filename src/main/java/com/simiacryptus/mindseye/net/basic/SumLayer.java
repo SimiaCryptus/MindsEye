@@ -13,11 +13,11 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SumLayer extends NNLayer<SumLayer> {
 
+  private static final Logger log = LoggerFactory.getLogger(SumLayer.class);
   /**
    * 
    */
   private static final long serialVersionUID = -5171545060770814729L;
-  private static final Logger log = LoggerFactory.getLogger(SumLayer.class);
 
   public SumLayer() {
   }
@@ -25,10 +25,10 @@ public class SumLayer extends NNLayer<SumLayer> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     double sum = 0;
-    for(int l=0;l<inObj.length;l++){
-      final double[] input = inObj[l].data.getData();
-      for (int i = 0; i < input.length; i++) {
-        sum += input[i];
+    for (final NNResult element : inObj) {
+      final double[] input = element.data.getData();
+      for (final double element2 : input) {
+        sum += element2;
       }
     }
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { sum });
@@ -38,9 +38,8 @@ public class SumLayer extends NNLayer<SumLayer> {
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
-        double delta = data.get(0);
-        for(int l=0;l<inObj.length;l++){
-          NNResult in_l = inObj[l];
+        final double delta = data.get(0);
+        for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
             final NDArray passback = new NDArray(in_l.data.getDims());
             for (int i = 0; i < in_l.data.dim(); i++) {
@@ -56,7 +55,9 @@ public class SumLayer extends NNLayer<SumLayer> {
 
       @Override
       public boolean isAlive() {
-        for(int l=0;l<inObj.length;l++) if(inObj[0].isAlive()) return true;
+        for (final NNResult element : inObj)
+          if (element.isAlive())
+            return true;
         return false;
       }
 

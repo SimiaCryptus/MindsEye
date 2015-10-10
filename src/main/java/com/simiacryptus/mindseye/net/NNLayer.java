@@ -21,16 +21,11 @@ import groovy.lang.Tuple2;
  */
 public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializable {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 8741041477497062122L;
-
   private static final class ConstNNResult extends NNResult {
-    
-    //public final String[] created = Util.currentStack();
-    
-    private ConstNNResult(NDArray data) {
+
+    // public final String[] created = Util.currentStack();
+
+    private ConstNNResult(final NDArray data) {
       super(data);
     }
 
@@ -44,6 +39,11 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
       return false;
     }
   }
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 8741041477497062122L;
 
   public static NNResult[] getConstResult(final NDArray... array) {
     return Stream.of(array).map(a -> new ConstNNResult(a)).toArray(i -> new NNResult[i]);

@@ -17,11 +17,6 @@ import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
-  /**
-   * 
-   */
-  private static final long serialVersionUID = -3526706430472468300L;
-
   private final class Result extends NNResult {
     private final NNResult inObj;
 
@@ -70,6 +65,11 @@ public class SynapseActivationLayer extends NNLayer<SynapseActivationLayer> {
   }
 
   private static final Logger log = LoggerFactory.getLogger(SynapseActivationLayer.class);
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -3526706430472468300L;
 
   public final NDArray weights;
 

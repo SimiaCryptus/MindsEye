@@ -16,11 +16,6 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = -8951110316929643421L;
-
   private static final class NNResultBuffer extends NNResult {
 
     private NNResult inner;
@@ -52,6 +47,11 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
   }
 
   private static final Logger log = LoggerFactory.getLogger(TreeNodeFunctionalLayer.class);
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -8951110316929643421L;
 
   private NNLayer<?> gate;
   private List<NNLayer<?>> leafs;

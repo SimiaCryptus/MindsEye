@@ -16,9 +16,9 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class BiasLayer extends NNLayer<BiasLayer> {
 
-  private static final long serialVersionUID = 1022169631431441049L;
-
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
+
+  private static final long serialVersionUID = 1022169631431441049L;
 
   public final double[] bias;
 
@@ -29,6 +29,14 @@ public class BiasLayer extends NNLayer<BiasLayer> {
 
   public BiasLayer(final int... outputDims) {
     this.bias = new double[NDArray.dim(outputDims)];
+  }
+
+  public double[] add(final double[] input) {
+    final double[] array = new double[input.length];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = input[i] + this.bias[i];
+    }
+    return array;
   }
 
   public BiasLayer addWeights(final DoubleSupplier f) {
@@ -62,14 +70,6 @@ public class BiasLayer extends NNLayer<BiasLayer> {
         return inObj[0].isAlive() || !isFrozen();
       }
     };
-  }
-
-  public double[] add(final double[] input) {
-    final double[] array = new double[input.length];
-    for (int i = 0; i < array.length; i++) {
-      array[i] = input[i] + this.bias[i];
-    }
-    return array;
   }
 
   @Override

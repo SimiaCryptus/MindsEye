@@ -39,7 +39,6 @@ public abstract class NNResult {
 
   public final NDArray data;
 
-
   public NNResult(final NDArray data) {
     super();
     this.data = data;

@@ -87,7 +87,7 @@ public class EncogClassificationTests {
   }
 
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
+    return new Tester().init(samples, net, new EntropyLossLayer());
   }
 
   public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {

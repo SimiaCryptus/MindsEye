@@ -16,115 +16,110 @@ import com.simiacryptus.mindseye.net.media.MaxConstLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 
-public class MediaComponentValidationTests  {
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(MediaComponentValidationTests.class);
-  
+public class MediaComponentValidationTests {
   public static final double deltaFactor = 1e-5;
 
-  private static void test(NNLayer<?> component, NDArray outputPrototype, NDArray inputPrototype) throws Throwable {
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(MediaComponentValidationTests.class);
+
+  private static void test(final NNLayer<?> component, final NDArray outputPrototype, final NDArray inputPrototype) throws Throwable {
     BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
-  private static void test(NNLayer<?> component, NDArray outputPrototype, NDArray inputPrototype1, NDArray inputPrototype2) throws Throwable {
-    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype1,inputPrototype2);
-  }
-
   @org.junit.Test
-  public void testConvolutionSynapseLayer1() throws Throwable{
-    NDArray outputPrototype = new NDArray(1,1,1);
-    NDArray inputPrototype = new NDArray(2,2,1).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,2},1).addWeights(()->Util.R.get().nextGaussian());
+  public void testConvolutionSynapseLayer1() throws Throwable {
+    final NDArray outputPrototype = new NDArray(1, 1, 1);
+    final NDArray inputPrototype = new NDArray(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 2, 2 }, 1).addWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testConvolutionSynapseLayer2() throws Throwable{
-    NDArray outputPrototype = new NDArray(1,2,1);
-    NDArray inputPrototype = new NDArray(2,3,1).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,2},1).addWeights(()->Util.R.get().nextGaussian());
+  public void testConvolutionSynapseLayer2() throws Throwable {
+    final NDArray outputPrototype = new NDArray(1, 2, 1);
+    final NDArray inputPrototype = new NDArray(2, 3, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 2, 2 }, 1).addWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testConvolutionSynapseLayer3() throws Throwable{
-    NDArray outputPrototype = new NDArray(1,1,2);
-    NDArray inputPrototype = new NDArray(1,1,2).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{1,1},4).addWeights(()->Util.R.get().nextGaussian());
+  public void testConvolutionSynapseLayer3() throws Throwable {
+    final NDArray outputPrototype = new NDArray(1, 1, 2);
+    final NDArray inputPrototype = new NDArray(1, 1, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 1, 1 }, 4).addWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testConvolutionSynapseLayer4() throws Throwable{
-    NDArray outputPrototype = new NDArray(2,3,2);
-    NDArray inputPrototype = new NDArray(3,5,2).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new ConvolutionSynapseLayer(new int[]{2,3},4).addWeights(()->Util.R.get().nextGaussian());
+  public void testConvolutionSynapseLayer4() throws Throwable {
+    final NDArray outputPrototype = new NDArray(2, 3, 2);
+    final NDArray inputPrototype = new NDArray(3, 5, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 2, 3 }, 4).addWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testL1NormalizationLayer() throws Throwable{
-    NDArray outputPrototype = new NDArray(3);
-    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new L1NormalizationLayer();
+  public void testL1NormalizationLayer() throws Throwable {
+    final NDArray outputPrototype = new NDArray(3);
+    final NDArray inputPrototype = new NDArray(3).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new L1NormalizationLayer();
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testMaxEntLayer() throws Throwable{
-    NDArray outputPrototype = new NDArray(2);
-    NDArray inputPrototype1 = new NDArray(2).fill(()->Util.R.get().nextDouble());
-    NNLayer<?> component = new DAGNetwork().add(new L1NormalizationLayer()).add(new MaxEntLayer());
+  public void testMaxConstLayer() throws Throwable {
+    final NDArray outputPrototype = new NDArray(3);
+    final NDArray inputPrototype = new NDArray(3).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new MaxConstLayer();
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testMaxEntLayer() throws Throwable {
+    final NDArray outputPrototype = new NDArray(2);
+    final NDArray inputPrototype1 = new NDArray(2).fill(() -> Util.R.get().nextDouble());
+    final NNLayer<?> component = new DAGNetwork().add(new L1NormalizationLayer()).add(new MaxEntLayer());
     test(component, outputPrototype, inputPrototype1);
   }
 
   @org.junit.Test
-  public void testMaxConstLayer() throws Throwable{
-    NDArray outputPrototype = new NDArray(3);
-    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new MaxConstLayer();
+  public void testMaxSubsampleLayer() throws Throwable {
+    final NDArray outputPrototype = new NDArray(1, 1, 1);
+    final NDArray inputPrototype = new NDArray(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new MaxSubsampleLayer(2, 2, 1);
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testMaxSubsampleLayer() throws Throwable{
-    NDArray outputPrototype = new NDArray(1,1,1);
-    NDArray inputPrototype = new NDArray(2,2,1).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new MaxSubsampleLayer(2,2,1);
+  public void testMinActivationLayer() throws Throwable {
+    final NDArray outputPrototype = new NDArray(3);
+    final NDArray inputPrototype = new NDArray(3).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new ThresholdActivationLayer();
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testMinActivationLayer() throws Throwable{
-    NDArray outputPrototype = new NDArray(3);
-    NDArray inputPrototype = new NDArray(3).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new ThresholdActivationLayer();
-    test(component, outputPrototype, inputPrototype);
-  }
-  
-  @org.junit.Test
-  public void testMinMaxLayer() throws Throwable{
-    NDArray outputPrototype = new NDArray(2);
-    NDArray inputPrototype = new NDArray(2).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new MinMaxFilterLayer();
+  public void testMinMaxLayer() throws Throwable {
+    final NDArray outputPrototype = new NDArray(2);
+    final NDArray inputPrototype = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new MinMaxFilterLayer();
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testSumSubsampleLayer1() throws Throwable{
-    NDArray outputPrototype = new NDArray(1,1,1);
-    NDArray inputPrototype = new NDArray(2,2,1).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new SumSubsampleLayer(2,2,1);
+  public void testSumSubsampleLayer1() throws Throwable {
+    final NDArray outputPrototype = new NDArray(1, 1, 1);
+    final NDArray inputPrototype = new NDArray(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new SumSubsampleLayer(2, 2, 1);
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
-  public void testSumSubsampleLayer2() throws Throwable{
-    NDArray outputPrototype = new NDArray(1,1,2);
-    NDArray inputPrototype = new NDArray(3,5,2).fill(()->Util.R.get().nextGaussian());
-    NNLayer<?> component = new SumSubsampleLayer(3,5,1);
+  public void testSumSubsampleLayer2() throws Throwable {
+    final NDArray outputPrototype = new NDArray(1, 1, 2);
+    final NDArray inputPrototype = new NDArray(3, 5, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new SumSubsampleLayer(3, 5, 1);
     test(component, outputPrototype, inputPrototype);
   }
 
-  
 }

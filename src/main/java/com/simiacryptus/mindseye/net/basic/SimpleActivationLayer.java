@@ -14,11 +14,11 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer<T> {
 
+  private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
   /**
    * 
    */
   private static final long serialVersionUID = -5439874559292833041L;
-  private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
 
   public SimpleActivationLayer() {
     super();
@@ -46,9 +46,9 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         if (inObj[0].isAlive()) {
           final NDArray inputGradientLog = inputGradient;
           final NDArray passback = new NDArray(data.getDims());
-          double[] gradientData = inputGradientLog.getData();
+          final double[] gradientData = inputGradientLog.getData();
           IntStream.range(0, passback.dim()).forEach(i -> {
-            double v = gradientData[i];
+            final double v = gradientData[i];
             if (Double.isFinite(v)) {
               passback.set(i, data.getData()[i] * v);
             }

@@ -35,30 +35,41 @@ public class Tester {
     return dagNetwork;
   }
 
-  public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
+  protected DynamicRateTrainer dynamicTrainer;
 
   protected GradientDescentTrainer gradientTrainer;
-  protected DynamicRateTrainer dynamicTrainer;
+  public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
   private boolean parallel = true;
   private final TrainingContext trainingContext;
-
 
   public Tester() {
     super();
     initLayers();
-    trainingContext = new TrainingContext().setTimeout(1, TimeUnit.MINUTES);
+    this.trainingContext = new TrainingContext().setTimeout(1, TimeUnit.MINUTES);
   }
 
-  public void initLayers() {
-    gradientTrainer = new GradientDescentTrainer();
-    dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
+  public DynamicRateTrainer getDynamicRateTrainer() {
+    return this.dynamicTrainer;
+  }
+
+  public GradientDescentTrainer getGradientDescentTrainer() {
+    return this.gradientTrainer;
+  }
+
+  public DAGNetwork getNet() {
+    return this.dynamicTrainer.getNet();
   }
 
   public Tester init(final NDArray[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
-    DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
-    gradientTrainer.setNet(initPredictionNetwork);
-    gradientTrainer.setData(samples);
+    final DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
+    this.gradientTrainer.setNet(initPredictionNetwork);
+    this.gradientTrainer.setData(samples);
     return this;
+  }
+
+  public void initLayers() {
+    this.gradientTrainer = new GradientDescentTrainer();
+    this.dynamicTrainer = new DynamicRateTrainer(this.gradientTrainer);
   }
 
   public boolean isParallel() {
@@ -90,14 +101,6 @@ public class Tester {
     return this;
   }
 
-  public GradientDescentTrainer getGradientDescentTrainer() {
-    return gradientTrainer;
-  }
-
-  public DynamicRateTrainer getDynamicRateTrainer() {
-    return dynamicTrainer;
-  }
-
   public Tester setVerbose(final boolean b) {
     getGradientDescentTrainer().setVerbose(b);
     getDynamicRateTrainer().setVerbose(b);
@@ -106,7 +109,7 @@ public class Tester {
 
   public void train(final double stopError, final TrainingContext trainingContext) throws TerminationCondition {
     trainingContext.terminalErr = stopError;
-    dynamicTrainer.step(trainingContext);
+    this.dynamicTrainer.step(trainingContext);
   }
 
   public TrainingContext trainingContext() {
@@ -119,8 +122,8 @@ public class Tester {
 
   public long verifyConvergence(final double convergence, final int reps, final int minSuccess) {
     {
-      NDArray[][] trainingData = dynamicTrainer.getData();
-      assert(null != trainingData && 0 < trainingData.length);
+      final NDArray[][] trainingData = this.dynamicTrainer.getData();
+      assert null != trainingData && 0 < trainingData.length;
     }
     IntStream range = IntStream.range(0, reps);
     if (isParallel()) {
@@ -128,23 +131,23 @@ public class Tester {
     }
     final long succeesses = range.filter(i -> {
       final TrainingComponent trainerCpy;
-      if (reps>1) {
-        synchronized (dynamicTrainer) {
-          NDArray[][] trainingData = dynamicTrainer.getData();
-          assert (null != trainingData && 0 < trainingData.length);
-          dynamicTrainer.setData(null);
-          trainerCpy = reps == 1 ? dynamicTrainer : Util.kryo().copy(dynamicTrainer);
+      if (reps > 1) {
+        synchronized (this.dynamicTrainer) {
+          final NDArray[][] trainingData = this.dynamicTrainer.getData();
+          assert null != trainingData && 0 < trainingData.length;
+          this.dynamicTrainer.setData(null);
+          trainerCpy = reps == 1 ? this.dynamicTrainer : Util.kryo().copy(this.dynamicTrainer);
           trainerCpy.setData(trainingData);
-          dynamicTrainer.setData(trainingData);
+          this.dynamicTrainer.setData(trainingData);
         }
-      }else {
-        trainerCpy = dynamicTrainer;
-        NDArray[][] trainingData = dynamicTrainer.getData();
-        assert(null != trainingData && 0 < trainingData.length);
+      } else {
+        trainerCpy = this.dynamicTrainer;
+        final NDArray[][] trainingData = this.dynamicTrainer.getData();
+        assert null != trainingData && 0 < trainingData.length;
       }
-      TrainingContext trainingContext2 = trainingContext();
-      final TrainingContext contextCpy = reps==1?trainingContext2:Util.kryo().copy(trainingContext2);
-      //contextCpy.setTimeout(1, TimeUnit.MINUTES);
+      final TrainingContext trainingContext2 = trainingContext();
+      final TrainingContext contextCpy = reps == 1 ? trainingContext2 : Util.kryo().copy(trainingContext2);
+      // contextCpy.setTimeout(1, TimeUnit.MINUTES);
       boolean hasConverged = false;
       try {
         contextCpy.terminalErr = convergence;
@@ -163,10 +166,6 @@ public class Tester {
     if (minSuccess > succeesses)
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
     return succeesses;
-  }
-
-  public DAGNetwork getNet() {
-    return dynamicTrainer.getNet();
   }
 
 }

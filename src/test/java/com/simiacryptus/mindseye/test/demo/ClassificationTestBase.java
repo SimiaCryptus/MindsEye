@@ -58,6 +58,10 @@ public abstract class ClassificationTestBase {
 
   }
 
+  private static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN, ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
+      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
+      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor());
+
   protected static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
 
   public static Color randomColor() {
@@ -72,68 +76,10 @@ public abstract class ClassificationTestBase {
   public abstract NNLayer<DAGNetwork> buildNetwork();
 
   public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
-    return new Tester().init(samples, net, (NNLayer<?>) new EntropyLossLayer());
+    return new Tester().init(samples, net, new EntropyLossLayer());
   }
 
-  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
-    return getTrainingData(dimensions, populations, 100);
-  }
-
-  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException, IOException {
-    final int[] inputSize = new int[] { dimensions };
-    final int[] outSize = new int[] { populations.size() };
-    final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x).flatMap(p -> IntStream.range(0, getSampleSize(p,sampleN)).mapToObj(i -> {
-      return new NDArray[] { new NDArray(inputSize, populations.get(p).apply(null)),
-          new NDArray(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
-    })).toArray(i -> new NDArray[i][]);
-    return samples;
-  }
-
-  protected int getSampleSize(Integer populationIndex, int defaultNum) {
-    return defaultNum;
-  }
-
-  public Integer outputToClassification(final NDArray actual) {
-    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
-  }
-
-  public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
-    test(samples,samples);
-  }
-
-  public void test(final NDArray[][] trainingsamples,final NDArray[][] validationsamples) throws FileNotFoundException, IOException {
-    final NNLayer<DAGNetwork> net = buildNetwork();
-    final Map<BufferedImage, String> images = new HashMap<>();
-    final int categories = trainingsamples[0][1].dim();
-    BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (n, trainingContext) -> {
-      try {
-        NNLayer<?> mainNetwork = n.getChild(net.id);
-        final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
-        final BufferedImage img = draw(validationsamples, mainNetwork, correct);
-        final String label = correct.toString() + " \n" + trainingContext.toString();
-        ClassificationTestBase.log.debug(label);
-        images.put(img, label);
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    };
-    try {
-      train(net, trainingsamples, resultHandler);
-    } finally {
-      final Stream<String> map = images.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
-      final String[] array = map.toArray(i -> new String[i]);
-      Util.report(array);
-    }
-  }
-
-  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
-    final Tester trainer = buildTrainer(trainingsamples, net);
-    trainer.handler.add(resultHandler);
-    trainer.verifyConvergence(0.0, 1);
-  }
-
-  public BufferedImage draw(final NDArray[][] samples, NNLayer<?> mainNetwork, final ClassificationResultMetrics correct) {
+  public BufferedImage draw(final NDArray[][] samples, final NNLayer<?> mainNetwork, final ClassificationResultMetrics correct) {
     final BufferedImage img = new BufferedImage(width(), height(), BufferedImage.TYPE_INT_RGB) {
       {
         for (int xpx = 0; xpx < getWidth(); xpx++) {
@@ -175,24 +121,78 @@ public abstract class ClassificationTestBase {
     return img;
   }
 
+  public List<Color> getColorMap() {
+    return colorMap;
+  }
+
+  protected int getSampleSize(final Integer populationIndex, final int defaultNum) {
+    return defaultNum;
+  }
+
+  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
+    return getTrainingData(dimensions, populations, 100);
+  }
+
+  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException, IOException {
+    final int[] inputSize = new int[] { dimensions };
+    final int[] outSize = new int[] { populations.size() };
+    final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x).flatMap(p -> IntStream.range(0, getSampleSize(p, sampleN)).mapToObj(i -> {
+      return new NDArray[] { new NDArray(inputSize, populations.get(p).apply(null)),
+          new NDArray(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
+    })).toArray(i -> new NDArray[i][]);
+    return samples;
+  }
+
   public int height() {
     return 500;
   }
 
-  public int width() {
-    return 500;
+  public Integer outputToClassification(final NDArray actual) {
+    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
+  }
+
+  public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
+    test(samples, samples);
+  }
+
+  public void test(final NDArray[][] trainingsamples, final NDArray[][] validationsamples) throws FileNotFoundException, IOException {
+    final NNLayer<DAGNetwork> net = buildNetwork();
+    final Map<BufferedImage, String> images = new HashMap<>();
+    final int categories = trainingsamples[0][1].dim();
+    final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (n, trainingContext) -> {
+      try {
+        final NNLayer<?> mainNetwork = n.getChild(net.id);
+        final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
+        final BufferedImage img = draw(validationsamples, mainNetwork, correct);
+        final String label = correct.toString() + " \n" + trainingContext.toString();
+        ClassificationTestBase.log.debug(label);
+        images.put(img, label);
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+      return null;
+    };
+    try {
+      train(net, trainingsamples, resultHandler);
+    } finally {
+      final Stream<String> map = images.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
+      final String[] array = map.toArray(i -> new String[i]);
+      Util.report(array);
+    }
+  }
+
+  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+    final Tester trainer = buildTrainer(trainingsamples, net);
+    trainer.handler.add(resultHandler);
+    trainer.verifyConvergence(0.0, 1);
   }
 
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0.0, 10);
   }
 
-
-  private static final List<Color> colorMap = Arrays.asList(Color.RED, Color.GREEN, ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
-      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor(),
-      ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor());
-  public List<Color> getColorMap() {
-    return colorMap;
+  public int width() {
+    return 500;
   }
 
 }

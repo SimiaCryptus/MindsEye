@@ -13,11 +13,11 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
 
+  private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
   /**
    * 
    */
   private static final long serialVersionUID = -6257785994031662519L;
-  private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
 
   public EntropyLossLayer() {
   }
@@ -27,7 +27,7 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
     final NDArray l = inObj[0].data;
     final NDArray b = inObj[1].data;
     final NDArray gradient = new NDArray(l.getDims());
-    double[] gradientData = gradient.getData();
+    final double[] gradientData = gradient.getData();
     final double descriptiveNats;
     {
       double total = 0;
@@ -39,7 +39,7 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
       }
       descriptiveNats = total;
     }
-    
+
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { descriptiveNats });
     if (isVerbose()) {
       EntropyLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, descriptiveNats));

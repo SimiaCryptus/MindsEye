@@ -144,6 +144,11 @@ public class NDArray {
     return true;
   }
 
+  public NDArray fill(final DoubleSupplier f) {
+    Arrays.parallelSetAll(getData(), i -> f.getAsDouble());
+    return this;
+  }
+
   public double get(final Coordinate coords) {
     final double v = getData()[coords.index];
     assert Double.isFinite(v);
@@ -155,7 +160,7 @@ public class NDArray {
     // IntStream.range(dims.length,coords.length).allMatch(i->coords[i]==0);
     // assert coords.length==dims.length;
     final double v = getData()[index(coords)];
-    //assert Double.isFinite(v);
+    // assert Double.isFinite(v);
     return v;
   }
 
@@ -196,21 +201,42 @@ public class NDArray {
     // return IntStream.range(0, skips.length).map(i->skips[i]*coords[i]).sum();
   }
 
-  public NDArray map(final ToDoubleBiFunction<Double, Coordinate> f) {
-    return new NDArray(this.dims, coordStream(false).mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
+  public double l1() {
+    return Arrays.stream(getData()).sum();
+  }
+
+  public double l2() {
+    return Math.sqrt(Arrays.stream(getData()).map(x -> x * x).sum());
   }
 
   public NDArray map(final java.util.function.DoubleUnaryOperator f) {
     final double[] cpy = new double[getData().length];
     for (int i = 0; i < getData().length; i++) {
       final double x = getData()[i];
-      //assert Double.isFinite(x);
+      // assert Double.isFinite(x);
       final double v = f.applyAsDouble(x);
-      //assert Double.isFinite(v);
+      // assert Double.isFinite(v);
       cpy[i] = v;
     }
     ;
     return new NDArray(this.dims, cpy);
+  }
+
+  public NDArray map(final ToDoubleBiFunction<Double, Coordinate> f) {
+    return new NDArray(this.dims, coordStream(false).mapToDouble(i -> f.applyAsDouble(get(i), i)).toArray());
+  }
+
+  public NDArray minus(final NDArray right) {
+    assert Arrays.equals(getDims(), right.getDims());
+    final NDArray copy = new NDArray(getDims());
+    final double[] thisData = getData();
+    final double[] rightData = right.getData();
+    Arrays.parallelSetAll(copy.getData(), i -> thisData[i] - rightData[i]);
+    return copy;
+  }
+
+  public NDArray reformat(final int... dims) {
+    return new NDArray(dims, getData());
   }
 
   public double rms(final NDArray right) {
@@ -242,7 +268,7 @@ public class NDArray {
   }
 
   public NDArray set(final int index, final double value) {
-    //assert Double.isFinite(value);
+    // assert Double.isFinite(value);
     getData()[index] = value;
     return this;
   }
@@ -252,12 +278,18 @@ public class NDArray {
     set(index(coords), value);
   }
 
+  public void set(final NDArray right) {
+    assert dim() == right.dim();
+    final double[] rightData = right.getData();
+    Arrays.parallelSetAll(getData(), i -> rightData[i]);
+  }
+
   public double sum() {
     double v = 0;
     for (final double element : getData()) {
       v += element;
     }
-    //assert Double.isFinite(v);
+    // assert Double.isFinite(v);
     return v;
   }
 
@@ -281,40 +313,5 @@ public class NDArray {
       return "[ " + str.get() + " ]";
     }
   }
-
-  public NDArray reformat(int... dims) {
-    return new NDArray(dims, getData());
-  }
-
-  public NDArray fill(final DoubleSupplier f) {
-    Arrays.parallelSetAll(this.getData(), i -> f.getAsDouble());
-    return this;
-  }
-
-
-  public NDArray minus(NDArray right) {
-    assert(Arrays.equals(getDims(), right.getDims()));
-    NDArray copy = new NDArray(getDims());
-    double[] thisData = getData();
-    double[] rightData = right.getData();
-    Arrays.parallelSetAll(copy.getData(), i -> thisData[i] - rightData[i]);
-    return copy;
-  }
-
-  public void set(NDArray right) {
-    assert(dim()==right.dim());
-    double[] rightData = right.getData();
-    Arrays.parallelSetAll(getData(), i -> rightData[i]);
-  }
-
-  public double l2() {
-    return Math.sqrt(Arrays.stream(getData()).map(x->x*x).sum());
-  }
-
-  public double l1() {
-    return Arrays.stream(getData()).sum();
-  }
-
-
 
 }

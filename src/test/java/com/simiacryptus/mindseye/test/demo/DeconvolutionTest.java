@@ -20,8 +20,8 @@ import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
+import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.basic.SumLayer;
@@ -65,8 +65,8 @@ public class DeconvolutionTest {
 
   public NNLayer<?> blur_3() {
     final ConvolutionSynapseLayer convolution = new ConvolutionSynapseLayer(new int[] { 3, 3 }, 9);
-    for(int ii=0;ii<3;ii++){
-      int i = ii+ii*3;
+    for (int ii = 0; ii < 3; ii++) {
+      final int i = ii + ii * 3;
       convolution.kernel.set(new int[] { 0, 2, i }, 0.333);
       convolution.kernel.set(new int[] { 1, 1, i }, 0.333);
       convolution.kernel.set(new int[] { 2, 0, i }, 0.333);
@@ -88,16 +88,46 @@ public class DeconvolutionTest {
   }
 
   @Test
-  public void testDeconvolution() throws Exception {
+  public void testConvolution() throws Exception {
 
-    // List<LabeledObject<NDArray>> data = TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
     final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
-    //NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello World"));
+    // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
+    // "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();
-    //final NNLayer<?> convolution = blur_3();
-    
+    // final NNLayer<?> convolution = blur_3();
+
+    final int[] inputSize = inputImage.getDims();
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
+    final List<LabeledObject<NDArray>> data = new ArrayList<>();
+    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
+
+    final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
+
+    Util.report(data.stream().map(obj -> {
+      final NDArray[] input = { obj.data };
+      final NNResult output = forwardConvolutionNet.eval(input);
+
+      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())));
+    }));
+
+  }
+
+  @SuppressWarnings({ "unused", "serial" })
+  @Test
+  public void testDeconvolution() throws Exception {
+
+    // List<LabeledObject<NDArray>> data =
+    // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
+    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
+    // "Hello World"));
+    // NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello
+    // World"));
+
+    final NNLayer<?> convolution = blur_3x4();
+    // final NNLayer<?> convolution = blur_3();
+
     final int[] inputSize = inputImage.getDims();
     final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
@@ -106,28 +136,28 @@ public class DeconvolutionTest {
     Util.report(data.stream().map(obj -> {
 
       final NNResult blurredImage = convolution.eval(new NDArray[] { obj.data });
-      
+
       final NDArray zeroInput = new NDArray(inputSize);
       final DAGNetwork dagNetwork = new DAGNetwork();
-      BiasLayer bias = new BiasLayer(inputSize){
+      BiasLayer bias = new BiasLayer(inputSize) {
 
         @Override
-        public double[] add(double[] input) {
+        public double[] add(final double[] input) {
           final double[] array = new double[input.length];
           for (int i = 0; i < array.length; i++) {
-            double v = input[i] + this.bias[i];
-            array[i] = v<0?0:v;
+            final double v = input[i] + this.bias[i];
+            array[i] = v < 0 ? 0 : v;
           }
           return array;
         }
-        
-      }.addWeights(()->Util.R.get().nextGaussian()*1e-5);
+
+      }.addWeights(() -> Util.R.get().nextGaussian() * 1e-5);
       dagNetwork.add(bias);
-      DAGNode modeledImageNode = dagNetwork.getHead();
-      
+      final DAGNode modeledImageNode = dagNetwork.getHead();
+
       dagNetwork.add(convolution);
       dagNetwork.addLossComponent(new SqLossLayer());
-      DAGNode imageRMS = dagNetwork.add(new VerboseWrapper("rms", new BiasLayer().freeze())).getHead();
+      final DAGNode imageRMS = dagNetwork.add(new VerboseWrapper("rms", new BiasLayer().freeze())).getHead();
 
       DAGNode image_entropy;
       {
@@ -135,80 +165,88 @@ public class DeconvolutionTest {
         dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
         dagNetwork.add(new SumLayer());
-        //dagNetwork.add(new LinearActivationLayer().setWeights(new double[]{-1.}));
-        
-        // Add 1 to output so product stays above 0 since this fitness function is secondary
-        //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        // dagNetwork.add(new LinearActivationLayer().setWeights(new
+        // double[]{-1.}));
+
+        // Add 1 to output so product stays above 0 since this fitness function
+        // is secondary
+        // dagNetwork.add(new BiasLayer(new
+        // int[]{1}).setWeights(i->1).freeze());
         image_entropy = dagNetwork.add(new VerboseWrapper("entropy", new BiasLayer().freeze())).getHead();
       }
 
       DAGNode edge_entropy_horizontal;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 1, 2 }, 9);
-        for(int ii=0;ii<3;ii++){
-          int i = ii+ii*3;
+        for (int ii = 0; ii < 3; ii++) {
+          final int i = ii + ii * 3;
           edgeFilter.kernel.set(new int[] { 0, 0, i }, -1);
           edgeFilter.kernel.set(new int[] { 0, 1, i }, 1);
         }
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
-        
+
         dagNetwork.add(new com.simiacryptus.mindseye.net.basic.AbsActivationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
         dagNetwork.add(new SumLayer());
-        
-        // Add 1 to output so product stays above 0 since this fitness function is secondary
-        //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+
+        // Add 1 to output so product stays above 0 since this fitness function
+        // is secondary
+        // dagNetwork.add(new BiasLayer(new
+        // int[]{1}).setWeights(i->1).freeze());
         edge_entropy_horizontal = dagNetwork.add(new VerboseWrapper("edgeh", new BiasLayer().freeze())).getHead();
       }
 
       DAGNode edge_entropy_vertical;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 2, 1 }, 9);
-        for(int ii=0;ii<3;ii++){
-          int i = ii+ii*3;
+        for (int ii = 0; ii < 3; ii++) {
+          final int i = ii + ii * 3;
           edgeFilter.kernel.set(new int[] { 0, 0, i }, -1);
           edgeFilter.kernel.set(new int[] { 1, 0, i }, 1);
         }
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
-        
+
         dagNetwork.add(new com.simiacryptus.mindseye.net.basic.AbsActivationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
         dagNetwork.add(new SumLayer());
-        //dagNetwork.add(new LinearActivationLayer().setWeights(new double[]{-1.}));
-        
-        // Add 1 to output so product stays above 0 since this fitness function is secondary
-        //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        // dagNetwork.add(new LinearActivationLayer().setWeights(new
+        // double[]{-1.}));
+
+        // Add 1 to output so product stays above 0 since this fitness function
+        // is secondary
+        // dagNetwork.add(new BiasLayer(new
+        // int[]{1}).setWeights(i->1).freeze());
         edge_entropy_vertical = dagNetwork.add(new VerboseWrapper("edgev", new BiasLayer().freeze())).getHead();
       }
 
-      
-      LinearActivationLayer gate_rms = new LinearActivationLayer().setWeights(new double[]{1.}).freeze();
-      LinearActivationLayer gate_entropy = new LinearActivationLayer().setWeights(new double[]{1.}).freeze();
-      LinearActivationLayer gate_h = new LinearActivationLayer().setWeights(new double[]{1.}).freeze();
-      LinearActivationLayer gate_v = new LinearActivationLayer().setWeights(new double[]{1.}).freeze();
+      final LinearActivationLayer gate_rms = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
+      final LinearActivationLayer gate_entropy = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
+      final LinearActivationLayer gate_h = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
+      final LinearActivationLayer gate_v = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
 
-      List<DAGNode> outs = new ArrayList<>();
-      
+      final List<DAGNode> outs = new ArrayList<>();
+
       outs.add(dagNetwork.add(gate_rms, imageRMS).getHead());
       outs.add(dagNetwork.add(gate_entropy, image_entropy).getHead());
-//      outs.add(dagNetwork.add(gate_h, edge_entropy_horizontal).getHead());
-//      outs.add(dagNetwork.add(gate_v, edge_entropy_vertical).getHead());
-      VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.basic.SumLayer());
-      DAGNode combine = dagNetwork.add(combiner, outs.stream().toArray(i->new DAGNode[i])).getHead();
+      // outs.add(dagNetwork.add(gate_h, edge_entropy_horizontal).getHead());
+      // outs.add(dagNetwork.add(gate_v, edge_entropy_vertical).getHead());
+      final VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.basic.SumLayer());
+      final DAGNode combine = dagNetwork.add(combiner, outs.stream().toArray(i -> new DAGNode[i])).getHead();
 
-      ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();
-      final Tester trainer = new Tester(){
+      final ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();
+      final Tester trainer = new Tester() {
+        @Override
         public void initLayers() {
-          gradientTrainer = constrainedGDTrainer;
-          dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
+          this.gradientTrainer = constrainedGDTrainer;
+          this.dynamicTrainer = new DynamicRateTrainer(this.gradientTrainer);
         }
       }.setStaticRate(1.);
-      
-      //new NetInitializer().initialize(initPredictionNetwork);
+
+      // new NetInitializer().initialize(initPredictionNetwork);
       constrainedGDTrainer.setNet(dagNetwork);
       constrainedGDTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
       final TrainingContext trainingContext = new TrainingContext().setTimeout(1, java.util.concurrent.TimeUnit.MINUTES);
@@ -216,22 +254,22 @@ public class DeconvolutionTest {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
 
         constrainedGDTrainer.setPrimaryNode(combine);
-        //constrainedGDTrainer.setPrimaryNode(imageRMS);
+        // constrainedGDTrainer.setPrimaryNode(imageRMS);
         trainer.train(1., trainingContext);
         trainer.getDynamicRateTrainer().reset();
-        
-        //constrainedGDTrainer.setPrimaryNode(combine);
-        //constrainedGDTrainer.setPrimaryNode(image_entropy);
-        //constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
-        //constrainedGDTrainer.addConstraintNodes(imageRMS);
+
+        // constrainedGDTrainer.setPrimaryNode(combine);
+        // constrainedGDTrainer.setPrimaryNode(image_entropy);
+        // constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
+        // constrainedGDTrainer.addConstraintNodes(imageRMS);
         trainer.train(-Double.MAX_VALUE, trainingContext);
         trainer.getDynamicRateTrainer().reset();
-        
-//        constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
-//        constrainedGDTrainer.addConstraintNodes(imageRMS);
-//        trainer.train(1., trainingContext);
-//        trainer.getDevtrainer().reset();
-        
+
+        // constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
+        // constrainedGDTrainer.addConstraintNodes(imageRMS);
+        // trainer.train(1., trainingContext);
+        // trainer.getDevtrainer().reset();
+
       } catch (final Exception e) {
         e.printStackTrace();
       }
@@ -242,21 +280,23 @@ public class DeconvolutionTest {
 
       return Util.imageHtml( //
           Util.toImage(obj.data), //
-          Util.toImage(new NDArray(outSize, blurredImage.data.getData())), // 
+          Util.toImage(new NDArray(outSize, blurredImage.data.getData())), //
           Util.toImage(new NDArray(inputSize, recovered.data.getData())), //
           Util.toImage(new NDArray(outSize, verification.data.getData())));
     }));
 
   }
-  
+
   @Test
   public void testDeconvolution2() throws Exception {
 
     // List<LabeledObject<NDArray>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
     final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 }, "Hello World"));
-//     NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300}, "Hello World"));
+    // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 },
+    // "Hello World"));
+    // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300},
+    // "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();
 
@@ -315,34 +355,6 @@ public class DeconvolutionTest {
 
       return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
           Util.toImage(new NDArray(outSize, tested.data.getData())));
-    }));
-
-  }
-
-  @Test
-  public void testConvolution() throws Exception {
-
-    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    //final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 }, "Hello World"));
-
-    final NNLayer<?> convolution = blur_3x4();
-    //final NNLayer<?> convolution = blur_3();
-
-    final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
-    final List<LabeledObject<NDArray>> data = new ArrayList<>();
-    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
-
-    final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
-
-    Util.report(data.stream().map(obj -> {
-      final NDArray[] input = { obj.data };
-      final NNResult output = forwardConvolutionNet.eval(input);
-
-      return Util.imageHtml(
-          Util.toImage(obj.data), 
-          Util.toImage(new NDArray(outSize, output.data.getData()))
-        );
     }));
 
   }

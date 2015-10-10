@@ -43,7 +43,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
 
   @Override
   public DeltaBuffer add(final DeltaBuffer right) {
-    return join(right, (l, r) -> l+r);
+    return join(right, (l, r) -> l + r);
   }
 
   private double[] calcVector() {
@@ -72,12 +72,18 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return sum(right, (l, r) -> l * r);
   }
 
+  private Double f(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner, final int i) {
+    final double l = this.buffer[i];
+    final double r = right.buffer[i];
+    return joiner.applyAsDouble(l, r);
+  }
+
   public void feed(final double[] data) {
     assert null == this.calcVector;
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       final double prev = this.buffer[i];
-      this.buffer[i] = prev+data[i];
+      this.buffer[i] = prev + data[i];
     }
   }
 
@@ -110,12 +116,6 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     }).toArray(), this.layer);
   }
 
-  private Double f(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner, int i) {
-    final double l = this.buffer[i];
-    final double r = right.buffer[i];
-    return (Double)joiner.applyAsDouble(l, r);
-  }
-
   @Override
   public double l1() {
     return Math.sqrt(Arrays.stream(this.buffer).map(v -> v * v).sum());
@@ -136,7 +136,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
 
   @Override
   public DeltaBuffer scale(final double f) {
-    return map(x -> x*f);
+    return map(x -> x * f);
   }
 
   public DeltaBuffer setNormalize(final boolean normalize) {
@@ -169,7 +169,8 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
 
   public synchronized final void write(final double factor) {
     double[] calcVector = getCalcVector();
-    if (null == calcVector) return;
+    if (null == calcVector)
+      return;
     calcVector = Arrays.copyOf(calcVector, calcVector.length);
     for (int i = 0; i < this.buffer.length; i++) {
       calcVector[i] = calcVector[i] * factor;

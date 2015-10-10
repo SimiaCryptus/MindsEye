@@ -20,6 +20,10 @@ public abstract class SimpleClassificationTests extends ClassificationTestBase {
     super();
   }
 
+  protected int getNumberOfTrainingPoints() {
+    return 100;
+  }
+
   @Test(expected = RuntimeException.class)
   @Ignore
   public void test_Gaussians() throws Exception {
@@ -36,8 +40,10 @@ public abstract class SimpleClassificationTests extends ClassificationTestBase {
   @Test(expected = RuntimeException.class)
   public void test_III() throws Exception {
     final double e = 1e-1;
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e }),
-        new Simple2DLine(new double[] { -1 - e, -1 + e }, new double[] { 1 - e, 1 + e })), new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 })), getNumberOfTrainingPoints()));
+    test(getTrainingData(2,
+        Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new Simple2DLine(new double[] { -1 + e, -1 - e }, new double[] { 1 + e, 1 - e }),
+            new Simple2DLine(new double[] { -1 - e, -1 + e }, new double[] { 1 - e, 1 + e })), new Simple2DLine(new double[] { -1, -1 }, new double[] { 1, 1 })),
+        getNumberOfTrainingPoints()));
   }
 
   @Test(expected = RuntimeException.class)
@@ -89,13 +95,16 @@ public abstract class SimpleClassificationTests extends ClassificationTestBase {
   @Test(expected = RuntimeException.class)
   @Ignore
   public void test_snakes() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new SnakeDistribution(2, Util.R.get(), 7, 0.01), new SnakeDistribution(2, Util.R.get(), 7, 0.01)), getNumberOfTrainingPoints()));
+    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new SnakeDistribution(2, Util.R.get(), 7, 0.01), new SnakeDistribution(2, Util.R.get(), 7, 0.01)),
+        getNumberOfTrainingPoints()));
   }
 
   @Test(expected = RuntimeException.class)
   public void test_sos() throws Exception {
-    test(getTrainingData(2, Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
-        new UnionDistribution(new GaussianDistribution(2, new double[] { -1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 0 }, 0.1))), getNumberOfTrainingPoints()));
+    test(getTrainingData(2,
+        Arrays.<Function<Void, double[]>>asList(new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1)),
+            new UnionDistribution(new GaussianDistribution(2, new double[] { -1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 0 }, 0.1))),
+        getNumberOfTrainingPoints()));
   }
 
   @Test(expected = RuntimeException.class)
@@ -112,10 +121,6 @@ public abstract class SimpleClassificationTests extends ClassificationTestBase {
             new UnionDistribution(new GaussianDistribution(2, new double[] { 0, 0 }, 0.1), new GaussianDistribution(2, new double[] { 1, 1 }, 0.1)),
             new UnionDistribution(new GaussianDistribution(2, new double[] { 1, 0 }, 0.1), new GaussianDistribution(2, new double[] { 0, 1 }, 0.1))),
         getNumberOfTrainingPoints()));
-  }
-
-  protected int getNumberOfTrainingPoints() {
-    return 100;
   }
 
 }

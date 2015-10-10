@@ -13,11 +13,6 @@ import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.net.NNLayer;
 
 public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
-  /**
-   * 
-   */
-  private static final long serialVersionUID = -3791321603590434332L;
-
   private final class Result extends NNResult {
     private final NNResult inObj;
 
@@ -67,6 +62,11 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
   }
 
   private static final Logger log = LoggerFactory.getLogger(MinMaxFilterLayer.class);
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -3791321603590434332L;
 
   private double threshold = 20;
 

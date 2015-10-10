@@ -52,7 +52,7 @@ public class SimpleMNIST {
   }
 
   public Tester getTrainer(final NNLayer<DAGNetwork> net, final NDArray[][] data) {
-    return new Tester().init(data, net, (NNLayer<?>) new EntropyLossLayer()).setVerbose(this.verbose > 0);
+    return new Tester().init(data, net, new EntropyLossLayer()).setVerbose(this.verbose > 0);
   }
 
   public Stream<LabeledObject<NDArray>> getTraining(final List<LabeledObject<NDArray>> buffer) {

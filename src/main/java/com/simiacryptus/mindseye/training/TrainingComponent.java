@@ -7,45 +7,52 @@ import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 public interface TrainingComponent {
 
   public static class TrainingStep {
+    private boolean changed;
     private double startError;
     double testError;
-    private boolean changed;
-    public TrainingStep(double startError, double endError, boolean changed) {
+
+    public TrainingStep(final double startError, final double endError, final boolean changed) {
       super();
-      this.setStartError(startError);
+      setStartError(startError);
       this.testError = endError;
-      this.setChanged(changed);
+      setChanged(changed);
     }
-    public double improvement() {
-      return getStartError() - testError;
-    }
+
     public double finalError() {
-      return isChanged()?testError:getStartError();
+      return isChanged() ? testError : getStartError();
     }
+
     public double getStartError() {
       return startError;
     }
-    public void setStartError(double startError) {
-      this.startError = startError;
+
+    public double improvement() {
+      return getStartError() - testError;
     }
+
     public boolean isChanged() {
       return changed;
     }
-    public void setChanged(boolean changed) {
+
+    public void setChanged(final boolean changed) {
       this.changed = changed;
     }
+
+    public void setStartError(final double startError) {
+      this.startError = startError;
+    }
   }
-  
+
+  NDArray[][] getData();
+
   double getError();
 
   DAGNetwork getNet();
 
-  TrainingStep step(TrainingContext trainingContext) throws TerminationCondition;
-
-  NDArray[][] getData();
+  void reset();
 
   TrainingComponent setData(NDArray[][] data);
 
-  void reset();
+  TrainingStep step(TrainingContext trainingContext) throws TerminationCondition;
 
 }

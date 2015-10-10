@@ -25,25 +25,25 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
 
     net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 4).addWeights(() -> Util.R.get().nextGaussian() * .1));
     net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
-    
+
     net = net.add(new SigmoidActivationLayer());
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
     net = net.add(new MaxSubsampleLayer(new int[] { 3, 3, 1 }));
 
     net = net.add(new SigmoidActivationLayer());
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
-    
+
     net = net.add(new SumSubsampleLayer(new int[] { 4, 4, 1 }));
-    
-    int[] size = net.eval(new NDArray(inputSize)).data.getDims();
+
+    final int[] size = net.eval(new NDArray(inputSize)).data.getDims();
     net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));
     net = net.add(new BiasLayer(10));
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }
-  
 
-  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+  @Override
+  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
     final Tester trainer = buildTrainer(trainingsamples, net);
     trainer.handler.add(resultHandler);
     trainer.getGradientDescentTrainer().setTrainingSize(100);

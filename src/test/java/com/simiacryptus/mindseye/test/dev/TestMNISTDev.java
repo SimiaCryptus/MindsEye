@@ -97,7 +97,7 @@ public class TestMNISTDev {
     final List<LabeledObject<NDArray>> buffer = Util.trainingDataStream().collect(Collectors.toList());
     final NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(1000).map(o -> new NDArray[] { o.data, Util.toOutNDArray(Util.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
-    new Tester().init(data, net, (NNLayer<?>) new EntropyLossLayer()).setStaticRate(0.25).setVerbose(true).verifyConvergence(0.01, 1);
+    new Tester().init(data, net, new EntropyLossLayer()).setStaticRate(0.25).setVerbose(true).verifyConvergence(0.01, 1);
     {
       final NNLayer<DAGNetwork> net2 = net;
       final double prevRms = buffer.parallelStream().limit(100).mapToDouble(o1 -> net2.eval(o1.data).errMisclassification(Util.toOut(o1.label))).average().getAsDouble();
