@@ -10,8 +10,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 
-import groovy.lang.Tuple2;
-
 /**
  * Nonlinear Network Layer (aka Neural Network Layer)
  *
@@ -113,14 +111,6 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
 
   public final boolean isFrozen() {
     return this.frozen;
-  }
-
-  public final List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
-    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
-  }
-
-  public final List<Tuple2<Integer, Integer>> permuteOutput(final List<Tuple2<Integer, Integer>> permute) {
-    throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
 
   @SuppressWarnings("unchecked")

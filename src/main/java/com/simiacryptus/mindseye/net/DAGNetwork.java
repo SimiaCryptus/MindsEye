@@ -14,8 +14,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.core.NNLayer;
 import com.simiacryptus.mindseye.core.NNResult;
 
-import groovy.lang.Tuple2;
-
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph
  * with a single output. Supplied builder methods designed to build linear
@@ -228,29 +226,6 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
       return DAGNetwork.this.byId.get(((InnerNode) head).layer);
     else
       return null;
-  }
-
-  private void permutate_back(final NNLayer<?> permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
-    final NNLayer<?> prev = this.prevMap.get(permutationLayer);
-    final List<Tuple2<Integer, Integer>> passback = prev.permuteOutput(permute);
-    if (null != passback) {
-      permutate_back(prev, passback);
-    }
-  }
-
-  private void permutate_forward(final NNLayer<?> permutationLayer, final List<Tuple2<Integer, Integer>> permute) {
-    final NNLayer<?> next = this.nextMap.get(permutationLayer);
-    final List<Tuple2<Integer, Integer>> passforward = next.permuteInput(permute);
-    if (null != passforward) {
-      permutate_forward(next, passforward);
-    }
-  }
-
-  public void permute(final UUID id, final List<Tuple2<Integer, Integer>> permute) {
-    final NNLayer<?> permutationLayer = this.byId.get(id);
-    permutate_back(permutationLayer, permute);
-    permutate_forward(permutationLayer, permute);
-
   }
 
   public void setHead(final DAGNode imageRMS) {
