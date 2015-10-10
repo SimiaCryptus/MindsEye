@@ -41,17 +41,30 @@ public class DeltaSet implements VectorLogic<DeltaSet> {
   public DeltaSet join(final DeltaSet right, final BiFunction<DeltaBuffer, DeltaBuffer, DeltaBuffer> joiner) {
     final HashSet<NNLayer<?>> keys = new HashSet<>(this.map.keySet());
     keys.addAll(right.map.keySet());
-    return new DeltaSet(keys.stream().collect(Collectors.toMap(k -> k, k -> {
+    List<NNLayer<?>> list = keys.stream().filter(x->null!=x).sequential().collect(Collectors.toList());
+    Function<? super NNLayer<?>, ? extends DeltaBuffer> f = k -> {
       final DeltaBuffer l = this.map.get(k);
       final DeltaBuffer r = right.map.get(k);
       if (null != l && null != r)
-        return joiner.apply(l, r);
-      if (null != l)
-        return r;
-      if (null != r)
-        return l;
-      return null;
-    })));
+      {
+        DeltaBuffer apply = joiner.apply(l, r);
+        assert(null != apply);
+        return apply;
+      }
+      if (null != l) return l;
+      if (null != r) return r;
+      throw new RuntimeException();
+    };
+    //Map<NNLayer<?>, DeltaBuffer> map = list.stream().collect(Collectors.toMap(k -> k, f));
+    Map<NNLayer<?>, DeltaBuffer> map = new java.util.HashMap<>();
+    assert(null != f);
+    list.stream().forEach(k->{
+      assert(null != k);
+      DeltaBuffer r = f.apply(k);
+      assert(null != r);
+      map.put(k, r);
+    });
+    return new DeltaSet(map);
   }
 
   @Override

@@ -5,14 +5,19 @@ import com.simiacryptus.mindseye.net.basic.SimpleActivationLayer;
 @SuppressWarnings("serial")
 public class MaxEntLayer extends SimpleActivationLayer<MaxEntLayer> {
 
-  double min = 1e-2;
-  
   @Override
   protected void eval(double x, double[] results) {
     final double minDeriv = 0;
-    double log = Math.log(Math.max(x, min));
-    double d = -(1+log);
-    double f = -x*log;
+    double d;
+    double f;
+    if (0.==x) {
+      d = 0;
+      f = 0;
+    } else {
+      double log = Math.log(Math.abs(x));
+      d = -(1 + log);
+      f = -x * log;
+    }
     assert Double.isFinite(d);
     assert minDeriv <= Math.abs(d);
     results[0] = f;
