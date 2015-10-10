@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.basic.VerboseWrapper;
@@ -32,7 +31,6 @@ import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
-import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.dev.ConstrainedGDTrainer;
 import com.simiacryptus.mindseye.training.dev.DevelopmentTrainer;
@@ -136,11 +134,6 @@ public class DeconvolutionTest {
       //dagNetwork.add(new MaxConstLayer().setValue(10));
       DAGNode imageRMS = dagNetwork.getHead();
 
-//      List<DAGNode> outs = new ArrayList<>();
-//      outs.add(imageRMS);
-
-      new ThresholdActivationLayer();
-
       DAGNode edge_entropy_horizontal;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 1, 2 }, 9);
@@ -152,16 +145,14 @@ public class DeconvolutionTest {
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
         
-        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.L1SimpleNormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
-        dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
+        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
         dagNetwork.add(new SumLayer());
         
         // Add 1 to output so product stays above 0 since this fitness function is secondary
-        dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
         dagNetwork.add(new VerboseWrapper("edgeh", new BiasLayer().freeze()));
         edge_entropy_horizontal = dagNetwork.getHead();
-//        outs.add(edge_entropy_horizontal);
       }
 
       DAGNode edge_entropy_vertical;
@@ -175,20 +166,30 @@ public class DeconvolutionTest {
         edgeFilter.freeze();
         dagNetwork.add(edgeFilter, modeledImageNode);
         
-        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.L1SimpleNormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
-        dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
+        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.SqActivationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.basic.L1NormalizationLayer());
+        //dagNetwork.add(new com.simiacryptus.mindseye.net.basic.SqActivationLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.dev.MaxEntLayer());
+        //dagNetwork.add(new SigmoidActivationLayer().setBalanced(false));
         dagNetwork.add(new SumLayer());
+        //dagNetwork.add(new LinearActivationLayer().setWeights(new double[]{-1.}));
         
         // Add 1 to output so product stays above 0 since this fitness function is secondary
-        dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
-        dagNetwork.add(new VerboseWrapper("edgev", new BiasLayer().freeze()));
-        edge_entropy_vertical = dagNetwork.getHead();
-        //outs.add(edge_entropy_vertical);
+        //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
+        edge_entropy_vertical = dagNetwork.add(new VerboseWrapper("edgev", new BiasLayer().freeze())).getHead();
       }
 
-      //dagNetwork.add(new VerboseWrapper("endprod", new com.simiacryptus.mindseye.net.dev.StrangeProductLayer()), outs.toArray(new DAGNode[]{}));
-      dagNetwork.setHead(imageRMS);
+      List<DAGNode> outs = new ArrayList<>();
+      
+      LinearActivationLayer gate_rms = new LinearActivationLayer().setWeights(new double[]{1.});
+      outs.add(dagNetwork.add(gate_rms, imageRMS).getHead());
+      LinearActivationLayer gate_h = new LinearActivationLayer().setWeights(new double[]{1.});
+      outs.add(dagNetwork.add(gate_h, edge_entropy_horizontal).getHead());
+      LinearActivationLayer gate_v = new LinearActivationLayer().setWeights(new double[]{1.});
+      //outs.add(dagNetwork.add(gate_v, edge_entropy_vertical).getHead());
+      
+      VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.basic.ProductLayer());
+      DAGNode combine = dagNetwork.add(combiner, outs.stream().toArray(i->new DAGNode[i])).getHead();
 
       ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();
       final Tester trainer = new Tester(){
@@ -202,7 +203,7 @@ public class DeconvolutionTest {
       //new NetInitializer().initialize(initPredictionNetwork);
       constrainedGDTrainer.setNet(dagNetwork);
       constrainedGDTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
-      final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
+      final TrainingContext trainingContext = new TrainingContext().setTimeout(1, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
 
@@ -210,15 +211,15 @@ public class DeconvolutionTest {
         trainer.train(1., trainingContext);
         trainer.getDevtrainer().reset();
         
-        constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
+        constrainedGDTrainer.setPrimaryNode(combine);
         //constrainedGDTrainer.addConstraintNodes(imageRMS);
-        trainer.train(1., trainingContext);
+        trainer.train(-Double.MAX_VALUE, trainingContext);
         trainer.getDevtrainer().reset();
         
-        constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
-        constrainedGDTrainer.addConstraintNodes(imageRMS);
-        trainer.train(1., trainingContext);
-        trainer.getDevtrainer().reset();
+//        constrainedGDTrainer.setPrimaryNode(edge_entropy_vertical);
+//        constrainedGDTrainer.addConstraintNodes(imageRMS);
+//        trainer.train(1., trainingContext);
+//        trainer.getDevtrainer().reset();
         
       } catch (final Exception e) {
         e.printStackTrace();

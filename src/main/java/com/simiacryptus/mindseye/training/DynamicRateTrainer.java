@@ -122,10 +122,11 @@ public class DynamicRateTrainer implements TrainingComponent {
       if (step.getStartError() < step.testError) {
         rate /= Math.pow(params.alpha, params.beta);
       } else {
-        rate *= params.alpha;
         if (rate > maxRate) {
-          if(isVerbose()) log.debug(String.format("TERMINAL rate overflow: %s", rate));
-          break;
+          if(isVerbose()) log.debug(String.format("rate overflow: %s", rate));
+//          break;
+        } else {
+          rate *= params.alpha;
         }
       }
       if (rate < params.endRate) {

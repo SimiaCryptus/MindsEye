@@ -183,6 +183,12 @@ public class GradientDescentTrainer implements RateTrainingComponent {
         GradientDescentTrainer.log.debug(String.format("Static: (%s)", result.prevError));
       }
       setError(result.finalError);
+      trainingContext.gradientSteps.increment();
+      if (this.verbose) {
+        GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s in %.03fs", //
+            result.finalError, getRate(), (System.currentTimeMillis() - startMs) / 1000.));
+      }
+      return new TrainingStep(result.prevError, result.finalError, false);
     } else if (!Util.thermalStep(result.prevError, result.finalError, getTemperature())) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s (rate %s)", //
@@ -196,13 +202,13 @@ public class GradientDescentTrainer implements RateTrainingComponent {
             result.prevError, result.finalError, result.finalError - result.prevError));
       }
       setError(result.finalError);
+      trainingContext.gradientSteps.increment();
+      if (this.verbose) {
+        GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s in %.03fs", //
+            result.finalError, getRate(), (System.currentTimeMillis() - startMs) / 1000.));
+      }
+      return new TrainingStep(result.prevError, result.finalError, true);
     }
-    trainingContext.gradientSteps.increment();
-    if (this.verbose) {
-      GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s in %.03fs", //
-          result.finalError, getRate(), (System.currentTimeMillis() - startMs) / 1000.));
-    }
-    return new TrainingStep(result.prevError, result.finalError, true);
   }
 
   public StepResult _step(final TrainingContext trainingContext) {

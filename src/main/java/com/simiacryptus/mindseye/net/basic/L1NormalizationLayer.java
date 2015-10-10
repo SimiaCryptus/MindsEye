@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net.dev;
+package com.simiacryptus.mindseye.net.basic;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,28 +24,9 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
-    final double s1 = input.sum();
-    final double sum = s1 == 0. ? 1 : s1;
-    final NDArray output = input.map(x -> x / sum);
-
-    final NDArray inputGradient = new NDArray(input.dim(), input.dim());
-    final double[] indata = input.getData();
-    for (int i = 0; i < indata.length; i++) {
-      for (int j = 0; j < indata.length; j++) {
-        double value = 0;
-        if (i == j) {
-          // XXX: Are i and j are reversed here?
-          value = (sum - indata[i]) / (sum * sum);
-        } else {
-          value = -indata[j] / (sum * sum);
-        }
-        if (Double.isFinite(value)) {
-          inputGradient.add(new int[] { i, j }, value);
-        }
-      }
-      ;
-    }
-    ;
+    final double sum = input.sum();
+    boolean isZeroInput = sum == 0.;
+    final NDArray output = input.map(x -> isZeroInput ? x : (x / sum));
 
     if (isVerbose()) {
       L1NormalizationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
@@ -55,17 +36,18 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
       public void feedback(final NDArray data, final DeltaSet buffer) {
         if (inObj[0].isAlive()) {
           final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
-          final NDArray inputGradientLog = inputGradient;
+          double[] indata = input.getData();
           final NDArray passback = new NDArray(data.getDims());
-          for (int i = 0; i < input.dim(); i++) {
-            for (int j = 0; j < output.dim(); j++) {
-              passback.add(i, delta[j] * inputGradientLog.get(new int[] { i, j }));
-            }
-            ;
+          double dot = 0;
+          for (int i = 0; i < indata.length; i++) {
+            dot += delta[i] * indata[i];
           }
-          ;
+          for (int i = 0; i < indata.length; i++) {
+            double d = delta[i];
+            passback.set(i, isZeroInput?d:((d*sum-dot)/(sum*sum)));
+          }
           if (isVerbose()) {
-            L1NormalizationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
+            L1NormalizationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
           inObj[0].feedback(passback, buffer);
         }
