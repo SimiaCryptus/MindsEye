@@ -17,7 +17,6 @@ import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.NetInitializer;
 import com.simiacryptus.mindseye.training.TrainingComponent;
 import com.simiacryptus.mindseye.training.TrainingContext;
-import com.simiacryptus.mindseye.training.TrainingComponent.TrainingStep;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 
 import groovy.lang.Tuple2;
@@ -80,7 +79,6 @@ public class PopulationTrainer implements TrainingComponent {
 
   protected PopulationTrainer() {
     super();
-    inner = new DevelopmentTrainer();
   }
 
   public PopulationTrainer(TrainingComponent inner) {

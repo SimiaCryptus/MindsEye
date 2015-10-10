@@ -8,7 +8,6 @@ import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingComponent;
 import com.simiacryptus.mindseye.training.TrainingContext;
-import com.simiacryptus.mindseye.training.TrainingComponent.TrainingStep;
 
 public class DevelopmentTrainer implements TrainingComponent {
   @SuppressWarnings("unused")
@@ -25,7 +24,7 @@ public class DevelopmentTrainer implements TrainingComponent {
 
   protected DevelopmentTrainer() {
     super();
-    inner = new GradientDescentTrainer();
+    inner = null;
   }
 
   private boolean evolve(final TrainingContext trainingContext) {

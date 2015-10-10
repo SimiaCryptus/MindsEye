@@ -22,7 +22,6 @@ import com.simiacryptus.mindseye.net.basic.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.basic.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
-import com.simiacryptus.mindseye.test.demo.ClassificationTestBase.ClassificationResultMetrics;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
 import com.simiacryptus.mindseye.training.NetInitializer;

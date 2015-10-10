@@ -24,9 +24,11 @@ import groovy.lang.Tuple2;
  */
 public class DAGNetwork extends NNLayer<DAGNetwork> {
 
-  public interface DAGNode {}
+  public interface DAGNode {
+    NNResult get(EvaluationContext buildExeCtx);
+  }
 
-  private class EvaluationContext {
+  public class EvaluationContext {
 
     public final Map<UUID, NNResult> cache = new HashMap<>();
 
@@ -51,7 +53,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
       return (NNResult) t.cache.computeIfAbsent(this.key, k -> eval(t));
     }
 
-    protected abstract JsonObject toJson();
+    public abstract JsonObject toJson();
 
   }
   /**
@@ -77,7 +79,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     }
 
     @Override
-    protected JsonObject toJson() {
+    public JsonObject toJson() {
       final JsonObject json = new JsonObject();
       json.addProperty("target", DAGNetwork.this.inputHandles.toString());
       return json;
@@ -103,7 +105,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     }
 
     @Override
-    protected JsonObject toJson() {
+    public JsonObject toJson() {
       final JsonObject json = new JsonObject();
       json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
       json.add("prev", ((LazyResult)this.prevHead[0]).toJson());
@@ -146,11 +148,15 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
 
   @Override
   public NNResult eval(final NNResult... array) {
+    return (NNResult) ((LazyResult)getHead()).get(buildExeCtx(array));
+  }
+
+  public EvaluationContext buildExeCtx(final NNResult... array) {
     EvaluationContext evaluationContext = new EvaluationContext();
     for(int i=0;i<array.length;i++){
       evaluationContext.cache.put(this.inputHandles.get(i), array[i]);
     }
-    return (NNResult) getHead().get(evaluationContext);
+    return evaluationContext;
   }
 
   @Override
@@ -190,7 +196,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
 
-  public LazyResult getHead() {
+  public DAGNode getHead() {
     return this.head;
   }
 
@@ -208,7 +214,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
-    json.add("root", getHead().toJson());
+    json.add("root", ((LazyResult)getHead()).toJson());
     // for(NNLayer c : getChildren()){
     // json.add(c.getId(), c.getJson());
     // }

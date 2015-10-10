@@ -24,17 +24,18 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.net.basic.SqActivationLayer;
 import com.simiacryptus.mindseye.net.basic.SqLossLayer;
 import com.simiacryptus.mindseye.net.basic.SumLayer;
 import com.simiacryptus.mindseye.net.basic.VerboseWrapper;
 import com.simiacryptus.mindseye.net.dev.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.net.media.MaxConstLayer;
 import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.training.DynamicRateTrainer;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.training.dev.ConstrainedGDTrainer;
+import com.simiacryptus.mindseye.training.dev.DevelopmentTrainer;
 
 public class DeconvolutionTest {
   static final Logger log = LoggerFactory.getLogger(DeconvolutionTest.class);
@@ -132,12 +133,14 @@ public class DeconvolutionTest {
       dagNetwork.addLossComponent(new SqLossLayer());
       //dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->.5).freeze());
       //dagNetwork.add(new MaxConstLayer().setValue(10));
+      DAGNode imageRMS = dagNetwork.getHead();
 
       List<DAGNode> outs = new ArrayList<>();
-      outs.add(dagNetwork.getHead());
+      outs.add(imageRMS);
 
       new ThresholdActivationLayer();
 
+      DAGNode edge_entropy_horizontal;
       final LinearActivationLayer edgeGateH;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 1, 2 }, 9);
@@ -158,10 +161,12 @@ public class DeconvolutionTest {
         dagNetwork.add(edgeGateH);
         // Add 1 to output so product stays above 0 since this fitness function is secondary
         dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
-        outs.add(dagNetwork.getHead());
+        edge_entropy_horizontal = dagNetwork.getHead();
+        outs.add(edge_entropy_horizontal);
       }
 
       final LinearActivationLayer edgeGateV;
+      DAGNode edge_entropy_vertical;
       {
         final ConvolutionSynapseLayer edgeFilter = new ConvolutionSynapseLayer(new int[] { 2, 1 }, 9);
         for(int ii=0;ii<3;ii++){
@@ -181,18 +186,25 @@ public class DeconvolutionTest {
         dagNetwork.add(edgeGateV);
         // Add 1 to output so product stays above 0 since this fitness function is secondary
         dagNetwork.add(new BiasLayer(new int[]{1}).setWeights(i->1).freeze());
-        outs.add(dagNetwork.getHead());
+        edge_entropy_vertical = dagNetwork.getHead();
+        outs.add(edge_entropy_vertical);
       }
 
       dagNetwork.add(new VerboseWrapper("endprod", new com.simiacryptus.mindseye.net.dev.StrangeProductLayer()), outs.toArray(new DAGNode[]{}));
       
 
-      final Tester trainer = new Tester().setStaticRate(1.);
+      ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();
+      final Tester trainer = new Tester(){
+        public void initLayers() {
+          gradientTrainer = constrainedGDTrainer;
+          dynamicTrainer = new DynamicRateTrainer(gradientTrainer);
+          devtrainer = new DevelopmentTrainer(dynamicTrainer);
+        }
+      }.setStaticRate(1.);
       
       //new NetInitializer().initialize(initPredictionNetwork);
-      GradientDescentTrainer gradientDescentTrainer = trainer.getGradientDescentTrainer();
-      gradientDescentTrainer.setNet(dagNetwork);
-      gradientDescentTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
+      constrainedGDTrainer.setNet(dagNetwork);
+      constrainedGDTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
       final TrainingContext trainingContext = new TrainingContext().setTimeout(3, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);

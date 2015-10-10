@@ -18,7 +18,6 @@ import com.simiacryptus.mindseye.training.RateTrainingComponent;
 import com.simiacryptus.mindseye.training.TrainingComponent;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.ValidationResults;
-import com.simiacryptus.mindseye.training.TrainingComponent.TrainingStep;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 
 import groovy.lang.Tuple2;
