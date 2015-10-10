@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -42,13 +43,14 @@ public class MNISTAutoencoderTests {
 
   public NNLayer<DAGNetwork> buildNetwork() {
     final int[] inputSize = new int[] { 28, 28, 1 };
-    final int[] midSize = new int[] { 100 };
+    final int[] midSize = new int[] { 1000 };
     DAGNetwork net = new DAGNetwork();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
+    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(()->Util.R.get().nextGaussian()*0.1));
     net = net.add(new BiasLayer(midSize));
-    net = net.add(new SigmoidActivationLayer());
-    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), inputSize));
+    //net = net.add(new SigmoidActivationLayer());
+    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), inputSize).setWeights(()->Util.R.get().nextGaussian()*0.1));
     net = net.add(new BiasLayer(inputSize));
+    //net = net.add(new BiasLayer(inputSize));
     return net;
   }
 
@@ -66,46 +68,46 @@ public class MNISTAutoencoderTests {
   public void test() throws Exception {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    final NDArray[][] trainingData = transformDataSet(hash, MNIST.trainingDataStream());
-    final NDArray[][] validationData = transformDataSet(hash, MNIST.validationDataStream());
+    final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 100, hash);
+    final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 100, hash);
     final NNLayer<DAGNetwork> net = buildNetwork();
-    final Map<BufferedImage, String> images = new HashMap<>();
+    final Map<BufferedImage, String> report = new HashMap<>();
     final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (n, trainingContext) -> {
-      try {
-        final NNLayer<?> mainNetwork = n.getChild(net.id);
-        final List<BufferedImage> img = java.util.Arrays.stream(validationData).map(array->{
-          final NNResult output = mainNetwork.eval(array);
-          return Util.toImage(output.data);
-        }).collect(java.util.stream.Collectors.toList());
-        final String label = trainingContext.toString();
-        log.debug(label);
-        img.stream().forEach(i->images.put(i, label));
-      } catch (final Exception e) {
-        e.printStackTrace();
-      }
+      evaluateImageList(n, trainingData, net.id).stream().forEach(i->report.put(i, ""));
+      evaluateImageList(n, validationData, net.id).stream().forEach(i->report.put(i, ""));
       return null;
     };
     try {
       Tester tester = new Tester();
       tester.setVerbose(true);
       GradientDescentTrainer trainer = tester.getGradientDescentTrainer();
-      trainer.setNet(Tester.initPredictionNetwork(net, new SqLossLayer()));
+      DAGNetwork supervisedNetwork = Tester.supervisionNetwork(net, new SqLossLayer());
+      trainer.setNet(supervisedNetwork);
       trainer.setData(trainingData);
       tester.handler.add(resultHandler);
       tester.trainingContext().setTimeout(10, java.util.concurrent.TimeUnit.MINUTES);
-      tester.verifyConvergence(0.0, 1);
+      tester.verifyConvergence(0.1, 1);
     } finally {
-      final Stream<String> map = images.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
+      final Stream<String> map = report.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
       Util.report(map.toArray(i -> new String[i]));
     }
   }
 
-  public NDArray[][] transformDataSet(final int hash, Stream<LabeledObject<NDArray>> trainingDataStream) {
+  public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, UUID id) {
+    final NNLayer<?> mainNetwork = n.getChild(id);
+    final List<BufferedImage> img = java.util.Arrays.stream(validationData).map(array->{
+      final NNResult output = mainNetwork.eval(array);
+      return Util.toImage(output.data);
+    }).collect(java.util.stream.Collectors.toList());
+    return img;
+  }
+
+  public NDArray[][] transformDataSet(Stream<LabeledObject<NDArray>> trainingDataStream, int limit, final int hash) {
     return trainingDataStream
         .collect(java.util.stream.Collectors.toList()).stream().parallel()
         .filter(this::filter)
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
-        .limit(1000)
+        .limit(limit)
         .map(obj -> new NDArray[] { obj.data, obj.data })
         .toArray(i1 -> new NDArray[i1][]);
   }

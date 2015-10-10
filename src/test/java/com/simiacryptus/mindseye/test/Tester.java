@@ -28,7 +28,7 @@ public class Tester {
 
   static final Logger log = LoggerFactory.getLogger(Tester.class);
 
-  public static DAGNetwork initPredictionNetwork(final NNLayer<?> predictor, final NNLayer<?> loss) {
+  public static DAGNetwork supervisionNetwork(final NNLayer<?> predictor, final NNLayer<?> loss) {
     final DAGNetwork dagNetwork = new DAGNetwork();
     dagNetwork.add(predictor);
     dagNetwork.addLossComponent(loss);
@@ -61,8 +61,7 @@ public class Tester {
   }
 
   public Tester init(final NDArray[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
-    final DAGNetwork initPredictionNetwork = initPredictionNetwork(pipelineNetwork, lossLayer);
-    this.gradientTrainer.setNet(initPredictionNetwork);
+    this.gradientTrainer.setNet(supervisionNetwork(pipelineNetwork, lossLayer));
     this.gradientTrainer.setData(samples);
     return this;
   }
