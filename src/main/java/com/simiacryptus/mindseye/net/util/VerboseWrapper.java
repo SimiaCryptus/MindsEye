@@ -5,8 +5,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.core.NNLayer;
-import com.simiacryptus.mindseye.core.NNResult;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNResult;
 
 @SuppressWarnings("serial")
 public final class VerboseWrapper extends NNLayer<VerboseWrapper> {

@@ -7,8 +7,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.core.NNLayer;
-import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.core.TrainingContext;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DeltaBuffer implements VectorLogic<DeltaBuffer> {

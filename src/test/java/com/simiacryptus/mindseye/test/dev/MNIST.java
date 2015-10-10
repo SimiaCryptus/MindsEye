@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 
 public class MNIST {

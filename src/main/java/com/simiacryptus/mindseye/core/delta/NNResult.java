@@ -1,10 +1,10 @@
-package com.simiacryptus.mindseye.core;
+package com.simiacryptus.mindseye.core.delta;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.IntStream;
 
-import com.simiacryptus.mindseye.core.delta.DeltaSet;
+import com.simiacryptus.mindseye.core.NDArray;
 
 public abstract class NNResult {
 

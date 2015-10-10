@@ -21,12 +21,12 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.NNLayer;
-import com.simiacryptus.mindseye.core.NNResult;
+import com.simiacryptus.mindseye.core.TrainingContext;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.test.Tester;
-import com.simiacryptus.mindseye.training.TrainingContext;
 
 public abstract class ClassificationTestBase {
 

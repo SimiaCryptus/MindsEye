@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.training;
+package com.simiacryptus.mindseye.core;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;

@@ -4,7 +4,8 @@ import java.util.function.BiFunction;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.NNLayer;
+import com.simiacryptus.mindseye.core.TrainingContext;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
@@ -14,7 +15,6 @@ import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
-import com.simiacryptus.mindseye.training.TrainingContext;
 
 public class MNISTClassificationTests4 extends MNISTClassificationTests {
 

@@ -11,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.core.NNLayer;
-import com.simiacryptus.mindseye.core.NNResult;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNResult;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph

@@ -3,11 +3,11 @@ package com.simiacryptus.mindseye.training.dev;
 import java.util.List;
 
 import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
 import com.simiacryptus.mindseye.net.DAGNetwork.EvaluationContext;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
-import com.simiacryptus.mindseye.training.TrainingContext;
 
 import groovy.lang.Tuple2;
 

@@ -18,8 +18,9 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.NNLayer;
-import com.simiacryptus.mindseye.core.NNResult;
+import com.simiacryptus.mindseye.core.TrainingContext;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
@@ -30,7 +31,6 @@ import com.simiacryptus.mindseye.net.reducers.SumLayer;
 import com.simiacryptus.mindseye.net.util.VerboseWrapper;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
-import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.dev.ConstrainedGDTrainer;
 
 public class DeconvolutionTest {

@@ -7,9 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.NNLayer;
-import com.simiacryptus.mindseye.core.NNResult;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNResult;
 
 public class SqLossLayer extends NNLayer<SqLossLayer> {
 

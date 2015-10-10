@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.core.TrainingContext;
 
 public class NumberVector implements VectorLogic<NumberVector> {
 

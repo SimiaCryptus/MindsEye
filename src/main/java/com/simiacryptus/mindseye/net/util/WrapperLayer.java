@@ -3,8 +3,8 @@ package com.simiacryptus.mindseye.net.util;
 import java.util.List;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.core.NNLayer;
-import com.simiacryptus.mindseye.core.NNResult;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNResult;
 
 public class WrapperLayer extends NNLayer<WrapperLayer> {
   /**

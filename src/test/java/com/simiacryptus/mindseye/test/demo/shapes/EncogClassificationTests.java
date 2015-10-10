@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.data.GaussianDistribution;
 import com.simiacryptus.mindseye.data.Simple2DCircle;
 import com.simiacryptus.mindseye.data.Simple2DLine;

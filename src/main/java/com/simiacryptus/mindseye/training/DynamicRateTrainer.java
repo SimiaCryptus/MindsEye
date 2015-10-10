@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.RateMonitor;
+import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 
 public class DynamicRateTrainer implements TrainingComponent {

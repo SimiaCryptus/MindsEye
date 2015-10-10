@@ -39,7 +39,7 @@ import com.esotericsoftware.kryo.Serializer;
 import com.simiacryptus.mindseye.core.BinaryChunkIterator;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.core.TrainingContext;
 
 import de.javakaffee.kryoserializers.EnumMapSerializer;
 import de.javakaffee.kryoserializers.EnumSetSerializer;
