@@ -1,9 +1,11 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.core;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.stream.Stream;
+
+import com.simiacryptus.mindseye.Util;
 
 public final class BinaryChunkIterator implements Iterator<byte[]> {
 

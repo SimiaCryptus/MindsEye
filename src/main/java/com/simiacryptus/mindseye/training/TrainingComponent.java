@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 

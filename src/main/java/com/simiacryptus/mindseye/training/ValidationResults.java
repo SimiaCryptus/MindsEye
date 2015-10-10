@@ -2,7 +2,7 @@ package com.simiacryptus.mindseye.training;
 
 import java.util.List;
 
-import com.simiacryptus.mindseye.NDArray;
+import com.simiacryptus.mindseye.core.NDArray;
 
 public class ValidationResults {
   public final List<NDArray> outputs;

@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-import com.simiacryptus.mindseye.LabeledObject;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.core.LabeledObject;
+import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.test.Tester;
 
 public class SimpliedConvolutionLearningTest2 extends SimpliedConvolutionLearningTest {

@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.training;
+package com.simiacryptus.mindseye.core;
 
 public class RateMonitor {
   private double counter0 = 0;

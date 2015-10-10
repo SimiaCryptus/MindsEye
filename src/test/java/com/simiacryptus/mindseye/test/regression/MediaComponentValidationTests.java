@@ -3,10 +3,10 @@ package com.simiacryptus.mindseye.test.regression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.activation.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;

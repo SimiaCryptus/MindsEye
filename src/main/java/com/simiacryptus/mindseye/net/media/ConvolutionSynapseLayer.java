@@ -12,11 +12,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.DeltaSet;
-import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.NNLayer;
+import com.simiacryptus.mindseye.core.NNResult;
+import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.opencl.ConvolutionController;
 
 public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {

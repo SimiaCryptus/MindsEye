@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.core.delta;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -8,7 +8,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.NNLayer;
 
 public class DeltaSet implements VectorLogic<DeltaSet> {
   public final java.util.concurrent.ConcurrentHashMap<NNLayer<?>, DeltaBuffer> map = new java.util.concurrent.ConcurrentHashMap<>();

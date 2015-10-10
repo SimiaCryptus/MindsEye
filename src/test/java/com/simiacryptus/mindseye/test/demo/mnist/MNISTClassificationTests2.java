@@ -1,10 +1,10 @@
 package com.simiacryptus.mindseye.test.demo.mnist;
 
-import com.simiacryptus.mindseye.LabeledObject;
-import com.simiacryptus.mindseye.NDArray;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.core.LabeledObject;
+import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;

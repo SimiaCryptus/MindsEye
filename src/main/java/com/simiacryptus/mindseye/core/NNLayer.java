@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.net;
+package com.simiacryptus.mindseye.core;
 
 import java.util.Arrays;
 import java.util.List;
@@ -7,10 +7,8 @@ import java.util.stream.Stream;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.DeltaSet;
-import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.core.delta.DeltaSet;
 
 import groovy.lang.Tuple2;
 

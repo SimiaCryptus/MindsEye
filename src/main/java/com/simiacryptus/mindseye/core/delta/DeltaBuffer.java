@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye;
+package com.simiacryptus.mindseye.core.delta;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -7,7 +7,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.core.NNLayer;
 import com.simiacryptus.mindseye.training.TrainingContext;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })

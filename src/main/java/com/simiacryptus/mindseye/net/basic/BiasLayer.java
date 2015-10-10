@@ -8,11 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.DeltaSet;
-import com.simiacryptus.mindseye.NDArray;
-import com.simiacryptus.mindseye.NNResult;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.NNLayer;
+import com.simiacryptus.mindseye.core.NNResult;
+import com.simiacryptus.mindseye.core.delta.DeltaSet;
 
 public class BiasLayer extends NNLayer<BiasLayer> {
 
