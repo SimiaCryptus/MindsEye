@@ -161,10 +161,6 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     final NDArray output = new NDArray(getOutputDims(inputDims, kernelDims));
     final ConvolutionController indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
     indexMap.convolve(input.getData(), this.kernel.getData(), output.getData());
-    if (isVerbose()) {
-      // ConvolutionSynapseLayer.log.debug(String.format("Feed forward: %s * %s
-      // %n\t=> %s", inObj[0].data, this.kernel, output));
-    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray errorSignal, final DeltaSet buffer) {
@@ -177,9 +173,6 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
         if (inObj[0].isAlive()) {
           final NDArray backprop = new NDArray(inputDims);
           indexMap.backprop(backprop.getData(), ConvolutionSynapseLayer.this.kernel.getData(), errorSignal.getData());
-          if (isVerbose()) {
-            ConvolutionSynapseLayer.log.debug(String.format("Feed back: %s * -1 %n\t=> %s", errorSignal, backprop));
-          }
           inObj[0].feedback(backprop, buffer);
         }
       }

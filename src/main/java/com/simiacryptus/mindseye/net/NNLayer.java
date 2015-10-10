@@ -53,8 +53,6 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
 
   public final UUID id = Util.uuid();
 
-  private boolean verbose;
-
   @Override
   public boolean equals(final Object obj) {
     if (this == obj)
@@ -119,10 +117,6 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
     return this.frozen;
   }
 
-  public final boolean isVerbose() {
-    return this.verbose;
-  }
-
   public final List<Tuple2<Integer, Integer>> permuteInput(final List<Tuple2<Integer, Integer>> permute) {
     throw new RuntimeException("Not Implemented: permuteOutput:" + this);
   }
@@ -138,11 +132,6 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
 
   public final T setFrozen(final boolean frozen) {
     this.frozen = frozen;
-    return self();
-  }
-
-  public final T setVerbose(final boolean verbose) {
-    this.verbose = verbose;
     return self();
   }
 

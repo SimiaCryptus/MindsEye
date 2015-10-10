@@ -14,6 +14,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
 
   /**
@@ -44,15 +45,12 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
     final double sum = exp.sum();
     assert 0. < sum;
     final NDArray output = exp.map(x -> x / sum);
-    if (isVerbose()) {
-      SoftmaxActivationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
-    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
         if (inObj[0].isAlive()) {
           final double[] delta = data.getData();
-          final NDArray inputGradient = new NDArray(input.dim(), input.dim());
+          new NDArray(input.dim(), input.dim());
           final double[] expdata = exp.getData();
           final NDArray passback = new NDArray(data.getDims());
           final int dim = expdata.length;
@@ -68,9 +66,6 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
                 passback.add(i, delta[j] * value);
               }
             }
-          }
-          if (isVerbose()) {
-            SoftmaxActivationLayer.log.debug(String.format("Feed back @ %s: %s => %s; Gradient=%s", output, data, passback, inputGradient));
           }
           inObj[0].feedback(passback, buffer);
         }

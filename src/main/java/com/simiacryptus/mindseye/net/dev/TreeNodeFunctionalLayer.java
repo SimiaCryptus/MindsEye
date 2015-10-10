@@ -46,6 +46,7 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
     }
   }
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TreeNodeFunctionalLayer.class);
 
   /**
@@ -85,9 +86,6 @@ public class TreeNodeFunctionalLayer extends NNLayer<TreeNodeFunctionalLayer> {
       return NNResult.scale(leafEval, gateVals[x]);
     }).collect(java.util.stream.Collectors.toList());
     final NNResult output = outputs.stream().reduce((l, r) -> NNResult.add(l, r)).get();
-    if (isVerbose()) {
-      TreeNodeFunctionalLayer.log.debug(String.format("Feed forward: %s * %s => %s", input[0].data, gateEval.data, output));
-    }
     return new NNResult(output.data) {
 
       @Override

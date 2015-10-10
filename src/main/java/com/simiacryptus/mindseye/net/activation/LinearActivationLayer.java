@@ -27,9 +27,6 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
 
     @Override
     public void feedback(final NDArray delta, final DeltaSet buffer) {
-      if (isVerbose()) {
-        LinearActivationLayer.log.debug(String.format("Feed back: %s", this.data));
-      }
       final double[] deltaData = delta.getData();
 
       if (!isFrozen()) {
@@ -48,13 +45,6 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
           passback.set(i, deltaData[i] * matrix.get(0, 0));
         }
         this.inObj.feedback(passback, buffer);
-        if (isVerbose()) {
-          LinearActivationLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
-        }
-      } else {
-        if (isVerbose()) {
-          LinearActivationLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
-        }
       }
     }
 
@@ -65,6 +55,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
 
   }
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
 
   /**
@@ -97,9 +88,6 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
         output.add(i, value);
       }
     });
-    if (isVerbose()) {
-      LinearActivationLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
-    }
     return new Result(output, inObj[0]);
   }
 

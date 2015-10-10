@@ -23,9 +23,6 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
 
     @Override
     public void feedback(final NDArray delta, final DeltaSet buffer) {
-      if (isVerbose()) {
-        MinMaxFilterLayer.log.debug(String.format("Feed back: %s", this.data));
-      }
       final double[] deltaData = delta.getData();
       if (this.inObj.isAlive()) {
         final int[] dims = this.inObj.data.getDims();
@@ -44,13 +41,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
           }
         }
         this.inObj.feedback(passback, buffer);
-        if (isVerbose()) {
-          MinMaxFilterLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
-        }
       } else {
-        if (isVerbose()) {
-          MinMaxFilterLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
-        }
       }
     }
 
@@ -61,6 +52,7 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
 
   }
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MinMaxFilterLayer.class);
 
   /**
@@ -83,9 +75,6 @@ public class MinMaxFilterLayer extends NNLayer<MinMaxFilterLayer> {
       final double r = Math.min(Math.max(x, -getThreshold()), getThreshold());
       output.set(i, r);
     });
-    if (isVerbose()) {
-      MinMaxFilterLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
-    }
     return new Result(output, inObj[0]);
   }
 

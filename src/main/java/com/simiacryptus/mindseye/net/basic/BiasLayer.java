@@ -16,6 +16,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class BiasLayer extends NNLayer<BiasLayer> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
 
   private static final long serialVersionUID = 1022169631431441049L;
@@ -48,15 +49,9 @@ public class BiasLayer extends NNLayer<BiasLayer> {
   public NNResult eval(final NNResult... inObj) {
     final NDArray r = inObj[0].data;
     final NDArray translated = new NDArray(r.getDims(), add(r.getData()));
-    if (isVerbose()) {
-      BiasLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, translated));
-    }
     return new NNResult(translated) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
-        if (isVerbose()) {
-          BiasLayer.log.debug(String.format("Feed back: %s", data));
-        }
         if (!isFrozen()) {
           buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data.getData());
         }

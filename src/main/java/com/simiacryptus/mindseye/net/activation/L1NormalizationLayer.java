@@ -13,6 +13,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
   private static final long serialVersionUID = -8028442822064680557L;
 
@@ -26,9 +27,6 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
     final boolean isZeroInput = sum == 0.;
     final NDArray output = input.map(x -> isZeroInput ? x : x / sum);
 
-    if (isVerbose()) {
-      L1NormalizationLayer.log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
-    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
@@ -43,9 +41,6 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
           for (int i = 0; i < indata.length; i++) {
             final double d = delta[i];
             passback.set(i, isZeroInput ? d : (d * sum - dot) / (sum * sum));
-          }
-          if (isVerbose()) {
-            L1NormalizationLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
           inObj[0].feedback(passback, buffer);
         }

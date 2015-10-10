@@ -35,7 +35,7 @@ public class BooleanSigmoidNetworkTests {
     return samples;
   }
 
-  public void test(final NDArray[][] samples, final int min) {
+  public void test(final NDArray[][] samples) {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
@@ -44,28 +44,28 @@ public class BooleanSigmoidNetworkTests {
             new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
                 .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer()),
             new SqLossLayer())
-        .verifyConvergence(0.01, 100, min);
+        .verifyConvergence(0.01, 100);
   }
 
   @Test
   public void test_BasicNN_AND() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a && b;
     final NDArray[][] samples = getTrainingData(gate);
-    test(samples, 95);
+    test(samples);
   }
 
   @Test
   public void test_BasicNN_OR() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a || b;
     final NDArray[][] samples = getTrainingData(gate);
-    test(samples, 95);
+    test(samples);
   }
 
   @Test
   public void test_BasicNN_XOR() throws Exception {
     final BiFunction<Boolean, Boolean, Boolean> gate = (a, b) -> a != b;
     final NDArray[][] samples = getTrainingData(gate);
-    test(samples, 20);
+    test(samples);
   }
 
 }

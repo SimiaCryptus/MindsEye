@@ -13,6 +13,7 @@ import com.simiacryptus.mindseye.training.TrainingContext;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
 
   public static double newAccumulator() {
@@ -174,9 +175,6 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     calcVector = Arrays.copyOf(calcVector, calcVector.length);
     for (int i = 0; i < this.buffer.length; i++) {
       calcVector[i] = calcVector[i] * factor;
-    }
-    if (this.layer.isVerbose()) {
-      log.debug(String.format("Write to memory: %s", Arrays.toString(calcVector)));
     }
     final int dim = length();
     for (int i = 0; i < dim; i++) {

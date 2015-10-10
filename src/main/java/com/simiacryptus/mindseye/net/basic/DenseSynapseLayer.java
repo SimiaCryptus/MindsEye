@@ -41,21 +41,11 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
     @Override
     public void feedback(final NDArray delta, final DeltaSet buffer) {
-      if (isVerbose()) {
-        DenseSynapseLayer.log.debug(String.format("Feed back: %s", this.data));
-      }
       if (!isFrozen()) {
         learn(delta, buffer);
       }
       if (this.inObj.isAlive()) {
-        final NDArray passback = backprop(delta, buffer);
-        if (isVerbose()) {
-          DenseSynapseLayer.log.debug(String.format("Feed back @ %s=>%s: %s => %s", this.inObj.data, Result.this.data, delta, passback));
-        }
-      } else {
-        if (isVerbose()) {
-          DenseSynapseLayer.log.debug(String.format("Feed back via @ %s=>%s: %s => null", this.inObj.data, Result.this.data, delta));
-        }
+        backprop(delta, buffer);
       }
     }
 
@@ -73,6 +63,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
   }
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
 
   /**
@@ -132,9 +123,6 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   public NNResult eval(final NNResult... inObj) {
     final NDArray input = inObj[0].data;
     final NDArray output = multiply2(this.weights.getData(), input.getData());
-    if (isVerbose()) {
-      DenseSynapseLayer.log.debug(String.format("Feed forward: %s * %s => %s", inObj[0].data, this.weights, output));
-    }
     return new Result(output, inObj[0]);
   }
 

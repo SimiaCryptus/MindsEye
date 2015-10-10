@@ -43,7 +43,7 @@ public class BooleanSoftmaxNetworkTests {
     new Tester()
         .init(samples,
             new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-                .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SoftmaxActivationLayer().setVerbose(false)),
+                .add(new DenseSynapseLayer(NDArray.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SoftmaxActivationLayer()),
             new EntropyLossLayer())
         .verifyConvergence(0.01, 100);
   }

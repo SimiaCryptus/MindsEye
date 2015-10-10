@@ -13,6 +13,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SqLossLayer extends NNLayer<SqLossLayer> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SqLossLayer.class);
   /**
    * 
@@ -35,9 +36,6 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
     }
     final double rms = total / a.dim();
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
-    if (isVerbose()) {
-      SqLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
-    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
@@ -47,9 +45,6 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
           final double data0 = data.get(0);
           for (int i = 0; i < adim; i++) {
             passback.set(i, data0 * r.get(i) * 2 / adim);
-          }
-          if (isVerbose()) {
-            SqLossLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
           if (inObj[0].isAlive()) {
             inObj[0].feedback(passback, buffer);

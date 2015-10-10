@@ -14,6 +14,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer<T> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
   /**
    * 
@@ -37,9 +38,6 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       inputGradient.set(i, results[1]);
       output.set(i, results[0]);
     }
-    if (isVerbose()) {
-      log.debug(String.format("Feed forward: %s => %s", inObj[0].data, output));
-    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
@@ -53,9 +51,6 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
               passback.set(i, data.getData()[i] * v);
             }
           });
-          if (isVerbose()) {
-            log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
-          }
           inObj[0].feedback(passback, buffer);
         }
       }

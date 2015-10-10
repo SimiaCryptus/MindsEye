@@ -13,6 +13,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class MaxEntropyLossLayer extends NNLayer<MaxEntropyLossLayer> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxEntropyLossLayer.class);
   /**
    * 
@@ -37,9 +38,6 @@ public class MaxEntropyLossLayer extends NNLayer<MaxEntropyLossLayer> {
     }
     final double rms = total / a.dim();
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
-    if (isVerbose()) {
-      MaxEntropyLossLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, rms));
-    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
@@ -48,9 +46,6 @@ public class MaxEntropyLossLayer extends NNLayer<MaxEntropyLossLayer> {
           final double v = data.get(0) / a.dim();
           for (int i = 0; i < a.dim(); i++) {
             passback.set(i, v * r.get(i));
-          }
-          if (isVerbose()) {
-            MaxEntropyLossLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
           }
           inObj[0].feedback(passback, buffer);
         }

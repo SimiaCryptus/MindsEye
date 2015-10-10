@@ -31,7 +31,7 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { -1, 2 }) } };
-    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize).setVerbose(true)), new EntropyLossLayer())//
+    new Tester().init(samples, new DAGNetwork().add(new BiasLayer(inputSize)), new EntropyLossLayer())//
         .setVerbose(true).verifyConvergence(0.1, 1);
   }
 
@@ -90,7 +90,6 @@ public class NetworkElementUnitTests {
 
   @Test
   public void denseSynapseLayer_train() throws Exception {
-    final boolean verbose = false;
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 0 }), new NDArray(outSize, new double[] { 0, -1 }) },
@@ -99,7 +98,7 @@ public class NetworkElementUnitTests {
     new Tester()
         .init(samples,
             new DAGNetwork() //
-                .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setVerbose(verbose)),
+                .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize)),
             new EntropyLossLayer()) //
         .setVerbose(true) //
         .verifyConvergence(0.1, 1);
@@ -196,10 +195,9 @@ public class NetworkElementUnitTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0, 0 }), new NDArray(outSize, new double[] { 0.1, 0.9 }) } };
-    final boolean verbose = true;
     final DAGNetwork net = new DAGNetwork() //
-        .add(new BiasLayer(inputSize).setWeights(i -> Util.R.get().nextGaussian()).setVerbose(verbose))//
-        .add(new SoftmaxActivationLayer().setVerbose(verbose));
+        .add(new BiasLayer(inputSize).setWeights(i -> Util.R.get().nextGaussian()))//
+        .add(new SoftmaxActivationLayer());
     new Tester().init(samples, net, new EntropyLossLayer()).setVerbose(true) //
         // .setParallel(false)
         .verifyConvergence(0.1, 100);

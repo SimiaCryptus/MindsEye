@@ -43,11 +43,11 @@ public class SimpleMNIST {
   protected NNLayer<DAGNetwork> getNetwork() {
     final DAGNetwork net = new DAGNetwork();
     final NDArray[] input = { this.inputSize };
-    net.add(new DenseSynapseLayer(net.eval(input).data.dim(), new int[] { 10 }).setVerbose(this.verbose > 1));
+    net.add(new DenseSynapseLayer(net.eval(input).data.dim(), new int[] { 10 }));
     final NDArray[] input1 = { this.inputSize };
-    net.add(new BiasLayer(net.eval(input1).data.getDims()).setVerbose(this.verbose > 1));
+    net.add(new BiasLayer(net.eval(input1).data.getDims()));
     // net.add(new SigmoidActivationLayer().setVerbose(verbose));
-    net.add(new SoftmaxActivationLayer().setVerbose(this.verbose > 1));
+    net.add(new SoftmaxActivationLayer());
     return net;
   }
 

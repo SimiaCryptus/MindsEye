@@ -13,6 +13,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 
 public class SumLayer extends NNLayer<SumLayer> {
 
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumLayer.class);
   /**
    * 
@@ -32,9 +33,6 @@ public class SumLayer extends NNLayer<SumLayer> {
       }
     }
     final NDArray output = new NDArray(new int[] { 1 }, new double[] { sum });
-    if (isVerbose()) {
-      SumLayer.log.debug(String.format("Feed forward: %s - %s => %s", inObj[0].data, inObj[1].data, sum));
-    }
     return new NNResult(output) {
       @Override
       public void feedback(final NDArray data, final DeltaSet buffer) {
@@ -44,9 +42,6 @@ public class SumLayer extends NNLayer<SumLayer> {
             final NDArray passback = new NDArray(in_l.data.getDims());
             for (int i = 0; i < in_l.data.dim(); i++) {
               passback.set(i, delta);
-            }
-            if (isVerbose()) {
-              SumLayer.log.debug(String.format("Feed back @ %s: %s => %s", output, data, passback));
             }
             in_l.feedback(passback, buffer);
           }
