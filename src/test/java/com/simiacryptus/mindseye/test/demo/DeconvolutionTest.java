@@ -163,7 +163,7 @@ public class DeconvolutionTest {
       {
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer(), modeledImageNode);
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
         dagNetwork.add(new SumLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));
@@ -188,7 +188,7 @@ public class DeconvolutionTest {
 
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
         dagNetwork.add(new SumLayer());
 
         // Add 1 to output so product stays above 0 since this fitness function
@@ -211,7 +211,7 @@ public class DeconvolutionTest {
 
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.MaxEntLayer());
+        dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
         dagNetwork.add(new SumLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));

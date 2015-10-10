@@ -12,7 +12,7 @@ import com.simiacryptus.mindseye.net.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
 import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.net.media.MaxEntLayer;
+import com.simiacryptus.mindseye.net.media.EntropyLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 
@@ -78,7 +78,7 @@ public class MediaComponentValidationTests {
   public void testMaxEntLayer() throws Throwable {
     final NDArray outputPrototype = new NDArray(2);
     final NDArray inputPrototype1 = new NDArray(2).fill(() -> Util.R.get().nextDouble());
-    final NNLayer<?> component = new DAGNetwork().add(new L1NormalizationLayer()).add(new MaxEntLayer());
+    final NNLayer<?> component = new DAGNetwork().add(new L1NormalizationLayer()).add(new EntropyLayer());
     test(component, outputPrototype, inputPrototype1);
   }
 

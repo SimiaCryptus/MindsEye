@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.net.media;
 import com.simiacryptus.mindseye.net.activation.SimpleActivationLayer;
 
 @SuppressWarnings("serial")
-public class MaxEntLayer extends SimpleActivationLayer<MaxEntLayer> {
+public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
 
   @Override
   protected void eval(final double x, final double[] results) {
