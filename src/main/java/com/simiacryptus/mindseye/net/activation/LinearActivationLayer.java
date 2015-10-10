@@ -63,7 +63,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
    */
   private static final long serialVersionUID = -2105152439043901220L;
 
-  public final NDArray weights;
+  private final NDArray weights;
 
   public LinearActivationLayer() {
     super();
@@ -102,8 +102,8 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
     return 1;
   }
 
-  public LinearActivationLayer setWeights(final double[] data) {
-    this.weights.set(data);
+  public LinearActivationLayer setWeight(final double data) {
+    this.weights.set(0,data);
     return this;
   }
 

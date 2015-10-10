@@ -223,10 +223,10 @@ public class DeconvolutionTest {
         edge_entropy_vertical = dagNetwork.add(new VerboseWrapper("edgev", new BiasLayer().freeze())).getHead();
       }
 
-      final LinearActivationLayer gate_rms = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
-      final LinearActivationLayer gate_entropy = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
-      final LinearActivationLayer gate_h = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
-      final LinearActivationLayer gate_v = new LinearActivationLayer().setWeights(new double[] { 1. }).freeze();
+      final LinearActivationLayer gate_rms = new LinearActivationLayer().setWeight(1).freeze();
+      final LinearActivationLayer gate_entropy = new LinearActivationLayer().setWeight(1).freeze();
+      final LinearActivationLayer gate_h = new LinearActivationLayer().setWeight(1).freeze();
+      final LinearActivationLayer gate_v = new LinearActivationLayer().setWeight(1).freeze();
 
       final List<DAGNode> outs = new ArrayList<>();
 
