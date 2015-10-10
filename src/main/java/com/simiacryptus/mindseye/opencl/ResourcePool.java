@@ -1,10 +1,15 @@
 package com.simiacryptus.mindseye.opencl;
 
-public abstract class ThreadedResource<T> {
+public abstract class ResourcePool<T> {
 
-  public java.util.HashSet<T> all = new java.util.HashSet<>(this.maxItems);
-  final int maxItems = 16;
-  public java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
+  private final java.util.HashSet<T> all = new java.util.HashSet<>(this.maxItems);
+  private final java.util.concurrent.LinkedBlockingQueue<T> pool = new java.util.concurrent.LinkedBlockingQueue<>();
+  private final int maxItems;
+  
+  public ResourcePool(int maxItems) {
+    super();
+    this.maxItems = maxItems;
+  }
 
   public abstract T create();
 
