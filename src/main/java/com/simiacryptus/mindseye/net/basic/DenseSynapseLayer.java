@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.core.Coordinate;
 import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
@@ -144,6 +145,13 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
   public DenseSynapseLayer setWeights(final double[] data) {
     this.weights.set(data);
+    return this;
+  }
+
+  public DenseSynapseLayer setWeights(final java.util.function.ToDoubleFunction<Coordinate> f) {
+    weights.coordStream().parallel().forEach(c->{
+      weights.set(c, f.applyAsDouble(c));
+    });
     return this;
   }
 

@@ -18,12 +18,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.mindseye.core.Coordinate;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
@@ -46,11 +48,22 @@ public class MNISTAutoencoderTests {
     final int[] inputSize = new int[] { 28, 28, 1 };
     final int[] midSize = new int[] { 1000 };
     DAGNetwork net = new DAGNetwork();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(()->Util.R.get().nextGaussian()*0.1));
+
+    DenseSynapseLayer encode = new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
+    DenseSynapseLayer decode = new DenseSynapseLayer(NDArray.dim(midSize), inputSize).setWeights((Coordinate c)->{
+      int[] traw = new int[]{c.coords[1],c.coords[0]};
+      int tindex = encode.weights.index(traw);
+      Coordinate transposed = new Coordinate(tindex, traw);
+      return encode.weights.get(transposed);
+    });
+    
+    net = net.add(encode);
     net = net.add(new BiasLayer(midSize));
-    //net = net.add(new SigmoidActivationLayer());
-    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), inputSize).setWeights(()->Util.R.get().nextGaussian()*0.1));
+    net = net.add(new SigmoidActivationLayer());
+    net = net.add(decode);
     net = net.add(new BiasLayer(inputSize));
+    //net = net.add(new SigmoidActivationLayer().setBalanced(false));
+    //net = net.add(new LinearActivationLayer().setWeight(255).freeze());
     //net = net.add(new BiasLayer(inputSize));
     return net;
   }
@@ -69,29 +82,43 @@ public class MNISTAutoencoderTests {
   public void test() throws Exception {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 10, hash);
-    final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 10, hash);
+    final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 100000, hash);
+    final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 100, hash);
     final NNLayer<DAGNetwork> net = buildNetwork();
     final Map<BufferedImage, String> report = new java.util.LinkedHashMap<>();
     final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (trainedNetwork, trainingContext) -> {
-      evaluateImageList(trainedNetwork, trainingData, net.id).stream().forEach(i->report.put(i, "TRAINING"));
+      evaluateImageList(trainedNetwork, java.util.Arrays.copyOf(trainingData, 100), net.id).stream().forEach(i->report.put(i, "TRAINING"));
       evaluateImageList(trainedNetwork, validationData, net.id).stream().forEach(i->report.put(i, "TEST"));
       return null;
     };
     try {
-      Tester tester = new Tester();
-      tester.setVerbose(true);
-      GradientDescentTrainer trainer = tester.getGradientDescentTrainer();
-      DAGNetwork supervisedNetwork = Tester.supervisionNetwork(net, new SqLossLayer());
-      trainer.setNet(supervisedNetwork);
-      trainer.setData(trainingData);
-      tester.handler.add(resultHandler);
-      tester.trainingContext().setTimeout(10, java.util.concurrent.TimeUnit.MINUTES);
-      tester.verifyConvergence(1, 1);
+      {
+        getTester(net, java.util.Arrays.copyOf(trainingData, 10), resultHandler).verifyConvergence(10, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 20), resultHandler).verifyConvergence(10, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 30), resultHandler).verifyConvergence(10, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(10, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(10, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(.1, 1);
+        getTester(net, trainingData, resultHandler).verifyConvergence(1, 1);
+      }
     } finally {
       final Stream<String> map = report.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
       Util.report(map.toArray(i -> new String[i]));
     }
+  }
+
+  public Tester getTester(final NNLayer<DAGNetwork> net, NDArray[][] trainingData2, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+    Tester tester = new Tester();
+    tester.setVerbose(true);
+    GradientDescentTrainer trainer = tester.getGradientDescentTrainer();
+    DAGNetwork supervisedNetwork = Tester.supervisionNetwork(net, new SqLossLayer());
+    trainer.setNet(supervisedNetwork);
+    trainer.setData(trainingData2);
+    if (null != resultHandler) {
+      tester.handler.add(resultHandler);
+    }
+    tester.trainingContext().setTimeout(10, java.util.concurrent.TimeUnit.MINUTES);
+    return tester;
   }
 
   public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, UUID id) {
@@ -99,8 +126,7 @@ public class MNISTAutoencoderTests {
     ArrayList<BufferedImage> results = new java.util.ArrayList<>();
     results.addAll(java.util.Arrays.stream(validationData).map(x->Util.toImage(x[0])).collect(java.util.stream.Collectors.toList()));
     results.addAll(java.util.Arrays.stream(validationData).map(array->{
-      final NDArray output = mainNetwork.eval(array).data;
-      return Util.toImage(output);
+      return Util.toImage(mainNetwork.eval(array).data);
     }).collect(java.util.stream.Collectors.toList()));
     return results;
   }
