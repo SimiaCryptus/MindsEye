@@ -106,9 +106,9 @@ public class MNISTAutoencoderTests {
     };
     try {
       {
-        getTester(net, java.util.Arrays.copyOf(trainingData, 10), resultHandler).verifyConvergence(100, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(10, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(1, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 10), resultHandler).trainTo(100);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).trainTo(10);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).trainTo(1);
 //        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(1, 1);
 //        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(.1, 1);
         //getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(.1, 1);

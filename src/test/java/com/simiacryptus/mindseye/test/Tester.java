@@ -20,7 +20,7 @@ import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingComponent;
 
 /**
- * Encapsulates overall network architecture, training method and data.
+ * Encapsulates common training and testing setup
  *
  * @author Andrew Charneski
  */
@@ -36,7 +36,6 @@ public class Tester {
   }
 
   protected DynamicRateTrainer dynamicTrainer;
-
   protected GradientDescentTrainer gradientTrainer;
   public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
   private boolean parallel = true;
@@ -125,42 +124,51 @@ public class Tester {
       range = range.parallel();
     }
     final long succeesses = range.filter(i -> {
-      final TrainingComponent trainerCpy;
-      if (reps > 1) {
-        synchronized (this.dynamicTrainer) {
-          final NDArray[][] trainingData = this.dynamicTrainer.getData();
-          assert null != trainingData && 0 < trainingData.length;
-          this.dynamicTrainer.setData(null);
-          trainerCpy = reps == 1 ? this.dynamicTrainer : Util.kryo().copy(this.dynamicTrainer);
-          trainerCpy.setData(trainingData);
-          this.dynamicTrainer.setData(trainingData);
-        }
+      if(reps==1){
+        return trainTo(convergence);
       } else {
-        trainerCpy = this.dynamicTrainer;
-        final NDArray[][] trainingData = this.dynamicTrainer.getData();
-        assert null != trainingData && 0 < trainingData.length;
+        final TrainingComponent trainer = copy(this.dynamicTrainer);
+        final TrainingContext trainingContext = Util.kryo().copy(trainingContext());
+        return trainTo(trainer, trainingContext, convergence);
       }
-      final TrainingContext trainingContext2 = trainingContext();
-      final TrainingContext contextCpy = reps == 1 ? trainingContext2 : Util.kryo().copy(trainingContext2);
-      // contextCpy.setTimeout(1, TimeUnit.MINUTES);
-      boolean hasConverged = false;
-      try {
-        contextCpy.terminalErr = convergence;
-        final double error = trainerCpy.step(contextCpy).finalError();
-        final DAGNetwork net = trainerCpy.getNet();
-        this.handler.stream().forEach(h -> h.apply(net, contextCpy));
-        hasConverged = error <= convergence;
-        if (!hasConverged) {
-          Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
-        }
-      } catch (final Throwable e) {
-        Tester.log.debug("Not Converged", e);
-      }
-      return hasConverged;
     }).count();
-    if (minSuccess > succeesses)
+    if (minSuccess > succeesses) {
       throw new RuntimeException(String.format("%s out of %s converged", succeesses, reps));
+    }
     return succeesses;
+  }
+
+  public boolean trainTo(final double convergence) {
+    return trainTo(this.dynamicTrainer, trainingContext(), convergence);
+  }
+
+  protected boolean trainTo(final TrainingComponent trainer, final TrainingContext trainingContext, final double convergence) {
+    boolean hasConverged = false;
+    try {
+      trainingContext.terminalErr = convergence;
+      final double error = trainer.step(trainingContext).finalError();
+      final DAGNetwork net = trainer.getNet();
+      this.handler.stream().forEach(h -> h.apply(net, trainingContext));
+      hasConverged = error <= convergence;
+      if (!hasConverged) {
+        Tester.log.debug(String.format("Not Converged: %s <= %s", error, convergence));
+      }
+    } catch (final Throwable e) {
+      Tester.log.debug("Not Converged", e);
+    }
+    return hasConverged;
+  }
+
+  public static TrainingComponent copy(DynamicRateTrainer trainer) {
+    synchronized (trainer) {
+      final NDArray[][] trainingData = trainer.getData();
+      assert null != trainingData && 0 < trainingData.length;
+      trainer.setData(null);
+      DynamicRateTrainer copy = Util.kryo().copy(trainer);
+      copy.setData(trainingData);
+      trainer.setData(trainingData);
+      return copy;
+    }
   }
 
 }
