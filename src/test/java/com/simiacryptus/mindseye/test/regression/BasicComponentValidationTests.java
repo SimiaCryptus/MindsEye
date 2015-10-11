@@ -74,14 +74,14 @@ public class BasicComponentValidationTests {
 
   public static NDArray measureFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray outputPrototype, final NDArray... inputPrototype) {
     final NDArray measuredGradient = new NDArray(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    final NDArray baseOutput = component.eval(inputPrototype).data;
+    final NDArray baseOutput = component.eval(inputPrototype).data[0];
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
       final NDArray inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, deltaFactor * 1);
       final NDArray[] copyInput = java.util.Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-      final NDArray evalProbe = component.eval(copyInput).data;
+      final NDArray evalProbe = component.eval(copyInput).data[0];
       final NDArray delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
       for (int j = 0; j < delta.dim(); j++) {
         measuredGradient.set(new int[] { i, j }, delta.getData()[j]);
@@ -93,11 +93,11 @@ public class BasicComponentValidationTests {
   public static NDArray measureLearningGradient(final NNLayer<?> component, final int layerNum, final NDArray outputPrototype, final NDArray... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final NDArray gradient = new NDArray(stateLen, outputPrototype.dim());
-    final NDArray baseOutput = component.eval(inputPrototype).data;
+    final NDArray baseOutput = component.eval(inputPrototype).data[0];
     for (int i = 0; i < stateLen; i++) {
       final NNLayer<?> copy = Util.kryo().copy(component);
       copy.state().get(layerNum)[i] += deltaFactor;
-      final NDArray evalProbe = copy.eval(inputPrototype).data;
+      final NDArray evalProbe = copy.eval(inputPrototype).data[0];
       final NDArray delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
       for (int j = 0; j < delta.dim(); j++) {
         gradient.set(new int[] { i, j }, delta.getData()[j]);

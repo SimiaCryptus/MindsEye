@@ -34,7 +34,7 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
 
     //net = net.add(new SumSubsampleLayer(new int[] { 3, 3, 1 }));
 
-    final int[] size = net.eval(new NDArray(inputSize)).data.getDims();
+    final int[] size = net.eval(new NDArray(inputSize)).data[0].getDims();
     net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));
     net = net.add(new BiasLayer(10));
     net = net.add(new SoftmaxActivationLayer());

@@ -63,7 +63,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
           final NDArray expectedOutput = pt[1];
           final NDArray[] array = pt;
           final NNResult output = mainNetwork.eval(array);
-          final NDArray actualOutput = output.data;
+          final NDArray actualOutput = output.data[0];
           correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
             final double x = expectedOutput.get(i) - actualOutput.get(i);
             return x * x;

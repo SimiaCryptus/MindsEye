@@ -136,7 +136,7 @@ public class MNISTAutoencoderTests {
   public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, UUID id) {
     final NNLayer<?> mainNetwork = n.getChild(id);
     return java.util.Arrays.stream(validationData)
-        .map(x->mainNetwork.eval(x).data)
+        .map(x->mainNetwork.eval(x).data[0])
         .map(x->Util.toImage(x))
         .collect(java.util.stream.Collectors.toList());
   }

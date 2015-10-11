@@ -98,7 +98,7 @@ public class DeconvolutionTest {
     // final NNLayer<?> convolution = blur_3();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data[0].getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
@@ -108,7 +108,7 @@ public class DeconvolutionTest {
       final NDArray[] input = { obj.data };
       final NNResult output = forwardConvolutionNet.eval(input);
 
-      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())));
+      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())));
     }));
 
   }
@@ -129,7 +129,7 @@ public class DeconvolutionTest {
     // final NNLayer<?> convolution = blur_3();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data[0].getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
@@ -248,7 +248,7 @@ public class DeconvolutionTest {
 
       // new NetInitializer().initialize(initPredictionNetwork);
       constrainedGDTrainer.setNet(dagNetwork);
-      constrainedGDTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data } });
+      constrainedGDTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data[0] } });
       final TrainingContext trainingContext = new TrainingContext().setTimeout(1, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
@@ -280,9 +280,9 @@ public class DeconvolutionTest {
 
       return Util.imageHtml( //
           Util.toImage(obj.data), //
-          Util.toImage(new NDArray(outSize, blurredImage.data.getData())), //
-          Util.toImage(new NDArray(inputSize, recovered.data.getData())), //
-          Util.toImage(new NDArray(outSize, verification.data.getData())));
+          Util.toImage(new NDArray(outSize, blurredImage.data[0].getData())), //
+          Util.toImage(new NDArray(inputSize, recovered.data[0].getData())), //
+          Util.toImage(new NDArray(outSize, verification.data[0].getData())));
     }));
 
   }
@@ -301,7 +301,7 @@ public class DeconvolutionTest {
     final NNLayer<?> convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data.getDims();
+    final int[] outSize = convolution.eval(new NDArray(inputSize)).data[0].getDims();
     final List<LabeledObject<NDArray>> data = new ArrayList<>();
     data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
 
@@ -314,7 +314,7 @@ public class DeconvolutionTest {
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
 
-      trainer.init(new NDArray[][] { { zeroInput, output.data } }, new DAGNetwork().add(bias).add(convolution), new SqLossLayer());
+      trainer.init(new NDArray[][] { { zeroInput, output.data[0] } }, new DAGNetwork().add(bias).add(convolution), new SqLossLayer());
 
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias),
@@ -353,8 +353,8 @@ public class DeconvolutionTest {
       final NNResult recovered = bias.eval(zeroInput);
       final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
-      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data.getData())), Util.toImage(new NDArray(inputSize, recovered.data.getData())),
-          Util.toImage(new NDArray(outSize, tested.data.getData())));
+      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())), Util.toImage(new NDArray(inputSize, recovered.data[0].getData())),
+          Util.toImage(new NDArray(outSize, tested.data[0].getData())));
     }));
 
   }

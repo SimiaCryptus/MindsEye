@@ -44,25 +44,25 @@ public class TestMNISTDev {
       add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 2));
       add(new MaxSubsampleLayer(4, 4, 1));
       final NDArray[] input = { this.inputSize };
-      add(new BiasLayer(eval(input).data.getDims()));
+      add(new BiasLayer(eval(input).data[0].getDims()));
       add(new SigmoidActivationLayer());
 
       add(new ConvolutionSynapseLayer(new int[] { 2, 2, 2 }, 2));
       add(new MaxSubsampleLayer(2, 2, 1, 1));
       final NDArray[] input1 = { this.inputSize };
-      add(new BiasLayer(eval(input1).data.getDims()));
+      add(new BiasLayer(eval(input1).data[0].getDims()));
       add(new SigmoidActivationLayer());
       final NDArray[] input2 = { this.inputSize };
 
-      add(new DenseSynapseLayer(eval(input2).data.dim(), new int[] { 16 }));
+      add(new DenseSynapseLayer(eval(input2).data[0].dim(), new int[] { 16 }));
       final NDArray[] input3 = { this.inputSize };
-      add(new BiasLayer(eval(input3).data.getDims()));
+      add(new BiasLayer(eval(input3).data[0].getDims()));
       getChildren().add(new SigmoidActivationLayer());
       final NDArray[] input4 = { this.inputSize };
 
-      add(new DenseSynapseLayer(eval(input4).data.dim(), new int[] { 10 }));
+      add(new DenseSynapseLayer(eval(input4).data[0].dim(), new int[] { 10 }));
       final NDArray[] input5 = { this.inputSize };
-      add(new BiasLayer(eval(input5).data.getDims()));
+      add(new BiasLayer(eval(input5).data[0].getDims()));
       add(new SoftmaxActivationLayer());
     }
 

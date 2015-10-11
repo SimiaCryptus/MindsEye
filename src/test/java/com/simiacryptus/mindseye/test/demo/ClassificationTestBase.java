@@ -87,7 +87,7 @@ public abstract class ClassificationTestBase {
             final double xf = (xpx * 1. / getWidth() - .5) * 6;
             final double yf = (ypx * 1. / getHeight() - .5) * 6;
             final NNResult eval = mainNetwork.eval(new NDArray(new int[] { 2 }, new double[] { xf, yf }));
-            final int classificationActual = outputToClassification(eval.data);
+            final int classificationActual = outputToClassification(eval.data[0]);
             final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
             this.setRGB(xpx, ypx, color);
           }
@@ -100,7 +100,7 @@ public abstract class ClassificationTestBase {
           final NDArray input = pt[0];
           final NDArray[] array = pt;
           final NNResult output = mainNetwork.eval(array);
-          final NDArray actualOutput = output.data;
+          final NDArray actualOutput = output.data[0];
           correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
             final double x = expectedOutput.get(i) - actualOutput.get(i);
             return x * x;
