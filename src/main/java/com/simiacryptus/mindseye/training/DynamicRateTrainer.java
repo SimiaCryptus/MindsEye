@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.RateMonitor;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 
@@ -14,14 +13,12 @@ public class DynamicRateTrainer implements TrainingComponent {
     public final double beta;
     public final double endRate;
     public final double startRate;
-    public final double terminalETA;
 
-    public UniformAdaptiveRateParams(final double startRate, final double endRate, final double alpha, final double beta, final double terminalETA) {
+    public UniformAdaptiveRateParams(final double startRate, final double endRate, final double alpha, final double beta) {
       this.endRate = endRate;
       this.alpha = alpha;
       this.beta = beta;
       this.startRate = startRate;
-      this.terminalETA = terminalETA;
     }
   }
 
@@ -106,32 +103,22 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   @Override
   public TrainingStep step(final TrainingContext trainingContext) {
-    return train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 2., 3., getEtaMs()));
+    return train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 2., 3.));
   }
 
   private TrainingStep train(final TrainingContext trainingContext, final UniformAdaptiveRateParams params) {
     double prevError = getError();
     final TrainingComponent gradientDescentTrainer = this.inner;
     double rate = params.startRate;
-    final RateMonitor linearLearningRate = new RateMonitor(5000);
     while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > trainingContext.terminalErr) {
       this.inner.setRate(rate);
       final TrainingStep step = gradientDescentTrainer.step(trainingContext);
       if (!Double.isFinite(prevError)) {
         prevError = step.getStartError();
       }
-      final double rateDelta = linearLearningRate.add(step.improvement());
-      final double projectedEndSeconds = -step.finalError() / (rateDelta * 1000.);
-      if (isVerbose()) {
-        log.debug(String.format("Projected final convergence time: %.3f sec; %s - %s/sec", projectedEndSeconds, step, rateDelta));
-      }
       if (trainingContext.timeout < System.currentTimeMillis()) {
         log.debug(String.format("TIMEOUT; current err: %s", step));
         break;
-      }
-      if (Double.isFinite(projectedEndSeconds) && projectedEndSeconds > params.terminalETA) {
-        log.debug(String.format("TERMINAL Projected final convergence time: %.3f sec", projectedEndSeconds));
-        // break;
       }
       if (step.finalError() <= trainingContext.terminalErr) {
         if (isVerbose()) {
