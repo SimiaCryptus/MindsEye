@@ -130,18 +130,16 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   public void test() throws Exception {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    final NDArray[][] data = transformTrainingData(hash, MNIST.trainingDataStream());
-    final NDArray[][] trainingData = java.util.Arrays.copyOfRange(data, 0, data.length);
+    final NDArray[][] trainingData = transformTrainingData(hash, MNIST.trainingDataStream());
     final NDArray[][] validationData = transformTrainingData(hash, MNIST.validationDataStream());
     test(trainingData, validationData);
   }
 
   public NDArray[][] transformTrainingData(final int hash, final Stream<LabeledObject<NDArray>> mnistStream) {
-    final NDArray[][] data = mnistStream.filter(this::filter).collect(java.util.stream.Collectors.toList()).stream()
-        .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
-        // .limit(1000)
+    final NDArray[][] data = mnistStream.filter(this::filter)
+        //.collect(java.util.stream.Collectors.toList()).stream()
         .collect(java.util.stream.Collectors.toList()).parallelStream()
-        // .limit(1000)
+        .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
         .map(obj -> new LabeledObject<>(obj.data.reformat(28, 28, 1), obj.label)).map(obj -> {
           final int out = SimpleMNIST.toOut(remap(obj.label));
           final NDArray output = SimpleMNIST.toOutNDArray(out, 10);

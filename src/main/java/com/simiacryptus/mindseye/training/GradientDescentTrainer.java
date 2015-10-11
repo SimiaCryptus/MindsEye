@@ -160,9 +160,10 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     final NDArray[][] data2 = getData();
     assert 0 < data2.length;
     assert 0 < getTrainingSize();
-    final NDArray[][] data = java.util.Arrays.stream(data2).parallel().sorted(java.util.Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash))
-        .limit(getTrainingSize()).toArray(i -> new NDArray[i][]);
-    return data;
+    return java.util.Arrays.stream(data2).parallel() //
+        .sorted(java.util.Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+        .limit(getTrainingSize()) //
+        .toArray(i -> new NDArray[i][]);
   }
 
   public int getTrainingSize() {
@@ -259,10 +260,6 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       }
       setError(result.finalError);
       trainingContext.gradientSteps.increment();
-      if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s in %.03fs", //
-            result.finalError, getRate(), (System.currentTimeMillis() - startMs) / 1000.));
-      }
       return new TrainingStep(result.prevError, result.finalError, false);
     } else if (!Util.thermalStep(result.prevError, result.finalError, getTemperature())) {
       if (this.verbose) {
@@ -272,15 +269,11 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       result.revert();
       return new TrainingStep(result.prevError, result.finalError, false);
     } else {
-      if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Validated delta: (%s -> %s) - %s", //
-            result.prevError, result.finalError, result.finalError - result.prevError));
-      }
       setError(result.finalError);
       trainingContext.gradientSteps.increment();
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Trained Error: %s with rate %s in %.03fs", //
-            result.finalError, getRate(), (System.currentTimeMillis() - startMs) / 1000.));
+        GradientDescentTrainer.log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items", //
+            (System.currentTimeMillis() - startMs) / 1000., result.finalError, getRate(), getTrainingSize()));
       }
       return new TrainingStep(result.prevError, result.finalError, true);
     }

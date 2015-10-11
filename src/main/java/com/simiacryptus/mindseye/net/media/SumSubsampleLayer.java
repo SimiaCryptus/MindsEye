@@ -113,7 +113,9 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
     final NDArray input = inObj[0].data;
     final int[] inputDims = input.getDims();
     final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
-      assert 0 == inputDims[i] % this.kernelDims[i];
+      if(!(0 == inputDims[i] % this.kernelDims[i])){
+        assert(false);
+      }
       return inputDims[i] / this.kernelDims[i];
     }).toArray();
     final NDArray output = new NDArray(newDims);

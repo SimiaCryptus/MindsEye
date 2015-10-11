@@ -23,17 +23,17 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
     final int[] inputSize = new int[] { 28, 28, 1 };
     DAGNetwork net = new DAGNetwork();
 
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 4).addWeights(() -> Util.R.get().nextGaussian() * .1));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 3, 3 }, 4).addWeights(() -> Util.R.get().nextGaussian() * .001));
     net = net.add(new MaxSubsampleLayer(new int[] { 2, 2, 1 }));
 
     net = net.add(new SigmoidActivationLayer());
-    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
+    net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .01));
     net = net.add(new MaxSubsampleLayer(new int[] { 3, 3, 1 }));
 
     net = net.add(new SigmoidActivationLayer());
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
 
-    net = net.add(new SumSubsampleLayer(new int[] { 4, 4, 1 }));
+    net = net.add(new SumSubsampleLayer(new int[] { 3, 3, 1 }));
 
     final int[] size = net.eval(new NDArray(inputSize)).data.getDims();
     net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));
