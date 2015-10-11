@@ -33,7 +33,7 @@ public class MNISTClassificationTests4 extends MNISTClassificationTests {
     net = net.add(new SigmoidActivationLayer());
     net = net.add(new ConvolutionSynapseLayer(new int[] { 2, 2 }, 16).addWeights(() -> Util.R.get().nextGaussian() * .1));
 
-    net = net.add(new SumSubsampleLayer(new int[] { 3, 3, 1 }));
+    //net = net.add(new SumSubsampleLayer(new int[] { 3, 3, 1 }));
 
     final int[] size = net.eval(new NDArray(inputSize)).data.getDims();
     net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));

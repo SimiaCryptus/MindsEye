@@ -98,7 +98,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
     }
   }
 
-  private final int[] outputDims;
+  public final int[] outputDims;
 
   public final NDArray weights;
 

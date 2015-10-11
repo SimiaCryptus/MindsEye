@@ -28,6 +28,8 @@ import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 import com.simiacryptus.mindseye.test.dev.MNIST;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 
+import groovy.lang.Tuple2;
+
 public class MNISTAutoencoderTests {
 
   protected static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
@@ -37,10 +39,22 @@ public class MNISTAutoencoderTests {
   }
 
   public NNLayer<DAGNetwork> buildNetwork() {
-    final int[] inputSize = new int[] { 28, 28, 1 };
-    final int[] midSize = new int[] { 1000 };
-    DAGNetwork net = new DAGNetwork();
+    List<int[]> sizes = new ArrayList<>();
+    sizes.add(new int[] { 28, 28, 1 });
+    sizes.add(new int[] { 1000 });
+    sizes.add(new int[] { 200 });
+    List<Tuple2<DenseSynapseLayer, DenseSynapseLayer>> codecs = new ArrayList<>();
+    for(int i=1;i<sizes.size();i++) {
+      codecs.add(createCodecPair(sizes.get(i-1), sizes.get(i)));
+    }
+    DAGNetwork net = codec(codecs);
+    //net = net.add(new SigmoidActivationLayer().setBalanced(false));
+    //net = net.add(new LinearActivationLayer().setWeight(255).freeze());
+    //net = net.add(new BiasLayer(inputSize));
+    return net;
+  }
 
+  public Tuple2<DenseSynapseLayer, DenseSynapseLayer> createCodecPair(final int[] inputSize, final int[] midSize) {
     DenseSynapseLayer encode = new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
     DenseSynapseLayer decode = new DenseSynapseLayer(NDArray.dim(midSize), inputSize).setWeights((Coordinate c)->{
       int[] traw = new int[]{c.coords[1],c.coords[0]};
@@ -48,15 +62,25 @@ public class MNISTAutoencoderTests {
       Coordinate transposed = new Coordinate(tindex, traw);
       return encode.weights.get(transposed);
     });
-    
-    net = net.add(encode);
-    net = net.add(new BiasLayer(midSize));
-    net = net.add(new SigmoidActivationLayer());
-    net = net.add(decode);
-    net = net.add(new BiasLayer(inputSize));
-    //net = net.add(new SigmoidActivationLayer().setBalanced(false));
-    //net = net.add(new LinearActivationLayer().setWeight(255).freeze());
-    //net = net.add(new BiasLayer(inputSize));
+    Tuple2<DenseSynapseLayer, DenseSynapseLayer> codec = new groovy.lang.Tuple2<DenseSynapseLayer,DenseSynapseLayer>(encode, decode);
+    return codec;
+  }
+
+  private DAGNetwork codec(List<Tuple2<DenseSynapseLayer, DenseSynapseLayer>> codecs) {
+    DAGNetwork net = new DAGNetwork();
+    for(int i=0;i<codecs.size();i++) {
+      Tuple2<DenseSynapseLayer, DenseSynapseLayer> t = codecs.get(i);
+      DenseSynapseLayer encode = t.getFirst();
+      net = net.add(encode);
+      net = net.add(new BiasLayer(encode.outputDims));
+      net = net.add(new SigmoidActivationLayer());
+    }
+    for(int i=codecs.size()-1;i>=0;i--) {
+      Tuple2<DenseSynapseLayer, DenseSynapseLayer> t = codecs.get(i);
+      DenseSynapseLayer decode = t.getSecond();
+      net = net.add(decode);
+      net = net.add(new BiasLayer(decode.outputDims));
+    }
     return net;
   }
 
@@ -77,25 +101,27 @@ public class MNISTAutoencoderTests {
     final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 100000, hash);
     final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 100, hash);
     final NNLayer<DAGNetwork> net = buildNetwork();
-    final Map<BufferedImage, String> report = new java.util.LinkedHashMap<>();
+    final List<String> report = new java.util.ArrayList<>();
     final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (trainedNetwork, trainingContext) -> {
-      evaluateImageList(trainedNetwork, java.util.Arrays.copyOf(trainingData, 100), net.id).stream().forEach(i->report.put(i, "TRAINING"));
-      evaluateImageList(trainedNetwork, validationData, net.id).stream().forEach(i->report.put(i, "TEST"));
+      report.add("<hr/>");
+      evaluateImageList(trainedNetwork, java.util.Arrays.copyOf(trainingData, 100), net.id).stream().forEach(i->report.add(Util.toInlineImage(i, "TRAINING")));
+      report.add("<hr/>");
+      evaluateImageList(trainedNetwork, validationData, net.id).stream().forEach(i->report.add(Util.toInlineImage(i, "TEST")));
+      report.add("<hr/>");
       return null;
     };
     try {
       {
-        getTester(net, java.util.Arrays.copyOf(trainingData, 10), resultHandler).verifyConvergence(10, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 20), resultHandler).verifyConvergence(10, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 10), resultHandler).verifyConvergence(100, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 20), resultHandler).verifyConvergence(100, 1);
         getTester(net, java.util.Arrays.copyOf(trainingData, 30), resultHandler).verifyConvergence(10, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(10, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(10, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(.1, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(1, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(.1, 1);
+        //getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(.1, 1);
         getTester(net, trainingData, resultHandler).verifyConvergence(1, 1);
       }
     } finally {
-      final Stream<String> map = report.entrySet().stream().map(e -> Util.toInlineImage(e.getKey(), e.getValue().toString()));
-      Util.report(map.toArray(i -> new String[i]));
+      Util.report(report.stream().toArray(i -> new String[i]));
     }
   }
 
@@ -115,12 +141,10 @@ public class MNISTAutoencoderTests {
 
   public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, UUID id) {
     final NNLayer<?> mainNetwork = n.getChild(id);
-    ArrayList<BufferedImage> results = new java.util.ArrayList<>();
-    results.addAll(java.util.Arrays.stream(validationData).map(x->Util.toImage(x[0])).collect(java.util.stream.Collectors.toList()));
-    results.addAll(java.util.Arrays.stream(validationData).map(array->{
-      return Util.toImage(mainNetwork.eval(array).data);
-    }).collect(java.util.stream.Collectors.toList()));
-    return results;
+    return java.util.Arrays.stream(validationData)
+        .map(x->mainNetwork.eval(x).data)
+        .map(x->Util.toImage(x))
+        .collect(java.util.stream.Collectors.toList());
   }
 
   public NDArray[][] transformDataSet(Stream<LabeledObject<NDArray>> trainingDataStream, int limit, final int hash) {

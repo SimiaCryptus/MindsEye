@@ -273,7 +273,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       trainingContext.gradientSteps.increment();
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items", //
-            (System.currentTimeMillis() - startMs) / 1000., result.finalError, getRate(), getTrainingSize()));
+            (System.currentTimeMillis() - startMs) / 1000., result.finalError, getRate(), Math.min(getTrainingSize(), trainingData.length)));
       }
       return new TrainingStep(result.prevError, result.finalError, true);
     }
