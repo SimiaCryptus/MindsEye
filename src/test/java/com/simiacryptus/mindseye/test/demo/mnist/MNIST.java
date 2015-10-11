@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.dev;
+package com.simiacryptus.mindseye.test.demo.mnist;
 
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;

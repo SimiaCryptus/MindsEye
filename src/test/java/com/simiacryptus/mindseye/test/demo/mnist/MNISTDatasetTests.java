@@ -13,7 +13,6 @@ import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
-import com.simiacryptus.mindseye.test.dev.MNIST;
 
 public class MNISTDatasetTests {
 

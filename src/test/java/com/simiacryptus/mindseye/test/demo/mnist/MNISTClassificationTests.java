@@ -22,8 +22,6 @@ import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
-import com.simiacryptus.mindseye.test.dev.MNIST;
-import com.simiacryptus.mindseye.test.dev.SimpleMNIST;
 
 public class MNISTClassificationTests extends ClassificationTestBase {
 
@@ -141,8 +139,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
         .collect(java.util.stream.Collectors.toList()).parallelStream()
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
         .map(obj -> new LabeledObject<>(obj.data.reformat(28, 28, 1), obj.label)).map(obj -> {
-          final int out = SimpleMNIST.toOut(remap(obj.label));
-          final NDArray output = SimpleMNIST.toOutNDArray(out, 10);
+          final int out = MNISTClassificationTests.toOut(remap(obj.label));
+          final NDArray output = MNISTClassificationTests.toOutNDArray(out, 10);
           return new NDArray[] { obj.data, output };
         }).toArray(i -> new NDArray[i][]);
     return data;
@@ -151,6 +149,20 @@ public class MNISTClassificationTests extends ClassificationTestBase {
   @Override
   public void verify(final Tester trainer) {
     trainer.verifyConvergence(0.00001, 1);
+  }
+
+  public static int toOut(final String label) {
+    for (int i = 0; i < 10; i++) {
+      if (label.equals("[" + i + "]"))
+        return i;
+    }
+    throw new RuntimeException();
+  }
+
+  public static NDArray toOutNDArray(final int out, final int max) {
+    final NDArray ndArray = new NDArray(max);
+    ndArray.set(out, 1);
+    return ndArray;
   }
 
 }
