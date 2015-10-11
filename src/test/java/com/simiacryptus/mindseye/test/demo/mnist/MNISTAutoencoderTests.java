@@ -39,22 +39,18 @@ public class MNISTAutoencoderTests {
   public NNLayer<DAGNetwork> buildNetwork() {
     List<int[]> sizes = new ArrayList<>();
     sizes.add(new int[] { 28, 28, 1 });
-    sizes.add(new int[] { 1000 });
-    sizes.add(new int[] { 200 });
+    sizes.add(new int[] { 100 });
+    //sizes.add(new int[] { 100 });
     List<Tuple2<DenseSynapseLayer, DenseSynapseLayer>> codecs = new ArrayList<>();
     for(int i=1;i<sizes.size();i++) {
       codecs.add(createCodecPair(sizes.get(i-1), sizes.get(i)));
     }
-    DAGNetwork net = codec(codecs);
-    //net = net.add(new SigmoidActivationLayer().setBalanced(false));
-    //net = net.add(new LinearActivationLayer().setWeight(255).freeze());
-    //net = net.add(new BiasLayer(inputSize));
-    return net;
+    return stackedCodecNetwork(codecs);
   }
 
-  public Tuple2<DenseSynapseLayer, DenseSynapseLayer> createCodecPair(final int[] inputSize, final int[] midSize) {
-    DenseSynapseLayer encode = new DenseSynapseLayer(NDArray.dim(inputSize), midSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
-    DenseSynapseLayer decode = new DenseSynapseLayer(NDArray.dim(midSize), inputSize).setWeights((Coordinate c)->{
+  public Tuple2<DenseSynapseLayer, DenseSynapseLayer> createCodecPair(final int[] outerSize, final int[] innerSize) {
+    DenseSynapseLayer encode = new DenseSynapseLayer(NDArray.dim(outerSize), innerSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
+    DenseSynapseLayer decode = new DenseSynapseLayer(NDArray.dim(innerSize), outerSize).setWeights((Coordinate c)->{
       int[] traw = new int[]{c.coords[1],c.coords[0]};
       int tindex = encode.weights.index(traw);
       Coordinate transposed = new Coordinate(tindex, traw);
@@ -64,7 +60,7 @@ public class MNISTAutoencoderTests {
     return codec;
   }
 
-  private DAGNetwork codec(List<Tuple2<DenseSynapseLayer, DenseSynapseLayer>> codecs) {
+  private DAGNetwork stackedCodecNetwork(List<Tuple2<DenseSynapseLayer, DenseSynapseLayer>> codecs) {
     DAGNetwork net = new DAGNetwork();
     for(int i=0;i<codecs.size();i++) {
       Tuple2<DenseSynapseLayer, DenseSynapseLayer> t = codecs.get(i);
@@ -111,12 +107,12 @@ public class MNISTAutoencoderTests {
     try {
       {
         getTester(net, java.util.Arrays.copyOf(trainingData, 10), resultHandler).verifyConvergence(100, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 20), resultHandler).verifyConvergence(100, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 30), resultHandler).verifyConvergence(10, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(1, 1);
-        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(.1, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(10, 1);
+        getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(1, 1);
+//        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(1, 1);
+//        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(.1, 1);
         //getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(.1, 1);
-        getTester(net, trainingData, resultHandler).verifyConvergence(1, 1);
+//        getTester(net, trainingData, resultHandler).verifyConvergence(1, 1);
       }
     } finally {
       Util.report(report.stream().toArray(i -> new String[i]));
