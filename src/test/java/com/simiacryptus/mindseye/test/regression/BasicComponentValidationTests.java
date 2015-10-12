@@ -26,7 +26,7 @@ public class BasicComponentValidationTests {
 
   public static NDArray[] getFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray outputPrototype, final NDArray... inputPrototype) {
     final NDArray gradientA[] = java.util.stream.IntStream.range(0, 1)
-        .mapToObj(i->new NDArray(inputPrototype[inputIndex].dim(), outputPrototype.dim()))
+        .mapToObj(i->new NDArray(inputPrototype[i].dim(), outputPrototype.dim()))
         .toArray(i->new NDArray[i]);
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
@@ -56,7 +56,7 @@ public class BasicComponentValidationTests {
           return true;
         }
       };
-      component.eval(copyInput).accumulate(new DeltaSet());
+      component.eval(copyInput).accumulate(new DeltaSet(), new NDArray[]{new NDArray(outputPrototype.getDims()).fill((k)->k==j_?1:0)});
     }
     return gradientA;
   }
@@ -68,7 +68,7 @@ public class BasicComponentValidationTests {
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final DeltaSet buffer = new DeltaSet();
-      component.eval(inputPrototype).accumulate(buffer);
+      component.eval(inputPrototype).accumulate(buffer, new NDArray[]{new NDArray(outputPrototype.getDims()).fill((k)->k==j_?1:0)});
       final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[] { i, j_ }, deltaFlushBuffer.getCalcVector()[i]);
@@ -130,9 +130,9 @@ public class BasicComponentValidationTests {
       } catch (final Throwable e) {
         log.debug(String.format("Error Comparing element %s", i1));
         log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, java.util.Arrays.toString(inputPrototype), outputPrototype));
-        log.debug(String.format("%s", measuredGradient));
-        log.debug(String.format("%s", implementedGradient));
-        log.debug(String.format("%s", measuredGradient.minus(implementedGradient)));
+        log.debug(String.format("measured/actual: %s", measuredGradient));
+        log.debug(String.format("implemented/expected: %s", implementedGradient));
+        log.debug(String.format("error: %s", measuredGradient.minus(implementedGradient)));
         throw e;
       }
     }

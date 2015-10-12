@@ -151,6 +151,11 @@ public class NDArray {
     return this;
   }
 
+  public NDArray fill(final java.util.function.IntToDoubleFunction f) {
+    Arrays.parallelSetAll(getData(), i -> f.applyAsDouble(i));
+    return this;
+  }
+
   public double get(final Coordinate coords) {
     final double v = getData()[coords.index];
     assert Double.isFinite(v);

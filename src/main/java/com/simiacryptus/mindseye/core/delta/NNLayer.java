@@ -17,11 +17,11 @@ import com.simiacryptus.mindseye.core.NDArray;
  */
 public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializable {
 
-  private static final class ConstNNResult extends NNResult {
+  public static final class ConstNNResult extends NNResult {
 
     // public final String[] created = Util.currentStack();
 
-    private ConstNNResult(final NDArray data) {
+    public ConstNNResult(final NDArray... data) {
       super(data);
     }
 
@@ -40,10 +40,6 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
    * 
    */
   private static final long serialVersionUID = 8741041477497062122L;
-
-  public static NNResult[] getConstResult(final NDArray... array) {
-    return Stream.of(array).map(a -> new ConstNNResult(a)).toArray(i -> new NNResult[i]);
-  }
 
   private boolean frozen = false;
 
@@ -67,7 +63,11 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
   }
 
   public final NNResult eval(final NDArray... array) {
-    return eval(NNLayer.getConstResult(array));
+    return eval(java.util.Arrays.stream(array).map((NDArray x)->new ConstNNResult(x)).toArray(i->new NNResult[i]));
+  }
+
+  public final NNResult eval(final NDArray[][] array) {
+    return eval(java.util.Arrays.stream(array).map((NDArray[] x)->new ConstNNResult(x)).toArray(i->new NNResult[i]));
   }
 
   public abstract NNResult eval(NNResult... array);
