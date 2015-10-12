@@ -47,13 +47,9 @@ public class GradientDescentTrainer implements RateTrainingComponent {
         .collect(Collectors.toList());
   }
 
-  public static DeltaSet collectVector(final List<NNResult> netresults) {
+  public static DeltaSet collectVector(final NNResult nnResult) {
     final DeltaSet buffer = new DeltaSet();
-    IntStream.range(0, netresults.size()).parallel().mapToObj(sample -> {
-      return netresults.get(sample);
-    }).forEach(actualOutput -> {
-      actualOutput.accumulate(buffer);
-    });
+    nnResult.accumulate(buffer);
     return buffer;
   }
 
@@ -93,30 +89,23 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   protected DeltaSet calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
-    final List<Tuple2<EvaluationContext, Integer>> contexts = initContexts(trainingContext, data, getPrimaryNode());
+    final EvaluationContext contexts = initContexts(trainingContext, data, getPrimaryNode());
     return collectVector(getPrimaryNode(), contexts);
   }
 
-  protected DeltaSet collectVector(final DAGNode primaryNode, final List<Tuple2<EvaluationContext, Integer>> collect) {
-    final List<NNResult> eval = collectOrderedValues(collect.stream().map(t -> new Tuple2<>(primaryNode.get(t.getFirst()), t.getSecond())));
-    return collectVector(eval).scale(-getRate());
+  protected DeltaSet collectVector(final DAGNode primaryNode, final EvaluationContext contexts) {
+    return collectVector(primaryNode.get(contexts)).scale(-getRate());
   }
 
-  private List<NNResult> eval(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
-    final List<Tuple2<EvaluationContext, Integer>> collect = initContexts(trainingContext, trainingData, primaryNode);
-    Stream<Tuple2<EvaluationContext, Integer>> stream = collect.stream();
-    if (isParallelTraining()) {
-      stream = stream.parallel();
-    }
-    final Stream<Tuple2<NNResult, Integer>> results = stream.map(t -> new Tuple2<>(primaryNode.get(t.getFirst()), t.getSecond()));
-    return collectOrderedValues(results);
+  private NNResult eval(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
+    final EvaluationContext collect = initContexts(trainingContext, trainingData, primaryNode);
+    return primaryNode.get(collect);
   }
 
   private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
     assert 0 < validationSet.length;
-    final List<NNResult> eval = eval(trainingContext, validationSet, getPrimaryNode());
-    assert 0 < eval.size();
-    final List<NDArray> evalData = eval.stream().map(x -> x.data[0]).collect(Collectors.toList());
+    final NNResult eval = eval(trainingContext, validationSet, getPrimaryNode());
+    final List<NDArray> evalData = java.util.Arrays.stream(eval.data).map(x -> x).collect(Collectors.toList());
     assert 0 < evalData.size();
     assert validationSet.length == evalData.size();
     final double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
@@ -171,22 +160,14 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return this.trainingSize;
   }
 
-  public List<Tuple2<EvaluationContext, Integer>> initContexts(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
+  public EvaluationContext initContexts(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
     final DAGNetwork net = getNet();
-    IntStream stream = IntStream.range(0, trainingData.length);
-    if (isParallelTraining()) {
-      stream = stream.parallel();
-    }
-    final List<Tuple2<EvaluationContext, Integer>> collect = stream.mapToObj(i -> {
-      trainingContext.evaluations.increment();
-      NNResult[] constNNResult = IntStream.range(0, trainingData[i].length).mapToObj(j->{
-        return new ConstNNResult(trainingData[i][j]);
-      }).toArray(x->new NNResult[x]);
-      final EvaluationContext exeCtx = net.buildExeCtx(constNNResult);
-      // primaryNode.get(exeCtx);
-      return new Tuple2<>(exeCtx, i);
-    }).collect(Collectors.toList());
-    return collect;
+    trainingContext.evaluations.increment();
+    NNResult[] constNNResult = IntStream.range(0, trainingData[0].length).mapToObj(j->{
+      NDArray[] array = IntStream.range(0, trainingData.length).mapToObj(i->trainingData[i][j]).toArray(i->new NDArray[i]);
+      return new ConstNNResult(array);
+    }).toArray(x->new NNResult[x]);
+    return net.buildExeCtx(constNNResult);
   }
 
   public boolean isParallelTraining() {

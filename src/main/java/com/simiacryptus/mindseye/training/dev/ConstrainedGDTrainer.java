@@ -29,7 +29,7 @@ public class ConstrainedGDTrainer extends GradientDescentTrainer {
 
   @Override
   protected DeltaSet calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
-    final List<Tuple2<EvaluationContext, Integer>> contexts = initContexts(trainingContext, data, getPrimaryNode());
+    final EvaluationContext contexts = initContexts(trainingContext, data, getPrimaryNode());
     DeltaSet primaryDelta = collectVector(getPrimaryNode(), contexts);
     for (final DAGNode node : getConstraintNodes()) {
       final DeltaSet constraintDelta = collectVector(node, contexts).unitV();

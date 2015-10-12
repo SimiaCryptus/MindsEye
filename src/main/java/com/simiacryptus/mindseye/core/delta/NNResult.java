@@ -51,7 +51,7 @@ public abstract class NNResult {
   }
 
   public final void accumulate(DeltaSet buffer) {
-    accumulate(buffer, new NDArray[]{new NDArray(data[0].getDims()).fill(()->1.)});
+    accumulate(buffer, java.util.stream.IntStream.range(0, data.length).mapToObj(i->new NDArray(data[0].getDims()).fill(()->1.)).toArray(i->new NDArray[i]));
   }
 
   public abstract void accumulate(DeltaSet buffer, final NDArray[] data);
