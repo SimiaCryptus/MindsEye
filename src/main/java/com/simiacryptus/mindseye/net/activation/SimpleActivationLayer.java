@@ -49,9 +49,8 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
           NDArray[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
-            final NDArray inputGradientLog = inputGradientA[dataIndex];
             final NDArray passback = new NDArray(data[dataIndex].getDims());
-            final double[] gradientData = inputGradientLog.getData();
+            final double[] gradientData = inputGradientA[dataIndex].getData();
             IntStream.range(0, passback.dim()).forEach(i -> {
               final double v = gradientData[i];
               if (Double.isFinite(v)) {
