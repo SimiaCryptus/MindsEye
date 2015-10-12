@@ -100,31 +100,42 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray input = inObj[0].data;
-    final int[] inputDims = input.getDims();
-    final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
-      assert 0 == inputDims[i] % this.kernelDims[i];
-      return inputDims[i] / this.kernelDims[i];
-    }).toArray();
-    final NDArray output = new NDArray(newDims);
-    final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
-    final List<Tuple2<Coordinate, List<Coordinate>>> regions = calcRegionsCache.apply(new CalcRegionsParameter(inputDims, this.kernelDims));
-    final ToDoubleFunction<? super Coordinate> keyExtractor = inputCoords -> input.get(inputCoords);
-    regions.stream().parallel().forEach(tuple -> {
-      final Coordinate inputCoord = tuple.getSecond().stream().max(Comparator.comparingDouble(keyExtractor)).get();
-      final Coordinate o = tuple.getFirst();
-      synchronized (gradientMap) {
-        gradientMap.put(o, inputCoord);
-      }
-      output.set(o, input.get(inputCoord));
-    });
-    return new NNResult(output) {
+
+    int itemCnt = inObj[0].data.length;
+    final HashMap<Coordinate, Coordinate> gradientMapA[] = new HashMap[itemCnt];
+
+    final int[] inputDims = inObj[0].data[0].getDims();
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
+        assert 0 == inputDims[i] % this.kernelDims[i];
+        return inputDims[i] / this.kernelDims[i];
+      }).toArray();
+      final NDArray output = new NDArray(newDims);
+      final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
+      final List<Tuple2<Coordinate, List<Coordinate>>> regions = calcRegionsCache.apply(new CalcRegionsParameter(inputDims, this.kernelDims));
+      final ToDoubleFunction<? super Coordinate> keyExtractor = inputCoords -> input.get(inputCoords);
+      regions.stream().parallel().forEach(tuple -> {
+        final Coordinate inputCoord = tuple.getSecond().stream().max(Comparator.comparingDouble(keyExtractor)).get();
+        final Coordinate o = tuple.getFirst();
+        synchronized (gradientMap) {
+          gradientMap.put(o, inputCoord);
+        }
+        output.set(o, input.get(inputCoord));
+      });
+      gradientMapA[dataIndex] = gradientMap;
+      return output;
+    }).toArray(i->new NDArray[i]);
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
-          final NDArray backSignal = new NDArray(inputDims);
-          gradientMap.entrySet().forEach(e -> backSignal.add(e.getValue().index, data.get(e.getKey().index)));
-          inObj[0].accumulate(buffer, backSignal);
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            final NDArray backSignal = new NDArray(inputDims);
+            gradientMapA[dataIndex].entrySet().forEach(e -> backSignal.add(e.getValue().index, data[dataIndex].get(e.getKey().index)));
+            return backSignal;
+          }).toArray(i->new NDArray[i]);
+          inObj[0].accumulate(buffer, passbackA);
         }
       }
 

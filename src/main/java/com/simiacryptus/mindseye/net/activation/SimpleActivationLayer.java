@@ -35,6 +35,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       final NDArray input = inObj[0].data[dataIndex];
       final NDArray output = new NDArray(inObj[0].data[dataIndex].getDims());
       final NDArray inputGradient = new NDArray(input.dim());
+      inputGradientA[dataIndex] = inputGradient;
       final double[] results = new double[2];
       for (int i = 0; i < input.dim(); i++) {
         eval(input.getData()[i], results);

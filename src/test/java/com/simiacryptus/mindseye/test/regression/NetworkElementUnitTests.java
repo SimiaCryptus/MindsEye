@@ -15,7 +15,6 @@ import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.dev.SynapseActivationLayer;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
@@ -204,27 +203,5 @@ public class NetworkElementUnitTests {
 
   }
 
-  @Test
-  public void synapseActivationLayer_feedback() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 1, 1 }), new NDArray(outSize, new double[] { 1, -1 }) } };
-
-    new Tester()
-        .init(samples,
-            new DAGNetwork().add(new BiasLayer(inputSize))
-                .add(new SynapseActivationLayer(NDArray.dim(inputSize)).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()),
-            new EntropyLossLayer())
-        .verifyConvergence(0.1, 100);
-  }
-
-  @Test
-  public void synapseActivationLayer_train() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    final NDArray[][] samples = new NDArray[][] { { new NDArray(inputSize, new double[] { 0.5, 2 }), new NDArray(outSize, new double[] { 1, -1 }) } };
-
-    new Tester().init(samples, new DAGNetwork().add(new SynapseActivationLayer(NDArray.dim(inputSize))), new EntropyLossLayer()).verifyConvergence(0.1, 100);
-  }
 
 }

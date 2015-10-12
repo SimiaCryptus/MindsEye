@@ -155,25 +155,40 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray input = inObj[0].data;
-    final int[] inputDims = input.getDims();
-    final int[] kernelDims = this.kernel.getDims();
-    final NDArray output = new NDArray(getOutputDims(inputDims, kernelDims));
-    final ConvolutionController indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(this.kernel, input, output));
-    indexMap.convolve(input.getData(), this.kernel.getData(), output.getData());
-    return new NNResult(output) {
+    final ConvolutionController indexMap;
+    NDArray head = inObj[0].data[0];
+    final int[] inputDims = head.getDims();
+    {
+      final int[] kernelDims = this.kernel.getDims();
+      indexMap = ConvolutionSynapseLayer.indexMapCache.apply(new IndexMapKey(kernelDims, inputDims, getOutputDims(inputDims, kernelDims)));
+    }
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      final int[] kernelDims = this.kernel.getDims();
+      final NDArray output = new NDArray(getOutputDims(inputDims, kernelDims));
+      indexMap.convolve(input.getData(), this.kernel.getData(), output.getData());
+      return output;
+    }).toArray(i->new NDArray[i]);
+
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray errorSignal) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] errorSignal) {
         if (!isFrozen()) {
-          final NDArray kernel = ConvolutionSynapseLayer.this.kernel;
-          final NDArray weightGradient = new NDArray(kernel.getDims());
-          indexMap.gradient(input.getData(), weightGradient.getData(), errorSignal.getData());
-          buffer.get(ConvolutionSynapseLayer.this, kernel).feed(weightGradient.getData());
+          java.util.stream.IntStream.range(0, inObj[0].data.length).forEach(dataIndex->{
+            final NDArray input = inObj[0].data[dataIndex];
+            final NDArray kernel = ConvolutionSynapseLayer.this.kernel;
+            final NDArray weightGradient = new NDArray(kernel.getDims());
+            indexMap.gradient(input.getData(), weightGradient.getData(), errorSignal[dataIndex].getData());
+            buffer.get(ConvolutionSynapseLayer.this, kernel).feed(weightGradient.getData());
+          });
         }
         if (inObj[0].isAlive()) {
-          final NDArray backprop = new NDArray(inputDims);
-          indexMap.backprop(backprop.getData(), ConvolutionSynapseLayer.this.kernel.getData(), errorSignal.getData());
-          inObj[0].accumulate(buffer, backprop);
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            final NDArray backprop = new NDArray(inputDims);
+            indexMap.backprop(backprop.getData(), ConvolutionSynapseLayer.this.kernel.getData(), errorSignal[dataIndex].getData());
+            return backprop;
+          }).toArray(i->new NDArray[i]);
+          inObj[0].accumulate(buffer, passbackA);
         }
       }
 

@@ -9,8 +9,6 @@ import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.activation.MaxConstLayer;
-import com.simiacryptus.mindseye.net.dev.MinMaxFilterLayer;
-import com.simiacryptus.mindseye.net.dev.ThresholdActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.EntropyLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
@@ -87,22 +85,6 @@ public class MediaComponentValidationTests {
     final NDArray outputPrototype = new NDArray(1, 1, 1);
     final NDArray inputPrototype = new NDArray(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new MaxSubsampleLayer(2, 2, 1);
-    test(component, outputPrototype, inputPrototype);
-  }
-
-  @org.junit.Test
-  public void testMinActivationLayer() throws Throwable {
-    final NDArray outputPrototype = new NDArray(3);
-    final NDArray inputPrototype = new NDArray(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new ThresholdActivationLayer();
-    test(component, outputPrototype, inputPrototype);
-  }
-
-  @org.junit.Test
-  public void testMinMaxLayer() throws Throwable {
-    final NDArray outputPrototype = new NDArray(2);
-    final NDArray inputPrototype = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new MinMaxFilterLayer();
     test(component, outputPrototype, inputPrototype);
   }
 

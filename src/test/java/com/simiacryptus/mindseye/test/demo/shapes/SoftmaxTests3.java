@@ -8,7 +8,6 @@ import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.dev.SynapseActivationLayer;
 import com.simiacryptus.mindseye.test.Tester;
 
 public class SoftmaxTests3 extends SimpleClassificationTests {
@@ -31,10 +30,8 @@ public class SoftmaxTests3 extends SimpleClassificationTests {
     }
 
     DAGNetwork outputLayer = new DAGNetwork();
-    outputLayer = outputLayer.add(new SynapseActivationLayer(NDArray.dim(midSize)));
     outputLayer = outputLayer.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
     outputLayer = outputLayer.add(new BiasLayer(outSize));
-    outputLayer = outputLayer.add(new SynapseActivationLayer(NDArray.dim(outSize)));
     net = net.add(outputLayer);
 
     // outputLayer = outputLayer.add(new ExpActivationLayer());

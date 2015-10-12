@@ -24,13 +24,15 @@ public class BasicComponentValidationTests {
 
   private static final Logger log = LoggerFactory.getLogger(BasicComponentValidationTests.class);
 
-  public static NDArray getFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray outputPrototype, final NDArray... inputPrototype) {
-    final NDArray gradient = new NDArray(inputPrototype[inputIndex].dim(), outputPrototype.dim());
+  public static NDArray[] getFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray outputPrototype, final NDArray... inputPrototype) {
+    final NDArray gradientA[] = java.util.stream.IntStream.range(0, 1)
+        .mapToObj(i->new NDArray(inputPrototype[inputIndex].dim(), outputPrototype.dim()))
+        .toArray(i->new NDArray[i]);
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
         @Override
-        public void accumulate(final DeltaSet buffer, final NDArray data) {
+        public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         }
 
         @Override
@@ -40,10 +42,13 @@ public class BasicComponentValidationTests {
       }).toArray(i -> new NNResult[i]);
       copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
         @Override
-        public void accumulate(final DeltaSet buffer, final NDArray data) {
-          for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
-            gradient.set(new int[] { i, j_ }, data.getData()[i]);
-          }
+        public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+          java.util.stream.IntStream.range(0, data.length).forEach(dataIndex->{
+            for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
+              gradientA[dataIndex].set(new int[] { i, j_ }, data[dataIndex].getData()[i]);
+            }
+            
+          });
         }
 
         @Override
@@ -51,9 +56,9 @@ public class BasicComponentValidationTests {
           return true;
         }
       };
-      component.eval(copyInput).accumulate(new DeltaSet(), new NDArray(outputPrototype.getDims()).set(j, 1));
+      component.eval(copyInput).accumulate(new DeltaSet());
     }
-    return gradient;
+    return gradientA;
   }
 
   private static NDArray getLearningGradient(final NNLayer<?> component, final int layerNum, final NDArray outputPrototype, final NDArray... inputPrototype) {
@@ -63,7 +68,7 @@ public class BasicComponentValidationTests {
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final DeltaSet buffer = new DeltaSet();
-      component.eval(inputPrototype).accumulate(buffer, new NDArray(outputPrototype.getDims()).set(j, 1));
+      component.eval(inputPrototype).accumulate(buffer);
       final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[] { i, j_ }, deltaFlushBuffer.getCalcVector()[i]);
@@ -118,7 +123,7 @@ public class BasicComponentValidationTests {
 
   public static void testFeedback(final NNLayer<?> component, final int i, final NDArray outputPrototype, final NDArray... inputPrototype) throws Throwable {
     final NDArray measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
-    final NDArray implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
+    final NDArray implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype)[0];
     for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
       try {
         org.junit.Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], 1e-4);

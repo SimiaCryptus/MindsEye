@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.net.media;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
@@ -110,43 +111,46 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final int kernelSize = new NDArray(this.kernelDims).dim();
-    final NDArray input = inObj[0].data;
-    final int[] inputDims = input.getDims();
-    final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
-      if(!(0 == inputDims[i] % this.kernelDims[i])){
-        assert(false);
+    final int[] inputDims = inObj[0].data[0].getDims();
+    int itemCnt = inObj[0].data.length;
+    final java.util.Map<Coordinate, List<int[]>> coordMapA[] = new Map[itemCnt];
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
+        if(!(0 == inputDims[i] % this.kernelDims[i])){
+          assert(false);
+        }
+        return inputDims[i] / this.kernelDims[i];
+      }).toArray();
+      final NDArray output = new NDArray(newDims);
+      final java.util.Map<Coordinate, List<int[]>> coordMap = getCoordMap(this.kernelDims, output.getDims());
+      for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
+        double sum = 0;
+        for (final int[] inputCoord : outputMapping.getValue()) {
+          sum += input.get(inputCoord);
+        }
+        if (Double.isFinite(sum)) {
+          output.add(outputMapping.getKey(), sum / kernelSize);
+        }
       }
-      return inputDims[i] / this.kernelDims[i];
-    }).toArray();
-    final NDArray output = new NDArray(newDims);
-    final java.util.Map<Coordinate, List<int[]>> coordMap = getCoordMap(this.kernelDims, output.getDims());
-    for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
-      double sum = 0;
-      for (final int[] inputCoord : outputMapping.getValue()) {
-        sum += input.get(inputCoord);
-      }
-      if (Double.isFinite(sum)) {
-        output.add(outputMapping.getKey(), sum / kernelSize);
-      }
-    }
-    return new NNResult(output) {
+      coordMapA[dataIndex] = coordMap;
+      return output;
+    }).toArray(i->new NDArray[i]);
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
-          final NDArray backSignal = new NDArray(inputDims);
-          for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
-            final double outputValue = data.get(outputMapping.getKey());
-            for (final int[] inputCoord : outputMapping.getValue()) {
-              backSignal.add(inputCoord, outputValue / kernelSize);
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            final NDArray backSignal = new NDArray(inputDims);
+            for (final Entry<Coordinate, List<int[]>> outputMapping : coordMapA[dataIndex].entrySet()) {
+              final double outputValue = data[dataIndex].get(outputMapping.getKey());
+              for (final int[] inputCoord : outputMapping.getValue()) {
+                backSignal.add(inputCoord, outputValue / kernelSize);
+              }
             }
-          }
-          // output.coordStream(false).forEach(o -> {
-          // double outV = output.get(o);
-          // getKernelInputCoords(o).forEach(i->{
-          // backSignal.add(i, outV/kernelSize);
-          // });
-          // });
-          inObj[0].accumulate(buffer, backSignal);
+            return backSignal;
+          }).toArray(i->new NDArray[i]);
+          inObj[0].accumulate(buffer, passbackA);
         }
       }
 
