@@ -47,13 +47,17 @@ public class BiasLayer extends NNLayer<BiasLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray r = inObj[0].data;
-    final NDArray translated = new NDArray(r.getDims(), add(r.getData()));
-    return new NNResult(translated) {
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final NDArray r = inObj[0].data[dataIndex];
+      return new NDArray(r.getDims(), add(r.getData()));
+    }).toArray(i->new NDArray[i]);
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (!isFrozen()) {
-          buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data.getData());
+          java.util.stream.IntStream.range(0, inObj[0].data.length).forEach(dataIndex->{
+            buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data[dataIndex].getData());
+          });
         }
         if (inObj[0].isAlive()) {
           inObj[0].accumulate(buffer, data);

@@ -29,29 +29,37 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray input = inObj[0].data;
-    final NDArray output = new NDArray(inObj[0].data.getDims());
-    final NDArray inputGradient = new NDArray(input.dim());
-    final double[] results = new double[2];
-    for (int i = 0; i < input.dim(); i++) {
-      eval(input.getData()[i], results);
-      inputGradient.set(i, results[1]);
-      output.set(i, results[0]);
-    }
-    return new NNResult(output) {
+    int itemCnt = inObj[0].data.length;
+    NDArray inputGradientA[] = new NDArray[itemCnt];
+    NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      final NDArray output = new NDArray(inObj[0].data[dataIndex].getDims());
+      final NDArray inputGradient = new NDArray(input.dim());
+      final double[] results = new double[2];
+      for (int i = 0; i < input.dim(); i++) {
+        eval(input.getData()[i], results);
+        inputGradient.set(i, results[1]);
+        output.set(i, results[0]);
+      }
+      return output;
+    }).toArray(i->new NDArray[i]);
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
-          final NDArray inputGradientLog = inputGradient;
-          final NDArray passback = new NDArray(data.getDims());
-          final double[] gradientData = inputGradientLog.getData();
-          IntStream.range(0, passback.dim()).forEach(i -> {
-            final double v = gradientData[i];
-            if (Double.isFinite(v)) {
-              passback.set(i, data.getData()[i] * v);
-            }
-          });
-          inObj[0].accumulate(buffer, passback);
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+            final NDArray inputGradientLog = inputGradientA[dataIndex];
+            final NDArray passback = new NDArray(data[dataIndex].getDims());
+            final double[] gradientData = inputGradientLog.getData();
+            IntStream.range(0, passback.dim()).forEach(i -> {
+              final double v = gradientData[i];
+              if (Double.isFinite(v)) {
+                passback.set(i, data[dataIndex].getData()[i] * v);
+              }
+            });
+            return passback;
+          }).toArray(i->new NDArray[i]);
+          inObj[0].accumulate(buffer, passbackA);
         }
       }
 

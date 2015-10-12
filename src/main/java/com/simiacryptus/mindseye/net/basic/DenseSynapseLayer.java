@@ -21,27 +21,30 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray data, final NNResult inObj) {
-      super(data);
+    private Result(final NDArray[] outputA, final NNResult inObj) {
+      super(outputA);
       this.inObj = inObj;
     }
 
-    private NDArray backprop(final NDArray delta, final DeltaSet buffer) {
-      final double[] deltaData = delta.getData();
-      final NDArray r = DenseSynapseLayer.this.weights;
-      final DoubleMatrix matrix = new DoubleMatrix(r.getDims()[1], r.getDims()[0], r.getData());
-      final NDArray passback = new NDArray(this.inObj.data.getDims());
-      for (int i = 0; i < matrix.columns; i++) {
-        for (int j = 0; j < matrix.rows; j++) {
-          passback.add(i, deltaData[j] * matrix.get(j, i));
+    private NDArray[] backprop(final NDArray[] delta, final DeltaSet buffer) {
+      NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).mapToObj(dataIndex->{
+        final double[] deltaData = delta[dataIndex].getData();
+        final NDArray r = DenseSynapseLayer.this.weights;
+        final DoubleMatrix matrix = new DoubleMatrix(r.getDims()[1], r.getDims()[0], r.getData());
+        final NDArray passback = new NDArray(this.inObj.data[dataIndex].getDims());
+        for (int i = 0; i < matrix.columns; i++) {
+          for (int j = 0; j < matrix.rows; j++) {
+            passback.add(i, deltaData[j] * matrix.get(j, i));
+          }
         }
-      }
-      this.inObj.accumulate(buffer, passback);
-      return passback;
+        return passback;
+      }).toArray(i->new NDArray[i]);
+      this.inObj.accumulate(buffer, passbackA);
+      return passbackA;
     }
 
     @Override
-    public void accumulate(final DeltaSet buffer, final NDArray delta) {
+    public void accumulate(final DeltaSet buffer, final NDArray[] delta) {
       if (!isFrozen()) {
         learn(delta, buffer);
       }
@@ -55,11 +58,13 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
       return this.inObj.isAlive() || !isFrozen();
     }
 
-    private void learn(final NDArray delta, final DeltaSet buffer) {
-      final double[] deltaData = delta.getData();
-      final double[] inputData = this.inObj.data.getData();
-      final NDArray weightDelta = multiply(deltaData, inputData);
-      buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.getData());
+    private void learn(final NDArray[] delta, final DeltaSet buffer) {
+      java.util.stream.IntStream.range(0, inObj.data.length).forEach(dataIndex->{
+        final double[] deltaData = delta[dataIndex].getData();
+        final double[] inputData = this.inObj.data[dataIndex].getData();
+        final NDArray weightDelta = multiply(deltaData, inputData);
+        buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.getData());
+      });
     }
 
   }
@@ -121,9 +126,11 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray input = inObj[0].data;
-    final NDArray output = multiply2(this.weights.getData(), input.getData());
-    return new Result(output, inObj[0]);
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      return multiply2(this.weights.getData(), input.getData());
+    }).toArray(i->new NDArray[i]);
+    return new Result(outputA, inObj[0]);
   }
 
   @Override

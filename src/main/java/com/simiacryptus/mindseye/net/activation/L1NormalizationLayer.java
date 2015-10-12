@@ -22,27 +22,39 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray input = inObj[0].data;
-    final double sum = input.sum();
-    final boolean isZeroInput = sum == 0.;
-    final NDArray output = input.map(x -> isZeroInput ? x : x / sum);
+    int itemCnt = inObj[0].data.length;
+    double[] sum_A = new double[itemCnt];
+    final NDArray inputA[] = new NDArray[itemCnt];
+    final boolean isZeroInputA[] = new boolean[itemCnt];
+    NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      final double sum = input.sum();
+      sum_A[dataIndex] = sum;
+      final boolean isZeroInput = sum == 0.;
+      isZeroInputA[dataIndex] = isZeroInput;
+      return input.map(x -> isZeroInput ? x : x / sum);
+    }).toArray(i->new NDArray[i]);
 
-    return new NNResult(output) {
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
-          final double[] delta = Arrays.copyOf(data.getData(), data.getData().length);
-          final double[] indata = input.getData();
-          final NDArray passback = new NDArray(data.getDims());
-          double dot = 0;
-          for (int i = 0; i < indata.length; i++) {
-            dot += delta[i] * indata[i];
-          }
-          for (int i = 0; i < indata.length; i++) {
-            final double d = delta[i];
-            passback.set(i, isZeroInput ? d : (d * sum - dot) / (sum * sum));
-          }
-          inObj[0].accumulate(buffer, passback);
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+            final double[] delta = Arrays.copyOf(data[dataIndex].getData(), data[dataIndex].getData().length);
+            final double[] indata = inputA[dataIndex].getData();
+            final NDArray passback = new NDArray(data[dataIndex].getDims());
+            double dot = 0;
+            for (int i = 0; i < indata.length; i++) {
+              dot += delta[i] * indata[i];
+            }
+            for (int i = 0; i < indata.length; i++) {
+              final double d = delta[i];
+              double sum = sum_A[dataIndex];
+              passback.set(i, isZeroInputA[dataIndex] ? d : (d * sum - dot) / (sum * sum));
+            }
+            return passback;
+          }).toArray(i->new NDArray[i]);
+          inObj[0].accumulate(buffer, passbackA);
         }
       }
 

@@ -25,33 +25,40 @@ public class EntropyLossLayer extends NNLayer<EntropyLossLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray l = inObj[0].data;
-    final NDArray b = inObj[1].data;
-    final NDArray gradient = new NDArray(l.getDims());
-    final double[] gradientData = gradient.getData();
-    final double descriptiveNats;
-    {
-      double total = 0;
-      for (int i = 0; i < l.dim(); i++) {
-        final double ad = Math.max(Math.min(l.getData()[i], 1.), 1e-12);
-        final double bd = b.getData()[i];
-        gradientData[i] = -bd / ad;
-        total += -bd * Math.log(ad);
+    NDArray gradientA[] = new NDArray[inObj[0].data.length];
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final NDArray l = inObj[0].data[dataIndex];
+      final NDArray b = inObj[1].data[dataIndex];
+      final NDArray gradient = new NDArray(l.getDims());
+      gradientA[dataIndex] = gradient;
+      final double[] gradientData = gradient.getData();
+      final double descriptiveNats;
+      {
+        double total = 0;
+        for (int i = 0; i < l.dim(); i++) {
+          final double ad = Math.max(Math.min(l.getData()[i], 1.), 1e-12);
+          final double bd = b.getData()[i];
+          gradientData[i] = -bd / ad;
+          total += -bd * Math.log(ad);
+        }
+        descriptiveNats = total;
       }
-      descriptiveNats = total;
-    }
-
-    final NDArray output = new NDArray(new int[] { 1 }, new double[] { descriptiveNats });
-    return new NNResult(output) {
+      
+      return new NDArray(new int[] { 1 }, new double[] { descriptiveNats });
+    }).toArray(i->new NDArray[i]);
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          final NDArray passback = new NDArray(gradient.getDims());
-          for (int i = 0; i < l.dim(); i++) {
-            passback.set(i, data.get(0) * gradient.get(i));
-          }
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            final NDArray passback = new NDArray(gradientA[dataIndex].getDims());
+            for (int i = 0; i < inObj[0].data[0].dim(); i++) {
+              passback.set(i, data[dataIndex].get(0) * gradientA[dataIndex].get(i));
+            }
+            return passback;
+          }).toArray(i->new NDArray[i]);
           if (inObj[0].isAlive()) {
-            inObj[0].accumulate(buffer, passback);
+            inObj[0].accumulate(buffer, passbackA);
           }
           if (inObj[1].isAlive())
             throw new RuntimeException();

@@ -25,32 +25,39 @@ public class SqLossLayer extends NNLayer<SqLossLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray a = inObj[0].data;
-    final NDArray b = inObj[1].data;
-    final NDArray r = new NDArray(a.getDims());
-    double total = 0;
-    for (int i = 0; i < a.dim(); i++) {
-      final double x = a.getData()[i] - b.getData()[i];
-      r.getData()[i] = x;
-      total += x * x;
-    }
-    final double rms = total / a.dim();
-    final NDArray output = new NDArray(new int[] { 1 }, new double[] { rms });
-    return new NNResult(output) {
+    NDArray rA[] = new NDArray[inObj[0].data.length];
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final NDArray a = inObj[0].data[dataIndex];
+      final NDArray b = inObj[1].data[dataIndex];
+      final NDArray r = new NDArray(a.getDims());
+      double total = 0;
+      for (int i = 0; i < a.dim(); i++) {
+        final double x = a.getData()[i] - b.getData()[i];
+        r.getData()[i] = x;
+        total += x * x;
+      }
+      rA[dataIndex] = r;
+      final double rms = total / a.dim();
+      return new NDArray(new int[] { 1 }, new double[] { rms });
+    }).toArray(i->new NDArray[i]);
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          final NDArray passback = new NDArray(r.getDims());
-          final int adim = a.dim();
-          final double data0 = data.get(0);
-          for (int i = 0; i < adim; i++) {
-            passback.set(i, data0 * r.get(i) * 2 / adim);
-          }
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            final NDArray passback = new NDArray(inObj[0].data[0].getDims());
+            final int adim = passback.dim();
+            final double data0 = data[dataIndex].get(0);
+            for (int i = 0; i < adim; i++) {
+              passback.set(i, data0 * rA[dataIndex].get(i) * 2 / adim);
+            }
+            return passback;
+          }).toArray(i->new NDArray[i]);
           if (inObj[0].isAlive()) {
-            inObj[0].accumulate(buffer, passback);
+            inObj[0].accumulate(buffer, passbackA);
           }
           if (inObj[1].isAlive()) {
-            inObj[1].accumulate(buffer, passback.scale(-1));
+            inObj[1].accumulate(buffer, java.util.Arrays.stream(passbackA).map(x->x.scale(-1)).toArray(i->new NDArray[i]));
           }
         }
       }

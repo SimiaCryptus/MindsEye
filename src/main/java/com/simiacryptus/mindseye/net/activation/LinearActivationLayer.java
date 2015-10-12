@@ -20,31 +20,37 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray data, final NNResult inObj) {
-      super(data);
+    private Result(final NDArray[] outputA, final NNResult inObj) {
+      super(outputA);
       this.inObj = inObj;
     }
 
     @Override
-    public void accumulate(final DeltaSet buffer, final NDArray delta) {
-      final double[] deltaData = delta.getData();
+    public void accumulate(final DeltaSet buffer, final NDArray[] delta) {
 
       if (!isFrozen()) {
-        final double[] inputData = this.inObj.data.getData();
-        final NDArray weightDelta = new NDArray(LinearActivationLayer.this.weights.getDims());
-        for (int i = 0; i < deltaData.length; i++) {
-          weightDelta.add(0, deltaData[i] * inputData[i]);
-        }
-        buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).feed(weightDelta.getData());
+        java.util.stream.IntStream.range(0, delta.length).forEach(dataIndex->{
+          final double[] deltaData = delta[dataIndex].getData();
+          final double[] inputData = this.inObj.data[dataIndex].getData();
+          final NDArray weightDelta = new NDArray(LinearActivationLayer.this.weights.getDims());
+          for (int i = 0; i < deltaData.length; i++) {
+            weightDelta.add(0, deltaData[i] * inputData[i]);
+          }
+          buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).feed(weightDelta.getData());
+        });
       }
       if (this.inObj.isAlive()) {
-        final DoubleMatrix matrix = LinearActivationLayer.this.weights.asRowMatrix();
-        final int[] dims = this.inObj.data.getDims();
-        final NDArray passback = new NDArray(dims);
-        for (int i = 0; i < passback.dim(); i++) {
-          passback.set(i, deltaData[i] * matrix.get(0, 0));
-        }
-        this.inObj.accumulate(buffer, passback);
+        NDArray[] passbackA = java.util.stream.IntStream.range(0, delta.length).mapToObj(dataIndex->{
+          final double[] deltaData = delta[dataIndex].getData();
+          final DoubleMatrix matrix = LinearActivationLayer.this.weights.asRowMatrix();
+          final int[] dims = this.inObj.data[dataIndex].getDims();
+          final NDArray passback = new NDArray(dims);
+          for (int i = 0; i < passback.dim(); i++) {
+            passback.set(i, deltaData[i] * matrix.get(0, 0));
+          }
+          return passback;
+        }).toArray(i->new NDArray[i]);
+        this.inObj.accumulate(buffer, passbackA);
       }
     }
 
@@ -78,17 +84,21 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray input = inObj[0].data;
-    final NDArray output = new NDArray(input.getDims());
-    IntStream.range(0, input.dim()).forEach(i -> {
-      final double a = this.weights.get(0);
-      final double b = input.getData()[i];
-      final double value = b * a;
-      if (Double.isFinite(value)) {
-        output.add(i, value);
-      }
-    });
-    return new Result(output, inObj[0]);
+    int itemCnt = inObj[0].data.length;
+    NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      final NDArray output = new NDArray(input.getDims());
+      IntStream.range(0, input.dim()).forEach(i -> {
+        final double a = this.weights.get(0);
+        final double b = input.getData()[i];
+        final double value = b * a;
+        if (Double.isFinite(value)) {
+          output.add(i, value);
+        }
+      });
+      return output;
+    }).toArray(i->new NDArray[i]);
+    return new Result(outputA, inObj[0]);
   }
 
   @Override

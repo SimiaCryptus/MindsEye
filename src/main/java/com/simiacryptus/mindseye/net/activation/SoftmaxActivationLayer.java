@@ -29,45 +29,58 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final NDArray input = inObj[0].data;
-    assert 1 < input.dim();
+    int itemCnt = inObj[0].data.length;
+    double[] sumA = new double[itemCnt];
+    final NDArray expA[] = new NDArray[itemCnt];
+    NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      assert 1 < input.dim();
+      
+      final NDArray exp;
+      {
+        final DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
+        final double max = summaryStatistics.getMax();
+        final double min = summaryStatistics.getMin();
+        exp = inObj[0].data[dataIndex].map(x -> {
+          return Double.isFinite(x) ? x : min;
+        }).map(x -> Math.exp(x - max));
+      }
+      
+      final double sum = exp.sum();
+      assert 0. < sum;
+      expA[dataIndex] = exp;
+      sumA[dataIndex] = sum;
+      return exp.map(x -> x / sum);
+    }).toArray(i->new NDArray[i]);
 
-    final NDArray exp;
-    {
-      final DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
-      final double max = summaryStatistics.getMax();
-      final double min = summaryStatistics.getMin();
-      exp = inObj[0].data.map(x -> {
-        return Double.isFinite(x) ? x : min;
-      }).map(x -> Math.exp(x - max));
-    }
-
-    final double sum = exp.sum();
-    assert 0. < sum;
-    final NDArray output = exp.map(x -> x / sum);
-    return new NNResult(output) {
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
-          final double[] delta = data.getData();
-          new NDArray(input.dim(), input.dim());
-          final double[] expdata = exp.getData();
-          final NDArray passback = new NDArray(data.getDims());
-          final int dim = expdata.length;
-          for (int i = 0; i < dim; i++) {
-            for (int j = 0; j < dim; j++) {
-              double value = 0;
-              if (i == j) {
-                value = expdata[i] * (sum - expdata[i]) / (sum * sum);
-              } else {
-                value = -(expdata[i] * expdata[j]) / (sum * sum);
-              }
-              if (Double.isFinite(value)) {
-                passback.add(i, delta[j] * value);
+          NDArray[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+            final NDArray input = inObj[0].data[dataIndex];
+            final double[] delta = data[dataIndex].getData();
+            new NDArray(input.dim(), input.dim());
+            final double[] expdata = expA[dataIndex].getData();
+            final NDArray passback = new NDArray(data[dataIndex].getDims());
+            final int dim = expdata.length;
+            for (int i = 0; i < dim; i++) {
+              for (int j = 0; j < dim; j++) {
+                double value = 0;
+                double sum = sumA[dataIndex];
+                if (i == j) {
+                  value = expdata[i] * (sum - expdata[i]) / (sum * sum);
+                } else {
+                  value = -(expdata[i] * expdata[j]) / (sum * sum);
+                }
+                if (Double.isFinite(value)) {
+                  passback.add(i, delta[j] * value);
+                }
               }
             }
-          }
-          inObj[0].accumulate(buffer, passback);
+            return passback;
+          }).toArray(i->new NDArray[i]);
+          inObj[0].accumulate(buffer, passbackA);
         }
       }
 
