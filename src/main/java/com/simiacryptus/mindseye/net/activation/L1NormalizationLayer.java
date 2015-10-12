@@ -32,6 +32,7 @@ public class L1NormalizationLayer extends NNLayer<L1NormalizationLayer> {
       sum_A[dataIndex] = sum;
       final boolean isZeroInput = sum == 0.;
       isZeroInputA[dataIndex] = isZeroInput;
+      inputA[dataIndex] = input;
       return input.map(x -> isZeroInput ? x : x / sum);
     }).toArray(i->new NDArray[i]);
 
