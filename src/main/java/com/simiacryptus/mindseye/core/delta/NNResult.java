@@ -12,7 +12,7 @@ public abstract class NNResult {
     return new NNResult(sums) {
 
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         a.accumulate(buffer, data);
         b.accumulate(buffer, data);
       }
@@ -32,8 +32,8 @@ public abstract class NNResult {
     return new NNResult(sums) {
 
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
-        eval.accumulate(buffer, data.scale(d));
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+        eval.accumulate(buffer, java.util.Arrays.stream(data).map(x->x.scale(d)).toArray(i->new NDArray[i]));
       }
 
       @Override
@@ -51,10 +51,10 @@ public abstract class NNResult {
   }
 
   public final void accumulate(DeltaSet buffer) {
-    accumulate(buffer, new NDArray(data[0].getDims()).fill(()->1.));
+    accumulate(buffer, new NDArray[]{new NDArray(data[0].getDims()).fill(()->1.)});
   }
 
-  public abstract void accumulate(DeltaSet buffer, final NDArray data);
+  public abstract void accumulate(DeltaSet buffer, final NDArray[] data);
 
   public abstract boolean isAlive();
 

@@ -25,25 +25,32 @@ public class SumLayer extends NNLayer<SumLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    double sum = 0;
-    for (final NNResult element : inObj) {
-      final double[] input = element.data.getData();
-      for (final double element2 : input) {
-        sum += element2;
+    double[] sum_A = new double[inObj[0].data.length];
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      double sum = 0;
+      for (final NNResult element : inObj) {
+        final double[] input = element.data[dataIndex].getData();
+        for (final double element2 : input) {
+          sum += element2;
+        }
       }
-    }
-    final NDArray output = new NDArray(new int[] { 1 }, new double[] { sum });
-    return new NNResult(output) {
+      sum_A[dataIndex] = sum;
+      return new NDArray(new int[] { 1 }, new double[] { sum });
+    }).toArray(i->new NDArray[i]);
+    return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray data) {
-        final double delta = data.get(0);
+      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            final NDArray passback = new NDArray(in_l.data.getDims());
-            for (int i = 0; i < in_l.data.dim(); i++) {
-              passback.set(i, delta);
-            }
-            in_l.accumulate(buffer, passback);
+            NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+              final double delta = data[dataIndex].get(0);
+              final NDArray passback = new NDArray(in_l.data[dataIndex].getDims());
+              for (int i = 0; i < in_l.data[dataIndex].dim(); i++) {
+                passback.set(i, delta);
+              }
+              return passback;
+            }).toArray(i->new NDArray[i]);
+            in_l.accumulate(buffer, passbackA);
           }
         }
       }
