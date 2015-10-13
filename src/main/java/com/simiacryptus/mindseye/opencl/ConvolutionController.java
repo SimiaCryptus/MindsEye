@@ -5,46 +5,11 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amd.aparapi.Kernel;
-import com.amd.aparapi.Kernel.EXECUTION_MODE;
-import com.amd.aparapi.device.Device.TYPE;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 
 public final class ConvolutionController {
+  private static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
   
-  static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
-  
-  private static final ResourcePool<com.amd.aparapi.device.Device> range = new ResourcePool<com.amd.aparapi.device.Device>(16) {
-    @Override
-    public com.amd.aparapi.device.Device create() {
-      com.amd.aparapi.device.Device openclDevice;
-      if (getExecutionMode() == EXECUTION_MODE.CPU) {
-        openclDevice = com.amd.aparapi.device.Device.firstCPU();
-      } else if (getExecutionMode() == EXECUTION_MODE.ACC) {
-        openclDevice = com.amd.aparapi.device.Device.firstACC();
-      } else if (getExecutionMode() == EXECUTION_MODE.GPU) {
-        openclDevice = com.amd.aparapi.device.Device.bestGPU();
-      } else {
-        openclDevice = com.amd.aparapi.device.Device.first(TYPE.SEQ);
-        if (null == openclDevice) {
-          openclDevice = com.amd.aparapi.device.Device.firstCPU();
-          openclDevice.setType(TYPE.SEQ);
-        }
-      }
-      return openclDevice;
-    }
-  };
-
-  public static EXECUTION_MODE getExecutionMode() {
-    return EXECUTION_MODE.CPU;
-  }
-
-  public static Kernel init(final com.amd.aparapi.Kernel kernel) {
-    kernel.setExecutionMode(EXECUTION_MODE.CPU);
-    kernel.addExecutionModes(EXECUTION_MODE.CPU, EXECUTION_MODE.GPU, EXECUTION_MODE.SEQ);
-    return kernel;
-  }
-
   private int[] inputSize;
   private int[] kernelSize;
   private int[] outputSize;
@@ -74,7 +39,7 @@ public final class ConvolutionController {
       backpropTask.put(backpropTask.kernelSize);
       backpropTask.put(backpropTask.weights);
       backpropTask.put(backpropTask.output);
-      range.with(range -> backpropTask.exe(range));
+      OpenCL.range.with(range -> backpropTask.exe(range));
       backpropTask.get(backpropTask.input);
     });
   }
@@ -93,7 +58,7 @@ public final class ConvolutionController {
       convolveTask.put(convolveTask.kernelSize);
       convolveTask.put(convolveTask.input);
       convolveTask.put(convolveTask.weights);
-      range.with(range -> convolveTask.exe(range));
+      OpenCL.range.with(range -> convolveTask.exe(range));
       convolveTask.get(convolveTask.output);
     });
   }
@@ -111,7 +76,7 @@ public final class ConvolutionController {
       kernelTask.put(kernelTask.kernelSize);
       kernelTask.put(kernelTask.input);
       kernelTask.put(kernelTask.output);
-      range.with(range -> kernelTask.exe(range));
+      OpenCL.range.with(range -> kernelTask.exe(range));
       kernelTask.get(kernelTask.weights);
     });
   }

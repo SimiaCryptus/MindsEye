@@ -1,6 +1,10 @@
 package com.simiacryptus.mindseye.opencl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class ConvolveKernel extends com.amd.aparapi.Kernel {
+  static final Logger log = LoggerFactory.getLogger(ConvolveKernel.class);
 
   private static final boolean DEBUG = false;
   double[] input;
@@ -13,7 +17,7 @@ public final class ConvolveKernel extends com.amd.aparapi.Kernel {
     @Override
     public ConvolveKernel create() {
       final ConvolveKernel convolveTask = new ConvolveKernel();
-      ConvolutionController.init(convolveTask);
+      OpenCL.init(convolveTask);
       convolveTask.setExplicit(true);
       return convolveTask;
     }
@@ -78,8 +82,8 @@ public final class ConvolveKernel extends com.amd.aparapi.Kernel {
 
       accum += this.input[i] * this.weights[k];
       if (DEBUG) {
-        ConvolutionController.log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s)[%s,%s,%s]", o, accum, i, this.input[i], k, this.weights[k], k1, k2, k3));
-        ConvolutionController.log.debug(String.format("k=[%s,%s,%s] i=[%s,%s,%s] o=[%s,%s,%s]", k1, k2, k3, i1, i2, i3, o1, o2, o3));
+        log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s)[%s,%s,%s]", o, accum, i, this.input[i], k, this.weights[k], k1, k2, k3));
+        log.debug(String.format("k=[%s,%s,%s] i=[%s,%s,%s] o=[%s,%s,%s]", k1, k2, k3, i1, i2, i3, o1, o2, o3));
       }
     }
     return accum;

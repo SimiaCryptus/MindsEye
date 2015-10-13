@@ -14,6 +14,7 @@ import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.DenseSynapseLayerGPU;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.net.reducers.ProductLayer;
@@ -168,6 +169,14 @@ public class BasicComponentValidationTests {
     final NDArray outputPrototype = new NDArray(2);
     final NDArray inputPrototype = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testDenseSynapseLayerGPU1() throws Throwable {
+    final NDArray outputPrototype = new NDArray(2);
+    final NDArray inputPrototype = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new DenseSynapseLayerGPU(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 

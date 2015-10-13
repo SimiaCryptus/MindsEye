@@ -11,7 +11,7 @@ public final class GradientKernel extends com.amd.aparapi.Kernel {
     @Override
     public GradientKernel create() {
       final GradientKernel kernelTask = new GradientKernel();
-      ConvolutionController.init(kernelTask);
+      OpenCL.init(kernelTask);
       kernelTask.setExplicit(true);
       return kernelTask;
     }

@@ -1,6 +1,10 @@
 package com.simiacryptus.mindseye.opencl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class BackpropKernel extends com.amd.aparapi.Kernel {
+  static final Logger log = LoggerFactory.getLogger(BackpropKernel.class);
 
   private static final boolean DEBUG = false;
   double[] input;
@@ -13,7 +17,7 @@ public final class BackpropKernel extends com.amd.aparapi.Kernel {
     @Override
     public BackpropKernel create() {
       final BackpropKernel backpropTask = new BackpropKernel();
-      ConvolutionController.init(backpropTask);
+      OpenCL.init(backpropTask);
       backpropTask.setExplicit(true);
       return backpropTask;
     }
@@ -82,8 +86,8 @@ public final class BackpropKernel extends com.amd.aparapi.Kernel {
 
       accum += this.output[o] * this.weights[k];
       if (DEBUG) {
-        ConvolutionController.log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s) [%s,%s,%s]", i, accum, o, this.output[o], k, this.weights[k], k1, k2, k3));
-        ConvolutionController.log.debug(String.format("k=[%s,%s,%s]  i=[%s,%s,%s]  o=[%s,%s,%s]", k1, k2, k3, i1, i2, i3, o1, o2, o3));
+        log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s) [%s,%s,%s]", i, accum, o, this.output[o], k, this.weights[k], k1, k2, k3));
+        log.debug(String.format("k=[%s,%s,%s]  i=[%s,%s,%s]  o=[%s,%s,%s]", k1, k2, k3, i1, i2, i3, o1, o2, o3));
       }
     }
     return accum;
