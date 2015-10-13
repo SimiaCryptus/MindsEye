@@ -37,7 +37,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     final int[] inputSize = new int[] { 28, 28, 1 };
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize));
+    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setWeights(()->Util.R.get().nextGaussian()*0.));
     net = net.add(new BiasLayer(outSize));
     // net = net.add(new MinMaxFilterLayer());
     net = net.add(new SoftmaxActivationLayer());

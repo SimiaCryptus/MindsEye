@@ -120,7 +120,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
     setWeights(() -> {
       double ratio = Math.sqrt(6. / (inputs + outs));
       double fate = Util.R.get().nextDouble();
-      double v = (1 - 2. * fate) * ratio;
+      double v = (1 - 2 * fate) * ratio;
       return v;
     });
   }

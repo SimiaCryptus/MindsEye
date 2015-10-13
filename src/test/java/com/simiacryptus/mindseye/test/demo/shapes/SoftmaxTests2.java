@@ -139,7 +139,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     final Tester trainer = buildTrainer(trainingsamples, net);
     trainer.handler.add(resultHandler);
     trainer.setVerbose(true);
-    trainer.verifyConvergence(0.01, 10);
+    trainer.verifyConvergence(0.01, 1);
   }
 
 }
