@@ -187,10 +187,6 @@ public abstract class ClassificationTestBase {
     trainer.verifyConvergence(0.0, 1);
   }
 
-  public void verify(final Tester trainer) {
-    trainer.verifyConvergence(0.0, 10);
-  }
-
   public int width() {
     return 500;
   }

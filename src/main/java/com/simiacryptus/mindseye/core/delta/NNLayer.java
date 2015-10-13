@@ -3,8 +3,6 @@ package com.simiacryptus.mindseye.core.delta;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
-
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;

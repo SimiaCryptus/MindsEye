@@ -8,22 +8,12 @@ import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 
 public class DynamicRateTrainer implements TrainingComponent {
-  private static class UniformAdaptiveRateParams {
-    public final double alpha;
-    public final double beta;
-    public final double endRate;
-    public final double startRate;
-
-    public UniformAdaptiveRateParams(final double startRate, final double endRate, final double alpha, final double beta) {
-      this.endRate = endRate;
-      this.alpha = alpha;
-      this.beta = beta;
-      this.startRate = startRate;
-    }
-  }
-
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
 
+  public double alpha = 2.;
+  public double beta= 3.;
+  public double endRate = 1e-9;
+  public double startRate = 0.1;
   private long etaSec = Long.MAX_VALUE;
   private final RateTrainingComponent inner;
   private double maxRate = 10000;
@@ -103,13 +93,9 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   @Override
   public TrainingStep step(final TrainingContext trainingContext) {
-    return train(trainingContext, new UniformAdaptiveRateParams(0.1, 1e-9, 2., 3.));
-  }
-
-  private TrainingStep train(final TrainingContext trainingContext, final UniformAdaptiveRateParams params) {
-    double prevError = getError();
     final TrainingComponent gradientDescentTrainer = this.inner;
-    double rate = params.startRate;
+    double prevError = getError();
+    double rate = startRate;
     while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > trainingContext.terminalErr) {
       this.inner.setRate(rate);
       final TrainingStep step = gradientDescentTrainer.step(trainingContext);
@@ -126,7 +112,7 @@ public class DynamicRateTrainer implements TrainingComponent {
         log.debug(String.format("TERMINAL Final err: %s", step));
       }
       if (step.getStartError() < step.testError) {
-        rate /= Math.pow(params.alpha, params.beta);
+        rate /= Math.pow(alpha, beta);
       } else {
         if (rate > this.maxRate) {
           if (isVerbose()) {
@@ -134,10 +120,10 @@ public class DynamicRateTrainer implements TrainingComponent {
             // break;
           }
         } else {
-          rate *= params.alpha;
+          rate *= alpha;
         }
       }
-      if (rate < params.endRate) {
+      if (rate < endRate) {
         if (isVerbose()) {
         }
         log.debug(String.format("TERMINAL rate underflow: %s", rate));

@@ -99,10 +99,10 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
     return 2.;
   }
 
-  @Override
-  public void verify(final Tester trainer) {
-    trainer.verifyConvergence(0.05, 1);
-  }
+//  @Override
+//  public void verify(final Tester trainer) {
+//    trainer.verifyConvergence(0.05, 1);
+//  }
 
   @Override
   public int width() {

@@ -133,6 +133,8 @@ public class TrainingContext {
     builder.append(this.mutations);
     builder.append(", gradientSteps=");
     builder.append(this.gradientSteps);
+    builder.append(", terminalErr=");
+    builder.append(this.terminalErr);
     builder.append("]");
     return builder.toString();
   }

@@ -14,7 +14,6 @@ import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -248,8 +247,8 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       return new TrainingStep(result.prevError, result.finalError, false);
     } else if (!Util.thermalStep(result.prevError, result.finalError, getTemperature())) {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s (rate %s)", //
-            result.prevError, result.finalError, result.finalError - result.prevError, getRate()));
+        GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s (rate %s) - %s", //
+            result.prevError, result.finalError, result.finalError - result.prevError, getRate(), trainingContext));
       }
       result.revert();
       return new TrainingStep(result.prevError, result.finalError, false);
@@ -257,8 +256,8 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       setError(result.finalError);
       trainingContext.gradientSteps.increment();
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items", //
-            (System.currentTimeMillis() - startMs) / 1000., result.finalError, getRate(), Math.min(getTrainingSize(), trainingData.length)));
+        GradientDescentTrainer.log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items - %s", //
+            (System.currentTimeMillis() - startMs) / 1000., result.finalError, getRate(), Math.min(getTrainingSize(), trainingData.length), trainingContext));
       }
       return new TrainingStep(result.prevError, result.finalError, true);
     }

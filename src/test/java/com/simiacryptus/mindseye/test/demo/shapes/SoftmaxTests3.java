@@ -8,7 +8,6 @@ import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.test.Tester;
 
 public class SoftmaxTests3 extends SimpleClassificationTests {
 
@@ -109,10 +108,10 @@ public class SoftmaxTests3 extends SimpleClassificationTests {
     super.test_xor();
   }
 
-  @Override
-  public void verify(final Tester trainer) {
-    // trainer.setVerbose(true).verifyConvergence(0, 0.0, 1);
-    trainer.verifyConvergence(0.0, 5);
-  }
+//  @Override
+//  public void verify(final Tester trainer) {
+//    // trainer.setVerbose(true).verifyConvergence(0, 0.0, 1);
+//    trainer.verifyConvergence(0.0, 5);
+//  }
 
 }

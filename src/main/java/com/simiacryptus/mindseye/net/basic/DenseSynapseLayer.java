@@ -29,7 +29,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
     private NDArray[] backprop(final NDArray[] delta, final DeltaSet buffer) {
       NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
-        final NDArray r = DenseSynapseLayer.this.weights;
+        final NDArray r = DenseSynapseLayer.this.getWeights();
         final DoubleMatrix matrix = new DoubleMatrix(r.getDims()[1], r.getDims()[0], r.getData());
         final NDArray passback = new NDArray(this.inObj.data[dataIndex].getDims());
         for (int i = 0; i < matrix.columns; i++) {
@@ -63,7 +63,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
         final double[] deltaData = delta[dataIndex].getData();
         final double[] inputData = this.inObj.data[dataIndex].getData();
         final NDArray weightDelta = multiply(deltaData, inputData);
-        buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.weights).feed(weightDelta.getData());
+        buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.getWeights()).feed(weightDelta.getData());
       });
     }
 
@@ -105,7 +105,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
   public final int[] outputDims;
 
-  public final NDArray weights;
+  private final NDArray weights;
 
   protected DenseSynapseLayer() {
     super();
@@ -116,11 +116,17 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   public DenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
-    setWeights(() -> (1 - 2 * Util.R.get().nextDouble()) * Math.sqrt(6 / (inputs + NDArray.dim(outputDims))));
+    int outs = NDArray.dim(outputDims);
+    setWeights(() -> {
+      double ratio = Math.sqrt(6. / (inputs + outs));
+      double fate = Util.R.get().nextDouble();
+      double v = (1 - 2. * fate) * ratio;
+      return v;
+    });
   }
 
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.weights.getData());
+    Util.add(f, this.getWeights().getData());
     return this;
   }
 
@@ -128,7 +134,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   public NNResult eval(final NNResult... inObj) {
     NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex->{
       final NDArray input = inObj[0].data[dataIndex];
-      return multiply2(this.weights.getData(), input.getData());
+      return multiply2(this.getWeights().getData(), input.getData());
     }).toArray(i->new NDArray[i]);
     return new Result(outputA, inObj[0]);
   }
@@ -136,7 +142,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
-    json.addProperty("weights", this.weights.toString());
+    json.addProperty("weights", this.getWeights().toString());
     return json;
   }
 
@@ -169,7 +175,11 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.weights.getData());
+    return Arrays.asList(this.getWeights().getData());
+  }
+
+  public NDArray getWeights() {
+    return weights;
   }
 
 }

@@ -19,7 +19,6 @@ import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerGPU;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
@@ -147,10 +146,10 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     return data;
   }
 
-  @Override
-  public void verify(final Tester trainer) {
-    trainer.verifyConvergence(0.00001, 1);
-  }
+//  @Override
+//  public void verify(final Tester trainer) {
+//    trainer.verifyConvergence(0.00001, 1);
+//  }
 
   public static int toOut(final String label) {
     for (int i = 0; i < 10; i++) {

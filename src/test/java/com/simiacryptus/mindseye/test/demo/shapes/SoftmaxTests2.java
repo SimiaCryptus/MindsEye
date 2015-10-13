@@ -1,6 +1,9 @@
 package com.simiacryptus.mindseye.test.demo.shapes;
 
+import java.util.function.BiFunction;
+
 import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
@@ -130,12 +133,12 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     super.test_xor();
   }
 
+
   @Override
-  public void verify(final Tester trainer) {
+  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+    final Tester trainer = buildTrainer(trainingsamples, net);
+    trainer.handler.add(resultHandler);
     trainer.setVerbose(true);
-    // trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
-    // trainer.getInner().setAlignEnabled(false);
-    // trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
     trainer.verifyConvergence(0.01, 10);
   }
 

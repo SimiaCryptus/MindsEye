@@ -35,7 +35,7 @@ public class Tester {
     return dagNetwork;
   }
 
-  protected DynamicRateTrainer dynamicTrainer;
+  public DynamicRateTrainer dynamicTrainer;
   protected GradientDescentTrainer gradientTrainer;
   public final List<BiFunction<DAGNetwork, TrainingContext, Void>> handler = new ArrayList<>();
   private boolean parallel = true;

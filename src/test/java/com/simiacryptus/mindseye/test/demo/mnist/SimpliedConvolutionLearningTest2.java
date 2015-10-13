@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.test.Tester;
 
 public class SimpliedConvolutionLearningTest2 extends SimpliedConvolutionLearningTest {
 
@@ -93,9 +92,9 @@ public class SimpliedConvolutionLearningTest2 extends SimpliedConvolutionLearnin
     return 4.;
   }
 
-  @Override
-  public void verify(final Tester trainer) {
-    trainer.verifyConvergence(.5, 1, 0);
-  }
+//  @Override
+//  public void verify(final Tester trainer) {
+//    trainer.verifyConvergence(.5, 1, 0);
+//  }
 
 }

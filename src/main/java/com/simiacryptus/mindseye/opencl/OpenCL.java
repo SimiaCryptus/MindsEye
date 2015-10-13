@@ -2,7 +2,6 @@ package com.simiacryptus.mindseye.opencl;
 
 import com.amd.aparapi.Kernel;
 import com.amd.aparapi.Kernel.EXECUTION_MODE;
-import com.amd.aparapi.device.Device;
 import com.amd.aparapi.device.Device.TYPE;
 
 public final class OpenCL{

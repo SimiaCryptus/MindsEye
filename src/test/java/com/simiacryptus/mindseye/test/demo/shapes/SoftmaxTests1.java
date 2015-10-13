@@ -31,13 +31,13 @@ public class SoftmaxTests1 extends SimpleClassificationTests {
     super.test_xor();
   }
 
-  @Override
-  public void verify(final Tester trainer) {
-    // trainer.setVerbose(true);
-    // trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
-    // trainer.getInner().setAlignEnabled(false);
-    // trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
-    trainer.verifyConvergence(0.01, 10);
-  }
+//  @Override
+//  public void verify(final Tester trainer) {
+//    // trainer.setVerbose(true);
+//    // trainer.getInner().getDynamicRateTrainer().setStopError(-Double.POSITIVE_INFINITY);
+//    // trainer.getInner().setAlignEnabled(false);
+//    // trainer.verifyConvergence(-Double.POSITIVE_INFINITY, 1);
+//    trainer.verifyConvergence(0.01, 10);
+//  }
 
 }

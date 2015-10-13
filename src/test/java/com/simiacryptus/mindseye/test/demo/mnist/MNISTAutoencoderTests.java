@@ -52,9 +52,9 @@ public class MNISTAutoencoderTests {
     DenseSynapseLayer encode = new DenseSynapseLayer(NDArray.dim(outerSize), innerSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
     DenseSynapseLayer decode = new DenseSynapseLayer(NDArray.dim(innerSize), outerSize).setWeights((Coordinate c)->{
       int[] traw = new int[]{c.coords[1],c.coords[0]};
-      int tindex = encode.weights.index(traw);
+      int tindex = encode.getWeights().index(traw);
       Coordinate transposed = new Coordinate(tindex, traw);
-      return encode.weights.get(transposed);
+      return encode.getWeights().get(transposed);
     });
     Tuple2<DenseSynapseLayer, DenseSynapseLayer> codec = new groovy.lang.Tuple2<DenseSynapseLayer,DenseSynapseLayer>(encode, decode);
     return codec;

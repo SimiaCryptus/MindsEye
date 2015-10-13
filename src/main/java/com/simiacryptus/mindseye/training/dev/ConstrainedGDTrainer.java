@@ -9,8 +9,6 @@ import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
 import com.simiacryptus.mindseye.net.DAGNetwork.EvaluationContext;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 
-import groovy.lang.Tuple2;
-
 public class ConstrainedGDTrainer extends GradientDescentTrainer {
 
   private List<DAGNode> constraintNodes = new java.util.ArrayList<>();
