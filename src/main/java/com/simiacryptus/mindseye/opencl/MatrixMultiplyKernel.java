@@ -10,15 +10,14 @@ public final class MatrixMultiplyKernel extends com.amd.aparapi.Kernel {
   double[] vector;
   double[] output;
   double[] matrix;
-  int mode = 0;
 
   static final ResourcePool<? extends MatrixMultiplyKernel> POOL = new ResourcePool<MatrixMultiplyKernel>(16) {
     @Override
     public MatrixMultiplyKernel create() {
-      final MatrixMultiplyKernel backpropTask = new MatrixMultiplyKernel();
-      OpenCL.init(backpropTask);
-      backpropTask.setExplicit(true);
-      return backpropTask;
+      final MatrixMultiplyKernel kernel = new MatrixMultiplyKernel();
+      OpenCL.init(kernel);
+      kernel.setExplicit(true);
+      return kernel;
     }
   };
 
@@ -43,20 +42,14 @@ public final class MatrixMultiplyKernel extends com.amd.aparapi.Kernel {
 
   public final double run(final int i) {
     double accum = 0;
-    if (0 == mode) {
-      for (int j = 0; j < vector.length; j++) {
-        accum += matrix[j * output.length + i] * vector[j];
-      } 
-    } else {
-      for (int j = 0; j < vector.length; j++) {
-        accum += matrix[j + vector.length * i] * vector[j];
-      } 
-    }
+    for (int j = 0; j < vector.length; j++) {
+      accum += matrix[j * output.length + i] * vector[j];
+    } 
     return accum;
   }
 
   public static void multiply(final double[][] vector, final double[] matrix, final double[][] output) {
-    int slices = 8;
+    int slices = 4;
     java.util.stream.IntStream.range(0, slices).parallel().forEach(slice->{
       POOL.with(kernel -> {
         kernel.matrix = matrix;
@@ -65,7 +58,6 @@ public final class MatrixMultiplyKernel extends com.amd.aparapi.Kernel {
           if (i % slices != slice) continue;
           kernel.vector = vector[i];
           kernel.output = output[i];
-          kernel.mode = 0;
           kernel.put(kernel.vector);
           OpenCL.range.with(range -> kernel.exe(range));
           kernel.get(kernel.output);
