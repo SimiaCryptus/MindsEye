@@ -55,16 +55,22 @@ public final class MatrixMultiplyKernel extends com.amd.aparapi.Kernel {
     return accum;
   }
 
-  public static void multiply(final double[] vector, final double[] matrix, final double[] output) {
-    POOL.with(backpropTask -> {
-      backpropTask.vector = vector;
-      backpropTask.matrix = matrix;
-      backpropTask.output = output;
-      backpropTask.mode = 0;
-      backpropTask.put(backpropTask.vector);
-      backpropTask.put(backpropTask.matrix);
-      OpenCL.range.with(range -> backpropTask.exe(range));
-      backpropTask.get(backpropTask.output);
+  public static void multiply(final double[][] vector, final double[] matrix, final double[][] output) {
+    int slices = 8;
+    java.util.stream.IntStream.range(0, slices).parallel().forEach(slice->{
+      POOL.with(kernel -> {
+        kernel.matrix = matrix;
+        kernel.put(kernel.matrix);
+        for(int i=0;i<vector.length;i++){
+          if (i % slices != slice) continue;
+          kernel.vector = vector[i];
+          kernel.output = output[i];
+          kernel.mode = 0;
+          kernel.put(kernel.vector);
+          OpenCL.range.with(range -> kernel.exe(range));
+          kernel.get(kernel.output);
+        }
+      });
     });
   }
 }

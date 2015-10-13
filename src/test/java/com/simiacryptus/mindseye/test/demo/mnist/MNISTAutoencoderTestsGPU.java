@@ -20,7 +20,7 @@ import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.basic.DenseSynapseLayerGPU;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 
 import groovy.lang.Tuple2;
 
-public class MNISTAutoencoderTests {
+public class MNISTAutoencoderTestsGPU {
 
   protected static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
 
@@ -41,37 +41,37 @@ public class MNISTAutoencoderTests {
     sizes.add(new int[] { 28, 28, 1 });
     sizes.add(new int[] { 1000 });
     //sizes.add(new int[] { 100 });
-    List<Tuple2<DenseSynapseLayer, DenseSynapseLayer>> codecs = new ArrayList<>();
+    List<Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU>> codecs = new ArrayList<>();
     for(int i=1;i<sizes.size();i++) {
       codecs.add(createCodecPair(sizes.get(i-1), sizes.get(i)));
     }
     return stackedCodecNetwork(codecs);
   }
 
-  public Tuple2<DenseSynapseLayer, DenseSynapseLayer> createCodecPair(final int[] outerSize, final int[] innerSize) {
-    DenseSynapseLayer encode = new DenseSynapseLayer(NDArray.dim(outerSize), innerSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
-    DenseSynapseLayer decode = new DenseSynapseLayer(NDArray.dim(innerSize), outerSize).setWeights((Coordinate c)->{
+  public Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> createCodecPair(final int[] outerSize, final int[] innerSize) {
+    DenseSynapseLayerGPU encode = new DenseSynapseLayerGPU(NDArray.dim(outerSize), innerSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
+    DenseSynapseLayerGPU decode = new DenseSynapseLayerGPU(NDArray.dim(innerSize), outerSize).setWeights((Coordinate c)->{
       int[] traw = new int[]{c.coords[1],c.coords[0]};
       int tindex = encode.weights.index(traw);
       Coordinate transposed = new Coordinate(tindex, traw);
       return encode.weights.get(transposed);
     });
-    Tuple2<DenseSynapseLayer, DenseSynapseLayer> codec = new groovy.lang.Tuple2<DenseSynapseLayer,DenseSynapseLayer>(encode, decode);
+    Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> codec = new groovy.lang.Tuple2<DenseSynapseLayerGPU,DenseSynapseLayerGPU>(encode, decode);
     return codec;
   }
 
-  private DAGNetwork stackedCodecNetwork(List<Tuple2<DenseSynapseLayer, DenseSynapseLayer>> codecs) {
+  private DAGNetwork stackedCodecNetwork(List<Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU>> codecs) {
     DAGNetwork net = new DAGNetwork();
     for(int i=0;i<codecs.size();i++) {
-      Tuple2<DenseSynapseLayer, DenseSynapseLayer> t = codecs.get(i);
-      DenseSynapseLayer encode = t.getFirst();
+      Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> t = codecs.get(i);
+      DenseSynapseLayerGPU encode = t.getFirst();
       net = net.add(encode);
       net = net.add(new BiasLayer(encode.outputDims));
       net = net.add(new SigmoidActivationLayer());
     }
     for(int i=codecs.size()-1;i>=0;i--) {
-      Tuple2<DenseSynapseLayer, DenseSynapseLayer> t = codecs.get(i);
-      DenseSynapseLayer decode = t.getSecond();
+      Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> t = codecs.get(i);
+      DenseSynapseLayerGPU decode = t.getSecond();
       net = net.add(decode);
       net = net.add(new BiasLayer(decode.outputDims));
     }

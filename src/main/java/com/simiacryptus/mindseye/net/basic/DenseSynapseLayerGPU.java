@@ -118,10 +118,14 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex->{
-      final NDArray input = inObj[0].data[dataIndex];
-      return multiply2(this.weights.getData(), input.getData());
-    }).toArray(i->new NDArray[i]);
+    
+    NDArray[] inputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
+        .mapToObj(dataIndex->inObj[0].data[dataIndex]).toArray(i->new NDArray[i]);
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
+        .mapToObj(dataIndex->new NDArray(this.outputDims)).toArray(i->new NDArray[i]);
+    double[][] inputAD = java.util.Arrays.stream(inputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);
+    double[][] outputAD = java.util.Arrays.stream(outputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);;
+    MatrixMultiplyKernel.multiply(inputAD, this.weights.getData(), outputAD);
     return new Result(outputA, inObj[0]);
   }
 
@@ -134,12 +138,6 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
 
   protected double getMobility() {
     return 1;
-  }
-
-  private NDArray multiply2(final double[] wdata, final double[] indata) {
-    final NDArray output = new NDArray(this.outputDims);
-    MatrixMultiplyKernel.multiply(indata, wdata, output.getData());
-    return output;
   }
 
   public DenseSynapseLayerGPU setWeights(final double[] data) {
