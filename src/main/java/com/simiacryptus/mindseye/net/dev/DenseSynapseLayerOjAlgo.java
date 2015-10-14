@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
+import org.ojalgo.array.PrimitiveArray;
+import org.ojalgo.matrix.store.RawStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +16,8 @@ import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.opencl.MatrixMultiplyKernel;
 
-public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
+public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
 
   private final class Result extends NNResult {
     private final NNResult inObj;
@@ -30,9 +30,9 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
     private NDArray[] backprop(final NDArray[] delta, final DeltaSet buffer) {
       NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
-        final NDArray r = DenseSynapseLayerGPU.this.getWeights();
+        final NDArray r = DenseSynapseLayerOjAlgo.this.getWeights();
         final NDArray passback = new NDArray(this.inObj.data[dataIndex].getDims());
-        DenseSynapseLayer.multiplyT(r.getData(), deltaData, passback.getData());
+        multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
       }).toArray(i->new NDArray[i]);
       this.inObj.accumulate(buffer, passbackA);
@@ -58,69 +58,83 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
       java.util.stream.IntStream.range(0, inObj.data.length).parallel().forEach(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
         final double[] inputData = this.inObj.data[dataIndex].getData();
-        final NDArray weightDelta = new NDArray(inputData.length, deltaData.length);
-        double[] weightData = weightDelta.getData();
-        gradientCrossMatrix(deltaData, inputData, weightData);
-        buffer.get(DenseSynapseLayerGPU.this, DenseSynapseLayerGPU.this.getWeights()).feed(weightData);
+        final NDArray weightDelta = multiply(deltaData, inputData);
+        buffer.get(DenseSynapseLayerOjAlgo.this, DenseSynapseLayerOjAlgo.this.getWeights()).feed(weightDelta.getData());
       });
     }
 
   }
-  
-  public static void gradientCrossMatrix(final double[] deltaData, final double[] inputData, double[] weightData) {
-    gradientCrossMatrix(deltaData, inputData, weightData, 0, inputData.length);
-  }
-
-  private static void gradientCrossMatrix(final double[] deltaData, final double[] inputData, double[] weightData, int from, int to) {
-    int k = from * deltaData.length;
-    for (int i = from; i < to; i++) {
-      final double element = inputData[i];
-      for (int j = 0; j < deltaData.length; j++) {
-        final double element2 = deltaData[j];
-        weightData[k++]= element2 * element;
-      }
-    }
-  }
 
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayerGPU.class);
+  private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayerOjAlgo.class);
 
   /**
    * 
    */
   private static final long serialVersionUID = 3538627887600182889L;
 
+  private static NDArray multiply(final double[] deltaData, final double[] inputData) {
+    final NDArray weightDelta = new NDArray(inputData.length, deltaData.length);
+    crossMultiply(deltaData, inputData, weightDelta.getData());
+    return weightDelta;
+  }
+
+  public static void crossMultiply(final double[] rows, final double[] cols, double[] matrix) {
+    int i = 0;
+    for (final double c : cols) {
+      for (final double r : rows) {
+        matrix[i++] = r * c;
+      }
+    }
+  }
+
+  public static void multiply(final double[] matrix, final double[] in, double[] out) {
+    org.ojalgo.matrix.store.RawStore matrixObj = new org.ojalgo.matrix.store.RawStore(matrix, out.length);
+    PrimitiveArray inVec = org.ojalgo.array.PrimitiveArray.wrap(in);
+    RawStore outVec = matrixObj.multiply(inVec).transpose();
+    double[] ds = outVec.data[0]; for (int o = 0; o < out.length; o++) out[o] = ds[o];
+  }
+
+  public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
+    org.ojalgo.matrix.store.RawStore matrixObj = new org.ojalgo.matrix.store.RawStore(matrix, in.length).transpose();
+    PrimitiveArray inVec = org.ojalgo.array.PrimitiveArray.wrap(in);
+    RawStore outVec = matrixObj.multiply(inVec).transpose();
+    double[] ds = outVec.data[0]; for (int o = 0; o < out.length; o++) out[o] = ds[o];
+  }
+
   public final int[] outputDims;
 
   private final NDArray weights;
 
-  protected DenseSynapseLayerGPU() {
+  protected DenseSynapseLayerOjAlgo() {
     super();
     this.outputDims = null;
     this.weights = null;
   }
 
-  public DenseSynapseLayerGPU(final int inputs, final int[] outputDims) {
+  public DenseSynapseLayerOjAlgo(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new NDArray(inputs, NDArray.dim(outputDims));
-    setWeights(() -> (1 - 2 * Util.R.get().nextDouble()) * Math.sqrt(6 / (inputs + NDArray.dim(outputDims))));
+    int outs = NDArray.dim(outputDims);
+    setWeights(() -> {
+      double ratio = Math.sqrt(6. / (inputs + outs));
+      double fate = Util.R.get().nextDouble();
+      double v = (1 - 2 * fate) * ratio;
+      return v;
+    });
   }
 
-  public DenseSynapseLayerGPU addWeights(final DoubleSupplier f) {
+  public DenseSynapseLayerOjAlgo addWeights(final DoubleSupplier f) {
     Util.add(f, this.getWeights().getData());
     return this;
   }
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    
-    NDArray[] inputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
-        .mapToObj(dataIndex->inObj[0].data[dataIndex]).toArray(i->new NDArray[i]);
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
-        .mapToObj(dataIndex->new NDArray(this.outputDims)).toArray(i->new NDArray[i]);
-    double[][] inputAD = java.util.Arrays.stream(inputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);
-    double[][] outputAD = java.util.Arrays.stream(outputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);;
-    MatrixMultiplyKernel.multiply(inputAD, this.getWeights().getData(), outputAD);
+    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex->{
+      final NDArray input = inObj[0].data[dataIndex];
+      return multiply2(this.getWeights().getData(), input.getData());
+    }).toArray(i->new NDArray[i]);
     return new Result(outputA, inObj[0]);
   }
 
@@ -135,19 +149,25 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
     return 1;
   }
 
-  public DenseSynapseLayerGPU setWeights(final double[] data) {
+  private NDArray multiply2(final double[] wdata, final double[] indata) {
+    final NDArray output = new NDArray(this.outputDims);
+    multiply(wdata, indata, output.getData());
+    return output;
+  }
+
+  public DenseSynapseLayerOjAlgo setWeights(final double[] data) {
     this.weights.set(data);
     return this;
   }
 
-  public DenseSynapseLayerGPU setWeights(final java.util.function.ToDoubleFunction<Coordinate> f) {
+  public DenseSynapseLayerOjAlgo setWeights(final java.util.function.ToDoubleFunction<Coordinate> f) {
     weights.coordStream().parallel().forEach(c->{
       weights.set(c, f.applyAsDouble(c));
     });
     return this;
   }
 
-  public DenseSynapseLayerGPU setWeights(final DoubleSupplier f) {
+  public DenseSynapseLayerOjAlgo setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;
   }
@@ -157,7 +177,7 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
     return Arrays.asList(this.getWeights().getData());
   }
 
-  public final NDArray getWeights() {
+  public NDArray getWeights() {
     return weights;
   }
 

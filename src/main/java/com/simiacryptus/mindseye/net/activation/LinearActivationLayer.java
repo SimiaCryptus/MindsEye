@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,11 +41,10 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
       if (this.inObj.isAlive()) {
         NDArray[] passbackA = java.util.stream.IntStream.range(0, delta.length).mapToObj(dataIndex->{
           final double[] deltaData = delta[dataIndex].getData();
-          final DoubleMatrix matrix = LinearActivationLayer.this.weights.asRowMatrix();
           final int[] dims = this.inObj.data[dataIndex].getDims();
           final NDArray passback = new NDArray(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, deltaData[i] * matrix.get(0, 0));
+            passback.set(i, deltaData[i] * LinearActivationLayer.this.weights.getData()[0]);
           }
           return passback;
         }).toArray(i->new NDArray[i]);

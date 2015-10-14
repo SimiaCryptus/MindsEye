@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.jblas.DoubleMatrix;
-
 import com.simiacryptus.mindseye.Util;
 
 public class NDArray {
@@ -84,10 +82,6 @@ public class NDArray {
       resultData[i] = data[i] + rdata[i];
     }
     return result;
-  }
-
-  public DoubleMatrix asRowMatrix() {
-    return new DoubleMatrix(this.dims[0], 1, getData()).transpose();
   }
 
   public Stream<Coordinate> coordStream() {
