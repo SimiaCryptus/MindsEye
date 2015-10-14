@@ -44,7 +44,7 @@ public class MNISTAutoencoderTests {
   public NNLayer<DAGNetwork> buildNetwork() {
     List<int[]> sizes = new ArrayList<>();
     sizes.add(new int[] { 28, 28, 1 });
-    sizes.add(new int[] { 1000 });
+    sizes.add(new int[] { 100 });
     //sizes.add(new int[] { 100 });
     List<Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS>> codecs = new ArrayList<>();
     for(int i=1;i<sizes.size();i++) {
@@ -72,7 +72,7 @@ public class MNISTAutoencoderTests {
       DenseSynapseLayerJBLAS encode = t.getFirst();
       net = net.add(encode);
       net = net.add(new BiasLayer(encode.outputDims));
-      net = net.add(new SoftmaxActivationLayer());
+      net = net.add(new SigmoidActivationLayer());
     }
     for(int i=codecs.size()-1;i>=0;i--) {
       Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS> t = codecs.get(i);
