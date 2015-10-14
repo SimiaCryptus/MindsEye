@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
-import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,13 +29,8 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
       NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
         final NDArray r = DenseSynapseLayer.this.getWeights();
-        final DoubleMatrix matrix = new DoubleMatrix(r.getDims()[1], r.getDims()[0], r.getData());
         final NDArray passback = new NDArray(this.inObj.data[dataIndex].getDims());
-        for (int i = 0; i < matrix.columns; i++) {
-          for (int j = 0; j < matrix.rows; j++) {
-            passback.add(i, deltaData[j] * matrix.get(j, i));
-          }
-        }
+        multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
       }).toArray(i->new NDArray[i]);
       this.inObj.accumulate(buffer, passbackA);
@@ -79,27 +73,36 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
   private static NDArray multiply(final double[] deltaData, final double[] inputData) {
     final NDArray weightDelta = new NDArray(inputData.length, deltaData.length);
-    multiply(deltaData, inputData, weightDelta);
+    crossMultiply(deltaData, inputData, weightDelta.getData());
     return weightDelta;
   }
 
-  private static void multiply(final double[] deltaData, final double[] inputData, final NDArray weightDelta) {
-    int k = 0;
-    for (final double element : inputData) {
-      for (final double element2 : deltaData) {
-        weightDelta.set(k++, element2 * element);
+  public static void crossMultiply(final double[] rows, final double[] cols, double[] matrix) {
+    int i = 0;
+    for (final double c : cols) {
+      for (final double r : rows) {
+        matrix[i++] = r * c;
       }
     }
   }
 
-  private static void multiply2(final double[] wdata, final double[] indata, final NDArray output) {
-    final int outdim = output.dim();
-    for (int o = 0; o < outdim; o++) {
+  public static void multiply(final double[] matrix, final double[] in, double[] out) {
+    for (int o = 0; o < out.length; o++) {
       double sum = 0;
-      for (int i = 0; i < indata.length; i++) {
-        sum += indata[i] * wdata[o+i*outdim];
+      for (int i = 0; i < in.length; i++) {
+        sum += in[i] * matrix[o+out.length*i];
       }
-      output.set(o, sum);
+      out[o]=sum;
+    }
+  }
+
+  public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
+    for (int o = 0; o < out.length; o++) {
+      double sum = 0;
+      for (int i = 0; i < in.length; i++) {
+        sum += in[i] * matrix[o*in.length+i];
+      }
+      out[o]=sum;
     }
   }
 
@@ -152,7 +155,7 @@ public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
 
   private NDArray multiply2(final double[] wdata, final double[] indata) {
     final NDArray output = new NDArray(this.outputDims);
-    multiply2(wdata, indata, output);
+    multiply(wdata, indata, output.getData());
     return output;
   }
 
