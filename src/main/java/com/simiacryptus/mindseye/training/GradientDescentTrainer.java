@@ -17,7 +17,7 @@ import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
+import com.simiacryptus.mindseye.net.DAGNode;
 import com.simiacryptus.mindseye.net.DAGNetwork.EvaluationContext;
 
 import groovy.lang.Tuple2;
@@ -25,16 +25,32 @@ import groovy.lang.Tuple2;
 public class GradientDescentTrainer implements RateTrainingComponent {
 
   public abstract static class StepResult {
-    public double finalError;
-    public double prevError;
+    private double finalError;
+    private double prevError;
 
     public StepResult(final double prevError, final double finalError) {
       super();
-      this.prevError = prevError;
-      this.finalError = finalError;
+      this.setPrevError(prevError);
+      this.setFinalError(finalError);
     }
 
     public abstract void revert();
+
+    public double getPrevError() {
+      return prevError;
+    }
+
+    public void setPrevError(double prevError) {
+      this.prevError = prevError;
+    }
+
+    public double getFinalError() {
+      return finalError;
+    }
+
+    public void setFinalError(double finalError) {
+      this.finalError = finalError;
+    }
   }
 
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
@@ -238,28 +254,28 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     final StepResult result = _step(trainingContext);
-    if (result.prevError == result.finalError) {
+    if (result.getPrevError() == result.getFinalError()) {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Static: (%s)", result.prevError));
+        GradientDescentTrainer.log.debug(String.format("Static: (%s)", result.getPrevError()));
       }
-      setError(result.finalError);
+      setError(result.getFinalError());
       trainingContext.gradientSteps.increment();
-      return new TrainingStep(result.prevError, result.finalError, false);
-    } else if (!Util.thermalStep(result.prevError, result.finalError, getTemperature())) {
+      return new TrainingStep(result.getPrevError(), result.getFinalError(), false);
+    } else if (!Util.thermalStep(result.getPrevError(), result.getFinalError(), getTemperature())) {
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s (rate %s) - %s", //
-            result.prevError, result.finalError, result.finalError - result.prevError, getRate(), trainingContext));
+            result.getPrevError(), result.getFinalError(), result.getFinalError() - result.getPrevError(), getRate(), trainingContext));
       }
       result.revert();
-      return new TrainingStep(result.prevError, result.finalError, false);
+      return new TrainingStep(result.getPrevError(), result.getFinalError(), false);
     } else {
-      setError(result.finalError);
+      setError(result.getFinalError());
       trainingContext.gradientSteps.increment();
       if (this.verbose) {
         GradientDescentTrainer.log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items - %s", //
-            (System.currentTimeMillis() - startMs) / 1000., result.finalError, getRate(), Math.min(getTrainingSize(), trainingData.length), trainingContext));
+            (System.currentTimeMillis() - startMs) / 1000., result.getFinalError(), getRate(), Math.min(getTrainingSize(), trainingData.length), trainingContext));
       }
-      return new TrainingStep(result.prevError, result.finalError, true);
+      return new TrainingStep(result.getPrevError(), result.getFinalError(), true);
     }
   }
 

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 
 public final class ConvolutionController {
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
   
   private int[] inputSize;

@@ -21,11 +21,7 @@ import com.simiacryptus.mindseye.core.delta.NNResult;
  *
  * @author Andrew Charneski
  */
-public class DAGNetwork extends NNLayer<DAGNetwork> {
-
-  public interface DAGNode {
-    NNResult get(EvaluationContext buildExeCtx);
-  }
+public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
 
   public class EvaluationContext {
 
@@ -58,6 +54,11 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
       json.add("prev", ((LazyResult) this.prevHead[0]).toJson());
       return json;
     }
+
+    @Override
+    public DAGNode add(NNLayer<?> nextHead) {
+      return DAGNetwork.this.add(nextHead, InnerNode.this).getHead();
+    }
   }
 
   private final class InputNode extends LazyResult {
@@ -82,6 +83,11 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
       final JsonObject json = new JsonObject();
       json.addProperty("target", DAGNetwork.this.inputHandles.toString());
       return json;
+    }
+
+    @Override
+    public DAGNode add(NNLayer<?> nextHead) {
+      return DAGNetwork.this.add(nextHead, InputNode.this).getHead();
     }
   }
 
@@ -119,7 +125,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
 
   private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
   public final List<UUID> inputHandles = new java.util.ArrayList<>(java.util.Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-  private LazyResult head = getInput().get(0);
+  private DAGNode head = getInput().get(0);
 
   LazyResult inputNode = new InputNode();
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
@@ -207,7 +213,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
     return getLayer(getHead());
   }
 
-  public List<LazyResult> getInput() {
+  public List<DAGNode> getInput() {
     return com.google.common.collect.Lists.transform(this.inputHandles, h -> new InputNode(h));
   }
 
@@ -235,6 +241,11 @@ public class DAGNetwork extends NNLayer<DAGNetwork> {
   @Override
   public List<double[]> state() {
     return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
+  }
+
+  @Override
+  public NNResult get(EvaluationContext buildExeCtx) {
+    return getHead().get(buildExeCtx);
   }
 
 }

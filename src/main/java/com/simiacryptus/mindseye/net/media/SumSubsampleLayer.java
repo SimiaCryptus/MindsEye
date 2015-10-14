@@ -108,6 +108,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public NNResult eval(final NNResult... inObj) {
     final int kernelSize = new NDArray(this.kernelDims).dim();

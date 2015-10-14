@@ -22,7 +22,7 @@ import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.DAGNetwork.DAGNode;
+import com.simiacryptus.mindseye.net.DAGNode;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;

@@ -40,9 +40,9 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
       {
         final DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
         final double max = summaryStatistics.getMax();
-        final double min = summaryStatistics.getMin();
+        //final double min = summaryStatistics.getMin();
         exp = inObj[0].data[dataIndex].map(x -> {
-          return Double.isFinite(x) ? x : min;
+          return Double.isFinite(x) ? x : Double.NaN;
         }).map(x -> Math.exp(x - max));
       }
       
@@ -58,25 +58,19 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
       public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
           NDArray[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
-            final NDArray input = inObj[0].data[dataIndex];
             final double[] delta = data[dataIndex].getData();
-            new NDArray(input.dim(), input.dim());
             final double[] expdata = expA[dataIndex].getData();
             final NDArray passback = new NDArray(data[dataIndex].getDims());
             final int dim = expdata.length;
+            double dot = 0;
+            for (int i = 0; i < expdata.length; i++) {
+              dot += delta[i] * expdata[i];
+            }
+            double sum = sumA[dataIndex];
             for (int i = 0; i < dim; i++) {
-              for (int j = 0; j < dim; j++) {
-                double value = 0;
-                double sum = sumA[dataIndex];
-                if (i == j) {
-                  value = expdata[i] * (sum - expdata[i]) / (sum * sum);
-                } else {
-                  value = -(expdata[i] * expdata[j]) / (sum * sum);
-                }
-                if (Double.isFinite(value)) {
-                  passback.add(i, delta[j] * value);
-                }
-              }
+              double value = 0;
+              value = ((sum * delta[i] - dot) * expdata[i]) / (sum * sum);
+              passback.set(i, value);
             }
             return passback;
           }).toArray(i->new NDArray[i]);

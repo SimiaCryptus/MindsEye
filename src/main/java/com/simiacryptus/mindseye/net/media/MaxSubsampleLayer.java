@@ -102,6 +102,7 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
   public NNResult eval(final NNResult... inObj) {
 
     int itemCnt = inObj[0].data.length;
+    @SuppressWarnings("unchecked")
     final HashMap<Coordinate, Coordinate> gradientMapA[] = new HashMap[itemCnt];
 
     final int[] inputDims = inObj[0].data[0].getDims();
