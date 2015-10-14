@@ -31,27 +31,33 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
 
   private final class InnerNode extends LazyResult {
     private final UUID layer;
-    private final DAGNode[] prevHead;
+    private final DAGNode[] inputNodes;
 
     @SafeVarargs
-    private InnerNode(final NNLayer<?> layer, final DAGNode... head) {
-      assert null != head;
+    private InnerNode(final NNLayer<?> layer, final DAGNode... inputNodes) {
+      assert null != inputNodes;
       this.layer = layer.getId();
-      this.prevHead = head;
+      this.inputNodes = inputNodes;
     }
 
     @Override
     protected NNResult eval(final EvaluationContext ctx) {
-      final NNResult[] in = java.util.Arrays.stream(this.prevHead).map(x -> ((LazyResult) x).get(ctx)).toArray(i -> new NNResult[i]);
-      final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(in);
-      return output;
+      if(1==this.inputNodes.length) {
+        final NNResult in = this.inputNodes[0].get(ctx);
+        final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(in);
+        return output;
+      } else {
+        final NNResult[] in = java.util.Arrays.stream(this.inputNodes).map(x -> ((LazyResult) x).get(ctx)).toArray(i -> new NNResult[i]);
+        final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(in);
+        return output;
+      }
     }
 
     @Override
     public JsonObject toJson() {
       final JsonObject json = new JsonObject();
       json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
-      json.add("prev", ((LazyResult) this.prevHead[0]).toJson());
+      json.add("prev", ((LazyResult) this.inputNodes[0]).toJson());
       return json;
     }
 

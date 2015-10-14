@@ -11,14 +11,15 @@ public final class OpenCL{
   }
 
   public static Kernel init(final com.amd.aparapi.Kernel kernel) {
-    kernel.setExecutionMode(EXECUTION_MODE.GPU);
-    kernel.addExecutionModes(EXECUTION_MODE.GPU, EXECUTION_MODE.CPU, EXECUTION_MODE.SEQ);
+    kernel.setExecutionMode(EXECUTION_MODE.CPU);
+    kernel.addExecutionModes(EXECUTION_MODE.CPU, EXECUTION_MODE.GPU, EXECUTION_MODE.SEQ);
     return kernel;
   }
 
   static final ResourcePool<com.amd.aparapi.device.Device> range = new ResourcePool<com.amd.aparapi.device.Device>(16) {
     @Override
     public com.amd.aparapi.device.Device create() {
+      //if(1==1) return com.amd.aparapi.device.Device.best();
       com.amd.aparapi.device.Device openclDevice;
       if (getExecutionMode() == EXECUTION_MODE.CPU) {
         openclDevice = com.amd.aparapi.device.Device.firstCPU();
