@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.net.DAGNetwork;
 
 /**
  * Nonlinear Network Layer (aka Neural Network Layer)
@@ -109,6 +110,10 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
 
   public final boolean isFrozen() {
     return this.frozen;
+  }
+
+  public NNLayer<?> then(NNLayer<?> next) {
+    return new DAGNetwork().add(this).add(next);
   }
 
   @SuppressWarnings("unchecked")

@@ -54,7 +54,7 @@ public class MNISTAutoencoderTests {
   }
 
   public Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS> createCodecPair(final int[] outerSize, final int[] innerSize) {
-    DenseSynapseLayerJBLAS encode = new DenseSynapseLayerJBLAS(NDArray.dim(outerSize), innerSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
+    DenseSynapseLayerJBLAS encode = new DenseSynapseLayerJBLAS(NDArray.dim(outerSize), innerSize);//.setWeights(()->Util.R.get().nextGaussian()*0.1);
     DenseSynapseLayerJBLAS decode = new DenseSynapseLayerJBLAS(NDArray.dim(innerSize), outerSize).setWeights((Coordinate c)->{
       int[] traw = new int[]{c.coords[1],c.coords[0]};
       int tindex = encode.getWeights().index(traw);
@@ -72,7 +72,7 @@ public class MNISTAutoencoderTests {
       DenseSynapseLayerJBLAS encode = t.getFirst();
       net = net.add(encode);
       net = net.add(new BiasLayer(encode.outputDims));
-      net = net.add(new SigmoidActivationLayer());
+      net = net.add(new SigmoidActivationLayer().setBalanced(false));
     }
     for(int i=codecs.size()-1;i>=0;i--) {
       Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS> t = codecs.get(i);
@@ -117,10 +117,8 @@ public class MNISTAutoencoderTests {
     };
     try {
       {
-        getTester(net, select(trainingData, 100), resultHandler).trainTo(.1);
-        getTester(net, select(trainingData, 100), resultHandler).trainTo(.1);
-        getTester(net, select(trainingData, 100), resultHandler).trainTo(.1);
-        getTester(net, select(trainingData, 1000), resultHandler).trainTo(.0);
+        for(int i=0;i<100;i++) getTester(net, select(trainingData, 100), resultHandler).trainTo(.1);
+        //getTester(net, select(trainingData, 1000), resultHandler).trainTo(.0);
 //        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(1, 1);
 //        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(.1, 1);
         //getTester(net, java.util.Arrays.copyOf(trainingData, 100), resultHandler).verifyConvergence(.1, 1);
@@ -171,7 +169,7 @@ public class MNISTAutoencoderTests {
     if (null != resultHandler) {
       tester.handler.add(resultHandler);
     }
-    tester.trainingContext().setTimeout(1, java.util.concurrent.TimeUnit.MINUTES);
+    tester.trainingContext().setTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
     return tester;
   }
 
