@@ -31,7 +31,7 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
         .mapToDouble(dataIndex->input.data[dataIndex].get(c))
         .average().getAsDouble());
     NDArray divergenceArray = avgActivationArray.map((avgActivation,c)->{
-      return sparsity * Math.log(sparsity * avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation));
+      return sparsity * Math.log(sparsity / avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation));
     });
     return new NNResult(new NDArray[]{divergenceArray}) {
       @Override
@@ -44,9 +44,9 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
             double d = delta.get(inputCoord);
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               double in = input.data[inputItem].get(inputCoord);
-              double log2 = Math.log((in-1)/(rho-1));
-              double log3 = Math.log(in/rho);
-              double value = d * (log3-log2);
+              double log2 = (1-sparsity)/(1-rho);
+              double log3 = sparsity/rho;
+              double value = d * (log2-log3) / itemCnt;
               feedback[inputItem].add(inputCoord, value);
             }
             return 0;
