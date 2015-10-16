@@ -12,14 +12,14 @@ import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 
 @SuppressWarnings("serial")
-public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
+public class AvgMetaLayer extends NNLayer<AvgMetaLayer> {
 
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(Sparse01MetaLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(AvgMetaLayer.class);
 
   double sparsity = 0.05;
 
-  public Sparse01MetaLayer() {
+  public AvgMetaLayer() {
   }
 
   @Override
@@ -30,10 +30,7 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
       java.util.stream.IntStream.range(0, itemCnt)
         .mapToDouble(dataIndex->input.data[dataIndex].get(c))
         .average().getAsDouble());
-    NDArray divergenceArray = avgActivationArray.map((avgActivation,c)->{
-      return sparsity * Math.log(sparsity / avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation));
-    });
-    return new NNResult(new NDArray[]{divergenceArray}) {
+    return new NNResult(new NDArray[]{avgActivationArray}) {
       @Override
       public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (input.isAlive()) {
@@ -41,13 +38,8 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
           NDArray feedback[] = new NDArray[itemCnt];
           java.util.Arrays.parallelSetAll(feedback, i->new NDArray(delta.getDims()));
           avgActivationArray.map((rho,inputCoord)->{
-            double d = delta.get(inputCoord);
-            double log2 = (1-sparsity)/(1-rho);
-            double log3 = sparsity/rho;
-            double value = d * (log2-log3) / itemCnt;
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
-              //double in = input.data[inputItem].get(inputCoord);
-              feedback[inputItem].add(inputCoord, value);
+              feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }
             return 0;
           });

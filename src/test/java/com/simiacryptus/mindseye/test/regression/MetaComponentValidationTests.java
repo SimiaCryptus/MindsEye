@@ -11,6 +11,7 @@ import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
+import com.simiacryptus.mindseye.net.meta.AvgMetaLayer;
 import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
 
 public class MetaComponentValidationTests {
@@ -186,6 +187,15 @@ public class MetaComponentValidationTests {
   @org.junit.Test
   public void testSparse01MetaLayer() throws Throwable {
     final NNLayer<?> component = new Sparse01MetaLayer();
+    NDArray[][] inputPrototype = java.util.Arrays.stream(new NDArray[][]{replicate(new NDArray(3), 5)})
+        .map(x->java.util.Arrays.stream(x).map(y->y.map(z -> Util.R.get().nextDouble())).toArray(i->new NDArray[i])).toArray(i->new NDArray[i][]);
+    NDArray[] outputPrototype = replicate(new NDArray(3), 1);
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testAvgMetaLayer() throws Throwable {
+    final NNLayer<?> component = new AvgMetaLayer();
     NDArray[][] inputPrototype = java.util.Arrays.stream(new NDArray[][]{replicate(new NDArray(3), 5)})
         .map(x->java.util.Arrays.stream(x).map(y->y.map(z -> Util.R.get().nextDouble())).toArray(i->new NDArray[i])).toArray(i->new NDArray[i][]);
     NDArray[] outputPrototype = replicate(new NDArray(3), 1);
