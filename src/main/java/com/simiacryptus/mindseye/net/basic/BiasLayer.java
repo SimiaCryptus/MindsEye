@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -55,8 +56,11 @@ public class BiasLayer extends NNLayer<BiasLayer> {
       @Override
       public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (!isFrozen()) {
-          java.util.stream.IntStream.range(0, inObj[0].data.length).forEach(dataIndex->{
-            buffer.get(BiasLayer.this, BiasLayer.this.bias).feed(data[dataIndex].getData());
+          java.util.stream.IntStream.range(0, data.length).forEach(dataIndex->{
+            NDArray ndArray = data[dataIndex];
+            double[] data2 = ndArray.getData();
+            DeltaBuffer deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
+            deltaBuffer.feed(data2);
           });
         }
         if (inObj[0].isAlive()) {

@@ -9,18 +9,8 @@ import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
-import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerGPU;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerOjAlgo;
-import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.net.loss.SqLossLayer;
-import com.simiacryptus.mindseye.net.reducers.ProductLayer;
-import com.simiacryptus.mindseye.net.reducers.SumLayer;
+import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
 
 public class MetaComponentValidationTests {
   public static final double deltaFactor = 1e-6;
@@ -28,8 +18,8 @@ public class MetaComponentValidationTests {
   private static final Logger log = LoggerFactory.getLogger(MetaComponentValidationTests.class);
 
   public static NDArray[] getFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
-    final NDArray gradientA[] = java.util.stream.IntStream.range(0, 1)
-        .mapToObj(i->new NDArray(inputPrototype[i][0].dim(), outputPrototype[0].dim()))
+    final NDArray gradientA[] = java.util.stream.IntStream.range(0, inputPrototype[0].length)
+        .mapToObj(i->new NDArray(inputPrototype[0][i].dim(), outputPrototype[0].dim()))
         .toArray(i->new NDArray[i]);
     for (int j = 0; j < outputPrototype[0].dim(); j++) {
       final int j_ = j;
@@ -82,17 +72,17 @@ public class MetaComponentValidationTests {
 
   public static NDArray measureFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
     final NDArray measuredGradient = new NDArray(inputPrototype[inputIndex][0].dim(), outputPrototype[0].dim());
-    final NDArray baseOutput = component.eval(inputPrototype).data[0];
-    outputPrototype[0].set(baseOutput);
+    final NDArray[] baseOutput = component.eval(inputPrototype).data;
     for (int i = 0; i < inputPrototype[inputIndex][0].dim(); i++) {
-      final NDArray inputProbe = inputPrototype[inputIndex][0].copy();
-      inputProbe.add(i, deltaFactor * 1);
-      final NDArray[][] copyInput = java.util.Arrays.copyOf(inputPrototype, inputPrototype.length);
-      copyInput[inputIndex] = inputProbe;
-      final NDArray evalProbe = component.eval(copyInput).data[0];
-      final NDArray delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
-      for (int j = 0; j < delta.dim(); j++) {
-        measuredGradient.set(new int[] { i, j }, delta.getData()[j]);
+      final NDArray[] delta = new NDArray[outputPrototype.length];
+      for(int j=0;j<outputPrototype.length;j++) {
+        final NDArray[][] copyInput = java.util.Arrays.stream(inputPrototype).map(a->java.util.Arrays.stream(a).map(b->b.copy()).toArray(ii->new NDArray[ii])).toArray(ii->new NDArray[ii][]);
+        copyInput[inputIndex][j].add(i, deltaFactor * 1);
+        final NDArray[] evalProbe = component.eval(copyInput).data;
+        delta[j] = evalProbe[j].minus(baseOutput[j]).scale(1. / deltaFactor);
+        for (int k = 0; k < delta[j].dim(); k++) {
+          measuredGradient.set(new int[] { i, k }, delta[j].getData()[k]);
+        }
       }
     }
     return measuredGradient;
@@ -175,6 +165,16 @@ public class MetaComponentValidationTests {
     final NDArray outputPrototype = new NDArray(3);
     final NDArray inputPrototype = new NDArray(3).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testSparse01MetaLayer() throws Throwable {
+    final NNLayer<?> component = new Sparse01MetaLayer();
+    NDArray[][] inputPrototype = java.util.Arrays.stream(new NDArray[][]{replicate(new NDArray(3), 5)})
+        .map(x->java.util.Arrays.stream(x).map(y->y.fill(() -> Util.R.get().nextDouble())).toArray(i->new NDArray[i]))
+        .toArray(i->new NDArray[i][]);
+    NDArray[] outputPrototype = replicate(new NDArray(3), 1);
     test(component, outputPrototype, inputPrototype);
   }
 

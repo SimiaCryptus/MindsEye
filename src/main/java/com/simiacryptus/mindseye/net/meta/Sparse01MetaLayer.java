@@ -1,7 +1,6 @@
 package com.simiacryptus.mindseye.net.meta;
 
 import java.util.Arrays;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -26,10 +25,10 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     int itemCnt = inObj[0].data.length;
-    NDArray avgActivationArray = inObj[0].data[0].map((v,c)->{
-      double avgActivation = java.util.stream.IntStream.range(0, itemCnt).mapToDouble(dataIndex->inObj[0].data[dataIndex].get(c)).average().getAsDouble();
-      return avgActivation;
-    });
+    NDArray avgActivationArray = inObj[0].data[0].map((v,c)->
+      java.util.stream.IntStream.range(0, itemCnt)
+        .mapToDouble(dataIndex->inObj[0].data[dataIndex].get(c))
+        .average().getAsDouble());
     NDArray divergenceArray = avgActivationArray.map((avgActivation,c)->{
       double divergence = sparsity * Math.log(sparsity * avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation)); 
       return divergence;
@@ -38,8 +37,6 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
       @Override
       public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         if (inObj[0].isAlive()) {
-
-          
           NDArray results[] = new NDArray[itemCnt];
           java.util.Arrays.parallelSetAll(results, i->new NDArray(data[0].getDims()));
           inObj[0].data[0].map((v,c)->{
