@@ -17,88 +17,105 @@ public class MetaComponentValidationTests {
 
   private static final Logger log = LoggerFactory.getLogger(MetaComponentValidationTests.class);
 
-  public static NDArray[] getFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
-    final NDArray gradientA[] = java.util.stream.IntStream.range(0, inputPrototype[0].length)
-        .mapToObj(i->new NDArray(inputPrototype[0][i].dim(), outputPrototype[0].dim()))
-        .toArray(i->new NDArray[i]);
-    for (int j = 0; j < outputPrototype[0].dim(); j++) {
-      final int j_ = j;
-      final NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
-        @Override
-        public void accumulate(final DeltaSet buffer, final NDArray[] data) {
-        }
-
-        @Override
-        public boolean isAlive() {
-          return false;
-        }
-      }).toArray(i -> new NNResult[i]);
-      copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
-        @Override
-        public void accumulate(final DeltaSet buffer, final NDArray[] data) {
-          java.util.stream.IntStream.range(0, data.length).forEach(dataIndex->{
-            for (int i = 0; i < inputPrototype[inputIndex][dataIndex].dim(); i++) {
-              gradientA[dataIndex].set(new int[] { i, j_ }, data[dataIndex].getData()[i]);
-            }
-            
-          });
-        }
-
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-      };
-      component.eval(copyInput).accumulate(new DeltaSet(), new NDArray[]{new NDArray(outputPrototype[0].getDims()).fill((k)->k==j_?1:0)});
+  public static NDArray[][] getFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
+    final NDArray[][] gradients = java.util.stream.IntStream.range(0, inputPrototype[inputIndex].length)
+        .mapToObj(i->java.util.stream.IntStream.range(0, outputPrototype.length)
+            .mapToObj(j->new NDArray(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
+            .toArray(j->new NDArray[j]))
+        .toArray(i->new NDArray[i][]);
+    for (int jj = 0; jj < outputPrototype[0].dim(); jj++) { final int j = jj;
+      for(int k=0;k<outputPrototype.length;k++) { final int _k=k;
+        final NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
+          @Override
+          public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+          }
+  
+          @Override
+          public boolean isAlive() {
+            return false;
+          }
+        }).toArray(i -> new NNResult[i]);
+        copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
+          @Override
+          public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+            java.util.stream.IntStream.range(0, data.length).forEach(dataIndex->{
+              for (int i = 0; i < inputPrototype[inputIndex][dataIndex].dim(); i++) {
+                gradients[dataIndex][_k].set(new int[] { i, j }, data[dataIndex].getData()[i]);
+              }
+              
+            });
+          }
+  
+          @Override
+          public boolean isAlive() {
+            return true;
+          }
+        };
+        component.eval(copyInput).accumulate(new DeltaSet(), new NDArray[]{new NDArray(outputPrototype[k].getDims()).fill((kk)->kk==j?1:0)});
+      }
     }
-    return gradientA;
+    return gradients;
   }
 
-  private static NDArray getLearningGradient(final NNLayer<?> component, final int layerNum, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
+  private static NDArray[] getLearningGradient(final NNLayer<?> component, final int layerNum, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
     final double[] stateArray = component.state().get(layerNum);
     final int stateLen = stateArray.length;
-    final NDArray gradient = new NDArray(stateLen, outputPrototype[0].dim());
-    for (int j = 0; j < outputPrototype[0].dim(); j++) {
-      final int j_ = j;
-      final DeltaSet buffer = new DeltaSet();
-      component.eval(inputPrototype).accumulate(buffer, new NDArray[]{new NDArray(outputPrototype[0].getDims()).fill((k)->k==j_?1:0)});
-      final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
-      for (int i = 0; i < stateLen; i++) {
-        gradient.set(new int[] { i, j_ }, deltaFlushBuffer.getCalcVector()[i]);
+    final NDArray[] gradient = java.util.stream.IntStream.range(0, outputPrototype.length).mapToObj(i->new NDArray(stateLen, outputPrototype[0].dim())).toArray(i->new NDArray[i]);
+    for (int jj = 0; jj < outputPrototype[0].dim(); jj++) { final int j = jj;
+      for (int k = 0; k < outputPrototype.length; k++) {
+        final DeltaSet buffer = new DeltaSet();
+        NNResult eval = component.eval(inputPrototype);
+        NDArray[] feedback = new NDArray[]{new NDArray(outputPrototype[0].getDims())};
+        feedback[k].getData()[j] = 1;
+        eval.accumulate(buffer, feedback);
+        final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
+        for (int i = 0; i < stateLen; i++) {
+          gradient[k].set(new int[] { i, j }, deltaFlushBuffer.getCalcVector()[i]);
+        }
       }
     }
     return gradient;
   }
 
-  public static NDArray measureFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
-    final NDArray measuredGradient = new NDArray(inputPrototype[inputIndex][0].dim(), outputPrototype[0].dim());
+  public static NDArray[][] measureFeedbackGradient(final NNLayer<?> component, final int inputIndex, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
+    final NDArray[][] measuredGradient = java.util.stream.IntStream.range(0, inputPrototype[inputIndex].length)
+        .mapToObj(i->java.util.stream.IntStream.range(0, outputPrototype.length)
+            .mapToObj(j->new NDArray(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
+            .toArray(j->new NDArray[j]))
+        .toArray(i->new NDArray[i][]);
     final NDArray[] baseOutput = component.eval(inputPrototype).data;
     for (int i = 0; i < inputPrototype[inputIndex][0].dim(); i++) {
       final NDArray[] delta = new NDArray[outputPrototype.length];
-      for(int j=0;j<outputPrototype.length;j++) {
+      for(int k=0;k<inputPrototype[inputIndex].length;k++) {
         final NDArray[][] copyInput = java.util.Arrays.stream(inputPrototype).map(a->java.util.Arrays.stream(a).map(b->b.copy()).toArray(ii->new NDArray[ii])).toArray(ii->new NDArray[ii][]);
-        copyInput[inputIndex][j].add(i, deltaFactor * 1);
+        copyInput[inputIndex][k].add(i, deltaFactor * 1);
         final NDArray[] evalProbe = component.eval(copyInput).data;
-        delta[j] = evalProbe[j].minus(baseOutput[j]).scale(1. / deltaFactor);
-        for (int k = 0; k < delta[j].dim(); k++) {
-          measuredGradient.set(new int[] { i, k }, delta[j].getData()[k]);
+        for(int j=0;j<outputPrototype.length;j++) {
+          delta[j] = evalProbe[j].minus(baseOutput[j]).scale(1. / deltaFactor);
+          for (int l = 0; l < delta[j].dim(); l++) {
+            measuredGradient[k][j].set(new int[] { i, l }, delta[j].getData()[l]);
+          }
         }
       }
     }
     return measuredGradient;
   }
 
-  public static NDArray measureLearningGradient(final NNLayer<?> component, final int layerNum, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
+  public static NDArray[] measureLearningGradient(final NNLayer<?> component, final int layerNum, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
-    final NDArray gradient = new NDArray(stateLen, outputPrototype[0].dim());
-    final NDArray baseOutput = component.eval(inputPrototype).data[0];
+    final NDArray[] gradient = java.util.stream.IntStream.range(0, outputPrototype.length).mapToObj(i->new NDArray(stateLen, outputPrototype[0].dim())).toArray(i->new NDArray[i]);
+    NNResult baseEval = component.eval(inputPrototype);
     for (int i = 0; i < stateLen; i++) {
       final NNLayer<?> copy = Util.kryo().copy(component);
       copy.state().get(layerNum)[i] += deltaFactor;
-      final NDArray evalProbe = copy.eval(inputPrototype).data[0];
-      final NDArray delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
-      for (int j = 0; j < delta.dim(); j++) {
-        gradient.set(new int[] { i, j }, delta.getData()[j]);
+      NNResult eval = copy.eval(inputPrototype);
+      for (int k = 0; k < outputPrototype.length; k++) {
+        final NDArray evalProbe = eval.data[k];
+        final NDArray baseOutput = baseEval.data[k];
+        final NDArray delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
+        for (int j = 0; j < delta.dim(); j++) {
+          gradient[k].set(new int[] { i, j }, delta.getData()[j]);
+        }
       }
     }
     return gradient;
@@ -127,35 +144,41 @@ public class MetaComponentValidationTests {
   }
 
   public static void testFeedback(final NNLayer<?> component, final int i, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) throws Throwable {
-    final NDArray measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
-    final NDArray implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype)[0];
-    for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
-      try {
-        org.junit.Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], 1e-4);
-      } catch (final Throwable e) {
-        log.debug(String.format("Error Comparing element %s", i1));
-        log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, java.util.Arrays.toString(inputPrototype), outputPrototype));
-        log.debug(String.format("measured/actual: %s", measuredGradient));
-        log.debug(String.format("implemented/expected: %s", implementedGradient));
-        log.debug(String.format("error: %s", measuredGradient.minus(implementedGradient)));
-        throw e;
+    final NDArray[][] measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
+    final NDArray[][] implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
+    for (int j = 0; j < measuredGradient.length; j++) {
+      for (int k = 0; k < measuredGradient[j].length; k++) {
+        for (int i1 = 0; i1 < measuredGradient[j][k].dim(); i1++) {
+          try {
+            org.junit.Assert.assertEquals(measuredGradient[j][k].getData()[i1], implementedGradient[j][k].getData()[i1], 1e-4);
+          } catch (final Throwable e) {
+            log.debug(String.format("Error Comparing element %s", i1));
+            log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, java.util.Arrays.toString(inputPrototype), outputPrototype));
+            log.debug(String.format("measured/actual: %s", measuredGradient));
+            log.debug(String.format("implemented/expected: %s", implementedGradient));
+            log.debug(String.format("error: %s", measuredGradient[j][k].minus(implementedGradient[j][k])));
+            throw e;
+          }
+        }
       }
     }
   }
 
   public static void testLearning(final NNLayer<?> component, final int i, final NDArray[] outputPrototype, final NDArray[]... inputPrototype) throws Throwable {
-    final NDArray measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
-    final NDArray implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
-    for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
-      try {
-        org.junit.Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], 1e-4);
-      } catch (final Throwable e) {
-        log.debug(String.format("Error Comparing element %s", i1));
-        log.debug(String.format("Component: %s\nInputs: %s", component, java.util.Arrays.toString(inputPrototype)));
-        log.debug(String.format("%s", measuredGradient));
-        log.debug(String.format("%s", implementedGradient));
-        log.debug(String.format("%s", measuredGradient.minus(implementedGradient)));
-        throw e;
+    final NDArray[] measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
+    final NDArray[] implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
+    for (int k = 0; k < measuredGradient.length; k++) {
+      for (int i1 = 0; i1 < measuredGradient[k].dim(); i1++) {
+        try {
+          org.junit.Assert.assertEquals(measuredGradient[k].getData()[i1], implementedGradient[k].getData()[i1], 1e-4);
+        } catch (final Throwable e) {
+          log.debug(String.format("Error Comparing element %s", i1));
+          log.debug(String.format("Component: %s\nInputs: %s", component, java.util.Arrays.toString(inputPrototype)));
+          log.debug(String.format("%s", measuredGradient));
+          log.debug(String.format("%s", implementedGradient));
+          log.debug(String.format("%s", measuredGradient[k].minus(implementedGradient[k])));
+          throw e;
+        }
       }
     }
   }
