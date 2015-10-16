@@ -8,6 +8,7 @@ import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
@@ -25,21 +26,12 @@ public class MetaComponentValidationTests {
         .toArray(i->new NDArray[i][]);
     for (int jj = 0; jj < outputPrototype[0].dim(); jj++) { final int j = jj;
       for(int k=0;k<outputPrototype.length;k++) { final int _k=k;
-        final NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
-          @Override
-          public void accumulate(final DeltaSet buffer, final NDArray[] data) {
-          }
-  
-          @Override
-          public boolean isAlive() {
-            return false;
-          }
-        }).toArray(i -> new NNResult[i]);
+        final NNResult[] copyInput = java.util.Arrays.stream(inputPrototype).map(x -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
         copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
           @Override
           public void accumulate(final DeltaSet buffer, final NDArray[] data) {
             java.util.stream.IntStream.range(0, data.length).forEach(dataIndex->{
-              for (int i = 0; i < inputPrototype[inputIndex][dataIndex].dim(); i++) {
+              for (int i = 0; i < inputPrototype[inputIndex][0].dim(); i++) {
                 gradients[dataIndex][_k].set(new int[] { i, j }, data[dataIndex].getData()[i]);
               }
               
@@ -154,8 +146,8 @@ public class MetaComponentValidationTests {
           } catch (final Throwable e) {
             log.debug(String.format("Error Comparing element %s", i1));
             log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, java.util.Arrays.toString(inputPrototype), outputPrototype));
-            log.debug(String.format("measured/actual: %s", measuredGradient));
-            log.debug(String.format("implemented/expected: %s", implementedGradient));
+            log.debug(String.format("measured/actual: %s", java.util.Arrays.stream(measuredGradient).map(x->java.util.Arrays.toString(x)).reduce((a,b)->a+","+b).get()));
+            log.debug(String.format("implemented/expected: %s", java.util.Arrays.stream(implementedGradient).map(x->java.util.Arrays.toString(x)).reduce((a,b)->a+","+b).get()));
             log.debug(String.format("error: %s", measuredGradient[j][k].minus(implementedGradient[j][k])));
             throw e;
           }
