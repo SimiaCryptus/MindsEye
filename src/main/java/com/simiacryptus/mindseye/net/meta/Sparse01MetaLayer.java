@@ -24,37 +24,40 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
-    NDArray avgActivationArray = inObj[0].data[0].map((v,c)->
+    NNResult input = inObj[0];
+    int itemCnt = input.data.length;
+    NDArray avgActivationArray = input.data[0].map((v,c)->
       java.util.stream.IntStream.range(0, itemCnt)
-        .mapToDouble(dataIndex->inObj[0].data[dataIndex].get(c))
+        .mapToDouble(dataIndex->input.data[dataIndex].get(c))
         .average().getAsDouble());
     NDArray divergenceArray = avgActivationArray.map((avgActivation,c)->{
-      double divergence = sparsity * Math.log(sparsity * avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation)); 
-      return divergence;
+      return sparsity * Math.log(sparsity * avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation));
     });
     return new NNResult(new NDArray[]{divergenceArray}) {
       @Override
       public void accumulate(final DeltaSet buffer, final NDArray[] data) {
-        if (inObj[0].isAlive()) {
-          NDArray results[] = new NDArray[itemCnt];
-          java.util.Arrays.parallelSetAll(results, i->new NDArray(data[0].getDims()));
-          inObj[0].data[0].map((v,c)->{
-            double rho = avgActivationArray.get(c);
-            double d = data[0].get(c);
-            for (int i = 0; i < itemCnt; i++) {
-              double in = inObj[0].data[i].get(c);
-              results[i].set(c, d * (Math.log(in/rho)-Math.log((in-1)/(rho-1))));
+        if (input.isAlive()) {
+          NDArray delta = data[0];
+          NDArray feedback[] = new NDArray[itemCnt];
+          java.util.Arrays.parallelSetAll(feedback, i->new NDArray(delta.getDims()));
+          avgActivationArray.map((rho,inputCoord)->{
+            double d = delta.get(inputCoord);
+            for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
+              double in = input.data[inputItem].get(inputCoord);
+              double log2 = Math.log((in-1)/(rho-1));
+              double log3 = Math.log(in/rho);
+              double value = d * (log3-log2);
+              feedback[inputItem].add(inputCoord, value);
             }
             return 0;
           });
-          inObj[0].accumulate(buffer, results);
+          input.accumulate(buffer, feedback);
         }
       }
 
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive();
+        return input.isAlive();
       }
 
     };

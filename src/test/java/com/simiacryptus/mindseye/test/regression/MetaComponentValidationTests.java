@@ -187,8 +187,7 @@ public class MetaComponentValidationTests {
   public void testSparse01MetaLayer() throws Throwable {
     final NNLayer<?> component = new Sparse01MetaLayer();
     NDArray[][] inputPrototype = java.util.Arrays.stream(new NDArray[][]{replicate(new NDArray(3), 5)})
-        .map(x->java.util.Arrays.stream(x).map(y->y.fill(() -> Util.R.get().nextDouble())).toArray(i->new NDArray[i]))
-        .toArray(i->new NDArray[i][]);
+        .map(x->java.util.Arrays.stream(x).map(y->y.map(z -> Util.R.get().nextDouble())).toArray(i->new NDArray[i])).toArray(i->new NDArray[i][]);
     NDArray[] outputPrototype = replicate(new NDArray(3), 1);
     test(component, outputPrototype, inputPrototype);
   }
