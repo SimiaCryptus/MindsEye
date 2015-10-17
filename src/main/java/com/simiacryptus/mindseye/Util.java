@@ -11,7 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -21,10 +20,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -108,43 +105,12 @@ public class Util {
     return (value < min) ? min : ((value > max) ? max : value);
   }
 
-  public static <T> T copy(final T original) {
-    return Util.kryo().copy(original);
-  }
-
-  public static <T> ThreadLocal<T> copyOnFork(final T localValue) {
-    final ThreadLocal<T> f2 = new ThreadLocal<T>() {
-      @Override
-      protected T initialValue() {
-        return copy(localValue);
-      }
-    };
-    f2.set(localValue);
-    return f2;
-  }
-
   public static String[] currentStack() {
     return java.util.stream.Stream.of(Thread.currentThread().getStackTrace()).map(Object::toString).toArray(i -> new String[i]);
   }
 
-  public static double geomMean(final double... error) {
-    double sumLog = 0;
-    for (final double element : error) {
-      sumLog += Math.log(element);
-    }
-    return Math.exp(sumLog / error.length);
-  }
-
-  public static String imageHtml(final BufferedImage... imgArray) {
-    return Stream.of(imgArray).map(img -> Util.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
-  }
-
   public static Kryo kryo() {
     return Util.threadKryo.get();
-  }
-
-  public static Integer outputToClassification(final NDArray actual) {
-    return IntStream.range(0, actual.dim()).mapToObj(o -> o).max(Comparator.comparing(o -> actual.get((int) o))).get();
   }
 
   public static byte[] read(final DataInputStream i, final int s) throws IOException {
@@ -172,81 +138,8 @@ public class Util {
     Desktop.getDesktop().browse(report.toURI());
   }
 
-  //
-  // public static Stream<byte[]> binaryStream(final String path, final String
-  // name, final int skip, final int recordSize) throws IOException {
-  // final DataInputStream in = new DataInputStream(new GZIPInputStream(new
-  // FileInputStream(new File(path, name))));
-  // in.skip(skip);
-  // return toIterator(new BinaryChunkIterator(in, recordSize));
-  // }
-  //
-  // public static double bounds(final double value) {
-  // return value < 0 ? 0 : value > 0xFF ? 0xFF : value;
-  // }
-  //
-  // public static NDArray toImage(final byte[] b) {
-  // final NDArray ndArray = new NDArray(28, 28);
-  // for (int x = 0; x < 28; x++)
-  // {
-  // for (int y = 0; y < 28; y++)
-  // {
-  // ndArray.set(new int[] { x, y }, b[x + y * 28]);
-  // }
-  // }
-  // return ndArray;
-  // }
-  //
-  // public static String toInlineImage(final BufferedImage img, final String
-  // alt) {
-  // return TestMNISTDev.toInlineImage(new LabeledObject<BufferedImage>(img,
-  // alt));
-  // }
-  //
-  // public static String toInlineImage(final LabeledObject<BufferedImage> img)
-  // {
-  // final ByteArrayOutputStream b = new ByteArrayOutputStream();
-  // try {
-  // ImageIO.write(img.data, "PNG", b);
-  // } catch (final Exception e) {
-  // throw new RuntimeException(e);
-  // }
-  // final byte[] byteArray = b.toByteArray();
-  // final String encode = Base64.getEncoder().encodeToString(byteArray);
-  // return "<img src=\"data:image/png;base64," + encode + "\" alt=\"" +
-  // img.label + "\" />";
-  // }
-
   public static void report(final String... fragments) throws FileNotFoundException, IOException {
     Util.report(Stream.of(fragments));
-  }
-
-  public static double rms(final TrainingContext trainingContext, final List<Tuple2<Double, Double>> rms, final int[] activeSet) {
-    @SuppressWarnings("resource")
-    final IntStream stream = null != activeSet ? IntStream.of(activeSet) : IntStream.range(0, rms.size());
-    return Math.sqrt(stream.filter(i -> i < rms.size()).mapToDouble(i -> rms.get(i).getSecond()).average().getAsDouble());
-  }
-
-  public static BufferedImage scale(BufferedImage img, final double scale) {
-    final int w = img.getWidth();
-    final int h = img.getHeight();
-    final BufferedImage after = new BufferedImage((int) (w * scale), (int) (h * scale), BufferedImage.TYPE_INT_ARGB);
-    final AffineTransform at = new AffineTransform();
-    at.scale(scale, scale);
-    final AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-    img = scaleOp.filter(img, after);
-    return img;
-  }
-
-  public static List<LabeledObject<NDArray>> shuffle(final List<LabeledObject<NDArray>> buffer) {
-    return Util.shuffle(buffer, Util.R.get());
-  }
-
-  public static <T> List<T> shuffle(final List<T> buffer, final Random random) {
-    final TreeMap<Double, T> tree = new TreeMap<Double, T>();
-    if (!buffer.stream().allMatch(item -> null == tree.put(random.nextDouble(), item)))
-      throw new RuntimeException();
-    return tree.values().stream().collect(Collectors.toList());
   }
 
   public static boolean thermalStep(final double prev, final double next, final double temp) {
@@ -267,11 +160,6 @@ public class Util {
     }
     return ndArray;
   }
-
-  // public static <T> Stream<T> toIterator(final Iterator<T> iterator) {
-  // return StreamSupport.stream(Spliterators.spliterator(iterator, 1,
-  // Spliterator.ORDERED), false);
-  // }
 
   public static BufferedImage toImage(final NDArray ndArray) {
     final int[] dims = ndArray.getDims();
@@ -313,64 +201,6 @@ public class Util {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
 
-  public static NDArray toNDArray1(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
-    for (int x = 0; x < img.getWidth(); x++) {
-      for (int y = 0; y < img.getHeight(); y++) {
-        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
-      }
-    }
-    return a;
-  }
-
-  public static NDArray toNDArray3(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
-    for (int x = 0; x < img.getWidth(); x++) {
-      for (int y = 0; y < img.getHeight(); y++) {
-        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
-        a.set(new int[] { x, y, 1 }, img.getRGB(x, y) >> 8 & 0xFF);
-        a.set(new int[] { x, y, 2 }, img.getRGB(x, y) >> 16 & 0x0FF);
-      }
-    }
-    return a;
-  }
-
-  public static NDArray toNDArrayBW(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 1);
-    for (int x = 0; x < img.getWidth(); x++) {
-      for (int y = 0; y < img.getHeight(); y++) {
-        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
-      }
-    }
-    return a;
-  }
-
-  public static NDArray toNDArrayRGB(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
-    for (int x = 0; x < img.getWidth(); x++) {
-      for (int y = 0; y < img.getHeight(); y++) {
-        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
-        a.set(new int[] { x, y, 1 }, img.getRGB(x, y) >> 8 & 0xFF);
-        a.set(new int[] { x, y, 2 }, img.getRGB(x, y) >> 16 & 0x0FF);
-      }
-    }
-    return a;
-  }
-
-  public static int toOut(final String label) {
-    for (int i = 0; i < 10; i++) {
-      if (label.equals("[" + i + "]"))
-        return i;
-    }
-    throw new RuntimeException();
-  }
-
-  public static NDArray toOutNDArray(final int out, final int max) {
-    final NDArray ndArray = new NDArray(max);
-    ndArray.set(out, 1);
-    return ndArray;
-  }
-
   public static <T> Stream<T> toStream(final Iterator<T> iterator) {
     return Util.toStream(iterator, 0);
   }
@@ -381,30 +211,6 @@ public class Util {
 
   public static <T> Stream<T> toStream(final Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
-  }
-
-  public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
-    final String path = "C:/Users/Andrew Charneski/Downloads";
-    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(b->{
-      return Util.fillImage(b, new NDArray(28,28,1));
-    });
-    final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
-
-    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
-      Iterator<NDArray> imgItr = imgStream.iterator();
-      Iterator<byte[]> labelItr = labelStream.iterator();
-
-      @Override
-      public boolean hasNext() {
-        return this.imgItr.hasNext() && this.labelItr.hasNext();
-      }
-
-      @Override
-      public LabeledObject<NDArray> next() {
-        return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
-      }
-    }, 100).limit(10000);
-    return merged;
   }
 
   public static UUID uuid() {

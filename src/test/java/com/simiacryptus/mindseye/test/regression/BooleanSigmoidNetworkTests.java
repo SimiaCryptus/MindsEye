@@ -27,7 +27,9 @@ public class BooleanSigmoidNetworkTests {
     final Function<double[], double[]> fn = v -> new double[] { gate.apply(v[0] == 1, v[1] == 1) ? 1 : -1 };
     final NDArray[][] samples = new NDArray[][] {
         // XOR:
-        { new NDArray(inputSize, new double[] { 0, 0 }), null }, { new NDArray(inputSize, new double[] { 0, 1 }), null }, { new NDArray(inputSize, new double[] { 1, 0 }), null },
+        { new NDArray(inputSize, new double[] { 0, 0 }), null }, 
+        { new NDArray(inputSize, new double[] { 0, 1 }), null }, 
+        { new NDArray(inputSize, new double[] { 1, 0 }), null }, 
         { new NDArray(inputSize, new double[] { 1, 1 }), null } };
     for (int i = 0; i < samples.length; i++) {
       samples[i][1] = new NDArray(outSize, fn.apply(samples[i][0].getData()));

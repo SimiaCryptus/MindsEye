@@ -17,8 +17,9 @@ import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.test.regression.MNISTClassificationTest;
 
-public class SimpliedConvolutionLearningTest extends MNISTClassificationTests {
+public class SimpliedConvolutionLearningTest extends MNISTClassificationTest {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {

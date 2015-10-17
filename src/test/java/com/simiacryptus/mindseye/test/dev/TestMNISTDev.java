@@ -7,10 +7,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -94,11 +98,56 @@ public class TestMNISTDev {
   public void test() throws Exception {
     TestMNISTDev.log.info("Starting");
     final NNLayer<DAGNetwork> net = getNetwork();
-    final List<LabeledObject<NDArray>> buffer = Util.trainingDataStream().collect(Collectors.toList());
-    final NDArray[][] data = Util.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(1000).map(o -> new NDArray[] { o.data, Util.toOutNDArray(Util.toOut(o.label), 10) })
+    final List<LabeledObject<NDArray>> buffer = TestMNISTDev.trainingDataStream().collect(Collectors.toList());
+    final NDArray[][] data = TestMNISTDev.shuffle(buffer, TestMNISTDev.random).parallelStream().limit(1000).map(o -> new NDArray[] { o.data, TestMNISTDev.toOutNDArray(TestMNISTDev.toOut(o.label), 10) })
         .toArray(i2 -> new NDArray[i2][]);
     new Tester().init(data, net, new EntropyLossLayer()).setStaticRate(0.25).setVerbose(true).verifyConvergence(0.01, 1);
     report(buffer, net);
+  }
+
+  public static <T> List<T> shuffle(final List<T> buffer, final Random random) {
+    final TreeMap<Double, T> tree = new TreeMap<Double, T>();
+    if (!buffer.stream().allMatch(item -> null == tree.put(random.nextDouble(), item)))
+      throw new RuntimeException();
+    return tree.values().stream().collect(Collectors.toList());
+  }
+
+  public static Stream<LabeledObject<NDArray>> trainingDataStream() throws IOException {
+    final String path = "C:/Users/Andrew Charneski/Downloads";
+    final Stream<NDArray> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(b->{
+      return Util.fillImage(b, new NDArray(28,28,1));
+    });
+    final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
+  
+    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
+      Iterator<NDArray> imgItr = imgStream.iterator();
+      Iterator<byte[]> labelItr = labelStream.iterator();
+  
+      @Override
+      public boolean hasNext() {
+        return this.imgItr.hasNext() && this.labelItr.hasNext();
+      }
+  
+      @Override
+      public LabeledObject<NDArray> next() {
+        return new LabeledObject<NDArray>(this.imgItr.next(), Arrays.toString(this.labelItr.next()));
+      }
+    }, 100).limit(10000);
+    return merged;
+  }
+
+  public static NDArray toOutNDArray(final int out, final int max) {
+    final NDArray ndArray = new NDArray(max);
+    ndArray.set(out, 1);
+    return ndArray;
+  }
+
+  public static int toOut(final String label) {
+    for (int i = 0; i < 10; i++) {
+      if (label.equals("[" + i + "]"))
+        return i;
+    }
+    throw new RuntimeException();
   }
 
 }

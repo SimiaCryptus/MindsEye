@@ -9,8 +9,9 @@ import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
+import com.simiacryptus.mindseye.test.regression.MNISTClassificationTest;
 
-public class MNISTClassificationTests2 extends MNISTClassificationTests {
+public class MNISTClassificationTests2 extends MNISTClassificationTest {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {

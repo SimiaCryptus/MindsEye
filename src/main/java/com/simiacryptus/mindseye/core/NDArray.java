@@ -77,16 +77,6 @@ public class NDArray {
     add(index(coords), value);
   }
 
-  public NDArray add(final NDArray r) {
-    final NDArray result = new NDArray(getDims());
-    final double[] resultData = result.getData();
-    final double[] rdata = r.getData();
-    final double[] data = getData();
-    for (int i = 0; i < data.length; i++) {
-      resultData[i] = data[i] + rdata[i];
-    }
-    return result;
-  }
 
   public Stream<Coordinate> coordStream() {
     return coordStream(false);

@@ -21,9 +21,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
 
   private final double[] buffer;
   private double[] calcVector;
-  double entropyDecayRate = 0.0;
   private final NNLayer layer;
-  private boolean normalize = false;
 
   public final double[] target;
 
@@ -47,24 +45,7 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
   }
 
   private double[] calcVector() {
-
-    final NumberVector state = new NumberVector(this.layer.state().stream().flatMapToDouble(x -> Arrays.stream((double[]) x)).toArray());
-    NumberVector returnValue = new NumberVector(this.buffer);
-    if (isNormalize()) {
-      // v = v.scale(1. / v.l2());
-      returnValue = returnValue.scale(1. / state.l1());
-    }
-    if (0 < this.entropyDecayRate) {
-      final NumberVector unitv = returnValue.unitV();
-      NumberVector l1Decay = new NumberVector(this.target).scale(-this.entropyDecayRate);
-      final double dotProduct = l1Decay.dotProduct(unitv);
-      if (dotProduct < 0) {
-        l1Decay = l1Decay.add(unitv.scale(-dotProduct));
-      }
-      // l1Decay = l1Decay.scale(v.l2());
-      // returnValue = returnValue.add(l1Decay);
-    }
-    return returnValue.getArray();
+    return new NumberVector(this.buffer).getArray();
   }
 
   @Override
@@ -106,10 +87,6 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return false;
   }
 
-  public boolean isNormalize() {
-    return this.normalize;
-  }
-
   protected DeltaBuffer join(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner) {
     return new DeltaBuffer(this.target, IntStream.range(0, this.buffer.length).mapToDouble(i -> {
       return f(right, joiner, i);
@@ -137,11 +114,6 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
   @Override
   public DeltaBuffer scale(final double f) {
     return map(x -> x * f);
-  }
-
-  public DeltaBuffer setNormalize(final boolean normalize) {
-    this.normalize = normalize;
-    return this;
   }
 
   protected double sum(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner) {

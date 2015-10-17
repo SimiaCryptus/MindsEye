@@ -1,4 +1,4 @@
-package com.simiacryptus.mindseye.test.demo.mnist;
+package com.simiacryptus.mindseye.test.regression;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -19,16 +19,18 @@ import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
+import com.simiacryptus.mindseye.test.demo.mnist.MNIST;
 
-public class MNISTClassificationTests extends ClassificationTestBase {
+public class MNISTClassificationTest extends ClassificationTestBase {
 
   private static final List<Color> colorMap = Arrays.asList(Color.WHITE, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.decode("0xee82ee"), Color.PINK,
       Color.GRAY, ClassificationTestBase.randomColor(), ClassificationTestBase.randomColor());
 
-  public MNISTClassificationTests() {
+  public MNISTClassificationTest() {
     super();
   }
 
@@ -37,7 +39,7 @@ public class MNISTClassificationTests extends ClassificationTestBase {
     final int[] inputSize = new int[] { 28, 28, 1 };
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize).setWeights(()->Util.R.get().nextGaussian()*0.));
+    net = net.add(new DenseSynapseLayerJBLAS(NDArray.dim(inputSize), outSize).setWeights(()->Util.R.get().nextGaussian()*0.));
     net = net.add(new BiasLayer(outSize));
     // net = net.add(new MinMaxFilterLayer());
     net = net.add(new SoftmaxActivationLayer());
@@ -139,8 +141,8 @@ public class MNISTClassificationTests extends ClassificationTestBase {
         .collect(java.util.stream.Collectors.toList()).parallelStream()
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
         .map(obj -> new LabeledObject<>(obj.data.reformat(28, 28, 1), obj.label)).map(obj -> {
-          final int out = MNISTClassificationTests.toOut(remap(obj.label));
-          final NDArray output = MNISTClassificationTests.toOutNDArray(out, 10);
+          final int out = MNISTClassificationTest.toOut(remap(obj.label));
+          final NDArray output = MNISTClassificationTest.toOutNDArray(out, 10);
           return new NDArray[] { obj.data, output };
         }).toArray(i -> new NDArray[i][]);
     return data;

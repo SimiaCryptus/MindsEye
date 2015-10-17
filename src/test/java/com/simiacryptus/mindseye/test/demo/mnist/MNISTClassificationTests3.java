@@ -11,8 +11,9 @@ import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
+import com.simiacryptus.mindseye.test.regression.MNISTClassificationTest;
 
-public class MNISTClassificationTests3 extends MNISTClassificationTests {
+public class MNISTClassificationTests3 extends MNISTClassificationTest {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {

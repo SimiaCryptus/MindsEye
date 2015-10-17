@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
@@ -90,7 +91,7 @@ public class DeconvolutionTest {
   @Test
   public void testConvolution() throws Exception {
 
-    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
     // "Hello World"));
 
@@ -108,7 +109,7 @@ public class DeconvolutionTest {
       final NDArray[] input = { obj.data };
       final NNResult output = forwardConvolutionNet.eval(input);
 
-      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())));
+      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())));
     }));
 
   }
@@ -119,7 +120,7 @@ public class DeconvolutionTest {
 
     // List<LabeledObject<NDArray>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
     // "Hello World"));
     // NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello
@@ -278,7 +279,7 @@ public class DeconvolutionTest {
       final NNResult recovered = bias.eval(zeroInput);
       final NNResult verification = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
-      return Util.imageHtml( //
+      return DeconvolutionTest.imageHtml( //
           Util.toImage(obj.data), //
           Util.toImage(new NDArray(outSize, blurredImage.data[0].getData())), //
           Util.toImage(new NDArray(inputSize, recovered.data[0].getData())), //
@@ -292,7 +293,7 @@ public class DeconvolutionTest {
 
     // List<LabeledObject<NDArray>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final NDArray inputImage = Util.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    final NDArray inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
     // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 },
     // "Hello World"));
     // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300},
@@ -353,10 +354,26 @@ public class DeconvolutionTest {
       final NNResult recovered = bias.eval(zeroInput);
       final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
-      return Util.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())), Util.toImage(new NDArray(inputSize, recovered.data[0].getData())),
+      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())), Util.toImage(new NDArray(inputSize, recovered.data[0].getData())),
           Util.toImage(new NDArray(outSize, tested.data[0].getData())));
     }));
 
+  }
+
+  public static String imageHtml(final BufferedImage... imgArray) {
+    return Stream.of(imgArray).map(img -> Util.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
+  }
+
+  public static NDArray toNDArray3(final BufferedImage img) {
+    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
+    for (int x = 0; x < img.getWidth(); x++) {
+      for (int y = 0; y < img.getHeight(); y++) {
+        a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);
+        a.set(new int[] { x, y, 1 }, img.getRGB(x, y) >> 8 & 0xFF);
+        a.set(new int[] { x, y, 2 }, img.getRGB(x, y) >> 16 & 0x0FF);
+      }
+    }
+    return a;
   }
 
 }
