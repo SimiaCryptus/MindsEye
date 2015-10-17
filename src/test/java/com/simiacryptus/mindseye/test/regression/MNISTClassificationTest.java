@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -13,6 +14,7 @@ import org.junit.Test;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -164,6 +166,13 @@ public class MNISTClassificationTest extends ClassificationTestBase {
     final NDArray ndArray = new NDArray(max);
     ndArray.set(out, 1);
     return ndArray;
+  }
+
+  @Override
+  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+    final Tester trainer = buildTrainer(trainingsamples, net);
+    trainer.handler.add(resultHandler);
+    trainer.verifyConvergence(0.6, 1);  
   }
 
 }

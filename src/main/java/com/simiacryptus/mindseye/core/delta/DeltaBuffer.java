@@ -38,7 +38,7 @@ public class DeltaBuffer {
   }
 
   private double[] calcVector() {
-    return new NumberVector(this.buffer).getArray();
+    return this.buffer;
   }
 
   public void feed(final double[] data) {

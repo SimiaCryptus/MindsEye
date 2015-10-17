@@ -35,15 +35,6 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
       assert 3 == kernel.length;
     }
 
-    public IndexMapKey(final NDArray kernel, final NDArray input, final NDArray output) {
-      super();
-      this.kernel = kernel.getDims();
-      this.input = input.getDims();
-      this.output = output.getDims();
-      assert 3 == this.input.length;
-      assert 3 == this.kernel.length;
-    }
-
     @Override
     public boolean equals(final Object obj) {
       if (this == obj)
@@ -199,20 +190,11 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
     };
   }
 
-  public ConvolutionSynapseLayer fillWeights(final DoubleSupplier f) {
-    Arrays.parallelSetAll(this.kernel.getData(), i -> f.getAsDouble());
-    return this;
-  }
-
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
     json.addProperty("kernel", this.kernel.toString());
     return json;
-  }
-
-  protected double getMobility() {
-    return 1;
   }
 
   public boolean isParalell() {
