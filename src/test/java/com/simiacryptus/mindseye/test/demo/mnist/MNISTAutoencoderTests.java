@@ -104,7 +104,9 @@ public class MNISTAutoencoderTests {
       Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS> t = codecs.get(i);
       DenseSynapseLayerJBLAS decode = t.getSecond();
       net = net.add(decode);
-      net = net.add(new BiasLayer(decode.outputDims));
+      BiasLayer bias = new BiasLayer(decode.outputDims);
+      weightNormalizationList.add(bias);
+      net = net.add(bias);
       if(i>0){
         net = net.add(new SigmoidActivationLayer());
       }
@@ -200,9 +202,9 @@ public class MNISTAutoencoderTests {
     DAGNode sparsityResult = codec.net
         .add(new Sparse01MetaLayer(), codec.center)
         .add(new SumReducerLayer())
-        .add(new LinearActivationLayer().setWeight(0.1).freeze())
+        .add(new LinearActivationLayer().setWeight(.0).freeze())
         .getHead();
-    DAGNode regularizationResult = codec.net.add(new LinearActivationLayer().setWeight(0.1).freeze(), codec.regularization).getHead();
+    DAGNode regularizationResult = codec.net.add(new LinearActivationLayer().setWeight(0.01).freeze(), codec.regularization).getHead();
     codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), errResult, sparsityResult, regularizationResult);
     
     
