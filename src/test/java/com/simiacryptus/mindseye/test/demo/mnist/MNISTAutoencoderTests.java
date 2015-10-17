@@ -185,8 +185,8 @@ public class MNISTAutoencoderTests {
     DAGNode errResult = codec.net.add(loss, codec.feedback, expectedResult).add(new AvgMetaLayer()).getHead();
     DAGNode sparsityResult = codec.net
         .add(new Sparse01MetaLayer(), codec.center)
-        .add(new LinearActivationLayer().setWeight(0.01))
         .add(new SumReducerLayer())
+        .add(new LinearActivationLayer().setWeight(0.1).freeze())
         .getHead();
     codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), errResult, sparsityResult);
     

@@ -85,15 +85,8 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
     int itemCnt = inObj[0].data.length;
     NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
       final NDArray input = inObj[0].data[dataIndex];
-      final NDArray output = new NDArray(input.getDims());
-      IntStream.range(0, input.dim()).forEach(i -> {
-        final double a = this.weights.get(0);
-        final double b = input.getData()[i];
-        final double value = b * a;
-        if (Double.isFinite(value)) {
-          output.add(i, value);
-        }
-      });
+      final double a = this.weights.get(0);
+      final NDArray output = input.scale(a);
       return output;
     }).toArray(i->new NDArray[i]);
     return new Result(outputA, inObj[0]);
