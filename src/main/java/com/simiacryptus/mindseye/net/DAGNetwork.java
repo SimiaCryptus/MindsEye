@@ -15,7 +15,6 @@ import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
-import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph

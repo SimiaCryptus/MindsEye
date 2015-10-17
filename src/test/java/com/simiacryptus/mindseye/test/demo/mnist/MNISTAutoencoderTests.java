@@ -3,7 +3,6 @@ package com.simiacryptus.mindseye.test.demo.mnist;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -19,18 +18,14 @@ import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.DAGNetwork.EvaluationContext;
 import com.simiacryptus.mindseye.net.DAGNode;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
-import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.net.meta.AvgMetaLayer;
-import com.simiacryptus.mindseye.net.meta.CrossDotMetaLayer;
 import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
 import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.net.reducers.SumReducerLayer;
@@ -54,7 +49,7 @@ public class MNISTAutoencoderTests {
     List<int[]> sizes = new ArrayList<>();
     sizes.add(new int[] { 28, 28, 1 });
     sizes.add(new int[] { 100 });
-    //sizes.add(new int[] { 100 });
+    sizes.add(new int[] { 100 });
     List<Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS>> codecs = new ArrayList<>();
     for(int i=1;i<sizes.size();i++) {
       codecs.add(createCodecPair(sizes.get(i-1), sizes.get(i)));
@@ -201,18 +196,18 @@ public class MNISTAutoencoderTests {
         .add(new SqLossLayer(), codec.feedback, codec.net.getInput().get(1))
         .add(new AvgMetaLayer())
         .getHead());
-//    fitnessSet.add(codec.net
-//        .add(new Sparse01MetaLayer(), codec.center)
-//        .add(new SumReducerLayer())
-//        .add(new LinearActivationLayer().setWeight(.0).freeze())
-//        .getHead());
+    fitnessSet.add(codec.net
+        .add(new Sparse01MetaLayer(), codec.center)
+        .add(new SumReducerLayer())
+        .add(new LinearActivationLayer().setWeight(.1).freeze())
+        .getHead());
 //    fitnessSet.add(codec.net
 //        .add(new CrossDotMetaLayer(), codec.center)
 //        .add(new SumReducerLayer())
-//        .add(new LinearActivationLayer().setWeight(10.).freeze())
+//        .add(new LinearActivationLayer().setWeight(1.).freeze())
 //        .getHead());
     fitnessSet.add(codec.net
-        .add(new LinearActivationLayer().setWeight(0.1).freeze(), codec.regularization)
+        .add(new LinearActivationLayer().setWeight(0.01).freeze(), codec.regularization)
         .getHead());
     codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), fitnessSet.toArray(new DAGNode[]{}));
     

@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
-import org.ojalgo.array.PrimitiveArray;
-import org.ojalgo.matrix.store.RawStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
