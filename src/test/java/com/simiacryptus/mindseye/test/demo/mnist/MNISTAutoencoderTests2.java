@@ -47,7 +47,6 @@ public class MNISTAutoencoderTests2 {
     DAGNetwork     net;
     DAGNode        center;
     DAGNode        feedback;
-    public DAGNode regularization;
 
     public AutoencodingNetwork() {
       this(new int[] { 28, 28, 1 }, new int[] { 100 });
@@ -58,9 +57,9 @@ public class MNISTAutoencoderTests2 {
 
       this.net = new DAGNetwork();
       List<NNLayer<?>> weightNormalizationList = new ArrayList<>();
-      List<DAGNode> norms = new ArrayList<>();
       
       DenseSynapseLayerJBLAS encode = new DenseSynapseLayerJBLAS(NDArray.dim(outerSize), innerSize);// .setWeights(()->Util.R.get().nextGaussian()*0.1);
+      weightNormalizationList.add(encode);
       {
         net = net.add(encode);
         BiasLayer bias = new BiasLayer(encode.outputDims);
@@ -79,16 +78,13 @@ public class MNISTAutoencoderTests2 {
               double foo = encode.getWeights().get(transposed);
               return foo;
             });
+        weightNormalizationList.add(decode);
         net = net.add(decode);
         BiasLayer bias = new BiasLayer(decode.outputDims);
         weightNormalizationList.add(bias);
         net = net.add(bias);
         // net = net.add(new SigmoidActivationLayer());
         feedback = net.getHead();
-        norms.add(net
-            .add(new WeightExtractor(0, bias), new DAGNode[] {})
-            .add(new SqActivationLayer())
-            .add(new SumReducerLayer()).getHead());
       }
 
       // supervisedNetwork.add(new SoftmaxActivationLayer());
@@ -99,13 +95,14 @@ public class MNISTAutoencoderTests2 {
       // expectedResult = expectedResult.add(new SoftmaxActivationLayer());
 
       List<DAGNode> fitnessSet = new ArrayList<>();
+      
       fitnessSet.add(this.net
           .add(new SqLossLayer(), this.feedback, this.net.getInput().get(0))
           .add(new AvgMetaLayer()).getHead());
       
-//      fitnessSet.add(this.net.add(new Sparse01MetaLayer(), this.center)
-//          .add(new SumReducerLayer())
-//          .add(new LinearActivationLayer().setWeight(.1).freeze()).getHead());
+      fitnessSet.add(this.net.add(new Sparse01MetaLayer(), this.center)
+          .add(new SumReducerLayer())
+          .add(new LinearActivationLayer().setWeight(.1).freeze()).getHead());
       
       // fitnessSet.add(codec.net
       // .add(new CrossDotMetaLayer(), codec.center)
@@ -113,9 +110,12 @@ public class MNISTAutoencoderTests2 {
       // .add(new LinearActivationLayer().setWeight(1.).freeze())
       // .getHead());
       
-      regularization = net.add(new SumInputsLayer(), norms.toArray(new DAGNode[] {})).getHead();
-//      fitnessSet.add(this.net
-//          .add(new LinearActivationLayer().setWeight(0.01).freeze(), this.regularization).getHead());
+      fitnessSet.add(this.net.add(new SumInputsLayer(), weightNormalizationList.stream().map(x->net
+          .add(new WeightExtractor(0, x), new DAGNode[] {})
+          .add(new SqActivationLayer())
+          .add(new SumReducerLayer()).getHead()).toArray(i->new DAGNode[i]))
+          .add(new LinearActivationLayer().setWeight(0.001).freeze())
+          .getHead());
       
       this.net.add(new VerboseWrapper("sums", new SumInputsLayer()), fitnessSet.toArray(new DAGNode[] {}));
 
