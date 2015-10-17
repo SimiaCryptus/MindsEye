@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.net.meta.AvgMetaLayer;
+import com.simiacryptus.mindseye.net.meta.CrossDotMetaLayer;
 import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
 import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.net.reducers.SumReducerLayer;
@@ -195,17 +196,25 @@ public class MNISTAutoencoderTests {
     //expectedResult=expectedResult.add(new LinearActivationLayer().setWeight(1./(300)).freeze());
     //expectedResult = expectedResult.add(new SoftmaxActivationLayer());
 
-    //NNLayer<?> loss = new EntropyLossLayer();
-    NNLayer<?> loss = new SqLossLayer();
-    DAGNode expectedResult = codec.net.getInput().get(1);
-    DAGNode errResult = codec.net.add(loss, codec.feedback, expectedResult).add(new AvgMetaLayer()).getHead();
-    DAGNode sparsityResult = codec.net
-        .add(new Sparse01MetaLayer(), codec.center)
-        .add(new SumReducerLayer())
-        .add(new LinearActivationLayer().setWeight(.0).freeze())
-        .getHead();
-    DAGNode regularizationResult = codec.net.add(new LinearActivationLayer().setWeight(0.01).freeze(), codec.regularization).getHead();
-    codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), errResult, sparsityResult, regularizationResult);
+    List<DAGNode> fitnessSet = new ArrayList<>();
+    fitnessSet.add(codec.net
+        .add(new SqLossLayer(), codec.feedback, codec.net.getInput().get(1))
+        .add(new AvgMetaLayer())
+        .getHead());
+//    fitnessSet.add(codec.net
+//        .add(new Sparse01MetaLayer(), codec.center)
+//        .add(new SumReducerLayer())
+//        .add(new LinearActivationLayer().setWeight(.0).freeze())
+//        .getHead());
+//    fitnessSet.add(codec.net
+//        .add(new CrossDotMetaLayer(), codec.center)
+//        .add(new SumReducerLayer())
+//        .add(new LinearActivationLayer().setWeight(10.).freeze())
+//        .getHead());
+    fitnessSet.add(codec.net
+        .add(new LinearActivationLayer().setWeight(0.1).freeze(), codec.regularization)
+        .getHead());
+    codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), fitnessSet.toArray(new DAGNode[]{}));
     
     
     trainer.setNet(codec.net);

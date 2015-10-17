@@ -17,8 +17,6 @@ public class CrossDotMetaLayer extends NNLayer<CrossDotMetaLayer> {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);
 
-  double sparsity = 0.05;
-
   public CrossDotMetaLayer() {
   }
 
@@ -26,7 +24,6 @@ public class CrossDotMetaLayer extends NNLayer<CrossDotMetaLayer> {
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length;
-    
     int dim = input.data[0].dim();
     NDArray results = new NDArray(dim,dim);
     for(int i=0;i<dim;i++){
@@ -51,9 +48,11 @@ public class CrossDotMetaLayer extends NNLayer<CrossDotMetaLayer> {
           for(int i=0;i<dim;i++){
             for(int j=0;j<dim;j++){
               if(i==j) continue;
+              double v = delta.get(i,j);
               for(int k=0;k<itemCnt;k++){
                 double[] kk = input.data[k].getData();
-                feedback[k].set(i, delta.get(i,j) * kk[j]);
+                feedback[k].add(i, v * kk[j]);
+                feedback[k].add(j, v * kk[i]);
               }
             }
           }
