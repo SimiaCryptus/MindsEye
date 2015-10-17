@@ -20,7 +20,8 @@ import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerOjAlgo;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.net.reducers.ProductLayer;
-import com.simiacryptus.mindseye.net.reducers.SumLayer;
+import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
+import com.simiacryptus.mindseye.net.reducers.SumReducerLayer;
 
 public class BasicComponentValidationTests {
   public static final double deltaFactor = 1e-6;
@@ -269,7 +270,16 @@ public class BasicComponentValidationTests {
     final NDArray outputPrototype = new NDArray(1);
     final NDArray inputPrototype1 = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
     final NDArray inputPrototype2 = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new SumLayer();
+    final NNLayer<?> component = new SumInputsLayer();
+    test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+
+  @org.junit.Test
+  public void testSumReducerLayer() throws Throwable {
+    final NDArray outputPrototype = new NDArray(1);
+    final NDArray inputPrototype1 = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
+    final NDArray inputPrototype2 = new NDArray(2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new SumReducerLayer();
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
 

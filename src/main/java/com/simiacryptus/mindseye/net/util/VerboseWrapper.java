@@ -24,7 +24,9 @@ public final class VerboseWrapper extends NNLayer<VerboseWrapper> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final NNResult result = this.inner.eval(inObj);
-    log.debug(String.format("%s: %s => %s", this.label, java.util.Arrays.stream(inObj).map(l -> l.data).collect(java.util.stream.Collectors.toList()), result.data));
+    log.debug(String.format("%s: %s => %s", this.label, 
+        java.util.Arrays.stream(inObj).map(l -> java.util.Arrays.toString(l.data)).collect(java.util.stream.Collectors.toList()), 
+        java.util.Arrays.toString(result.data)));
     return result;
   }
 

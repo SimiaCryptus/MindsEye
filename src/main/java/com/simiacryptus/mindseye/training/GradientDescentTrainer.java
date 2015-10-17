@@ -122,7 +122,6 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     final NNResult eval = eval(trainingContext, validationSet, getPrimaryNode());
     final List<NDArray> evalData = java.util.Arrays.stream(eval.data).map(x -> x).collect(Collectors.toList());
     assert 0 < evalData.size();
-    assert validationSet.length == evalData.size();
     final double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
     setError(rms);
     return new ValidationResults(evalData, rms);

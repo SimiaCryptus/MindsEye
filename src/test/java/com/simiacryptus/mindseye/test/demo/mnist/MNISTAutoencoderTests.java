@@ -19,6 +19,7 @@ import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.DAGNetwork.EvaluationContext;
 import com.simiacryptus.mindseye.net.DAGNode;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
@@ -27,6 +28,11 @@ import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
+import com.simiacryptus.mindseye.net.meta.AvgMetaLayer;
+import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
+import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
+import com.simiacryptus.mindseye.net.reducers.SumReducerLayer;
+import com.simiacryptus.mindseye.net.util.VerboseWrapper;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
@@ -41,7 +47,7 @@ public class MNISTAutoencoderTests {
     return defaultNum;
   }
 
-  public NNLayer<DAGNetwork> buildNetwork() {
+  public ReversibleNetwork buildNetwork() {
     List<int[]> sizes = new ArrayList<>();
     sizes.add(new int[] { 28, 28, 1 });
     sizes.add(new int[] { 100 });
@@ -64,8 +70,21 @@ public class MNISTAutoencoderTests {
     });
     return new groovy.lang.Tuple2<>(encode, decode);
   }
+  
+  public static class ReversibleNetwork {
+    DAGNetwork net;
+    DAGNode center;
+    DAGNode feedback;
+    public ReversibleNetwork(DAGNetwork net, DAGNode center, DAGNode feedback) {
+      super();
+      this.net = net;
+      this.center = center;
+      this.feedback = feedback;
+    }
+    
+  }
 
-  private DAGNetwork stackedCodecNetwork(List<Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS>> codecs) {
+  private ReversibleNetwork stackedCodecNetwork(List<Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS>> codecs) {
     DAGNetwork net = new DAGNetwork();
     for(int i=0;i<codecs.size();i++) {
       Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS> t = codecs.get(i);
@@ -74,6 +93,7 @@ public class MNISTAutoencoderTests {
       net = net.add(new BiasLayer(encode.outputDims));
       net = net.add(new SigmoidActivationLayer().setBalanced(false));
     }
+    DAGNode center = net.getHead();
     for(int i=codecs.size()-1;i>=0;i--) {
       Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS> t = codecs.get(i);
       DenseSynapseLayerJBLAS decode = t.getSecond();
@@ -86,7 +106,7 @@ public class MNISTAutoencoderTests {
     //net = net.add(new SoftmaxActivationLayer());
     //net = net.add(new LinearActivationLayer().setWeight(300).freeze());
     //net = net.add(new LinearActivationLayer().setWeight(20*255).freeze());
-    return net;
+    return new ReversibleNetwork(net, center, net.getHead());
   }
 
   public boolean filter(final LabeledObject<NDArray> item) {
@@ -105,19 +125,19 @@ public class MNISTAutoencoderTests {
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
     final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 100000, hash);
     final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 100, hash);
-    final NNLayer<DAGNetwork> net = buildNetwork();
+    final ReversibleNetwork net = buildNetwork();
     final List<String> report = new java.util.ArrayList<>();
     final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (trainedNetwork, trainingContext) -> {
       report.add("<hr/>");
-      evaluateImageList(trainedNetwork, java.util.Arrays.copyOf(trainingData, 100), net.id).stream().forEach(i->report.add(Util.toInlineImage(i, "TRAINING")));
+      evaluateImageList(trainedNetwork, java.util.Arrays.copyOf(trainingData, 100), net.feedback).stream().forEach(i->report.add(Util.toInlineImage(i, "TRAINING")));
       report.add("<hr/>");
-      evaluateImageList(trainedNetwork, validationData, net.id).stream().forEach(i->report.add(Util.toInlineImage(i, "TEST")));
+      evaluateImageList(trainedNetwork, validationData, net.feedback).stream().forEach(i->report.add(Util.toInlineImage(i, "TEST")));
       report.add("<hr/>");
       return null;
     };
     try {
       {
-        for(int i=0;i<100;i++) getTester(net, select(trainingData, 100), resultHandler).trainTo(.1);
+        for(int i=0;i<10;i++) getTester(net, select(trainingData, 100), resultHandler).trainTo(.1);
         //getTester(net, select(trainingData, 1000), resultHandler).trainTo(.0);
 //        getTester(net, java.util.Arrays.copyOf(trainingData, 40), resultHandler).verifyConvergence(1, 1);
 //        getTester(net, java.util.Arrays.copyOf(trainingData, 50), resultHandler).verifyConvergence(.1, 1);
@@ -149,22 +169,29 @@ public class MNISTAutoencoderTests {
     return java.util.Arrays.stream(array).sorted(java.util.Comparator.comparingInt(x->System.identityHashCode(x)^hash));
   }
 
-  public Tester getTester(final NNLayer<DAGNetwork> net, NDArray[][] trainingData, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+  public Tester getTester(final ReversibleNetwork codec, NDArray[][] trainingData, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
     Tester tester = new Tester();
     tester.setVerbose(true);
     GradientDescentTrainer trainer = tester.getGradientDescentTrainer();
-    NNLayer<?> loss = new SqLossLayer();
-    //NNLayer<?> loss = new EntropyLossLayer();
-    final DAGNetwork supervisedNetwork = new DAGNetwork();
-    supervisedNetwork.add(net);
+    
     //supervisedNetwork.add(new SoftmaxActivationLayer());
     //supervisedNetwork.add(new LinearActivationLayer().setWeight(1./300).freeze());
-    DAGNode head = supervisedNetwork.getHead();
-    DAGNode expectedResult = supervisedNetwork.getInput().get(1);
     //expectedResult=expectedResult.add(new LinearActivationLayer().setWeight(1./(300)).freeze());
     //expectedResult = expectedResult.add(new SoftmaxActivationLayer());
-    supervisedNetwork.add(loss, head, expectedResult);
-    trainer.setNet(supervisedNetwork);
+
+    //NNLayer<?> loss = new EntropyLossLayer();
+    NNLayer<?> loss = new SqLossLayer();
+    DAGNode expectedResult = codec.net.getInput().get(1);
+    DAGNode errResult = codec.net.add(loss, codec.feedback, expectedResult).add(new AvgMetaLayer()).getHead();
+    DAGNode sparsityResult = codec.net
+        .add(new Sparse01MetaLayer(), codec.center)
+        .add(new LinearActivationLayer().setWeight(0.01))
+        .add(new SumReducerLayer())
+        .getHead();
+    codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), errResult, sparsityResult);
+    
+    
+    trainer.setNet(codec.net);
     trainer.setData(trainingData);
     if (null != resultHandler) {
       tester.handler.add(resultHandler);
@@ -173,10 +200,10 @@ public class MNISTAutoencoderTests {
     return tester;
   }
 
-  public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, UUID id) {
-    final NNLayer<?> mainNetwork = n.getChild(id);
+  public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, DAGNode feedback) {
+    //final NNLayer<?> mainNetwork = n.getChild(feedback);
     return java.util.Arrays.stream(validationData)
-        .map(x->mainNetwork.eval(x).data[0])
+        .map(x->feedback.get(n.buildExeCtx(x)).data[0])
         .map(x->Util.toImage(x))
         .collect(java.util.stream.Collectors.toList());
   }

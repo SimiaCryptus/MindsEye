@@ -152,7 +152,6 @@ public class NDArray {
 
   public double get(final Coordinate coords) {
     final double v = getData()[coords.index];
-    assert Double.isFinite(v);
     return v;
   }
 

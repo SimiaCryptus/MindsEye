@@ -11,22 +11,21 @@ import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 
-public class SumLayer extends NNLayer<SumLayer> {
+public class SumReducerLayer extends NNLayer<SumReducerLayer> {
 
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SumLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
   /**
    * 
    */
   private static final long serialVersionUID = -5171545060770814729L;
 
-  public SumLayer() {
+  public SumReducerLayer() {
   }
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    double[] sum_A = new double[inObj[0].data.length];
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+    double outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToDouble(dataIndex->{
       double sum = 0;
       for (final NNResult element : inObj) {
         final double[] input = element.data[dataIndex].getData();
@@ -34,16 +33,15 @@ public class SumLayer extends NNLayer<SumLayer> {
           sum += element2;
         }
       }
-      sum_A[dataIndex] = sum;
-      return new NDArray(new int[] { 1 }, new double[] { sum });
-    }).toArray(i->new NDArray[i]);
-    return new NNResult(outputA) {
+      return sum;
+    }).sum();
+    return new NNResult(new NDArray(new int[]{1},new double[]{outputA})) {
       @Override
       public void accumulate(final DeltaSet buffer, final NDArray[] data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
-              final double delta = data[dataIndex].get(0);
+            NDArray[] passbackA = java.util.stream.IntStream.range(0, in_l.data.length).mapToObj(dataIndex->{
+              final double delta = data[0].get(0);
               final NDArray passback = new NDArray(in_l.data[dataIndex].getDims());
               for (int i = 0; i < in_l.data[dataIndex].dim(); i++) {
                 passback.set(i, delta);

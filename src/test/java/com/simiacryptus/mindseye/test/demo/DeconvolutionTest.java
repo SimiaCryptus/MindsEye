@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.net.reducers.SumLayer;
+import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.net.util.VerboseWrapper;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
@@ -164,7 +164,7 @@ public class DeconvolutionTest {
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer(), modeledImageNode);
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
-        dagNetwork.add(new SumLayer());
+        dagNetwork.add(new SumInputsLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));
 
@@ -189,7 +189,7 @@ public class DeconvolutionTest {
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
-        dagNetwork.add(new SumLayer());
+        dagNetwork.add(new SumInputsLayer());
 
         // Add 1 to output so product stays above 0 since this fitness function
         // is secondary
@@ -212,7 +212,7 @@ public class DeconvolutionTest {
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
         dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
-        dagNetwork.add(new SumLayer());
+        dagNetwork.add(new SumInputsLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));
 
@@ -234,7 +234,7 @@ public class DeconvolutionTest {
       outs.add(dagNetwork.add(gate_entropy, image_entropy).getHead());
       // outs.add(dagNetwork.add(gate_h, edge_entropy_horizontal).getHead());
       // outs.add(dagNetwork.add(gate_v, edge_entropy_vertical).getHead());
-      final VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.reducers.SumLayer());
+      final VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.reducers.SumInputsLayer());
       final DAGNode combine = dagNetwork.add(combiner, outs.stream().toArray(i -> new DAGNode[i])).getHead();
 
       final ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();

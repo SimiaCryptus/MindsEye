@@ -11,8 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
+import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph
@@ -159,6 +161,10 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
 
   public synchronized NNLayer<DAGNetwork> addLossComponent(final NNLayer<?> nextHead) {
     return add(nextHead, getHead(), getInput().get(1));
+  }
+
+  public final EvaluationContext buildExeCtx(final NDArray... array) {
+    return buildExeCtx(java.util.Arrays.stream(array).map((NDArray x)->new ConstNNResult(x)).toArray(i->new NNResult[i]));
   }
 
   public EvaluationContext buildExeCtx(final NNResult... array) {
