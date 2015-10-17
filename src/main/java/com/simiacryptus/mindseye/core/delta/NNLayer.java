@@ -16,9 +16,9 @@ import com.simiacryptus.mindseye.net.DAGNetwork;
  */
 public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializable {
 
-  public static final class ConstNNResult extends NNResult {
+  public final String[] createdBy = Util.currentStack();
 
-    // public final String[] created = Util.currentStack();
+  public static final class ConstNNResult extends NNResult {
 
     public ConstNNResult(final NDArray... data) {
       super(data);

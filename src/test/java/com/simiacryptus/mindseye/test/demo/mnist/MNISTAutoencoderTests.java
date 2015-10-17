@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.net.DAGNode;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
@@ -33,6 +34,7 @@ import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
 import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.net.reducers.SumReducerLayer;
 import com.simiacryptus.mindseye.net.util.VerboseWrapper;
+import com.simiacryptus.mindseye.net.util.WeightExtractor;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
@@ -75,6 +77,7 @@ public class MNISTAutoencoderTests {
     DAGNetwork net;
     DAGNode center;
     DAGNode feedback;
+    public DAGNode regularization;
     public ReversibleNetwork(DAGNetwork net, DAGNode center, DAGNode feedback) {
       super();
       this.net = net;
@@ -86,11 +89,14 @@ public class MNISTAutoencoderTests {
 
   private ReversibleNetwork stackedCodecNetwork(List<Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS>> codecs) {
     DAGNetwork net = new DAGNetwork();
+    List<NNLayer<?>> weightNormalizationList = new ArrayList<>(); 
     for(int i=0;i<codecs.size();i++) {
       Tuple2<DenseSynapseLayerJBLAS, DenseSynapseLayerJBLAS> t = codecs.get(i);
       DenseSynapseLayerJBLAS encode = t.getFirst();
       net = net.add(encode);
-      net = net.add(new BiasLayer(encode.outputDims));
+      BiasLayer bias = new BiasLayer(encode.outputDims);
+      weightNormalizationList.add(bias);
+      net = net.add(bias);
       net = net.add(new SigmoidActivationLayer().setBalanced(false));
     }
     DAGNode center = net.getHead();
@@ -103,10 +109,18 @@ public class MNISTAutoencoderTests {
         net = net.add(new SigmoidActivationLayer());
       }
     }
+    ReversibleNetwork reversibleNetwork = new ReversibleNetwork(net, center, net.getHead());
+    
+    
+    DAGNetwork _net = net;
+    DAGNode[] norms = weightNormalizationList.stream().map(bias->{
+      return _net.add(new WeightExtractor(0,bias), new DAGNode[]{}).add(new SqActivationLayer()).add(new SumReducerLayer()).getHead();
+    }).toArray(i->new DAGNode[i]);
+    reversibleNetwork.regularization = _net.add(new SumInputsLayer(), norms).getHead();
     //net = net.add(new SoftmaxActivationLayer());
     //net = net.add(new LinearActivationLayer().setWeight(300).freeze());
     //net = net.add(new LinearActivationLayer().setWeight(20*255).freeze());
-    return new ReversibleNetwork(net, center, net.getHead());
+    return reversibleNetwork;
   }
 
   public boolean filter(final LabeledObject<NDArray> item) {
@@ -188,7 +202,8 @@ public class MNISTAutoencoderTests {
         .add(new SumReducerLayer())
         .add(new LinearActivationLayer().setWeight(0.1).freeze())
         .getHead();
-    codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), errResult, sparsityResult);
+    DAGNode regularizationResult = codec.net.add(new LinearActivationLayer().setWeight(0.1).freeze(), codec.regularization).getHead();
+    codec.net.add(new VerboseWrapper("sums", new SumInputsLayer()), errResult, sparsityResult, regularizationResult);
     
     
     trainer.setNet(codec.net);

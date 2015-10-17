@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -32,6 +33,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
   }
 
   private final class InnerNode extends LazyResult {
+    public final String[] createdBy = Util.currentStack();
     private final UUID layer;
     private final DAGNode[] inputNodes;
 
@@ -147,7 +149,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
   @SafeVarargs
   public final DAGNetwork add(final NNLayer<?> nextHead, final DAGNode... head) {
     this.byId.put(nextHead.getId(), nextHead);
-    {
+    if(head.length>0){
       // XXX: Prev/next linking only tracks first input node
       final NNLayer<?> prevHead = getLayer(head[0]);
       this.prevMap.put(nextHead, prevHead);

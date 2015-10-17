@@ -52,6 +52,10 @@ public class NDArray {
     this.data = data;// Arrays.copyOf(data, data.length);
   }
 
+  public NDArray(double[] ds) {
+    this(new int[]{ds.length},ds);
+  }
+
   private int[] _add(final int[] base, final int... extra) {
     final int[] copy = Arrays.copyOf(base, base.length + extra.length);
     for (int i = 0; i < extra.length; i++) {
