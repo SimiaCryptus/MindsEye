@@ -32,7 +32,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
   }
 
   private final class InnerNode extends LazyResult {
-    public final String[] createdBy = Util.currentStack();
+    @SuppressWarnings("unused") public final String[] createdBy = Util.currentStack();
     private final UUID layer;
     private final DAGNode[] inputNodes;
 

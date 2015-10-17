@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye.test.regression;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,8 +170,8 @@ public class MetaComponentValidationTests {
         } catch (final Throwable e) {
           log.debug(String.format("Error Comparing element %s", i1));
           log.debug(String.format("Component: %s\nInputs: %s", component, java.util.Arrays.toString(inputPrototype)));
-          log.debug(String.format("%s", measuredGradient));
-          log.debug(String.format("%s", implementedGradient));
+          log.debug(String.format("%s", Arrays.toString(measuredGradient)));
+          log.debug(String.format("%s", Arrays.toString(implementedGradient)));
           log.debug(String.format("%s", measuredGradient[k].minus(implementedGradient[k])));
           throw e;
         }
