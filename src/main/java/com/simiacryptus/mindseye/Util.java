@@ -1,8 +1,6 @@
 package com.simiacryptus.mindseye;
 
 import java.awt.Desktop;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.File;
@@ -12,17 +10,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Base64;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
@@ -36,12 +31,9 @@ import com.esotericsoftware.kryo.Serializer;
 import com.simiacryptus.mindseye.core.BinaryChunkIterator;
 import com.simiacryptus.mindseye.core.LabeledObject;
 import com.simiacryptus.mindseye.core.NDArray;
-import com.simiacryptus.mindseye.core.TrainingContext;
-
 import de.javakaffee.kryoserializers.EnumMapSerializer;
 import de.javakaffee.kryoserializers.EnumSetSerializer;
 import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;
-import groovy.lang.Tuple2;
 
 public class Util {
 

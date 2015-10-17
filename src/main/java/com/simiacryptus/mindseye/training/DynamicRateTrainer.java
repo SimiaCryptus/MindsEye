@@ -108,8 +108,8 @@ public class DynamicRateTrainer implements TrainingComponent {
       }
       if (step.finalError() <= trainingContext.terminalErr) {
         if (isVerbose()) {
+          log.debug(String.format("TERMINAL Final err: %s", step));
         }
-        log.debug(String.format("TERMINAL Final err: %s", step));
       }
       if (step.getStartError() < step.testError) {
         rate /= Math.pow(alpha, beta);
@@ -125,8 +125,8 @@ public class DynamicRateTrainer implements TrainingComponent {
       }
       if (rate < endRate) {
         if (isVerbose()) {
+          log.debug(String.format("TERMINAL rate underflow: %s", rate));
         }
-        log.debug(String.format("TERMINAL rate underflow: %s", rate));
         break;
       }
     }

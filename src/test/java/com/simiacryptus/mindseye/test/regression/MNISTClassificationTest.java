@@ -18,7 +18,6 @@ import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.test.Tester;

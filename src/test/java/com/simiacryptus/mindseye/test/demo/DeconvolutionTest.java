@@ -31,8 +31,6 @@ import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.net.util.VerboseWrapper;
 import com.simiacryptus.mindseye.test.Tester;
-import com.simiacryptus.mindseye.training.DynamicRateTrainer;
-import com.simiacryptus.mindseye.training.dev.ConstrainedGDTrainer;
 
 public class DeconvolutionTest {
   static final Logger log = LoggerFactory.getLogger(DeconvolutionTest.class);
@@ -238,23 +236,16 @@ public class DeconvolutionTest {
       final VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.reducers.SumInputsLayer());
       final DAGNode combine = dagNetwork.add(combiner, outs.stream().toArray(i -> new DAGNode[i])).getHead();
 
-      final ConstrainedGDTrainer constrainedGDTrainer = new ConstrainedGDTrainer();
       final Tester trainer = new Tester() {
-        @Override
-        public void initLayers() {
-          this.gradientTrainer = constrainedGDTrainer;
-          this.dynamicTrainer = new DynamicRateTrainer(this.gradientTrainer);
-        }
       }.setStaticRate(1.);
 
       // new NetInitializer().initialize(initPredictionNetwork);
-      constrainedGDTrainer.setNet(dagNetwork);
-      constrainedGDTrainer.setData(new NDArray[][] { { zeroInput, blurredImage.data[0] } });
+      trainer.getGradientDescentTrainer().setNet(dagNetwork);
+      trainer.getGradientDescentTrainer().setData(new NDArray[][] { { zeroInput, blurredImage.data[0] } });
       final TrainingContext trainingContext = new TrainingContext().setTimeout(1, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
 
-        constrainedGDTrainer.setPrimaryNode(combine);
         // constrainedGDTrainer.setPrimaryNode(imageRMS);
         trainer.train(1., trainingContext);
         trainer.getDynamicRateTrainer().reset();

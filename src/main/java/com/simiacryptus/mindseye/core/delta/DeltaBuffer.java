@@ -2,15 +2,13 @@ package com.simiacryptus.mindseye.core.delta;
 
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.stream.IntStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.core.TrainingContext;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
+public class DeltaBuffer {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
@@ -39,24 +37,8 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     Arrays.setAll(this.buffer, i -> DeltaBuffer.newAccumulator());
   }
 
-  @Override
-  public DeltaBuffer add(final DeltaBuffer right) {
-    return join(right, (l, r) -> l + r);
-  }
-
   private double[] calcVector() {
     return new NumberVector(this.buffer).getArray();
-  }
-
-  @Override
-  public double dotProduct(final DeltaBuffer right) {
-    return sum(right, (l, r) -> l * r);
-  }
-
-  private Double f(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner, final int i) {
-    final double l = this.buffer[i];
-    final double r = right.buffer[i];
-    return joiner.applyAsDouble(l, r);
   }
 
   public void feed(final double[] data) {
@@ -87,22 +69,6 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return false;
   }
 
-  protected DeltaBuffer join(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner) {
-    return new DeltaBuffer(this.target, IntStream.range(0, this.buffer.length).mapToDouble(i -> {
-      return f(right, joiner, i);
-    }).toArray(), this.layer);
-  }
-
-  @Override
-  public double l1() {
-    return Math.sqrt(Arrays.stream(this.buffer).map(v -> v * v).sum());
-  }
-
-  @Override
-  public double l2() {
-    return Math.sqrt(Arrays.stream(this.buffer).map(v -> v * v).sum());
-  }
-
   public int length() {
     return this.target.length;
   }
@@ -111,17 +77,8 @@ public class DeltaBuffer implements VectorLogic<DeltaBuffer> {
     return new DeltaBuffer(this.target, Arrays.stream(this.buffer).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
   }
 
-  @Override
   public DeltaBuffer scale(final double f) {
     return map(x -> x * f);
-  }
-
-  protected double sum(final DeltaBuffer right, final java.util.function.DoubleBinaryOperator joiner) {
-    return IntStream.range(0, this.buffer.length).mapToDouble(i -> {
-      final double l = this.buffer[i];
-      final double r = right.buffer[i];
-      return joiner.applyAsDouble(l, r);
-    }).sum();
   }
 
   @Override

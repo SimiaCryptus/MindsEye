@@ -233,15 +233,6 @@ public class NDArray {
     return new NDArray(dims, getData());
   }
 
-  public double rms(final NDArray right) {
-    double sum = 0;
-    for (int i = 0; i < this.dim(); i++) {
-      final double diff = getData()[i] - right.getData()[i];
-      sum += diff * diff;
-    }
-    return Math.sqrt(sum / this.dim());
-  }
-
   public NDArray scale(final double d) {
     for (int i = 0; i < getData().length; i++) {
       getData()[i] *= d;
