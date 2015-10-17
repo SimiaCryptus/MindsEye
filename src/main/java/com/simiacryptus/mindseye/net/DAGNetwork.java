@@ -60,7 +60,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     public JsonObject toJson() {
       final JsonObject json = new JsonObject();
       json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
-      json.add("prev", ((LazyResult) this.inputNodes[0]).toJson());
+      if(this.inputNodes.length>0) json.add("prev0", ((LazyResult) this.inputNodes[0]).toJson());
       return json;
     }
 

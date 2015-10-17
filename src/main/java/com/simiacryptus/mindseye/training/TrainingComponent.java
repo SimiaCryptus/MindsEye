@@ -42,6 +42,13 @@ public interface TrainingComponent {
     public void setStartError(final double startError) {
       this.startError = startError;
     }
+
+    @Override
+    public String toString() {
+      return "TrainingStep [changed=" + changed + ", startError=" + startError + ", testError=" + testError + "]";
+    }
+    
+    
   }
 
   NDArray[][] getData();
