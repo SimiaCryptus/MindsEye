@@ -9,15 +9,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
@@ -120,7 +123,8 @@ public class Util {
   public static void report(final Stream<String> fragments) throws FileNotFoundException, IOException {
     final File outDir = new File("reports");
     outDir.mkdirs();
-    final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+    final StackTraceElement caller = getLast(Arrays.stream(Thread.currentThread().getStackTrace())//
+        .filter(x->x.getClassName().contains("simiacryptus")));
     final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
@@ -128,6 +132,12 @@ public class Util {
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());
+  }
+
+  public static <T> T getLast(Stream<T> stream) {
+    List<T> collect = stream.collect(Collectors.toList());
+    T last = collect.get(collect.size()-1);
+    return last;
   }
 
   public static void report(final String... fragments) throws FileNotFoundException, IOException {

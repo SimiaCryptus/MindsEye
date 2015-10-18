@@ -25,13 +25,4 @@ public class MNISTClassificationTests5 extends MNISTClassificationTest {
     return net;
   }
 
-  @Override
-  public boolean filter(final LabeledObject<NDArray> item) {
-    // if (item.label.equals("[1]"))
-    // return true;
-    // if (item.label.equals("[8]"))
-    // return true;
-    return true;
-  }
-
 }

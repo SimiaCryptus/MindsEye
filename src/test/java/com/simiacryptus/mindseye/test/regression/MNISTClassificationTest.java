@@ -76,8 +76,8 @@ public class MNISTClassificationTest extends ClassificationTestBase {
           final int classificationActual = outputToClassification(actualOutput);
           final double n = numberOfSymbols();
           final double[] c = new double[] { //
-              (classificationActual + Util.R.get().nextDouble()) / (n + 1), //
-              (classificationExpected + Util.R.get().nextDouble()) / (n + 1) //
+              (classificationActual + Util.R.get().nextDouble()) / (n), //
+              (classificationExpected + Util.R.get().nextDouble()) / (n) //
           };
           final double[] coords = new double[] { c[0] * 6 - 3, c[1] * 6 - 3 };
           final double xf = coords[0];
@@ -95,16 +95,6 @@ public class MNISTClassificationTest extends ClassificationTestBase {
     return img;
   }
 
-  public boolean filter(final LabeledObject<NDArray> item) {
-    if (item.label.equals("[0]"))
-      return true;
-    if (item.label.equals("[5]"))
-      return true;
-    if (item.label.equals("[9]"))
-      return true;
-    return true;
-  }
-
   @Override
   public List<Color> getColorMap() {
     return colorMap;
@@ -112,19 +102,6 @@ public class MNISTClassificationTest extends ClassificationTestBase {
 
   public double numberOfSymbols() {
     return 10.;
-  }
-
-  private String remap(final String label) {
-    switch (label) {
-    // case "[0]":
-    // return "[5]";
-    // case "[5]":
-    // return "[9]";
-    // case "[9]":
-    // return "[0]";
-    default:
-      return label;
-    }
   }
 
   @Test
@@ -137,22 +114,27 @@ public class MNISTClassificationTest extends ClassificationTestBase {
   }
 
   public NDArray[][] transformTrainingData(final int hash, final Stream<LabeledObject<NDArray>> mnistStream) {
-    final NDArray[][] data = mnistStream.filter(this::filter)
+    final NDArray[][] data = mnistStream
         //.collect(java.util.stream.Collectors.toList()).stream()
         .collect(java.util.stream.Collectors.toList()).parallelStream()
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
         .map(obj -> new LabeledObject<>(obj.data.reformat(28, 28, 1), obj.label)).map(obj -> {
-          final int out = MNISTClassificationTest.toOut(remap(obj.label));
+          final int out = MNISTClassificationTest.toOut(obj.label);
           final NDArray output = MNISTClassificationTest.toOutNDArray(out, 10);
           return new NDArray[] { obj.data, output };
         }).toArray(i -> new NDArray[i][]);
     return data;
   }
 
-//  @Override
-//  public void verify(final Tester trainer) {
-//    trainer.verifyConvergence(0.00001, 1);
-//  }
+  @Override
+  public int height() {
+    return (int) (.5*super.height());
+  }
+
+  @Override
+  public int width() {
+    return (int) (.5*super.width());
+  }
 
   public static int toOut(final String label) {
     for (int i = 0; i < 10; i++) {

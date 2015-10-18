@@ -142,4 +142,14 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     trainer.verifyConvergence(0.01, 1);
   }
 
+  @Override
+  public int height() {
+    return (int) (.25*super.height());
+  }
+
+  @Override
+  public int width() {
+    return (int) (.25*super.width());
+  }
+
 }

@@ -126,7 +126,7 @@ public class EncogClassificationTests {
     final Function<BasicNetwork, Void> handler = net -> {
       try {
         final ClassificationResultMetrics correct = new ClassificationResultMetrics(categories);
-        final BufferedImage img = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB) {
+        final BufferedImage img = new BufferedImage(250, 250, BufferedImage.TYPE_INT_RGB) {
           {
             if (EncogClassificationTests.this.drawBG) {
               for (int xpx = 0; xpx < getWidth(); xpx++) {
@@ -178,7 +178,7 @@ public class EncogClassificationTests {
       return null;
     };
     try {
-      IntStream.range(0, 10).parallel().forEach(thread -> {
+      IntStream.range(0, 1).parallel().forEach(thread -> {
         final BasicNetwork network = EncogUtility.simpleFeedForward(2, 10, 0, 2, false);
         final BasicMLDataSet trainingSet = new BasicMLDataSet(Stream.of(samples).map(x -> x[0].getData()).toArray(i -> new double[i][]),
             Stream.of(samples).map(x -> x[1].getData()).toArray(i -> new double[i][]));
