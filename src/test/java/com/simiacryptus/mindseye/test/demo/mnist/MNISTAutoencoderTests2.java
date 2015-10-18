@@ -54,10 +54,8 @@ public class MNISTAutoencoderTests2 {
 
     public AutoencodingNetwork(int[] outerSize, int[] innerSize) {
       super();
-
       this.net = new DAGNetwork();
       List<NNLayer<?>> weightNormalizationList = new ArrayList<>();
-      
       DenseSynapseLayerJBLAS encode = new DenseSynapseLayerJBLAS(NDArray.dim(outerSize), innerSize);// .setWeights(()->Util.R.get().nextGaussian()*0.1);
       weightNormalizationList.add(encode);
       {
@@ -68,7 +66,6 @@ public class MNISTAutoencoderTests2 {
         net = net.add(new SigmoidActivationLayer().setBalanced(false));
       }
       center = net.getHead();
-      
       {
         DenseSynapseLayerJBLAS decode = new DenseSynapseLayerJBLAS(NDArray.dim(innerSize), outerSize)
             .setWeights((Coordinate c) -> {
@@ -86,39 +83,20 @@ public class MNISTAutoencoderTests2 {
         // net = net.add(new SigmoidActivationLayer());
         feedback = net.getHead();
       }
-
-      // supervisedNetwork.add(new SoftmaxActivationLayer());
-      // supervisedNetwork.add(new
-      // LinearActivationLayer().setWeight(1./300).freeze());
-      // expectedResult=expectedResult.add(new
-      // LinearActivationLayer().setWeight(1./(300)).freeze());
-      // expectedResult = expectedResult.add(new SoftmaxActivationLayer());
-
       List<DAGNode> fitnessSet = new ArrayList<>();
-      
       fitnessSet.add(this.net
           .add(new SqLossLayer(), this.feedback, this.net.getInput().get(0))
           .add(new AvgMetaLayer()).getHead());
-      
       fitnessSet.add(this.net.add(new Sparse01MetaLayer(), this.center)
           .add(new SumReducerLayer())
           .add(new LinearActivationLayer().setWeight(.1).freeze()).getHead());
-      
-      // fitnessSet.add(codec.net
-      // .add(new CrossDotMetaLayer(), codec.center)
-      // .add(new SumReducerLayer())
-      // .add(new LinearActivationLayer().setWeight(1.).freeze())
-      // .getHead());
-      
       fitnessSet.add(this.net.add(new SumInputsLayer(), weightNormalizationList.stream().map(x->net
           .add(new WeightExtractor(0, x), new DAGNode[] {})
           .add(new SqActivationLayer())
           .add(new SumReducerLayer()).getHead()).toArray(i->new DAGNode[i]))
           .add(new LinearActivationLayer().setWeight(0.001).freeze())
           .getHead());
-      
       this.net.add(new VerboseWrapper("sums", new SumInputsLayer()), fitnessSet.toArray(new DAGNode[] {}));
-
     }
 
   }

@@ -172,7 +172,7 @@ public class MNISTClassificationTest extends ClassificationTestBase {
   public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
     final Tester trainer = buildTrainer(trainingsamples, net);
     trainer.handler.add(resultHandler);
-    trainer.verifyConvergence(0.6, 1);  
+    trainer.verifyConvergence(0.35, 1);  
   }
 
 }
