@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.opencl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class MatrixMultiplyKernel extends com.amd.aparapi.Kernel {
+public final class MatrixMultiplyKernel extends com.aparapi.Kernel {
   static final Logger log = LoggerFactory.getLogger(MatrixMultiplyKernel.class);
 
   private static final boolean DEBUG = false;
@@ -24,7 +24,7 @@ public final class MatrixMultiplyKernel extends com.amd.aparapi.Kernel {
   public MatrixMultiplyKernel() {
   }
 
-  public void exe(final com.amd.aparapi.device.Device device) {
+  public void exe(final com.aparapi.device.Device device) {
     if (DEBUG) {
       for (int i = 0; i < this.output.length; i++) {
         this.output[i] = run(i);

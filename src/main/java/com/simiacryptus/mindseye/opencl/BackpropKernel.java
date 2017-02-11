@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.opencl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class BackpropKernel extends com.amd.aparapi.Kernel {
+public final class BackpropKernel extends com.aparapi.Kernel {
   static final Logger log = LoggerFactory.getLogger(BackpropKernel.class);
 
   private static final boolean DEBUG = false;
@@ -26,7 +26,7 @@ public final class BackpropKernel extends com.amd.aparapi.Kernel {
   public BackpropKernel() {
   }
 
-  public void exe(final com.amd.aparapi.device.Device device) {
+  public void exe(final com.aparapi.device.Device device) {
     assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weights.length;

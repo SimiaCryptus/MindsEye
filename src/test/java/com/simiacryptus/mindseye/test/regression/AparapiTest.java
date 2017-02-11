@@ -32,18 +32,18 @@ under those regulations, please refer to the U.S. Bureau of Industry and Securit
 
 import java.util.List;
 
-import com.amd.aparapi.Kernel.EXECUTION_MODE;
-import com.amd.aparapi.Range;
-import com.amd.aparapi.device.Device;
-import com.amd.aparapi.device.OpenCLDevice;
-import com.amd.aparapi.internal.opencl.OpenCLPlatform;
+import com.aparapi.Kernel.EXECUTION_MODE;
+import com.aparapi.Range;
+import com.aparapi.device.Device;
+import com.aparapi.device.OpenCLDevice;
+import com.aparapi.internal.opencl.OpenCLPlatform;
 
 public class AparapiTest {
 
-  @com.amd.aparapi.opencl.OpenCL.Resource("com/amd/aparapi/sample/convolution/convolution.cl")
-  interface Convolution extends com.amd.aparapi.opencl.OpenCL<Convolution> {
+  @com.aparapi.opencl.OpenCL.Resource("com/amd/aparapi/sample/convolution/convolution.cl")
+  interface Convolution extends com.aparapi.opencl.OpenCL<Convolution> {
     Convolution applyConvolution(//
-        com.amd.aparapi.Range range, //
+        com.aparapi.Range range, //
         @GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
                                                                   //// from
                                                                   //// kernel
@@ -56,7 +56,7 @@ public class AparapiTest {
         @Arg("_height") int _height);
   }
 
-  public static class TestKernel extends com.amd.aparapi.Kernel {
+  public static class TestKernel extends com.aparapi.Kernel {
 
     public final int[] input = new int[10240];
     public final int[] results = new int[10240];
@@ -155,7 +155,7 @@ public class AparapiTest {
       System.out.println("}");
     }
 
-    final Device firstACC = Device.firstACC();
+    final Device firstACC = Device.bestACC();
     if (firstACC == null) {
       System.out.println("OpenCLDevice.firstACC() returned null!");
     } else {
@@ -192,7 +192,7 @@ public class AparapiTest {
   @org.junit.Test
   public void test() {
 
-    final com.amd.aparapi.device.OpenCLDevice openclDevice = (com.amd.aparapi.device.OpenCLDevice) com.amd.aparapi.device.Device.best();
+    final com.aparapi.device.OpenCLDevice openclDevice = (com.aparapi.device.OpenCLDevice) com.aparapi.device.Device.best();
     // final Convolution convolution = openclDevice.bind(Convolution.class);
     final TestKernel testKernel = new TestKernel();
     testKernel.setExecutionMode(EXECUTION_MODE.GPU);
