@@ -1,20 +1,15 @@
 package com.simiacryptus.mindseye.net;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph
@@ -165,7 +160,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
   }
 
   public final EvaluationContext buildExeCtx(final NDArray... array) {
-    return buildExeCtx(java.util.Arrays.stream(array).map((NDArray x)->new ConstNNResult(x)).toArray(i->new NNResult[i]));
+    NNResult[] a = Arrays.stream(array).map((NDArray x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+    return buildExeCtx(a);
   }
 
   public EvaluationContext buildExeCtx(final NNResult... array) {
