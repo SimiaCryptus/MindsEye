@@ -1,12 +1,13 @@
 package com.simiacryptus.mindseye.core.delta;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.NDArray;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Nonlinear Network Layer (aka Neural Network Layer)
@@ -61,11 +62,13 @@ public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializa
   }
 
   public final NNResult eval(final NDArray... array) {
-    return eval(java.util.Arrays.stream(array).map((NDArray x)->new ConstNNResult(x)).toArray(i->new NNResult[i]));
+    NNResult[] a = Arrays.stream(array).map((NDArray x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+    return eval(a);
   }
 
   public final NNResult eval(final NDArray[][] array) {
-    return eval(java.util.Arrays.stream(array).map((NDArray[] x)->new ConstNNResult(x)).toArray(i->new NNResult[i]));
+    NNResult[] a = Arrays.stream(array).map((NDArray[] x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+    return eval(a);
   }
 
   public abstract NNResult eval(NNResult... array);
