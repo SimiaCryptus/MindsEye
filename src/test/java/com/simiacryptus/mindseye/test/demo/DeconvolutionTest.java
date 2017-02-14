@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +89,7 @@ public class DeconvolutionTest {
   }
 
   @Test
+  @Ignore
   public void testConvolution() throws Exception {
 
     final NDArray inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
@@ -114,6 +117,7 @@ public class DeconvolutionTest {
 
   @SuppressWarnings({ "unused", "serial" })
   @Test
+  @Ignore
   public void testDeconvolution() throws Exception {
 
     // List<LabeledObject<NDArray>> data =
@@ -280,6 +284,7 @@ public class DeconvolutionTest {
   }
 
   @Test
+  @Ignore
   public void testDeconvolution2() throws Exception {
 
     // List<LabeledObject<NDArray>> data =

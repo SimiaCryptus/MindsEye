@@ -9,7 +9,9 @@ import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.mindseye.core.LabeledObject;
@@ -105,6 +107,7 @@ public class MNISTClassificationTest extends ClassificationTestBase {
   }
 
   @Test
+  @Ignore
   public void test() throws Exception {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));

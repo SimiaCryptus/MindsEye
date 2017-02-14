@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.training.TrainingComponent;
  */
 public class Tester {
 
-  static final Logger log = LoggerFactory.getLogger(Tester.class);
+	static final Logger log = LoggerFactory.getLogger(Tester.class);
 
   public static DAGNetwork supervisionNetwork(final NNLayer<?> predictor, final NNLayer<?> loss) {
     final DAGNetwork dagNetwork = new DAGNetwork();

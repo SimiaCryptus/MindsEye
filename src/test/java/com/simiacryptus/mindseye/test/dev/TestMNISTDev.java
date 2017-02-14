@@ -16,7 +16,9 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +97,7 @@ public class TestMNISTDev {
   }
 
   @Test
+  @Ignore
   public void test() throws Exception {
     TestMNISTDev.log.info("Starting");
     final NNLayer<DAGNetwork> net = getNetwork();
