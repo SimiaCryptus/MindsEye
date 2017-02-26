@@ -1,0 +1,45 @@
+<project name="MindsEye">
+	<skin>
+		<groupId>org.apache.maven.skins</groupId>
+		<artifactId>maven-fluido-skin</artifactId>
+		<version>1.6</version>
+	</skin>
+	<custom>
+		<fluidoSkin>
+			<topBarEnabled>true</topBarEnabled>
+			<sideBarEnabled>false</sideBarEnabled>
+			<sourceLineNumbersEnabled>true</sourceLineNumbersEnabled>
+			<gitHub>
+				<projectId>SimiaCryptus/MindsEye</projectId>
+				<ribbonOrientation>left</ribbonOrientation>
+				<ribbonColor>black</ribbonColor>
+			</gitHub>
+			<profile>release</profile>
+		</fluidoSkin>
+	</custom>
+	<body>
+		<menu ref="reports" />
+		<menu name="Simia Cryptus" position="right">
+			<item name="Blog" href="http://simiacryptus.com" />
+			<item name="GitHub" href="https://github.com/SimiaCryptus/" />
+			<item name="Modules" href="https://simiacryptus.github.io/utilities/all" />
+			<item name="Maven" href="https://mvnrepository.com/artifact/com.simiacryptus" />
+		</menu>
+
+		<footer><![CDATA[
+    	<p>Search <a href="http://simiacryptus.com">SimiaCryptus Software</a>:</p>
+    	<script>
+  (function() {
+    var cx = '002356377723513062632:sj7pd32nzsk';
+    var gcse = document.createElement('script');
+    gcse.type = 'text/javascript';
+    gcse.async = true;
+    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(gcse, s);
+  })();
+</script>
+<gcse:search></gcse:search>]]></footer>
+
+	</body>
+</project>
