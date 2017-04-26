@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -91,25 +91,25 @@ public class DeconvolutionTest {
   @Ignore
   public void testConvolution() throws Exception {
 
-    final NDArray inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
+    final Tensor inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    // final Tensor inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
     // "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();
     // final NNLayer<?> convolution = blur_3();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data[0].getDims();
-    final List<LabeledObject<NDArray>> data = new ArrayList<>();
-    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
+    final int[] outSize = convolution.eval(new Tensor(inputSize)).data[0].getDims();
+    final List<LabeledObject<Tensor>> data = new ArrayList<>();
+    data.add(new LabeledObject<Tensor>(inputImage, "Ideal Input"));
 
     final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
 
     Util.report(data.stream().map(obj -> {
-      final NDArray[] input = { obj.data };
+      final Tensor[] input = { obj.data };
       final NNResult output = forwardConvolutionNet.eval(input);
 
-      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())));
+      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new Tensor(outSize, output.data[0].getData())));
     }));
 
   }
@@ -119,27 +119,27 @@ public class DeconvolutionTest {
   @Ignore
   public void testDeconvolution() throws Exception {
 
-    // List<LabeledObject<NDArray>> data =
+    // List<LabeledObject<Tensor>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final NDArray inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
+    final Tensor inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    // final Tensor inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
     // "Hello World"));
-    // NDArray inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello
+    // Tensor inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello
     // World"));
 
     final NNLayer<?> convolution = blur_3x4();
     // final NNLayer<?> convolution = blur_3();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data[0].getDims();
-    final List<LabeledObject<NDArray>> data = new ArrayList<>();
-    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
+    final int[] outSize = convolution.eval(new Tensor(inputSize)).data[0].getDims();
+    final List<LabeledObject<Tensor>> data = new ArrayList<>();
+    data.add(new LabeledObject<Tensor>(inputImage, "Ideal Input"));
 
     Util.report(data.stream().map(obj -> {
 
-      final NNResult blurredImage = convolution.eval(new NDArray[] { obj.data });
+      final NNResult blurredImage = convolution.eval(new Tensor[] { obj.data });
 
-      final NDArray zeroInput = new NDArray(inputSize);
+      final Tensor zeroInput = new Tensor(inputSize);
       final DAGNetwork dagNetwork = new DAGNetwork();
       BiasLayer bias = new BiasLayer(inputSize) {
 
@@ -244,7 +244,7 @@ public class DeconvolutionTest {
 
       // new NetInitializer().initialize(initPredictionNetwork);
       trainer.getGradientDescentTrainer().setNet(dagNetwork);
-      trainer.getGradientDescentTrainer().setData(new NDArray[][] { { zeroInput, blurredImage.data[0] } });
+      trainer.getGradientDescentTrainer().setData(new Tensor[][] { { zeroInput, blurredImage.data[0] } });
       final TrainingContext trainingContext = new TrainingContext().setTimeout(1, java.util.concurrent.TimeUnit.MINUTES);
       try {
         trainer.setStaticRate(0.5).setMaxDynamicRate(1000000).setVerbose(true);
@@ -275,9 +275,9 @@ public class DeconvolutionTest {
 
       return DeconvolutionTest.imageHtml( //
           Util.toImage(obj.data), //
-          Util.toImage(new NDArray(outSize, blurredImage.data[0].getData())), //
-          Util.toImage(new NDArray(inputSize, recovered.data[0].getData())), //
-          Util.toImage(new NDArray(outSize, verification.data[0].getData())));
+          Util.toImage(new Tensor(outSize, blurredImage.data[0].getData())), //
+          Util.toImage(new Tensor(inputSize, recovered.data[0].getData())), //
+          Util.toImage(new Tensor(outSize, verification.data[0].getData())));
     }));
 
   }
@@ -286,39 +286,39 @@ public class DeconvolutionTest {
   @Ignore
   public void testDeconvolution2() throws Exception {
 
-    // List<LabeledObject<NDArray>> data =
+    // List<LabeledObject<Tensor>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final NDArray inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
-    // final NDArray inputImage = Util.toNDArray1(render(new int[] { 200, 200 },
+    final Tensor inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    // final Tensor inputImage = Util.toNDArray1(render(new int[] { 200, 200 },
     // "Hello World"));
-    // NDArray inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300},
+    // Tensor inputImage = TestMNISTDev.toNDArray3(render(new int[]{300,300},
     // "Hello World"));
 
     final NNLayer<?> convolution = blur_3x4();
 
     final int[] inputSize = inputImage.getDims();
-    final int[] outSize = convolution.eval(new NDArray(inputSize)).data[0].getDims();
-    final List<LabeledObject<NDArray>> data = new ArrayList<>();
-    data.add(new LabeledObject<NDArray>(inputImage, "Ideal Input"));
+    final int[] outSize = convolution.eval(new Tensor(inputSize)).data[0].getDims();
+    final List<LabeledObject<Tensor>> data = new ArrayList<>();
+    data.add(new LabeledObject<Tensor>(inputImage, "Ideal Input"));
 
     final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
 
     Util.report(data.stream().map(obj -> {
-      final NDArray[] input = { obj.data };
+      final Tensor[] input = { obj.data };
       final NNResult output = forwardConvolutionNet.eval(input);
-      final NDArray zeroInput = new NDArray(inputSize);
+      final Tensor zeroInput = new Tensor(inputSize);
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
 
-      trainer.init(new NDArray[][] { { zeroInput, output.data[0] } }, new DAGNetwork().add(bias).add(convolution), new SqLossLayer());
+      trainer.init(new Tensor[][] { { zeroInput, output.data[0] } }, new DAGNetwork().add(bias).add(convolution), new SqLossLayer());
 
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias),
-      // new NDArray[][] { { zeroInput, zeroInput } })
+      // new Tensor[][] { { zeroInput, zeroInput } })
       // {
       // @Override
-      // public NDArray getIdeal(NNResult eval, NDArray preset) {
-      // NDArray retVal = preset.copy();
+      // public Tensor getIdeal(NNResult eval, Tensor preset) {
+      // Tensor retVal = preset.copy();
       // for (int i = 0; i < retVal.dim(); i++) {
       // double x = eval.data.getData()[i];
       // retVal.getData()[i] = ((x > -0.1)?x:0)*0.99;
@@ -330,12 +330,12 @@ public class DeconvolutionTest {
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias).add(new
       // com.simiacryptus.mindseye.layers.MaxEntLayer()),
-      // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(0.1));
+      // new Tensor[][] { { zeroInput, new Tensor(1) } }).setWeight(0.1));
 
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias).add(new
       // com.simiacryptus.mindseye.layers.MaxEntLayer().setFactor(1).setReverse(true)),
-      // new NDArray[][] { { zeroInput, new NDArray(1) } }).setWeight(-0.1));
+      // new Tensor[][] { { zeroInput, new Tensor(1) } }).setWeight(-0.1));
 
       final TrainingContext trainingContext = new TrainingContext().setTimeout(15, java.util.concurrent.TimeUnit.MINUTES);
       try {
@@ -349,8 +349,8 @@ public class DeconvolutionTest {
       final NNResult recovered = bias.eval(zeroInput);
       final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
-      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new NDArray(outSize, output.data[0].getData())), Util.toImage(new NDArray(inputSize, recovered.data[0].getData())),
-          Util.toImage(new NDArray(outSize, tested.data[0].getData())));
+      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new Tensor(outSize, output.data[0].getData())), Util.toImage(new Tensor(inputSize, recovered.data[0].getData())),
+          Util.toImage(new Tensor(outSize, tested.data[0].getData())));
     }));
 
   }
@@ -359,8 +359,8 @@ public class DeconvolutionTest {
     return Stream.of(imgArray).map(img -> Util.toInlineImage(img, "")).reduce((a, b) -> a + b).get();
   }
 
-  public static NDArray toNDArray3(final BufferedImage img) {
-    final NDArray a = new NDArray(img.getWidth(), img.getHeight(), 3);
+  public static Tensor toNDArray3(final BufferedImage img) {
+    final Tensor a = new Tensor(img.getWidth(), img.getHeight(), 3);
     for (int x = 0; x < img.getWidth(); x++) {
       for (int y = 0; y < img.getHeight(); y++) {
         a.set(new int[] { x, y, 0 }, img.getRGB(x, y) & 0xFF);

@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.test.demo.mnist;
 import java.util.function.BiFunction;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -35,15 +35,15 @@ public class MNISTClassificationTests4 extends MNISTClassificationTest {
 
     //net = net.add(new SumSubsampleLayer(new int[] { 3, 3, 1 }));
 
-    final int[] size = net.eval(new NDArray(inputSize)).data[0].getDims();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));
+    final int[] size = net.eval(new Tensor(inputSize)).data[0].getDims();
+    net = net.add(new DenseSynapseLayer(Tensor.dim(size), new int[] { 10 }));
     net = net.add(new BiasLayer(10));
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }
 
   @Override
-  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+  public void train(final NNLayer<DAGNetwork> net, final Tensor[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
     final Tester trainer = buildTrainer(trainingsamples, net);
     trainer.handler.add(resultHandler);
     trainer.getGradientDescentTrainer().setTrainingSize(100);

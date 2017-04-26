@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.test.demo.shapes;
 
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
@@ -20,16 +20,16 @@ public class SoftmaxTests3 extends SimpleClassificationTests {
     final int midLayers = 0;
     DAGNetwork net = new DAGNetwork();
 
-    final NNLayer<?> inputLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
+    final NNLayer<?> inputLayer = new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
     net = net.add(inputLayer);
 
     for (int i = 0; i < midLayers; i++) {
-      final NNLayer<?> hiddenLayer = new DAGNetwork().add(new DenseSynapseLayer(NDArray.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
+      final NNLayer<?> hiddenLayer = new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
       net = net.add(hiddenLayer);
     }
 
     DAGNetwork outputLayer = new DAGNetwork();
-    outputLayer = outputLayer.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
+    outputLayer = outputLayer.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
     outputLayer = outputLayer.add(new BiasLayer(outSize));
     net = net.add(outputLayer);
 

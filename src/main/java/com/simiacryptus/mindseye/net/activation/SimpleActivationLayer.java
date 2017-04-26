@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -30,11 +30,11 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   @Override
   public NNResult eval(final NNResult... inObj) {
     int itemCnt = inObj[0].data.length;
-    NDArray inputGradientA[] = new NDArray[itemCnt];
-    NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
-      final NDArray input = inObj[0].data[dataIndex];
-      final NDArray output = new NDArray(inObj[0].data[dataIndex].getDims());
-      final NDArray inputGradient = new NDArray(input.dim());
+    Tensor inputGradientA[] = new Tensor[itemCnt];
+    Tensor[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+      final Tensor input = inObj[0].data[dataIndex];
+      final Tensor output = new Tensor(inObj[0].data[dataIndex].getDims());
+      final Tensor inputGradient = new Tensor(input.dim());
       inputGradientA[dataIndex] = inputGradient;
       final double[] results = new double[2];
       for (int i = 0; i < input.dim(); i++) {
@@ -43,13 +43,13 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         output.set(i, results[0]);
       }
       return output;
-    }).toArray(i->new NDArray[i]);
+    }).toArray(i->new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (inObj[0].isAlive()) {
-          NDArray[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
-            final NDArray passback = new NDArray(data[dataIndex].getDims());
+          Tensor[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+            final Tensor passback = new Tensor(data[dataIndex].getDims());
             final double[] gradientData = inputGradientA[dataIndex].getData();
             IntStream.range(0, passback.dim()).forEach(i -> {
               final double v = gradientData[i];
@@ -58,7 +58,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
               }
             });
             return passback;
-          }).toArray(i->new NDArray[i]);
+          }).toArray(i->new Tensor[i]);
           inObj[0].accumulate(buffer, passbackA);
         }
       }

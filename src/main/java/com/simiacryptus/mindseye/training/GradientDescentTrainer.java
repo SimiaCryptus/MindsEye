@@ -5,11 +5,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
@@ -18,7 +18,7 @@ import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.DAGNode;
-import com.simiacryptus.mindseye.net.DAGNetwork.EvaluationContext;
+import com.simiacryptus.mindseye.net.EvaluationContext;
 
 import groovy.lang.Tuple2;
 
@@ -76,14 +76,14 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private double rate = 0.1;
   private double temperature = 0.0;
 
-  private NDArray[][] trainingData = null;
+  private Tensor[][] trainingData = null;
 
   private int trainingSize = Integer.MAX_VALUE;
 
   private boolean verbose = false;
 
   public StepResult _step(final TrainingContext trainingContext) {
-    final NDArray[][] data = getTrainingData();
+    final Tensor[][] data = getTrainingData();
     if (data.length == 0)
       return new StepResult(Double.NaN, Double.NaN) {
         @Override
@@ -103,7 +103,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     };
   }
 
-  protected DeltaSet calcDelta(final TrainingContext trainingContext, final NDArray[][] data) {
+  protected DeltaSet calcDelta(final TrainingContext trainingContext, final Tensor[][] data) {
     final EvaluationContext contexts = initContexts(trainingContext, data, getPrimaryNode());
     return collectVector(getPrimaryNode(), contexts);
   }
@@ -112,15 +112,15 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return collectVector(primaryNode.get(contexts)).scale(-getRate());
   }
 
-  private NNResult eval(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
+  private NNResult eval(final TrainingContext trainingContext, final Tensor[][] trainingData, final DAGNode primaryNode) {
     final EvaluationContext collect = initContexts(trainingContext, trainingData, primaryNode);
     return primaryNode.get(collect);
   }
 
-  private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final NDArray[][] validationSet) {
+  private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final Tensor[][] validationSet) {
     assert 0 < validationSet.length;
     final NNResult eval = eval(trainingContext, validationSet, getPrimaryNode());
-    final List<NDArray> evalData = java.util.Arrays.stream(eval.data).map(x -> x).collect(Collectors.toList());
+    final List<Tensor> evalData = java.util.Arrays.stream(eval.data).map(x -> x).collect(Collectors.toList());
     assert 0 < evalData.size();
     final double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
     setError(rms);
@@ -128,10 +128,10 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   @Override
-  public NDArray[][] getData() {
+  public Tensor[][] getData() {
     return this.trainingData;
     // assert(null!=trainingData);
-    // return null==trainingData?new NDArray[][]{}:trainingData;
+    // return null==trainingData?new Tensor[][]{}:trainingData;
   }
 
   @Override
@@ -159,26 +159,26 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return this.temperature;
   }
 
-  public NDArray[][] getTrainingData() {
+  public Tensor[][] getTrainingData() {
 
-    final NDArray[][] data2 = getData();
+    final Tensor[][] data2 = getData();
     assert 0 < data2.length;
     assert 0 < getTrainingSize();
     return java.util.Arrays.stream(data2).parallel() //
         .sorted(java.util.Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
         .limit(getTrainingSize()) //
-        .toArray(i -> new NDArray[i][]);
+        .toArray(i -> new Tensor[i][]);
   }
 
   public int getTrainingSize() {
     return this.trainingSize;
   }
 
-  public EvaluationContext initContexts(final TrainingContext trainingContext, final NDArray[][] trainingData, final DAGNode primaryNode) {
+  public EvaluationContext initContexts(final TrainingContext trainingContext, final Tensor[][] trainingData, final DAGNode primaryNode) {
     final DAGNetwork net = getNet();
     trainingContext.evaluations.increment();
     NNResult[] constNNResult = IntStream.range(0, trainingData[0].length).mapToObj(j->{
-      NDArray[] array = IntStream.range(0, trainingData.length).mapToObj(i->trainingData[i][j]).toArray(i->new NDArray[i]);
+      Tensor[] array = IntStream.range(0, trainingData.length).mapToObj(i->trainingData[i][j]).toArray(i->new Tensor[i]);
       return new ConstNNResult(array);
     }).toArray(x->new NNResult[x]);
     return net.buildExeCtx(constNNResult);
@@ -198,7 +198,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   @Override
-  public TrainingComponent setData(final NDArray[][] trainingData) {
+  public TrainingComponent setData(final Tensor[][] trainingData) {
     this.trainingData = trainingData;
     return this;
   }

@@ -3,10 +3,10 @@ package com.simiacryptus.mindseye.net.reducers;
 import java.util.Arrays;
 import java.util.List;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -35,19 +35,19 @@ public class SumReducerLayer extends NNLayer<SumReducerLayer> {
       }
       return sum;
     }).sum();
-    return new NNResult(new NDArray(new int[]{1},new double[]{outputA})) {
+    return new NNResult(new Tensor(new int[]{1},new double[]{outputA})) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            NDArray[] passbackA = java.util.stream.IntStream.range(0, in_l.data.length).mapToObj(dataIndex->{
+            Tensor[] passbackA = java.util.stream.IntStream.range(0, in_l.data.length).mapToObj(dataIndex->{
               final double delta = data[0].get(0);
-              final NDArray passback = new NDArray(in_l.data[dataIndex].getDims());
+              final Tensor passback = new Tensor(in_l.data[dataIndex].getDims());
               for (int i = 0; i < in_l.data[dataIndex].dim(); i++) {
                 passback.set(i, delta);
               }
               return passback;
-            }).toArray(i->new NDArray[i]);
+            }).toArray(i->new Tensor[i]);
             in_l.accumulate(buffer, passbackA);
           }
         }

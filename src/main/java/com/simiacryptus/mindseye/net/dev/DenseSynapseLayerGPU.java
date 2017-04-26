@@ -4,13 +4,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -22,25 +22,25 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray[] outputA, final NNResult inObj) {
+    private Result(final Tensor[] outputA, final NNResult inObj) {
       super(outputA);
       this.inObj = inObj;
     }
 
-    private NDArray[] backprop(final NDArray[] delta, final DeltaSet buffer) {
-      NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
+    private Tensor[] backprop(final Tensor[] delta, final DeltaSet buffer) {
+      Tensor[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
-        final NDArray r = DenseSynapseLayerGPU.this.getWeights();
-        final NDArray passback = new NDArray(this.inObj.data[dataIndex].getDims());
+        final Tensor r = DenseSynapseLayerGPU.this.getWeights();
+        final Tensor passback = new Tensor(this.inObj.data[dataIndex].getDims());
         DenseSynapseLayer.multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
-      }).toArray(i->new NDArray[i]);
+      }).toArray(i->new Tensor[i]);
       this.inObj.accumulate(buffer, passbackA);
       return passbackA;
     }
 
     @Override
-    public void accumulate(final DeltaSet buffer, final NDArray[] delta) {
+    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
       if (!isFrozen()) {
         learn(delta, buffer);
       }
@@ -54,11 +54,11 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
       return this.inObj.isAlive() || !isFrozen();
     }
 
-    private void learn(final NDArray[] delta, final DeltaSet buffer) {
+    private void learn(final Tensor[] delta, final DeltaSet buffer) {
       java.util.stream.IntStream.range(0, inObj.data.length).parallel().forEach(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
         final double[] inputData = this.inObj.data[dataIndex].getData();
-        final NDArray weightDelta = new NDArray(inputData.length, deltaData.length);
+        final Tensor weightDelta = new Tensor(inputData.length, deltaData.length);
         double[] weightData = weightDelta.getData();
         gradientCrossMatrix(deltaData, inputData, weightData);
         buffer.get(DenseSynapseLayerGPU.this, DenseSynapseLayerGPU.this.getWeights()).feed(weightData);
@@ -92,7 +92,7 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
 
   public final int[] outputDims;
 
-  private final NDArray weights;
+  private final Tensor weights;
 
   protected DenseSynapseLayerGPU() {
     super();
@@ -102,8 +102,8 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
 
   public DenseSynapseLayerGPU(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
-    this.weights = new NDArray(inputs, NDArray.dim(outputDims));
-    setWeights(() -> (1 - 2 * Util.R.get().nextDouble()) * Math.sqrt(6 / (inputs + NDArray.dim(outputDims))));
+    this.weights = new Tensor(inputs, Tensor.dim(outputDims));
+    setWeights(() -> (1 - 2 * Util.R.get().nextDouble()) * Math.sqrt(6 / (inputs + Tensor.dim(outputDims))));
   }
 
   public DenseSynapseLayerGPU addWeights(final DoubleSupplier f) {
@@ -114,10 +114,10 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     
-    NDArray[] inputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
-        .mapToObj(dataIndex->inObj[0].data[dataIndex]).toArray(i->new NDArray[i]);
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
-        .mapToObj(dataIndex->new NDArray(this.outputDims)).toArray(i->new NDArray[i]);
+    Tensor[] inputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
+        .mapToObj(dataIndex->inObj[0].data[dataIndex]).toArray(i->new Tensor[i]);
+    Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
+        .mapToObj(dataIndex->new Tensor(this.outputDims)).toArray(i->new Tensor[i]);
     double[][] inputAD = java.util.Arrays.stream(inputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);
     double[][] outputAD = java.util.Arrays.stream(outputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);;
     MatrixMultiplyKernel.multiply(inputAD, this.getWeights().getData(), outputAD);
@@ -157,7 +157,7 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
     return Arrays.asList(this.getWeights().getData());
   }
 
-  public final NDArray getWeights() {
+  public final Tensor getWeights() {
     return weights;
   }
 

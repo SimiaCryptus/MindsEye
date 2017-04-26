@@ -3,10 +3,10 @@ package com.simiacryptus.mindseye.net.meta;
 import java.util.Arrays;
 import java.util.List;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -25,7 +25,7 @@ public class CrossDotMetaLayer extends NNLayer<CrossDotMetaLayer> {
     NNResult input = inObj[0];
     int itemCnt = input.data.length;
     int dim = input.data[0].dim();
-    NDArray results = new NDArray(dim,dim);
+    Tensor results = new Tensor(dim,dim);
     for(int i=0;i<dim;i++){
       for(int j=0;j<dim;j++){
         if(i==j) continue;
@@ -37,13 +37,13 @@ public class CrossDotMetaLayer extends NNLayer<CrossDotMetaLayer> {
         results.set(new int[]{i,j}, v);
       }
     }
-    return new NNResult(new NDArray[]{results}) {
+    return new NNResult(new Tensor[]{results}) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {
-          NDArray delta = data[0];
-          NDArray feedback[] = new NDArray[itemCnt];
-          java.util.Arrays.parallelSetAll(feedback, i->new NDArray(dim));
+          Tensor delta = data[0];
+          Tensor feedback[] = new Tensor[itemCnt];
+          java.util.Arrays.parallelSetAll(feedback, i->new Tensor(dim));
 
           for(int i=0;i<dim;i++){
             for(int j=0;j<dim;j++){

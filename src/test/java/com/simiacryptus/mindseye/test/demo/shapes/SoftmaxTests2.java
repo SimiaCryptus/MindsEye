@@ -2,7 +2,7 @@ package com.simiacryptus.mindseye.test.demo.shapes;
 
 import java.util.function.BiFunction;
 
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -25,27 +25,27 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     DAGNetwork net = new DAGNetwork();
 
     // net = net.add(new
-    // SynapseActivationLayer(NDArray.dim(inputSize)).setWeights(()->1.));
-    net = net.add(new DenseSynapseLayer(NDArray.dim(inputSize), midSize));
+    // SynapseActivationLayer(Tensor.dim(inputSize)).setWeights(()->1.));
+    net = net.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
     net = net.add(new BiasLayer(midSize));
     // net = net.add(new LinearActivationLayer());
     // net = net.add(new
-    // SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
+    // SynapseActivationLayer(Tensor.dim(midSize)).setWeights(()->1.));
     net = net.add(new SigmoidActivationLayer());
 
     for (int i = 0; i < midLayers; i++) {
-      net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), midSize));
+      net = net.add(new DenseSynapseLayer(Tensor.dim(midSize), midSize));
       net = net.add(new BiasLayer(midSize));
       // net = net.add(new LinearActivationLayer());
       net = net.add(new SigmoidActivationLayer());
     }
 
     // net = net.add(new
-    // SynapseActivationLayer(NDArray.dim(midSize)).setWeights(()->1.));
-    net = net.add(new DenseSynapseLayer(NDArray.dim(midSize), outSize));
+    // SynapseActivationLayer(Tensor.dim(midSize)).setWeights(()->1.));
+    net = net.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
     // net = net.add(new PermutationLayer());
     // net = net.add(new
-    // SynapseActivationLayer(NDArray.dim(outSize)).setWeights(()->1.));
+    // SynapseActivationLayer(Tensor.dim(outSize)).setWeights(()->1.));
     net = net.add(new BiasLayer(outSize));
 
     // net = net.add(new ExpActivationLayer());
@@ -58,7 +58,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+  public Tester buildTrainer(final Tensor[][] samples, final NNLayer<DAGNetwork> net) {
     return new Tester().init(samples, net, new EntropyLossLayer());
   }
 
@@ -135,7 +135,7 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
 
 
   @Override
-  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+  public void train(final NNLayer<DAGNetwork> net, final Tensor[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
     final Tester trainer = buildTrainer(trainingsamples, net);
     trainer.handler.add(resultHandler);
     trainer.setVerbose(true);

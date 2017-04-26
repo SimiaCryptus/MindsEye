@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.ojalgo.array.PrimitiveArray;
 import org.ojalgo.matrix.store.RawStore;
 import org.slf4j.Logger;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -22,25 +22,25 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray[] outputA, final NNResult inObj) {
+    private Result(final Tensor[] outputA, final NNResult inObj) {
       super(outputA);
       this.inObj = inObj;
     }
 
-    private NDArray[] backprop(final NDArray[] delta, final DeltaSet buffer) {
-      NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
+    private Tensor[] backprop(final Tensor[] delta, final DeltaSet buffer) {
+      Tensor[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
-        final NDArray r = DenseSynapseLayerOjAlgo.this.getWeights();
-        final NDArray passback = new NDArray(this.inObj.data[dataIndex].getDims());
+        final Tensor r = DenseSynapseLayerOjAlgo.this.getWeights();
+        final Tensor passback = new Tensor(this.inObj.data[dataIndex].getDims());
         multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
-      }).toArray(i->new NDArray[i]);
+      }).toArray(i->new Tensor[i]);
       this.inObj.accumulate(buffer, passbackA);
       return passbackA;
     }
 
     @Override
-    public void accumulate(final DeltaSet buffer, final NDArray[] delta) {
+    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
       if (!isFrozen()) {
         learn(delta, buffer);
       }
@@ -54,11 +54,11 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
       return this.inObj.isAlive() || !isFrozen();
     }
 
-    private void learn(final NDArray[] delta, final DeltaSet buffer) {
+    private void learn(final Tensor[] delta, final DeltaSet buffer) {
       java.util.stream.IntStream.range(0, inObj.data.length).parallel().forEach(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
         final double[] inputData = this.inObj.data[dataIndex].getData();
-        final NDArray weightDelta = multiply(deltaData, inputData);
+        final Tensor weightDelta = multiply(deltaData, inputData);
         buffer.get(DenseSynapseLayerOjAlgo.this, DenseSynapseLayerOjAlgo.this.getWeights()).feed(weightDelta.getData());
       });
     }
@@ -73,8 +73,8 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
    */
   private static final long serialVersionUID = 3538627887600182889L;
 
-  private static NDArray multiply(final double[] deltaData, final double[] inputData) {
-    final NDArray weightDelta = new NDArray(inputData.length, deltaData.length);
+  private static Tensor multiply(final double[] deltaData, final double[] inputData) {
+    final Tensor weightDelta = new Tensor(inputData.length, deltaData.length);
     crossMultiply(deltaData, inputData, weightDelta.getData());
     return weightDelta;
   }
@@ -104,7 +104,7 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
 
   public final int[] outputDims;
 
-  private final NDArray weights;
+  private final Tensor weights;
 
   protected DenseSynapseLayerOjAlgo() {
     super();
@@ -114,8 +114,8 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
 
   public DenseSynapseLayerOjAlgo(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
-    this.weights = new NDArray(inputs, NDArray.dim(outputDims));
-    int outs = NDArray.dim(outputDims);
+    this.weights = new Tensor(inputs, Tensor.dim(outputDims));
+    int outs = Tensor.dim(outputDims);
     setWeights(() -> {
       double ratio = Math.sqrt(6. / (inputs + outs));
       double fate = Util.R.get().nextDouble();
@@ -131,10 +131,10 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex->{
-      final NDArray input = inObj[0].data[dataIndex];
+    Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex->{
+      final Tensor input = inObj[0].data[dataIndex];
       return multiply2(this.getWeights().getData(), input.getData());
-    }).toArray(i->new NDArray[i]);
+    }).toArray(i->new Tensor[i]);
     return new Result(outputA, inObj[0]);
   }
 
@@ -149,8 +149,8 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
     return 1;
   }
 
-  private NDArray multiply2(final double[] wdata, final double[] indata) {
-    final NDArray output = new NDArray(this.outputDims);
+  private Tensor multiply2(final double[] wdata, final double[] indata) {
+    final Tensor output = new Tensor(this.outputDims);
     multiply(wdata, indata, output.getData());
     return output;
   }
@@ -177,7 +177,7 @@ public class DenseSynapseLayerOjAlgo extends NNLayer<DenseSynapseLayerOjAlgo> {
     return Arrays.asList(this.getWeights().getData());
   }
 
-  public NDArray getWeights() {
+  public Tensor getWeights() {
     return weights;
   }
 

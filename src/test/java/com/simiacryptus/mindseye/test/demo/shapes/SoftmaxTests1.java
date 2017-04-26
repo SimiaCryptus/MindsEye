@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.test.demo.shapes;
 
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
@@ -15,14 +15,14 @@ public class SoftmaxTests1 extends SimpleClassificationTests {
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
     final NNLayer<DAGNetwork> net = new DAGNetwork()//
-        .add(new DenseSynapseLayer(NDArray.dim(inputSize), outSize))//
+        .add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize))//
         .add(new BiasLayer(outSize))//
         .add(new SoftmaxActivationLayer());
     return net;
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+  public Tester buildTrainer(final Tensor[][] samples, final NNLayer<DAGNetwork> net) {
     return new Tester().init(samples, net, new EntropyLossLayer());
   }
 

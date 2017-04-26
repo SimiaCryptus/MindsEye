@@ -3,10 +3,10 @@ package com.simiacryptus.mindseye.net.meta;
 import java.util.Arrays;
 import java.util.List;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -26,20 +26,20 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length;
-    NDArray avgActivationArray = input.data[0].map((v,c)->
+    Tensor avgActivationArray = input.data[0].map((v, c)->
       java.util.stream.IntStream.range(0, itemCnt)
         .mapToDouble(dataIndex->input.data[dataIndex].get(c))
         .average().getAsDouble());
-    NDArray divergenceArray = avgActivationArray.map((avgActivation,c)->{
+    Tensor divergenceArray = avgActivationArray.map((avgActivation, c)->{
       return sparsity * Math.log(sparsity / avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation));
     });
-    return new NNResult(new NDArray[]{divergenceArray}) {
+    return new NNResult(new Tensor[]{divergenceArray}) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {
-          NDArray delta = data[0];
-          NDArray feedback[] = new NDArray[itemCnt];
-          java.util.Arrays.parallelSetAll(feedback, i->new NDArray(delta.getDims()));
+          Tensor delta = data[0];
+          Tensor feedback[] = new Tensor[itemCnt];
+          java.util.Arrays.parallelSetAll(feedback, i->new Tensor(delta.getDims()));
           avgActivationArray.map((rho,inputCoord)->{
             double d = delta.get(inputCoord);
             double log2 = (1-sparsity)/(1-rho);

@@ -9,12 +9,12 @@ import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -41,7 +41,7 @@ public class MNISTClassificationTest extends ClassificationTestBase {
     final int[] inputSize = new int[] { 28, 28, 1 };
     final int[] outSize = new int[] { 10 };
     DAGNetwork net = new DAGNetwork();
-    net = net.add(new DenseSynapseLayerJBLAS(NDArray.dim(inputSize), outSize).setWeights(()->Util.R.get().nextGaussian()*0.));
+    net = net.add(new DenseSynapseLayerJBLAS(Tensor.dim(inputSize), outSize).setWeights(()->Util.R.get().nextGaussian()*0.));
     net = net.add(new BiasLayer(outSize));
     // net = net.add(new MinMaxFilterLayer());
     net = net.add(new SoftmaxActivationLayer());
@@ -49,7 +49,7 @@ public class MNISTClassificationTest extends ClassificationTestBase {
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+  public Tester buildTrainer(final Tensor[][] samples, final NNLayer<DAGNetwork> net) {
     final EntropyLossLayer lossLayer = new EntropyLossLayer();
     final Tester trainer = new Tester().init(samples, net, lossLayer).setVerbose(true);
     trainer.setVerbose(true);
@@ -58,16 +58,16 @@ public class MNISTClassificationTest extends ClassificationTestBase {
   }
 
   @Override
-  public BufferedImage draw(final NDArray[][] samples, final NNLayer<?> mainNetwork, final ClassificationResultMetrics correct) {
+  public BufferedImage draw(final Tensor[][] samples, final NNLayer<?> mainNetwork, final ClassificationResultMetrics correct) {
     final BufferedImage img = new BufferedImage(width(), height(), BufferedImage.TYPE_INT_RGB) {
       {
         final Graphics2D g = (Graphics2D) getGraphics();
         correct.pts++;
         correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
-          final NDArray expectedOutput = pt[1];
-          final NDArray[] array = pt;
+          final Tensor expectedOutput = pt[1];
+          final Tensor[] array = pt;
           final NNResult output = mainNetwork.eval(array);
-          final NDArray actualOutput = output.data[0];
+          final Tensor actualOutput = output.data[0];
           correct.sumSqErr += IntStream.range(0, actualOutput.dim()).mapToDouble(i -> {
             final double x = expectedOutput.get(i) - actualOutput.get(i);
             return x * x;
@@ -110,21 +110,21 @@ public class MNISTClassificationTest extends ClassificationTestBase {
   public void test() throws Exception {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    final NDArray[][] trainingData = transformTrainingData(hash, MNIST.trainingDataStream());
-    final NDArray[][] validationData = transformTrainingData(hash, MNIST.validationDataStream());
+    final Tensor[][] trainingData = transformTrainingData(hash, MNIST.trainingDataStream());
+    final Tensor[][] validationData = transformTrainingData(hash, MNIST.validationDataStream());
     test(trainingData, validationData);
   }
 
-  public NDArray[][] transformTrainingData(final int hash, final Stream<LabeledObject<NDArray>> mnistStream) {
-    final NDArray[][] data = mnistStream
+  public Tensor[][] transformTrainingData(final int hash, final Stream<LabeledObject<Tensor>> mnistStream) {
+    final Tensor[][] data = mnistStream
         //.collect(java.util.stream.Collectors.toList()).stream()
         .collect(java.util.stream.Collectors.toList()).parallelStream()
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
         .map(obj -> new LabeledObject<>(obj.data.reformat(28, 28, 1), obj.label)).map(obj -> {
           final int out = MNISTClassificationTest.toOut(obj.label);
-          final NDArray output = MNISTClassificationTest.toOutNDArray(out, 10);
-          return new NDArray[] { obj.data, output };
-        }).toArray(i -> new NDArray[i][]);
+          final Tensor output = MNISTClassificationTest.toOutNDArray(out, 10);
+          return new Tensor[] { obj.data, output };
+        }).toArray(i -> new Tensor[i][]);
     return data;
   }
 
@@ -146,14 +146,14 @@ public class MNISTClassificationTest extends ClassificationTestBase {
     throw new RuntimeException();
   }
 
-  public static NDArray toOutNDArray(final int out, final int max) {
-    final NDArray ndArray = new NDArray(max);
-    ndArray.set(out, 1);
-    return ndArray;
+  public static Tensor toOutNDArray(final int out, final int max) {
+    final Tensor tensor = new Tensor(max);
+    tensor.set(out, 1);
+    return tensor;
   }
 
   @Override
-  public void train(final NNLayer<DAGNetwork> net, final NDArray[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+  public void train(final NNLayer<DAGNetwork> net, final Tensor[][] trainingsamples, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
     final Tester trainer = buildTrainer(trainingsamples, net);
     trainer.handler.add(resultHandler);
     trainer.verifyConvergence(0.35, 1);  

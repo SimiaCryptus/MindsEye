@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -31,7 +31,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
       this.output = output;
     }
 
-    public IndexMapKey(final NDArray kernel, final NDArray input, final NDArray output) {
+    public IndexMapKey(final Tensor kernel, final Tensor input, final Tensor output) {
       super();
       this.kernel = kernel.getDims();
       this.output = output.getDims();
@@ -68,8 +68,8 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
         @Override
         public java.util.Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
           final int[] ksize = key.kernel;
-          final java.util.Map<Coordinate, List<int[]>> coordMap = new NDArray(key.output).coordStream(false).collect(java.util.stream.Collectors.toMap(o -> o, o -> {
-            return new NDArray(ksize).coordStream(false).map(kernelCoord -> {
+          final java.util.Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(false).collect(java.util.stream.Collectors.toMap(o -> o, o -> {
+            return new Tensor(ksize).coordStream(false).map(kernelCoord -> {
               final int[] r = new int[o.coords.length];
               for (int i = 0; i < o.coords.length; i++) {
                 r[i] = o.coords[i] * ksize[i] + kernelCoord.coords[i];
@@ -111,19 +111,19 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
   @SuppressWarnings("unchecked")
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final int kernelSize = new NDArray(this.kernelDims).dim();
+    final int kernelSize = new Tensor(this.kernelDims).dim();
     final int[] inputDims = inObj[0].data[0].getDims();
     int itemCnt = inObj[0].data.length;
     final java.util.Map<Coordinate, List<int[]>> coordMapA[] = new Map[itemCnt];
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
-      final NDArray input = inObj[0].data[dataIndex];
+    Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final Tensor input = inObj[0].data[dataIndex];
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         if(!(0 == inputDims[i] % this.kernelDims[i])){
           assert(false);
         }
         return inputDims[i] / this.kernelDims[i];
       }).toArray();
-      final NDArray output = new NDArray(newDims);
+      final Tensor output = new Tensor(newDims);
       final java.util.Map<Coordinate, List<int[]>> coordMap = getCoordMap(this.kernelDims, output.getDims());
       for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
         double sum = 0;
@@ -136,13 +136,13 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
       }
       coordMapA[dataIndex] = coordMap;
       return output;
-    }).toArray(i->new NDArray[i]);
+    }).toArray(i->new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (inObj[0].isAlive()) {
-          NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
-            final NDArray backSignal = new NDArray(inputDims);
+          Tensor[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            final Tensor backSignal = new Tensor(inputDims);
             for (final Entry<Coordinate, List<int[]>> outputMapping : coordMapA[dataIndex].entrySet()) {
               final double outputValue = data[dataIndex].get(outputMapping.getKey());
               for (final int[] inputCoord : outputMapping.getValue()) {
@@ -150,7 +150,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
               }
             }
             return backSignal;
-          }).toArray(i->new NDArray[i]);
+          }).toArray(i->new Tensor[i]);
           inObj[0].accumulate(buffer, passbackA);
         }
       }
@@ -164,7 +164,7 @@ public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
 
   // public Stream<int[]> getKernelInputCoords(Coordinate outCoord) {
   // List<int[]> kernelCoords = new
-  // NDArray(this.kernelDims).coordStream(false).map(kernelCoord -> {
+  // Tensor(this.kernelDims).coordStream(false).map(kernelCoord -> {
   // final int[] r = new int[outCoord.coords.length];
   // for (int i1 = 0; i1 < outCoord.coords.length; i1++) {
   // r[i1] = outCoord.coords[i1] * this.kernelDims[i1] + kernelCoord.coords[i1];

@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 
 public class MNISTDatasetTests {
@@ -42,7 +42,7 @@ public class MNISTDatasetTests {
     return defaultNum;
   }
 
-  public boolean filter(final LabeledObject<NDArray> item) {
+  public boolean filter(final LabeledObject<Tensor> item) {
     if (item.label.equals("[0]"))
       return true;
     if (item.label.equals("[5]"))
@@ -57,8 +57,8 @@ public class MNISTDatasetTests {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
     int limit = 1000;
-    final NDArray[] trainingData = transformDataSet(MNIST.trainingDataStream(), limit, hash);
-    final NDArray[] validationData = transformDataSet(MNIST.validationDataStream(), limit, hash);
+    final Tensor[] trainingData = transformDataSet(MNIST.trainingDataStream(), limit, hash);
+    final Tensor[] validationData = transformDataSet(MNIST.validationDataStream(), limit, hash);
     final Map<BufferedImage, String> report = new java.util.LinkedHashMap<>();
     try {
       evaluateImageList(trainingData).stream().forEach(i->report.put(i, "TRAINING"));
@@ -69,18 +69,18 @@ public class MNISTDatasetTests {
     }
   }
 
-  public List<BufferedImage> evaluateImageList(final NDArray[] validationData) {
+  public List<BufferedImage> evaluateImageList(final Tensor[] validationData) {
     return java.util.Arrays.stream(validationData).map(Util::toImage).collect(java.util.stream.Collectors.toList());
   }
 
-  public NDArray[] transformDataSet(Stream<LabeledObject<NDArray>> trainingDataStream, int limit, final int hash) {
+  public Tensor[] transformDataSet(Stream<LabeledObject<Tensor>> trainingDataStream, int limit, final int hash) {
     return trainingDataStream
         .collect(java.util.stream.Collectors.toList()).stream().parallel()
         .filter(this::filter)
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
         .limit(limit)
         .map(obj -> obj.data)
-        .toArray(i1 -> new NDArray[i1]);
+        .toArray(i1 -> new Tensor[i1]);
   }
 
 }

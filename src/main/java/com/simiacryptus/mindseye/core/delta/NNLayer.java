@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.core.delta;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,12 +20,12 @@ public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable
 
   public static final class ConstNNResult extends NNResult {
 
-    public ConstNNResult(final NDArray... data) {
+    public ConstNNResult(final Tensor... data) {
       super(data);
     }
 
     @Override
-    public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+    public void accumulate(final DeltaSet buffer, final Tensor[] data) {
       // Do Nothing
     }
 
@@ -61,13 +61,13 @@ public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable
     return true;
   }
 
-  public final NNResult eval(final NDArray... array) {
-    NNResult[] a = Arrays.stream(array).map((NDArray x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+  public final NNResult eval(final Tensor... array) {
+    NNResult[] a = Arrays.stream(array).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
     return eval(a);
   }
 
-  public final NNResult eval(final NDArray[][] array) {
-    NNResult[] a = Arrays.stream(array).map((NDArray[] x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+  public final NNResult eval(final Tensor[][] array) {
+    NNResult[] a = Arrays.stream(array).map((Tensor[] x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
     return eval(a);
   }
 

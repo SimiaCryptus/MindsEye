@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -67,15 +67,15 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
   private static final long serialVersionUID = -4486788592198117530L;
 
   private static List<Tuple2<Coordinate, List<Coordinate>>> calcRegions(final CalcRegionsParameter parameterObject) {
-    final NDArray input = new NDArray(parameterObject.inputDims);
+    final Tensor input = new Tensor(parameterObject.inputDims);
     final int[] newDims = IntStream.range(0, parameterObject.inputDims.length).map(i -> {
       assert 0 == parameterObject.inputDims[i] % parameterObject.kernelDims[i];
       return parameterObject.inputDims[i] / parameterObject.kernelDims[i];
     }).toArray();
-    final NDArray output = new NDArray(newDims);
+    final Tensor output = new Tensor(newDims);
 
     final List<Tuple2<Coordinate, List<Coordinate>>> regions = output.coordStream(false).map(o -> {
-      final List<Coordinate> inCoords = new NDArray(parameterObject.kernelDims).coordStream(false).map(kernelCoord -> {
+      final List<Coordinate> inCoords = new Tensor(parameterObject.kernelDims).coordStream(false).map(kernelCoord -> {
         final int[] r = new int[o.coords.length];
         for (int i1 = 0; i1 < o.coords.length; i1++) {
           r[i1] = o.coords[i1] * parameterObject.kernelDims[i1] + kernelCoord.coords[i1];
@@ -106,13 +106,13 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
     final HashMap<Coordinate, Coordinate> gradientMapA[] = new HashMap[itemCnt];
 
     final int[] inputDims = inObj[0].data[0].getDims();
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
-      final NDArray input = inObj[0].data[dataIndex];
+    Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final Tensor input = inObj[0].data[dataIndex];
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         assert 0 == inputDims[i] % this.kernelDims[i];
         return inputDims[i] / this.kernelDims[i];
       }).toArray();
-      final NDArray output = new NDArray(newDims);
+      final Tensor output = new Tensor(newDims);
       final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
       final List<Tuple2<Coordinate, List<Coordinate>>> regions = calcRegionsCache.apply(new CalcRegionsParameter(inputDims, this.kernelDims));
       final ToDoubleFunction<? super Coordinate> keyExtractor = inputCoords -> input.get(inputCoords);
@@ -126,16 +126,16 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
       });
       gradientMapA[dataIndex] = gradientMap;
       return output;
-    }).toArray(i->new NDArray[i]);
+    }).toArray(i->new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (inObj[0].isAlive()) {
-          NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
-            final NDArray backSignal = new NDArray(inputDims);
+          Tensor[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            final Tensor backSignal = new Tensor(inputDims);
             gradientMapA[dataIndex].entrySet().forEach(e -> backSignal.add(e.getValue().index, data[dataIndex].get(e.getKey().index)));
             return backSignal;
-          }).toArray(i->new NDArray[i]);
+          }).toArray(i->new Tensor[i]);
           inObj[0].accumulate(buffer, passbackA);
         }
       }

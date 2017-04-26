@@ -3,12 +3,13 @@ package com.simiacryptus.mindseye.net.activation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -17,19 +18,19 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
-    private Result(final NDArray[] outputA, final NNResult inObj) {
+    private Result(final Tensor[] outputA, final NNResult inObj) {
       super(outputA);
       this.inObj = inObj;
     }
 
     @Override
-    public void accumulate(final DeltaSet buffer, final NDArray[] delta) {
+    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
 
       if (!isFrozen()) {
         java.util.stream.IntStream.range(0, delta.length).forEach(dataIndex->{
           final double[] deltaData = delta[dataIndex].getData();
           final double[] inputData = this.inObj.data[dataIndex].getData();
-          final NDArray weightDelta = new NDArray(LinearActivationLayer.this.weights.getDims());
+          final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDims());
           for (int i = 0; i < deltaData.length; i++) {
             weightDelta.add(0, deltaData[i] * inputData[i]);
           }
@@ -37,15 +38,15 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
         });
       }
       if (this.inObj.isAlive()) {
-        NDArray[] passbackA = java.util.stream.IntStream.range(0, delta.length).mapToObj(dataIndex->{
+        Tensor[] passbackA = java.util.stream.IntStream.range(0, delta.length).mapToObj(dataIndex->{
           final double[] deltaData = delta[dataIndex].getData();
           final int[] dims = this.inObj.data[dataIndex].getDims();
-          final NDArray passback = new NDArray(dims);
+          final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i] * LinearActivationLayer.this.weights.getData()[0]);
           }
           return passback;
-        }).toArray(i->new NDArray[i]);
+        }).toArray(i->new Tensor[i]);
         this.inObj.accumulate(buffer, passbackA);
       }
     }
@@ -65,11 +66,11 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
    */
   private static final long serialVersionUID = -2105152439043901220L;
 
-  private final NDArray weights;
+  private final Tensor weights;
 
   public LinearActivationLayer() {
     super();
-    this.weights = new NDArray(1);
+    this.weights = new Tensor(1);
     this.weights.set(0, 1.);
   }
 
@@ -81,12 +82,12 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     int itemCnt = inObj[0].data.length;
-    NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
-      final NDArray input = inObj[0].data[dataIndex];
+    Tensor[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+      final Tensor input = inObj[0].data[dataIndex];
       final double a = this.weights.get(0);
-      final NDArray output = input.scale(a);
+      final Tensor output = input.scale(a);
       return output;
-    }).toArray(i->new NDArray[i]);
+    }).toArray(i->new Tensor[i]);
     return new Result(outputA, inObj[0]);
   }
 

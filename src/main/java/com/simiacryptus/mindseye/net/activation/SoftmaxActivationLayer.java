@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -31,12 +31,12 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
   public NNResult eval(final NNResult... inObj) {
     int itemCnt = inObj[0].data.length;
     double[] sumA = new double[itemCnt];
-    final NDArray expA[] = new NDArray[itemCnt];
-    NDArray[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
-      final NDArray input = inObj[0].data[dataIndex];
+    final Tensor expA[] = new Tensor[itemCnt];
+    Tensor[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+      final Tensor input = inObj[0].data[dataIndex];
       assert 1 < input.dim();
       
-      final NDArray exp;
+      final Tensor exp;
       {
         final DoubleSummaryStatistics summaryStatistics = java.util.stream.DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
         final double max = summaryStatistics.getMax();
@@ -51,16 +51,16 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
       return exp.map(x -> x / sum);
-    }).toArray(i->new NDArray[i]);
+    }).toArray(i->new Tensor[i]);
 
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (inObj[0].isAlive()) {
-          NDArray[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
+          Tensor[] passbackA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
             final double[] delta = data[dataIndex].getData();
             final double[] expdata = expA[dataIndex].getData();
-            final NDArray passback = new NDArray(data[dataIndex].getDims());
+            final Tensor passback = new Tensor(data[dataIndex].getDims());
             final int dim = expdata.length;
             double dot = 0;
             for (int i = 0; i < expdata.length; i++) {
@@ -73,7 +73,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
               passback.set(i, value);
             }
             return passback;
-          }).toArray(i->new NDArray[i]);
+          }).toArray(i->new Tensor[i]);
           inObj[0].accumulate(buffer, passbackA);
         }
       }

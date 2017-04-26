@@ -6,15 +6,15 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.util.ml.NDArray;
 
 public class SimpliedConvolutionLearningTest2 extends SimpliedConvolutionLearningTest {
 
   @Override
-  public Stream<LabeledObject<NDArray>> getTrainingData() throws IOException {
+  public Stream<LabeledObject<Tensor>> getTrainingData() throws IOException {
 
-    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
+    final Stream<LabeledObject<Tensor>> merged = Util.toStream(new Iterator<LabeledObject<Tensor>>() {
       int cnt = 0;
 
       @Override
@@ -23,10 +23,10 @@ public class SimpliedConvolutionLearningTest2 extends SimpliedConvolutionLearnin
       }
 
       @Override
-      public LabeledObject<NDArray> next() {
+      public LabeledObject<Tensor> next() {
         final int index = this.cnt++;
         String id;
-        NDArray imgData;
+        Tensor imgData;
         while (true) {
           final java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(28, 28, java.awt.image.BufferedImage.TYPE_BYTE_GRAY);
           final Graphics2D g = img.createGraphics();
@@ -78,10 +78,10 @@ public class SimpliedConvolutionLearningTest2 extends SimpliedConvolutionLearnin
             g.drawLine(x, y, x + l, y + l);
             id = "[3]";
           }
-          imgData = new NDArray(new int[] { 28, 28, 1 }, img.getData().getSamples(0, 0, 28, 28, 0, (double[]) null));
+          imgData = new Tensor(new int[] { 28, 28, 1 }, img.getData().getSamples(0, 0, 28, 28, 0, (double[]) null));
           break;
         }
-        return new LabeledObject<NDArray>(imgData, id);
+        return new LabeledObject<Tensor>(imgData, id);
       }
     }, 1000).limit(1000);
     return merged;

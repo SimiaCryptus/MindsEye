@@ -1,9 +1,9 @@
 package com.simiacryptus.mindseye.training;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 
@@ -31,7 +31,7 @@ public class DynamicRateTrainer implements TrainingComponent {
   }
 
   @Override
-  public NDArray[][] getData() {
+  public Tensor[][] getData() {
     return this.inner.getData();
   }
 
@@ -67,7 +67,7 @@ public class DynamicRateTrainer implements TrainingComponent {
   }
 
   @Override
-  public TrainingComponent setData(final NDArray[][] data) {
+  public TrainingComponent setData(final Tensor[][] data) {
     return this.inner.setData(data);
   }
 
@@ -93,12 +93,11 @@ public class DynamicRateTrainer implements TrainingComponent {
 
   @Override
   public TrainingStep step(final TrainingContext trainingContext) {
-    final TrainingComponent gradientDescentTrainer = this.inner;
     double prevError = getError();
     double rate = startRate;
-    while (!Double.isFinite(gradientDescentTrainer.getError()) || gradientDescentTrainer.getError() > trainingContext.terminalErr) {
+    while (!Double.isFinite(this.inner.getError()) || this.inner.getError() > trainingContext.terminalErr) {
       this.inner.setRate(rate);
-      final TrainingStep step = gradientDescentTrainer.step(trainingContext);
+      final TrainingStep step = this.inner.step(trainingContext);
       if (!Double.isFinite(prevError)) {
         prevError = step.getStartError();
       }

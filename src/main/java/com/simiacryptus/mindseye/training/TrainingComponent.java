@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -51,7 +51,7 @@ public interface TrainingComponent {
     
   }
 
-  NDArray[][] getData();
+  Tensor[][] getData();
 
   double getError();
 
@@ -59,7 +59,7 @@ public interface TrainingComponent {
 
   void reset();
 
-  TrainingComponent setData(NDArray[][] data);
+  TrainingComponent setData(Tensor[][] data);
 
   TrainingStep step(TrainingContext trainingContext) throws TerminationCondition;
 

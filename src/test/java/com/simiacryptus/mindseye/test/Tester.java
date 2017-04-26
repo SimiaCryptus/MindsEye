@@ -6,11 +6,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
@@ -59,7 +59,7 @@ public class Tester {
     return this.dynamicTrainer.getNet();
   }
 
-  public Tester init(final NDArray[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
+  public Tester init(final Tensor[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
     this.gradientTrainer.setNet(supervisionNetwork(pipelineNetwork, lossLayer));
     this.gradientTrainer.setData(samples);
     return this;
@@ -161,7 +161,7 @@ public class Tester {
 
   public static TrainingComponent copy(DynamicRateTrainer trainer) {
     synchronized (trainer) {
-      final NDArray[][] trainingData = trainer.getData();
+      final Tensor[][] trainingData = trainer.getData();
       assert null != trainingData && 0 < trainingData.length;
       trainer.setData(null);
       DynamicRateTrainer copy = Util.kryo().copy(trainer);

@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -34,7 +34,7 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTest {
   }
 
   @Override
-  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+  public Tester buildTrainer(final Tensor[][] samples, final NNLayer<DAGNetwork> net) {
     final EntropyLossLayer lossLayer = new EntropyLossLayer();
     final Tester trainer = new Tester().setMaxDynamicRate(1000).init(samples, net, lossLayer);
     trainer.setVerbose(true);
@@ -43,9 +43,9 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTest {
     return trainer;
   }
 
-  public Stream<LabeledObject<NDArray>> getTrainingData() throws IOException {
+  public Stream<LabeledObject<Tensor>> getTrainingData() throws IOException {
 
-    final Stream<LabeledObject<NDArray>> merged = Util.toStream(new Iterator<LabeledObject<NDArray>>() {
+    final Stream<LabeledObject<Tensor>> merged = Util.toStream(new Iterator<LabeledObject<Tensor>>() {
       int cnt = 0;
 
       @Override
@@ -54,10 +54,10 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTest {
       }
 
       @Override
-      public LabeledObject<NDArray> next() {
+      public LabeledObject<Tensor> next() {
         final int index = this.cnt++;
         String id = "";
-        NDArray imgData;
+        Tensor imgData;
         while (true) {
           final java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(28, 28, java.awt.image.BufferedImage.TYPE_BYTE_GRAY);
           final Graphics2D g = img.createGraphics();
@@ -81,10 +81,10 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTest {
             g.drawLine(x, y1, x, y2);
             id = "[1]";
           }
-          imgData = new NDArray(new int[] { 28, 28, 1 }, img.getData().getSamples(0, 0, 28, 28, 0, (double[]) null));
+          imgData = new Tensor(new int[] { 28, 28, 1 }, img.getData().getSamples(0, 0, 28, 28, 0, (double[]) null));
           break;
         }
-        return new LabeledObject<NDArray>(imgData, id);
+        return new LabeledObject<Tensor>(imgData, id);
       }
     }, 1000).limit(1000);
     return merged;

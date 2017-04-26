@@ -15,6 +15,7 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.neural.networks.BasicNetwork;
@@ -28,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.data.GaussianDistribution;
 import com.simiacryptus.mindseye.data.Simple2DCircle;
@@ -43,12 +43,12 @@ public class EncogClassificationTests {
 
   public static class ClassificationResultMetrics {
     public double classificationAccuracy;
-    public NDArray classificationMatrix;
+    public Tensor classificationMatrix;
     public double pts = 0;
     public double sumSqErr;
 
     public ClassificationResultMetrics(final int categories) {
-      this.classificationMatrix = new NDArray(categories, categories);
+      this.classificationMatrix = new Tensor(categories, categories);
     }
 
     @Override
@@ -86,30 +86,30 @@ public class EncogClassificationTests {
     super();
   }
 
-  public Tester buildTrainer(final NDArray[][] samples, final NNLayer<DAGNetwork> net) {
+  public Tester buildTrainer(final Tensor[][] samples, final NNLayer<DAGNetwork> net) {
     return new Tester().init(samples, net, new EntropyLossLayer());
   }
 
-  public Color getColor(final NDArray input, final int classificationActual, final int classificationExpected) {
+  public Color getColor(final Tensor input, final int classificationActual, final int classificationExpected) {
     final Color color = EncogClassificationTests.colorMap.get(classificationExpected);
     return color;
   }
 
-  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
+  public Tensor[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations) throws FileNotFoundException, IOException {
     return getTrainingData(dimensions, populations, 100);
   }
 
-  public NDArray[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException, IOException {
+  public Tensor[][] getTrainingData(final int dimensions, final List<Function<Void, double[]>> populations, final int sampleN) throws FileNotFoundException, IOException {
     final int[] inputSize = new int[] { dimensions };
     final int[] outSize = new int[] { populations.size() };
-    final NDArray[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x).flatMap(p -> IntStream.range(0, sampleN).mapToObj(i -> {
-      return new NDArray[] { new NDArray(inputSize, populations.get(p).apply(null)),
-          new NDArray(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
-    })).toArray(i -> new NDArray[i][]);
+    final Tensor[][] samples = IntStream.range(0, populations.size()).mapToObj(x -> x).flatMap(p -> IntStream.range(0, sampleN).mapToObj(i -> {
+      return new Tensor[] { new Tensor(inputSize, populations.get(p).apply(null)),
+          new Tensor(inputSize, IntStream.range(0, outSize[0]).mapToDouble(x -> p.equals(x) ? 1 : 0).toArray()) };
+    })).toArray(i -> new Tensor[i][]);
     return samples;
   }
 
-  public double[] inputToXY(final NDArray input, final int classificationActual, final int classificationExpected) {
+  public double[] inputToXY(final Tensor input, final int classificationActual, final int classificationExpected) {
     final double xf = input.get(0);
     final double yf = input.get(1);
     return new double[] { xf, yf };
@@ -119,7 +119,7 @@ public class EncogClassificationTests {
     return IntStream.range(0, actual.length).mapToObj(o -> o).max(Comparator.comparing(o -> actual[o])).get();
   }
 
-  public void test(final NDArray[][] samples) throws FileNotFoundException, IOException {
+  public void test(final Tensor[][] samples) throws FileNotFoundException, IOException {
 
     final Map<BufferedImage, String> images = new HashMap<>();
     final int categories = samples[0][1].dim();
@@ -134,7 +134,7 @@ public class EncogClassificationTests {
                   final double xf = (xpx * 1. / getWidth() - .5) * 6;
                   final double yf = (ypx * 1. / getHeight() - .5) * 6;
                   final MLData eval = net.compute(new org.encog.ml.data.basic.BasicMLData(new double[] { xf, yf }));
-                  // .eval(new NDArray(new int[] { 2 }, new double[] { xf, yf
+                  // .eval(new Tensor(new int[] { 2 }, new double[] { xf, yf
                   // }));
                   final int classificationActual = outputToClassification(eval.getData());
                   final int color = 0 == classificationActual ? 0x1F0000 : 0x001F00;
@@ -145,8 +145,8 @@ public class EncogClassificationTests {
             final Graphics2D g = (Graphics2D) getGraphics();
             correct.pts++;
             correct.classificationAccuracy = Stream.of(samples).mapToDouble(pt -> {
-              final NDArray expectedOutput = pt[1];
-              final NDArray input = pt[0];
+              final Tensor expectedOutput = pt[1];
+              final Tensor input = pt[0];
               final MLData output = net.compute(new org.encog.ml.data.basic.BasicMLData(input.getData()));
               final double[] actualOutput = output.getData();
               correct.sumSqErr += IntStream.range(0, actualOutput.length).mapToDouble(i -> {

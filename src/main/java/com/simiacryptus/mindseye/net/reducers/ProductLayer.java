@@ -3,10 +3,10 @@ package com.simiacryptus.mindseye.net.reducers;
 import java.util.Arrays;
 import java.util.List;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -26,7 +26,7 @@ public class ProductLayer extends NNLayer<ProductLayer> {
   @Override
   public NNResult eval(final NNResult... inObj) {
     double[] sum_A = new double[inObj[0].data.length];
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+    Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
       double sum = 1;
       for (final NNResult element : inObj) {
         final double[] input = element.data[dataIndex].getData();
@@ -35,21 +35,21 @@ public class ProductLayer extends NNLayer<ProductLayer> {
         }
       }
       sum_A[dataIndex] = sum;
-      return new NDArray(new int[] { 1 }, new double[] { sum });
-    }).toArray(i->new NDArray[i]);
+      return new Tensor(new int[] { 1 }, new double[] { sum });
+    }).toArray(i->new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            NDArray[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+            Tensor[] passbackA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
               final double delta = data[dataIndex].get(0);
-              final NDArray passback = new NDArray(in_l.data[dataIndex].getDims());
+              final Tensor passback = new Tensor(in_l.data[dataIndex].getDims());
               for (int i = 0; i < in_l.data[dataIndex].dim(); i++) {
                 passback.set(i, delta * sum_A[dataIndex] / in_l.data[dataIndex].getData()[i]);
               }
               return passback;
-            }).toArray(i->new NDArray[i]);
+            }).toArray(i->new Tensor[i]);
             in_l.accumulate(buffer, passbackA);
           }
         }

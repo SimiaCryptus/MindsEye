@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 
 public class DeltaSet {
   public final java.util.concurrent.ConcurrentHashMap<NNLayer<?>, DeltaBuffer> map = new java.util.concurrent.ConcurrentHashMap<>();
@@ -22,7 +22,7 @@ public class DeltaSet {
     return this.map.computeIfAbsent(layer, l -> new DeltaBuffer(ptr, layer));
   }
 
-  public DeltaBuffer get(final NNLayer<?> layer, final NDArray ptr) {
+  public DeltaBuffer get(final NNLayer<?> layer, final Tensor ptr) {
     return get(layer, ptr.getData());
   }
 

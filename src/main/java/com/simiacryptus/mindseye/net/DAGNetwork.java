@@ -1,8 +1,7 @@
 package com.simiacryptus.mindseye.net;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import org.slf4j.Logger;
@@ -20,118 +19,16 @@ import java.util.stream.Collectors;
  */
 public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
 
-  public class EvaluationContext {
-
-    public final Map<UUID, NNResult> cache = new HashMap<>();
-
-  }
-
-  private final class InnerNode extends LazyResult {
-    @SuppressWarnings("unused") public final String[] createdBy = Util.currentStack();
-    private final UUID layer;
-    private final DAGNode[] inputNodes;
-
-    @SafeVarargs
-    private InnerNode(final NNLayer<?> layer, final DAGNode... inputNodes) {
-      assert null != inputNodes;
-      this.layer = layer.getId();
-      this.inputNodes = inputNodes;
-    }
-
-    @Override
-    protected NNResult eval(final EvaluationContext ctx) {
-      if(1==this.inputNodes.length) {
-        final NNResult in = this.inputNodes[0].get(ctx);
-        final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(in);
-        return output;
-      } else {
-        final NNResult[] in = java.util.Arrays.stream(this.inputNodes).map(x -> ((LazyResult) x).get(ctx)).toArray(i -> new NNResult[i]);
-        final NNResult output = DAGNetwork.this.byId.get(this.layer).eval(in);
-        return output;
-      }
-    }
-
-    @Override
-    public JsonObject toJson() {
-      final JsonObject json = new JsonObject();
-      json.add("layer", DAGNetwork.this.byId.get(this.layer).getJson());
-      if(this.inputNodes.length>0) json.add("prev0", ((LazyResult) this.inputNodes[0]).toJson());
-      return json;
-    }
-
-    @Override
-    public DAGNode add(NNLayer<?> nextHead) {
-      return DAGNetwork.this.add(nextHead, InnerNode.this).getHead();
-    }
-  }
-
-  private final class InputNode extends LazyResult {
-    public final UUID handle;
-
-    private InputNode() {
-      this(null);
-    }
-
-    public InputNode(final UUID handle) {
-      super(handle);
-      this.handle = handle;
-    }
-
-    @Override
-    protected NNResult eval(final EvaluationContext t) {
-      return t.cache.get(this.handle);
-    }
-
-    @Override
-    public JsonObject toJson() {
-      final JsonObject json = new JsonObject();
-      json.addProperty("target", DAGNetwork.this.inputHandles.toString());
-      return json;
-    }
-
-    @Override
-    public DAGNode add(NNLayer<?> nextHead) {
-      return DAGNetwork.this.add(nextHead, InputNode.this).getHead();
-    }
-  }
-
-  private abstract static class LazyResult implements DAGNode {
-
-    public final UUID key;
-
-    public LazyResult() {
-      this(UUID.randomUUID());
-    }
-
-    protected LazyResult(final UUID key) {
-      super();
-      this.key = key;
-    }
-
-    protected abstract NNResult eval(EvaluationContext t);
-
-    @Override
-    public NNResult get(final EvaluationContext t) {
-      return t.cache.computeIfAbsent(this.key, k -> eval(t));
-    }
-
-    public abstract JsonObject toJson();
-
-  }
-
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = -5683282519002886564L;
 
-  private final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
+  final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
   public final List<UUID> inputHandles = new java.util.ArrayList<>(java.util.Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
   private DAGNode head = getInput().get(0);
 
-  LazyResult inputNode = new InputNode();
+  LazyResult inputNode = new InputNode(this);
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
 
   private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
@@ -150,7 +47,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
       this.nextMap.put(prevHead, nextHead);
     }
     assert null != getInput();
-    final InnerNode node = new InnerNode(nextHead, head);
+    final InnerNode node = new InnerNode(this, nextHead, head);
     setHead(node);
     return this;
   }
@@ -159,8 +56,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     return add(nextHead, getHead(), getInput().get(1));
   }
 
-  public final EvaluationContext buildExeCtx(final NDArray... array) {
-    NNResult[] a = Arrays.stream(array).map((NDArray x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+  public final EvaluationContext buildExeCtx(final Tensor... array) {
+    NNResult[] a = Arrays.stream(array).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
     return buildExeCtx(a);
   }
 
@@ -223,7 +120,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
   }
 
   public List<DAGNode> getInput() {
-    return com.google.common.collect.Lists.transform(this.inputHandles, h -> new InputNode(h));
+    return com.google.common.collect.Lists.transform(this.inputHandles, h -> new InputNode(this, h));
   }
 
   @Override

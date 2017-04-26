@@ -2,10 +2,10 @@ package com.simiacryptus.mindseye.net.util;
 
 import java.util.List;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
@@ -25,7 +25,7 @@ public final class WeightExtractor extends NNLayer<WeightExtractor> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    NDArray array = new NDArray(inner.state().get(index));
+    Tensor array = new Tensor(inner.state().get(index));
     return new NNResult(array) {
       
       @Override
@@ -34,7 +34,7 @@ public final class WeightExtractor extends NNLayer<WeightExtractor> {
       }
       
       @Override
-      public void accumulate(DeltaSet buffer, NDArray[] data) {
+      public void accumulate(DeltaSet buffer, Tensor[] data) {
         assert(data.length==1);
         buffer.get(WeightExtractor.this, array).feed(data[0].getData());;
       }

@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -15,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -50,8 +50,8 @@ public class MNISTAutoencoderTestsGPU {
   }
 
   public Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> createCodecPair(final int[] outerSize, final int[] innerSize) {
-    DenseSynapseLayerGPU encode = new DenseSynapseLayerGPU(NDArray.dim(outerSize), innerSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
-    DenseSynapseLayerGPU decode = new DenseSynapseLayerGPU(NDArray.dim(innerSize), outerSize).setWeights((Coordinate c)->{
+    DenseSynapseLayerGPU encode = new DenseSynapseLayerGPU(Tensor.dim(outerSize), innerSize).setWeights(()->Util.R.get().nextGaussian()*0.1);
+    DenseSynapseLayerGPU decode = new DenseSynapseLayerGPU(Tensor.dim(innerSize), outerSize).setWeights((Coordinate c)->{
       int[] traw = new int[]{c.coords[1],c.coords[0]};
       int tindex = encode.getWeights().index(traw);
       Coordinate transposed = new Coordinate(tindex, traw);
@@ -79,7 +79,7 @@ public class MNISTAutoencoderTestsGPU {
     return net;
   }
 
-  public boolean filter(final LabeledObject<NDArray> item) {
+  public boolean filter(final LabeledObject<Tensor> item) {
     if (item.label.equals("[0]"))
       return true;
     if (item.label.equals("[5]"))
@@ -93,8 +93,8 @@ public class MNISTAutoencoderTestsGPU {
   public void test() throws Exception {
     final int hash = Util.R.get().nextInt();
     log.debug(String.format("Shuffle hash: 0x%s", Integer.toHexString(hash)));
-    final NDArray[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 100000, hash);
-    final NDArray[][] validationData = transformDataSet(MNIST.validationDataStream(), 100, hash);
+    final Tensor[][] trainingData = transformDataSet(MNIST.trainingDataStream(), 100000, hash);
+    final Tensor[][] validationData = transformDataSet(MNIST.validationDataStream(), 100, hash);
     final NNLayer<DAGNetwork> net = buildNetwork();
     final List<String> report = new java.util.ArrayList<>();
     final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler = (trainedNetwork, trainingContext) -> {
@@ -120,7 +120,7 @@ public class MNISTAutoencoderTestsGPU {
     }
   }
 
-  public Tester getTester(final NNLayer<DAGNetwork> net, NDArray[][] trainingData2, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
+  public Tester getTester(final NNLayer<DAGNetwork> net, Tensor[][] trainingData2, final BiFunction<DAGNetwork, TrainingContext, Void> resultHandler) {
     Tester tester = new Tester();
     tester.setVerbose(true);
     GradientDescentTrainer trainer = tester.getGradientDescentTrainer();
@@ -134,7 +134,7 @@ public class MNISTAutoencoderTestsGPU {
     return tester;
   }
 
-  public List<BufferedImage> evaluateImageList(DAGNetwork n, final NDArray[][] validationData, UUID id) {
+  public List<BufferedImage> evaluateImageList(DAGNetwork n, final Tensor[][] validationData, UUID id) {
     final NNLayer<?> mainNetwork = n.getChild(id);
     return java.util.Arrays.stream(validationData)
         .map(x->mainNetwork.eval(x).data[0])
@@ -142,14 +142,14 @@ public class MNISTAutoencoderTestsGPU {
         .collect(java.util.stream.Collectors.toList());
   }
 
-  public NDArray[][] transformDataSet(Stream<LabeledObject<NDArray>> trainingDataStream, int limit, final int hash) {
+  public Tensor[][] transformDataSet(Stream<LabeledObject<Tensor>> trainingDataStream, int limit, final int hash) {
     return trainingDataStream
         .collect(java.util.stream.Collectors.toList()).stream().parallel()
         .filter(this::filter)
         .sorted(java.util.Comparator.comparingInt(obj -> 0xEFFFFFFF & (System.identityHashCode(obj) ^ hash)))
         .limit(limit)
-        .map(obj -> new NDArray[] { obj.data, obj.data })
-        .toArray(i1 -> new NDArray[i1][]);
+        .map(obj -> new Tensor[] { obj.data, obj.data })
+        .toArray(i1 -> new Tensor[i1][]);
   }
 
 }

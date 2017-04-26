@@ -1,7 +1,7 @@
 package com.simiacryptus.mindseye.test.demo.mnist;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
+import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
@@ -27,15 +27,15 @@ public class MNISTClassificationTests3 extends MNISTClassificationTest {
 
     // net = net.add(new SumSubsampleLayer(new int[] { 13, 13, 1 }));
 
-    final int[] size = net.eval(new NDArray(inputSize)).data[0].getDims();
-    net = net.add(new DenseSynapseLayer(NDArray.dim(size), new int[] { 10 }));
+    final int[] size = net.eval(new Tensor(inputSize)).data[0].getDims();
+    net = net.add(new DenseSynapseLayer(Tensor.dim(size), new int[] { 10 }));
     net = net.add(new BiasLayer(10));
     net = net.add(new SoftmaxActivationLayer());
     return net;
   }
 
   @Override
-  public Tester buildTrainer(NDArray[][] samples, NNLayer<DAGNetwork> net) {
+  public Tester buildTrainer(Tensor[][] samples, NNLayer<DAGNetwork> net) {
     // TODO Auto-generated method stub
     Tester trainer = super.buildTrainer(samples, net);
     trainer.getGradientDescentTrainer().setTrainingSize(1000);

@@ -4,12 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
@@ -30,7 +30,7 @@ public class BiasLayer extends NNLayer<BiasLayer> {
   }
 
   public BiasLayer(final int... outputDims) {
-    this.bias = new double[NDArray.dim(outputDims)];
+    this.bias = new double[Tensor.dim(outputDims)];
   }
 
   public double[] add(final double[] input) {
@@ -48,17 +48,17 @@ public class BiasLayer extends NNLayer<BiasLayer> {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    NDArray[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
-      final NDArray r = inObj[0].data[dataIndex];
-      return new NDArray(r.getDims(), add(r.getData()));
-    }).toArray(i->new NDArray[i]);
+    Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
+      final Tensor r = inObj[0].data[dataIndex];
+      return new Tensor(r.getDims(), add(r.getData()));
+    }).toArray(i->new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final NDArray[] data) {
+      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (!isFrozen()) {
           java.util.stream.IntStream.range(0, data.length).forEach(dataIndex->{
-            NDArray ndArray = data[dataIndex];
-            double[] data2 = ndArray.getData();
+            Tensor tensor = data[dataIndex];
+            double[] data2 = tensor.getData();
             DeltaBuffer deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
             deltaBuffer.feed(data2);
           });
