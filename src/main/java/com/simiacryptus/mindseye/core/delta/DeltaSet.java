@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.NDArray;
 
 public class DeltaSet {
   public final java.util.concurrent.ConcurrentHashMap<NNLayer<?>, DeltaBuffer> map = new java.util.concurrent.ConcurrentHashMap<>();

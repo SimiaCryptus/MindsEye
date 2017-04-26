@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.training;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 

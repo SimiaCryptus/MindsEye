@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.core.delta;
 
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.NDArray;
 
 public abstract class NNResult {
 

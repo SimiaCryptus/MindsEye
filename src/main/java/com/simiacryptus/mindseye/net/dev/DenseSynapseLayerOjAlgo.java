@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.Coordinate;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.Coordinate;
+import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;

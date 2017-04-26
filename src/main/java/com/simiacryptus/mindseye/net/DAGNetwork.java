@@ -2,7 +2,7 @@ package com.simiacryptus.mindseye.net;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import org.slf4j.Logger;

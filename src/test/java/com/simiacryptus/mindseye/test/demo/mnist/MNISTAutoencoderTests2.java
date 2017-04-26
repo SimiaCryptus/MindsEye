@@ -7,14 +7,15 @@ import java.util.function.BiFunction;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
+import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.Coordinate;
-import com.simiacryptus.mindseye.core.LabeledObject;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.Coordinate;
+import com.simiacryptus.util.test.LabeledObject;
+import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;

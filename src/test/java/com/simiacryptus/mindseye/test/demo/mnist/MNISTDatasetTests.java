@@ -1,24 +1,44 @@
 package com.simiacryptus.mindseye.test.demo.mnist;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.simiacryptus.mindseye.core.delta.NNLayer;
+import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.LabeledObject;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.test.LabeledObject;
+import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 
 public class MNISTDatasetTests {
 
   protected static final Logger log = LoggerFactory.getLogger(ClassificationTestBase.class);
 
-  protected int getSampleSize(final Integer populationIndex, final int defaultNum) {
+    public static void report(final NNLayer<DAGNetwork> net) throws FileNotFoundException, IOException {
+      final File outDir = new File("reports");
+      outDir.mkdirs();
+      final StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+      final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
+      final PrintStream out = new PrintStream(new FileOutputStream(report));
+      out.println("<html><head></head><body>");
+      MNIST.trainingDataStream().sorted(Comparator.comparing(img -> img.label))
+          .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>").forEach(out::println);
+      out.println("</body></html>");
+      out.close();
+      Desktop.getDesktop().browse(report.toURI());
+    }
+
+    protected int getSampleSize(final Integer populationIndex, final int defaultNum) {
     return defaultNum;
   }
 

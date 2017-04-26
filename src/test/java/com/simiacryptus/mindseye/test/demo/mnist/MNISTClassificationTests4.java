@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.test.demo.mnist;
 import java.util.function.BiFunction;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;

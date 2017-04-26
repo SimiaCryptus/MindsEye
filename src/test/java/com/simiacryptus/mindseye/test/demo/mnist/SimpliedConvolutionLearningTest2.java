@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.LabeledObject;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.test.LabeledObject;
+import com.simiacryptus.util.ml.NDArray;
 
 public class SimpliedConvolutionLearningTest2 extends SimpliedConvolutionLearningTest {
 

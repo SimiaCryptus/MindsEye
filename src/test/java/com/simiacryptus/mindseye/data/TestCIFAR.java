@@ -23,13 +23,12 @@ import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.BinaryChunkIterator;
-import com.simiacryptus.mindseye.core.LabeledObject;
+import com.simiacryptus.util.test.BinaryChunkIterator;
+import com.simiacryptus.util.test.LabeledObject;
 
 public class TestCIFAR {
   @SuppressWarnings("unused")

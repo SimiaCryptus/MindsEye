@@ -31,9 +31,9 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
-import com.simiacryptus.mindseye.core.BinaryChunkIterator;
-import com.simiacryptus.mindseye.core.LabeledObject;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.test.BinaryChunkIterator;
+import com.simiacryptus.util.test.LabeledObject;
+import com.simiacryptus.util.ml.NDArray;
 import de.javakaffee.kryoserializers.EnumMapSerializer;
 import de.javakaffee.kryoserializers.EnumSetSerializer;
 import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;

@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.core.delta;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.NDArray;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.UUID;
  *
  * @author Andrew Charneski
  */
-public abstract class NNLayer<T extends NNLayer<T>> implements java.io.Serializable {
+public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable {
 
   public final String[] createdBy = Util.currentStack();
 

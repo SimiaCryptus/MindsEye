@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.NDArray;
+import com.simiacryptus.util.ml.NDArray;
 import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
