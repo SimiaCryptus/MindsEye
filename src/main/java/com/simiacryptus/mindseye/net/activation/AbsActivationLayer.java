@@ -2,9 +2,6 @@ package com.simiacryptus.mindseye.net.activation;
 
 public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivationLayer> {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = -5520500379591109767L;
 
   public AbsActivationLayer() {

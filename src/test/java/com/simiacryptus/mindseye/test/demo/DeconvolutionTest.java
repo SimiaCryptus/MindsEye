@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.mindseye.core.TrainingContext;
+import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
@@ -321,8 +321,8 @@ public class DeconvolutionTest {
       // public Tensor getIdeal(NNResult eval, Tensor preset) {
       // Tensor retVal = preset.copy();
       // for (int i = 0; i < retVal.dim(); i++) {
-      // double x = eval.data.getData()[i];
-      // retVal.getData()[i] = ((x > -0.1)?x:0)*0.99;
+      // double x = eval.data.getTrainingData()[i];
+      // retVal.getTrainingData()[i] = ((x > -0.1)?x:0)*0.99;
       // }
       // return retVal;
       // }

@@ -29,9 +29,9 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
   private DAGNode head = getInput().get(0);
 
   LazyResult inputNode = new InputNode(this);
-  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> nextMap = new java.util.HashMap<>();
+  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> forwardLinkIndex = new java.util.HashMap<>();
 
-  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> prevMap = new java.util.HashMap<>();
+  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> backwardLinkIndex = new java.util.HashMap<>();
 
   public synchronized DAGNetwork add(final NNLayer<?> nextHead) {
     return add(nextHead, getHead());
@@ -43,8 +43,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     if(head.length>0){
       // XXX: Prev/next linking only tracks first input node
       final NNLayer<?> prevHead = getLayer(head[0]);
-      this.prevMap.put(nextHead, prevHead);
-      this.nextMap.put(prevHead, nextHead);
+      this.backwardLinkIndex.put(nextHead, prevHead);
+      this.forwardLinkIndex.put(prevHead, nextHead);
     }
     assert null != getInput();
     final InnerNode node = new InnerNode(this, nextHead, head);
@@ -56,22 +56,22 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     return add(nextHead, getHead(), getInput().get(1));
   }
 
-  public final EvaluationContext buildExeCtx(final Tensor... array) {
-    NNResult[] a = Arrays.stream(array).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+  public final EvaluationContext buildExeCtx(final Tensor... input) {
+    NNResult[] a = Arrays.stream(input).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
     return buildExeCtx(a);
   }
 
-  public EvaluationContext buildExeCtx(final NNResult... array) {
+  public EvaluationContext buildExeCtx(final NNResult... input) {
     final EvaluationContext evaluationContext = new EvaluationContext();
-    for (int i = 0; i < array.length; i++) {
-      evaluationContext.cache.put(this.inputHandles.get(i), array[i]);
+    for (int i = 0; i < input.length; i++) {
+      evaluationContext.cache.put(this.inputHandles.get(i), input[i]);
     }
     return evaluationContext;
   }
 
   @Override
-  public NNResult eval(final NNResult... array) {
-    return ((LazyResult) getHead()).get(buildExeCtx(array));
+  public NNResult eval(final NNResult... input) {
+    return ((LazyResult) getHead()).get(buildExeCtx(input));
   }
 
   @Override

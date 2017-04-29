@@ -11,9 +11,8 @@ import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.TrainingContext;
-import com.simiacryptus.mindseye.core.TrainingContext.TerminationCondition;
+import com.simiacryptus.mindseye.training.TrainingContext;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
@@ -162,7 +161,7 @@ public class Tester {
 
   public static TrainingComponent copy(DynamicRateTrainer trainer) {
     synchronized (trainer) {
-      final Tensor[][] trainingData = trainer.getData();
+      final Tensor[][] trainingData = trainer.getTrainingData();
       assert null != trainingData && 0 < trainingData.length;
       trainer.setData(null);
       DynamicRateTrainer copy = KryoUtil.kryo().copy(trainer);

@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.core.TrainingContext;
+import com.simiacryptus.mindseye.training.TrainingContext;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DeltaBuffer {

@@ -1,18 +1,14 @@
 package com.simiacryptus.mindseye.training;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import com.simiacryptus.lang.Tuple2;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.Util;
-import com.simiacryptus.mindseye.core.TrainingContext;
-import com.simiacryptus.mindseye.core.TrainingContext.TerminationCondition;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer.ConstNNResult;
@@ -23,43 +19,21 @@ import com.simiacryptus.mindseye.net.EvaluationContext;
 
 public class GradientDescentTrainer implements RateTrainingComponent {
 
-  public abstract static class StepResult {
-    private double finalError;
-    private double prevError;
+  public abstract static class RevertableStep {
+    public double finalError;
+    public double prevError;
 
-    public StepResult(final double prevError, final double finalError) {
+    public RevertableStep(final double prevError, final double finalError) {
       super();
-      this.setPrevError(prevError);
-      this.setFinalError(finalError);
+      this.prevError = prevError;
+      this.finalError = finalError;
     }
 
     public abstract void revert();
 
-    public double getPrevError() {
-      return prevError;
-    }
-
-    public void setPrevError(double prevError) {
-      this.prevError = prevError;
-    }
-
-    public double getFinalError() {
-      return finalError;
-    }
-
-    public void setFinalError(double finalError) {
-      this.finalError = finalError;
-    }
   }
 
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
-
-  public static <T> List<T> collectOrderedValues(final Stream<Tuple2<T, Integer>> results) {
-    return results
-        .sorted(java.util.Comparator.comparingInt(x -> x.getSecond()))
-        .map(x -> x.getFirst())
-        .collect(Collectors.toList());
-  }
 
   public static DeltaSet collectVector(final NNResult nnResult) {
     final DeltaSet buffer = new DeltaSet();
@@ -70,40 +44,35 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   private double error = Double.POSITIVE_INFINITY;
   private long hash = Util.R.get().nextLong();
   private DAGNetwork net = null;
-  private boolean parallelTraining = true;
   private DAGNode primaryNode;
   private double rate = 0.1;
-  private double temperature = 0.0;
-
   private Tensor[][] trainingData = null;
-
   private int trainingSize = Integer.MAX_VALUE;
-
   private boolean verbose = false;
 
-  public StepResult _step(final TrainingContext trainingContext) {
-    final Tensor[][] data = getTrainingData();
+  public RevertableStep _step(final TrainingContext trainingContext) {
+    final Tensor[][] data = selectTrainingData();
     if (data.length == 0)
-      return new StepResult(Double.NaN, Double.NaN) {
+      return new RevertableStep(Double.NaN, Double.NaN) {
         @Override
         public void revert() {
         }
       };
-    final double prevError = evalClassificationValidationData(trainingContext, data).rms;
+    final double prevError = validateMeanSum(trainingContext, data).rms;
     final List<DeltaBuffer> deltas = calcDelta(trainingContext, data).vector();
     deltas.stream().forEach(d -> d.write(this.rate));
-    final double validationError = evalClassificationValidationData(trainingContext, data).rms;
-    return new StepResult(prevError, validationError) {
+    final double validationError = validateMeanSum(trainingContext, data).rms;
+    return new RevertableStep(prevError, validationError) {
       @Override
       public void revert() {
         deltas.stream().forEach(d -> d.write(-GradientDescentTrainer.this.rate));
-        evalClassificationValidationData(trainingContext, data);
+        validateMeanSum(trainingContext, data);
       }
     };
   }
 
   protected DeltaSet calcDelta(final TrainingContext trainingContext, final Tensor[][] data) {
-    final EvaluationContext contexts = initContexts(trainingContext, data, getPrimaryNode());
+    final EvaluationContext contexts = createBatchExeContext(trainingContext, data);
     return collectVector(getPrimaryNode(), contexts);
   }
 
@@ -112,31 +81,29 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   private NNResult eval(final TrainingContext trainingContext, final Tensor[][] trainingData, final DAGNode primaryNode) {
-    final EvaluationContext collect = initContexts(trainingContext, trainingData, primaryNode);
+    final EvaluationContext collect = createBatchExeContext(trainingContext, trainingData);
     return primaryNode.get(collect);
   }
 
-  private ValidationResults evalClassificationValidationData(final TrainingContext trainingContext, final Tensor[][] validationSet) {
+  private ValidationResults validateMeanSum(final TrainingContext trainingContext, final Tensor[][] validationSet) {
     assert 0 < validationSet.length;
     final NNResult eval = eval(trainingContext, validationSet, getPrimaryNode());
-    final List<Tensor> evalData = java.util.Arrays.stream(eval.data).map(x -> x).collect(Collectors.toList());
+    final List<Tensor> evalData = java.util.Arrays.asList(eval.data);
     assert 0 < evalData.size();
-    final double rms = evalData.stream().parallel().mapToDouble(x -> x.sum()).average().getAsDouble();
+    final double rms = evalData.stream().parallel().mapToDouble((Tensor x) -> x.sum()).average().getAsDouble();
     setError(rms);
     return new ValidationResults(evalData, rms);
   }
 
   @Override
-  public Tensor[][] getData() {
+  public Tensor[][] getTrainingData() {
     return this.trainingData;
-    // assert(null!=trainingData);
-    // return null==trainingData?new Tensor[][]{}:trainingData;
   }
 
   @Override
   public synchronized double getError() {
     if (Double.isNaN(this.error))
-      return evalClassificationValidationData(new TrainingContext(), getTrainingData()).rms;
+      return validateMeanSum(new TrainingContext(), selectTrainingData()).rms;
     return this.error;
   }
 
@@ -154,15 +121,11 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return this.rate;
   }
 
-  public double getTemperature() {
-    return this.temperature;
-  }
-
-  public Tensor[][] getTrainingData() {
-    final Tensor[][] data2 = getData();
-    assert 0 < data2.length;
+  public Tensor[][] selectTrainingData() {
+    final Tensor[][] rawData = getTrainingData();
+    assert 0 < rawData.length;
     assert 0 < getTrainingSize();
-    return java.util.Arrays.stream(data2).parallel() //
+    return java.util.Arrays.stream(rawData).parallel() //
         .sorted(java.util.Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
         .limit(getTrainingSize()) //
         .toArray(i -> new Tensor[i][]);
@@ -172,7 +135,7 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return this.trainingSize;
   }
 
-  public EvaluationContext initContexts(final TrainingContext trainingContext, final Tensor[][] trainingData, final DAGNode primaryNode) {
+  public EvaluationContext createBatchExeContext(final TrainingContext trainingContext, final Tensor[][] trainingData) {
     final DAGNetwork net = getNet();
     trainingContext.evaluations.increment();
     NNResult[] constNNResult = IntStream.range(0, trainingData[0].length).mapToObj(j->{
@@ -180,10 +143,6 @@ public class GradientDescentTrainer implements RateTrainingComponent {
       return new ConstNNResult(array);
     }).toArray(x->new NNResult[x]);
     return net.buildExeCtx(constNNResult);
-  }
-
-  public boolean isParallelTraining() {
-    return this.parallelTraining;
   }
 
   public boolean isVerbose() {
@@ -212,10 +171,6 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     return this;
   }
 
-  public void setParallelTraining(final boolean parallelTraining) {
-    this.parallelTraining = parallelTraining;
-  }
-
   protected void setPrimaryNode(final DAGNode primaryNode) {
     this.primaryNode = primaryNode;
   }
@@ -225,11 +180,6 @@ public class GradientDescentTrainer implements RateTrainingComponent {
     assert Double.isFinite(dynamicRate);
     this.rate = dynamicRate;
     setError(Double.NaN);
-    return this;
-  }
-
-  public TrainingComponent setTemperature(final double temperature) {
-    this.temperature = temperature;
     return this;
   }
 
@@ -250,29 +200,22 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   @Override
   public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
-    final StepResult result = _step(trainingContext);
-    if (result.getPrevError() == result.getFinalError()) {
+    final RevertableStep result = _step(trainingContext);
+    if (result.prevError == result.finalError) {
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Static: (%s)", result.getPrevError()));
+        log.debug(String.format("Static: (%s)", result.prevError));
       }
-      setError(result.getFinalError());
+      setError(result.finalError);
       trainingContext.gradientSteps.increment();
-      return new TrainingStep(result.getPrevError(), result.getFinalError(), false);
-    } else if (!Util.thermalStep(result.getPrevError(), result.getFinalError(), getTemperature())) {
-      if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Reverting delta: (%s -> %s) - %s (rate %s) - %s", //
-            result.getPrevError(), result.getFinalError(), result.getFinalError() - result.getPrevError(), getRate(), trainingContext));
-      }
-      result.revert();
-      return new TrainingStep(result.getPrevError(), result.getFinalError(), false);
+      return new TrainingStep(result.prevError, result.finalError, false);
     } else {
-      setError(result.getFinalError());
+      setError(result.finalError);
       trainingContext.gradientSteps.increment();
       if (this.verbose) {
-        GradientDescentTrainer.log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items - %s", //
-            (System.currentTimeMillis() - startMs) / 1000., result.getFinalError(), getRate(), Math.min(getTrainingSize(), trainingData.length), trainingContext));
+        log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items - %s", //
+            (System.currentTimeMillis() - startMs) / 1000., result.finalError, getRate(), Math.min(getTrainingSize(), trainingData.length), trainingContext));
       }
-      return new TrainingStep(result.getPrevError(), result.getFinalError(), true);
+      return new TrainingStep(result.prevError, result.finalError, true);
     }
   }
 

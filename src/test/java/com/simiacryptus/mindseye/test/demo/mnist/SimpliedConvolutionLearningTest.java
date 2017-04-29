@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import com.simiacryptus.mindseye.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.ml.Tensor;
-import com.simiacryptus.mindseye.core.TrainingContext;
+import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;

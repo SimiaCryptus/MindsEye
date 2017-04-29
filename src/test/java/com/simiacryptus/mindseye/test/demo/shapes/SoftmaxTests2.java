@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.test.demo.shapes;
 import java.util.function.BiFunction;
 
 import com.simiacryptus.util.ml.Tensor;
-import com.simiacryptus.mindseye.core.TrainingContext;
+import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;

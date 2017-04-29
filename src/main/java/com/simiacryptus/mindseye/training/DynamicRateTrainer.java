@@ -4,7 +4,6 @@ import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.core.TrainingContext;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 
 public class DynamicRateTrainer implements TrainingComponent {
@@ -31,8 +30,8 @@ public class DynamicRateTrainer implements TrainingComponent {
   }
 
   @Override
-  public Tensor[][] getData() {
-    return this.inner.getData();
+  public Tensor[][] getTrainingData() {
+    return this.inner.getTrainingData();
   }
 
   @Override

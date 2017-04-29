@@ -1,8 +1,7 @@
 package com.simiacryptus.mindseye.training;
 
 import com.simiacryptus.util.ml.Tensor;
-import com.simiacryptus.mindseye.core.TrainingContext;
-import com.simiacryptus.mindseye.core.TrainingContext.TerminationCondition;
+import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 
 public interface TrainingComponent {
@@ -51,7 +50,7 @@ public interface TrainingComponent {
     
   }
 
-  Tensor[][] getData();
+  Tensor[][] getTrainingData();
 
   double getError();
 

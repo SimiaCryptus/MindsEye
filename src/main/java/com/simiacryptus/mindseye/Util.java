@@ -98,16 +98,6 @@ public class Util {
     Util.report(Stream.of(fragments));
   }
 
-  public static boolean thermalStep(final double prev, final double next, final double temp) {
-    if (next < prev)
-      return true;
-    if (temp <= 0.)
-      return false;
-    final double p = Math.exp(-(next - prev) / (Math.min(next, prev) * temp));
-    final boolean step = Math.random() < p;
-    return step;
-  }
-
   public static Tensor fillImage(final byte[] b, final Tensor tensor) {
     for (int x = 0; x < 28; x++) {
       for (int y = 0; y < 28; y++) {
