@@ -121,7 +121,8 @@ public class DeconvolutionTest {
 
     // List<LabeledObject<Tensor>> data =
     // TestMNISTDev.trainingDataStream().limit(10).collect(Collectors.toList());
-    final Tensor inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg")), .5));
+    BufferedImage read = ImageIO.read(getClass().getResourceAsStream("/monkey1.jpg"));
+    final Tensor inputImage = DeconvolutionTest.toNDArray3(DeconvolutionTest.scale(read, .5));
     // final Tensor inputImage = Util.toNDArray1(render(new int[] { 200, 300 },
     // "Hello World"));
     // Tensor inputImage = Util.toNDArray3(render(new int[]{200,300}, "Hello

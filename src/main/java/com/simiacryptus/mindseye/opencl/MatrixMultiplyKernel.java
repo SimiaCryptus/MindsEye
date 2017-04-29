@@ -59,7 +59,7 @@ public final class MatrixMultiplyKernel extends com.aparapi.Kernel {
           kernel.vector = vector[i];
           kernel.output = output[i];
           kernel.put(kernel.vector);
-          OpenCL.range.with(range -> kernel.exe(range));
+          OpenCL.devicePool.with(device -> kernel.exe(device));
           kernel.get(kernel.output);
         }
       });

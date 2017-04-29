@@ -15,7 +15,6 @@ import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerOjAlgo;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
@@ -70,20 +69,6 @@ public class NetworkElementUnitTests {
         .init(samples,
             new DAGNetwork().add(new BiasLayer(inputSize))
                 .add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()),
-            new EntropyLossLayer())
-        .verifyConvergence(0.1, 100);
-  }
-
-  @Test
-  public void denseSynapseLayer_feedbackOjAlgo() throws Exception {
-    final int[] inputSize = new int[] { 2 };
-    final int[] outSize = new int[] { 2 };
-    final Tensor[][] samples = new Tensor[][] { { new Tensor(inputSize, new double[] { 1, 1 }), new Tensor(outSize, new double[] { 1, -1 }) } };
-
-    new Tester()
-        .init(samples,
-            new DAGNetwork().add(new BiasLayer(inputSize))
-                .add(new DenseSynapseLayerOjAlgo(Tensor.dim(inputSize), outSize).addWeights(() -> 10 * SimpleNetworkTests.random.nextGaussian()).freeze()),
             new EntropyLossLayer())
         .verifyConvergence(0.1, 100);
   }

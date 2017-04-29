@@ -1,42 +1,21 @@
 package com.simiacryptus.mindseye;
 
-import java.awt.Desktop;
+import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.util.test.BinaryChunkIterator;
+import com.simiacryptus.util.test.LabeledObject;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Iterator;
+import java.io.*;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
-
-import javax.imageio.ImageIO;
-
-import com.simiacryptus.util.ml.Tensor;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
-import com.simiacryptus.util.test.BinaryChunkIterator;
-import com.simiacryptus.util.test.LabeledObject;
-import de.javakaffee.kryoserializers.EnumMapSerializer;
-import de.javakaffee.kryoserializers.EnumSetSerializer;
-import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;
 
 public class Util {
 
@@ -51,27 +30,6 @@ public class Util {
     protected Random initialValue() {
       return new Random(this.r.nextLong());
     }
-  };
-
-  private static final ThreadLocal<Kryo> threadKryo = new ThreadLocal<Kryo>() {
-
-    @Override
-    protected Kryo initialValue() {
-      final Kryo kryo = new KryoReflectionFactorySupport() {
-
-        @Override
-        public Serializer<?> getDefaultSerializer(@SuppressWarnings("rawtypes") final Class clazz) {
-          if (EnumSet.class.isAssignableFrom(clazz))
-            return new EnumSetSerializer();
-          if (EnumMap.class.isAssignableFrom(clazz))
-            return new EnumMapSerializer();
-          return super.getDefaultSerializer(clazz);
-        }
-
-      };
-      return kryo;
-    }
-
   };
 
   public static void add(final DoubleSupplier f, final double[] data) {
@@ -102,10 +60,6 @@ public class Util {
 
   public static String[] currentStack() {
     return java.util.stream.Stream.of(Thread.currentThread().getStackTrace()).map(Object::toString).toArray(i -> new String[i]);
-  }
-
-  public static Kryo kryo() {
-    return Util.threadKryo.get();
   }
 
   public static byte[] read(final DataInputStream i, final int s) throws IOException {

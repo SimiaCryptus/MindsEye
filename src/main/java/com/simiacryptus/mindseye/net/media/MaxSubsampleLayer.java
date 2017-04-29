@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.lang.Tuple2;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +16,6 @@ import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.mindseye.core.delta.DeltaSet;
 import com.simiacryptus.mindseye.core.delta.NNLayer;
 import com.simiacryptus.mindseye.core.delta.NNResult;
-
-import groovy.lang.Tuple2;
 
 public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
   public static class CalcRegionsParameter {
@@ -82,7 +81,7 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
         }
         return new Coordinate(input.index(r), r);
       }).collect(java.util.stream.Collectors.toList());
-      return new groovy.lang.Tuple2<>(o, inCoords);
+      return new Tuple2<>(o, inCoords);
     }).collect(java.util.stream.Collectors.toList());
     return regions;
   }

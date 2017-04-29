@@ -7,6 +7,7 @@ import java.util.function.BiFunction;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
+import com.simiacryptus.lang.Tuple2;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
@@ -35,8 +36,6 @@ import com.simiacryptus.mindseye.net.util.WeightExtractor;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
-
-import groovy.lang.Tuple2;
 
 public class MNISTAutoencoderTests {
 
@@ -67,7 +66,7 @@ public class MNISTAutoencoderTests {
       double foo = encode.getWeights().get(transposed);
       return foo;
     });
-    return new groovy.lang.Tuple2<>(encode, decode);
+    return new Tuple2<>(encode, decode);
   }
   
   public static class ReversibleNetwork {

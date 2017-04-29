@@ -40,7 +40,7 @@ public final class ConvolutionController {
       backpropTask.put(backpropTask.kernelSize);
       backpropTask.put(backpropTask.weights);
       backpropTask.put(backpropTask.output);
-      OpenCL.range.with(range -> backpropTask.exe(range));
+      OpenCL.devicePool.with(device -> backpropTask.exe(device));
       backpropTask.get(backpropTask.input);
     });
   }
@@ -59,7 +59,7 @@ public final class ConvolutionController {
       convolveTask.put(convolveTask.kernelSize);
       convolveTask.put(convolveTask.input);
       convolveTask.put(convolveTask.weights);
-      OpenCL.range.with(range -> convolveTask.exe(range));
+      OpenCL.devicePool.with(device -> convolveTask.exe(device));
       convolveTask.get(convolveTask.output);
     });
   }
@@ -77,7 +77,7 @@ public final class ConvolutionController {
       kernelTask.put(kernelTask.kernelSize);
       kernelTask.put(kernelTask.input);
       kernelTask.put(kernelTask.output);
-      OpenCL.range.with(range -> kernelTask.exe(range));
+      OpenCL.devicePool.with(device -> kernelTask.exe(device));
       kernelTask.get(kernelTask.weights);
     });
   }

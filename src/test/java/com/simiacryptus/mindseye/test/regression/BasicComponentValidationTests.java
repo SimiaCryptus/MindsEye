@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.test.regression;
 
+import com.simiacryptus.util.lang.KryoUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,6 @@ import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerGPU;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerOjAlgo;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.net.reducers.ProductLayer;
@@ -104,7 +104,7 @@ public class BasicComponentValidationTests {
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
     final Tensor baseOutput = component.eval(inputPrototype).data[0];
     for (int i = 0; i < stateLen; i++) {
-      final NNLayer<?> copy = Util.kryo().copy(component);
+      final NNLayer<?> copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += deltaFactor;
       final Tensor evalProbe = copy.eval(inputPrototype).data[0];
       final Tensor delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
@@ -172,14 +172,6 @@ public class BasicComponentValidationTests {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
-    test(component, outputPrototype, inputPrototype);
-  }
-
-  @org.junit.Test
-  public void testDenseSynapseLayerOjAlgo1() throws Throwable {
-    final Tensor outputPrototype = new Tensor(2);
-    final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new DenseSynapseLayerOjAlgo(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 

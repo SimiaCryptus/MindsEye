@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
+import com.simiacryptus.lang.Tuple2;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
@@ -26,8 +27,6 @@ import com.simiacryptus.mindseye.net.loss.SqLossLayer;
 import com.simiacryptus.mindseye.test.Tester;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
-
-import groovy.lang.Tuple2;
 
 public class MNISTAutoencoderTestsGPU {
 
@@ -57,7 +56,7 @@ public class MNISTAutoencoderTestsGPU {
       Coordinate transposed = new Coordinate(tindex, traw);
       return encode.getWeights().get(transposed);
     });
-    Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> codec = new groovy.lang.Tuple2<DenseSynapseLayerGPU,DenseSynapseLayerGPU>(encode, decode);
+    Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> codec = new Tuple2<DenseSynapseLayerGPU,DenseSynapseLayerGPU>(encode, decode);
     return codec;
   }
 

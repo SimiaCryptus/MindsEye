@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.util.lang.KryoUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +129,7 @@ public class Tester {
         return trainTo(convergence);
       } else {
         final TrainingComponent trainer = copy(this.dynamicTrainer);
-        final TrainingContext trainingContext = Util.kryo().copy(trainingContext());
+        final TrainingContext trainingContext = KryoUtil.kryo().copy(trainingContext());
         return trainTo(trainer, trainingContext, convergence);
       }
     }).count();
@@ -164,7 +165,7 @@ public class Tester {
       final Tensor[][] trainingData = trainer.getData();
       assert null != trainingData && 0 < trainingData.length;
       trainer.setData(null);
-      DynamicRateTrainer copy = Util.kryo().copy(trainer);
+      DynamicRateTrainer copy = KryoUtil.kryo().copy(trainer);
       copy.setData(trainingData);
       trainer.setData(trainingData);
       return copy;

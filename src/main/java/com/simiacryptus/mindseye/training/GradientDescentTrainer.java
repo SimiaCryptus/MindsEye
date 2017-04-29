@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.simiacryptus.lang.Tuple2;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +20,6 @@ import com.simiacryptus.mindseye.core.delta.NNResult;
 import com.simiacryptus.mindseye.net.DAGNetwork;
 import com.simiacryptus.mindseye.net.DAGNode;
 import com.simiacryptus.mindseye.net.EvaluationContext;
-
-import groovy.lang.Tuple2;
 
 public class GradientDescentTrainer implements RateTrainingComponent {
 
@@ -160,7 +159,6 @@ public class GradientDescentTrainer implements RateTrainingComponent {
   }
 
   public Tensor[][] getTrainingData() {
-
     final Tensor[][] data2 = getData();
     assert 0 < data2.length;
     assert 0 < getTrainingSize();

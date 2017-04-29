@@ -2,6 +2,7 @@ package com.simiacryptus.mindseye.test.regression;
 
 import java.util.Arrays;
 
+import com.simiacryptus.util.lang.KryoUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +105,7 @@ public class MetaComponentValidationTests {
     final Tensor[] gradient = java.util.stream.IntStream.range(0, outputPrototype.length).mapToObj(i->new Tensor(stateLen, outputPrototype[0].dim())).toArray(i->new Tensor[i]);
     NNResult baseEval = component.eval(inputPrototype);
     for (int stateIdx = 0; stateIdx < stateLen; stateIdx++) {
-      final NNLayer<?> copy = Util.kryo().copy(component);
+      final NNLayer<?> copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[stateIdx] += deltaFactor;
       NNResult eval = copy.eval(inputPrototype);
       for (int outputItem = 0; outputItem < outputPrototype.length; outputItem++) {
