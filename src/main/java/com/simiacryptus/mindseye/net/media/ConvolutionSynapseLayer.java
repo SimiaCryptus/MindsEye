@@ -170,7 +170,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
             final Tensor kernel = ConvolutionSynapseLayer.this.kernel;
             final Tensor weightGradient = new Tensor(kernel.getDims());
             indexMap.gradient(input.getData(), weightGradient.getData(), errorSignal[dataIndex].getData());
-            buffer.get(ConvolutionSynapseLayer.this, kernel).feed(weightGradient.getData());
+            buffer.get(ConvolutionSynapseLayer.this, kernel).accumulate(weightGradient.getData());
           });
         }
         if (inObj[0].isAlive()) {

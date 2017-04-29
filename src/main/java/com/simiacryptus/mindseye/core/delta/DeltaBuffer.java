@@ -41,7 +41,7 @@ public class DeltaBuffer {
     return this.buffer;
   }
 
-  public void feed(final double[] data) {
+  public void accumulate(final double[] data) {
     assert null == this.calcVector;
     final int dim = length();
     for (int i = 0; i < dim; i++) {

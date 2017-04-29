@@ -36,7 +36,7 @@ public final class WeightExtractor extends NNLayer<WeightExtractor> {
       @Override
       public void accumulate(DeltaSet buffer, Tensor[] data) {
         assert(data.length==1);
-        buffer.get(WeightExtractor.this, array).feed(data[0].getData());;
+        buffer.get(WeightExtractor.this, array).accumulate(data[0].getData());;
       }
     };
   }

@@ -57,7 +57,7 @@ public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
         final double[] deltaData = delta[dataIndex].getData();
         final double[] inputData = this.inObj.data[dataIndex].getData();
         final Tensor weightDelta = multiply(deltaData, inputData);
-        buffer.get(DenseSynapseLayerJBLAS.this, DenseSynapseLayerJBLAS.this.getWeights()).feed(weightDelta.getData());
+        buffer.get(DenseSynapseLayerJBLAS.this, DenseSynapseLayerJBLAS.this.getWeights()).accumulate(weightDelta.getData());
       });
     }
 

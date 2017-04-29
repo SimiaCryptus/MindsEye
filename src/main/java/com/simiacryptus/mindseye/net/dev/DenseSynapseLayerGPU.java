@@ -61,7 +61,7 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
         final Tensor weightDelta = new Tensor(inputData.length, deltaData.length);
         double[] weightData = weightDelta.getData();
         gradientCrossMatrix(deltaData, inputData, weightData);
-        buffer.get(DenseSynapseLayerGPU.this, DenseSynapseLayerGPU.this.getWeights()).feed(weightData);
+        buffer.get(DenseSynapseLayerGPU.this, DenseSynapseLayerGPU.this.getWeights()).accumulate(weightData);
       });
     }
 
