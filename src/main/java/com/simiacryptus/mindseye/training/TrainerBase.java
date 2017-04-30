@@ -1,10 +1,10 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.core.delta.NNResult;
-import com.simiacryptus.mindseye.net.DAGNetwork;
-import com.simiacryptus.mindseye.net.DAGNode;
-import com.simiacryptus.mindseye.net.EvaluationContext;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.NNResult;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.DAGNode;
+import com.simiacryptus.mindseye.net.dag.EvaluationContext;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.List;

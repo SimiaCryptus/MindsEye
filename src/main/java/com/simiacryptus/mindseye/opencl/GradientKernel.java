@@ -1,5 +1,7 @@
 package com.simiacryptus.mindseye.opencl;
 
+import com.simiacryptus.util.lang.ResourcePool;
+
 public final class GradientKernel extends com.aparapi.Kernel {
   double[] input;
   int[] inputSize;

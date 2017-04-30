@@ -2,11 +2,11 @@ package com.simiacryptus.mindseye.test.demo.mnist;
 
 import java.util.function.BiFunction;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.training.TrainingContext;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;

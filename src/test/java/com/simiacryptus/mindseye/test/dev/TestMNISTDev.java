@@ -22,10 +22,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
@@ -114,10 +114,19 @@ public class TestMNISTDev {
     return tree.values().stream().collect(Collectors.toList());
   }
 
+  public static Tensor fillImage(final byte[] b, final Tensor tensor) {
+    for (int x = 0; x < 28; x++) {
+      for (int y = 0; y < 28; y++) {
+        tensor.set(new int[] { x, y }, b[x + y * 28]&0xFF);
+      }
+    }
+    return tensor;
+  }
+
   public static Stream<LabeledObject<Tensor>> trainingDataStream() throws IOException {
     final String path = "C:/Users/Andrew Charneski/Downloads";
     final Stream<Tensor> imgStream = Util.binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(b->{
-      return Util.fillImage(b, new Tensor(28,28,1));
+      return fillImage(b, new Tensor(28,28,1));
     });
     final Stream<byte[]> labelStream = Util.binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
   

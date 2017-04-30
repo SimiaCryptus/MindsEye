@@ -1,8 +1,8 @@
 package com.simiacryptus.mindseye.test.demo.shapes;
 
 import com.simiacryptus.util.ml.Tensor;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;

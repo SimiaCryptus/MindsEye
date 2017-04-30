@@ -8,15 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.mindseye.test.demo.ClassificationTestBase;
 

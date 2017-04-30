@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.mindseye.core.delta.DeltaSet;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.core.delta.NNResult;
+import com.simiacryptus.mindseye.net.DeltaSet;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.NNResult;
 
 public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
   public static class CalcRegionsParameter {

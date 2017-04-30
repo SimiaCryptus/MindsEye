@@ -15,9 +15,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.mindseye.core.delta.DeltaSet;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.core.delta.NNResult;
+import com.simiacryptus.mindseye.net.DeltaSet;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.NNResult;
 
 public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
 

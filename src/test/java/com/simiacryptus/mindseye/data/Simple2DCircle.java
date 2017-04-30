@@ -2,7 +2,7 @@ package com.simiacryptus.mindseye.data;
 
 import java.util.function.Function;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 
 public final class Simple2DCircle implements Function<Void, double[]> {
 

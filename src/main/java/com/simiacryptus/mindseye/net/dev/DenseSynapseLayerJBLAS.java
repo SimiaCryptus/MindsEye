@@ -9,11 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.mindseye.core.delta.DeltaSet;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.core.delta.NNResult;
+import com.simiacryptus.mindseye.net.DeltaSet;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.NNResult;
 
 public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
 

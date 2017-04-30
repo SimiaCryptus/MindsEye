@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.LabeledObject;
 

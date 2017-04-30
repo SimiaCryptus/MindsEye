@@ -1,8 +1,8 @@
-package com.simiacryptus.mindseye.net;
+package com.simiacryptus.mindseye.net.dag;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.core.delta.NNResult;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.NNResult;
 
 import java.util.UUID;
 

@@ -6,7 +6,7 @@ import java.util.function.Function;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.mindseye.data.GaussianDistribution;
 import com.simiacryptus.mindseye.data.Simple2DCircle;
 import com.simiacryptus.mindseye.data.Simple2DLine;

@@ -3,7 +3,7 @@ package com.simiacryptus.mindseye.data;
 import java.util.Random;
 import java.util.function.Function;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 
 public final class Simple2DLine implements Function<Void, double[]> {
 

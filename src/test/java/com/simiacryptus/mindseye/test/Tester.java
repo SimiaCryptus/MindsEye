@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
-import com.simiacryptus.mindseye.core.delta.NNLayer;
-import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingComponent;

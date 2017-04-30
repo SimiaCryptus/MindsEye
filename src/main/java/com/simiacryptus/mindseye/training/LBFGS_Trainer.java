@@ -1,7 +1,7 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.mindseye.core.delta.DeltaBuffer;
-import com.simiacryptus.mindseye.core.delta.DeltaSet;
+import com.simiacryptus.mindseye.net.DeltaBuffer;
+import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;

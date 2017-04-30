@@ -4,7 +4,7 @@ import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.net.DAGNetwork;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 
 public class DynamicRateTrainer implements TrainingComponent {
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);

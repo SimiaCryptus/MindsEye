@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.opencl;
 
+import com.simiacryptus.util.lang.ResourcePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

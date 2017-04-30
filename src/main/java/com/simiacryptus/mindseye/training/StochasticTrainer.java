@@ -1,6 +1,6 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.mindseye.Util;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 
 public abstract class StochasticTrainer extends TrainerBase {
