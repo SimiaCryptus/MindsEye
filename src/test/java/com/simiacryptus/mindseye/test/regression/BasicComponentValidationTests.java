@@ -75,7 +75,7 @@ public class BasicComponentValidationTests {
       component.eval(inputPrototype).accumulate(buffer, new Tensor[]{new Tensor(outputPrototype.getDims()).fill((k)->k==j_?1:0)});
       final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
-        gradient.set(new int[] { i, j_ }, deltaFlushBuffer.getCalcVector()[i]);
+          gradient.set(new int[] { i, j_ }, deltaFlushBuffer.delta[i]);
       }
     }
     return gradient;

@@ -8,24 +8,37 @@ import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleFunction;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class LineSearchTrainer extends StochasticTrainer {
-
-  public static class LBFGS extends LineSearchTrainer {
-    protected List<DeltaBuffer> getDirection(List<DeltaBuffer> startGradient) {
-      return startGradient.stream().map(x->x.scale(-1)).collect(Collectors.toList());
-    }
-
-  }
 
   private static final Logger log = LoggerFactory.getLogger(LineSearchTrainer.class);
 
   private double alpha = 1.0;
   private double linesearch_c1 = 10e-7;
   private double linesearch_c2 = 0.9;
+  protected final List<ExecutionRecord> history = new ArrayList<>();
+  private int memorySize = 10;
+
+  public static class ExecutionRecord {
+    final List<double[]> deltaSet;
+    final List<double[]> targetSet;
+
+    public ExecutionRecord(NNResult evalResult) {
+      DeltaSet deltaSet = new DeltaSet();
+      evalResult.accumulate(deltaSet);
+      this.deltaSet = deltaSet.vector().stream().map(x->x.copyDelta()).collect(Collectors.toList());
+      this.targetSet = deltaSet.vector().stream().map(x->x.copyTarget()).collect(Collectors.toList());
+
+    }
+  }
 
   @Override
   public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
@@ -37,8 +50,10 @@ public class LineSearchTrainer extends StochasticTrainer {
 
     assert 0 < data.length;
     NNResult evalResult = getPrimaryNode().get(createBatchExeContext(trainingContext, data));
+    history.add(new ExecutionRecord(evalResult));
     List<DeltaBuffer> startGradient = getDelta(evalResult);
     final List<DeltaBuffer> direction = getDirection(startGradient);
+    if(history.size() > memorySize) history.remove(0);
 
     // See http://cs.nyu.edu/overton/mstheses/skajaa/msthesis.pdf page 14
     double mu = 0;
@@ -118,5 +133,13 @@ public class LineSearchTrainer extends StochasticTrainer {
     return this;
   }
 
+  public int getMemorySize() {
+    return memorySize;
+  }
+
+  public LineSearchTrainer setMemorySize(int memorySize) {
+    this.memorySize = memorySize;
+    return this;
+  }
 
 }

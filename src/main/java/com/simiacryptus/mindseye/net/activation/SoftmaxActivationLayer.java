@@ -47,7 +47,7 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
       }
       
       final double sum = exp.sum();
-      assert 0. < sum;
+      //assert 0. < sum;
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
       return exp.map(x -> x / sum);
