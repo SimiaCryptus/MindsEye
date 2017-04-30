@@ -32,7 +32,7 @@ public class MNISTDatasetTests {
       final PrintStream out = new PrintStream(new FileOutputStream(report));
       out.println("<html><head></head><body>");
       MNIST.trainingDataStream().sorted(Comparator.comparing(img -> img.label))
-          .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>").forEach(out::println);
+          .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(tensor -> tensor.toRgbImage())) + net.eval(x.data).data.toString() + "</p>").forEach(out::println);
       out.println("</body></html>");
       out.close();
       Desktop.getDesktop().browse(report.toURI());
@@ -70,7 +70,7 @@ public class MNISTDatasetTests {
   }
 
   public List<BufferedImage> evaluateImageList(final Tensor[] validationData) {
-    return java.util.Arrays.stream(validationData).map(Util::toImage).collect(java.util.stream.Collectors.toList());
+    return java.util.Arrays.stream(validationData).map(tensor -> tensor.toRgbImage()).collect(java.util.stream.Collectors.toList());
   }
 
   public Tensor[] transformDataSet(Stream<LabeledObject<Tensor>> trainingDataStream, int limit, final int hash) {

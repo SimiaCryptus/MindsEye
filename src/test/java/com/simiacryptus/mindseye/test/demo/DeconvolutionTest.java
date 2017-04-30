@@ -109,7 +109,7 @@ public class DeconvolutionTest {
       final Tensor[] input = { obj.data };
       final NNResult output = forwardConvolutionNet.eval(input);
 
-      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new Tensor(outSize, output.data[0].getData())));
+        return DeconvolutionTest.imageHtml(obj.data.toRgbImage(), new Tensor(outSize, output.data[0].getData()).toRgbImage());
     }));
 
   }
@@ -274,11 +274,11 @@ public class DeconvolutionTest {
       final NNResult recovered = bias.eval(zeroInput);
       final NNResult verification = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
-      return DeconvolutionTest.imageHtml( //
-          Util.toImage(obj.data), //
-          Util.toImage(new Tensor(outSize, blurredImage.data[0].getData())), //
-          Util.toImage(new Tensor(inputSize, recovered.data[0].getData())), //
-          Util.toImage(new Tensor(outSize, verification.data[0].getData())));
+        return DeconvolutionTest.imageHtml( //
+                obj.data.toRgbImage(), //
+                new Tensor(outSize, blurredImage.data[0].getData()).toRgbImage(), //
+                new Tensor(inputSize, recovered.data[0].getData()).toRgbImage(), //
+                new Tensor(outSize, verification.data[0].getData()).toRgbImage());
     }));
 
   }
@@ -350,8 +350,8 @@ public class DeconvolutionTest {
       final NNResult recovered = bias.eval(zeroInput);
       final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
 
-      return DeconvolutionTest.imageHtml(Util.toImage(obj.data), Util.toImage(new Tensor(outSize, output.data[0].getData())), Util.toImage(new Tensor(inputSize, recovered.data[0].getData())),
-          Util.toImage(new Tensor(outSize, tested.data[0].getData())));
+        return DeconvolutionTest.imageHtml(obj.data.toRgbImage(), new Tensor(outSize, output.data[0].getData()).toRgbImage(), new Tensor(inputSize, recovered.data[0].getData()).toRgbImage(),
+                new Tensor(outSize, tested.data[0].getData()).toRgbImage());
     }));
 
   }

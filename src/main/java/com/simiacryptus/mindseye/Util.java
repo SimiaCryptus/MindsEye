@@ -107,26 +107,6 @@ public class Util {
     return tensor;
   }
 
-  public static BufferedImage toImage(final Tensor tensor) {
-    final int[] dims = tensor.getDims();
-    final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
-    for (int x = 0; x < img.getWidth(); x++) {
-      for (int y = 0; y < img.getHeight(); y++) {
-        if (tensor.getDims()[2] == 1) {
-          final double value = tensor.get(x, y, 0);
-          //int asInt = ((byte) value) & 0xFF;
-          img.setRGB(x, y, bounds((int)value) * 0x010101);
-        } else {
-          final double red = Util.bounds(tensor.get(x, y, 0));
-          final double green = Util.bounds(tensor.get(x, y, 1));
-          final double blue = Util.bounds(tensor.get(x, y, 2));
-          img.setRGB(x, y, (int) (red + ((int) green << 8) + ((int) blue << 16)));
-        }
-      }
-    }
-    return img;
-  }
-
   public static String toInlineImage(final BufferedImage img, final String alt) {
     return Util.toInlineImage(new LabeledObject<BufferedImage>(img, alt));
   }

@@ -89,7 +89,7 @@ public class TestMNISTDev {
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
     buffer.stream().sorted(Comparator.comparing(img -> img.label))
-        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(Util::toImage)) + net.eval(x.data).data.toString() + "</p>").forEach(out::println);
+        .map(x -> "<p>" + Util.toInlineImage(x.<BufferedImage>map(tensor -> tensor.toRgbImage())) + net.eval(x.data).data.toString() + "</p>").forEach(out::println);
     out.println("</body></html>");
     out.close();
     Desktop.getDesktop().browse(report.toURI());

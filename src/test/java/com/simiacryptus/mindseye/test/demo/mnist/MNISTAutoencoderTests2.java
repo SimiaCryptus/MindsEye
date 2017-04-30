@@ -177,7 +177,7 @@ public class MNISTAutoencoderTests2 {
   public List<BufferedImage> evaluateImageList(DAGNetwork n, final Tensor[][] validationData, DAGNode feedback) {
     // final NNLayer<?> mainNetwork = n.getChild(feedback);
     return java.util.Arrays.stream(validationData).map(x -> feedback.get(n.buildExeCtx(x)).data[0])
-        .map(x -> Util.toImage(x)).collect(java.util.stream.Collectors.toList());
+        .map(x -> x.toRgbImage()).collect(java.util.stream.Collectors.toList());
   }
 
   public Tensor[][] transformDataSet(Stream<LabeledObject<Tensor>> trainingDataStream, int limit, final int hash) {

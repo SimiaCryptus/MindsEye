@@ -137,7 +137,7 @@ public class MNISTAutoencoderTestsGPU {
     final NNLayer<?> mainNetwork = n.getChild(id);
     return java.util.Arrays.stream(validationData)
         .map(x->mainNetwork.eval(x).data[0])
-        .map(x->Util.toImage(x))
+        .map(x -> x.toRgbImage())
         .collect(java.util.stream.Collectors.toList());
   }
 
