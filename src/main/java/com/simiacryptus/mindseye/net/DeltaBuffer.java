@@ -2,6 +2,8 @@ package com.simiacryptus.mindseye.net;
 
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.IntStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,4 +112,17 @@ public class DeltaBuffer {
     }
   }
 
+  public double dot(DeltaBuffer right) {
+    assert(this.target == right.target);
+    assert(this.buffer.length == right.buffer.length);
+    return IntStream.range(0, this.buffer.length).mapToDouble(i->buffer[i]*right.buffer[i]).sum();
+  }
+
+  public double sum() {
+    return Arrays.stream(this.buffer).sum();
+  }
+
+  public double sumSq() {
+    return Arrays.stream(this.buffer).map(x->x*x).sum();
+  }
 }

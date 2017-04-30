@@ -6,9 +6,6 @@ import com.simiacryptus.mindseye.net.NNResult;
 
 import java.util.UUID;
 
-/**
- * Created by Andrew Charneski on 4/25/2017.
- */
 final class InputNode extends LazyResult {
   private DAGNetwork dagNetwork;
   public final UUID handle;

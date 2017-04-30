@@ -1,87 +1,32 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-
-public class DynamicRateTrainer implements TrainingComponent {
+public class DynamicRateTrainer extends DelegateTrainer<RateTrainingComponent> {
   private static final Logger log = LoggerFactory.getLogger(DynamicRateTrainer.class);
 
   public double alpha = 2.;
   public double beta= 3.;
-  public double endRate = 1e-9;
-  public double startRate = 0.1;
-  private long etaSec = Long.MAX_VALUE;
-  private final RateTrainingComponent inner;
-  private double maxRate = 10000;
-  private double minRate = 0;
+  public double end = 1e-9;
+  public double start = 0.1;
+  private double max = 10000;
   private boolean verbose = false;
 
   protected DynamicRateTrainer() {
-    super();
-    this.inner = new GradientDescentTrainer();
+    this(new GradientDescentTrainer());
   }
 
   public DynamicRateTrainer(final RateTrainingComponent inner) {
-    super();
-    this.inner = inner;
+    super(inner);
   }
 
-  @Override
-  public Tensor[][] getTrainingData() {
-    return this.inner.getTrainingData();
-  }
-
-  @Override
-  public double getError() {
-    return this.inner.getError();
-  }
-
-  public long getEtaMs() {
-    return this.etaSec;
-  }
-
-  public double getMaxRate() {
-    return this.maxRate;
-  }
-
-  public double getMinRate() {
-    return this.minRate;
-  }
-
-  @Override
-  public DAGNetwork getNet() {
-    return this.inner.getNet();
-  }
-
-  public boolean isVerbose() {
-    return this.verbose;
-  }
-
-  @Override
-  public void reset() {
-    this.inner.reset();
-  }
-
-  @Override
-  public TrainingComponent setData(final Tensor[][] data) {
-    return this.inner.setData(data);
-  }
-
-  public TrainingComponent setEtaEnd(final long cnt, final java.util.concurrent.TimeUnit units) {
-    this.etaSec = units.toSeconds(cnt);
-    return this;
+  public double getMax() {
+    return this.max;
   }
 
   public TrainingComponent setMaxRate(final double maxRate) {
-    this.maxRate = maxRate;
-    return this;
-  }
-
-  public TrainingComponent setMinRate(final double minRate) {
-    this.minRate = minRate;
+    this.max = maxRate;
     return this;
   }
 
@@ -93,9 +38,9 @@ public class DynamicRateTrainer implements TrainingComponent {
   @Override
   public TrainingStep step(final TrainingContext trainingContext) {
     double prevError = getError();
-    double rate = startRate;
+    double x = start;
     while (!Double.isFinite(this.inner.getError()) || this.inner.getError() > trainingContext.terminalErr) {
-      this.inner.setRate(rate);
+      this.inner.setRate(toRate(x));
       final TrainingStep step = this.inner.step(trainingContext);
       if (!Double.isFinite(prevError)) {
         prevError = step.getStartError();
@@ -110,20 +55,20 @@ public class DynamicRateTrainer implements TrainingComponent {
         }
       }
       if (step.getStartError() < step.testError) {
-        rate /= Math.pow(alpha, beta);
+        x /= Math.pow(alpha, beta);
       } else {
-        if (rate > this.maxRate) {
+        if (x > this.max) {
           if (isVerbose()) {
-            log.debug(String.format("rate overflow: %s", rate));
+            log.debug(String.format("rate overflow: %s", x));
             // break;
           }
         } else {
-          rate *= alpha;
+          x *= alpha;
         }
       }
-      if (rate < endRate) {
+      if (x < end) {
         if (isVerbose()) {
-          log.debug(String.format("TERMINAL rate underflow: %s", rate));
+          log.debug(String.format("TERMINAL rate underflow: %s", x));
         }
         break;
       }
@@ -137,5 +82,9 @@ public class DynamicRateTrainer implements TrainingComponent {
     }
     final double endError = getError();
     return new TrainingStep(prevError, endError, true);
+  }
+
+  private double toRate(double x) {
+    return x*x;
   }
 }

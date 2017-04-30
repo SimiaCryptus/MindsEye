@@ -61,10 +61,10 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     return buildExeCtx(a);
   }
 
-  public EvaluationContext buildExeCtx(final NNResult... input) {
+  public EvaluationContext buildExeCtx(final NNResult... inputs) {
     final EvaluationContext evaluationContext = new EvaluationContext();
-    for (int i = 0; i < input.length; i++) {
-      evaluationContext.cache.put(this.inputHandles.get(i), input[i]);
+    for (int i = 0; i < inputs.length; i++) {
+      evaluationContext.cache.put(this.inputHandles.get(i), inputs[i]);
     }
     return evaluationContext;
   }

@@ -84,11 +84,6 @@ public class Tester {
     return this;
   }
 
-  public Tester setMinDynamicRate(final double d) {
-    getDynamicRateTrainer().setMinRate(d);
-    return this;
-  }
-
   public Tester setParallel(final boolean parallel) {
     this.parallel = parallel;
     return this;

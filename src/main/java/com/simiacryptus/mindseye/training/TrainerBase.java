@@ -30,28 +30,36 @@ public abstract class TrainerBase implements TrainingComponent {
     public synchronized double getError() {
         double error = this.error;
         if (Double.isNaN(error))
-            return validate(new TrainingContext(), selectTrainingData()).rms;
+            return summarize(new TrainingContext(), selectTrainingData()).rms;
         return error;
     }
 
-    protected NNResult eval(final TrainingContext trainingContext, final Tensor[][] trainingData, final DAGNode primaryNode) {
-        final EvaluationContext collect = createBatchExeContext(trainingContext, trainingData);
+    protected NNResult eval(final TrainingContext trainingContext, final Tensor[][] data, final DAGNode primaryNode) {
+        assert 0 < data.length;
+        final EvaluationContext collect = createBatchExeContext(trainingContext, data);
         return primaryNode.get(collect);
     }
 
-    protected EvaluationContext createBatchExeContext(final TrainingContext trainingContext, final Tensor[][] trainingData) {
-        final DAGNetwork net = getNet();
-        trainingContext.evaluations.increment();
-        NNResult[] constNNResult = IntStream.range(0, trainingData[0].length).mapToObj(j->{
-            Tensor[] array = IntStream.range(0, trainingData.length).mapToObj(i->trainingData[i][j]).toArray(i->new Tensor[i]);
-            return new NNLayer.ConstNNResult(array);
-        }).toArray(x->new NNResult[x]);
-        return net.buildExeCtx(constNNResult);
+    protected NNResult eval(TrainingContext trainingContext, Tensor[][] data) {
+        return eval(trainingContext, data, getPrimaryNode());
     }
 
-    protected ValidationResults validate(final TrainingContext trainingContext, final Tensor[][] validationSet) {
-        assert 0 < validationSet.length;
-        final NNResult eval = eval(trainingContext, validationSet, getPrimaryNode());
+    protected EvaluationContext createBatchExeContext(final TrainingContext trainingContext, final Tensor[][] batchData) {
+        final DAGNetwork net = getNet();
+        trainingContext.evaluations.increment();
+        NNResult[] inputs = IntStream.range(0, batchData[0].length).mapToObj(inputIndex->{
+            Tensor[] inputBatch = IntStream.range(0, batchData.length).mapToObj(trainingExampleId->
+                    batchData[trainingExampleId][inputIndex]).toArray(i->new Tensor[i]);
+            return new NNLayer.ConstNNResult(inputBatch);
+        }).toArray(x->new NNResult[x]);
+        return net.buildExeCtx(inputs);
+    }
+
+    protected ValidationResults summarize(final TrainingContext trainingContext, final Tensor[][] data) {
+        return summarize(eval(trainingContext, data));
+    }
+
+    protected ValidationResults summarize(NNResult eval) {
         final List<Tensor> evalData = java.util.Arrays.asList(eval.data);
         assert 0 < evalData.size();
         final double meanSum = evalData.stream().parallel().mapToDouble((Tensor x) -> x.sum()).average().getAsDouble();

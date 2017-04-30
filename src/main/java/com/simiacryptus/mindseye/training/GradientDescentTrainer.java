@@ -12,7 +12,7 @@ import java.util.List;
 
 public class GradientDescentTrainer extends StochasticTrainer implements RateTrainingComponent {
 
-  private abstract static class RevertableStep {
+  private static class RevertableStep {
     public double finalError;
     public double prevError;
 
@@ -21,8 +21,6 @@ public class GradientDescentTrainer extends StochasticTrainer implements RateTra
       this.prevError = prevError;
       this.finalError = finalError;
     }
-
-    public abstract void revert();
 
   }
 
@@ -34,44 +32,30 @@ public class GradientDescentTrainer extends StochasticTrainer implements RateTra
   public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
     final long startMs = System.currentTimeMillis();
     final Tensor[][] data = selectTrainingData();
-    RevertableStep stepResult;
     if (data.length == 0) {
-      stepResult = new RevertableStep(Double.NaN, Double.NaN) {
-        @Override
-        public void revert() {
-        }
-      };
-    } else {
-      final double prevError = validate(trainingContext, data).rms;
-      final EvaluationContext contexts = createBatchExeContext(trainingContext, data);
-      final DeltaSet buffer = new DeltaSet();
-      getPrimaryNode().get(contexts).accumulate(buffer);
-      final List<DeltaBuffer> deltas = buffer.scale(-getRate()).vector();
-      deltas.stream().forEach(d -> d.write(this.rate));
-      final double validationError = validate(trainingContext, data).rms;
-      stepResult = new RevertableStep(prevError, validationError) {
-        @Override
-        public void revert() {
-          deltas.stream().forEach(d -> d.write(-GradientDescentTrainer.this.rate));
-          validate(trainingContext, data);
-        }
-      };
+      return new TrainingStep(Double.NaN, Double.NaN, false);
     }
-    if (stepResult.prevError == stepResult.finalError) {
+    final double prevError = summarize(trainingContext, data).rms;
+    final EvaluationContext contexts = createBatchExeContext(trainingContext, data);
+    final DeltaSet buffer = new DeltaSet();
+    getPrimaryNode().get(contexts).accumulate(buffer);
+    buffer.vector().stream().forEach(d -> d.write(-this.rate));
+    final double finalError = summarize(trainingContext, data).rms;
+    if (prevError == finalError) {
       if (this.isVerbose()) {
-        log.debug(String.format("Static: (%s)", stepResult.prevError));
+        log.debug(String.format("Static: (%s)", prevError));
       }
-      setError(stepResult.finalError);
+      setError(finalError);
       trainingContext.gradientSteps.increment();
-      return new TrainingStep(stepResult.prevError, stepResult.finalError, false);
+      return new TrainingStep(prevError, finalError, false);
     } else {
-      setError(stepResult.finalError);
+      setError(finalError);
       trainingContext.gradientSteps.increment();
       if (this.isVerbose()) {
         log.debug(String.format("Step Complete in %.03f  - Error %s with rate %s and %s items - %s", //
-                (System.currentTimeMillis() - startMs) / 1000., stepResult.finalError, getRate(), Math.min(getTrainingSize(), getTrainingData().length), trainingContext));
+                (System.currentTimeMillis() - startMs) / 1000., finalError, getRate(), Math.min(getTrainingSize(), getTrainingData().length), trainingContext));
       }
-      return new TrainingStep(stepResult.prevError, stepResult.finalError, true);
+      return new TrainingStep(prevError, finalError, true);
     }
   }
 
