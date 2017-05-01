@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class IterativeTrainer extends DelegateTrainer<TrainingComponent> {
   private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);
+  private int stepCounter = 0;
 
   protected IterativeTrainer() {
     this(new LineSearchTrainer());
@@ -19,12 +20,11 @@ public class IterativeTrainer extends DelegateTrainer<TrainingComponent> {
   @Override
   public TrainingStep step(final TrainingContext trainingContext) {
     double prevError = getError();
-    int steps = 0;
     while (!Double.isFinite(this.inner.getError()) || this.inner.getError() > trainingContext.terminalErr) {
       long start = System.nanoTime();
       final TrainingStep step = this.inner.step(trainingContext);
       double elapsed = (System.nanoTime() - start) / 1000000000.0;
-      onStep(new StepState(steps++, step.finalError(), elapsed));
+      onStep(new StepState(stepCounter++, step.finalError(), elapsed));
       if (!Double.isFinite(prevError)) {
         prevError = step.getStartError();
       }
