@@ -7,18 +7,25 @@ import com.simiacryptus.mindseye.net.NNResult;
 
 import java.util.UUID;
 
-final class InnerNode extends LazyResult {
+public final class InnerNode extends LazyResult {
+  public final NNLayer<?> nnlayer;
   private DAGNetwork dagNetwork;
   @SuppressWarnings("unused")
   public final String[] createdBy = Util.currentStack();
-  final UUID layer;
+  public final UUID layer;
   private final DAGNode[] inputNodes;
+
+  @Override
+  public DAGNode[] getInputs() {
+    return inputNodes;
+  };
 
   @SafeVarargs
   InnerNode(DAGNetwork dagNetwork, final NNLayer<?> layer, final DAGNode... inputNodes) {
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
     this.layer = layer.getId();
+    this.nnlayer = layer;
     this.inputNodes = inputNodes;
   }
 
@@ -41,6 +48,11 @@ final class InnerNode extends LazyResult {
     json.add("layer", dagNetwork.byId.get(this.layer).getJson());
     if (this.inputNodes.length > 0) json.add("prev0", ((LazyResult) this.inputNodes[0]).toJson());
     return json;
+  }
+
+  @Override
+  public UUID getId() {
+    return this.layer;
   }
 
   @Override

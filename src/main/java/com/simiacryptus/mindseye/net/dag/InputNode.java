@@ -33,6 +33,11 @@ final class InputNode extends LazyResult {
   }
 
   @Override
+  public UUID getId() {
+    return handle;
+  }
+
+  @Override
   public DAGNode add(NNLayer<?> nextHead) {
     return dagNetwork.add(nextHead, InputNode.this).getHead();
   }

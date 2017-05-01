@@ -13,8 +13,8 @@ public final class VerboseWrapper extends NNLayer<VerboseWrapper> {
 
   static final Logger log = LoggerFactory.getLogger(VerboseWrapper.class);
 
-  private final NNLayer<?> inner;
-  private final String label;
+  public final NNLayer<?> inner;
+  public final String label;
 
   public VerboseWrapper(final String label, final NNLayer<?> inner) {
     this.inner = inner;

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph
@@ -25,6 +26,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
   private static final long serialVersionUID = -5683282519002886564L;
 
   final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
+  final java.util.LinkedHashMap<UUID, DAGNode> nodesById = new java.util.LinkedHashMap<>();
   public final List<UUID> inputHandles = new java.util.ArrayList<>(java.util.Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
   private DAGNode head = getInput().get(0);
 
@@ -35,6 +37,13 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
 
   public synchronized DAGNetwork add(final NNLayer<?> nextHead) {
     return add(nextHead, getHead());
+  }
+
+  public List<DAGNode> getNodes() {
+    return Stream.concat(
+            nodesById.values().stream(),
+            getInput().stream()
+    ).collect(Collectors.toList());
   }
 
   @SafeVarargs
@@ -48,6 +57,7 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     }
     assert null != getInput();
     final InnerNode node = new InnerNode(this, nextHead, head);
+    nodesById.put(nextHead.getId(), node);
     setHead(node);
     return this;
   }

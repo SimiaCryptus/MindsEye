@@ -1,9 +1,9 @@
 package com.simiacryptus.mindseye.training;
 
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 
 public class IterativeTrainer extends DelegateTrainer<TrainingComponent> {
   private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);
@@ -19,8 +19,12 @@ public class IterativeTrainer extends DelegateTrainer<TrainingComponent> {
   @Override
   public TrainingStep step(final TrainingContext trainingContext) {
     double prevError = getError();
+    int steps = 0;
     while (!Double.isFinite(this.inner.getError()) || this.inner.getError() > trainingContext.terminalErr) {
+      long start = System.nanoTime();
       final TrainingStep step = this.inner.step(trainingContext);
+      double elapsed = (System.nanoTime() - start) / 1000000000.0;
+      onStep(new StepState(steps++, step.finalError(), elapsed));
       if (!Double.isFinite(prevError)) {
         prevError = step.getStartError();
       }
@@ -43,5 +47,35 @@ public class IterativeTrainer extends DelegateTrainer<TrainingComponent> {
     }
     final double endError = getError();
     return new TrainingStep(prevError, endError, true);
+  }
+
+  public final ArrayList<StepState> history = new ArrayList<>();
+
+  protected void onStep(StepState stepState) {
+    history.add(stepState);
+  }
+
+  public static class StepState {
+    private final int iteration;
+    private final double fitness;
+    private final double evaluationTime;
+
+    private StepState(int evaluations, double fitness, double elapsed) {
+      iteration = evaluations;
+      this.fitness = fitness;
+      evaluationTime = elapsed;
+    }
+
+    public int getIteration() {
+      return iteration;
+    }
+
+    public double getFitness() {
+      return fitness;
+    }
+
+    public double getEvaluationTime() {
+      return evaluationTime;
+    }
   }
 }
