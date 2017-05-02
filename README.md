@@ -1,25 +1,45 @@
-# mindseye
+# MindsEye - Java 8 Neural Networks
 
-An experimentation project dealing with neural networks and backpropigation techniques with the eventual goal of focusing on image processing tasks such as classification, autoencoders, and convolutional neural nets.
+This project was disigned as a fully-featured neural network library developed using Java 8. Fast numeric calculations are performed using the JBLAS native library and Aparapi OpenCL kernels.
 
-[Inspired by the recent work at Google.](http://googleresearch.blogspot.com/2015/06/inceptionism-going-deeper-into-neural.html)
+**Project Website**
+https://simiacryptus.github.io/MindsEye/
 
-## Background
+**JavaDoc**
+https://simiacryptus.github.io/MindsEye/apidocs/index.html
 
-Comming soon. (https://en.wikipedia.org/wiki/Backpropagation)
+**Maven**
+http://mvnrepository.com/artifact/com.simiacryptus/mindseye
 
-## How To Run
-
-This project is a standard maven project with minimal dependencies & complexity. Currently the only entry points are junit tests, with some of the stable ones being:
-
-1. [NetworkElementUnitTests](https://github.com/acharneski/mindseye/blob/master/src/test/java/com/simiacryptus/mindseye/test/NetworkElementUnitTests.java) - This demonstrates very basic "networks" and learning tasks that are intended to test one aspect of one component at a time.
-2. [SimpleNetworkTests](https://github.com/acharneski/mindseye/blob/master/src/test/java/com/simiacryptus/mindseye/test/SimpleNetworkTests.java) - Very simple problems, such as boolean AND/XOR logic emulators, being solved with simple networks.
-
-Additionally, I have prepared some code to ingest some training data sets for eventual use in r&d:
-
-1. [MNIST](https://github.com/acharneski/mindseye/blob/master/src/test/java/com/simiacryptus/mindseye/data/TestMNIST.java) - Handwritten numbers sampled as 26x26 images
-2. [CIFAR](https://github.com/acharneski/mindseye/blob/master/src/test/java/com/simiacryptus/mindseye/data/TestCIFAR.java) - Image categorization based on small thumbnail-type images
+**Blog Articles** 
+1. http://blog.simiacryptus.com/2015/10/re-anatomy-of-my-pet-brain.html 
+2. http://blog.simiacryptus.com/2015/07/fun-with-deconvolutions-and.html
 
 
-
-
+## Basic Use Cases
+ 
+ Several major uses cases are illustrated by a library of scala notebooks:
+ 
+ 1. [Simple 2D Classification](https://github.com/acharneski/ImageLabs/blob/master/reports/MindsEyeDemo/2d_simple.md) - Simple regression on 2 classes XY points in various simple patterns
+ 1. [MNIST Logistic Regression](https://github.com/acharneski/ImageLabs/blob/master/reports/MindsEyeDemo/mnist_simple.md) - A very simple network is trained on the MNIST handwritten digit dataset
+ 1. [Image Deblurring](https://github.com/acharneski/ImageLabs/blob/master/reports/MindsEyeDemo/deconvolution.md) - A nonlinear convolution filter is inverted when we use the trainging algorithm to reconstruct an image.
+ 
+ ## Features
+ 
+ **Network Components**
+1. *Activation Layers* – Sigmoid, Softmax, etc – Classical, stateless differentiable functions used to introduce nonlinear effects in neural networks. For layers like softmax that are not simple univariate functions, it is important to avoid nested loops and N^2 computational complexity.
+1. *Basic* – Bias, Synapse Layers – Your basic state classes, performing vector addition and matrix multiplication.
+1. *Loss Functions* – RMS and Entropy – These layers compare euclidean or probabilistic results with expected values and produce a differentiable error function that can then be optimized to achive supervised learning.
+1. *Media* – Convolutional Neural Networks – These components, such as the ConvolutionalSynapseLayer and MaxPoolingLayer, are designed to work on 2d image data in ways that are position-independent and/or neighborhood-local.
+1. *Meta* – These components enforce constraints on global behavior of the network across training samples. This differs greatly from other components that are designed to work identically whether they process the dataset one-at-a-time or in batch. A good example of this type of component is the sparsity constraint component.
+1. *Reducers* – Avg, Sum, Max, etc – Like activation layers, these are simple stateless functions, but they usually serve more of a structural than a functional purpose.
+1. *Utils* – A variety of useful methods that are more programmatic than mathematical in nature.
+    1. Verbose Logging – This component wraps a layer to provide verbose logging. Similar wrappers would be a good way to gather other diagnostics and similar cross-cutting concerns.
+    1. Weight Extraction – Many of these components are stateful and contain weight vectors that we may want to normalize via an adjustment to our fitness function. This component allows the state of a component to be exposed directly to the network.
+    1. Wrapper Layer – This provides a stub wrapper so that the inner implementation can be replaced as desired. This is useful when developing networks whose layout changes over time.
+ 
+ **Training Algorithms**
+ 1. Gradient Descent
+ 1. Dynamic Rate GD
+ 1. Iterative Line Search
+ 1. L-BFGS
