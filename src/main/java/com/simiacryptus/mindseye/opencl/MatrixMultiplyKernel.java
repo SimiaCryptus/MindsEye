@@ -16,8 +16,7 @@ public final class MatrixMultiplyKernel extends com.aparapi.Kernel {
     @Override
     public MatrixMultiplyKernel create() {
       final MatrixMultiplyKernel kernel = new MatrixMultiplyKernel();
-      OpenCL.init(kernel);
-      kernel.setExplicit(true);
+        kernel.setExplicit(true);
       return kernel;
     }
   };

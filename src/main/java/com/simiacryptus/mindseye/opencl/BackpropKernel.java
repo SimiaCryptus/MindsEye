@@ -18,8 +18,7 @@ public final class BackpropKernel extends com.aparapi.Kernel {
     @Override
     public BackpropKernel create() {
       final BackpropKernel backpropTask = new BackpropKernel();
-      OpenCL.init(backpropTask);
-      backpropTask.setExplicit(true);
+        backpropTask.setExplicit(true);
       return backpropTask;
     }
   };

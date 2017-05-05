@@ -29,7 +29,7 @@ public class IterativeTrainer extends DelegateTrainer<TrainingComponent> {
         prevError = step.getStartError();
       }
       if (trainingContext.timeout < System.currentTimeMillis()) {
-        log.debug(String.format("TIMEOUT; current err: %s", step));
+        log.debug(String.format("TIMEOUT %s; current err: %s", trainingContext.timeout, step));
         break;
       }
       if (step.finalError() <= trainingContext.terminalErr) {

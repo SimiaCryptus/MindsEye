@@ -13,8 +13,7 @@ public final class GradientKernel extends com.aparapi.Kernel {
     @Override
     public GradientKernel create() {
       final GradientKernel kernelTask = new GradientKernel();
-      OpenCL.init(kernelTask);
-      kernelTask.setExplicit(true);
+        kernelTask.setExplicit(true);
       return kernelTask;
     }
   };

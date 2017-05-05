@@ -1,6 +1,6 @@
 # MindsEye - Java 8 Neural Networks
 
-This project was disigned as a fully-featured neural network library developed using Java 8. Fast numeric calculations are performed using the JBLAS native library and Aparapi OpenCL kernels.
+This project was designed as a fully-featured neural network library developed using Java 8. Fast numeric calculations are performed using the JBLAS native library and Aparapi OpenCL kernels.
 
 **Project Website**
 https://simiacryptus.github.io/MindsEye/
@@ -27,15 +27,15 @@ http://mvnrepository.com/artifact/com.simiacryptus/mindseye
  ## Features
  
  **Network Components**
-1. *Activation Layers* – Sigmoid, Softmax, etc – Classical, stateless differentiable functions used to introduce nonlinear effects in neural networks. For layers like softmax that are not simple univariate functions, it is important to avoid nested loops and N^2 computational complexity.
+1. *Activation Layers* – Sigmoid, Softmax, etc – Classical, stateless differentiable functions used to introduce nonlinear effects in neural networks.
 1. *Basic* – Bias, Synapse Layers – Your basic state classes, performing vector addition and matrix multiplication.
 1. *Loss Functions* – RMS and Entropy – These layers compare euclidean or probabilistic results with expected values and produce a differentiable error function that can then be optimized to achive supervised learning.
 1. *Media* – Convolutional Neural Networks – These components, such as the ConvolutionalSynapseLayer and MaxPoolingLayer, are designed to work on 2d image data in ways that are position-independent and/or neighborhood-local.
-1. *Meta* – These components enforce constraints on global behavior of the network across training samples. This differs greatly from other components that are designed to work identically whether they process the dataset one-at-a-time or in batch. A good example of this type of component is the sparsity constraint component.
+1. *Meta* – These components enforce constraints on global behavior of the network across training samples. This differs greatly from other components that are designed to work identically whether they process the dataset one-at-a-time or in batch. For example, one component enforces sparsity constraint component.
 1. *Reducers* – Avg, Sum, Max, etc – Like activation layers, these are simple stateless functions, but they usually serve more of a structural than a functional purpose.
 1. *Utils* – A variety of useful methods that are more programmatic than mathematical in nature.
-    1. Verbose Logging – This component wraps a layer to provide verbose logging. Similar wrappers would be a good way to gather other diagnostics and similar cross-cutting concerns.
-    1. Weight Extraction – Many of these components are stateful and contain weight vectors that we may want to normalize via an adjustment to our fitness function. This component allows the state of a component to be exposed directly to the network.
+    1. Verbose Logging – This component wraps a layer to provide verbose logging.
+    1. Weight Extraction – Many of these components are stateful and contain weight vectors that we may want to normalize via an adjustment to our fitness function.
     1. Wrapper Layer – This provides a stub wrapper so that the inner implementation can be replaced as desired. This is useful when developing networks whose layout changes over time.
  
  **Training Algorithms**

@@ -26,6 +26,7 @@ public class LineSearchTrainer extends StochasticTrainer {
   private double linesearch_c2 = 0.9;
   protected final List<ExecutionRecord> history = new ArrayList<>();
   private int memorySize = 10;
+  private double minAlpha = 1e-20;
 
   public static class ExecutionRecord {
     final List<double[]> deltaSet;
@@ -43,26 +44,45 @@ public class LineSearchTrainer extends StochasticTrainer {
   @Override
   public TrainingStep step(final TrainingContext trainingContext) throws TerminationCondition {
     //final long startMs = System.currentTimeMillis();
-    final Tensor[][] data = selectTrainingData();
-    if (data.length == 0) {
-      return new TrainingStep(Double.NaN, Double.NaN, false);
-    }
-
-    assert 0 < data.length;
-    NNResult evalResult = getPrimaryNode().get(createBatchExeContext(trainingContext, data));
-    history.add(new ExecutionRecord(evalResult));
-    List<DeltaBuffer> startGradient = getDelta(evalResult);
-    final List<DeltaBuffer> direction = getDirection(startGradient);
-    if(history.size() > memorySize) history.remove(0);
-
-    // See http://cs.nyu.edu/overton/mstheses/skajaa/msthesis.pdf page 14
-    double mu = 0;
-    double nu = Double.POSITIVE_INFINITY;
-    double startLineDeriv = dot(direction, startGradient); // theta'(0)
-    double startValue = summarize(evalResult).rms; // theta(0)
-    if(!isAlphaValid()) alpha = 1.0;
+    double mu;
+    double startValue = Double.NaN;
     double thisValue = Double.NaN;
-    while(isAlphaValid() && mu < nu) {
+    double nu;
+    List<DeltaBuffer> direction;
+    Tensor[][] data;
+    double startLineDeriv;
+    do {
+      updateHash();
+      data = selectTrainingData();
+      if (data.length == 0) {
+        return new TrainingStep(Double.NaN, Double.NaN, false);
+      }
+      assert 0 < data.length;
+      NNResult evalResult = getPrimaryNode().get(createBatchExeContext(trainingContext, data));
+      history.add(new ExecutionRecord(evalResult));
+      List<DeltaBuffer> startGradient = getDelta(evalResult);
+      direction = getDirection(startGradient);
+      if(history.size() > memorySize) history.remove(0);
+      // See http://cs.nyu.edu/overton/mstheses/skajaa/msthesis.pdf page 14
+      mu = 0;
+      nu = Double.POSITIVE_INFINITY;
+      startLineDeriv = dot(direction, startGradient); // theta'(0)
+      if(!Double.isFinite(startLineDeriv) || 0 <= startLineDeriv) {
+        System.err.println(String.format("CONTIUNUED due to startDeriv=%s", startLineDeriv));
+        history.remove(0);
+        continue;
+      }
+      startValue = summarize(evalResult).rms; // theta(0)
+      if(!Double.isFinite(startValue)) {
+        System.err.println(String.format("CONTIUNUED due to startValue=%s", startValue));
+        history.remove(0);
+        continue;
+      }
+      if(!isAlphaValid()) alpha = 1.0;
+      thisValue = Double.NaN;
+    } while(false);
+
+    while(isAlphaValid() && mu < nu && Math.abs(alpha) > minAlpha) {
       double _alpha = alpha;
       direction.stream().forEach(d -> d.write(_alpha));
       NNResult validationResult = eval(trainingContext, data);
@@ -71,14 +91,14 @@ public class LineSearchTrainer extends StochasticTrainer {
       double thisLineDeriv = dot(direction, newGradient); // theta'(alpha)
       if(thisLineDeriv < linesearch_c2 * startLineDeriv) {
         // Weak Wolfe condition fails
-        if(isVerbose()) System.err.println(String.format("WOLFE: th(0)=%5f;th'(0)=%5f;\t%s\tth(alpha)=%f <= %f;th'(alpha)=%f < %f", startValue, startLineDeriv, _alpha, thisValue, startValue + alpha * linesearch_c1 * startLineDeriv, thisLineDeriv, linesearch_c2 * startLineDeriv));
+        if(isVerbose()) System.err.println(String.format("WOLFE: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f <= %f;th'(alpha)=%f < %f", startValue, startLineDeriv, mu, _alpha, nu, thisValue, startValue + alpha * linesearch_c1 * startLineDeriv, thisLineDeriv, linesearch_c2 * startLineDeriv));
         mu = alpha;
       } else if(thisValue > startValue + alpha * linesearch_c1 * startLineDeriv) {
         // Armijo condition fails
-        if(isVerbose()) System.err.println(String.format("ARMIJO: th(0)=%5f;th'(0)=%5f;\t%s\tth(alpha)=%f > %f;th'(alpha)=%f >= %f", startValue, startLineDeriv, _alpha, thisValue, startValue + alpha * linesearch_c1 * startLineDeriv, thisLineDeriv, linesearch_c2 * startLineDeriv));
+        if(isVerbose()) System.err.println(String.format("ARMIJO: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f > %f;th'(alpha)=%f >= %f", startValue, startLineDeriv, mu, _alpha, nu, thisValue, startValue + alpha * linesearch_c1 * startLineDeriv, thisLineDeriv, linesearch_c2 * startLineDeriv));
         nu = alpha;
       } else{
-        if(isVerbose()) System.err.println(String.format("END: th(0)=%5f;th'(0)=%5f;\t%s\tth(alpha)=%5f;th'(alpha)=%5f", startValue, startLineDeriv, _alpha, thisValue, thisLineDeriv));
+        if(isVerbose()) System.err.println(String.format("END: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%5f;th'(alpha)=%5f", startValue, startLineDeriv, mu, _alpha, nu, thisValue, thisLineDeriv));
         break;
       }
       direction.stream().forEach(d -> d.write(-_alpha));

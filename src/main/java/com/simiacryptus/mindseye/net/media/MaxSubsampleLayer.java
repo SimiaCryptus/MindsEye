@@ -65,25 +65,28 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
    */
   private static final long serialVersionUID = -4486788592198117530L;
 
-  private static List<Tuple2<Coordinate, List<Coordinate>>> calcRegions(final CalcRegionsParameter parameterObject) {
-    final Tensor input = new Tensor(parameterObject.inputDims);
-    final int[] newDims = IntStream.range(0, parameterObject.inputDims.length).map(i -> {
-      assert 0 == parameterObject.inputDims[i] % parameterObject.kernelDims[i];
-      return parameterObject.inputDims[i] / parameterObject.kernelDims[i];
+  private static List<Tuple2<Coordinate, List<Coordinate>>> calcRegions(final CalcRegionsParameter p) {
+    final Tensor input = new Tensor(p.inputDims);
+    final int[] newDims = IntStream.range(0, p.inputDims.length).map(i -> {
+      //assert 0 == p.inputDims[i] % p.kernelDims[i];
+      return (int) Math.ceil(p.inputDims[i] * 1.0 / p.kernelDims[i]);
     }).toArray();
     final Tensor output = new Tensor(newDims);
 
-    final List<Tuple2<Coordinate, List<Coordinate>>> regions = output.coordStream(false).map(o -> {
-      final List<Coordinate> inCoords = new Tensor(parameterObject.kernelDims).coordStream(false).map(kernelCoord -> {
-        final int[] r = new int[o.coords.length];
-        for (int i1 = 0; i1 < o.coords.length; i1++) {
-          r[i1] = o.coords[i1] * parameterObject.kernelDims[i1] + kernelCoord.coords[i1];
+    return output.coordStream(false).map(o -> {
+      final List<Coordinate> inCoords = new Tensor(p.kernelDims).coordStream(false).map(kernelCoord -> {
+        final int[] result = new int[o.coords.length];
+        for (int index = 0; index < o.coords.length; index++) {
+          int outputCoordinate = o.coords[index];
+          int kernelSize = p.kernelDims[index];
+          int baseCoordinate = Math.min(outputCoordinate * kernelSize,p.inputDims[index] - kernelSize);
+          int kernelCoordinate = kernelCoord.coords[index];
+          result[index] = baseCoordinate + kernelCoordinate;
         }
-        return new Coordinate(input.index(r), r);
+        return new Coordinate(input.index(result), result);
       }).collect(java.util.stream.Collectors.toList());
       return new Tuple2<>(o, inCoords);
     }).collect(java.util.stream.Collectors.toList());
-    return regions;
   }
 
   private int[] kernelDims;
@@ -108,8 +111,8 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
     Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex->{
       final Tensor input = inObj[0].data[dataIndex];
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
-        assert 0 == inputDims[i] % this.kernelDims[i];
-        return inputDims[i] / this.kernelDims[i];
+        //assert 0 == inputDims[i] % this.kernelDims[i];
+        return (int) Math.ceil(inputDims[i] * 1.0 / this.kernelDims[i]);
       }).toArray();
       final Tensor output = new Tensor(newDims);
       final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();

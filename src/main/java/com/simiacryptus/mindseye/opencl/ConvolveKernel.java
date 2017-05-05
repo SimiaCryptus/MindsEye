@@ -18,7 +18,6 @@ public final class ConvolveKernel extends com.aparapi.Kernel {
     @Override
     public ConvolveKernel create() {
       final ConvolveKernel convolveTask = new ConvolveKernel();
-      OpenCL.init(convolveTask);
       convolveTask.setExplicit(true);
       return convolveTask;
     }

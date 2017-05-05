@@ -3,8 +3,10 @@ package com.simiacryptus.mindseye.net.media;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,6 +205,13 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
 
   public ConvolutionSynapseLayer setParallel(final boolean parallel) {
     this.paralell = parallel;
+    return this;
+  }
+
+  public ConvolutionSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+    this.kernel.coordStream().parallel().forEach(c->{
+      this.kernel.set(c, f.applyAsDouble(c));
+    });
     return this;
   }
 

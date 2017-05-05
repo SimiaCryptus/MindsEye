@@ -101,7 +101,7 @@ public abstract class TrainerBase implements TrainingComponent {
       this.primaryNode = primaryNode;
     }
 
-    public TrainingComponent setVerbose(final boolean verbose) {
+    public final TrainingComponent setVerbose(final boolean verbose) {
       if (verbose) {
         this.verbose = true;
       }
