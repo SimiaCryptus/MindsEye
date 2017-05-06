@@ -38,9 +38,7 @@ public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
       final CalcRegionsParameter other = (CalcRegionsParameter) obj;
       if (!Arrays.equals(this.inputDims, other.inputDims))
         return false;
-      if (!Arrays.equals(this.kernelDims, other.kernelDims))
-        return false;
-      return true;
+        return Arrays.equals(this.kernelDims, other.kernelDims);
     }
 
     @Override

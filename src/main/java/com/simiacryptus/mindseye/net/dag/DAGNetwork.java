@@ -112,7 +112,7 @@ public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode 
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
       JsonArray nodes = new JsonArray();
-      nodesById.forEach((k,v)->nodes.add(((LazyResult) v).toJson()));
+      nodesById.forEach((k,v)->nodes.add(v.toJson()));
       json.add("nodes", nodes);
     return json;
   }

@@ -7,13 +7,11 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.training.TrainingContext;
-
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DeltaBuffer {
 
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(TrainingContext.class);
+  private static final Logger log = LoggerFactory.getLogger(DeltaBuffer.class);
 
   public final double[] delta;
   public final NNLayer layer;

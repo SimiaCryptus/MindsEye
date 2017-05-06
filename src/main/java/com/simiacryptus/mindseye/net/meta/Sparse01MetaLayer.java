@@ -33,7 +33,7 @@ public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
     Tensor divergenceArray = avgActivationArray.map((avgActivation, c)->{
       return sparsity * Math.log(sparsity / avgActivation) + (1-sparsity) * Math.log((1-sparsity)/(1-avgActivation));
     });
-    return new NNResult(new Tensor[]{divergenceArray}) {
+    return new NNResult(divergenceArray) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {

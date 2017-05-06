@@ -50,9 +50,7 @@ public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
         return false;
       if (!Arrays.equals(this.kernel, other.kernel))
         return false;
-      if (!Arrays.equals(this.output, other.output))
-        return false;
-      return true;
+        return Arrays.equals(this.output, other.output);
     }
 
     @Override

@@ -19,9 +19,9 @@ public final class InnerNode extends LazyResult {
   @Override
   public DAGNode[] getInputs() {
     return inputNodes;
-  };
+  }
 
-  @SafeVarargs
+    @SafeVarargs
   InnerNode(DAGNetwork dagNetwork, final NNLayer<?> id, final DAGNode... inputNodes) {
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
@@ -38,7 +38,7 @@ public final class InnerNode extends LazyResult {
       final NNResult output = dagNetwork.byId.get(this.id).eval(in);
       return output;
     } else {
-      final NNResult[] in = java.util.Arrays.stream(this.inputNodes).map(x -> ((LazyResult) x).get(ctx)).toArray(i -> new NNResult[i]);
+      final NNResult[] in = java.util.Arrays.stream(this.inputNodes).map(x -> x.get(ctx)).toArray(i -> new NNResult[i]);
       final NNResult output = dagNetwork.byId.get(this.id).eval(in);
       return output;
     }
@@ -48,7 +48,7 @@ public final class InnerNode extends LazyResult {
   public JsonObject toJson() {
     final JsonObject json = new JsonObject();
     json.add("id", dagNetwork.byId.get(this.id).getJson());
-    if (this.inputNodes.length > 0) json.add("prev0", ((LazyResult) this.inputNodes[0]).toJson());
+    if (this.inputNodes.length > 0) json.add("prev0", this.inputNodes[0].toJson());
     return json;
   }
 

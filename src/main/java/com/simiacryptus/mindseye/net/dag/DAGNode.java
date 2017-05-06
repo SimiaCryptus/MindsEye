@@ -16,8 +16,8 @@ public interface DAGNode {
 
   default DAGNode[] getInputs() {
     return new DAGNode[]{};
-  };
+  }
 
-  JsonObject toJson();
+    JsonObject toJson();
 
 }

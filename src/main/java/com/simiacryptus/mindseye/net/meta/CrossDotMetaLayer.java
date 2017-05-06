@@ -37,7 +37,7 @@ public class CrossDotMetaLayer extends NNLayer<CrossDotMetaLayer> {
         results.set(new int[]{i,j}, v);
       }
     }
-    return new NNResult(new Tensor[]{results}) {
+    return new NNResult(results) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {

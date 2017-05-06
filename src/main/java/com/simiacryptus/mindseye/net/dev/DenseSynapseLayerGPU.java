@@ -119,8 +119,8 @@ public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
     Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel()
         .mapToObj(dataIndex->new Tensor(this.outputDims)).toArray(i->new Tensor[i]);
     double[][] inputAD = java.util.Arrays.stream(inputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);
-    double[][] outputAD = java.util.Arrays.stream(outputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);;
-    MatrixMultiplyKernel.multiply(inputAD, this.getWeights().getData(), outputAD);
+    double[][] outputAD = java.util.Arrays.stream(outputA).parallel().map(x->x.getData()).toArray(ii->new double[ii][]);
+      MatrixMultiplyKernel.multiply(inputAD, this.getWeights().getData(), outputAD);
     return new Result(outputA, inObj[0]);
   }
 

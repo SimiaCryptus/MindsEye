@@ -30,7 +30,7 @@ public class AvgMetaLayer extends NNLayer<AvgMetaLayer> {
       java.util.stream.IntStream.range(0, itemCnt)
         .mapToDouble(dataIndex->input.data[dataIndex].get(c))
         .average().getAsDouble());
-    return new NNResult(new Tensor[]{avgActivationArray}) {
+    return new NNResult(avgActivationArray) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {
