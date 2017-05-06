@@ -9,6 +9,7 @@ import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -18,7 +19,7 @@ import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
@@ -40,11 +41,11 @@ public class MNISTClassificationTest extends ClassificationTestBase {
   public NNLayer<DAGNetwork> buildNetwork() {
     final int[] inputSize = new int[] { 28, 28, 1 };
     final int[] outSize = new int[] { 10 };
-    DAGNetwork net = new DAGNetwork();
-    net = net.add(new DenseSynapseLayerJBLAS(Tensor.dim(inputSize), outSize).setWeights(()->Util.R.get().nextGaussian()*0.));
-    net = net.add(new BiasLayer(outSize));
+    DAGNetwork net = new PipelineNetwork();
+    net.add(new DenseSynapseLayerJBLAS(inputSize, outSize).setWeights(()->Util.R.get().nextGaussian()*0.));
+    net.add(new BiasLayer(outSize));
     // net = net.add(new MinMaxFilterLayer());
-    net = net.add(new SoftmaxActivationLayer());
+    net.add(new SoftmaxActivationLayer());
     return net;
   }
 

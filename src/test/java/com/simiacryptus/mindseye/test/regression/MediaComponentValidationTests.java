@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simiacryptus.util.Util;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
@@ -76,7 +76,9 @@ public class MediaComponentValidationTests {
   public void testMaxEntLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextDouble());
-    final NNLayer<?> component = new DAGNetwork().add(new L1NormalizationLayer()).add(new EntropyLayer());
+    final PipelineNetwork component = new PipelineNetwork();
+    component.add(new L1NormalizationLayer());
+    component.add(new EntropyLayer());
     test(component, outputPrototype, inputPrototype1);
   }
 

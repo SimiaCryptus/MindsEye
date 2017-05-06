@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.test.regression;
 
+import com.simiacryptus.mindseye.net.dev.ToeplitzSynapseLayerJBLAS;
 import com.simiacryptus.util.lang.KryoUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -176,10 +177,26 @@ public class BasicComponentValidationTests {
   }
 
   @org.junit.Test
+  public void testToeplitzSynapseLayerJBLAS1() throws Throwable {
+    final Tensor inputPrototype = new Tensor(3,3).fill(() -> Util.R.get().nextGaussian());
+    final Tensor outputPrototype = new Tensor(3,3);
+    final NNLayer<?> component = new ToeplitzSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
+  public void testToeplitzSynapseLayerJBLAS2() throws Throwable {
+    final Tensor inputPrototype = new Tensor(3,3).fill(() -> Util.R.get().nextGaussian());
+    final Tensor outputPrototype = new Tensor(3,3,2,3);
+    final NNLayer<?> component = new ToeplitzSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @org.junit.Test
   public void testDenseSynapseLayerJBLAS1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new DenseSynapseLayerJBLAS(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer<?> component = new DenseSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 

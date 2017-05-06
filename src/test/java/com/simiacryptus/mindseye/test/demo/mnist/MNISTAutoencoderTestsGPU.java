@@ -8,6 +8,8 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import com.simiacryptus.lang.Tuple2;
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.SupervisedNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
@@ -19,7 +21,7 @@ import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerGPU;
@@ -61,19 +63,19 @@ public class MNISTAutoencoderTestsGPU {
   }
 
   private DAGNetwork stackedCodecNetwork(List<Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU>> codecs) {
-    DAGNetwork net = new DAGNetwork();
+    DAGNetwork net = new PipelineNetwork();
     for(int i=0;i<codecs.size();i++) {
       Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> t = codecs.get(i);
       DenseSynapseLayerGPU encode = t.getFirst();
-      net = net.add(encode);
-      net = net.add(new BiasLayer(encode.outputDims));
-      net = net.add(new SigmoidActivationLayer());
+      net.add(encode);
+      net.add(new BiasLayer(encode.outputDims));
+      net.add(new SigmoidActivationLayer());
     }
     for(int i=codecs.size()-1;i>=0;i--) {
       Tuple2<DenseSynapseLayerGPU, DenseSynapseLayerGPU> t = codecs.get(i);
       DenseSynapseLayerGPU decode = t.getSecond();
-      net = net.add(decode);
-      net = net.add(new BiasLayer(decode.outputDims));
+      net.add(decode);
+      net.add(new BiasLayer(decode.outputDims));
     }
     return net;
   }
@@ -123,7 +125,7 @@ public class MNISTAutoencoderTestsGPU {
     Tester tester = new Tester();
     tester.setVerbose(true);
     GradientDescentTrainer trainer = tester.getGradientDescentTrainer();
-    DAGNetwork supervisedNetwork = Tester.supervisionNetwork(net, new SqLossLayer());
+    DAGNetwork supervisedNetwork = new SupervisedNetwork(net, new SqLossLayer());
     trainer.setNet(supervisedNetwork);
     trainer.setData(trainingData2);
     if (null != resultHandler) {

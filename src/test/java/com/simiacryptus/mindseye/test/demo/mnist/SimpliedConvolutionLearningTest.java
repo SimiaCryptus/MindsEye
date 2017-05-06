@@ -5,12 +5,13 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
@@ -23,13 +24,13 @@ public class SimpliedConvolutionLearningTest extends MNISTClassificationTest {
 
   @Override
   public NNLayer<DAGNetwork> buildNetwork() {
-    DAGNetwork net = new DAGNetwork();
+    DAGNetwork net = new PipelineNetwork();
     final int n = 2;
     final int m = 28 - n + 1;
-    net = net.add(new ConvolutionSynapseLayer(new int[] { n, n }, 10).addWeights(() -> Util.R.get().nextGaussian() * .001));
-    net = net.add(new SqActivationLayer());
-    net = net.add(new SumSubsampleLayer(new int[] { m, m, 1 }));
-    net = net.add(new SoftmaxActivationLayer());
+    net.add(new ConvolutionSynapseLayer(new int[] { n, n }, 10).addWeights(() -> Util.R.get().nextGaussian() * .001));
+    net.add(new SqActivationLayer());
+    net.add(new SumSubsampleLayer(new int[] { m, m, 1 }));
+    net.add(new SoftmaxActivationLayer());
     return net;
   }
 

@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
@@ -40,11 +40,14 @@ public class BooleanSoftmaxNetworkTests {
     final int[] midSize = new int[] { 4 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 2 };
-    new Tester()
-        .init(samples,
-            new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-                .add(new DenseSynapseLayer(Tensor.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SoftmaxActivationLayer()),
-            new EntropyLossLayer())
+    PipelineNetwork network = new PipelineNetwork();
+    network.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
+    network.add(new BiasLayer(midSize));
+    network.add(new SigmoidActivationLayer());
+    network.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
+    network.add(new BiasLayer(outSize));
+    network.add(new SoftmaxActivationLayer());
+    new Tester().init(samples,network,new EntropyLossLayer())
         .verifyConvergence(0.01, 100);
   }
 

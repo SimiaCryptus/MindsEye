@@ -1,8 +1,8 @@
 package com.simiacryptus.mindseye.training;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 
 public interface TrainingComponent {
 

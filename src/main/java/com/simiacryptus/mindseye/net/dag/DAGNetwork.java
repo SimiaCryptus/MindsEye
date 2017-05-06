@@ -1,9 +1,10 @@
 package com.simiacryptus.mindseye.net.dag;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,25 +19,26 @@ import java.util.stream.Stream;
  *
  * @author Andrew Charneski
  */
-public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
+public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private static final long serialVersionUID = -5683282519002886564L;
 
-  final java.util.LinkedHashMap<UUID, NNLayer<?>> byId = new java.util.LinkedHashMap<>();
-  final java.util.LinkedHashMap<UUID, DAGNode> nodesById = new java.util.LinkedHashMap<>();
-  public final List<UUID> inputHandles = new java.util.ArrayList<>(java.util.Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-  private DAGNode head = getInput().get(0);
+  final LinkedHashMap<UUID, NNLayer<?>> byId = new LinkedHashMap<>();
+  final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
+  public final LinkedHashMap<UUID, InputNode> inputNodes;
+  public final List<UUID> inputHandles;
 
-  LazyResult inputNode = new InputNode(this);
-  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> forwardLinkIndex = new java.util.HashMap<>();
-
-  private final java.util.HashMap<NNLayer<?>, NNLayer<?>> backwardLinkIndex = new java.util.HashMap<>();
-
-  public synchronized DAGNetwork add(final NNLayer<?> nextHead) {
-    return add(nextHead, getHead());
+  public DAGNetwork(int inputs) {
+    inputHandles = new ArrayList<>();
+    inputNodes = new LinkedHashMap<>();
+    for(int i=0;i<inputs;i++) {
+      UUID key = UUID.randomUUID();
+      inputHandles.add(key);
+      inputNodes.put(key, new InputNode(this, key));
+    }
   }
 
   public List<DAGNode> getNodes() {
@@ -46,32 +48,12 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     ).collect(Collectors.toList());
   }
 
-  @SafeVarargs
-  public final DAGNetwork add(final NNLayer<?> nextHead, final DAGNode... head) {
-    this.byId.put(nextHead.getId(), nextHead);
-    if(head.length>0){
-      // XXX: Prev/next linking only tracks first input node
-      final NNLayer<?> prevHead = getLayer(head[0]);
-      this.backwardLinkIndex.put(nextHead, prevHead);
-      this.forwardLinkIndex.put(prevHead, nextHead);
-    }
-    assert null != getInput();
-    final InnerNode node = new InnerNode(this, nextHead, head);
-    nodesById.put(nextHead.getId(), node);
-    setHead(node);
-    return this;
-  }
-
-  public synchronized NNLayer<DAGNetwork> addLossComponent(final NNLayer<?> nextHead) {
-    return add(nextHead, getHead(), getInput().get(1));
-  }
-
-  public final EvaluationContext buildExeCtx(final Tensor... input) {
-    NNResult[] a = Arrays.stream(input).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
-    return buildExeCtx(a);
+  public final EvaluationContext singleExeCtx(final Tensor... input) {
+    return buildExeCtx(NNResult.singleResultArray(input));
   }
 
   public EvaluationContext buildExeCtx(final NNResult... inputs) {
+    assert(inputs.length == inputHandles.size());
     final EvaluationContext evaluationContext = new EvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
       evaluationContext.cache.put(this.inputHandles.get(i), inputs[i]);
@@ -79,9 +61,8 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     return evaluationContext;
   }
 
-  @Override
-  public NNResult eval(final NNResult... input) {
-    return ((LazyResult) getHead()).get(buildExeCtx(input));
+  protected EvaluationContext batchExeContext(final Tensor[][] batchData) {
+    return this.buildExeCtx(NNResult.batchResultArray(batchData));
   }
 
   @Override
@@ -121,37 +102,26 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
 
-  public DAGNode getHead() {
-    return this.head;
-  }
-
-  public NNLayer<?> getHeadLayer() {
-    return getLayer(getHead());
-  }
-
   public List<DAGNode> getInput() {
-    return com.google.common.collect.Lists.transform(this.inputHandles, h -> new InputNode(this, h));
+    ArrayList<DAGNode> list = new ArrayList<>();
+    for(UUID key : inputHandles) list.add(inputNodes.get(key));
+    return list;
   }
 
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
-    json.add("root", ((LazyResult) getHead()).toJson());
-    // for(NNLayer c : getChildren()){
-    // json.add(c.getId(), c.getJson());
-    // }
+      JsonArray nodes = new JsonArray();
+      nodesById.forEach((k,v)->nodes.add(((LazyResult) v).toJson()));
+      json.add("nodes", nodes);
     return json;
   }
 
   public NNLayer<?> getLayer(final DAGNode head) {
     if (head instanceof InnerNode)
-      return DAGNetwork.this.byId.get(((InnerNode) head).layer);
+      return DAGNetwork.this.byId.get(((InnerNode) head).id);
     else
       return null;
-  }
-
-  public void setHead(final DAGNode imageRMS) {
-    this.head = (LazyResult) imageRMS;
   }
 
   @Override
@@ -159,9 +129,46 @@ public class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
     return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
   }
 
+    public abstract DAGNode getHead();
+
+    @Override
+    public NNResult get(EvaluationContext buildExeCtx) {
+        return getHead().get(buildExeCtx);
+    }
+
+    @Override
+    public NNResult eval(final NNResult... input) {
+      return getHead().get(buildExeCtx(input));
+    }
+
+    public NNResult batch(final Tensor[][] data) {
+      return getHead().get(batchExeContext(data));
+    }
+
+  public DAGNode add(final NNLayer<?> nextHead, final DAGNode... head) {
+        this.byId.put(nextHead.getId(), nextHead);
+        assert null != getInput();
+        final InnerNode node = new InnerNode(this, nextHead, head);
+        nodesById.put(nextHead.getId(), node);
+        return node;
+    }
+
+  public DAGNode getInput(int index) {
+    DAGNode input = inputNodes.get(inputHandles.get(index));
+    assert null != input;
+    return input;
+  }
+
   @Override
-  public NNResult get(EvaluationContext buildExeCtx) {
-    return getHead().get(buildExeCtx);
+  public NNLayer<?> getLayer() {
+    return this;
+  }
+
+  @Override
+  public JsonObject toJson() {
+    final JsonObject json = new JsonObject();
+    json.add("head", getHead().toJson());
+    return json;
   }
 
 }

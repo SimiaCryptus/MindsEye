@@ -7,6 +7,7 @@ import java.util.function.BiFunction;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.test.MNIST;
 import org.junit.Test;
@@ -18,7 +19,7 @@ import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.dag.DAGNode;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
@@ -45,7 +46,7 @@ public class MNISTAutoencoderTests2 {
   }
 
   public static class AutoencodingNetwork {
-    DAGNetwork     net;
+    PipelineNetwork net;
     DAGNode        center;
     DAGNode        feedback;
 
@@ -55,20 +56,20 @@ public class MNISTAutoencoderTests2 {
 
     public AutoencodingNetwork(int[] outerSize, int[] innerSize) {
       super();
-      this.net = new DAGNetwork();
+      this.net = new PipelineNetwork();
       List<NNLayer<?>> weightNormalizationList = new ArrayList<>();
-      DenseSynapseLayerJBLAS encode = new DenseSynapseLayerJBLAS(Tensor.dim(outerSize), innerSize);// .setWeights(()->Util.R.get().nextGaussian()*0.1);
+      DenseSynapseLayerJBLAS encode = new DenseSynapseLayerJBLAS(outerSize, innerSize);// .setWeights(()->Util.R.get().nextGaussian()*0.1);
       weightNormalizationList.add(encode);
       {
-        net = net.add(encode);
+        net.add(encode);
         BiasLayer bias = new BiasLayer(encode.outputDims);
         weightNormalizationList.add(bias);
-        net = net.add(bias);
-        net = net.add(new SigmoidActivationLayer().setBalanced(false));
+        net.add(bias);
+        net.add(new SigmoidActivationLayer().setBalanced(false));
       }
       center = net.getHead();
       {
-        DenseSynapseLayerJBLAS decode = new DenseSynapseLayerJBLAS(Tensor.dim(innerSize), outerSize)
+        DenseSynapseLayerJBLAS decode = new DenseSynapseLayerJBLAS(innerSize, outerSize)
             .setWeights((Coordinate c) -> {
               int[] traw = new int[] { c.coords[1], c.coords[0] };
               int tindex = encode.getWeights().index(traw);
@@ -77,26 +78,30 @@ public class MNISTAutoencoderTests2 {
               return foo;
             });
         weightNormalizationList.add(decode);
-        net = net.add(decode);
+        net.add(decode);
         BiasLayer bias = new BiasLayer(decode.outputDims);
         weightNormalizationList.add(bias);
-        net = net.add(bias);
-        // net = net.add(new SigmoidActivationLayer());
+        net.add(bias);
+        // net.add(new SigmoidActivationLayer());
         feedback = net.getHead();
       }
       List<DAGNode> fitnessSet = new ArrayList<>();
-      fitnessSet.add(this.net
-          .add(new SqLossLayer(), this.feedback, this.net.getInput().get(0))
-          .add(new AvgMetaLayer()).getHead());
-      fitnessSet.add(this.net.add(new Sparse01MetaLayer(), this.center)
-          .add(new SumReducerLayer())
-          .add(new LinearActivationLayer().setWeight(.1).freeze()).getHead());
-      fitnessSet.add(this.net.add(new SumInputsLayer(), weightNormalizationList.stream().map(x->net
-          .add(new WeightExtractor(0, x), new DAGNode[] {})
-          .add(new SqActivationLayer())
-          .add(new SumReducerLayer()).getHead()).toArray(i->new DAGNode[i]))
-          .add(new LinearActivationLayer().setWeight(0.001).freeze())
-          .getHead());
+      this.net.add(new SqLossLayer(), this.feedback, this.net.getInput().get(0));
+      this.net.add(new AvgMetaLayer());
+      fitnessSet.add(this.net.getHead());
+      this.net.add(new Sparse01MetaLayer(), this.center);
+      this.net.add(new SumReducerLayer());
+      this.net.add(new LinearActivationLayer().setWeight(.1).freeze());
+      fitnessSet.add(this.net.getHead());
+      DAGNode[] head = weightNormalizationList.stream().map(x -> {
+        net.add(new WeightExtractor(0, x), new DAGNode[]{});
+        net.add(new SqActivationLayer());
+        net.add(new SumReducerLayer());
+        return net.getHead();
+      }).toArray(i -> new DAGNode[i]);
+      this.net.add(new SumInputsLayer(), head);
+      this.net.add(new LinearActivationLayer().setWeight(0.001).freeze());
+      fitnessSet.add(net.getHead());
       this.net.add(new VerboseWrapper("sums", new SumInputsLayer()), fitnessSet.toArray(new DAGNode[] {}));
     }
 
@@ -176,7 +181,7 @@ public class MNISTAutoencoderTests2 {
 
   public List<BufferedImage> evaluateImageList(DAGNetwork n, final Tensor[][] validationData, DAGNode feedback) {
     // final NNLayer<?> mainNetwork = n.getChild(feedback);
-    return java.util.Arrays.stream(validationData).map(x -> feedback.get(n.buildExeCtx(x)).data[0])
+    return java.util.Arrays.stream(validationData).map(x -> feedback.get(n.singleExeCtx(x)).data[0])
         .map(x -> x.toRgbImage()).collect(java.util.stream.Collectors.toList());
   }
 

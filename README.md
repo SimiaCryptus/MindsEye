@@ -34,7 +34,7 @@ http://mvnrepository.com/artifact/com.simiacryptus/mindseye
 1. *Meta* – These components enforce constraints on global behavior of the network across training samples. This differs greatly from other components that are designed to work identically whether they process the dataset one-at-a-time or in batch. For example, one component enforces sparsity constraint component.
 1. *Reducers* – Avg, Sum, Max, etc – Like activation layers, these are simple stateless functions, but they usually serve more of a structural than a functional purpose.
 1. *Utils* – A variety of useful methods that are more programmatic than mathematical in nature.
-    1. Verbose Logging – This component wraps a layer to provide verbose logging.
+    1. Verbose Logging – This component wraps a id to provide verbose logging.
     1. Weight Extraction – Many of these components are stateful and contain weight vectors that we may want to normalize via an adjustment to our fitness function.
     1. Wrapper Layer – This provides a stub wrapper so that the inner implementation can be replaced as desired. This is useful when developing networks whose layout changes over time.
  

@@ -2,19 +2,18 @@ package com.simiacryptus.mindseye.training;
 
 import com.simiacryptus.mindseye.net.DeltaBuffer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Collectors;
+
+import static com.simiacryptus.mindseye.opt.ArrayArrayUtil.*;
 
 public class LbfgsTrainer extends LineSearchTrainer {
   private int minHistory = 2;
 
   protected List<DeltaBuffer> getDirection(List<DeltaBuffer> startGradient) {
-    assert(history.stream().allMatch(x->x.deltaSet.stream().allMatch(y-> Arrays.stream(y).allMatch(d->Double.isFinite(d)))));
-    assert(history.stream().allMatch(x->x.targetSet.stream().allMatch(y-> Arrays.stream(y).allMatch(d->Double.isFinite(d)))));
+    if(!history.stream().allMatch(x->x.deltaSet.stream().allMatch(y-> Arrays.stream(y).allMatch(d->Double.isFinite(d))))) return startGradient;
+    if(!history.stream().allMatch(x->x.targetSet.stream().allMatch(y-> Arrays.stream(y).allMatch(d->Double.isFinite(d))))) return startGradient;
     // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce
     List<DeltaBuffer> defaultValue = startGradient.stream().map(x -> x.scale(-1)).collect(Collectors.toList());
     List<DeltaBuffer> descent = defaultValue;
@@ -54,56 +53,6 @@ public class LbfgsTrainer extends LineSearchTrainer {
     return descent;
   }
 
-  private List<double[]> minus(List<double[]> a, List<double[]> b) {
-    return op(a, b, (x, y) -> x - y);
-  }
-
-  private List<double[]> add(List<double[]> a, List<double[]> b) {
-    return op(a, b, (x, y) -> x + y);
-  }
-
-  private double dot(List<double[]> a, List<double[]> b) {
-    return sum(multiply(a, b));
-  }
-
-  private List<double[]> multiply(List<double[]> a, List<double[]> b) {
-    return op(a, b, (x, y) -> x * y);
-  }
-
-  private List<double[]> multiply(List<double[]> a, double b) {
-    return op(a, x -> x * b);
-  }
-
-  private double sum(List<double[]> a) {
-    return a.stream().mapToDouble(x -> Arrays.stream(x).sum()).sum();
-  }
-
-  private List<double[]> op(List<double[]> a, List<double[]> b, DoubleBinaryOperator fn) {
-    assert (a.size() == b.size());
-    ArrayList<double[]> list = new ArrayList<>();
-    for (int i = 0; i < a.size(); i++) {
-      assert (a.get(i).length == b.get(i).length);
-      double[] c = new double[a.get(i).length];
-      for (int j = 0; j < a.get(i).length; j++) {
-        c[j] = fn.applyAsDouble(a.get(i)[j], b.get(i)[j]);
-      }
-      list.add(c);
-    }
-    return list;
-
-  }
-
-  private List<double[]> op(List<double[]> a, DoubleUnaryOperator fn) {
-    ArrayList<double[]> list = new ArrayList<>();
-    for (int i = 0; i < a.size(); i++) {
-      double[] c = new double[a.get(i).length];
-      for (int j = 0; j < a.get(i).length; j++) {
-        c[j] = fn.applyAsDouble(a.get(i)[j]);
-      }
-      list.add(c);
-    }
-    return list;
-  }
 
   public int getMinHistory() {
     return minHistory;

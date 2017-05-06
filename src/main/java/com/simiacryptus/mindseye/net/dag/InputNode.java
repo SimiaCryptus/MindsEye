@@ -38,7 +38,11 @@ final class InputNode extends LazyResult {
   }
 
   @Override
+  public NNLayer<?> getLayer() {
+    return null;
+  }
+
   public DAGNode add(NNLayer<?> nextHead) {
-    return dagNetwork.add(nextHead, InputNode.this).getHead();
+    return dagNetwork.add(nextHead, InputNode.this);
   }
 }

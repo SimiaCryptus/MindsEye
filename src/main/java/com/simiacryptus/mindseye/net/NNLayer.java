@@ -62,13 +62,11 @@ public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable
   }
 
   public final NNResult eval(final Tensor... array) {
-    NNResult[] a = Arrays.stream(array).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
-    return eval(a);
+    return eval(NNResult.singleResultArray(array));
   }
 
   public final NNResult eval(final Tensor[][] array) {
-    NNResult[] a = Arrays.stream(array).map((Tensor[] x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
-    return eval(a);
+    return eval(NNResult.singleResultArray(array));
   }
 
   public abstract NNResult eval(NNResult... array);

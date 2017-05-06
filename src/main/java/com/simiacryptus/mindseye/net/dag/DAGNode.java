@@ -1,5 +1,6 @@
 package com.simiacryptus.mindseye.net.dag;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
@@ -9,12 +10,14 @@ public interface DAGNode {
 
   UUID getId();
 
+  NNLayer<?> getLayer();
+
   NNResult get(EvaluationContext buildExeCtx);
-  
-  DAGNode add(final NNLayer<?> nextHead);
 
   default DAGNode[] getInputs() {
     return new DAGNode[]{};
   };
+
+  JsonObject toJson();
 
 }

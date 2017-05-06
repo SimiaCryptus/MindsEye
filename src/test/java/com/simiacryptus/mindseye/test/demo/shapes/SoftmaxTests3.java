@@ -1,8 +1,9 @@
 package com.simiacryptus.mindseye.test.demo.shapes;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
@@ -18,26 +19,32 @@ public class SoftmaxTests3 extends SimpleClassificationTests {
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 8 };
     final int midLayers = 0;
-    DAGNetwork net = new DAGNetwork();
+    DAGNetwork net = new PipelineNetwork();
 
-    final NNLayer<?> inputLayer = new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
-    net = net.add(inputLayer);
+    PipelineNetwork inputLayer = new PipelineNetwork();
+    inputLayer.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
+    inputLayer.add(new BiasLayer(midSize));
+    inputLayer.add(new SigmoidActivationLayer());
+    net.add(inputLayer);
 
     for (int i = 0; i < midLayers; i++) {
-      final NNLayer<?> hiddenLayer = new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer());
-      net = net.add(hiddenLayer);
+      final PipelineNetwork hiddenLayer = new PipelineNetwork();
+      hiddenLayer.add(new DenseSynapseLayer(Tensor.dim(midSize), midSize));
+      hiddenLayer.add(new BiasLayer(midSize));
+      hiddenLayer.add(new SigmoidActivationLayer());
+      net.add(hiddenLayer);
     }
 
-    DAGNetwork outputLayer = new DAGNetwork();
-    outputLayer = outputLayer.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
-    outputLayer = outputLayer.add(new BiasLayer(outSize));
-    net = net.add(outputLayer);
+    DAGNetwork outputLayer = new PipelineNetwork();
+    outputLayer.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
+    outputLayer.add(new BiasLayer(outSize));
+    net.add(outputLayer);
 
     // outputLayer = outputLayer.add(new ExpActivationLayer());
     // outputLayer = outputLayer.add(new L1NormalizationLayer());
     // outputLayer = outputLayer.add(new SigmoidActivationLayer());
-    outputLayer = outputLayer.add(new LinearActivationLayer());
-    outputLayer = outputLayer.add(new SoftmaxActivationLayer());
+    outputLayer.add(new LinearActivationLayer());
+    outputLayer.add(new SoftmaxActivationLayer());
 
     return net;
   }

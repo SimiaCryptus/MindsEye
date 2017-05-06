@@ -4,12 +4,13 @@ import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import com.simiacryptus.mindseye.net.SupervisedNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
@@ -42,17 +43,17 @@ public class BooleanSigmoidNetworkTests {
     final int[] midSize = new int[] { 2 };
     final int[] inputSize = new int[] { 2 };
     final int[] outSize = new int[] { 1 };
-    DAGNetwork net = new DAGNetwork()
-      .add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize))
-      .add(new BiasLayer(midSize))
-      .add(new SigmoidActivationLayer())
-      .add(new DenseSynapseLayer(Tensor.dim(midSize), outSize))
-      .add(new BiasLayer(outSize))
-      .add(new SigmoidActivationLayer());
-    net.addLossComponent(new SqLossLayer());
+    PipelineNetwork net = new PipelineNetwork();
+    net.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
+    net.add(new BiasLayer(midSize));
+    net.add(new SigmoidActivationLayer());
+    net.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
+    net.add(new BiasLayer(outSize));
+      net.add(new SigmoidActivationLayer());
+    SupervisedNetwork supervisedNetwork = new SupervisedNetwork(net, new SqLossLayer());
     Tester init = new Tester();
     GradientDescentTrainer trainer = init.getGradientDescentTrainer();
-    trainer.setNet(net);
+    trainer.setNet(supervisedNetwork);
     trainer.setData(samples);
     init.verifyConvergence(0.01, 100);
   }

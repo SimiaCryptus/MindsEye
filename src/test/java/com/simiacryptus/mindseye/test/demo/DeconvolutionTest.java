@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.SupervisedNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,7 +25,7 @@ import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.dag.DAGNode;
 import com.simiacryptus.mindseye.net.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
@@ -76,7 +78,7 @@ public class DeconvolutionTest {
   }
 
   public NNLayer<?> blur_3x4() {
-    final DAGNetwork net = new DAGNetwork();
+    final DAGNetwork net = new PipelineNetwork();
     for (int i = 0; i < 3; i++) {
       net.add(blur_3());
     }
@@ -103,7 +105,8 @@ public class DeconvolutionTest {
     final List<LabeledObject<Tensor>> data = new ArrayList<>();
     data.add(new LabeledObject<Tensor>(inputImage, "Ideal Input"));
 
-    final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
+    final DAGNetwork forwardConvolutionNet = new PipelineNetwork();
+    forwardConvolutionNet.add(convolution);
 
     Util.report(data.stream().map(obj -> {
       final Tensor[] input = { obj.data };
@@ -141,7 +144,7 @@ public class DeconvolutionTest {
       final NNResult blurredImage = convolution.eval(new Tensor[] { obj.data });
 
       final Tensor zeroInput = new Tensor(inputSize);
-      final DAGNetwork dagNetwork = new DAGNetwork();
+      final PipelineNetwork net1 = new PipelineNetwork();
       BiasLayer bias = new BiasLayer(inputSize) {
 
         @Override
@@ -155,19 +158,20 @@ public class DeconvolutionTest {
         }
 
       }.addWeights(() -> Util.R.get().nextGaussian() * 1e-5);
-      dagNetwork.add(bias);
-      final DAGNode modeledImageNode = dagNetwork.getHead();
+      net1.add(bias);
+      final DAGNode modeledImageNode = net1.getHead();
+      net1.add(convolution);
 
-      dagNetwork.add(convolution);
-      dagNetwork.addLossComponent(new SqLossLayer());
-      final DAGNode imageRMS = dagNetwork.add(new VerboseWrapper("rms", new BiasLayer().freeze())).getHead();
+      final PipelineNetwork net2 = new PipelineNetwork(2);
+      net2.add(new SupervisedNetwork(net1, new SqLossLayer()), net2.getInput(0), net2.getInput(1));
+      final DAGNode imageRMS = net2.add(new VerboseWrapper("rms", new BiasLayer().freeze()));
 
       DAGNode image_entropy;
       {
-        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer(), modeledImageNode);
-        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
-        dagNetwork.add(new SumInputsLayer());
+        net2.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer(), modeledImageNode);
+        net2.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
+        net2.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
+        net2.add(new SumInputsLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));
 
@@ -175,7 +179,7 @@ public class DeconvolutionTest {
         // is secondary
         // dagNetwork.add(new BiasLayer(new
         // int[]{1}).setWeights(i->1).freeze());
-        image_entropy = dagNetwork.add(new VerboseWrapper("entropy", new BiasLayer().freeze())).getHead();
+        image_entropy = net2.add(new VerboseWrapper("entropy", new BiasLayer().freeze()));
       }
 
       DAGNode edge_entropy_horizontal;
@@ -187,18 +191,18 @@ public class DeconvolutionTest {
           edgeFilter.kernel.set(new int[] { 0, 1, i }, 1);
         }
         edgeFilter.freeze();
-        dagNetwork.add(edgeFilter, modeledImageNode);
+        net2.add(edgeFilter, modeledImageNode);
 
-        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
-        dagNetwork.add(new SumInputsLayer());
+        net2.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
+        net2.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
+        net2.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
+        net2.add(new SumInputsLayer());
 
         // Add 1 to output so product stays above 0 since this fitness function
         // is secondary
         // dagNetwork.add(new BiasLayer(new
         // int[]{1}).setWeights(i->1).freeze());
-        edge_entropy_horizontal = dagNetwork.add(new VerboseWrapper("edgeh", new BiasLayer().freeze())).getHead();
+        edge_entropy_horizontal = net2.add(new VerboseWrapper("edgeh", new BiasLayer().freeze()));
       }
 
       DAGNode edge_entropy_vertical;
@@ -210,12 +214,12 @@ public class DeconvolutionTest {
           edgeFilter.kernel.set(new int[] { 1, 0, i }, 1);
         }
         edgeFilter.freeze();
-        dagNetwork.add(edgeFilter, modeledImageNode);
+        net2.add(edgeFilter, modeledImageNode);
 
-        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
-        dagNetwork.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
-        dagNetwork.add(new SumInputsLayer());
+        net2.add(new com.simiacryptus.mindseye.net.activation.AbsActivationLayer());
+        net2.add(new com.simiacryptus.mindseye.net.activation.L1NormalizationLayer());
+        net2.add(new com.simiacryptus.mindseye.net.media.EntropyLayer());
+        net2.add(new SumInputsLayer());
         // dagNetwork.add(new LinearActivationLayer().setWeights(new
         // double[]{-1.}));
 
@@ -223,7 +227,7 @@ public class DeconvolutionTest {
         // is secondary
         // dagNetwork.add(new BiasLayer(new
         // int[]{1}).setWeights(i->1).freeze());
-        edge_entropy_vertical = dagNetwork.add(new VerboseWrapper("edgev", new BiasLayer().freeze())).getHead();
+        edge_entropy_vertical = net2.add(new VerboseWrapper("edgev", new BiasLayer().freeze()));
       }
 
       final LinearActivationLayer gate_rms = new LinearActivationLayer().setWeight(1).freeze();
@@ -233,18 +237,21 @@ public class DeconvolutionTest {
 
       final List<DAGNode> outs = new ArrayList<>();
 
-      outs.add(dagNetwork.add(gate_rms, imageRMS).getHead());
-      outs.add(dagNetwork.add(gate_entropy, image_entropy).getHead());
+      net2.add(gate_rms, imageRMS);
+      outs.add(net2.getHead());
+      net2.add(gate_entropy, image_entropy);
+      outs.add(net2.getHead());
       // outs.add(dagNetwork.add(gate_h, edge_entropy_horizontal).getHead());
       // outs.add(dagNetwork.add(gate_v, edge_entropy_vertical).getHead());
       final VerboseWrapper combiner = new VerboseWrapper("product", new com.simiacryptus.mindseye.net.reducers.SumInputsLayer());
-      final DAGNode combine = dagNetwork.add(combiner, outs.stream().toArray(i -> new DAGNode[i])).getHead();
+      net2.add(combiner, outs.stream().toArray(i -> new DAGNode[i]));
+      final DAGNode combine = net2.getHead();
 
       final Tester trainer = new Tester() {
       }.setStaticRate(1.);
 
       // new NetInitializer().initialize(initPredictionNetwork);
-      trainer.getGradientDescentTrainer().setNet(dagNetwork);
+      trainer.getGradientDescentTrainer().setNet(net2);
       trainer.getGradientDescentTrainer().setData(new Tensor[][] { { zeroInput, blurredImage.data[0] } });
       final TrainingContext trainingContext = new TrainingContext().setTimeout(1, java.util.concurrent.TimeUnit.MINUTES);
       try {
@@ -272,7 +279,10 @@ public class DeconvolutionTest {
 
       bias = (BiasLayer) trainer.getNet().getChild(bias.getId());
       final NNResult recovered = bias.eval(zeroInput);
-      final NNResult verification = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
+      final PipelineNetwork verificationNet = new PipelineNetwork();
+      verificationNet.add(bias);
+      verificationNet.add(convolution);
+      NNResult verification = verificationNet.eval(zeroInput);
 
         return DeconvolutionTest.imageHtml( //
                 obj.data.toRgbImage(), //
@@ -302,7 +312,8 @@ public class DeconvolutionTest {
     final List<LabeledObject<Tensor>> data = new ArrayList<>();
     data.add(new LabeledObject<Tensor>(inputImage, "Ideal Input"));
 
-    final DAGNetwork forwardConvolutionNet = new DAGNetwork().add(convolution);
+    final DAGNetwork forwardConvolutionNet = new PipelineNetwork();
+    forwardConvolutionNet.add(convolution);
 
     Util.report(data.stream().map(obj -> {
       final Tensor[] input = { obj.data };
@@ -311,7 +322,10 @@ public class DeconvolutionTest {
       BiasLayer bias = new BiasLayer(inputSize);
       final Tester trainer = new Tester().setStaticRate(1.);
 
-      trainer.init(new Tensor[][] { { zeroInput, output.data[0] } }, new DAGNetwork().add(bias).add(convolution), new SqLossLayer());
+      PipelineNetwork net1 = new PipelineNetwork();
+      net1.add(bias);
+      net1.add(convolution);
+      trainer.init(new Tensor[][] { { zeroInput, output.data[0] } }, net1, new SqLossLayer());
 
       // trainer.add(new SupervisedTrainingParameters(
       // new PipelineNetwork().add(bias),
@@ -348,7 +362,14 @@ public class DeconvolutionTest {
 
       bias = (BiasLayer) trainer.getNet().getChild(bias.getId());
       final NNResult recovered = bias.eval(zeroInput);
-      final NNResult tested = new DAGNetwork().add(bias).add(convolution).eval(zeroInput);
+      PipelineNetwork result;
+      synchronized (new PipelineNetwork().add(bias)) {
+        PipelineNetwork net2 = new PipelineNetwork();
+        net2.add(bias);
+        net2.add(convolution);
+        result = new PipelineNetwork();
+      }
+      final NNResult tested = result.eval(zeroInput);
 
         return DeconvolutionTest.imageHtml(obj.data.toRgbImage(), new Tensor(outSize, output.data[0].getData()).toRgbImage(), new Tensor(inputSize, recovered.data[0].getData()).toRgbImage(),
                 new Tensor(outSize, tested.data[0].getData()).toRgbImage());

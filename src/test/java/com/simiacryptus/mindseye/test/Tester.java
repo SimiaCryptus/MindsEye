@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.SupervisedNetwork;
 import com.simiacryptus.util.lang.KryoUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -14,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.training.TrainingContext.TerminationCondition;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.mindseye.training.DynamicRateTrainer;
 import com.simiacryptus.mindseye.training.GradientDescentTrainer;
 import com.simiacryptus.mindseye.training.TrainingComponent;
@@ -27,13 +28,6 @@ import com.simiacryptus.mindseye.training.TrainingComponent;
 public class Tester {
 
 	static final Logger log = LoggerFactory.getLogger(Tester.class);
-
-  public static DAGNetwork supervisionNetwork(final NNLayer<?> predictor, final NNLayer<?> loss) {
-    final DAGNetwork dagNetwork = new DAGNetwork();
-    dagNetwork.add(predictor);
-    dagNetwork.addLossComponent(loss);
-    return dagNetwork;
-  }
 
   public DynamicRateTrainer dynamicTrainer;
   protected GradientDescentTrainer gradientTrainer;
@@ -60,7 +54,7 @@ public class Tester {
   }
 
   public Tester init(final Tensor[][] samples, final NNLayer<DAGNetwork> pipelineNetwork, final NNLayer<?> lossLayer) {
-    this.gradientTrainer.setNet(supervisionNetwork(pipelineNetwork, lossLayer));
+    this.gradientTrainer.setNet(new SupervisedNetwork(pipelineNetwork, lossLayer));
     this.gradientTrainer.setData(samples);
     return this;
   }

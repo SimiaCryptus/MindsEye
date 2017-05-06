@@ -66,12 +66,9 @@ public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayerJBLAS.class);
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 3538627887600182889L;
 
-  private static Tensor multiply(final double[] deltaData, final double[] inputData) {
+  static Tensor multiply(final double[] deltaData, final double[] inputData) {
     final Tensor weightDelta = new Tensor(inputData.length, deltaData.length);
     crossMultiply(deltaData, inputData, weightDelta.getData());
     return weightDelta;
@@ -99,19 +96,22 @@ public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
   }
 
   public final int[] outputDims;
-
+  private final int[] inputDims;
   private final Tensor weights;
 
   protected DenseSynapseLayerJBLAS() {
     super();
     this.outputDims = null;
     this.weights = null;
+    this.inputDims = null;
   }
 
-  public DenseSynapseLayerJBLAS(final int inputs, final int[] outputDims) {
+  public DenseSynapseLayerJBLAS(final int[] inputDims, final int[] outputDims) {
+    final int inputs = Tensor.dim(inputDims);
+    this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
-    this.weights = new Tensor(inputs, Tensor.dim(outputDims));
     int outs = Tensor.dim(outputDims);
+    this.weights = new Tensor(inputs, outs);
     setWeights(() -> {
       double ratio = Math.sqrt(6. / (inputs + outs));
       double fate = Util.R.get().nextDouble();
@@ -139,10 +139,6 @@ public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
     final JsonObject json = super.getJson();
     json.addProperty("weights", this.getWeights().toString());
     return json;
-  }
-
-  protected double getMobility() {
-    return 1;
   }
 
   private Tensor multiply2(final double[] wdata, final double[] indata) {

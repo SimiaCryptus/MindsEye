@@ -47,4 +47,9 @@ public class DeltaSet {
     return this.map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId())).collect(Collectors.toList());
   }
 
+    public static DeltaSet fromList(List<DeltaBuffer> descent) {
+      DeltaSet deltaSet = new DeltaSet();
+      descent.forEach(buffer->deltaSet.get(buffer.layer, buffer.target).accumulate(buffer.delta));
+      return deltaSet;
+    }
 }

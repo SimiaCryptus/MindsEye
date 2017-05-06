@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
@@ -29,8 +29,13 @@ public class SimpleNetworkTests {
         { new Tensor(inputSize, new double[] { 1, 0 }), new Tensor(outSize, new double[] { 0 }) },
         { new Tensor(inputSize, new double[] { 0, 0 }), new Tensor(outSize, new double[] { 0.5 }) },
         { new Tensor(inputSize, new double[] { 1, 1 }), new Tensor(outSize, new double[] { 0 }) } };
-    new Tester().init(samples, new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize)).add(new BiasLayer(inputSize)).add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize)).add(new BiasLayer(outSize)), new EntropyLossLayer()).verifyConvergence(0.1, 10);
+    PipelineNetwork network = new PipelineNetwork();
+    network.add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize));
+    network.add(new BiasLayer(inputSize));
+    network.add(new SigmoidActivationLayer());
+    network.add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize));
+    network.add(new BiasLayer(outSize));
+    new Tester().init(samples, network, new EntropyLossLayer()).verifyConvergence(0.1, 10);
   }
 
   @Test
@@ -44,15 +49,14 @@ public class SimpleNetworkTests {
         { new Tensor(inputSize, new double[] { 1, 0 }), new Tensor(outSize, new double[] { 1 }) },
         { new Tensor(inputSize, new double[] { 0, 0 }), new Tensor(outSize, new double[] { -1 }) },
         { new Tensor(inputSize, new double[] { 1, 1 }), new Tensor(outSize, new double[] { 1 }) } };
-    new Tester().init(samples,
-        new DAGNetwork()//
-            .add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize))//
-            .add(new BiasLayer(midSize))//
-            .add(new SigmoidActivationLayer())//
-            .add(new DenseSynapseLayer(Tensor.dim(midSize), outSize))//
-            .add(new BiasLayer(outSize))//
-            .add(new SigmoidActivationLayer()),
-        new SqLossLayer()).verifyConvergence(0.01, 100, 95);
+    PipelineNetwork network = new PipelineNetwork();
+    network.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
+    network.add(new BiasLayer(midSize));
+    network.add(new SigmoidActivationLayer());
+    network.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
+    network.add(new BiasLayer(outSize));
+    network.add(new SigmoidActivationLayer());
+    new Tester().init(samples, network, new SqLossLayer()).verifyConvergence(0.01, 100, 95);
   }
 
   @Test
@@ -66,9 +70,16 @@ public class SimpleNetworkTests {
         { new Tensor(inputSize, new double[] { 1, 0 }), new Tensor(outSize, new double[] { 1 }) },
         { new Tensor(inputSize, new double[] { 0, 0 }), new Tensor(outSize, new double[] { -1 }) },
         { new Tensor(inputSize, new double[] { 1, 1 }), new Tensor(outSize, new double[] { -1 }) } };
-    final DAGNetwork net = new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(Tensor.dim(midSize), midSize)).add(new BiasLayer(midSize)).add(new SigmoidActivationLayer())
-        .add(new DenseSynapseLayer(Tensor.dim(midSize), outSize)).add(new BiasLayer(outSize)).add(new SigmoidActivationLayer());
+    final PipelineNetwork net = new PipelineNetwork();
+    net.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
+    net.add(new BiasLayer(midSize));
+    net.add(new SigmoidActivationLayer());
+    net.add(new DenseSynapseLayer(Tensor.dim(midSize), midSize));
+    net.add(new BiasLayer(midSize));
+    net.add(new SigmoidActivationLayer());
+    net.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
+    net.add(new BiasLayer(outSize));
+    net.add(new SigmoidActivationLayer());
     new Tester().init(samples, net, new EntropyLossLayer()).verifyConvergence(0.01, 100);
   }
 
@@ -80,14 +91,12 @@ public class SimpleNetworkTests {
     final Tensor[][] samples = new Tensor[][] { { new Tensor(inputSize, new double[] { -1 }), new Tensor(outSize, new double[] { 0 }) },
         { new Tensor(inputSize, new double[] { 0 }), new Tensor(outSize, new double[] { .2 }) },
         { new Tensor(inputSize, new double[] { 1 }), new Tensor(outSize, new double[] { 0 }) } };
-    new Tester()
-        .init(samples,
-            new DAGNetwork()//
-                .add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize).setWeights(new double[] { 1, 1 }).freeze())//
-                .add(new BiasLayer(midSize).set(new double[] { -1, 1 }))//
-                .add(new SigmoidActivationLayer())//
-                .add(new DenseSynapseLayer(Tensor.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze()),
-            new EntropyLossLayer())//
+    PipelineNetwork network = new PipelineNetwork();
+    network.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize).setWeights(new double[] { 1, 1 }).freeze());
+    network.add(new BiasLayer(midSize).set(new double[] { -1, 1 }));
+    network.add(new SigmoidActivationLayer());
+    network.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize).setWeights(new double[] { 1, -1 }).freeze());
+    new Tester().init(samples, network, new EntropyLossLayer())//
         .verifyConvergence(0.1, 10);
   }
 
@@ -100,8 +109,12 @@ public class SimpleNetworkTests {
         { new Tensor(inputSize, new double[] { 0, 1 }), new Tensor(outSize, new double[] { 1 }) },
         { new Tensor(inputSize, new double[] { 1, 0 }), new Tensor(outSize, new double[] { -1 }) },
         { new Tensor(inputSize, new double[] { 1, 1 }), new Tensor(outSize, new double[] { 0 }) } };
-    new Tester().init(samples, new DAGNetwork().add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize)).add(new DenseSynapseLayer(Tensor.dim(midSize), midSize))
-        .add(new DenseSynapseLayer(Tensor.dim(midSize), outSize)).add(new BiasLayer(outSize)), new EntropyLossLayer()).setVerbose(false).verifyConvergence(0.1, 100);
+    PipelineNetwork network = new PipelineNetwork();
+    network.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
+    network.add(new DenseSynapseLayer(Tensor.dim(midSize), midSize));
+    network.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
+    network.add(new BiasLayer(outSize));
+    new Tester().init(samples, network, new EntropyLossLayer()).setVerbose(false).verifyConvergence(0.1, 100);
   }
 
   @Test
@@ -121,38 +134,33 @@ public class SimpleNetworkTests {
       }
       return x;
     };
-    new Tester()
-        .init(samples,
-            new DAGNetwork() //
-                .add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize).addWeights(f).freeze()) //
-                .add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize)),
-            new SqLossLayer())//
+    PipelineNetwork net1 = new PipelineNetwork();
+    net1.add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize).addWeights(f).freeze());
+    net1.add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize));
+    new Tester().init(samples, net1, new SqLossLayer())//
         // .setVerbose(true)//
         .setStaticRate(0.01)//
         .verifyConvergence(0.01, 100);
 
-    new Tester()
-        .init(samples,
-            new DAGNetwork() //
-                .add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize)) //
-                .add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize).addWeights(f).freeze()),
-            new SqLossLayer())//
+    PipelineNetwork net2 = new PipelineNetwork();
+    net2.add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize));
+    net2.add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize).addWeights(f).freeze());
+    new Tester().init(samples, net2, new SqLossLayer())//
         // .setStaticRate(0.01)
         // .setVerbose(true).setParallel(false)
         .verifyConvergence(0.01, 100);
 
-    new Tester().init(samples,
-        new DAGNetwork() //
-            .add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize)) //
-            .add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize)),
-        new SqLossLayer()).setStaticRate(0.01).verifyConvergence(0.01, 100, 80);
+    PipelineNetwork net3 = new PipelineNetwork();
+    net3.add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize));
+    net3.add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize));
+    new Tester().init(samples, net3, new SqLossLayer())
+            .setStaticRate(0.01).verifyConvergence(0.01, 100, 80);
 
-    new Tester().init(samples,
-        new DAGNetwork() //
-            .add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize)) //
-            .add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize)) //
-            .add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize)),
-        new SqLossLayer()).verifyConvergence(0.01, 100);
+    PipelineNetwork net4 = new PipelineNetwork();
+    net4.add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize));
+    net4.add(new DenseSynapseLayer(Tensor.dim(inputSize), inputSize));
+    net4.add(new DenseSynapseLayer(Tensor.dim(inputSize), outSize));
+    new Tester().init(samples, net4, new SqLossLayer()).verifyConvergence(0.01, 100);
   }
 
 }

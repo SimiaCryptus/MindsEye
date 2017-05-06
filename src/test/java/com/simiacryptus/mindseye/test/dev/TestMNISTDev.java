@@ -16,6 +16,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
@@ -36,7 +37,7 @@ import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.test.Tester;
 
 public class TestMNISTDev {
-  public static class Network extends DAGNetwork {
+  public static class Network extends PipelineNetwork {
     /**
      * 
      */

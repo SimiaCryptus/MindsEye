@@ -12,18 +12,6 @@ import java.util.List;
 
 public class GradientDescentTrainer extends StochasticTrainer implements RateTrainingComponent {
 
-  private static class RevertableStep {
-    public double finalError;
-    public double prevError;
-
-    public RevertableStep(final double prevError, final double finalError) {
-      super();
-      this.prevError = prevError;
-      this.finalError = finalError;
-    }
-
-  }
-
   private static final Logger log = LoggerFactory.getLogger(GradientDescentTrainer.class);
 
   private double rate = 0.1;

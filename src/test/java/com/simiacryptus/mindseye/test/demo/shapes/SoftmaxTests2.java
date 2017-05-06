@@ -2,10 +2,11 @@ package com.simiacryptus.mindseye.test.demo.shapes;
 
 import java.util.function.BiFunction;
 
+import com.simiacryptus.mindseye.net.dag.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.mindseye.training.TrainingContext;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.net.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.net.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.net.basic.BiasLayer;
@@ -22,37 +23,37 @@ public class SoftmaxTests2 extends SimpleClassificationTests {
     final int[] outSize = new int[] { 2 };
     final int[] midSize = new int[] { 10 };
     final int midLayers = 0;
-    DAGNetwork net = new DAGNetwork();
+    DAGNetwork net = new PipelineNetwork();
 
-    // net = net.add(new
+    // net.add(new
     // SynapseActivationLayer(Tensor.dim(inputSize)).setWeights(()->1.));
-    net = net.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
-    net = net.add(new BiasLayer(midSize));
-    // net = net.add(new LinearActivationLayer());
-    // net = net.add(new
+    net.add(new DenseSynapseLayer(Tensor.dim(inputSize), midSize));
+    net.add(new BiasLayer(midSize));
+    // net.add(new LinearActivationLayer());
+    // net.add(new
     // SynapseActivationLayer(Tensor.dim(midSize)).setWeights(()->1.));
-    net = net.add(new SigmoidActivationLayer());
+    net.add(new SigmoidActivationLayer());
 
     for (int i = 0; i < midLayers; i++) {
-      net = net.add(new DenseSynapseLayer(Tensor.dim(midSize), midSize));
-      net = net.add(new BiasLayer(midSize));
-      // net = net.add(new LinearActivationLayer());
-      net = net.add(new SigmoidActivationLayer());
+      net.add(new DenseSynapseLayer(Tensor.dim(midSize), midSize));
+      net.add(new BiasLayer(midSize));
+      // net.add(new LinearActivationLayer());
+      net.add(new SigmoidActivationLayer());
     }
 
-    // net = net.add(new
+    // net.add(new
     // SynapseActivationLayer(Tensor.dim(midSize)).setWeights(()->1.));
-    net = net.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
-    // net = net.add(new PermutationLayer());
-    // net = net.add(new
+    net.add(new DenseSynapseLayer(Tensor.dim(midSize), outSize));
+    // net.add(new PermutationLayer());
+    // net.add(new
     // SynapseActivationLayer(Tensor.dim(outSize)).setWeights(()->1.));
-    net = net.add(new BiasLayer(outSize));
+    net.add(new BiasLayer(outSize));
 
-    // net = net.add(new ExpActivationLayer());
-    // net = net.add(new L1NormalizationLayer());
-    // net = net.add(new LinearActivationLayer());
-    // net = net.add(new SigmoidActivationLayer());
-    net = net.add(new SoftmaxActivationLayer());
+    // net.add(new ExpActivationLayer());
+    // net.add(new L1NormalizationLayer());
+    // net.add(new LinearActivationLayer());
+    // net.add(new SigmoidActivationLayer());
+    net.add(new SoftmaxActivationLayer());
 
     return net;
   }
