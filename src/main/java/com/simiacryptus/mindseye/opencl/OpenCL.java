@@ -1,6 +1,5 @@
 package com.simiacryptus.mindseye.opencl;
 
-import com.aparapi.Kernel;
 import com.aparapi.device.Device;
 import com.aparapi.internal.kernel.KernelManager;
 import com.simiacryptus.util.lang.ResourcePool;

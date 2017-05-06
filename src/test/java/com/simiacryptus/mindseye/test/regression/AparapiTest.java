@@ -33,7 +33,6 @@ under those regulations, please refer to the U.S. Bureau of Industry and Securit
 import java.util.List;
 
 import org.junit.Ignore;
-import org.junit.experimental.categories.Category;
 
 import com.aparapi.Kernel.EXECUTION_MODE;
 import com.aparapi.Range;

@@ -39,7 +39,9 @@ public class IterativeTrainer {
         long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
         Trainable.PointSample currentPoint = subject.measure();
         while(timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
+            int retries = 0;
             do {
+                if(3 < retries++) throw new RuntimeException();
                 subject.resetSampling();
                 currentPoint = subject.measure();
             } while(!Double.isFinite(currentPoint.value));

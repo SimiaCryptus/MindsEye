@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ToeplitzSynapseLayerJBLAS extends NNLayer<ToeplitzSynapseLayerJBLAS> {
 

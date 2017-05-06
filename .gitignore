@@ -6,3 +6,4 @@ target/
 reports/
 logs/
 .*
+*.iml
