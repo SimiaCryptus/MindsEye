@@ -27,10 +27,11 @@ public class ToeplitzSynapseLayerJBLAS extends NNLayer<ToeplitzSynapseLayerJBLAS
     }
 
     private Tensor[] backprop(final Tensor[] delta, final DeltaSet buffer) {
+      double[] expandedWeights = getExpandedWeights();
       Tensor[] passbackA = java.util.stream.IntStream.range(0, result.data.length).parallel().mapToObj(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
         final Tensor passback = new Tensor(this.result.data[dataIndex].getDims());
-        DenseSynapseLayerJBLAS.multiplyT(getExpandedWeights(), deltaData, passback.getData());
+        DenseSynapseLayerJBLAS.multiplyT(expandedWeights, deltaData, passback.getData());
         return passback;
       }).toArray(i->new Tensor[i]);
       this.result.accumulate(buffer, passbackA);
@@ -53,13 +54,25 @@ public class ToeplitzSynapseLayerJBLAS extends NNLayer<ToeplitzSynapseLayerJBLAS
     }
 
     private void learn(final Tensor[] delta, final DeltaSet buffer) {
+      final double[] deltaData0 = delta[0].getData();
+      final double[] inputData0 = this.result.data[0].getData();
       java.util.stream.IntStream.range(0, result.data.length).parallel().forEach(dataIndex->{
+        Tensor buffer1 = new Tensor(ToeplitzSynapseLayerJBLAS.this.weights.getDims());
+        final Tensor buffer2 = new Tensor(inputData0.length, deltaData0.length);
         final double[] deltaData = delta[dataIndex].getData();
         final double[] inputData = this.result.data[dataIndex].getData();
-        final Tensor weightDelta = DenseSynapseLayerJBLAS.multiply(deltaData, inputData);
-        double[] deltas = weightDelta.getData();
-        double[] compacted = getCompactedWeights(deltas).getData();
-        buffer.get(ToeplitzSynapseLayerJBLAS.this, weights).accumulate(compacted);
+        assert(deltaData0.length == deltaData.length);
+        assert(inputData0.length == inputData.length);
+        DenseSynapseLayerJBLAS.crossMultiply(deltaData, inputData, buffer2.getData());
+        buffer1.setAll(0.0);
+        getCompactedWeights(buffer2.getData(), buffer1);
+        buffer.get(ToeplitzSynapseLayerJBLAS.this, weights).accumulate(buffer1.getData());
+        try {
+          buffer1.finalize();
+          buffer2.finalize();
+        } catch (Throwable e) {
+          throw new RuntimeException(e);
+        }
       });
     }
 
@@ -153,30 +166,33 @@ public class ToeplitzSynapseLayerJBLAS extends NNLayer<ToeplitzSynapseLayerJBLAS
 
   @Override
   public NNResult eval(final NNResult... input) {
+    double[] expandedWeights = getExpandedWeights();
     Tensor[] outputA = java.util.stream.IntStream.range(0, input[0].data.length).parallel().mapToObj(dataIndex->{
       final Tensor inputTensor = input[0].data[dataIndex];
-      return multiply2(getExpandedWeights(), inputTensor.getData());
+      return multiply2(expandedWeights, inputTensor.getData());
     }).toArray(i->new Tensor[i]);
     return new Result(outputA, input[0]);
   }
 
   private double[] getExpandedWeights() {
     double[] matrix = new double[mappingMatrix.length];
+    double[] data = weights.getData();
     for(int i=0;i<matrix.length;i++) {
       int mappedIndex = this.mappingMatrix[i];
-      matrix[i] = (mappedIndex >= 0)?weights.getData()[mappedIndex]:0;
+      matrix[i] = (mappedIndex >= 0)? data[mappedIndex]:0;
     }
     return matrix;
   }
 
-  private Tensor getCompactedWeights(double[] matrix) {
-    assert(matrix.length==this.mappingMatrix.length);
-    Tensor weights = new Tensor(this.weights.getDims());
-    for(int i=0;i<matrix.length;i++) {
+  private void getCompactedWeights(double[] source, Tensor target) {
+    assert(source.length==this.mappingMatrix.length);
+    double[] data = target.getData();
+    for(int i=0;i<source.length;i++) {
       int mappedIndex = this.mappingMatrix[i];
-      if(mappedIndex >= 0) weights.getData()[mappedIndex] += matrix[i];
+      if(mappedIndex >= 0) {
+        data[mappedIndex] += source[i];
+      }
     }
-    return weights;
   }
 
   private Tensor multiply2(final double[] wdata, final double[] indata) {

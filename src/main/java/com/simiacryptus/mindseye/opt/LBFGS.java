@@ -18,10 +18,14 @@ public class LBFGS implements OrientationStrategy {
     @Override
     public DeltaSet orient(Trainable.PointSample measurement, TrainingMonitor monitor) {
         DeltaSet startGradient = measurement.delta;
-        if (!history.stream().allMatch(x -> x.delta.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))))
+        if (!history.stream().allMatch(x -> x.delta.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d))))) {
+            monitor.log("Corrupt history");
             return startGradient;
-        if (!history.stream().allMatch(x -> x.weights.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))))
+        }
+        if (!history.stream().allMatch(x -> x.weights.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d))))) {
+            monitor.log("Corrupt history");
             return startGradient;
+        }
         // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce
         List<DeltaBuffer> defaultValue = startGradient.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList());
         List<DeltaBuffer> descent = defaultValue;
@@ -35,6 +39,7 @@ public class LBFGS implements OrientationStrategy {
                 double denominator = dot(si, yi);
                 if (0 == denominator) {
                     history.remove(0);
+                    monitor.log("Orientation vanished. Poping history element from " + (history.size()-1));
                     return orient(measurement, monitor);
                 }
                 alphas[i] = dot(si, p) / denominator;
@@ -60,6 +65,7 @@ public class LBFGS implements OrientationStrategy {
         }
         if (accept(measurement.delta.vector(), descent)) {
             history.remove(0);
+            monitor.log("Orientation rejected. Poping history element from " + (history.size()-1));
             return orient(measurement, monitor);
         }
         return DeltaSet.fromList(descent);

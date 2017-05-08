@@ -27,6 +27,7 @@ public class IterativeTrainer {
     private OrientationStrategy orientation = new LBFGS();
     private ScalingStrategy scaling = new ArmijoWolfeConditions();
     private TrainingMonitor monitor = new TrainingMonitor();
+    private int currentIteration = 0;
 
     public IterativeTrainer(Trainable subject) {
         this.subject = subject;
@@ -35,22 +36,29 @@ public class IterativeTrainer {
     }
 
     public double run() {
-        int currentIteration = 0;
         long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
-        Trainable.PointSample currentPoint = subject.measure();
+        Trainable.PointSample currentPoint = measure();
         while(timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
-            int retries = 0;
-            do {
-                if(3 < retries++) throw new RuntimeException();
-                subject.resetSampling();
-                currentPoint = subject.measure();
-            } while(!Double.isFinite(currentPoint.value));
+            System.gc();
+            currentPoint = measure();
             DeltaSet direction = orientation.orient(currentPoint, monitor);
             currentPoint = scaling.step(subject, direction, currentPoint, monitor);
+            monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration, currentPoint.value));
             monitor.onStepComplete(new Step(currentPoint, currentIteration++));
         }
-        // Timeout
-        return Double.NaN;
+        return null==currentPoint?Double.NaN:currentPoint.value;
+    }
+
+    public Trainable.PointSample measure() {
+        Trainable.PointSample currentPoint;
+        int retries = 0;
+        do {
+            if(3 < retries++) throw new RuntimeException();
+            subject.resetSampling();
+            currentPoint = subject.measure();
+        } while(!Double.isFinite(currentPoint.value));
+        assert(Double.isFinite(currentPoint.value));
+        return currentPoint;
     }
 
     public Duration getTimeout() {

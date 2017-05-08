@@ -20,16 +20,12 @@ public class MediaComponentValidationTests {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MediaComponentValidationTests.class);
 
-  private static void test(final NNLayer<?> component, final Tensor outputPrototype, final Tensor inputPrototype) throws Throwable {
-    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
-  }
-
   @org.junit.Test
   public void testConvolutionSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 2, 2 }, 1).addWeights(() -> Util.R.get().nextGaussian());
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -37,7 +33,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(1, 2, 1);
     final Tensor inputPrototype = new Tensor(2, 3, 1).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 2, 2 }, 1).addWeights(() -> Util.R.get().nextGaussian());
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -45,7 +41,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(1, 1, 2);
     final Tensor inputPrototype = new Tensor(1, 1, 2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 1, 1 }, 4).addWeights(() -> Util.R.get().nextGaussian());
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -53,7 +49,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(2, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 5, 2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new ConvolutionSynapseLayer(new int[] { 2, 3 }, 4).addWeights(() -> Util.R.get().nextGaussian());
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -61,7 +57,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new L1NormalizationLayer();
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -69,7 +65,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new MaxConstLayer();
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -79,7 +75,7 @@ public class MediaComponentValidationTests {
     final PipelineNetwork component = new PipelineNetwork();
     component.add(new L1NormalizationLayer());
     component.add(new EntropyLayer());
-    test(component, outputPrototype, inputPrototype1);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype1);
   }
 
   @org.junit.Test
@@ -87,7 +83,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new MaxSubsampleLayer(2, 2, 1);
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -95,7 +91,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new SumSubsampleLayer(2, 2, 1);
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
@@ -103,7 +99,7 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(1, 1, 2);
     final Tensor inputPrototype = new Tensor(3, 5, 2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer<?> component = new SumSubsampleLayer(3, 5, 1);
-    test(component, outputPrototype, inputPrototype);
+    BasicComponentValidationTests.test(component, outputPrototype, inputPrototype);
   }
 
 }

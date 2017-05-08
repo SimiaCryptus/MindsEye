@@ -25,7 +25,7 @@ public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
       this.inObj = inObj;
     }
 
-    private Tensor[] backprop(final Tensor[] delta, final DeltaSet buffer) {
+    private void backprop(final Tensor[] delta, final DeltaSet buffer) {
       Tensor[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
         final double[] deltaData = delta[dataIndex].getData();
         final Tensor r = DenseSynapseLayerJBLAS.this.getWeights();
@@ -34,7 +34,13 @@ public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
         return passback;
       }).toArray(i->new Tensor[i]);
       this.inObj.accumulate(buffer, passbackA);
-      return passbackA;
+      Arrays.stream(passbackA).forEach(x -> {
+        try {
+          x.finalize();
+        } catch (Throwable throwable) {
+          throw new RuntimeException(throwable);
+        }
+      });
     }
 
     @Override
@@ -58,6 +64,11 @@ public class DenseSynapseLayerJBLAS extends NNLayer<DenseSynapseLayerJBLAS> {
         final double[] inputData = this.inObj.data[dataIndex].getData();
         final Tensor weightDelta = multiply(deltaData, inputData);
         buffer.get(DenseSynapseLayerJBLAS.this, DenseSynapseLayerJBLAS.this.getWeights()).accumulate(weightDelta.getData());
+        try {
+          weightDelta.finalize();
+        } catch (Throwable throwable) {
+          throw new RuntimeException(throwable);
+        }
       });
     }
 

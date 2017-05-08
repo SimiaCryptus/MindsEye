@@ -42,12 +42,13 @@ public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
         final double max = summaryStatistics.getMax();
         //final double min = summaryStatistics.getMin();
         exp = inObj[0].data[dataIndex].map(x -> {
-          return Double.isFinite(x) ? x : Double.NaN;
+          return Double.isFinite(x) ? x : 0;
         }).map(x -> Math.exp(x - max));
       }
       
       final double sum = exp.sum();
-      //assert 0. < sum;
+      assert(Double.isFinite(sum));
+      assert(0.0 != sum);
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
       return exp.map(x -> x / sum);

@@ -19,7 +19,7 @@ import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerGPU;
 import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
 import com.simiacryptus.mindseye.net.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.net.loss.SqLossLayer;
+import com.simiacryptus.mindseye.net.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.net.reducers.ProductLayer;
 import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.net.reducers.SumReducerLayer;
@@ -39,7 +39,6 @@ public class BasicComponentValidationTests {
         @Override
         public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         }
-
         @Override
         public boolean isAlive() {
           return false;
@@ -52,10 +51,8 @@ public class BasicComponentValidationTests {
             for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
               gradientA[dataIndex].set(new int[] { i, j_ }, data[dataIndex].getData()[i]);
             }
-            
           });
         }
-
         @Override
         public boolean isAlive() {
           return true;
@@ -270,7 +267,7 @@ public class BasicComponentValidationTests {
     final Tensor outputPrototype = new Tensor(1);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new SqLossLayer();
+    final NNLayer<?> component = new MeanSqLossLayer();
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
 

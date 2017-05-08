@@ -12,9 +12,11 @@ public class ArmijoWolfeConditions implements ScalingStrategy {
     private double c2 = 0.9;
     private double alpha = 1.0;
     private double minAlpha = 1e-20;
+    private double alphaGrowth = Math.pow(3.0,Math.pow(5.0,-1.0));
 
     @Override
     public Trainable.PointSample step(Trainable subject, DeltaSet direction, Trainable.PointSample measurement, TrainingMonitor monitor) {
+        alpha *= alphaGrowth; // Keep memory of alpha from one iteration to next, but have a bias for growing the value
         // See http://cs.nyu.edu/overton/mstheses/skajaa/msthesis.pdf page 14
         double mu = 0;
         double nu = Double.POSITIVE_INFINITY;
@@ -22,12 +24,19 @@ public class ArmijoWolfeConditions implements ScalingStrategy {
         double startValue = measurement.value; // theta(0)
         while (true) {
             if (!isAlphaValid()) {
+                monitor.log(String.format("INVALID ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
                 return measurement;
             }
             if (mu >= nu) {
+                monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+                return measurement;
+            }
+            if ((nu / mu) < (11.0/10.0)) {
+                monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
                 return measurement;
             }
             if (Math.abs(alpha) < minAlpha) {
+                monitor.log(String.format("MIN ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
                 return measurement;
             }
             final double _alpha = alpha;
@@ -66,4 +75,12 @@ public class ArmijoWolfeConditions implements ScalingStrategy {
         return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
     }
 
+    public double getAlphaGrowth() {
+        return alphaGrowth;
+    }
+
+    public ArmijoWolfeConditions setAlphaGrowth(double alphaGrowth) {
+        this.alphaGrowth = alphaGrowth;
+        return this;
+    }
 }
