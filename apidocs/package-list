@@ -1,9 +1,7 @@
-com.simiacryptus.mindseye
-com.simiacryptus.mindseye.core
-com.simiacryptus.mindseye.core.delta
 com.simiacryptus.mindseye.net
 com.simiacryptus.mindseye.net.activation
 com.simiacryptus.mindseye.net.basic
+com.simiacryptus.mindseye.net.dag
 com.simiacryptus.mindseye.net.dev
 com.simiacryptus.mindseye.net.loss
 com.simiacryptus.mindseye.net.media
@@ -11,4 +9,4 @@ com.simiacryptus.mindseye.net.meta
 com.simiacryptus.mindseye.net.reducers
 com.simiacryptus.mindseye.net.util
 com.simiacryptus.mindseye.opencl
-com.simiacryptus.mindseye.training
+com.simiacryptus.mindseye.opt
