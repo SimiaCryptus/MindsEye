@@ -10,7 +10,7 @@ public interface DAGNode {
 
   UUID getId();
 
-  NNLayer<?> getLayer();
+  NNLayer getLayer();
 
   NNResult get(EvaluationContext buildExeCtx);
 

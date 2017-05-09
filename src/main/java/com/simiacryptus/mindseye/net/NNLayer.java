@@ -14,11 +14,11 @@ import java.util.UUID;
  *
  * @author Andrew Charneski
  */
-public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable {
+public abstract class NNLayer implements java.io.Serializable {
 
   public final String[] createdBy = Util.currentStack();
 
-  public static final class ConstNNResult extends NNResult {
+    public static final class ConstNNResult extends NNResult {
 
     public ConstNNResult(final Tensor... data) {
       super(data);
@@ -52,7 +52,7 @@ public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable
       return false;
     if (getClass() != obj.getClass())
       return false;
-    final NNLayer<?> other = (NNLayer<?>) obj;
+    final NNLayer other = (NNLayer) obj;
     if (this.id == null) {
       if (other.id != null)
         return false;
@@ -71,21 +71,21 @@ public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable
 
   public abstract NNResult eval(NNResult... array);
 
-  public NNLayer<?> evolve() {
+  public NNLayer evolve() {
     return null;
   }
 
-  public T freeze() {
+  public NNLayer freeze() {
     return setFrozen(true);
   }
 
-  public NNLayer<?> getChild(final UUID id) {
+  public NNLayer getChild(final UUID id) {
     if (this.id.equals(id))
       return this;
     return null;
   }
 
-  public List<NNLayer<?>> getChildren() {
+  public List<NNLayer> getChildren() {
     return Arrays.asList(this);
   }
 
@@ -113,11 +113,11 @@ public abstract class NNLayer<T extends NNLayer> implements java.io.Serializable
   }
 
   @SuppressWarnings("unchecked")
-  protected final T self() {
-    return (T) this;
+  protected final NNLayer self() {
+    return this;
   }
 
-  public final T setFrozen(final boolean frozen) {
+  public final NNLayer setFrozen(final boolean frozen) {
     this.frozen = frozen;
     return self();
   }

@@ -12,7 +12,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
 @SuppressWarnings("serial")
-public class Sparse01MetaLayer extends NNLayer<Sparse01MetaLayer> {
+public class Sparse01MetaLayer extends NNLayer {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(Sparse01MetaLayer.class);

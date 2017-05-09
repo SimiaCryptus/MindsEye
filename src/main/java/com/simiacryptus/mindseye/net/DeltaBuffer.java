@@ -31,12 +31,13 @@ public class DeltaBuffer {
     Arrays.setAll(this.delta, i -> 0);
   }
 
-  public void accumulate(final double[] data) {
+  public DeltaBuffer accumulate(final double[] data) {
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       final double prev = this.delta[i];
       this.delta[i] = prev + data[i];
     }
+    return this;
   }
 
   public double[] copyDelta() {

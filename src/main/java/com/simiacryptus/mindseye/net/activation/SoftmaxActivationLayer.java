@@ -12,7 +12,7 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class SoftmaxActivationLayer extends NNLayer<SoftmaxActivationLayer> {
+public class SoftmaxActivationLayer extends NNLayer {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);

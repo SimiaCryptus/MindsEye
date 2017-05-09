@@ -17,7 +17,7 @@ import com.simiacryptus.mindseye.net.NNResult;
 import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
 import com.simiacryptus.mindseye.opencl.MatrixMultiplyKernel;
 
-public class DenseSynapseLayerGPU extends NNLayer<DenseSynapseLayerGPU> {
+public class DenseSynapseLayerGPU extends NNLayer {
 
   private final class Result extends NNResult {
     private final NNResult inObj;

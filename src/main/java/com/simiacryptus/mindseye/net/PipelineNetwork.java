@@ -11,8 +11,8 @@ import java.util.HashMap;
 public class PipelineNetwork extends DAGNetwork {
 
     private DAGNode head = getInput().get(0);
-    private final HashMap<NNLayer<?>, NNLayer<?>> forwardLinkIndex = new HashMap<>();
-    private final HashMap<NNLayer<?>, NNLayer<?>> backwardLinkIndex = new HashMap<>();
+    private final HashMap<NNLayer, NNLayer> forwardLinkIndex = new HashMap<>();
+    private final HashMap<NNLayer, NNLayer> backwardLinkIndex = new HashMap<>();
 
     public PipelineNetwork() {
         this(1);
@@ -24,12 +24,12 @@ public class PipelineNetwork extends DAGNetwork {
 
     @SafeVarargs
     @Override
-    public final DAGNode add(final NNLayer<?> nextHead, final DAGNode... head) {
+    public final DAGNode add(final NNLayer nextHead, final DAGNode... head) {
         DAGNode node = super.add(nextHead, head);
         assert Arrays.stream(head).allMatch(x->x != null);
         if(head.length>0){
             // XXX: Prev/next linking only tracks first input node
-            final NNLayer<?> prevHead = getLayer(head[0]);
+            final NNLayer prevHead = getLayer(head[0]);
             this.backwardLinkIndex.put(nextHead, prevHead);
             this.forwardLinkIndex.put(prevHead, nextHead);
         }
@@ -38,7 +38,7 @@ public class PipelineNetwork extends DAGNetwork {
         return node;
     }
 
-    public DAGNode add(NNLayer<?> nextHead) {
+    public DAGNode add(NNLayer nextHead) {
         DAGNode head = getHead();
         if(null == head) return add(nextHead, getInput(0));
         return add(nextHead, head);

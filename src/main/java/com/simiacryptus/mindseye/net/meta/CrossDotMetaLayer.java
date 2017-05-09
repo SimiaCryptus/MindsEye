@@ -12,7 +12,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
 @SuppressWarnings("serial")
-public class CrossDotMetaLayer extends NNLayer<CrossDotMetaLayer> {
+public class CrossDotMetaLayer extends NNLayer {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);

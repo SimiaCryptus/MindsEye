@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public final class InnerNode extends LazyResult {
-  public final NNLayer<?> layer;
+  public final NNLayer layer;
   private DAGNetwork dagNetwork;
   @SuppressWarnings("unused")
   public final String[] createdBy = Util.currentStack();
@@ -22,7 +22,7 @@ public final class InnerNode extends LazyResult {
   }
 
     @SafeVarargs
-  InnerNode(DAGNetwork dagNetwork, final NNLayer<?> id, final DAGNode... inputNodes) {
+  InnerNode(DAGNetwork dagNetwork, final NNLayer id, final DAGNode... inputNodes) {
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
     this.id = id.getId();
@@ -58,11 +58,11 @@ public final class InnerNode extends LazyResult {
   }
 
   @Override
-  public NNLayer<?> getLayer() {
+  public NNLayer getLayer() {
     return layer;
   }
 
-  public DAGNode add(NNLayer<?> nextHead) {
+  public DAGNode add(NNLayer nextHead) {
     return dagNetwork.add(nextHead, InnerNode.this);
   }
 }

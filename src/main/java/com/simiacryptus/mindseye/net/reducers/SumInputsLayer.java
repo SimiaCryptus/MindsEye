@@ -11,7 +11,7 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class SumInputsLayer extends NNLayer<SumInputsLayer> {
+public class SumInputsLayer extends NNLayer {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumInputsLayer.class);

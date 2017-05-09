@@ -11,14 +11,14 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
 @SuppressWarnings("serial")
-public final class WeightExtractor extends NNLayer<WeightExtractor> {
+public final class WeightExtractor extends NNLayer {
 
   static final Logger log = LoggerFactory.getLogger(WeightExtractor.class);
 
-  private final NNLayer<?> inner;
+  private final NNLayer inner;
   private final int index;
 
-  public WeightExtractor(final int index, final NNLayer<?> inner) {
+  public WeightExtractor(final int index, final NNLayer inner) {
     this.inner = inner;
     this.index = index;
   }

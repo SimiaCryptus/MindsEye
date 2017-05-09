@@ -16,14 +16,14 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
     public final DAGNode sumFitnessLayer;
     public final DAGNode sparsityThrottleLayer;
 
-    public SparseAutoencoderTrainer(final NNLayer<?> encoder, final NNLayer<?> decoder) {
+    public SparseAutoencoderTrainer(final NNLayer encoder, final NNLayer decoder) {
         super(1);
         this.encoder = add(encoder, getInput(0));
         this.decoder = add(decoder, this.encoder);
+        this.loss = add(new MeanSqLossLayer(), this.decoder, getInput(0));
         this.sparsity = add(new Sparse01MetaLayer(), this.encoder);
         this.sumSparsityLayer = add(new SumReducerLayer(), this.sparsity);
-        this.sparsityThrottleLayer = add(new LinearActivationLayer().setWeight(0.5), this.sparsity);
-        this.loss = add(new MeanSqLossLayer(), this.decoder, getInput(0));
+        this.sparsityThrottleLayer = add(new LinearActivationLayer().setWeight(0.5), this.sumSparsityLayer);
         this.sumFitnessLayer = add(new SumReducerLayer(), this.sparsityThrottleLayer, this.loss);
     }
 

@@ -19,7 +19,7 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class SumSubsampleLayer extends NNLayer<SumSubsampleLayer> {
+public class SumSubsampleLayer extends NNLayer {
 
   public static final class IndexMapKey {
     int[] kernel;

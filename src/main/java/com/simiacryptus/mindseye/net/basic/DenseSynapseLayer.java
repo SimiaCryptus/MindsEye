@@ -15,7 +15,7 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class DenseSynapseLayer extends NNLayer<DenseSynapseLayer> {
+public class DenseSynapseLayer extends NNLayer {
 
   private final class Result extends NNResult {
     private final NNResult inObj;

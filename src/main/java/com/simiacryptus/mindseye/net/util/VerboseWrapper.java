@@ -9,14 +9,14 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
 @SuppressWarnings("serial")
-public final class VerboseWrapper extends NNLayer<VerboseWrapper> {
+public final class VerboseWrapper extends NNLayer {
 
   static final Logger log = LoggerFactory.getLogger(VerboseWrapper.class);
 
-  public final NNLayer<?> inner;
+  public final NNLayer inner;
   public final String label;
 
-  public VerboseWrapper(final String label, final NNLayer<?> inner) {
+  public VerboseWrapper(final String label, final NNLayer inner) {
     this.inner = inner;
     this.label = label;
   }

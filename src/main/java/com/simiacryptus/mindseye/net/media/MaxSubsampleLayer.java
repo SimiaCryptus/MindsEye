@@ -17,7 +17,7 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class MaxSubsampleLayer extends NNLayer<MaxSubsampleLayer> {
+public class MaxSubsampleLayer extends NNLayer {
   public static class CalcRegionsParameter {
     public int[] inputDims;
     public int[] kernelDims;

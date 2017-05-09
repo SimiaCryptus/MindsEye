@@ -14,7 +14,7 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class BiasLayer extends NNLayer<BiasLayer> {
+public class BiasLayer extends NNLayer {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
@@ -80,7 +80,7 @@ public class BiasLayer extends NNLayer<BiasLayer> {
     return json;
   }
 
-  public NNLayer<?> set(final double[] ds) {
+  public NNLayer set(final double[] ds) {
     for (int i = 0; i < ds.length; i++) {
       this.bias[i] = ds[i];
     }

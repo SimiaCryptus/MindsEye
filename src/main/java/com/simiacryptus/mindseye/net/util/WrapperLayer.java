@@ -6,14 +6,14 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class WrapperLayer extends NNLayer<WrapperLayer> {
+public class WrapperLayer extends NNLayer {
   /**
    * 
    */
   private static final long serialVersionUID = 6284058717982209085L;
-  private NNLayer<?> inner;
+  private NNLayer inner;
 
-  public WrapperLayer(final NNLayer<?> inner) {
+  public WrapperLayer(final NNLayer inner) {
     super();
     setInner(inner);
   }
@@ -24,11 +24,11 @@ public class WrapperLayer extends NNLayer<WrapperLayer> {
   }
 
   @Override
-  public List<NNLayer<?>> getChildren() {
+  public List<NNLayer> getChildren() {
     return super.getChildren();
   }
 
-  public final NNLayer<?> getInner() {
+  public final NNLayer getInner() {
     return this.inner;
   }
 
@@ -37,7 +37,7 @@ public class WrapperLayer extends NNLayer<WrapperLayer> {
     return this.inner.getJson();
   }
 
-  public final void setInner(final NNLayer<?> inner) {
+  public final void setInner(final NNLayer inner) {
     this.inner = inner;
   }
 

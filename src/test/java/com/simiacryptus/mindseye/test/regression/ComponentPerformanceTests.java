@@ -28,7 +28,7 @@ public class ComponentPerformanceTests {
 
   private static final Logger log = LoggerFactory.getLogger(ComponentPerformanceTests.class);
 
-  public static int test(final NNLayer<?> component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
+  public static int test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
     long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60);
     int iterations = 0;
     while(timeout > System.currentTimeMillis()) {
@@ -45,7 +45,7 @@ public class ComponentPerformanceTests {
   public void testBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
+    final NNLayer component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -53,7 +53,7 @@ public class ComponentPerformanceTests {
   public void testDenseSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -61,7 +61,7 @@ public class ComponentPerformanceTests {
   public void testToeplitzSynapseLayerJBLAS1() throws Throwable {
     final Tensor inputPrototype = new Tensor(3,3).fill(() -> Util.R.get().nextGaussian());
     final Tensor outputPrototype = new Tensor(3,3);
-    final NNLayer<?> component = new ToeplitzSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ToeplitzSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -69,7 +69,7 @@ public class ComponentPerformanceTests {
   public void testToeplitzSynapseLayerJBLAS2() throws Throwable {
     final Tensor inputPrototype = new Tensor(3,3).fill(() -> Util.R.get().nextGaussian());
     final Tensor outputPrototype = new Tensor(3,3,2,3);
-    final NNLayer<?> component = new ToeplitzSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ToeplitzSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -77,7 +77,7 @@ public class ComponentPerformanceTests {
   public void testDenseSynapseLayerJBLAS1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new DenseSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new DenseSynapseLayerJBLAS(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -85,7 +85,7 @@ public class ComponentPerformanceTests {
   public void testDenseSynapseLayerGPU1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new DenseSynapseLayerGPU(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new DenseSynapseLayerGPU(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -93,7 +93,7 @@ public class ComponentPerformanceTests {
   public void testDenseSynapseLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new DenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -101,7 +101,7 @@ public class ComponentPerformanceTests {
   public void testMaxSubsampleLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new MaxSubsampleLayer(2, 2, 1);
+    final NNLayer component = new MaxSubsampleLayer(2, 2, 1);
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -110,7 +110,7 @@ public class ComponentPerformanceTests {
     final Tensor outputPrototype = new Tensor(1);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new ProductLayer();
+    final NNLayer component = new ProductLayer();
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
 
@@ -118,7 +118,7 @@ public class ComponentPerformanceTests {
   public void testSigmoidLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new SigmoidActivationLayer();
+    final NNLayer component = new SigmoidActivationLayer();
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -126,7 +126,7 @@ public class ComponentPerformanceTests {
   public void testSoftmaxLayer() throws Throwable {
     final Tensor inputPrototype = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor outputPrototype = inputPrototype.copy();
-    final NNLayer<?> component = new SoftmaxActivationLayer();
+    final NNLayer component = new SoftmaxActivationLayer();
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -134,7 +134,7 @@ public class ComponentPerformanceTests {
   public void testSqActivationLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new SqActivationLayer();
+    final NNLayer component = new SqActivationLayer();
     test(component, outputPrototype, inputPrototype);
   }
 
@@ -143,7 +143,7 @@ public class ComponentPerformanceTests {
     final Tensor outputPrototype = new Tensor(1);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new MeanSqLossLayer();
+    final NNLayer component = new MeanSqLossLayer();
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
 
@@ -152,7 +152,7 @@ public class ComponentPerformanceTests {
     final Tensor outputPrototype = new Tensor(1);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new SumInputsLayer();
+    final NNLayer component = new SumInputsLayer();
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
 
@@ -161,7 +161,7 @@ public class ComponentPerformanceTests {
     final Tensor outputPrototype = new Tensor(1);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new SumReducerLayer();
+    final NNLayer component = new SumReducerLayer();
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
 

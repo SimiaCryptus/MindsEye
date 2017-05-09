@@ -19,14 +19,14 @@ import java.util.stream.Stream;
  *
  * @author Andrew Charneski
  */
-public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode {
+public abstract class DAGNetwork extends NNLayer implements DAGNode {
 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
 
   private static final long serialVersionUID = -5683282519002886564L;
 
-  final LinkedHashMap<UUID, NNLayer<?>> byId = new LinkedHashMap<>();
+  final LinkedHashMap<UUID, NNLayer> byId = new LinkedHashMap<>();
   final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
   public final LinkedHashMap<UUID, InputNode> inputNodes;
   public final List<UUID> inputHandles;
@@ -66,9 +66,9 @@ public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode 
   }
 
   @Override
-  public NNLayer<DAGNetwork> evolve() {
+  public NNLayer evolve() {
     if (0 == this.byId.values().stream().filter(l -> {
-      final NNLayer<?> evolve = l.evolve();
+      final NNLayer evolve = l.evolve();
       if (null != evolve && evolve != l)
         throw new RuntimeException("Not implemented: Substitution via evolution in DAGNetwork");
       return null != evolve;
@@ -81,15 +81,15 @@ public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode 
   @Override
   public DAGNetwork freeze() {
     this.byId.values().forEach(l -> l.freeze());
-    return super.freeze();
+    return (DAGNetwork) super.freeze();
   }
 
-  public NNLayer<?> get(final int i) {
+  public NNLayer get(final int i) {
     return this.byId.get(i);
   }
 
   @Override
-  public NNLayer<?> getChild(final UUID id) {
+  public NNLayer getChild(final UUID id) {
     if (this.id.equals(id))
       return this;
     if (this.byId.containsKey(id))
@@ -98,7 +98,7 @@ public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode 
   }
 
   @Override
-  public List<NNLayer<?>> getChildren() {
+  public List<NNLayer> getChildren() {
     return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
 
@@ -117,7 +117,7 @@ public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode 
     return json;
   }
 
-  public NNLayer<?> getLayer(final DAGNode head) {
+  public NNLayer getLayer(final DAGNode head) {
     if (head instanceof InnerNode)
       return DAGNetwork.this.byId.get(((InnerNode) head).id);
     else
@@ -145,7 +145,7 @@ public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode 
       return getHead().get(batchExeContext(data));
     }
 
-  public DAGNode add(final NNLayer<?> nextHead, final DAGNode... head) {
+  public DAGNode add(final NNLayer nextHead, final DAGNode... head) {
         this.byId.put(nextHead.getId(), nextHead);
         assert null != getInput();
         final InnerNode node = new InnerNode(this, nextHead, head);
@@ -160,7 +160,7 @@ public abstract class DAGNetwork extends NNLayer<DAGNetwork> implements DAGNode 
   }
 
   @Override
-  public NNLayer<?> getLayer() {
+  public NNLayer getLayer() {
     return this;
   }
 

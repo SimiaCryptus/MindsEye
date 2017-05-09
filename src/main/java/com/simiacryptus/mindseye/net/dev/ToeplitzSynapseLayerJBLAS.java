@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
-public class ToeplitzSynapseLayerJBLAS extends NNLayer<ToeplitzSynapseLayerJBLAS> {
+public class ToeplitzSynapseLayerJBLAS extends NNLayer {
 
 
 

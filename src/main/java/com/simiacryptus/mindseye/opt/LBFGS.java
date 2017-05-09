@@ -12,6 +12,7 @@ import static com.simiacryptus.mindseye.opt.ArrayArrayUtil.add;
 import static com.simiacryptus.mindseye.opt.ArrayArrayUtil.dot;
 
 public class LBFGS implements OrientationStrategy {
+
     public final ArrayList<Trainable.PointSample> history = new ArrayList<>();
     private int minHistory = 3;
 

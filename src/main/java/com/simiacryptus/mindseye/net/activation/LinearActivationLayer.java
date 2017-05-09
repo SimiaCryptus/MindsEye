@@ -14,7 +14,7 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
-public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
+public class LinearActivationLayer extends NNLayer {
   private final class Result extends NNResult {
     private final NNResult inObj;
 
@@ -85,7 +85,7 @@ public class LinearActivationLayer extends NNLayer<LinearActivationLayer> {
     Tensor[] outputA = java.util.stream.IntStream.range(0, itemCnt).mapToObj(dataIndex->{
       final Tensor input = inObj[0].data[dataIndex];
       final double a = this.weights.get(0);
-      final Tensor output = input.scale(a);
+      final Tensor output = input.multiply(a);
       return output;
     }).toArray(i->new Tensor[i]);
     return new Result(outputA, inObj[0]);

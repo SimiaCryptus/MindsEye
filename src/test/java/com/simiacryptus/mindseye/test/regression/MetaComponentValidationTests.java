@@ -23,7 +23,7 @@ public class MetaComponentValidationTests {
 
   private static final Logger log = LoggerFactory.getLogger(MetaComponentValidationTests.class);
 
-  public static Tensor[][] getFeedbackGradient(final NNLayer<?> component, final int inputIndex, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
+  public static Tensor[][] getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
     final Tensor[][] gradients = java.util.stream.IntStream.range(0, inputPrototype[inputIndex].length)
         .mapToObj(i->java.util.stream.IntStream.range(0, outputPrototype.length)
             .mapToObj(j->new Tensor(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
@@ -56,7 +56,7 @@ public class MetaComponentValidationTests {
     return gradients;
   }
 
-  public static Tensor[][] measureFeedbackGradient(final NNLayer<?> component, final int inputIndex, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
+  public static Tensor[][] measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
     final Tensor[][] gradients = java.util.stream.IntStream.range(0, inputPrototype[inputIndex].length)
         .mapToObj(i->java.util.stream.IntStream.range(0, outputPrototype.length)
             .mapToObj(j->new Tensor(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
@@ -80,7 +80,7 @@ public class MetaComponentValidationTests {
     return gradients;
   }
 
-  private static Tensor[] getLearningGradient(final NNLayer<?> component, final int layerNum, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
+  private static Tensor[] getLearningGradient(final NNLayer component, final int layerNum, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
     final double[] stateArray = component.state().get(layerNum);
     final int stateLen = stateArray.length;
     final Tensor[] gradient = java.util.stream.IntStream.range(0, outputPrototype.length).mapToObj(i->new Tensor(stateLen, outputPrototype[0].dim())).toArray(i->new Tensor[i]);
@@ -100,12 +100,12 @@ public class MetaComponentValidationTests {
     return gradient;
   }
 
-  public static Tensor[] measureLearningGradient(final NNLayer<?> component, final int layerNum, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
+  public static Tensor[] measureLearningGradient(final NNLayer component, final int layerNum, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final Tensor[] gradient = java.util.stream.IntStream.range(0, outputPrototype.length).mapToObj(i->new Tensor(stateLen, outputPrototype[0].dim())).toArray(i->new Tensor[i]);
     NNResult baseEval = component.eval(inputPrototype);
     for (int stateIdx = 0; stateIdx < stateLen; stateIdx++) {
-      final NNLayer<?> copy = KryoUtil.kryo().copy(component);
+      final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[stateIdx] += deltaFactor;
       NNResult eval = copy.eval(inputPrototype);
       for (int outputItem = 0; outputItem < outputPrototype.length; outputItem++) {
@@ -118,11 +118,11 @@ public class MetaComponentValidationTests {
     return gradient;
   }
 
-  public static void test(final NNLayer<?> component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
+  public static void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
     test(5, component, outputPrototype, inputPrototype);
   }
 
-  public static void test(int n, final NNLayer<?> component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
+  public static void test(int n, final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
     test(component, replicate(outputPrototype, n), java.util.Arrays.stream(inputPrototype).map(x->replicate(x, n)).toArray(i->new Tensor[i][]));
   }
 
@@ -130,7 +130,7 @@ public class MetaComponentValidationTests {
     return java.util.stream.IntStream.range(0, n).mapToObj(i->outputPrototype).toArray(i->new Tensor[i]);
   }
 
-  public static void test(final NNLayer<?> component, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
+  public static void test(final NNLayer component, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
     for (int i = 0; i < inputPrototype.length; i++) {
       testFeedback(component, i, outputPrototype, inputPrototype);
     }
@@ -140,7 +140,7 @@ public class MetaComponentValidationTests {
     }
   }
 
-  public static void testFeedback(final NNLayer<?> component, final int i, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
+  public static void testFeedback(final NNLayer component, final int i, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
     final Tensor[][] measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
     final Tensor[][] implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
     for (int j = 0; j < measuredGradient.length; j++) {
@@ -161,7 +161,7 @@ public class MetaComponentValidationTests {
     }
   }
 
-  public static void testLearning(final NNLayer<?> component, final int i, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
+  public static void testLearning(final NNLayer component, final int i, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
     final Tensor[] measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
     final Tensor[] implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
     for (int k = 0; k < measuredGradient.length; k++) {
@@ -184,13 +184,13 @@ public class MetaComponentValidationTests {
   public void testBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer<?> component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
+    final NNLayer component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
 
   @org.junit.Test
   public void testSparse01MetaLayer() throws Throwable {
-    final NNLayer<?> component = new Sparse01MetaLayer();
+    final NNLayer component = new Sparse01MetaLayer();
     Tensor[][] inputPrototype = java.util.Arrays.stream(new Tensor[][]{replicate(new Tensor(3), 5)})
         .map(x->java.util.Arrays.stream(x).map(y->y.map(z -> Util.R.get().nextDouble())).toArray(i->new Tensor[i])).toArray(i->new Tensor[i][]);
     Tensor[] outputPrototype = replicate(new Tensor(3), 1);
@@ -199,7 +199,7 @@ public class MetaComponentValidationTests {
 
   @org.junit.Test
   public void testCrossDotMetaLayer() throws Throwable {
-    final NNLayer<?> component = new CrossDotMetaLayer();
+    final NNLayer component = new CrossDotMetaLayer();
     Tensor[][] inputPrototype = java.util.Arrays.stream(new Tensor[][]{replicate(new Tensor(3), 5)})
         .map(x->java.util.Arrays.stream(x).map(y->y.map(z -> Util.R.get().nextDouble())).toArray(i->new Tensor[i])).toArray(i->new Tensor[i][]);
     Tensor[] outputPrototype = replicate(new Tensor(3,3), 1);
@@ -208,7 +208,7 @@ public class MetaComponentValidationTests {
 
   @org.junit.Test
   public void testAvgMetaLayer() throws Throwable {
-    final NNLayer<?> component = new AvgMetaLayer();
+    final NNLayer component = new AvgMetaLayer();
     Tensor[][] inputPrototype = java.util.Arrays.stream(new Tensor[][]{replicate(new Tensor(3), 5)})
         .map(x->java.util.Arrays.stream(x).map(y->y.map(z -> Util.R.get().nextDouble())).toArray(i->new Tensor[i])).toArray(i->new Tensor[i][]);
     Tensor[] outputPrototype = replicate(new Tensor(3), 1);

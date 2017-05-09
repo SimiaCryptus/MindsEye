@@ -21,7 +21,7 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 import com.simiacryptus.mindseye.opencl.ConvolutionController;
 
-public class ConvolutionSynapseLayer extends NNLayer<ConvolutionSynapseLayer> {
+public class ConvolutionSynapseLayer extends NNLayer {
 
   public static final class IndexMapKey {
     int[] input;
