@@ -25,7 +25,7 @@ public class IterativeTrainer {
     private Duration timeout;
     private double terminateThreshold;
     private OrientationStrategy orientation = new LBFGS();
-    private ScalingStrategy scaling = new ArmijoWolfeConditions();
+    private LineSearchStrategy scaling = new ArmijoWolfeConditions();
     private TrainingMonitor monitor = new TrainingMonitor();
     private int currentIteration = 0;
 
@@ -41,8 +41,8 @@ public class IterativeTrainer {
         while(timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
             System.gc();
             currentPoint = measure();
-            DeltaSet direction = orientation.orient(currentPoint, monitor);
-            currentPoint = scaling.step(subject, direction, currentPoint, monitor);
+            LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
+            currentPoint = scaling.step(direction, monitor);
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration, currentPoint.value));
             monitor.onStepComplete(new Step(currentPoint, currentIteration++));
         }
@@ -97,11 +97,11 @@ public class IterativeTrainer {
         return this;
     }
 
-    public ScalingStrategy getScaling() {
+    public LineSearchStrategy getScaling() {
         return scaling;
     }
 
-    public IterativeTrainer setScaling(ScalingStrategy scaling) {
+    public IterativeTrainer setScaling(LineSearchStrategy scaling) {
         this.scaling = scaling;
         return this;
     }

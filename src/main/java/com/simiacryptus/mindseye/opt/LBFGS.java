@@ -17,18 +17,22 @@ public class LBFGS implements OrientationStrategy {
     private int minHistory = 3;
 
     @Override
-    public DeltaSet orient(Trainable.PointSample measurement, TrainingMonitor monitor) {
-        DeltaSet startGradient = measurement.delta;
+    public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+        DeltaSet direction = _orient(subject, measurement, monitor);
+        return new SimpleLineSearchCursor(measurement, direction, subject);
+    }
+
+    public DeltaSet _orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+        List<DeltaBuffer> defaultValue = measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList());
         if (!history.stream().allMatch(x -> x.delta.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d))))) {
             monitor.log("Corrupt history");
-            return startGradient;
+            return DeltaSet.fromList(defaultValue);
         }
         if (!history.stream().allMatch(x -> x.weights.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d))))) {
             monitor.log("Corrupt history");
-            return startGradient;
+            return DeltaSet.fromList(defaultValue);
         }
         // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce
-        List<DeltaBuffer> defaultValue = startGradient.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList());
         List<DeltaBuffer> descent = defaultValue;
         if (history.size() > minHistory) {
             List<double[]> p = descent.stream().map(x -> x.copyDelta()).collect(Collectors.toList());
@@ -41,7 +45,7 @@ public class LBFGS implements OrientationStrategy {
                 if (0 == denominator) {
                     history.remove(0);
                     monitor.log("Orientation vanished. Poping history element from " + (history.size()-1));
-                    return orient(measurement, monitor);
+                    return _orient(subject, measurement, monitor);
                 }
                 alphas[i] = dot(si, p) / denominator;
                 p = ArrayArrayUtil.minus(p, ArrayArrayUtil.multiply(yi, alphas[i]));
@@ -67,7 +71,7 @@ public class LBFGS implements OrientationStrategy {
         if (accept(measurement.delta.vector(), descent)) {
             history.remove(0);
             monitor.log("Orientation rejected. Poping history element from " + (history.size()-1));
-            return orient(measurement, monitor);
+            return _orient(subject, measurement, monitor);
         }
         return DeltaSet.fromList(descent);
     }

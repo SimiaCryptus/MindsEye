@@ -34,15 +34,6 @@ public class DeltaSet {
     return map(x -> x.scale(f));
   }
 
-  @Override
-  public String toString() {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("DeltaBuffer [");
-    builder.append(vector());
-    builder.append("]");
-    return builder.toString();
-  }
-
   public List<DeltaBuffer> vector() {
     return this.map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId())).collect(Collectors.toList());
   }
@@ -88,5 +79,9 @@ public class DeltaSet {
       }
     });
     return returnValue;
+  }
+
+  public DeltaSet copy() {
+    return map(x->x.copy());
   }
 }

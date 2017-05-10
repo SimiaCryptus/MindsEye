@@ -64,7 +64,7 @@ public class DeltaBuffer {
     return this.target.length;
   }
 
-  protected DeltaBuffer map(final java.util.function.DoubleUnaryOperator mapper) {
+  public DeltaBuffer map(final java.util.function.DoubleUnaryOperator mapper) {
     return new DeltaBuffer(this.target, Arrays.stream(this.delta).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
   }
 
@@ -80,10 +80,6 @@ public class DeltaBuffer {
     builder.append(this.layer.getClass().getSimpleName());
     builder.append("/");
     builder.append(this.layer.getId());
-    builder.append(" ");
-    builder.append(Arrays.toString(this.delta));
-    builder.append(" -> ");
-    builder.append(this.layer.state().stream().map(x -> Arrays.toString((double[]) x)).reduce((a, b) -> a + "," + b).get());
     return builder.toString();
   }
 
@@ -101,6 +97,13 @@ public class DeltaBuffer {
     }
   }
 
+  public synchronized final void overwrite() {
+    final int dim = length();
+    for (int i = 0; i < dim; i++) {
+      this.target[i] = this.delta[i];
+    }
+  }
+
   public double dot(DeltaBuffer right) {
     assert(this.target == right.target);
     assert(this.delta.length == right.delta.length);
@@ -115,4 +118,7 @@ public class DeltaBuffer {
     return Arrays.stream(this.delta).map(x->x*x).sum();
   }
 
+  public DeltaBuffer copy() {
+    return new DeltaBuffer(target, copyDelta(), layer);
+  }
 }
