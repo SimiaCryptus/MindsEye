@@ -5,8 +5,8 @@ import com.simiacryptus.mindseye.net.dag.DAGNode;
 public class SimpleLossNetwork extends SupervisedNetwork {
 
 
-    private final DAGNode studentNode;
-    private final DAGNode lossNode;
+    public final DAGNode studentNode;
+    public final DAGNode lossNode;
 
     public SimpleLossNetwork(final NNLayer student, final NNLayer loss) {
         super(2);

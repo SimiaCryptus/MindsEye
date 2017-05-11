@@ -124,7 +124,7 @@ public class DenseSynapseLayerJBLAS extends NNLayer {
     int outs = Tensor.dim(outputDims);
     this.weights = new Tensor(inputs, outs);
     setWeights(() -> {
-      double ratio = Math.sqrt(6. / (inputs + outs));
+      double ratio = Math.sqrt(6. / (inputs + outs + 1));
       double fate = Util.R.get().nextDouble();
       double v = (1 - 2 * fate) * ratio;
       return v;

@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 public class ArmijoWolfeConditions implements LineSearchStrategy {
 
-    private double c1 = 10e-7;
+    private double c1 = 1e-6;
     private double c2 = 0.9;
     private double alpha = 1.0;
     private double minAlpha = 1e-20;

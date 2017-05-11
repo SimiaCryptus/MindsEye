@@ -10,6 +10,16 @@ import java.util.concurrent.TimeUnit;
 
 public class IterativeTrainer {
 
+
+    public int getMaxIterations() {
+        return maxIterations;
+    }
+
+    public IterativeTrainer setMaxIterations(int maxIterations) {
+        this.maxIterations = maxIterations;
+        return this;
+    }
+
     public static class Step {
         public final Trainable.PointSample point;
         public final long time = System.currentTimeMillis();
@@ -28,6 +38,7 @@ public class IterativeTrainer {
     private LineSearchStrategy scaling = new ArmijoWolfeConditions();
     private TrainingMonitor monitor = new TrainingMonitor();
     private int currentIteration = 0;
+    private int maxIterations = Integer.MAX_VALUE;
 
     public IterativeTrainer(Trainable subject) {
         this.subject = subject;
@@ -38,13 +49,13 @@ public class IterativeTrainer {
     public double run() {
         long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
         Trainable.PointSample currentPoint = measure();
-        while(timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
+        while(timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && ++currentIteration < maxIterations) {
             System.gc();
             currentPoint = measure();
             LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
             currentPoint = scaling.step(direction, monitor);
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration, currentPoint.value));
-            monitor.onStepComplete(new Step(currentPoint, currentIteration++));
+            monitor.onStepComplete(new Step(currentPoint, currentIteration));
         }
         return null==currentPoint?Double.NaN:currentPoint.value;
     }
