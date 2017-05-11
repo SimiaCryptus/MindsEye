@@ -1,6 +1,6 @@
 # MindsEye - Java 8 Neural Networks
 
-This project was designed as a fully-featured neural network library developed using Java 8. Fast numeric calculations are performed using the JBLAS native library and Aparapi OpenCL kernels.
+This project was designed as a fully-featured neural network library developed using Java 8. Fast numeric calculations are performed using the JBLAS native library and Aparapi OpenCL kernels. In particular, the optimization strategy and component library are designed to be highly customizable and extendable.
 
 **Project Website**
 https://simiacryptus.github.io/MindsEye/
@@ -12,8 +12,9 @@ https://simiacryptus.github.io/MindsEye/apidocs/index.html
 http://mvnrepository.com/artifact/com.simiacryptus/mindseye
 
 **Blog Articles** 
-1. http://blog.simiacryptus.com/2015/10/re-anatomy-of-my-pet-brain.html 
-2. http://blog.simiacryptus.com/2015/07/fun-with-deconvolutions-and.html
+1. http://blog.simiacryptus.com/2017/05/a-unified-design-pattern-for-continuous.html
+2. http://blog.simiacryptus.com/2015/10/re-anatomy-of-my-pet-brain.html 
+3. http://blog.simiacryptus.com/2015/07/fun-with-deconvolutions-and.html
 
 
 ## Basic Use Cases
@@ -40,6 +41,5 @@ http://mvnrepository.com/artifact/com.simiacryptus/mindseye
  
  **Training Algorithms**
  1. Gradient Descent
- 1. Dynamic Rate GD
- 1. Iterative Line Search
  1. L-BFGS
+ 1. OWL-QN
