@@ -1,19 +1,32 @@
+/*
+ * Copyright (c) 2017 by Andrew Charneski.
+ *
+ * The author licenses this file to you under the
+ * Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance
+ * with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.simiacryptus.mindseye.opencl;
 
+import com.aparapi.Kernel;
+import com.aparapi.device.Device;
 import com.simiacryptus.util.lang.ResourcePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class ConvolveKernel extends com.aparapi.Kernel {
+public final class ConvolveKernel extends Kernel {
   static final Logger log = LoggerFactory.getLogger(ConvolveKernel.class);
-
-  private static final boolean DEBUG = false;
-  double[] input;
-  int[] inputSize;
-  int[] kernelSize;
-  double[] output;
-  int[] outputSize;
-  double[] weights;
   static final ResourcePool<? extends ConvolveKernel> POOL = new ResourcePool<ConvolveKernel>(16) {
     @Override
     public ConvolveKernel create() {
@@ -22,11 +35,18 @@ public final class ConvolveKernel extends com.aparapi.Kernel {
       return convolveTask;
     }
   };
-
+  private static final boolean DEBUG = false;
+  double[] input;
+  int[] inputSize;
+  int[] kernelSize;
+  double[] output;
+  int[] outputSize;
+  double[] weights;
+  
   public ConvolveKernel() {
   }
-
-  public void exe(final com.aparapi.device.Device device) {
+  
+  public void exe(final Device device) {
     assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weights.length;
@@ -38,20 +58,20 @@ public final class ConvolveKernel extends com.aparapi.Kernel {
       execute(device.createRange(this.outputSize[0] * this.outputSize[1] * this.outputSize[2]));
     }
   }
-
+  
   @Override
   public void run() {
     final int i = getGlobalId();
     this.output[i] = run(i);
   }
-
+  
   public double run(final int o) {
     final int os0 = this.outputSize[0];
     final int os1 = os0 * this.outputSize[1];
     final int o3 = o / os1;
     final int o2 = o % os1 / os0;
     final int o1 = o % os0;
-
+    
     double accum = 0;
     for (int k = 0; k < this.weights.length; k++) {
       if (0. == this.weights[k]) {
@@ -62,7 +82,7 @@ public final class ConvolveKernel extends com.aparapi.Kernel {
       final int k3 = k / ks1;
       final int k2 = k % ks1 / ks0;
       final int k1 = k % ks0;
-
+      
       final int i3 = k3 - this.inputSize[2] * o3;
       if (0 > i3 || i3 >= this.inputSize[2]) {
         continue;
@@ -79,7 +99,7 @@ public final class ConvolveKernel extends com.aparapi.Kernel {
       if (0. == this.input[i]) {
         continue;
       }
-
+      
       accum += this.input[i] * this.weights[k];
       if (DEBUG) {
         log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s)[%s,%s,%s]", o, accum, i, this.input[i], k, this.weights[k], k1, k2, k3));

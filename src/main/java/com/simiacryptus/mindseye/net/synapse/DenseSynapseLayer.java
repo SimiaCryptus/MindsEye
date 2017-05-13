@@ -1,123 +1,59 @@
+/*
+ * Copyright (c) 2017 by Andrew Charneski.
+ *
+ * The author licenses this file to you under the
+ * Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance
+ * with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.simiacryptus.mindseye.net.synapse;
+
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.net.DeltaBuffer;
+import com.simiacryptus.mindseye.net.DeltaSet;
+import com.simiacryptus.mindseye.net.NNLayer;
+import com.simiacryptus.mindseye.net.NNResult;
+import com.simiacryptus.util.Util;
+import com.simiacryptus.util.ml.Coordinate;
+import com.simiacryptus.util.ml.Tensor;
+import org.jblas.DoubleMatrix;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
-
-import com.simiacryptus.mindseye.net.DeltaBuffer;
-import com.simiacryptus.util.ml.Tensor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonObject;
-import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.mindseye.net.DeltaSet;
-import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.NNResult;
+import java.util.function.ToDoubleBiFunction;
+import java.util.function.ToDoubleFunction;
+import java.util.stream.IntStream;
 
 public class DenseSynapseLayer extends NNLayer {
-
-  private final class Result extends NNResult {
-    private final NNResult inObj;
-
-    private Result(final Tensor[] outputA, final NNResult inObj) {
-      super(outputA);
-      this.inObj = inObj;
-    }
-
-    private void backprop(final Tensor[] delta, final DeltaSet buffer) {
-      Tensor[] passbackA = java.util.stream.IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex->{
-        final double[] deltaData = delta[dataIndex].getData();
-        final Tensor r = DenseSynapseLayer.this.getWeights();
-        final Tensor passback = new Tensor(this.inObj.data[dataIndex].getDims());
-        multiplyT(r.getData(), deltaData, passback.getData());
-        return passback;
-      }).toArray(i->new Tensor[i]);
-      this.inObj.accumulate(buffer, passbackA);
-      Arrays.stream(passbackA).forEach(x -> {
-        try {
-          x.finalize();
-        } catch (Throwable throwable) {
-          throw new RuntimeException(throwable);
-        }
-      });
-    }
-
-    @Override
-    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
-      if (!isFrozen()) {
-        learn(delta, buffer);
-      }
-      if (this.inObj.isAlive()) {
-        backprop(delta, buffer);
-      }
-    }
-
-    @Override
-    public boolean isAlive() {
-      return this.inObj.isAlive() || !isFrozen();
-    }
-
-    private void learn(final Tensor[] delta, final DeltaSet buffer) {
-      DeltaBuffer deltaBuffer = buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.getWeights());
-
-      int threads = 4;
-      java.util.stream.IntStream.range(0, threads).parallel().forEach(thread -> {
-        final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), weights.dim());
-        java.util.stream.IntStream.range(0, inObj.data.length).filter(i -> thread == (i % threads)).forEach(dataIndex->{
-          final double[] deltaData = delta[dataIndex].getData();
-          final double[] inputData = this.inObj.data[dataIndex].getData();
-          crossMultiply(deltaData, inputData, weightDelta.getData());
-          deltaBuffer.accumulate(weightDelta.getData());
-        });
-        try {
-          weightDelta.finalize();
-        } catch (Throwable throwable) {
-          throw new RuntimeException(throwable);
-        }
-      });
-    }
-
-  }
-
+  
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
-
   private static final long serialVersionUID = 3538627887600182889L;
-
-  public static void crossMultiply(final double[] rows, final double[] cols, double[] matrix) {
-    int i = 0;
-    for (final double c : cols) {
-      for (final double r : rows) {
-        matrix[i++] = r * c;
-      }
-    }
-  }
-
-  public static void multiply(final double[] matrix, final double[] in, double[] out) {
-    org.jblas.DoubleMatrix matrixObj = new org.jblas.DoubleMatrix(out.length, in.length, matrix);
-    double[] r = matrixObj.mmul(new org.jblas.DoubleMatrix(in.length, 1, in)).data; 
-    for (int o = 0; o < out.length; o++) out[o] = r[o];
-  }
-
-  public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
-    org.jblas.DoubleMatrix matrixObj = new org.jblas.DoubleMatrix(in.length, out.length, matrix).transpose();
-    double[] r = matrixObj.mmul(new org.jblas.DoubleMatrix(in.length, 1, in)).data; 
-    for (int o = 0; o < out.length; o++) out[o] = r[o];
-  }
-
   public final int[] outputDims;
   public final int[] inputDims;
   public final Tensor weights;
-
+  
   protected DenseSynapseLayer() {
     super();
     this.outputDims = null;
     this.weights = null;
     this.inputDims = null;
   }
-
+  
   public DenseSynapseLayer(final int[] inputDims, final int[] outputDims) {
     final int inputs = Tensor.dim(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
@@ -131,67 +67,151 @@ public class DenseSynapseLayer extends NNLayer {
       return v;
     });
   }
-
+  
+  public static void crossMultiply(final double[] rows, final double[] cols, double[] matrix) {
+    int i = 0;
+    for (final double c : cols) {
+      for (final double r : rows) {
+        matrix[i++] = r * c;
+      }
+    }
+  }
+  
+  public static void multiply(final double[] matrix, final double[] in, double[] out) {
+    DoubleMatrix matrixObj = new DoubleMatrix(out.length, in.length, matrix);
+    double[] r = matrixObj.mmul(new DoubleMatrix(in.length, 1, in)).data;
+    for (int o = 0; o < out.length; o++) out[o] = r[o];
+  }
+  
+  public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
+    DoubleMatrix matrixObj = new DoubleMatrix(in.length, out.length, matrix).transpose();
+    double[] r = matrixObj.mmul(new DoubleMatrix(in.length, 1, in)).data;
+    for (int o = 0; o < out.length; o++) out[o] = r[o];
+  }
+  
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.getWeights().getData());
     return this;
   }
-
+  
   @Override
   public NNResult eval(final NNResult... inObj) {
-    Tensor[] outputA = java.util.stream.IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex->{
+    Tensor[] outputA = IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];
       return multiply2(this.getWeights().getData(), input.getData());
-    }).toArray(i->new Tensor[i]);
+    }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
   }
-
+  
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
     json.addProperty("weights", this.getWeights().toString());
     return json;
   }
-
+  
   private Tensor multiply2(final double[] wdata, final double[] indata) {
     final Tensor output = new Tensor(this.outputDims);
     multiply(wdata, indata, output.getData());
     return output;
   }
-
+  
   public DenseSynapseLayer setWeights(final double[] data) {
     this.weights.set(data);
     return this;
   }
-
-  public DenseSynapseLayer setWeights2(final java.util.function.ToDoubleBiFunction<Coordinate,Coordinate> f) {
-    new Tensor(inputDims).coordStream().parallel().forEach(in->{
-      new Tensor(outputDims).coordStream().parallel().forEach(out->{
+  
+  public DenseSynapseLayer setWeights2(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
+    new Tensor(inputDims).coordStream().parallel().forEach(in -> {
+      new Tensor(outputDims).coordStream().parallel().forEach(out -> {
         weights.set(new int[]{in.index, out.index}, f.applyAsDouble(in, out));
       });
     });
     return this;
   }
-
-  public DenseSynapseLayer setWeights(final java.util.function.ToDoubleFunction<Coordinate> f) {
-    weights.coordStream().parallel().forEach(c->{
+  
+  public DenseSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+    weights.coordStream().parallel().forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
     });
     return this;
   }
-
-  public DenseSynapseLayer setWeights(final DoubleSupplier f) {
-    Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
-    return this;
-  }
-
+  
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.getWeights().getData());
   }
-
+  
   public Tensor getWeights() {
     return weights;
   }
-
+  
+  public DenseSynapseLayer setWeights(final DoubleSupplier f) {
+    Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
+    return this;
+  }
+  
+  private final class Result extends NNResult {
+    private final NNResult inObj;
+    
+    private Result(final Tensor[] outputA, final NNResult inObj) {
+      super(outputA);
+      this.inObj = inObj;
+    }
+    
+    private void backprop(final Tensor[] delta, final DeltaSet buffer) {
+      Tensor[] passbackA = IntStream.range(0, inObj.data.length).parallel().mapToObj(dataIndex -> {
+        final double[] deltaData = delta[dataIndex].getData();
+        final Tensor r = DenseSynapseLayer.this.getWeights();
+        final Tensor passback = new Tensor(this.inObj.data[dataIndex].getDims());
+        multiplyT(r.getData(), deltaData, passback.getData());
+        return passback;
+      }).toArray(i -> new Tensor[i]);
+      this.inObj.accumulate(buffer, passbackA);
+      Arrays.stream(passbackA).forEach(x -> {
+        try {
+          x.finalize();
+        } catch (Throwable throwable) {
+          throw new RuntimeException(throwable);
+        }
+      });
+    }
+    
+    @Override
+    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
+      if (!isFrozen()) {
+        learn(delta, buffer);
+      }
+      if (this.inObj.isAlive()) {
+        backprop(delta, buffer);
+      }
+    }
+    
+    @Override
+    public boolean isAlive() {
+      return this.inObj.isAlive() || !isFrozen();
+    }
+    
+    private void learn(final Tensor[] delta, final DeltaSet buffer) {
+      DeltaBuffer deltaBuffer = buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.getWeights());
+      
+      int threads = 4;
+      IntStream.range(0, threads).parallel().forEach(thread -> {
+        final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), weights.dim());
+        IntStream.range(0, inObj.data.length).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
+          final double[] deltaData = delta[dataIndex].getData();
+          final double[] inputData = this.inObj.data[dataIndex].getData();
+          crossMultiply(deltaData, inputData, weightDelta.getData());
+          deltaBuffer.accumulate(weightDelta.getData());
+        });
+        try {
+          weightDelta.finalize();
+        } catch (Throwable throwable) {
+          throw new RuntimeException(throwable);
+        }
+      });
+    }
+    
+  }
+  
 }

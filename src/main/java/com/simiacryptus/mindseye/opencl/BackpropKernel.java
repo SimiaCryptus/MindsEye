@@ -1,12 +1,40 @@
+/*
+ * Copyright (c) 2017 by Andrew Charneski.
+ *
+ * The author licenses this file to you under the
+ * Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance
+ * with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.simiacryptus.mindseye.opencl;
 
+import com.aparapi.Kernel;
+import com.aparapi.device.Device;
 import com.simiacryptus.util.lang.ResourcePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class BackpropKernel extends com.aparapi.Kernel {
+public final class BackpropKernel extends Kernel {
   static final Logger log = LoggerFactory.getLogger(BackpropKernel.class);
-
+  static final ResourcePool<? extends BackpropKernel> POOL = new ResourcePool<BackpropKernel>(16) {
+    @Override
+    public BackpropKernel create() {
+      final BackpropKernel backpropTask = new BackpropKernel();
+      backpropTask.setExplicit(true);
+      return backpropTask;
+    }
+  };
   private static final boolean DEBUG = false;
   double[] input;
   int[] inputSize;
@@ -14,19 +42,11 @@ public final class BackpropKernel extends com.aparapi.Kernel {
   double[] output;
   int[] outputSize;
   double[] weights;
-  static final ResourcePool<? extends BackpropKernel> POOL = new ResourcePool<BackpropKernel>(16) {
-    @Override
-    public BackpropKernel create() {
-      final BackpropKernel backpropTask = new BackpropKernel();
-        backpropTask.setExplicit(true);
-      return backpropTask;
-    }
-  };
-
+  
   public BackpropKernel() {
   }
-
-  public void exe(final com.aparapi.device.Device device) {
+  
+  public void exe(final Device device) {
     assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weights.length;
@@ -38,20 +58,20 @@ public final class BackpropKernel extends com.aparapi.Kernel {
       execute(device.createRange(this.input.length));
     }
   }
-
+  
   @Override
   public void run() {
     final int i = getGlobalId();
     this.input[i] = run(i);
   }
-
+  
   public final double run(final int i) {
     final int is0 = this.inputSize[0];
     final int is1 = is0 * this.inputSize[1];
     final int i3 = i / is1;
     final int i2 = i % is1 / is0;
     final int i1 = i % is0;
-
+    
     double accum = 0;
     for (int k = 0; k < this.weights.length; k++) {
       if (0. == this.weights[k]) {
@@ -62,7 +82,7 @@ public final class BackpropKernel extends com.aparapi.Kernel {
       final int k3 = k / ks1;
       final int k2 = k % ks1 / ks0;
       final int k1 = k % ks0;
-
+      
       // i3 = k3 - inputSize[2] * o3;
       if (0 != (k3 - i3) % this.inputSize[2]) {
         continue;
@@ -83,7 +103,7 @@ public final class BackpropKernel extends com.aparapi.Kernel {
       if (0. == this.output[o]) {
         continue;
       }
-
+      
       accum += this.output[o] * this.weights[k];
       if (DEBUG) {
         log.debug(String.format("[%s](%s) += [%s](%s) * [%s](%s) [%s,%s,%s]", i, accum, o, this.output[o], k, this.weights[k], k1, k2, k3));

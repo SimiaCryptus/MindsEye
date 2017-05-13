@@ -1,20 +1,38 @@
+/*
+ * Copyright (c) 2017 by Andrew Charneski.
+ *
+ * The author licenses this file to you under the
+ * Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance
+ * with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.simiacryptus.mindseye.opencl;
 
-import java.util.Arrays;
-
+import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
+import java.util.Arrays;
 
 public final class ConvolutionController {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
   
-  private int[] inputSize;
-  private int[] kernelSize;
-  private int[] outputSize;
-
+  private final int[] inputSize;
+  private final int[] kernelSize;
+  private final int[] outputSize;
+  
   public ConvolutionController(final int[] inputSize, final int[] kernelSize) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
@@ -23,7 +41,7 @@ public final class ConvolutionController {
     assert this.kernelSize.length == 3;
     assert this.inputSize.length == 3;
   }
-
+  
   public void backprop(final double[] input, final double[] weights, final double[] output) {
     assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == output.length;
     assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == input.length;
@@ -44,7 +62,7 @@ public final class ConvolutionController {
       backpropTask.get(backpropTask.input);
     });
   }
-
+  
   public void convolve(final double[] input, final double[] weights, final double[] output) {
     assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == output.length;
     ConvolveKernel.POOL.with(convolveTask -> {
@@ -63,7 +81,7 @@ public final class ConvolutionController {
       convolveTask.get(convolveTask.output);
     });
   }
-
+  
   public void gradient(final double[] input, final double[] weights, final double[] output) {
     GradientKernel.POOL.with(kernelTask -> {
       kernelTask.input = input;
@@ -81,7 +99,7 @@ public final class ConvolutionController {
       kernelTask.get(kernelTask.weights);
     });
   }
-
+  
   @Override
   public String toString() {
     final StringBuilder builder = new StringBuilder();
@@ -94,5 +112,5 @@ public final class ConvolutionController {
     builder.append("]");
     return builder.toString();
   }
-
+  
 }
