@@ -151,6 +151,19 @@ public class DenseSynapseLayer extends NNLayer {
     return this;
   }
   
+  public void initSpacial(double radius, double stiffness, double peak) {
+    setWeights2((Coordinate in, Coordinate out) -> {
+      double[] doubleCoords = IntStream.range(0, in.coords.length).mapToDouble(d -> {
+        double from = in.coords[d] * 1.0 / DenseSynapseLayer.this.inputDims[d];
+        double to = out.coords[d] * 1.0 / DenseSynapseLayer.this.outputDims[d];
+        return from - to;
+      }).toArray();
+      double dist = Math.sqrt(Arrays.stream(doubleCoords).map(x -> x * x).sum());
+      double factor = (1 + Math.tanh(stiffness * (radius - dist))) / 2;
+      return peak * factor;
+    });
+  }
+  
   private final class Result extends NNResult {
     private final NNResult inObj;
     

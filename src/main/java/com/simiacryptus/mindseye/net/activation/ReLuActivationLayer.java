@@ -139,4 +139,8 @@ public class ReLuActivationLayer extends NNLayer {
     
   }
   
+  @Override
+  public ReLuActivationLayer freeze() {
+    return (ReLuActivationLayer) super.freeze();
+  }
 }

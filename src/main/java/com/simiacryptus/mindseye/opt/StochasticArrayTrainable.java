@@ -45,7 +45,8 @@ public class StochasticArrayTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    NNResult result = network.eval(NNResult.batchResultArray(sampledData));
+    NNResult[] input = NNResult.batchResultArray(sampledData);
+    NNResult result = network.eval(input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
