@@ -2,7 +2,7 @@ package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNResult;
-import com.simiacryptus.mindseye.net.dag.DAGNetwork;
+import com.simiacryptus.mindseye.graph.dag.DAGNetwork;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 

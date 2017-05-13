@@ -2,9 +2,9 @@ package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
-import com.simiacryptus.mindseye.net.dev.ToeplitzSynapseLayerJBLAS;
+import com.simiacryptus.mindseye.net.synapse.JavaDenseSynapseLayer;
+import com.simiacryptus.mindseye.net.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.synapse.ToeplitzSynapseLayer;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -26,7 +26,7 @@ public class L12Normalizer implements Trainable {
             double[] weights = innerMeasure.delta.map.get(layer).target;
             double[] delta = normalizationVector.get(layer, weights).delta;
             for(int i=0;i<delta.length;i++) {
-                delta[i] -= factor_L1 * (weights[i]<0?-1.0:1.0) + factor_L2 * weights[i];
+                delta[i] += factor_L1 * (weights[i]<0?-1.0:1.0) + factor_L2 * weights[i];
             }
             assert(null != delta);
         }
@@ -49,9 +49,9 @@ public class L12Normalizer implements Trainable {
     public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
         return layers.stream()
                 .filter(layer->{
-                    if(layer instanceof DenseSynapseLayerJBLAS) return true;
-                    if(layer instanceof ToeplitzSynapseLayerJBLAS) return true;
                     if(layer instanceof DenseSynapseLayer) return true;
+                    if(layer instanceof ToeplitzSynapseLayer) return true;
+                    if(layer instanceof JavaDenseSynapseLayer) return true;
                     return false;
                 })
                 .collect(Collectors.toList());

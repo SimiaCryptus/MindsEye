@@ -31,6 +31,7 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.test.BinaryChunkIterator;
 import com.simiacryptus.util.test.LabeledObject;
 
+@Deprecated
 public class TestMNIST {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TestCIFAR.class);

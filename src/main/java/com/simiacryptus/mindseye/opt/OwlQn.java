@@ -1,15 +1,12 @@
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.net.DeltaBuffer;
 import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.basic.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.dev.DenseSynapseLayerJBLAS;
-import com.simiacryptus.mindseye.net.dev.ToeplitzSynapseLayerJBLAS;
+import com.simiacryptus.mindseye.net.synapse.JavaDenseSynapseLayer;
+import com.simiacryptus.mindseye.net.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.net.synapse.ToeplitzSynapseLayer;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class OwlQn implements OrientationStrategy {
@@ -80,9 +77,9 @@ public class OwlQn implements OrientationStrategy {
     public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
         return layers.stream()
                 .filter(layer->{
-                    if(layer instanceof DenseSynapseLayerJBLAS) return true;
-                    if(layer instanceof ToeplitzSynapseLayerJBLAS) return true;
                     if(layer instanceof DenseSynapseLayer) return true;
+                    if(layer instanceof ToeplitzSynapseLayer) return true;
+                    if(layer instanceof JavaDenseSynapseLayer) return true;
                     return false;
                 })
                 .collect(Collectors.toList());
