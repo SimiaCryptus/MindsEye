@@ -39,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 
 public class AutoencoderNetwork {
   
+  private final Builder networkParameters;
+  
   public static class RecursiveBuilder {
     
     private final List<Tensor[]> representations = new ArrayList<>();
@@ -50,23 +52,33 @@ public class AutoencoderNetwork {
       dimensions.add(data[0].getDims());
     }
   
+    public void trainingMode() {
+      layers.forEach(x->x.trainingMode());
+    }
+  
+    public void runMode() {
+      layers.forEach(x->x.runMode());
+    }
+  
     public AutoencoderNetwork growLayer(int... dims) {
       return growLayer(layers.isEmpty()?100:0, 1, 100, dims);
     }
   
-    public AutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int maxIterations, int[] dims) {
+    public AutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int pretrainIterations, int[] dims) {
+      trainingMode();
       AutoencoderNetwork newLayer = configure(AutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
       Tensor[] data = representations.get(representations.size() - 1);
-      ArrayList<Tensor> list = new ArrayList<>(Arrays.asList(data));
-      Collections.shuffle(list);
-      if(pretrainingSize > 0) {
+      if(pretrainingSize > 0 && pretrainIterations > 0 && pretrainingMinutes > 0) {
+        ArrayList<Tensor> list = new ArrayList<>(Arrays.asList(data));
+        Collections.shuffle(list);
         Tensor[] pretrainingSet = list.subList(0, pretrainingSize).toArray(new Tensor[]{});
-        configure(newLayer.train()).setMaxIterations(maxIterations).setTimeoutMinutes(pretrainingMinutes).run(pretrainingSet);
+        configure(newLayer.train()).setMaxIterations(pretrainIterations).setTimeoutMinutes(pretrainingMinutes).run(pretrainingSet);
       }
       configure(newLayer.train()).run(data);
       representations.add(newLayer.encode(data));
       dimensions.add(dims);
       layers.add(newLayer);
+      runMode();
       return newLayer;
     }
   
@@ -184,6 +196,7 @@ public class AutoencoderNetwork {
   private final PipelineNetwork decoder;
   
   protected AutoencoderNetwork(Builder networkParameters) {
+    this.networkParameters = networkParameters;
     this.outerSize = networkParameters.getOuterSize();
     this.innerSize = networkParameters.getInnerSize();
     
@@ -214,6 +227,16 @@ public class AutoencoderNetwork {
     return encoder.getLayer()
                .eval(NNResult.batchResultArray(Arrays.stream(data).map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
                .data;
+  }
+  
+  public void trainingMode() {
+    this.inputNoise.setValue(networkParameters.getNoise());
+    this.encodedNoise.setValue(networkParameters.getDropout());
+  }
+  
+  public void runMode() {
+    this.inputNoise.setValue(0.0);
+    this.encodedNoise.setValue(0.0);
   }
   
   public int[] getOuterSize() {

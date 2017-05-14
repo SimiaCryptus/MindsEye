@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.graph.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.net.media.EntropyLayer;
+import com.simiacryptus.mindseye.net.activation.EntropyLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
 import com.simiacryptus.util.Util;
