@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.net.meta.CrossDotMetaLayer;
 import com.simiacryptus.mindseye.net.meta.Sparse01MetaLayer;
 import com.simiacryptus.mindseye.net.synapse.BiasLayer;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.lang.KryoUtil;
+import com.simiacryptus.util.io.KryoUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Assert;
 import org.junit.Test;

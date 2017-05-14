@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.net;
 
-import com.simiacryptus.util.lang.KryoUtil;
+import com.simiacryptus.util.io.KryoUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Assert;
 import org.slf4j.Logger;

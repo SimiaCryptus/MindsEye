@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.data;
 
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.test.BinaryChunkIterator;
+import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
