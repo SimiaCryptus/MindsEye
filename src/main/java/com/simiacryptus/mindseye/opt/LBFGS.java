@@ -49,6 +49,7 @@ public class LBFGS implements OrientationStrategy {
                                            DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList())), subject);
     }
     history.add(measurement);
+    while(history.size() > maxHistory) history.remove(0);
     return new SimpleLineSearchCursor(measurement, _orient(measurement, monitor), subject);
   }
   

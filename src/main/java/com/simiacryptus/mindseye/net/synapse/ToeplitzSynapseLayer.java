@@ -47,11 +47,11 @@ public class ToeplitzSynapseLayer extends MappedSynapseLayer {
   public int getMappedIndex(Coordinate inputCoord, Coordinate outputCoord) {
     int[] coordVector = new int[inputDims.length];
     int[] spareVector = new int[outputDims.length - inputDims.length];
-    for (int i = 0; i < coordVector.length; i++) {
+    for (int i = 0; i < inputDims.length; i++) {
       coordVector[i] = inputCoord.coords[i] - outputCoord.coords[i] + (outputDims[i] - 1);
     }
     for (int i = 0; i < spareVector.length; i++) {
-      spareVector[i] = outputCoord.coords[i + coordVector.length];
+      spareVector[i] = outputCoord.coords[i + inputDims.length];
     }
     return allowVector(coordVector) ? getWeights().index(concat(coordVector, spareVector)) : -1;
   }
@@ -75,7 +75,9 @@ public class ToeplitzSynapseLayer extends MappedSynapseLayer {
   }
   
   private boolean allowVector(int[] coordVector) {
-    return Arrays.stream(coordVector).sum() < radius;
+    double total = 0;
+    for(int i=0;i<coordVector.length;i++) total += coordVector[i];
+    return total < radius;
   }
   
 }

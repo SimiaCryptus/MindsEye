@@ -25,37 +25,35 @@ import com.simiacryptus.mindseye.net.activation.DropoutNoiseLayer;
 import com.simiacryptus.mindseye.net.activation.GaussianNoiseLayer;
 import com.simiacryptus.mindseye.net.activation.ReLuActivationLayer;
 import com.simiacryptus.mindseye.net.loss.MeanSqLossLayer;
+import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.synapse.BiasLayer;
 import com.simiacryptus.mindseye.net.synapse.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.synapse.TransposedSynapseLayer;
+import com.simiacryptus.mindseye.net.synapse.ToeplitzSynapseLayer;
 import com.simiacryptus.mindseye.opt.*;
 import com.simiacryptus.util.ml.Tensor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class AutoencoderNetwork {
+public class ConvAutoencoderNetwork {
   
   public static class RecursiveBuilder {
     
     private final List<Tensor[]> representations = new ArrayList<>();
     private final List<int[]> dimensions = new ArrayList<>();
-    private final List<AutoencoderNetwork> layers = new ArrayList<>();
+    private final List<ConvAutoencoderNetwork> layers = new ArrayList<>();
     
     public RecursiveBuilder(Tensor[] data) {
       representations.add(data);
       dimensions.add(data[0].getDims());
     }
   
-    public AutoencoderNetwork growLayer(int... dims) {
+    public ConvAutoencoderNetwork growLayer(int... dims) {
       return growLayer(layers.isEmpty()?100:0, 1, 100, dims);
     }
   
-    public AutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int maxIterations, int[] dims) {
-      AutoencoderNetwork newLayer = configure(AutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
+    public ConvAutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int maxIterations, int[] dims) {
+      ConvAutoencoderNetwork newLayer = configure(ConvAutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
       Tensor[] data = representations.get(representations.size() - 1);
       ArrayList<Tensor> list = new ArrayList<>(Arrays.asList(data));
       Collections.shuffle(list);
@@ -132,7 +130,7 @@ public class AutoencoderNetwork {
       return network;
     }
     
-    public List<AutoencoderNetwork> getLayers() {
+    public List<ConvAutoencoderNetwork> getLayers() {
       return Collections.unmodifiableList(layers);
     }
   }
@@ -174,7 +172,8 @@ public class AutoencoderNetwork {
   private final int[] innerSize;
   private final GaussianNoiseLayer inputNoise;
   private final BiasLayer encoderBias;
-  private final DenseSynapseLayer encoderSynapse;
+  private final ToeplitzSynapseLayer encoderSynapse;
+  private final MaxSubsampleLayer encoderSubsample;
   private final ReLuActivationLayer encoderActivation;
   private final DropoutNoiseLayer encodedNoise;
   private final DenseSynapseLayer decoderSynapse;
@@ -183,23 +182,26 @@ public class AutoencoderNetwork {
   private final PipelineNetwork encoder;
   private final PipelineNetwork decoder;
   
-  protected AutoencoderNetwork(Builder networkParameters) {
+  protected ConvAutoencoderNetwork(Builder networkParameters) {
     this.outerSize = networkParameters.getOuterSize();
     this.innerSize = networkParameters.getInnerSize();
     
     this.inputNoise = new GaussianNoiseLayer().setValue(networkParameters.getNoise());
-    this.encoderSynapse = new DenseSynapseLayer(this.outerSize, this.innerSize);
-    this.encoderSynapse.initSpacial(networkParameters.getInitRadius(), networkParameters.getInitStiffness(), networkParameters.getInitPeak());
-    this.encoderBias = new BiasLayer(this.innerSize).setWeights(i -> 0.0);
+    this.encoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
+    this.encoderSynapse = new ToeplitzSynapseLayer(this.outerSize, new int[]{this.outerSize[0], this.outerSize[1], this.innerSize[2]});
+    Random random = new Random();
+    this.encoderSynapse.setWeights(() -> random.nextGaussian() * 0.001);
+    this.encoderSubsample = new MaxSubsampleLayer(2,2,1);
     this.encoderActivation = new ReLuActivationLayer().freeze();
     this.encodedNoise = new DropoutNoiseLayer().setValue(networkParameters.getDropout());
-    this.decoderSynapse = new TransposedSynapseLayer(encoderSynapse).asNewSynapseLayer();
+    this.decoderSynapse = new DenseSynapseLayer(this.innerSize, this.outerSize);
     this.decoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
     this.decoderActivation = new ReLuActivationLayer().freeze();
     
     this.encoder = new PipelineNetwork();
     this.encoder.add(inputNoise);
     this.encoder.add(encoderSynapse);
+    this.encoder.add(encoderSubsample);
     this.encoder.add(encoderBias);
     this.encoder.add(encoderActivation);
     this.encoder.add(encodedNoise);
@@ -232,7 +234,7 @@ public class AutoencoderNetwork {
     return encoderBias;
   }
   
-  public DenseSynapseLayer getEncoderSynapse() {
+  public ToeplitzSynapseLayer getEncoderSynapse() {
     return encoderSynapse;
   }
   
@@ -444,8 +446,8 @@ public class AutoencoderNetwork {
       return this;
     }
     
-    public AutoencoderNetwork build() {
-      return new AutoencoderNetwork(Builder.this);
+    public ConvAutoencoderNetwork build() {
+      return new ConvAutoencoderNetwork(Builder.this);
     }
   }
 }

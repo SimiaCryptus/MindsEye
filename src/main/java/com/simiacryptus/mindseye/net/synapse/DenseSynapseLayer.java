@@ -84,9 +84,20 @@ public class DenseSynapseLayer extends NNLayer {
   }
   
   public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
-    DoubleMatrix matrixObj = new DoubleMatrix(in.length, out.length, matrix).transpose();
+    DoubleMatrix matrixObj = transpose(new DoubleMatrix(in.length, out.length, matrix));
     double[] r = matrixObj.mmul(new DoubleMatrix(in.length, 1, in)).data;
+    Tensor.recycle(matrixObj.data);
     for (int o = 0; o < out.length; o++) out[o] = r[o];
+  }
+  
+  public static DoubleMatrix transpose(DoubleMatrix doubleMatrix) {
+    DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, Tensor.obtain(doubleMatrix.length));
+    for(int i = 0; i < doubleMatrix.rows; ++i) {
+      for(int j = 0; j < doubleMatrix.columns; ++j) {
+        result.put(j, i, doubleMatrix.get(i, j));
+      }
+    }
+    return result;
   }
   
   public DenseSynapseLayer addWeights(final DoubleSupplier f) {
@@ -210,7 +221,7 @@ public class DenseSynapseLayer extends NNLayer {
       
       int threads = 4;
       IntStream.range(0, threads).parallel().forEach(thread -> {
-        final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), weights.dim());
+        final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
         IntStream.range(0, inObj.data.length).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
           final double[] inputData = this.inObj.data[dataIndex].getData();

@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
@@ -85,7 +86,7 @@ public class MaxSubsampleLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     
     int itemCnt = inObj[0].data.length;
-    @SuppressWarnings("unchecked") final HashMap<Coordinate, Coordinate> gradientMapA[] = new HashMap[itemCnt];
+    @SuppressWarnings("unchecked") final ConcurrentHashMap<Coordinate, Coordinate> gradientMapA[] = new ConcurrentHashMap[itemCnt];
     
     final int[] inputDims = inObj[0].data[0].getDims();
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
@@ -95,16 +96,23 @@ public class MaxSubsampleLayer extends NNLayer {
         return (int) Math.ceil(inputDims[i] * 1.0 / this.kernelDims[i]);
       }).toArray();
       final Tensor output = new Tensor(newDims);
-      final HashMap<Coordinate, Coordinate> gradientMap = new HashMap<Coordinate, Coordinate>();
+      final ConcurrentHashMap<Coordinate, Coordinate> gradientMap = new ConcurrentHashMap<Coordinate, Coordinate>();
       final List<Tuple2<Coordinate, List<Coordinate>>> regions = calcRegionsCache.apply(new CalcRegionsParameter(inputDims, this.kernelDims));
       final ToDoubleFunction<? super Coordinate> keyExtractor = inputCoords -> input.get(inputCoords);
-      regions.stream().parallel().forEach(tuple -> {
-        final Coordinate inputCoord = tuple.getSecond().stream().max(Comparator.comparingDouble(keyExtractor)).get();
-        final Coordinate o = tuple.getFirst();
-        synchronized (gradientMap) {
-          gradientMap.put(o, inputCoord);
+      regions.forEach(tuple -> {
+        final Coordinate from = tuple.getFirst();
+        List<Coordinate> toList = tuple.getSecond();
+        Coordinate toMax = null;
+        double bestValue = Double.NEGATIVE_INFINITY;
+        for(Coordinate c : toList) {
+          double value = keyExtractor.applyAsDouble(c);
+          if(null == toMax || bestValue < value) {
+            bestValue = value;
+            toMax = c;
+          }
         }
-        output.set(o, input.get(inputCoord));
+        gradientMap.put(from, toMax);
+        output.set(from, input.get(toMax));
       });
       gradientMapA[dataIndex] = gradientMap;
       return output;
