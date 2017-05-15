@@ -35,9 +35,6 @@ import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
-/**
- * Created by Andrew Charneski on 5/11/2017.
- */
 public abstract class MappedSynapseLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MappedSynapseLayer.class);
