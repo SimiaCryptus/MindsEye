@@ -79,14 +79,38 @@ public class DenseSynapseLayer extends NNLayer {
   
   public static void multiply(final double[] matrix, final double[] in, double[] out) {
     DoubleMatrix matrixObj = new DoubleMatrix(out.length, in.length, matrix);
-    double[] r = matrixObj.mmul(new DoubleMatrix(in.length, 1, in)).data;
-    for (int o = 0; o < out.length; o++) out[o] = r[o];
+    matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
   }
+
+//  public static void multiplyT(final double[] data, final double[] in, double[] out) {
+//    DoubleMatrix matrix = new DoubleMatrix(in.length, out.length, data);
+//    DoubleMatrix at = new DoubleMatrix(1, in.length, in);
+//    at.mmuli(matrix, new DoubleMatrix(out.length, 1, out));
+//  }
   
-  public static void multiplyT(final double[] data, final double[] in, double[] out) {
-    DoubleMatrix matrix = new DoubleMatrix(in.length, out.length, data);
-    DoubleMatrix at = new DoubleMatrix(1, in.length, in);
-    at.mmuli(matrix, new DoubleMatrix(out.length, 1, out));
+//  public static void multiplyT(final double[] data, final double[] in, double[] out) {
+//    DoubleMatrix matrix = new DoubleMatrix(in.length, out.length, data);
+//    DoubleMatrix at = new DoubleMatrix(in.length, 1, in);
+//    double[] r = matrix.transpose().mmul(at).data;
+////    double[] r = at.transpose().mmul(matrix).transpose().data;
+//    for (int o = 0; o < out.length; o++) out[o] = r[o];
+//  }
+
+
+  public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
+    DoubleMatrix matrixObj = transpose(new DoubleMatrix(in.length, out.length, matrix));
+    matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
+    Tensor.recycle(matrixObj.data);
+  }
+
+  public static DoubleMatrix transpose(DoubleMatrix doubleMatrix) {
+    DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, Tensor.obtain(doubleMatrix.length));
+    for(int i = 0; i < doubleMatrix.rows; ++i) {
+      for(int j = 0; j < doubleMatrix.columns; ++j) {
+        result.put(j, i, doubleMatrix.get(i, j));
+      }
+    }
+    return result;
   }
   
   @Override

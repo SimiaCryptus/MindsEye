@@ -61,7 +61,7 @@ public class AutoencoderNetwork {
     }
   
     public AutoencoderNetwork growLayer(int... dims) {
-      return growLayer(layers.isEmpty()?100:0, 1, 100, dims);
+      return growLayer(layers.isEmpty()?100:0, 1, 5, dims);
     }
   
     public AutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int pretrainIterations, int[] dims) {
