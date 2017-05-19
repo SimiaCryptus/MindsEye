@@ -125,14 +125,14 @@ public class AutoencoderNetwork {
       return builder;
     }
     
-    public PipelineNetwork echo() {
+    public NNLayer echo() {
       PipelineNetwork network = new PipelineNetwork();
       network.add(getEncoder());
       network.add(getDecoder());
       return network;
     }
     
-    public PipelineNetwork getEncoder() {
+    public NNLayer getEncoder() {
       PipelineNetwork network = new PipelineNetwork();
       for (int i = 0; i < layers.size(); i++) {
         network.add(layers.get(i).getEncoder());
@@ -140,7 +140,7 @@ public class AutoencoderNetwork {
       return network;
     }
     
-    public PipelineNetwork getDecoder() {
+    public NNLayer getDecoder() {
       PipelineNetwork network = new PipelineNetwork();
       for (int i = layers.size() - 1; i >= 0; i--) {
         network.add(layers.get(i).getDecoder());
@@ -286,11 +286,11 @@ public class AutoencoderNetwork {
     return decoderActivation;
   }
   
-  public PipelineNetwork getEncoder() {
+  public NNLayer getEncoder() {
     return encoder;
   }
   
-  public PipelineNetwork getDecoder() {
+  public NNLayer getDecoder() {
     return decoder;
   }
   

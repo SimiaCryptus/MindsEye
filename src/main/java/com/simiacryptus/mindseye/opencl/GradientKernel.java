@@ -46,7 +46,7 @@ public final class GradientKernel extends Kernel {
     assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weights.length;
-    // for(int k=0;k<weights.length;k++){ weights[k] = run(k); }
+    // for(int k=0;k<weights.length;k++){ weights[k] = train(k); }
     execute(device.createRange(this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2]));
   }
   

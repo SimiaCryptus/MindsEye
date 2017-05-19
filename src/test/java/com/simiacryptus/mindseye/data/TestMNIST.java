@@ -63,8 +63,8 @@ public class TestMNIST {
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     final String path = "C:/Users/Andrew Charneski/Downloads";
     out.println("<html><head></head><body>");
-    final Stream<BufferedImage> imgStream = binaryStream(path, "train-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
-    final Stream<byte[]> labelStream = binaryStream(path, "train-labels-idx1-ubyte.gz", 8, 1);
+    final Stream<BufferedImage> imgStream = binaryStream(path, "newTrainer-images-idx3-ubyte.gz", 16, 28 * 28).map(this::toImage);
+    final Stream<byte[]> labelStream = binaryStream(path, "newTrainer-labels-idx1-ubyte.gz", 8, 1);
     
     final Stream<LabeledObject<BufferedImage>> merged = Util.toStream(new Iterator<LabeledObject<BufferedImage>>() {
       Iterator<BufferedImage> imgItr = imgStream.iterator();

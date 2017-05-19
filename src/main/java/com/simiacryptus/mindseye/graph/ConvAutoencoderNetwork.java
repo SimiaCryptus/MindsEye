@@ -28,16 +28,34 @@ import com.simiacryptus.mindseye.net.activation.ReLuActivationLayer;
 import com.simiacryptus.mindseye.net.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.net.synapse.BiasLayer;
 import com.simiacryptus.mindseye.net.synapse.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.net.util.MonitoredItem;
+import com.simiacryptus.mindseye.net.util.MonitoredObject;
+import com.simiacryptus.mindseye.net.util.MonitoringWrapper;
 import com.simiacryptus.mindseye.opt.*;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class ConvAutoencoderNetwork {
+public class ConvAutoencoderNetwork implements MonitoredItem {
   
-  public static class RecursiveBuilder {
-    
+  private final MonitoredObject metrics = new MonitoredObject();
+  @Override
+  public Map<String, Object> getMetrics() {
+    return metrics.getMetrics();
+  }
+  
+  public static class RecursiveBuilder implements MonitoredItem {
+  
+    @Override
+    public Map<String, Object> getMetrics() {
+      HashMap<String, Object> map = new HashMap<>();
+      for(int i=0;i<layers.size();i++) {
+        map.put("layer"+i,layers.get(i).getMetrics());
+      }
+      return map;
+    }
+  
     private final List<Tensor[]> representations = new ArrayList<>();
     private final List<int[]> dimensions = new ArrayList<>();
     private final List<ConvAutoencoderNetwork> layers = new ArrayList<>();
@@ -53,17 +71,17 @@ public class ConvAutoencoderNetwork {
   
     public ConvAutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int maxIterations, int[] dims) {
       ConvAutoencoderNetwork newLayer = configure(ConvAutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
+      dimensions.add(dims);
+      layers.add(newLayer);
       Tensor[] data = representations.get(representations.size() - 1);
       ArrayList<Tensor> list = new ArrayList<>(Arrays.asList(data));
       Collections.shuffle(list);
       if(pretrainingSize > 0) {
         Tensor[] pretrainingSet = list.subList(0, pretrainingSize).toArray(new Tensor[]{});
-        configure(newLayer.train()).setMaxIterations(maxIterations).setTimeoutMinutes(pretrainingMinutes).run(pretrainingSet);
+        configure(newLayer.newTrainer()).setMaxIterations(maxIterations).setTimeoutMinutes(pretrainingMinutes).train(pretrainingSet);
       }
-      configure(newLayer.train()).run(data);
+      configure(newLayer.newTrainer()).train(data);
       representations.add(newLayer.encode(data));
-      dimensions.add(dims);
-      layers.add(newLayer);
       return newLayer;
     }
   
@@ -95,7 +113,7 @@ public class ConvAutoencoderNetwork {
           student.add(getDecoder());
           return new SimpleLossNetwork(student, new MeanSqLossLayer());
         }
-      }).run(representations.get(0));
+      }).train(representations.get(0));
     }
     
     protected TrainingParameters configure(TrainingParameters trainingParameters) {
@@ -106,14 +124,14 @@ public class ConvAutoencoderNetwork {
       return builder;
     }
     
-    public PipelineNetwork echo() {
+    public NNLayer echo() {
       PipelineNetwork network = new PipelineNetwork();
       network.add(getEncoder());
       network.add(getDecoder());
       return network;
     }
     
-    public PipelineNetwork getEncoder() {
+    public NNLayer getEncoder() {
       PipelineNetwork network = new PipelineNetwork();
       for (int i = 0; i < layers.size(); i++) {
         network.add(layers.get(i).getEncoder());
@@ -121,7 +139,7 @@ public class ConvAutoencoderNetwork {
       return network;
     }
     
-    public PipelineNetwork getDecoder() {
+    public NNLayer getDecoder() {
       PipelineNetwork network = new PipelineNetwork();
       for (int i = layers.size() - 1; i >= 0; i--) {
         network.add(layers.get(i).getDecoder());
@@ -132,9 +150,10 @@ public class ConvAutoencoderNetwork {
     public List<ConvAutoencoderNetwork> getLayers() {
       return Collections.unmodifiableList(layers);
     }
-  }
   
-  public TrainingParameters train() {
+    }
+  
+  public TrainingParameters newTrainer() {
     return new TrainingParameters() {
       @Override
       protected TrainingMonitor wrap(TrainingMonitor monitor) {
@@ -175,45 +194,47 @@ public class ConvAutoencoderNetwork {
   private final MaxDropoutNoiseLayer encoderSubsample;
   private final ReLuActivationLayer encoderActivation;
   private final DropoutNoiseLayer encodedNoise;
-  private final ToeplitzSynapseLayer decoderSynapse;
+  private final NNLayer decoderSynapse;
   private final BiasLayer decoderBias;
   private final ReLuActivationLayer decoderActivation;
-  private final PipelineNetwork encoder;
-  private final PipelineNetwork decoder;
+  private final NNLayer encoder;
+  private final NNLayer decoder;
   
   protected ConvAutoencoderNetwork(Builder networkParameters) {
+    Random random = new Random();
+    
     this.outerSize = networkParameters.getOuterSize();
-    this.innerSize = this.outerSize;
+    this.innerSize = networkParameters.getInnerSize();
     
     this.inputNoise = new GaussianNoiseLayer().setValue(networkParameters.getNoise());
-    this.encoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
-    this.encoderSynapse = new ToeplitzSynapseLayer(this.outerSize, this.outerSize);
-    Random random = new Random();
-    this.encoderSynapse.setWeights(() -> random.nextGaussian() * 0.001);
+    this.encoderSynapse = new ToeplitzSynapseLayer(this.outerSize, this.innerSize);
     this.encoderSubsample = new MaxDropoutNoiseLayer(2,2,1);
+    this.encoderBias = new BiasLayer(this.innerSize).setWeights(i -> 0.0);
+    this.encoderSynapse.setWeights(() -> random.nextGaussian() * 0.001);
     this.encoderActivation = new ReLuActivationLayer().freeze();
     this.encodedNoise = new DropoutNoiseLayer().setValue(networkParameters.getDropout());
-    this.decoderSynapse = new ToeplitzSynapseLayer(this.outerSize, this.outerSize);
+    this.decoderSynapse = new ToeplitzSynapseLayer(this.innerSize, this.outerSize);
     this.decoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
     this.decoderActivation = new ReLuActivationLayer().freeze();
-    
-    this.encoder = new PipelineNetwork();
-    this.encoder.add(inputNoise);
-    this.encoder.add(encoderSynapse);
-    this.encoder.add(encoderSubsample);
-    this.encoder.add(encoderBias);
-    this.encoder.add(encoderActivation);
-    this.encoder.add(encodedNoise);
-    
-    this.decoder = new PipelineNetwork();
-    this.decoder.add(decoderSynapse);
-    this.decoder.add(decoderBias);
-    this.decoder.add(decoderActivation);
+  
+    PipelineNetwork encoder = new PipelineNetwork();
+    encoder.add(inputNoise);
+    encoder.add(new MonitoringWrapper(encoderSynapse).addTo(metrics,"encoderSynapse"));
+    encoder.add(encoderSubsample);
+    encoder.add(encoderBias);
+    encoder.add(encoderActivation);
+    encoder.add(encodedNoise);
+    this.encoder = new MonitoringWrapper(encoder).addTo(metrics,"encoder");
+  
+    PipelineNetwork decoder = new PipelineNetwork();
+    decoder.add(new MonitoringWrapper(decoderSynapse).addTo(metrics,"decoderSynapse"));
+    decoder.add(decoderBias);
+    decoder.add(decoderActivation);
+    this.decoder = new MonitoringWrapper(decoder).addTo(metrics,"decoder");
   }
   
   public Tensor[] encode(Tensor[] data) {
-    return encoder.getLayer()
-               .eval(NNResult.batchResultArray(Arrays.stream(data).map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+    return encoder.eval(NNResult.batchResultArray(Arrays.stream(data).map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
                .data;
   }
   
@@ -233,7 +254,7 @@ public class ConvAutoencoderNetwork {
     return encoderBias;
   }
   
-  public ToeplitzSynapseLayer getEncoderSynapse() {
+  public NNLayer getEncoderSynapse() {
     return encoderSynapse;
   }
   
@@ -245,7 +266,7 @@ public class ConvAutoencoderNetwork {
     return encodedNoise;
   }
   
-  public ToeplitzSynapseLayer getDecoderSynapse() {
+  public NNLayer getDecoderSynapse() {
     return decoderSynapse;
   }
   
@@ -257,11 +278,11 @@ public class ConvAutoencoderNetwork {
     return decoderActivation;
   }
   
-  public PipelineNetwork getEncoder() {
+  public NNLayer getEncoder() {
     return encoder;
   }
   
-  public PipelineNetwork getDecoder() {
+  public NNLayer getDecoder() {
     return decoder;
   }
   
@@ -276,7 +297,7 @@ public class ConvAutoencoderNetwork {
     private double endFitness = Double.NEGATIVE_INFINITY;
     private int maxIterations = Integer.MAX_VALUE;
   
-    public void run(Tensor... data) {
+    public void train(Tensor... data) {
       SimpleLossNetwork trainingNetwork = getTrainingNetwork();
       StochasticArrayTrainable trainable = new StochasticArrayTrainable(Arrays.stream(data).map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
       L12Normalizer normalized = new L12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
