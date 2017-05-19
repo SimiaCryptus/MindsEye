@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.net.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.net.synapse.BiasLayer;
 import com.simiacryptus.mindseye.net.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.synapse.TransposedSynapseLayer;
+import com.simiacryptus.mindseye.net.util.VariableLayer;
 import com.simiacryptus.mindseye.opt.*;
 import com.simiacryptus.util.ml.Tensor;
 
@@ -38,8 +39,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class AutoencoderNetwork {
-  
-  private final Builder networkParameters;
   
   public static class RecursiveBuilder {
     
@@ -61,24 +60,29 @@ public class AutoencoderNetwork {
     }
   
     public AutoencoderNetwork growLayer(int... dims) {
-      return growLayer(layers.isEmpty()?100:0, 1, 5, dims);
+      return growLayer(layers.isEmpty()?100:0, 1, 10, dims);
     }
   
     public AutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int pretrainIterations, int[] dims) {
       trainingMode();
       AutoencoderNetwork newLayer = configure(AutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
+
       Tensor[] data = representations.get(representations.size() - 1);
+      dimensions.add(dims);
+      layers.add(newLayer);
+
       if(pretrainingSize > 0 && pretrainIterations > 0 && pretrainingMinutes > 0) {
         ArrayList<Tensor> list = new ArrayList<>(Arrays.asList(data));
         Collections.shuffle(list);
         Tensor[] pretrainingSet = list.subList(0, pretrainingSize).toArray(new Tensor[]{});
         configure(newLayer.train()).setMaxIterations(pretrainIterations).setTimeoutMinutes(pretrainingMinutes).run(pretrainingSet);
       }
+      newLayer.decoderSynapse = ((TransposedSynapseLayer)newLayer.decoderSynapse).asNewSynapseLayer();
+      newLayer.decoderSynapsePlaceholder.setInner(newLayer.decoderSynapse);
       configure(newLayer.train()).run(data);
-      representations.add(newLayer.encode(data));
-      dimensions.add(dims);
-      layers.add(newLayer);
+
       runMode();
+      representations.add(newLayer.encode(data));
       return newLayer;
     }
   
@@ -189,11 +193,13 @@ public class AutoencoderNetwork {
   private final DenseSynapseLayer encoderSynapse;
   private final ReLuActivationLayer encoderActivation;
   private final DropoutNoiseLayer encodedNoise;
-  private final DenseSynapseLayer decoderSynapse;
+  private NNLayer decoderSynapse;
   private final BiasLayer decoderBias;
   private final ReLuActivationLayer decoderActivation;
   private final PipelineNetwork encoder;
   private final PipelineNetwork decoder;
+  private final Builder networkParameters;
+  private final VariableLayer decoderSynapsePlaceholder;
   
   protected AutoencoderNetwork(Builder networkParameters) {
     this.networkParameters = networkParameters;
@@ -206,7 +212,8 @@ public class AutoencoderNetwork {
     this.encoderBias = new BiasLayer(this.innerSize).setWeights(i -> 0.0);
     this.encoderActivation = new ReLuActivationLayer().freeze();
     this.encodedNoise = new DropoutNoiseLayer().setValue(networkParameters.getDropout());
-    this.decoderSynapse = new TransposedSynapseLayer(encoderSynapse).asNewSynapseLayer();
+    this.decoderSynapse = new TransposedSynapseLayer(encoderSynapse);
+    this.decoderSynapsePlaceholder = new VariableLayer(this.decoderSynapse);
     this.decoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
     this.decoderActivation = new ReLuActivationLayer().freeze();
     
@@ -218,7 +225,7 @@ public class AutoencoderNetwork {
     this.encoder.add(encodedNoise);
     
     this.decoder = new PipelineNetwork();
-    this.decoder.add(decoderSynapse);
+    this.decoder.add(decoderSynapsePlaceholder);
     this.decoder.add(decoderBias);
     this.decoder.add(decoderActivation);
   }
@@ -267,7 +274,7 @@ public class AutoencoderNetwork {
     return encodedNoise;
   }
   
-  public DenseSynapseLayer getDecoderSynapse() {
+  public NNLayer getDecoderSynapse() {
     return decoderSynapse;
   }
   

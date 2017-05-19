@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.net;
 import com.simiacryptus.mindseye.graph.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.activation.MaxConstLayer;
+import com.simiacryptus.mindseye.net.activation.MaxDropoutNoiseLayer;
 import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.activation.EntropyLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
@@ -101,6 +102,14 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new MaxSubsampleLayer(2, 2, 1);
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
+  public void testMaxDropoutNoiseLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(2, 2, 1);
+    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new MaxDropoutNoiseLayer(2, 2, 1);
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   

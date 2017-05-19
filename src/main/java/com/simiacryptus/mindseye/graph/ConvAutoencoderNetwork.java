@@ -23,11 +23,10 @@ import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 import com.simiacryptus.mindseye.net.activation.DropoutNoiseLayer;
 import com.simiacryptus.mindseye.net.activation.GaussianNoiseLayer;
+import com.simiacryptus.mindseye.net.activation.MaxDropoutNoiseLayer;
 import com.simiacryptus.mindseye.net.activation.ReLuActivationLayer;
 import com.simiacryptus.mindseye.net.loss.MeanSqLossLayer;
-import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.synapse.BiasLayer;
-import com.simiacryptus.mindseye.net.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.net.synapse.ToeplitzSynapseLayer;
 import com.simiacryptus.mindseye.opt.*;
 import com.simiacryptus.util.ml.Tensor;
@@ -173,10 +172,10 @@ public class ConvAutoencoderNetwork {
   private final GaussianNoiseLayer inputNoise;
   private final BiasLayer encoderBias;
   private final ToeplitzSynapseLayer encoderSynapse;
-  private final MaxSubsampleLayer encoderSubsample;
+  private final MaxDropoutNoiseLayer encoderSubsample;
   private final ReLuActivationLayer encoderActivation;
   private final DropoutNoiseLayer encodedNoise;
-  private final DenseSynapseLayer decoderSynapse;
+  private final ToeplitzSynapseLayer decoderSynapse;
   private final BiasLayer decoderBias;
   private final ReLuActivationLayer decoderActivation;
   private final PipelineNetwork encoder;
@@ -184,17 +183,17 @@ public class ConvAutoencoderNetwork {
   
   protected ConvAutoencoderNetwork(Builder networkParameters) {
     this.outerSize = networkParameters.getOuterSize();
-    this.innerSize = networkParameters.getInnerSize();
+    this.innerSize = this.outerSize;
     
     this.inputNoise = new GaussianNoiseLayer().setValue(networkParameters.getNoise());
     this.encoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
-    this.encoderSynapse = new ToeplitzSynapseLayer(this.outerSize, new int[]{this.outerSize[0], this.outerSize[1], this.innerSize[2]});
+    this.encoderSynapse = new ToeplitzSynapseLayer(this.outerSize, this.outerSize);
     Random random = new Random();
     this.encoderSynapse.setWeights(() -> random.nextGaussian() * 0.001);
-    this.encoderSubsample = new MaxSubsampleLayer(2,2,1);
+    this.encoderSubsample = new MaxDropoutNoiseLayer(2,2,1);
     this.encoderActivation = new ReLuActivationLayer().freeze();
     this.encodedNoise = new DropoutNoiseLayer().setValue(networkParameters.getDropout());
-    this.decoderSynapse = new DenseSynapseLayer(this.innerSize, this.outerSize);
+    this.decoderSynapse = new ToeplitzSynapseLayer(this.outerSize, this.outerSize);
     this.decoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
     this.decoderActivation = new ReLuActivationLayer().freeze();
     
@@ -246,7 +245,7 @@ public class ConvAutoencoderNetwork {
     return encodedNoise;
   }
   
-  public DenseSynapseLayer getDecoderSynapse() {
+  public ToeplitzSynapseLayer getDecoderSynapse() {
     return decoderSynapse;
   }
   
