@@ -19,9 +19,6 @@
 
 package com.simiacryptus.mindseye.net.media;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
@@ -43,7 +40,7 @@ import java.util.stream.IntStream;
 public class ImgConvolutionSynapseLayer extends NNLayer {
   
   private static final Logger log = LoggerFactory.getLogger(ImgConvolutionSynapseLayer.class);
-  public static final Function<IndexMapKey, ConvolutionController> cache = cache((final IndexMapKey key) -> {
+  public static final Function<IndexMapKey, ConvolutionController> cache = Util.cache((final IndexMapKey key) -> {
     
     final int outDim = new Tensor(key.output).dim();
     final int inDim = new Tensor(key.input).dim();
@@ -58,11 +55,17 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   });
   private static final long serialVersionUID = -139062498597441290L;
   public final Tensor kernel;
-  private boolean paralell = false;
   
   protected ImgConvolutionSynapseLayer() {
+    this(null);
+  }
+  
+  protected ImgConvolutionSynapseLayer(Tensor kernel) {
     super();
-    this.kernel = null;
+    if(kernel.getDims().length != 3) throw new IllegalArgumentException();
+    if(kernel.getDims()[0] % 2 != 1) throw new IllegalArgumentException();
+    if(kernel.getDims()[1] % 2 != 1) throw new IllegalArgumentException();
+    this.kernel = kernel;
   }
   
   public ImgConvolutionSynapseLayer(final int width, int height, final int inputBands, final int outputBands) {
@@ -70,18 +73,7 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   }
   
   public ImgConvolutionSynapseLayer(final int width, int height, final int bands) {
-    this.kernel = new Tensor(width,height,bands);
-  }
-  
-  @SuppressWarnings("deprecation")
-  public static <F, T> Function<F, T> cache(final Function<F, T> inner) {
-    final LoadingCache<F, T> cache = CacheBuilder.newBuilder().build(new CacheLoader<F, T>() {
-      @Override
-      public T load(final F key) throws Exception {
-        return inner.apply(key);
-      }
-    });
-    return cache::apply;
+    this(new Tensor(width,height,bands));
   }
   
   public static int[] getOutputDims(final int[] inputSize, final int[] kernelSize) {
@@ -90,7 +82,7 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
       if (i == kernelSize.length - 1) {
         x = kernelSize[i] / inputSize[i];
       } else {
-        x = 1 + inputSize[i] - kernelSize[i];
+        x = inputSize[i];
       }
       if (0 >= x) {
         assert false;
@@ -154,15 +146,6 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     final JsonObject json = super.getJson();
     json.addProperty("kernel", this.kernel.toString());
     return json;
-  }
-  
-  public boolean isParalell() {
-    return this.paralell;
-  }
-  
-  public ImgConvolutionSynapseLayer setParallel(final boolean parallel) {
-    this.paralell = parallel;
-    return this;
   }
   
   public ImgConvolutionSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {

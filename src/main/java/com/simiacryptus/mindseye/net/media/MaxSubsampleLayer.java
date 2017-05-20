@@ -23,6 +23,7 @@ import com.simiacryptus.lang.Tuple2;
 import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MaxSubsampleLayer extends NNLayer {
-  private static final Function<CalcRegionsParameter, List<Tuple2<Coordinate, List<Coordinate>>>> calcRegionsCache = ImgConvolutionSynapseLayer
+  private static final Function<CalcRegionsParameter, List<Tuple2<Coordinate, List<Coordinate>>>> calcRegionsCache = Util
                                                                                                                          .cache(MaxSubsampleLayer::calcRegions);
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);

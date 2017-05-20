@@ -27,6 +27,8 @@ import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.activation.EntropyLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
+import com.simiacryptus.mindseye.net.reducers.ImgConcatLayer;
+import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Test;
@@ -40,10 +42,19 @@ public class MediaComponentValidationTests {
   private static final Logger log = LoggerFactory.getLogger(MediaComponentValidationTests.class);
   
   @Test
+  public void testImgConcatLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(2,3,5);
+    final Tensor inputPrototype1 = new Tensor(2,3,1).fill(() -> Util.R.get().nextGaussian());
+    final Tensor inputPrototype2 = new Tensor(2,3,4).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgConcatLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+  
+  @Test
   public void testConvolutionSynapseLayer1() throws Throwable {
-    final Tensor outputPrototype = new Tensor(2, 2, 2);
+    final Tensor outputPrototype = new Tensor(3, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ImgConvolutionSynapseLayer(2, 2, 4).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgConvolutionSynapseLayer(3, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   

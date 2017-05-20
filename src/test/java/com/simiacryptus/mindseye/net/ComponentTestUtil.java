@@ -36,9 +36,7 @@ public class ComponentTestUtil {
   private static final Logger log = LoggerFactory.getLogger(ComponentTestUtil.class);
   
   public static Tensor[] getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor gradientA[] = IntStream.range(0, 1)
-                                   .mapToObj(i -> new Tensor(inputPrototype[i].dim(), outputPrototype.dim()))
-                                   .toArray(i -> new Tensor[i]);
+    final Tensor gradientBuffer = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
@@ -54,9 +52,11 @@ public class ComponentTestUtil {
       copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
         @Override
         public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+          Assert.assertEquals(1, data.length);
           IntStream.range(0, data.length).forEach(dataIndex -> {
+            Assert.assertArrayEquals(inputPrototype[inputIndex].getDims(), data[dataIndex].getDims());
             for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
-              gradientA[dataIndex].set(new int[]{i, j_}, data[dataIndex].getData()[i]);
+              gradientBuffer.set(new int[]{i, j_}, data[dataIndex].getData()[i]);
             }
           });
         }
@@ -68,7 +68,7 @@ public class ComponentTestUtil {
       };
       component.eval(copyInput).accumulate(new DeltaSet(), new Tensor[]{new Tensor(outputPrototype.getDims()).fill((k) -> k == j_ ? 1 : 0)});
     }
-    return gradientA;
+    return new Tensor[]{ gradientBuffer };
   }
   
   private static Tensor getLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
