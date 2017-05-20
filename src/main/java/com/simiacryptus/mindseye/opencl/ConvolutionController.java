@@ -47,6 +47,27 @@ public final class ConvolutionController {
     assert this.inputSize.length == 3;
   }
   
+  public void backprop(final double[][] input, final double[] weights, final double[][] output) {
+    assert(input.length == output.length);
+    for (int i=0;i<input.length;i++) {
+      backprop(input[i],weights,output[i]);
+    }
+  }
+  
+  public void convolve(final double[][] input, final double[] weights, final double[][] output) {
+    assert(input.length == output.length);
+    for (int i=0;i<input.length;i++) {
+      convolve(input[i],weights,output[i]);
+    }
+  }
+  
+  public void gradient(final double[][] input, final double[] weights, final double[][] output) {
+    assert(input.length == output.length);
+    for (int i=0;i<input.length;i++) {
+      gradient(input[i],weights,output[i]);
+    }
+  }
+  
   public void backprop(final double[] input, final double[] weights, final double[] output) {
     assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == output.length;
     assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == input.length;

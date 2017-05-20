@@ -59,7 +59,9 @@ public final class GradientKernel extends Kernel {
       if (0. != this.input[i]) {
         final int is0 = this.inputSize[0];
         final int is1 = is0 * this.inputSize[1];
-        final int i2 = i / is1;
+        final int is2 = is1 * this.inputSize[2];
+        final int batch = i / is2;
+        final int i2 = i % is2 / is1;
         final int i1 = i % is1 / is0;
         final int i0 = i % is0;
   
@@ -68,7 +70,7 @@ public final class GradientKernel extends Kernel {
           final int o1 = i1 + k1;
           final int o0 = i0 + k0;
           if(o0 < this.outputSize[0] && o1 < this.outputSize[1]) {
-            final int o = o0 + this.outputSize[0] * (o1 + this.outputSize[1] * o2);
+            final int o = o0 + this.outputSize[0] * (o1 + this.outputSize[1] * (o2 + this.outputSize[2] * batch));
             accum += this.input[i] * this.output[o];
           }
         }

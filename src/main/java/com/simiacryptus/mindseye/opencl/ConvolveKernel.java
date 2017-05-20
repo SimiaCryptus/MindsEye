@@ -54,6 +54,7 @@ public final class ConvolveKernel extends Kernel {
     final int os0 = this.outputSize[0];
     final int os1 = os0 * this.outputSize[1];
     final int os2 = os1 * this.outputSize[2];
+    final int batch = o / os2;
     final int o2 = o % os2 / os1;
     final int o1 = o % os1 / os0;
     final int o0 = o % os0;
@@ -75,7 +76,7 @@ public final class ConvolveKernel extends Kernel {
             final int i1 = o1 - k1;
             final int i0 = o0 - k0;
             if(i0 >= 0 && i1 >= 0) {
-              final int i = i0 + this.inputSize[0] * (i1 + this.inputSize[1] * i2);
+              final int i = i0 + this.inputSize[0] * (i1 + this.inputSize[1] * (i2 + this.inputSize[2] * batch));
               accum += this.input[i] * this.weights[k];
             }
           }

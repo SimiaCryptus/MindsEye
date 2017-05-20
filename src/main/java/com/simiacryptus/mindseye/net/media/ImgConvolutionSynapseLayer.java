@@ -114,33 +114,31 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
       final int[] kernelDims = this.kernel.getDims();
       convolutionController = cache.apply(new IndexMapKey(kernelDims, inputDims, getOutputDims(inputDims, kernelDims)));
     }
-    Tensor[] outputA = IntStream.range(0, batch.length).mapToObj(dataIndex -> {
-      final Tensor singleInput = batch[dataIndex];
-      final int[] kernelDims = this.kernel.getDims();
-      final Tensor output = new Tensor(getOutputDims(inputDims, kernelDims));
-      convolutionController.convolve(singleInput.getData(), this.kernel.getData(), output.getData());
-      return output;
-    }).toArray(i -> new Tensor[i]);
+    int[] outputDims = getOutputDims(inputDims, this.kernel.getDims());
+    Tensor[] outputA = IntStream.range(0, batch.length).mapToObj(dataIndex -> new Tensor(outputDims)).toArray(i -> new Tensor[i]);
+    {
+      double[][] inputBuffers = Arrays.stream(batch).map(x -> x.getData()).toArray(i -> new double[i][]);
+      double[][] outputBuffers = Arrays.stream(outputA).map(x -> x.getData()).toArray(i -> new double[i][]);
+      convolutionController.convolve(inputBuffers, this.kernel.getData(), outputBuffers);
+    }
     
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] error) {
         if (!isFrozen()) {
-          IntStream.range(0, batch.length).forEach(dataIndex -> {
-            final Tensor input = batch[dataIndex];
-            final Tensor kernel = ImgConvolutionSynapseLayer.this.kernel;
-            final Tensor weightGradient = new Tensor(kernel.getDims());
-            convolutionController.gradient(input.getData(), weightGradient.getData(), error[dataIndex].getData());
-            buffer.get(ImgConvolutionSynapseLayer.this, kernel).accumulate(weightGradient.getData());
-          });
+          double[][] inputBuffers = Arrays.stream(batch).map(x -> x.getData()).toArray(i -> new double[i][]);
+          double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
+          final Tensor kernel = ImgConvolutionSynapseLayer.this.kernel;
+          final Tensor weightGradient = new Tensor(kernel.getDims());
+          convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
+          buffer.get(ImgConvolutionSynapseLayer.this, kernel).accumulate(weightGradient.getData());
         }
         if (input.isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, data.length).mapToObj(dataIndex -> {
-            final Tensor backprop = new Tensor(inputDims);
-            convolutionController.backprop(backprop.getData(), ImgConvolutionSynapseLayer.this.kernel.getData(), error[dataIndex].getData());
-            return backprop;
-          }).toArray(i -> new Tensor[i]);
-          input.accumulate(buffer, passbackA);
+          Tensor[] inputBufferTensors = IntStream.range(0, data.length).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);
+          double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
+          double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
+          convolutionController.backprop(inputBuffers, ImgConvolutionSynapseLayer.this.kernel.getData(), outputBuffers);
+          input.accumulate(buffer, inputBufferTensors);
         }
       }
       
