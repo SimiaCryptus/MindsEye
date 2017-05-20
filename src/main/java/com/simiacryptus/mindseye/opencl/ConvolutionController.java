@@ -49,23 +49,52 @@ public final class ConvolutionController {
   
   public void backprop(final double[][] input, final double[] weights, final double[][] output) {
     assert(input.length == output.length);
+    int inLength = input[0].length;
+    int outLength = output[0].length;
+    double[] inputBuffer = new double[inLength * input.length];
+    double[] outputBuffer = new double[outLength * output.length];
     for (int i=0;i<input.length;i++) {
-      backprop(input[i],weights,output[i]);
+      assert outLength == output[i].length;
+      System.arraycopy(output[i], 0, outputBuffer, i * outLength, outLength);
     }
+    backprop(inputBuffer,weights,outputBuffer);
+    for (int i=0;i<input.length;i++) {
+      assert inLength == input[i].length;
+      System.arraycopy(inputBuffer, i * inLength, input[i], 0, inLength);
+    }
+
   }
   
   public void convolve(final double[][] input, final double[] weights, final double[][] output) {
     assert(input.length == output.length);
+    int inLength = input[0].length;
+    int outLength = output[0].length;
+    double[] inputBuffer = new double[inLength * input.length];
+    double[] outputBuffer = new double[outLength * output.length];
     for (int i=0;i<input.length;i++) {
-      convolve(input[i],weights,output[i]);
+      assert inLength == input[i].length;
+      System.arraycopy(input[i], 0, inputBuffer, i * inLength, inLength);
+    }
+    convolve(inputBuffer,weights,outputBuffer);
+    for (int i=0;i<input.length;i++) {
+      assert outLength == output[i].length;
+      System.arraycopy(outputBuffer, i * outLength, output[i], 0, outLength);
     }
   }
   
   public void gradient(final double[][] input, final double[] weights, final double[][] output) {
     assert(input.length == output.length);
+    int inLength = input[0].length;
+    int outLength = output[0].length;
+    double[] inputBuffer = new double[inLength * input.length];
+    double[] outputBuffer = new double[outLength * output.length];
     for (int i=0;i<input.length;i++) {
-      gradient(input[i],weights,output[i]);
+      assert inLength == input[i].length;
+      assert outLength == output[i].length;
+      System.arraycopy(input[i], 0, inputBuffer, i * inLength, inLength);
+      System.arraycopy(output[i], 0, outputBuffer, i * outLength, outLength);
     }
+    gradient(inputBuffer,weights,outputBuffer);
   }
   
   public void backprop(final double[] input, final double[] weights, final double[] output) {
