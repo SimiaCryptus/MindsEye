@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.graph.PipelineNetwork;
 import com.simiacryptus.mindseye.net.activation.L1NormalizationLayer;
 import com.simiacryptus.mindseye.net.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.net.activation.MaxDropoutNoiseLayer;
-import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.activation.EntropyLayer;
 import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.net.media.SumSubsampleLayer;
@@ -41,9 +41,9 @@ public class MediaComponentValidationTests {
   
   @Test
   public void testConvolutionSynapseLayer1() throws Throwable {
-    final Tensor outputPrototype = new Tensor(1, 1, 1);
-    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ConvolutionSynapseLayer(new int[]{2, 2}, 1).addWeights(() -> Util.R.get().nextGaussian());
+    final Tensor outputPrototype = new Tensor(2, 2, 2);
+    final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgConvolutionSynapseLayer(2, 2, 4).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -51,7 +51,7 @@ public class MediaComponentValidationTests {
   public void testConvolutionSynapseLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 2, 1);
     final Tensor inputPrototype = new Tensor(2, 3, 1).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ConvolutionSynapseLayer(new int[]{2, 2}, 1).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgConvolutionSynapseLayer(2, 2, 1).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -59,7 +59,7 @@ public class MediaComponentValidationTests {
   public void testConvolutionSynapseLayer3() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 2);
     final Tensor inputPrototype = new Tensor(1, 1, 2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ConvolutionSynapseLayer(new int[]{1, 1}, 4).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgConvolutionSynapseLayer(1, 1, 4).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -67,7 +67,7 @@ public class MediaComponentValidationTests {
   public void testConvolutionSynapseLayer4() throws Throwable {
     final Tensor outputPrototype = new Tensor(2, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 5, 2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ConvolutionSynapseLayer(new int[]{2, 3}, 4).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgConvolutionSynapseLayer(2, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   

@@ -23,8 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
-import com.simiacryptus.mindseye.net.media.ConvolutionSynapseLayer;
-import com.simiacryptus.mindseye.net.media.MaxSubsampleLayer;
+import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.util.IntArray;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -88,7 +87,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       return cellId;
     })).values());
   }
-  private final Function<IntArray,List<List<Coordinate>>> getCellMap_cached = ConvolutionSynapseLayer.cache(this::getCellMap);
+  private final Function<IntArray,List<List<Coordinate>>> getCellMap_cached = ImgConvolutionSynapseLayer.cache(this::getCellMap);
   
   
   @Override

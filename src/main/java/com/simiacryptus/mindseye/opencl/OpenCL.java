@@ -25,7 +25,7 @@ import com.simiacryptus.util.lang.ResourcePool;
 
 public final class OpenCL {
   
-  static final ResourcePool<Device> devicePool = new ResourcePool<Device>(16) {
+  static final ResourcePool<Device> devicePool = new ResourcePool<Device>(1) {
     @Override
     public Device create() {
       return KernelManager.instance().bestDevice();
