@@ -47,59 +47,82 @@ public final class ConvolutionController {
     assert this.inputSize.length == 3;
   }
   
+  public static int MAX_BUFFER_SIZE = 1024 * 1024;
   public void backprop(final double[][] input, final double[] weights, final double[][] output) {
-    assert(input.length == output.length);
+    int length = input.length;
+    assert(length == output.length);
     int inLength = input[0].length;
     int outLength = output[0].length;
-    double[] inputBuffer = new double[inLength * input.length];
-    double[] outputBuffer = new double[outLength * output.length];
-    for (int i=0;i<input.length;i++) {
-      assert outLength == output[i].length;
-      System.arraycopy(output[i], 0, outputBuffer, i * outLength, outLength);
-    }
-    backprop(inputBuffer,weights,outputBuffer);
-    for (int i=0;i<input.length;i++) {
-      assert inLength == input[i].length;
-      System.arraycopy(inputBuffer, i * inLength, input[i], 0, inLength);
+    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
+    int runs = length / inputsPerRun;
+    int leftover = length - runs * inputsPerRun;
+    for(int run=0;run<runs;run++) {
+      int currentIndexOffset = run * inputsPerRun;
+      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+      double[] inputBuffer = new double[inLength * currentNumItems];
+      double[] outputBuffer = new double[outLength * currentNumItems];
+      for (int i = 0; i< currentNumItems; i++) {
+        assert outLength == output[currentIndexOffset+i].length;
+        System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
+      }
+      backprop(inputBuffer,weights,outputBuffer);
+      for (int i = 0; i< currentNumItems; i++) {
+        assert inLength == input[currentIndexOffset+i].length;
+        System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset+i], 0, inLength);
+      }
     }
 
   }
   
   public void convolve(final double[][] input, final double[] weights, final double[][] output) {
-    assert(input.length == output.length);
+    int length = input.length;
+    assert(length == output.length);
     int inLength = input[0].length;
     int outLength = output[0].length;
-    double[] inputBuffer = new double[inLength * input.length];
-    double[] outputBuffer = new double[outLength * output.length];
-    for (int i=0;i<input.length;i++) {
-      assert inLength == input[i].length;
-      System.arraycopy(input[i], 0, inputBuffer, i * inLength, inLength);
-    }
-    convolve(inputBuffer,weights,outputBuffer);
-    for (int i=0;i<input.length;i++) {
-      assert outLength == output[i].length;
-      System.arraycopy(outputBuffer, i * outLength, output[i], 0, outLength);
+    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
+    int runs = length / inputsPerRun;
+    int leftover = length - runs * inputsPerRun;
+    for(int run=0;run<runs;run++) {
+      int currentIndexOffset = run * inputsPerRun;
+      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+      double[] inputBuffer = new double[inLength * currentNumItems];
+      double[] outputBuffer = new double[outLength * currentNumItems];
+      for (int i = 0; i< currentNumItems; i++) {
+        assert inLength == input[currentIndexOffset+i].length;
+        System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
+      }
+      convolve(inputBuffer,weights,outputBuffer);
+      for (int i = 0; i< currentNumItems; i++) {
+        assert outLength == output[currentIndexOffset+i].length;
+        System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset+i], 0, outLength);
+      }
     }
   }
   
   public void gradient(final double[][] input, final double[] weights, final double[][] output) {
-    assert(input.length == output.length);
+    int length = input.length;
+    assert(length == output.length);
     int inLength = input[0].length;
     int outLength = output[0].length;
-    double[] inputBuffer = new double[inLength * input.length];
-    double[] outputBuffer = new double[outLength * output.length];
-    for (int i=0;i<input.length;i++) {
-      assert inLength == input[i].length;
-      assert outLength == output[i].length;
-      System.arraycopy(input[i], 0, inputBuffer, i * inLength, inLength);
-      System.arraycopy(output[i], 0, outputBuffer, i * outLength, outLength);
+    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
+    int runs = length / inputsPerRun;
+    int leftover = length - runs * inputsPerRun;
+    for(int run=0;run<runs;run++) {
+      int currentIndexOffset = run * inputsPerRun;
+      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+      double[] inputBuffer = new double[inLength * currentNumItems];
+      double[] outputBuffer = new double[outLength * currentNumItems];
+      for (int i = 0; i< currentNumItems; i++) {
+        assert inLength == input[currentIndexOffset+i].length;
+        assert outLength == output[currentIndexOffset+i].length;
+        System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
+        System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
+      }
+      gradient(inputBuffer,weights,outputBuffer);
     }
-    gradient(inputBuffer,weights,outputBuffer);
   }
   
-  public void backprop(final double[] input, final double[] weights, final double[] output) {
-    assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == output.length;
-    assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == input.length;
+  private void backprop(final double[] input, final double[] weights, final double[] output) {
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == weights.length;
     OpenCL.devicePool.with(device -> {
       try {
@@ -132,7 +155,7 @@ public final class ConvolutionController {
     });
   }
   
-  public void convolve(final double[] input, final double[] weights, final double[] output) {
+  private void convolve(final double[] input, final double[] weights, final double[] output) {
     OpenCL.devicePool.with(device -> {
       try {
         //System.err.println("Convolve " + this);
@@ -164,7 +187,7 @@ public final class ConvolutionController {
     });
   }
   
-  public void gradient(final double[] input, final double[] weights, final double[] output) {
+  private void gradient(final double[] input, final double[] weights, final double[] output) {
     OpenCL.devicePool.with(device -> {
       try {
         //System.err.println("Gradient " + this);
