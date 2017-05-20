@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.opencl;
 
+import com.aparapi.Kernel;
+import com.aparapi.device.Device;
+import com.aparapi.device.OpenCLDevice;
 import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +30,9 @@ import java.util.Arrays;
 
 public final class ConvolutionController {
   
-  private static final BackpropKernel backpropTask = new BackpropKernel();
-  private static final ConvolveKernel convolveTask = new ConvolveKernel();
-  private static final GradientKernel kernelTask = new GradientKernel();
+  private final BackpropKernel backpropTask = new BackpropKernel();
+  private final ConvolveKernel convolveTask = new ConvolveKernel();
+  private final GradientKernel kernelTask = new GradientKernel();
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
@@ -102,70 +105,113 @@ public final class ConvolutionController {
     assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == input.length;
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == weights.length;
     OpenCL.devicePool.with(device -> {
-      backpropTask.input = input;
-      backpropTask.weights = weights;
-      backpropTask.output = output;
-      backpropTask.outputSize = this.outputSize;
-      backpropTask.inputSize = this.inputSize;
-      backpropTask.kernelSize = this.kernelSize;
-      backpropTask.setExplicit(true);
-      backpropTask.put(backpropTask.outputSize);
-      backpropTask.put(backpropTask.inputSize);
-      backpropTask.put(backpropTask.kernelSize);
-      backpropTask.put(backpropTask.weights);
-      backpropTask.put(backpropTask.output);
-      backpropTask.exe(device);
-      backpropTask.get(backpropTask.input);
+      try {
+        System.err.println("Backprop " + this);
+        backpropTask.input = input;
+        backpropTask.weights = weights;
+        backpropTask.output = output;
+        backpropTask.outputSize = this.outputSize;
+        backpropTask.inputSize = this.inputSize;
+        backpropTask.kernelSize = this.kernelSize;
+        before();
+        backpropTask.setExplicit(true);
+        backpropTask.put(backpropTask.outputSize);
+        backpropTask.put(backpropTask.inputSize);
+        backpropTask.put(backpropTask.kernelSize);
+        backpropTask.put(backpropTask.weights);
+        backpropTask.put(backpropTask.output);
+//        Thread.sleep(1);
+        backpropTask.exe(device);
+        join(backpropTask);
+        backpropTask.get(backpropTask.input);
+        backpropTask.cleanUpArrays();
+      } catch (Throwable e) {
+        throw new RuntimeException("Error with " +this,e);
+      }
     });
   }
   
+  private void join(Kernel kernel) {
+//    try {
+//      while (kernel.isExecuting()) Thread.sleep(0);
+//      Thread.sleep(100);
+//    } catch (InterruptedException e) {
+//      Thread.currentThread().interrupt();
+//    }
+  }
+  
   public void convolve(final double[] input, final double[] weights, final double[] output) {
-    assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == output.length;
     OpenCL.devicePool.with(device -> {
-      convolveTask.input = input;
-      convolveTask.weights = weights;
-      convolveTask.output = output;
-      convolveTask.outputSize = this.outputSize;
-      convolveTask.inputSize = this.inputSize;
-      convolveTask.kernelSize = this.kernelSize;
-      convolveTask.setExplicit(true);
-      convolveTask.put(convolveTask.outputSize);
-      convolveTask.put(convolveTask.inputSize);
-      convolveTask.put(convolveTask.kernelSize);
-      convolveTask.put(convolveTask.input);
-      convolveTask.put(convolveTask.weights);
-      convolveTask.exe(device);
-      convolveTask.get(convolveTask.output);
+      try {
+        System.err.println("Convolve " + this);
+        convolveTask.input = input;
+        convolveTask.weights = weights;
+        convolveTask.output = output;
+        convolveTask.outputSize = this.outputSize;
+        convolveTask.inputSize = this.inputSize;
+        convolveTask.kernelSize = this.kernelSize;
+        before();
+        convolveTask.setExplicit(true);
+        convolveTask.put(convolveTask.outputSize);
+        convolveTask.put(convolveTask.inputSize);
+        convolveTask.put(convolveTask.kernelSize);
+        convolveTask.put(convolveTask.input);
+        convolveTask.put(convolveTask.weights);
+//        Thread.sleep(1);
+        if(device.getType() == Device.TYPE.GPU) {
+        
+        }
+        convolveTask.exe(device);
+        join(convolveTask);
+        convolveTask.get(convolveTask.output);
+        convolveTask.cleanUpArrays();
+      } catch (Throwable e) {
+        throw new RuntimeException("Error with " +this,e);
+      }
     });
   }
   
   public void gradient(final double[] input, final double[] weights, final double[] output) {
     OpenCL.devicePool.with(device -> {
-      kernelTask.input = input;
-      kernelTask.weights = weights;
-      kernelTask.output = output;
-      kernelTask.outputSize = this.outputSize;
-      kernelTask.inputSize = this.inputSize;
-      kernelTask.kernelSize = this.kernelSize;
-      kernelTask.setExplicit(true);
-      kernelTask.put(kernelTask.outputSize);
-      kernelTask.put(kernelTask.inputSize);
-      kernelTask.put(kernelTask.kernelSize);
-      kernelTask.put(kernelTask.input);
-      kernelTask.put(kernelTask.output);
-      kernelTask.exe(device);
-      kernelTask.get(kernelTask.weights);
+      try {
+        System.err.println("Gradient " + this);
+        kernelTask.input = input;
+        kernelTask.weights = weights;
+        kernelTask.output = output;
+        kernelTask.outputSize = this.outputSize;
+        kernelTask.inputSize = this.inputSize;
+        kernelTask.kernelSize = this.kernelSize;
+        before();
+        kernelTask.setExplicit(true);
+        kernelTask.put(kernelTask.outputSize);
+        kernelTask.put(kernelTask.inputSize);
+        kernelTask.put(kernelTask.kernelSize);
+        kernelTask.put(kernelTask.input);
+        kernelTask.put(kernelTask.output);
+//        Thread.sleep(1);
+        kernelTask.exe(device);
+        join(kernelTask);
+        kernelTask.get(kernelTask.weights);
+        kernelTask.cleanUpArrays();
+      } catch (Throwable e) {
+        throw new RuntimeException("Error with " +this,e);
+      }
     });
+  }
+  
+  public void before() {
+    //System.gc();
+    //System.runFinalization();
   }
   
   @Override
   public String toString() {
     final StringBuilder builder = new StringBuilder();
-    builder.append("Convolve [inputSize=");
+    builder.append("Convolve [");
     builder.append(Arrays.toString(this.inputSize));
-    builder.append(", kernelSize=");
+    builder.append(" x ");
     builder.append(Arrays.toString(this.kernelSize));
-    builder.append(", outputSize=");
+    builder.append(" => ");
     builder.append(Arrays.toString(this.outputSize));
     builder.append("]");
     return builder.toString();

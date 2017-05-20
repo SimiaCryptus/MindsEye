@@ -38,8 +38,8 @@ public final class BackpropKernel extends Kernel {
   }
   
   public void exe(final Device device) {
-    assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
-    assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
+    //assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
+    //assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weights.length;
     execute(device.createRange(this.input.length));
   }

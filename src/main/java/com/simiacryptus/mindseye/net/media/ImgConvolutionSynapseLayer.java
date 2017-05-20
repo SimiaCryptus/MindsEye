@@ -41,16 +41,16 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   
   private static final Logger log = LoggerFactory.getLogger(ImgConvolutionSynapseLayer.class);
   public static final Function<IndexMapKey, ConvolutionController> cache = Util.cache((final IndexMapKey key) -> {
-    
-    final int outDim = new Tensor(key.output).dim();
-    final int inDim = new Tensor(key.input).dim();
-    log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
-    
-    assert 3 == key.input.length;
-    assert 3 == key.kernel.length;
-    final ConvolutionController kernels = new ConvolutionController(key.input, key.kernel);
-    log.debug("Commputed kernels for " + key + ": " + kernels);
-    return kernels;
+    synchronized (ImgConvolutionSynapseLayer.class) {
+      final int outDim = new Tensor(key.output).dim();
+      final int inDim = new Tensor(key.input).dim();
+      log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
+      assert 3 == key.input.length;
+      assert 3 == key.kernel.length;
+      final ConvolutionController kernels = new ConvolutionController(key.input, key.kernel);
+      log.debug("Commputed kernels for " + key + ": " + kernels);
+      return kernels;
+    }
     
   });
   private static final long serialVersionUID = -139062498597441290L;

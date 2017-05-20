@@ -28,6 +28,7 @@ public final class OpenCL {
   static final ResourcePool<Device> devicePool = new ResourcePool<Device>(1) {
     @Override
     public Device create() {
+      //KernelManager.instance().getDefaultPreferences().
       return KernelManager.instance().bestDevice();
     }
   };
