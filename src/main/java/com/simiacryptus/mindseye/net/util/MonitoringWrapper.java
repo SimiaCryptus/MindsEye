@@ -65,6 +65,32 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
     map.put("avgMsPerBatch", 1000*mean);
     map.put("avgMsPerItem", 1000*totalTime / totalItems);
     map.put("stddevMsPerBatch", 1000*Math.sqrt(Math.abs(totalTimeSq/totalItems - mean*mean)));
+    List<double[]> state = state();
+    HashMap<String, Object> weightStats = new HashMap<>();
+    map.put("weights", weightStats);
+    weightStats.put("buffers", state.size());
+    int zeros = 0;
+    double sum0 = 0;
+    double sum1 = 0;
+    double sum2 = 0;
+    double sumLog = 0;
+    for(double[] s : state) {
+      for(double v : s) {
+        sum0 += 1;
+        sum1 += v;
+        sum2 += v * v;
+        if(Math.abs(v) < 1e-20) {
+          zeros++;
+        } else {
+          sumLog += Math.log(Math.abs(v)) / Math.log(10);
+        }
+      }
+    }
+    weightStats.put("count", sum0);
+    weightStats.put("mean", sum1 / sum0);
+    weightStats.put("stdDev", Math.sqrt(Math.abs(Math.pow(sum1 / sum0, 2) - sum2 / sum0)));
+    weightStats.put("meanExponent", sumLog / (sum0-zeros));
+    weightStats.put("zeros", zeros);
     return map;
   }
   
