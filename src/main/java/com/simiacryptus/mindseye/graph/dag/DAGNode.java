@@ -23,9 +23,10 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public interface DAGNode {
+public interface DAGNode extends Serializable {
   
   UUID getId();
   

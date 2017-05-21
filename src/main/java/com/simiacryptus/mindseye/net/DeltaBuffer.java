@@ -38,13 +38,15 @@ public class DeltaBuffer {
   public final double[] target;
   
   public DeltaBuffer(final double[] values, final double[] array, final NNLayer layer) {
+    if(null == values) throw new IllegalArgumentException();
+    if(null == array) throw new IllegalArgumentException();
     this.target = values;
     this.layer = layer;
     this.delta = array;
   }
   
   public DeltaBuffer(final double[] values, final NNLayer layer) {
-    assert null != values;
+    if(null == values) throw new IllegalArgumentException();
     this.target = values;
     this.layer = layer;
     this.delta = new double[values.length];

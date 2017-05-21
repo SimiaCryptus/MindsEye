@@ -24,9 +24,9 @@ import com.simiacryptus.mindseye.net.DeltaSet;
 public interface Trainable {
   PointSample measure();
   
-  void resetToFull();
+  default void resetToFull() {};
   
-  void resetSampling();
+  default void resetSampling() {};
   
   class PointSample {
     public final DeltaSet delta;
