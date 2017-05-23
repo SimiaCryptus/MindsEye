@@ -38,8 +38,6 @@ import java.util.function.DoubleSupplier;
  */
 public class InceptionLayer extends DAGNetwork {
   
-  private final HashMap<NNLayer, NNLayer> forwardLinkIndex = new HashMap<>();
-  private final HashMap<NNLayer, NNLayer> backwardLinkIndex = new HashMap<>();
   public final int[][][] kernels;
   private final DAGNode head;
   List<ImgConvolutionSynapseLayer> convolutionLayers = new ArrayList<>();

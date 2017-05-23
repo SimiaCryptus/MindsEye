@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opencl;
 
 import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
+import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +60,8 @@ public final class ConvolutionController {
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      double[] inputBuffer = new double[inLength * currentNumItems];
-      double[] outputBuffer = new double[outLength * currentNumItems];
+      double[] inputBuffer = Tensor.obtain(inLength * currentNumItems);
+      double[] outputBuffer = Tensor.obtain(outLength * currentNumItems);
       for (int i = 0; i< currentNumItems; i++) {
         assert outLength == output[currentIndexOffset+i].length;
         System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
@@ -70,6 +71,8 @@ public final class ConvolutionController {
         assert inLength == input[currentIndexOffset+i].length;
         System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset+i], 0, inLength);
       }
+      Tensor.recycle(inputBuffer);
+      Tensor.recycle(outputBuffer);
     }
 
   }
@@ -85,8 +88,8 @@ public final class ConvolutionController {
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      double[] inputBuffer = new double[inLength * currentNumItems];
-      double[] outputBuffer = new double[outLength * currentNumItems];
+      double[] inputBuffer = Tensor.obtain(inLength * currentNumItems);
+      double[] outputBuffer = Tensor.obtain(outLength * currentNumItems);
       for (int i = 0; i< currentNumItems; i++) {
         assert inLength == input[currentIndexOffset+i].length;
         System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
@@ -96,6 +99,8 @@ public final class ConvolutionController {
         assert outLength == output[currentIndexOffset+i].length;
         System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset+i], 0, outLength);
       }
+      Tensor.recycle(inputBuffer);
+      Tensor.recycle(outputBuffer);
     }
   }
   
@@ -110,14 +115,16 @@ public final class ConvolutionController {
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      double[] inputBuffer = new double[inLength * currentNumItems];
-      double[] outputBuffer = new double[outLength * currentNumItems];
+      double[] inputBuffer = Tensor.obtain(inLength * currentNumItems);
+      double[] outputBuffer = Tensor.obtain(outLength * currentNumItems);
       for (int i = 0; i< currentNumItems; i++) {
         assert inLength == input[currentIndexOffset+i].length;
         assert outLength == output[currentIndexOffset+i].length;
         System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
         System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
       }
+      Tensor.recycle(inputBuffer);
+      Tensor.recycle(outputBuffer);
       gradient(inputBuffer,weights,outputBuffer);
     }
   }
@@ -126,29 +133,28 @@ public final class ConvolutionController {
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == weights.length;
     OpenCL.devicePool.with(device -> {
       try {
-        //System.err.println("Backprop " + this);
-        backpropTask.input = input;
-        backpropTask.weights = weights;
-        backpropTask.output = output;
-        backpropTask.outputSize = this.outputSize;
-        backpropTask.inputSize = this.inputSize;
-        backpropTask.kernelSize = this.kernelSize;
-        before();
-        backpropTask.setExplicit(true);
-        backpropTask.put(backpropTask.outputSize);
-        backpropTask.put(backpropTask.inputSize);
-        backpropTask.put(backpropTask.kernelSize);
-        backpropTask.put(backpropTask.weights);
-        backpropTask.put(backpropTask.output);
-        backpropTask.exe(device);
-        backpropTask.get(backpropTask.input);
-        //backpropTask.cleanUpArrays();
-        backpropTask.input = null;
-        backpropTask.weights = null;
-        backpropTask.output = null;
-        backpropTask.outputSize = null;
-        backpropTask.inputSize = null;
-        backpropTask.kernelSize = null;
+        synchronized (backpropTask) {
+          backpropTask.input = input;
+          backpropTask.weights = weights;
+          backpropTask.output = output;
+          backpropTask.outputSize = this.outputSize;
+          backpropTask.inputSize = this.inputSize;
+          backpropTask.kernelSize = this.kernelSize;
+          backpropTask.setExplicit(true);
+          backpropTask.put(backpropTask.outputSize);
+          backpropTask.put(backpropTask.inputSize);
+          backpropTask.put(backpropTask.kernelSize);
+          backpropTask.put(backpropTask.weights);
+          backpropTask.put(backpropTask.output);
+          backpropTask.exe(device);
+          backpropTask.get(backpropTask.input);
+          backpropTask.input = null;
+          backpropTask.weights = null;
+          backpropTask.output = null;
+          backpropTask.outputSize = null;
+          backpropTask.inputSize = null;
+          backpropTask.kernelSize = null;
+        }
       } catch (Throwable e) {
         throw new RuntimeException("Error with " +this,e);
       }
@@ -158,29 +164,28 @@ public final class ConvolutionController {
   private void convolve(final double[] input, final double[] weights, final double[] output) {
     OpenCL.devicePool.with(device -> {
       try {
-        //System.err.println("Convolve " + this);
-        convolveTask.input = input;
-        convolveTask.weights = weights;
-        convolveTask.output = output;
-        convolveTask.outputSize = this.outputSize;
-        convolveTask.inputSize = this.inputSize;
-        convolveTask.kernelSize = this.kernelSize;
-        before();
-        convolveTask.setExplicit(true);
-        convolveTask.put(convolveTask.outputSize);
-        convolveTask.put(convolveTask.inputSize);
-        convolveTask.put(convolveTask.kernelSize);
-        convolveTask.put(convolveTask.input);
-        convolveTask.put(convolveTask.weights);
-        convolveTask.exe(device);
-        convolveTask.get(convolveTask.output);
-        convolveTask.input = null;
-        convolveTask.weights = null;
-        convolveTask.output = null;
-        convolveTask.outputSize = null;
-        convolveTask.inputSize = null;
-        convolveTask.kernelSize = null;
-        //convolveTask.cleanUpArrays();
+        synchronized (convolveTask) {
+          convolveTask.input = input;
+          convolveTask.weights = weights;
+          convolveTask.output = output;
+          convolveTask.outputSize = this.outputSize;
+          convolveTask.inputSize = this.inputSize;
+          convolveTask.kernelSize = this.kernelSize;
+          convolveTask.setExplicit(true);
+          convolveTask.put(convolveTask.outputSize);
+          convolveTask.put(convolveTask.inputSize);
+          convolveTask.put(convolveTask.kernelSize);
+          convolveTask.put(convolveTask.input);
+          convolveTask.put(convolveTask.weights);
+          convolveTask.exe(device);
+          convolveTask.get(convolveTask.output);
+          convolveTask.input = null;
+          convolveTask.weights = null;
+          convolveTask.output = null;
+          convolveTask.outputSize = null;
+          convolveTask.inputSize = null;
+          convolveTask.kernelSize = null;
+        }
       } catch (Throwable e) {
         throw new RuntimeException("Error with " +this,e);
       }
@@ -190,38 +195,32 @@ public final class ConvolutionController {
   private void gradient(final double[] input, final double[] weights, final double[] output) {
     OpenCL.devicePool.with(device -> {
       try {
-        //System.err.println("Gradient " + this);
-        kernelTask.input = input;
-        kernelTask.weights = weights;
-        kernelTask.output = output;
-        kernelTask.outputSize = this.outputSize;
-        kernelTask.inputSize = this.inputSize;
-        kernelTask.kernelSize = this.kernelSize;
-        before();
-        kernelTask.setExplicit(true);
-        kernelTask.put(kernelTask.outputSize);
-        kernelTask.put(kernelTask.inputSize);
-        kernelTask.put(kernelTask.kernelSize);
-        kernelTask.put(kernelTask.input);
-        kernelTask.put(kernelTask.output);
-        kernelTask.exe(device);
-        kernelTask.get(kernelTask.weights);
-        //kernelTask.cleanUpArrays();
-        kernelTask.input = null;
-        kernelTask.weights = null;
-        kernelTask.output = null;
-        kernelTask.outputSize = null;
-        kernelTask.inputSize = null;
-        kernelTask.kernelSize = null;
+        synchronized (kernelTask) {
+          kernelTask.input = input;
+          kernelTask.weights = weights;
+          kernelTask.output = output;
+          kernelTask.outputSize = this.outputSize;
+          kernelTask.inputSize = this.inputSize;
+          kernelTask.kernelSize = this.kernelSize;
+          kernelTask.setExplicit(true);
+          kernelTask.put(kernelTask.outputSize);
+          kernelTask.put(kernelTask.inputSize);
+          kernelTask.put(kernelTask.kernelSize);
+          kernelTask.put(kernelTask.input);
+          kernelTask.put(kernelTask.output);
+          kernelTask.exe(device);
+          kernelTask.get(kernelTask.weights);
+          kernelTask.input = null;
+          kernelTask.weights = null;
+          kernelTask.output = null;
+          kernelTask.outputSize = null;
+          kernelTask.inputSize = null;
+          kernelTask.kernelSize = null;
+        }
       } catch (Throwable e) {
         throw new RuntimeException("Error with " +this,e);
       }
     });
-  }
-  
-  public void before() {
-    //System.gc();
-    //System.runFinalization();
   }
   
   @Override

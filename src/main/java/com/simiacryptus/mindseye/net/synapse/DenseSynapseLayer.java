@@ -140,7 +140,7 @@ public class DenseSynapseLayer extends NNLayer {
     return this;
   }
   
-  public DenseSynapseLayer setWeights2(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
+  public DenseSynapseLayer setWeights(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
     new Tensor(inputDims).coordStream().parallel().forEach(in -> {
       new Tensor(outputDims).coordStream().parallel().forEach(out -> {
         weights.set(new int[]{in.index, out.index}, f.applyAsDouble(in, out));
@@ -171,7 +171,7 @@ public class DenseSynapseLayer extends NNLayer {
   }
   
   public void initSpacial(double radius, double stiffness, double peak) {
-    setWeights2((Coordinate in, Coordinate out) -> {
+    setWeights((Coordinate in, Coordinate out) -> {
       double[] doubleCoords = IntStream.range(0, in.coords.length).mapToDouble(d -> {
         double from = in.coords[d] * 1.0 / DenseSynapseLayer.this.inputDims[d];
         double to = out.coords[d] * 1.0 / DenseSynapseLayer.this.outputDims[d];

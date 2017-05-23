@@ -39,20 +39,6 @@ import java.util.stream.IntStream;
 
 public class ImgConvolutionSynapseLayer extends NNLayer {
   
-  private static final Logger log = LoggerFactory.getLogger(ImgConvolutionSynapseLayer.class);
-  public static final Function<IndexMapKey, ConvolutionController> cache = Util.cache((final IndexMapKey key) -> {
-    synchronized (ImgConvolutionSynapseLayer.class) {
-      final int outDim = new Tensor(key.output).dim();
-      final int inDim = new Tensor(key.input).dim();
-      log.debug(String.format("%s ins * %s bands => %s outs", inDim, Arrays.toString(key.kernel), outDim));
-      assert 3 == key.input.length;
-      assert 3 == key.kernel.length;
-      final ConvolutionController kernels = new ConvolutionController(key.input, key.kernel);
-      log.debug("Commputed kernels for " + key + ": " + kernels);
-      return kernels;
-    }
-    
-  });
   private static final long serialVersionUID = -139062498597441290L;
   public final Tensor kernel;
   
@@ -98,23 +84,20 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    final ConvolutionController convolutionController;
     final NNResult input = inObj[0];
     final Tensor[] batch = input.data;
     final int[] inputDims = batch[0].getDims();
-    {
-      final int[] kernelDims = this.kernel.getDims();
-      convolutionController = cache.apply(new IndexMapKey(kernelDims, inputDims, getOutputDims(inputDims, kernelDims)));
-    }
-    int[] outputDims = getOutputDims(inputDims, this.kernel.getDims());
-    Tensor[] outputA = IntStream.range(0, batch.length).mapToObj(dataIndex -> new Tensor(outputDims)).toArray(i -> new Tensor[i]);
+    ConvolutionController convolutionController = new ConvolutionController(inputDims, this.kernel.getDims());
+    Tensor[] output = IntStream.range(0, batch.length)
+                           .mapToObj(dataIndex -> new Tensor(getOutputDims(inputDims, this.kernel.getDims())))
+                           .toArray(i -> new Tensor[i]);
     {
       double[][] inputBuffers = Arrays.stream(batch).map(x -> x.getData()).toArray(i -> new double[i][]);
-      double[][] outputBuffers = Arrays.stream(outputA).map(x -> x.getData()).toArray(i -> new double[i][]);
+      double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolutionController.convolve(inputBuffers, this.kernel.getData(), outputBuffers);
     }
     
-    return new NNResult(outputA) {
+    return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] error) {
         if (!isFrozen()) {
