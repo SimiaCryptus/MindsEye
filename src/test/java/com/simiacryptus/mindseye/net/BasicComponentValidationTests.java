@@ -45,6 +45,14 @@ public class BasicComponentValidationTests {
   }
   
   @Test
+  public void testImgBandBiasLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(2,2,3);
+    final Tensor inputPrototype = new Tensor(2,2,3).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgBandBiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
   public void testDenseSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
