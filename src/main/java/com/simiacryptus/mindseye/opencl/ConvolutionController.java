@@ -57,11 +57,19 @@ public final class ConvolutionController {
     int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
+    double[] inputBuffer = null;
+    double[] outputBuffer = null;
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      double[] inputBuffer = Tensor.obtain(inLength * currentNumItems);
-      double[] outputBuffer = Tensor.obtain(outLength * currentNumItems);
+      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+        Tensor.recycle(inputBuffer);
+        inputBuffer = Tensor.obtain(inLength * currentNumItems);
+      }
+      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+        Tensor.recycle(outputBuffer);
+        outputBuffer = Tensor.obtain(outLength * currentNumItems);
+      }
       for (int i = 0; i< currentNumItems; i++) {
         assert outLength == output[currentIndexOffset+i].length;
         System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
@@ -71,9 +79,9 @@ public final class ConvolutionController {
         assert inLength == input[currentIndexOffset+i].length;
         System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset+i], 0, inLength);
       }
-      Tensor.recycle(inputBuffer);
-      Tensor.recycle(outputBuffer);
     }
+    Tensor.recycle(inputBuffer);
+    Tensor.recycle(outputBuffer);
 
   }
   
@@ -85,11 +93,19 @@ public final class ConvolutionController {
     int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
+    double[] inputBuffer = null;
+    double[] outputBuffer = null;
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      double[] inputBuffer = Tensor.obtain(inLength * currentNumItems);
-      double[] outputBuffer = Tensor.obtain(outLength * currentNumItems);
+      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+        Tensor.recycle(inputBuffer);
+        inputBuffer = Tensor.obtain(inLength * currentNumItems);
+      }
+      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+        Tensor.recycle(outputBuffer);
+        outputBuffer = Tensor.obtain(outLength * currentNumItems);
+      }
       for (int i = 0; i< currentNumItems; i++) {
         assert inLength == input[currentIndexOffset+i].length;
         System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
@@ -99,9 +115,9 @@ public final class ConvolutionController {
         assert outLength == output[currentIndexOffset+i].length;
         System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset+i], 0, outLength);
       }
-      Tensor.recycle(inputBuffer);
-      Tensor.recycle(outputBuffer);
     }
+    Tensor.recycle(inputBuffer);
+    Tensor.recycle(outputBuffer);
   }
   
   public void gradient(final double[][] input, final double[] weights, final double[][] output) {
@@ -112,21 +128,29 @@ public final class ConvolutionController {
     int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
+    double[] inputBuffer = null;
+    double[] outputBuffer = null;
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      double[] inputBuffer = Tensor.obtain(inLength * currentNumItems);
-      double[] outputBuffer = Tensor.obtain(outLength * currentNumItems);
+      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+        Tensor.recycle(inputBuffer);
+        inputBuffer = Tensor.obtain(inLength * currentNumItems);
+      }
+      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+        Tensor.recycle(outputBuffer);
+        outputBuffer = Tensor.obtain(outLength * currentNumItems);
+      }
       for (int i = 0; i< currentNumItems; i++) {
         assert inLength == input[currentIndexOffset+i].length;
         assert outLength == output[currentIndexOffset+i].length;
         System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
         System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
       }
-      Tensor.recycle(inputBuffer);
-      Tensor.recycle(outputBuffer);
       gradient(inputBuffer,weights,outputBuffer);
     }
+    Tensor.recycle(inputBuffer);
+    Tensor.recycle(outputBuffer);
   }
   
   private void backprop(final double[] input, final double[] weights, final double[] output) {
