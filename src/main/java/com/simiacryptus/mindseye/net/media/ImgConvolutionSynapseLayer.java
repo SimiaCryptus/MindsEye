@@ -155,6 +155,13 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     return this;
   }
   
+  public ImgConvolutionSynapseLayer setWeights(final DoubleSupplier f) {
+    this.kernel.coordStream().parallel().forEach(c -> {
+      this.kernel.set(c, f.getAsDouble());
+    });
+    return this;
+  }
+  
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.kernel.getData());

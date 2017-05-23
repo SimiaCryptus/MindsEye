@@ -25,11 +25,13 @@ import com.simiacryptus.mindseye.graph.dag.DAGNode;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.net.reducers.ImgConcatLayer;
+import com.simiacryptus.mindseye.net.synapse.DenseSynapseLayer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.DoubleSupplier;
 
 /**
  * See Also http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Szegedy_Going_Deeper_With_2015_CVPR_paper.pdf
@@ -40,20 +42,28 @@ public class InceptionLayer extends DAGNetwork {
   private final HashMap<NNLayer, NNLayer> backwardLinkIndex = new HashMap<>();
   public final int[][][] kernels;
   private final DAGNode head;
+  List<ImgConvolutionSynapseLayer> convolutionLayers = new ArrayList<>();
   
   public InceptionLayer(int[][][] kernels) {
     super(1);
     this.kernels = kernels;
-    List<DAGNode> kernelLayers = new ArrayList<>();
+    List<DAGNode> pipelines = new ArrayList<>();
     for(int[][] kernelPipeline : this.kernels) {
       PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
       for(int[] kernel : kernelPipeline) {
-        kernelPipelineNetwork.add(new ImgConvolutionSynapseLayer(kernel[0], kernel[1], kernel[2]));
+        ImgConvolutionSynapseLayer convolutionSynapseLayer = new ImgConvolutionSynapseLayer(kernel[0], kernel[1], kernel[2]);
+        convolutionLayers.add(convolutionSynapseLayer);
+        kernelPipelineNetwork.add(convolutionSynapseLayer);
       }
-      kernelLayers.add(add(kernelPipelineNetwork, getInput(0)));
+      pipelines.add(add(kernelPipelineNetwork, getInput(0)));
     }
-    assert (0 < kernelLayers.size());
-    this.head = add(new ImgConcatLayer(), kernelLayers.toArray(new DAGNode[]{}));
+    assert (0 < pipelines.size());
+    this.head = add(new ImgConcatLayer(), pipelines.toArray(new DAGNode[]{}));
+  }
+  
+  public InceptionLayer setWeights(final DoubleSupplier f) {
+    convolutionLayers.forEach(x->x.setWeights(f));
+    return this;
   }
   
   @Override
