@@ -33,6 +33,10 @@ public abstract class NNResult {
     this.data = data;
   }
   
+  /**
+   * @param input - An array of inputs, each one of which is a batch for a  given input
+   * @return
+   */
   public static NNResult[] singleResultArray(Tensor[][] input) {
     return Arrays.stream(input).map((Tensor[] x) -> new NNLayer.ConstNNResult(x)).toArray(i -> new NNResult[i]);
   }
@@ -41,10 +45,14 @@ public abstract class NNResult {
     return Arrays.stream(input).map((Tensor x) -> new NNLayer.ConstNNResult(x)).toArray(i -> new NNResult[i]);
   }
   
+  /**
+   * @param batchData - a list examples, ie each sub-array is a single example
+   * @return - Returns a result array for NNLayer evaluation
+   */
   public static NNResult[] batchResultArray(Tensor[][] batchData) {
     return IntStream.range(0, batchData[0].length).mapToObj(inputIndex -> {
-      Tensor[] inputBatch = IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
-                                                                              batchData[trainingExampleId][inputIndex]).toArray(i -> new Tensor[i]);
+      Tensor[] inputBatch = IntStream.range(0, batchData.length)
+                  .mapToObj(trainingExampleId ->batchData[trainingExampleId][inputIndex]).toArray(i -> new Tensor[i]);
       return new NNLayer.ConstNNResult(inputBatch);
     }).toArray(x -> new NNResult[x]);
   }

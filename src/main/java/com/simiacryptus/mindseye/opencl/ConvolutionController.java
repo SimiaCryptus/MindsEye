@@ -60,9 +60,10 @@ public final class ConvolutionController {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    for(int run=0;run<runs;run++) {
+    for(int run=0;run<=runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+      int currentNumItems = run < runs ? inputsPerRun : leftover;
+      if(0 == currentNumItems) continue;
       if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);
@@ -96,9 +97,10 @@ public final class ConvolutionController {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    for(int run=0;run<runs;run++) {
+    for(int run=0;run<=runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+      int currentNumItems = run < runs ? inputsPerRun : leftover;
+      if(0 == currentNumItems) continue;
       if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);
@@ -131,9 +133,10 @@ public final class ConvolutionController {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    for(int run=0;run<runs;run++) {
+    for(int run=0;run<=runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+      int currentNumItems = run < runs ? inputsPerRun : leftover;
+      if(0 == currentNumItems) continue;
       if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);
@@ -155,6 +158,9 @@ public final class ConvolutionController {
   }
   
   private void backprop(final double[] input, final double[] weights, final double[] output) {
+    assert(0 < input.length);
+    assert(0 < weights.length);
+    assert(0 < output.length);
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == weights.length;
     OpenCL.devicePool.with(device -> {
       try {
@@ -187,6 +193,9 @@ public final class ConvolutionController {
   }
   
   private void convolve(final double[] input, final double[] weights, final double[] output) {
+    assert(0 < input.length);
+    assert(0 < weights.length);
+    assert(0 < output.length);
     OpenCL.devicePool.with(device -> {
       try {
         synchronized (convolveTask) {
@@ -218,6 +227,9 @@ public final class ConvolutionController {
   }
   
   private void gradient(final double[] input, final double[] weights, final double[] output) {
+    assert(0 < input.length);
+    assert(0 < weights.length);
+    assert(0 < output.length);
     OpenCL.devicePool.with(device -> {
       try {
         synchronized (kernelTask) {

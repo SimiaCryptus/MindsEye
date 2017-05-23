@@ -51,6 +51,9 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     if(kernel.getDims().length != 3) throw new IllegalArgumentException();
     if(kernel.getDims()[0] % 2 != 1) throw new IllegalArgumentException();
     if(kernel.getDims()[1] % 2 != 1) throw new IllegalArgumentException();
+    if(kernel.getDims()[0] <= 0) throw new IllegalArgumentException();
+    if(kernel.getDims()[1] <= 0) throw new IllegalArgumentException();
+    if(kernel.getDims()[2] <= 0) throw new IllegalArgumentException();
     this.kernel = kernel;
   }
   

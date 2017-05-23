@@ -31,9 +31,12 @@ import com.simiacryptus.mindseye.net.reducers.ImgConcatLayer;
 import com.simiacryptus.mindseye.net.reducers.SumInputsLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
+import org.apache.commons.lang.math.IntRange;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.stream.IntStream;
 
 public class MediaComponentValidationTests {
   public static final double deltaFactor = 1e-5;
@@ -48,6 +51,14 @@ public class MediaComponentValidationTests {
     final Tensor inputPrototype2 = new Tensor(2,3,4).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new ImgConcatLayer();
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+  
+  @Test
+  public void testConvolutionSynapseLayerStress() throws Throwable {
+    final NNLayer component = new ImgConvolutionSynapseLayer(3, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
+    component.eval(NNResult.batchResultArray(IntStream.range(0,1000).mapToObj(i->{
+      return new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
+    }).map(i->new Tensor[]{i}).toArray(i->new Tensor[i][])));
   }
   
   @Test

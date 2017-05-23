@@ -34,6 +34,7 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   private int totalBatches = 0;
   private double totalTimeSq = 0;
   private int totalItems = 0;
+  private boolean enabled = false;
   
   public MonitoringWrapper(final NNLayer inner) {
     this.inner = inner;
@@ -95,6 +96,7 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   }
   
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
+    this.enabled = true;
     obj.addObj(name,this);
     return this;
   }
