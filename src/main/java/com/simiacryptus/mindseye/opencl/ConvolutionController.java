@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opencl;
 
+import com.aparapi.Kernel;
 import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
