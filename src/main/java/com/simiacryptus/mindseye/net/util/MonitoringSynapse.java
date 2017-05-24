@@ -19,8 +19,12 @@
 
 package com.simiacryptus.mindseye.net.util;
 
+import com.simiacryptus.mindseye.net.DeltaSet;
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
+import com.simiacryptus.util.MonitoredItem;
+import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.ScalarStatistics;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
@@ -35,36 +39,42 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   private int totalItems = 0;
   
   public MonitoringSynapse() {
-  
-  
   }
+  
+  
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert(1==inObj.length);
+    NNResult input = inObj[0];
     if(enabled) {
       long start = System.nanoTime();
       double elapsed = (System.nanoTime() - start) / 1000000000.0;
       totalBatches++;
-      totalItems += inObj[0].data.length;
-      zeros = 0;
-      sum0 = 0;
-      sum1 = 0;
-      sum2 = 0;
-      sumLog = 0;
-      for(Tensor t : inObj[0].data) {
+      totalItems += input.data.length;
+      forwardStatistics.clear();
+      for(Tensor t : input.data) {
         for(double v : t.getData()) {
-          sum0 += 1;
-          sum1 += v;
-          sum2 += v * v;
-          if(Math.abs(v) < 1e-20) {
-            zeros++;
-          } else {
-            sumLog += Math.log(Math.abs(v)) / Math.log(10);
-          }
+          forwardStatistics.add(v);
         }
       }
     }
-    return inObj[0];
+    return new NNResult(input.data) {
+      @Override
+      public void accumulate(DeltaSet buffer, Tensor[] data) {
+        backpropStatistics.clear();
+        for(Tensor t : input.data) {
+          for(double v : t.getData()) {
+            backpropStatistics.add(v);
+          }
+        }
+        input.accumulate(buffer, data);
+      }
+  
+      @Override
+      public boolean isAlive() {
+        return input.isAlive();
+      }
+    };
   }
   
   @Override
@@ -72,11 +82,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     return Arrays.asList();
   }
   
-  int zeros = 0;
-  double sum0 = 0;
-  double sum1 = 0;
-  double sum2 = 0;
-  double sumLog = 0;
+  private final ScalarStatistics backpropStatistics = new ScalarStatistics();
+  private final ScalarStatistics forwardStatistics = new ScalarStatistics();
   boolean enabled = false;
   
   @Override
@@ -84,11 +91,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     HashMap<String, Object> map = new HashMap<>();
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
-    map.put("count", sum0);
-    map.put("mean", sum1 / sum0);
-    map.put("stdDev", Math.sqrt(Math.abs(Math.pow(sum1 / sum0, 2) - sum2 / sum0)));
-    map.put("meanExponent", sumLog / (sum0-zeros));
-    map.put("zeros", zeros);
+    map.put("forward", forwardStatistics.getMetrics());
+    map.put("backprop", backpropStatistics.getMetrics());
     return map;
   }
   

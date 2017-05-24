@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.net.util;
 
 import com.simiacryptus.mindseye.net.NNLayer;
 import com.simiacryptus.mindseye.net.NNResult;
+import com.simiacryptus.util.MonitoredItem;
+import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.ScalarStatistics;
 
 import java.util.HashMap;
 import java.util.List;
@@ -70,28 +73,13 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
     HashMap<String, Object> weightStats = new HashMap<>();
     map.put("weights", weightStats);
     weightStats.put("buffers", state.size());
-    int zeros = 0;
-    double sum0 = 0;
-    double sum1 = 0;
-    double sum2 = 0;
-    double sumLog = 0;
+    ScalarStatistics statistics = new ScalarStatistics();
     for(double[] s : state) {
       for(double v : s) {
-        sum0 += 1;
-        sum1 += v;
-        sum2 += v * v;
-        if(Math.abs(v) < 1e-20) {
-          zeros++;
-        } else {
-          sumLog += Math.log(Math.abs(v)) / Math.log(10);
-        }
+        statistics.add(v);
       }
     }
-    weightStats.put("count", sum0);
-    weightStats.put("mean", sum1 / sum0);
-    weightStats.put("stdDev", Math.sqrt(Math.abs(Math.pow(sum1 / sum0, 2) - sum2 / sum0)));
-    weightStats.put("meanExponent", sumLog / (sum0-zeros));
-    weightStats.put("zeros", zeros);
+    weightStats.putAll(statistics.getMetrics());
     return map;
   }
   

@@ -26,9 +26,7 @@ import com.simiacryptus.mindseye.net.NNResult;
 import java.util.List;
 
 public class VariableLayer extends NNLayer {
-  /**
-   *
-   */
+
   private static final long serialVersionUID = 6284058717982209085L;
   private NNLayer inner;
 
