@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.util.Util;
 
 import java.time.Duration;

@@ -17,19 +17,16 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.network.graph;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.layers.NNResult;
 
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public class EvaluationContext {
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
-  }
+  public final Map<UUID, NNResult> cache = new HashMap<>();
+  
 }

@@ -17,19 +17,11 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
-
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+package com.simiacryptus.mindseye.opt.region;
 
 /**
- * Created by Andrew Charneski on 5/9/2017.
+ * Created by Andrew Charneski on 5/23/2017.
  */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
-  
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
-  }
+public interface TrustRegion {
+  double[] project(double[] state, double[] point);
 }

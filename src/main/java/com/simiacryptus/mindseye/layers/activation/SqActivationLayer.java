@@ -17,19 +17,27 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.layers.activation;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
-
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+  /**
+   *
+   */
+  private static final long serialVersionUID = -5520500379591109767L;
+  
+  public SqActivationLayer() {
   }
+  
+  @Override
+  protected final void eval(final double x, final double[] results) {
+    final double minDeriv = 0;
+    final double d = 2 * x;
+    final double f = x * x;
+    assert Double.isFinite(d);
+    assert minDeriv <= Math.abs(d);
+    results[0] = f;
+    results[1] = d;
+  }
+  
 }

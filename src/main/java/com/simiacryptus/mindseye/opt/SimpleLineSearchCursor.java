@@ -19,8 +19,9 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.net.DeltaBuffer;
-import com.simiacryptus.mindseye.net.DeltaSet;
+import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -30,7 +31,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public final DeltaSet direction;
   public final Trainable subject;
   
-  public SimpleLineSearchCursor(Trainable.PointSample origin, DeltaSet direction, Trainable subject) {
+  public SimpleLineSearchCursor(Trainable subject, Trainable.PointSample origin, DeltaSet direction) {
     this.origin = origin;
     this.direction = direction;
     this.subject = subject;

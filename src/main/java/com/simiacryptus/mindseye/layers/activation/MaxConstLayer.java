@@ -17,19 +17,28 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.layers.activation;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
-
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+@SuppressWarnings("serial")
+public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+  private double value = 0;
+  
+  @Override
+  protected void eval(final double x, final double[] results) {
+    final double d = x < this.value ? 0 : 1;
+    final double f = x < this.value ? this.value : x;
+    assert Double.isFinite(d);
+    results[0] = f;
+    results[1] = d;
+  }
+  
+  public double getValue() {
+    return this.value;
+  }
+  
+  public MaxConstLayer setValue(final double value) {
+    this.value = value;
+    return this;
   }
 }

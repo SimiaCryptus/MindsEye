@@ -17,19 +17,25 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.layers.NNLayer;
 
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+public class SimpleLossNetwork extends SupervisedNetwork {
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+  
+  public final DAGNode studentNode;
+  public final DAGNode lossNode;
+  
+  public SimpleLossNetwork(final NNLayer student, final NNLayer loss) {
+    super(2);
+    studentNode = add(student, getInput(0));
+    lossNode = add(loss, studentNode, getInput(1));
+  }
+  
+  @Override
+  public DAGNode getHead() {
+    return lossNode;
   }
 }

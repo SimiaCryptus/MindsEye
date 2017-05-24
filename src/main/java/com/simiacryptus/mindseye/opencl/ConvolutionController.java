@@ -19,8 +19,7 @@
 
 package com.simiacryptus.mindseye.opencl;
 
-import com.aparapi.Kernel;
-import com.simiacryptus.mindseye.net.media.ImgConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.layers.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +59,9 @@ public final class ConvolutionController {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    for(int run=0;run<=runs;run++) {
+    for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < runs ? inputsPerRun : leftover;
-      if(0 == currentNumItems) continue;
+      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
       if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);
@@ -133,10 +131,9 @@ public final class ConvolutionController {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    for(int run=0;run<=runs;run++) {
+    for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < runs ? inputsPerRun : leftover;
-      if(0 == currentNumItems) continue;
+      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
       if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);

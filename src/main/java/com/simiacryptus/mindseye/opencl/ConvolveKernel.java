@@ -21,9 +21,6 @@ package com.simiacryptus.mindseye.opencl;
 
 import com.aparapi.Kernel;
 import com.aparapi.device.Device;
-import com.simiacryptus.util.lang.ResourcePool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class ConvolveKernel extends Kernel {
 
@@ -47,18 +44,14 @@ public final class ConvolveKernel extends Kernel {
   @Override
   public void run() {
     final int i = getGlobalId();
-    this.output[i] = run(i);
-  }
-  
-  public double run(final int o) {
     final int os0 = this.outputSize[0];
     final int os1 = os0 * this.outputSize[1];
     final int os2 = os1 * this.outputSize[2];
-    final int batch = o / os2;
-    final int o2 = o % os2 / os1;
-    final int o1 = o % os1 / os0;
-    final int o0 = o % os0;
-    
+    final int batch = i / os2;
+    final int o2 = i % os2 / os1;
+    final int o1 = i % os1 / os0;
+    final int o0 = i % os0;
+  
     double accum = 0;
     int ko1 = (this.kernelSize[1] - 1) / 2;
     int ko0 = (this.kernelSize[0] - 1) / 2;
@@ -78,13 +71,14 @@ public final class ConvolveKernel extends Kernel {
             final int i1 = o1 - k1 + ko1;
             final int i0 = o0 - k0 + ko0;
             if(i0 >= 0 && i1 >= 0 && i1 < this.inputSize[1] && i0 < this.inputSize[0]) {
-              final int i = i0 + this.inputSize[0] * (i1 + this.inputSize[1] * (i2 + this.inputSize[2] * batch));
-              accum += this.input[i] * this.weights[k];
+              final int i11 = i0 + this.inputSize[0] * (i1 + this.inputSize[1] * (i2 + this.inputSize[2] * batch));
+              accum += this.input[i11] * this.weights[k];
             }
           }
         }
       }
     }
-    return accum;
+    this.output[i] = accum;
   }
+  
 }

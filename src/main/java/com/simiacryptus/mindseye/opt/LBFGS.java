@@ -19,16 +19,18 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.net.DeltaBuffer;
-import com.simiacryptus.mindseye.net.DeltaSet;
+import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.util.ArrayUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.simiacryptus.mindseye.opt.ArrayArrayUtil.add;
-import static com.simiacryptus.mindseye.opt.ArrayArrayUtil.dot;
+import static com.simiacryptus.util.ArrayUtil.add;
+import static com.simiacryptus.util.ArrayUtil.dot;
 
 public class LBFGS implements OrientationStrategy {
   
@@ -40,17 +42,17 @@ public class LBFGS implements OrientationStrategy {
   public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
     if (!measurement.delta.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))) {
       monitor.log("Corrupt measurement");
-      return new SimpleLineSearchCursor(measurement,
-                                           DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList())), subject);
+      return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
+      );
     }
     if (!measurement.weights.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))) {
       monitor.log("Corrupt measurement");
-      return new SimpleLineSearchCursor(measurement,
-                                           DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList())), subject);
+      return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
+      );
     }
     history.add(measurement);
     while(history.size() > maxHistory) history.remove(0);
-    return new SimpleLineSearchCursor(measurement, _orient(measurement, monitor), subject);
+    return new SimpleLineSearchCursor(subject, measurement, _orient(measurement, monitor));
   }
   
   public DeltaSet _orient(Trainable.PointSample measurement, TrainingMonitor monitor) {
@@ -72,18 +74,18 @@ public class LBFGS implements OrientationStrategy {
           return _orient(measurement, monitor);
         }
         alphas[i] = dot(si, p) / denominator;
-        p = ArrayArrayUtil.minus(p, ArrayArrayUtil.multiply(yi, alphas[i]));
+        p = ArrayUtil.minus(p, ArrayUtil.multiply(yi, alphas[i]));
         assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       }
       List<double[]> sk1 = minus(history.get(history.size() - 1).weights.vector(), history.get(history.size() - 2).weights.vector());
       List<double[]> yk1 = minus(history.get(history.size() - 1).delta.vector(), history.get(history.size() - 2).delta.vector());
-      p = ArrayArrayUtil.multiply(p, dot(sk1, yk1) / dot(yk1, yk1));
+      p = ArrayUtil.multiply(p, dot(sk1, yk1) / dot(yk1, yk1));
       assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       for (int i = 0; i < history.size() - 1; i++) {
         List<double[]> si = minus(history.get(i + 1).weights.vector(), history.get(i).weights.vector());
         List<double[]> yi = minus(history.get(i + 1).delta.vector(), history.get(i).delta.vector());
         double beta = dot(yi, p) / dot(si, yi);
-        p = add(p, ArrayArrayUtil.multiply(si, alphas[i] - beta));
+        p = add(p, ArrayUtil.multiply(si, alphas[i] - beta));
         assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       }
       List<double[]> _p = p;
@@ -105,7 +107,7 @@ public class LBFGS implements OrientationStrategy {
   }
   
   private List<double[]> minus(List<DeltaBuffer> a, List<DeltaBuffer> b) {
-    return ArrayArrayUtil.minus(cvt(a), cvt(b));
+    return ArrayUtil.minus(cvt(a), cvt(b));
   }
   
   private List<double[]> cvt(List<DeltaBuffer> vector) {

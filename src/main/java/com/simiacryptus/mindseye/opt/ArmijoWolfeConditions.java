@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
+
 public class ArmijoWolfeConditions implements LineSearchStrategy {
   
   private final double minAlpha = 1e-20;

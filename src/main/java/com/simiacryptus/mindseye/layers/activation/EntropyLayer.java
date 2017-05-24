@@ -17,19 +17,27 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.layers.activation;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+@SuppressWarnings("serial")
+public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
 
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
-  
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+  @Override
+  protected void eval(final double x, final double[] results) {
+    final double minDeriv = 0;
+    double d;
+    double f;
+    if (0. == x) {
+      d = 0;
+      f = 0;
+    } else {
+      final double log = Math.log(Math.abs(x));
+      d = -(1 + log);
+      f = -x * log;
+    }
+    assert Double.isFinite(d);
+    assert minDeriv <= Math.abs(d);
+    results[0] = f;
+    results[1] = d;
   }
 }

@@ -17,19 +17,12 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
-  
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+public abstract class SupervisedNetwork extends DAGNetwork {
+  public SupervisedNetwork(int inputs) {
+    super(inputs);
   }
 }

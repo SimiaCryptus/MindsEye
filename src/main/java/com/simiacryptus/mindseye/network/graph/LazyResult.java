@@ -17,19 +17,33 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.network.graph;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.NNResult;
 
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+import java.util.UUID;
+
+abstract class LazyResult implements DAGNode {
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+  public final UUID key;
+  
+  public LazyResult() {
+    this(UUID.randomUUID());
   }
+  
+  protected LazyResult(final UUID key) {
+    super();
+    this.key = key;
+  }
+  
+  protected abstract NNResult eval(EvaluationContext t);
+  
+  @Override
+  public NNResult get(final EvaluationContext t) {
+    return t.cache.computeIfAbsent(this.key, k -> eval(t));
+  }
+  
+  public abstract JsonObject toJson();
+  
 }

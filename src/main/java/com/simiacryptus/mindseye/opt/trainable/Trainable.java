@@ -17,19 +17,26 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.layers.DeltaSet;
 
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+public interface Trainable {
+  PointSample measure();
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+  default void resetToFull() {};
+  
+  default void resetSampling() {};
+  
+  class PointSample {
+    public final DeltaSet delta;
+    public final DeltaSet weights;
+    public final double value;
+    
+    public PointSample(DeltaSet delta, DeltaSet weights, double value) {
+      this.delta = delta;
+      this.weights = weights;
+      this.value = value;
+    }
   }
 }

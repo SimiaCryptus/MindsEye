@@ -17,19 +17,27 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.network.graph;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 
-/**
- * Created by Andrew Charneski on 5/9/2017.
- */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+import java.io.Serializable;
+import java.util.UUID;
+
+public interface DAGNode extends Serializable {
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
+  UUID getId();
+  
+  NNLayer getLayer();
+  
+  NNResult get(EvaluationContext buildExeCtx);
+  
+  default DAGNode[] getInputs() {
+    return new DAGNode[]{};
   }
+  
+  JsonObject toJson();
+  
 }

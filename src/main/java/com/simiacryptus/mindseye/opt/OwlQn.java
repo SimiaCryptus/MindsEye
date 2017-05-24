@@ -19,11 +19,12 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.net.DeltaSet;
-import com.simiacryptus.mindseye.net.NNLayer;
-import com.simiacryptus.mindseye.net.synapse.DenseSynapseLayer;
-import com.simiacryptus.mindseye.net.synapse.JavaDenseSynapseLayer;
-import com.simiacryptus.mindseye.net.synapse.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.synapse.JavaDenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.synapse.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class OwlQn implements OrientationStrategy {
       }
       assert (null != searchDir);
     }
-    return new SimpleLineSearchCursor(measurement, searchDirection, subject) {
+    return new SimpleLineSearchCursor(subject, measurement, searchDirection) {
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
         origin.weights.vector().stream().forEach(d -> d.overwrite());
