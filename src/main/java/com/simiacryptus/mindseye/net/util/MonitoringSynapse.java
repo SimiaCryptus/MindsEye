@@ -62,7 +62,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
       @Override
       public void accumulate(DeltaSet buffer, Tensor[] data) {
         backpropStatistics.clear();
-        for(Tensor t : input.data) {
+        for(Tensor t : data) {
           for(double v : t.getData()) {
             backpropStatistics.add(v);
           }
