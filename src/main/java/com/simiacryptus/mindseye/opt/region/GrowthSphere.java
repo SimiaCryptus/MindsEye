@@ -21,9 +21,6 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
-/**
- * Created by Andrew Charneski on 5/23/2017.
- */
 public class GrowthSphere implements TrustRegion {
   private double growthFactor = 1.5;
   private double minRadius = 1;

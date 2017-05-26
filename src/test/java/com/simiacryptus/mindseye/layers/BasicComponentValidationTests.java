@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.mindseye.layers.activation.*;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.reducers.ProductLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;

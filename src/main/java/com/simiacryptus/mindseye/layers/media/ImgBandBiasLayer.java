@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.synapse;
+package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;

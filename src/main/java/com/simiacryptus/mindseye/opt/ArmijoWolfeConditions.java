@@ -23,7 +23,8 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 public class ArmijoWolfeConditions implements LineSearchStrategy {
   
-  private final double minAlpha = 1e-20;
+  private double minAlpha = 1e-20;
+  private double maxAlpha = 1e5;
   private double c1 = 1e-6;
   private double c2 = 0.9;
   private double alpha = 1.0;
@@ -49,23 +50,31 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
       }
       if ((nu / mu) < (11.0 / 10.0)) {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        c1 *= 0.2;
+        c2 = Math.pow(c2,c2<1?0.3:3);
         return cursor.step(0, monitor).point;
       }
       if (Math.abs(alpha) < minAlpha) {
+        alpha = 1;
         monitor.log(String.format("MIN ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
         return cursor.step(0, monitor).point;
       }
+      if (Math.abs(alpha) > maxAlpha) {
+        alpha = 1;
+        monitor.log(String.format("MAX ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        return cursor.step(0, monitor).point;
+      }
       LineSearchPoint lastStep = cursor.step(alpha, monitor);
-      if (lastStep.derivative < c2 * startLineDeriv) {
-        // Weak Wolfe condition fails
-        monitor.log(String.format("WOLFE: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f <= %f;th'(alpha)=%f < %f",
-            startValue, startLineDeriv, mu, alpha, nu, lastStep.point.value, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
-        mu = alpha;
-      } else if (lastStep.point.value > startValue + alpha * c1 * startLineDeriv) {
+      if (lastStep.point.value > startValue + alpha * c1 * startLineDeriv) {
         // Armijo condition fails
         monitor.log(String.format("ARMIJO: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f > %f;th'(alpha)=%f >= %f",
             startValue, startLineDeriv, mu, alpha, nu, lastStep.point.value, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
         nu = alpha;
+      } else if (lastStep.derivative < c2 * startLineDeriv) {
+        // Weak Wolfe condition fails
+        monitor.log(String.format("WOLFE: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f <= %f;th'(alpha)=%f < %f",
+            startValue, startLineDeriv, mu, alpha, nu, lastStep.point.value, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
+        mu = alpha;
       } else {
         monitor.log(String.format("END: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%5f;th'(alpha)=%5f",
             startValue, startLineDeriv, mu, alpha, nu, lastStep.point.value, lastStep.derivative));
@@ -116,6 +125,24 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
   
   public ArmijoWolfeConditions setAlpha(double alpha) {
     this.alpha = alpha;
+    return this;
+  }
+  
+  public double getMinAlpha() {
+    return minAlpha;
+  }
+  
+  public ArmijoWolfeConditions setMinAlpha(double minAlpha) {
+    this.minAlpha = minAlpha;
+    return this;
+  }
+  
+  public double getMaxAlpha() {
+    return maxAlpha;
+  }
+  
+  public ArmijoWolfeConditions setMaxAlpha(double maxAlpha) {
+    this.maxAlpha = maxAlpha;
     return this;
   }
 }

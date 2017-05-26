@@ -50,7 +50,7 @@ public class LBFGS implements OrientationStrategy {
       return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
       );
     }
-    history.add(measurement);
+    if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) history.add(measurement);
     while(history.size() > maxHistory) history.remove(0);
     return new SimpleLineSearchCursor(subject, measurement, _orient(measurement, monitor));
   }
