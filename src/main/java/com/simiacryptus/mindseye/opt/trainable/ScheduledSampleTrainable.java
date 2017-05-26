@@ -30,23 +30,32 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-public class AdaptiveSampleTrainable implements Trainable {
+public class ScheduledSampleTrainable implements Trainable {
+  
+  public static ScheduledSampleTrainable Sqrt(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double initialIncrease) {
+    return Pow(trainingData, network, trainingSize, initialIncrease, -0.5);
+  }
+  
+  public static ScheduledSampleTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double initialIncrease, double pow) {
+    return new ScheduledSampleTrainable(trainingData, network, trainingSize,initialIncrease/Math.pow(trainingSize, pow)).setIncreasePower(pow);
+  }
   
   private final Tensor[][] trainingData;
   private final DAGNetwork network;
   private long hash = Util.R.get().nextLong();
-  private int trainingSize = Integer.MAX_VALUE;
+  private double trainingSize = Integer.MAX_VALUE;
   private int trainingSizeMax = Integer.MAX_VALUE;
   private int trainingSizeMin = 1;
   private Tensor[][] sampledData;
-  private double alpha = alpha = 0.1;
-  private double beta = 0.01;
-  private boolean shuffled = true;
+  private boolean shuffled = false;
+  private double increaseMultiplier = 0;
+  private double increasePower = 0;
   
-  public AdaptiveSampleTrainable(Tensor[][] trainingData, DAGNetwork network, int trainingSize) {
+  public ScheduledSampleTrainable(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double increaseMultiplier) {
     this.trainingData = trainingData;
     this.network = network;
     this.trainingSize = trainingSize;
+    this.increaseMultiplier = increaseMultiplier;
     resetSampling();
   }
   
@@ -62,14 +71,8 @@ public class AdaptiveSampleTrainable implements Trainable {
     });
     assert (Arrays.stream(result.data).allMatch(x -> x.dim() == 1));
     ScalarStatistics statistics = new ScalarStatistics();
-    Arrays.stream(result.data).forEach(x->statistics.add(x.getData()));
-    double mean = statistics.getMean();
-    double stdDev = statistics.getStdDev();
-    double samplingError = mean / Math.sqrt(statistics.getCount());
-    System.out.println(String.format("%s %s %s", statistics.getCount(), mean, stdDev, samplingError));
-    if(samplingError > alpha * stdDev) trainingSize *= 2;
-    else if(samplingError < beta * stdDev) trainingSize /= 2;
-    return new PointSample(deltaSet, stateSet, mean);
+    Arrays.stream(result.data).flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
+    return new PointSample(deltaSet, stateSet, statistics.getMean());
   }
   
   @Override
@@ -82,11 +85,11 @@ public class AdaptiveSampleTrainable implements Trainable {
     setHash(Util.R.get().nextLong());
   }
   
-  public int getTrainingSize() {
+  public double getTrainingSize() {
     return this.trainingSize;
   }
   
-  public AdaptiveSampleTrainable setTrainingSize(final int trainingSize) {
+  public ScheduledSampleTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
     return this;
@@ -99,6 +102,7 @@ public class AdaptiveSampleTrainable implements Trainable {
   }
   
   private void refreshSampledData() {
+    this.trainingSize += increaseMultiplier * Math.pow(this.trainingSize,increasePower);
     final Tensor[][] rawData = trainingData;
     assert 0 < rawData.length;
     assert 0 < getTrainingSize();
@@ -106,15 +110,20 @@ public class AdaptiveSampleTrainable implements Trainable {
     if(shuffled) {
       stream = stream.sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash));
     }
-    this.sampledData = stream.limit(Math.min(Math.max(getTrainingSize(),trainingSizeMin), trainingSizeMax)) //
+    this.sampledData = stream.limit((long) Math.min(Math.max(getTrainingSize(),trainingSizeMin), trainingSizeMax)) //
                            .toArray(i -> new Tensor[i][]);
+  }
+  
+  public ScheduledSampleTrainable setTrainingSize(double trainingSize) {
+    this.trainingSize = trainingSize;
+    return this;
   }
   
   public int getTrainingSizeMax() {
     return trainingSizeMax;
   }
   
-  public AdaptiveSampleTrainable setTrainingSizeMax(int trainingSizeMax) {
+  public ScheduledSampleTrainable setTrainingSizeMax(int trainingSizeMax) {
     this.trainingSizeMax = trainingSizeMax;
     return this;
   }
@@ -123,26 +132,8 @@ public class AdaptiveSampleTrainable implements Trainable {
     return trainingSizeMin;
   }
   
-  public AdaptiveSampleTrainable setTrainingSizeMin(int trainingSizeMin) {
+  public ScheduledSampleTrainable setTrainingSizeMin(int trainingSizeMin) {
     this.trainingSizeMin = trainingSizeMin;
-    return this;
-  }
-  
-  public double getAlpha() {
-    return alpha;
-  }
-  
-  public AdaptiveSampleTrainable setAlpha(double alpha) {
-    this.alpha = alpha;
-    return this;
-  }
-  
-  public double getBeta() {
-    return beta;
-  }
-  
-  public AdaptiveSampleTrainable setBeta(double beta) {
-    this.beta = beta;
     return this;
   }
   
@@ -150,8 +141,26 @@ public class AdaptiveSampleTrainable implements Trainable {
     return shuffled;
   }
   
-  public AdaptiveSampleTrainable setShuffled(boolean shuffled) {
+  public ScheduledSampleTrainable setShuffled(boolean shuffled) {
     this.shuffled = shuffled;
+    return this;
+  }
+  
+  public double getIncreaseMultiplier() {
+    return increaseMultiplier;
+  }
+  
+  public ScheduledSampleTrainable setIncreaseMultiplier(double increaseMultiplier) {
+    this.increaseMultiplier = increaseMultiplier;
+    return this;
+  }
+  
+  public double getIncreasePower() {
+    return increasePower;
+  }
+  
+  public ScheduledSampleTrainable setIncreasePower(double increasePower) {
+    this.increasePower = increasePower;
     return this;
   }
 }

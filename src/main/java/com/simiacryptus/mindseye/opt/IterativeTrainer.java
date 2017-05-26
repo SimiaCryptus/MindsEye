@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeConditions;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.util.Util;
 

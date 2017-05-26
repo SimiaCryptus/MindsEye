@@ -30,6 +30,10 @@ import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.synapse.TransposedSynapseLayer;
 import com.simiacryptus.mindseye.layers.util.VariableLayer;
 import com.simiacryptus.mindseye.opt.*;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeConditions;
+import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
+import com.simiacryptus.mindseye.opt.trainable.ConstL12Normalizer;
+import com.simiacryptus.mindseye.opt.trainable.L12Normalizer;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.util.ml.Tensor;
 
@@ -309,7 +313,7 @@ public class AutoencoderNetwork {
     public void run(Tensor... data) {
       SimpleLossNetwork trainingNetwork = getTrainingNetwork();
       StochasticArrayTrainable trainable = new StochasticArrayTrainable(Arrays.stream(data).map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
-      L12Normalizer normalized = new L12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
+      L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
       IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());
       trainer.setScaling(getStep());

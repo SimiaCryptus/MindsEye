@@ -17,12 +17,15 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.opt.line;
+
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 /**
- * Created by Andrew Charneski on 5/9/2017.
+ * Created by Andrew Charneski on 5/6/2017.
  */
-public interface LineSearchCursor {
+public interface LineSearchStrategy {
   
-  LineSearchPoint step(double alpha, TrainingMonitor monitor);
+  Trainable.PointSample step(LineSearchCursor cursor, TrainingMonitor monitor);
 }

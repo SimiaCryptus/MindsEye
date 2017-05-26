@@ -24,6 +24,9 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.synapse.JavaDenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.synapse.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
+import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 import java.util.Collection;

@@ -20,6 +20,8 @@
 package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 public class GradientDescent implements OrientationStrategy {

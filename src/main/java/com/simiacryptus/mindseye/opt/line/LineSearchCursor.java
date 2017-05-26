@@ -17,19 +17,14 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
  * Created by Andrew Charneski on 5/9/2017.
  */
-public class LineSearchPoint {
-  public final Trainable.PointSample point;
-  public final double derivative;
+public interface LineSearchCursor {
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
-    this.point = point;
-    this.derivative = derivative;
-  }
+  LineSearchPoint step(double alpha, TrainingMonitor monitor);
 }
