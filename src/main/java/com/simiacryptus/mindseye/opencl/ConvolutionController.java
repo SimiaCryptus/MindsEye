@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 public final class ConvolutionController {
   
@@ -38,17 +40,19 @@ public final class ConvolutionController {
   private final int[] inputSize;
   private final int[] kernelSize;
   private final int[] outputSize;
+  private final int weightSize;
   
   public ConvolutionController(final int[] inputSize, final int[] kernelSize) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
     this.outputSize = ImgConvolutionSynapseLayer.getOutputDims(inputSize, kernelSize);
+    this.weightSize = Tensor.dim(this.kernelSize);
     assert this.outputSize.length == 3;
     assert this.kernelSize.length == 3;
     assert this.inputSize.length == 3;
   }
   
-  public static int MAX_BUFFER_SIZE = 1024 * 1024;
+  public static int MAX_BUFFER_SIZE = 4 * 1024 * 1024;
   public void backprop(final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
@@ -126,7 +130,7 @@ public final class ConvolutionController {
     assert(length == output.length);
     int inLength = input[0].length;
     int outLength = output[0].length;
-    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
+    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, Math.max(inLength,outLength)), length);
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
@@ -148,7 +152,19 @@ public final class ConvolutionController {
         System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
         System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
       }
-      gradient(inputBuffer,weights,outputBuffer);
+      Arrays.fill(weights,0);
+      int parallelism = Math.min(32, inLength);
+      double[] buffer = Tensor.obtain(weights.length * parallelism);
+      gradient(inputBuffer,buffer, weights.length,outputBuffer);
+      double[] sum = IntStream.range(0, weights.length).parallel().mapToDouble(weightIndex -> {
+        double temp = 0;
+        for (int i = weightIndex; i < buffer.length; i += weights.length) {
+          temp += buffer[i];
+        }
+        return temp;
+      }).toArray();
+      Tensor.recycle(buffer);
+      System.arraycopy(sum, 0, weights, 0, sum.length);
     }
     Tensor.recycle(inputBuffer);
     Tensor.recycle(outputBuffer);
@@ -223,7 +239,7 @@ public final class ConvolutionController {
     });
   }
   
-  private void gradient(final double[] input, final double[] weights, final double[] output) {
+  private void gradient(final double[] input, final double[] weights, int weightSize, final double[] output) {
     assert(0 < input.length);
     assert(0 < weights.length);
     assert(0 < output.length);
@@ -236,6 +252,8 @@ public final class ConvolutionController {
           kernelTask.outputSize = this.outputSize;
           kernelTask.inputSize = this.inputSize;
           kernelTask.kernelSize = this.kernelSize;
+          kernelTask.weightSize = weightSize;
+          kernelTask.paralellism = kernelTask.weights.length / weightSize;
           kernelTask.setExplicit(true);
           kernelTask.put(kernelTask.outputSize);
           kernelTask.put(kernelTask.inputSize);

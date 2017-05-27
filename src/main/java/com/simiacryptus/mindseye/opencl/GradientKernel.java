@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.opencl;
 
 import com.aparapi.Kernel;
 import com.aparapi.device.Device;
-import com.simiacryptus.util.lang.ResourcePool;
 
 public final class GradientKernel extends Kernel {
 
@@ -31,6 +30,8 @@ public final class GradientKernel extends Kernel {
   double[] output;
   int[] outputSize;
   double[] weights;
+  int weightSize;
+  int paralellism;
   
   public GradientKernel() {
   }
@@ -39,25 +40,23 @@ public final class GradientKernel extends Kernel {
     //assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     //assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
     assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weights.length;
-    execute(device.createRange(this.weights.length));
+    execute(device.createRange(this.weights.length, paralellism));
   }
   
   @Override
   public void run() {
-    this.weights[getGlobalId()] = run(getGlobalId());
-  }
-  
-  public double run(final int k) {
+    final int k = getGlobalId(0);
+    final int threadNumber = getGlobalId(1);
     final int ks0 = this.kernelSize[0];
     final int ks1 = ks0 * this.kernelSize[1];
     final int k2 = k / ks1;
     final int k1 = k % ks1 / ks0;
     final int k0 = k % ks0;
-    
+  
     double accum = 0.;
     int ko1 = (this.kernelSize[1] - 1) / 2;
     int ko0 = (this.kernelSize[0] - 1) / 2;
-    for (int i = 0; i < this.input.length; i++) {
+    for (int i = threadNumber; i < this.input.length; i+=paralellism) {
       if (0. != this.input[i]) {
         final int is0 = this.inputSize[0];
         final int is1 = is0 * this.inputSize[1];
@@ -78,6 +77,7 @@ public final class GradientKernel extends Kernel {
         }
       }
     }
-    return accum;
+    this.weights[k + weightSize * threadNumber] = accum;
   }
+  
 }

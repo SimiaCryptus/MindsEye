@@ -39,7 +39,6 @@ public class IterativeTrainer {
   private OrientationStrategy orientation = new LBFGS();
   private LineSearchStrategy scaling = new ArmijoWolfeConditions();
   private TrainingMonitor monitor = new TrainingMonitor();
-  private int currentIteration = 0;
   private int maxIterations = Integer.MAX_VALUE;
   
   public IterativeTrainer(Trainable subject) {
@@ -58,6 +57,7 @@ public class IterativeTrainer {
   }
   
   public double run() {
+    int currentIteration = 0;
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     Trainable.PointSample currentPoint = measure();
     while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && ++currentIteration < maxIterations) {

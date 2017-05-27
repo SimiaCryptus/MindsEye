@@ -19,11 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.util;
 
+import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
+import com.simiacryptus.util.ml.Tensor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,9 +35,9 @@ import java.util.Map;
 public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   
   public final NNLayer inner;
-  private double totalTime = 0;
+  private final ScalarStatistics forwardPerf = new ScalarStatistics();
+  private final ScalarStatistics backwardPerf = new ScalarStatistics();
   private int totalBatches = 0;
-  private double totalTimeSq = 0;
   private int totalItems = 0;
   private boolean enabled = false;
   
@@ -47,12 +49,22 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   public NNResult eval(final NNResult... inObj) {
     long start = System.nanoTime();
     final NNResult result = this.inner.eval(inObj);
-    double elapsed = (System.nanoTime() - start) / 1000000000.0;
-    totalTime += elapsed;
-    totalTimeSq += elapsed*elapsed;
+    forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
     totalItems += inObj[0].data.length;
-    return result;
+    return new NNResult(result.data) {
+      @Override
+      public void accumulate(DeltaSet buffer, Tensor[] data) {
+        long start = System.nanoTime();
+        result.accumulate(buffer, data);
+        backwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
+      }
+  
+      @Override
+      public boolean isAlive() {
+        return result.isAlive();
+      }
+    };
   }
   
   @Override
@@ -65,10 +77,11 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
     HashMap<String, Object> map = new HashMap<>();
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
-    double mean = totalTime / totalBatches;
-    map.put("avgMsPerBatch", 1000*mean);
-    map.put("avgMsPerItem", 1000*totalTime / totalItems);
-    map.put("stddevMsPerBatch", 1000*Math.sqrt(Math.abs(totalTimeSq/totalItems - mean*mean)));
+    map.put("forwardPerformance", forwardPerf.getMetrics());
+    map.put("backwardPerformance", backwardPerf.getMetrics());
+    double batchesPerItem = totalBatches * 1.0 / totalItems;
+    map.put("avgMsPerItem", 1000 * batchesPerItem * forwardPerf.getMean());
+    map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * backwardPerf.getMean());
     List<double[]> state = state();
     HashMap<String, Object> weightStats = new HashMap<>();
     map.put("weights", weightStats);
