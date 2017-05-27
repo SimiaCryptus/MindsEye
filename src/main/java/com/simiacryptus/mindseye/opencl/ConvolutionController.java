@@ -40,13 +40,11 @@ public final class ConvolutionController {
   private final int[] inputSize;
   private final int[] kernelSize;
   private final int[] outputSize;
-  private final int weightSize;
   
   public ConvolutionController(final int[] inputSize, final int[] kernelSize) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
     this.outputSize = ImgConvolutionSynapseLayer.getOutputDims(inputSize, kernelSize);
-    this.weightSize = Tensor.dim(this.kernelSize);
     assert this.outputSize.length == 3;
     assert this.kernelSize.length == 3;
     assert this.inputSize.length == 3;
@@ -152,19 +150,15 @@ public final class ConvolutionController {
         System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
         System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
       }
-      Arrays.fill(weights,0);
-      int parallelism = Math.min(32, inLength);
+      int parallelism = Math.min(16, inLength);
       double[] buffer = Tensor.obtain(weights.length * parallelism);
-      gradient(inputBuffer,buffer, weights.length,outputBuffer);
-      double[] sum = IntStream.range(0, weights.length).parallel().mapToDouble(weightIndex -> {
-        double temp = 0;
+      gradient(inputBuffer,buffer, weights.length, outputBuffer);
+      IntStream.range(0, weights.length).forEach(weightIndex -> {
         for (int i = weightIndex; i < buffer.length; i += weights.length) {
-          temp += buffer[i];
+          weights[weightIndex] += buffer[i];
         }
-        return temp;
-      }).toArray();
+      });
       Tensor.recycle(buffer);
-      System.arraycopy(sum, 0, weights, 0, sum.length);
     }
     Tensor.recycle(inputBuffer);
     Tensor.recycle(outputBuffer);
@@ -253,7 +247,7 @@ public final class ConvolutionController {
           kernelTask.inputSize = this.inputSize;
           kernelTask.kernelSize = this.kernelSize;
           kernelTask.weightSize = weightSize;
-          kernelTask.paralellism = kernelTask.weights.length / weightSize;
+          kernelTask.paralellism = weights.length / weightSize;
           kernelTask.setExplicit(true);
           kernelTask.put(kernelTask.outputSize);
           kernelTask.put(kernelTask.inputSize);
