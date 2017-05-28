@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Created by Andrew Charneski on 5/23/2017.
  */
-public class LayerTrustRegionMap extends LayerTrustRegion {
+public class LayerTrustRegionMap extends TrustRegionStrategy {
   private final Map<NNLayer, TrustRegion> regionPolicies = new HashMap<>();
   private TrustRegion defaultRegionPolicy = null;
   
@@ -43,7 +43,7 @@ public class LayerTrustRegionMap extends LayerTrustRegion {
     return defaultRegionPolicy;
   }
   
-  public LayerTrustRegion setDefaultRegionPolicy(TrustRegion defaultRegionPolicy) {
+  public TrustRegionStrategy setDefaultRegionPolicy(TrustRegion defaultRegionPolicy) {
     this.defaultRegionPolicy = defaultRegionPolicy;
     return this;
   }

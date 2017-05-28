@@ -37,8 +37,8 @@ public class HoldoverSampleTrainable implements Trainable {
     return Pow(trainingData, network, trainingSize, initialIncrease, -0.5);
   }
   
-  public static HoldoverSampleTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double initialIncrease, double pow) {
-    return new HoldoverSampleTrainable(trainingData, network, trainingSize,initialIncrease/Math.pow(trainingSize, pow)).setIncreasePower(pow);
+  public static HoldoverSampleTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int initialTrainingSize, double initialIncrease, double powerRelation) {
+    return new HoldoverSampleTrainable(trainingData, network, initialTrainingSize,initialIncrease/Math.pow(initialTrainingSize, powerRelation)).setIncreasePower(powerRelation);
   }
   
   private final Tensor[][] trainingData;
@@ -48,11 +48,11 @@ public class HoldoverSampleTrainable implements Trainable {
   private int trainingSizeMax = Integer.MAX_VALUE;
   private int trainingSizeMin = 1;
   private Tensor[][] sampledData;
-  private Tensor[][] holdoverData;
+  private Tensor[][] holdoverData = new Tensor[][]{};
   private boolean shuffled = false;
   private double increaseMultiplier = 0;
   private double increasePower = 0;
-  int fraction = 10;
+  private double holdoverFraction = 0.1;
   
   public HoldoverSampleTrainable(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double increaseMultiplier) {
     this.trainingData = trainingData;
@@ -77,7 +77,7 @@ public class HoldoverSampleTrainable implements Trainable {
     holdoverData = IntStream.range(0,result.data.length).mapToObj(x->x)
                            .sorted(Comparator.comparingDouble(x -> -Arrays.stream(result.data[(int) x].getData()).sum()))
                            .map(i->sampledData[i])
-                           .limit(sampledData.length / fraction)
+                           .limit((long) (sampledData.length * holdoverFraction))
                            .toArray(i -> new Tensor[i][]);
     ScalarStatistics statistics = new ScalarStatistics();
     Arrays.stream(result.data).flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
@@ -172,6 +172,15 @@ public class HoldoverSampleTrainable implements Trainable {
   
   public HoldoverSampleTrainable setIncreasePower(double increasePower) {
     this.increasePower = increasePower;
+    return this;
+  }
+  
+  public double getHoldoverFraction() {
+    return holdoverFraction;
+  }
+  
+  public HoldoverSampleTrainable setHoldoverFraction(double holdoverFraction) {
+    this.holdoverFraction = holdoverFraction;
     return this;
   }
 }

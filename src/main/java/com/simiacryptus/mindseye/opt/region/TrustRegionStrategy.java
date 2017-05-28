@@ -33,16 +33,16 @@ import java.util.List;
 import java.util.stream.IntStream;
 import static com.simiacryptus.util.ArrayUtil.*;
 
-public abstract class LayerTrustRegion implements OrientationStrategy {
+public abstract class TrustRegionStrategy implements OrientationStrategy {
   
   
   public final OrientationStrategy inner;
   
-  public LayerTrustRegion() {
+  public TrustRegionStrategy() {
     this(new LBFGS());
   }
   
-  protected LayerTrustRegion(OrientationStrategy inner) {
+  protected TrustRegionStrategy(OrientationStrategy inner) {
     this.inner = inner;
   }
   
