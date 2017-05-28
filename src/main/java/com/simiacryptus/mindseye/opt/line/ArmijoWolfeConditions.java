@@ -24,10 +24,10 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 public class ArmijoWolfeConditions implements LineSearchStrategy {
   
-  private double minAlpha = 1e-20;
-  private double maxAlpha = 1e5;
-  private double c1 = 1e-6;
-  private double c2 = 0.9;
+  private double minAlpha = 1e-15;
+  private double maxAlpha = 1e2;
+  private double c1 = 1e-4;
+  private double c2 = 0.8;
   private double alpha = 1.0;
   private double alphaGrowth = Math.pow(3.0, Math.pow(5.0, -1.0));
   
@@ -47,6 +47,8 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
       }
       if (mu >= nu) {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        c1 *= 0.2;
+        c2 = Math.pow(c2,c2<1?0.3:3);
         return cursor.step(0, monitor).point;
       }
       if ((nu / mu) < (11.0 / 10.0)) {

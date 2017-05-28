@@ -147,7 +147,7 @@ public class MetaComponentValidationTests {
   }
   
   public static Tensor[] replicate(final Tensor outputPrototype, int n) {
-    return IntStream.range(0, n).mapToObj(i -> outputPrototype).toArray(i -> new Tensor[i]);
+    return IntStream.range(0, n).mapToObj(i -> outputPrototype.copy()).toArray(i -> new Tensor[i]);
   }
   
   public static void test(final NNLayer component, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
