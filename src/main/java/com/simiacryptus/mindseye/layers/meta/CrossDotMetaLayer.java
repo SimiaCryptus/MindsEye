@@ -19,18 +19,31 @@
 
 package com.simiacryptus.mindseye.layers.meta;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @SuppressWarnings("serial")
 public class CrossDotMetaLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static CrossDotMetaLayer fromJson(JsonObject json) {
+    return new CrossDotMetaLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected CrossDotMetaLayer(UUID id) {
+    super(id);
+  }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);

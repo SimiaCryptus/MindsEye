@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.reducers;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -28,9 +29,20 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class SumReducerLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static SumReducerLayer fromJson(JsonObject json) {
+    return new SumReducerLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected SumReducerLayer(UUID id) {
+    super(id);
+  }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);

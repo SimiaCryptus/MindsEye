@@ -30,9 +30,25 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class DropoutNoiseLayer extends NNLayer {
+  
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
+  }
+  
+  public static DropoutNoiseLayer fromJson(JsonObject json) {
+    return new DropoutNoiseLayer(json);
+  }
+  protected DropoutNoiseLayer(JsonObject json) {
+    super(UUID.fromString(json.get("id").getAsString()));
+    this.value = json.get("value").getAsDouble();
+  }
   
   public static final ThreadLocal<Random> random = new ThreadLocal<Random>() {
     @Override
@@ -42,7 +58,7 @@ public class DropoutNoiseLayer extends NNLayer {
   };
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DropoutNoiseLayer.class);
-  private static final long serialVersionUID = -2105152439043901220L;
+  
   long seed = random.get().nextLong();
   private double value;
   
@@ -86,13 +102,6 @@ public class DropoutNoiseLayer extends NNLayer {
       return output;
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0], mask);
-  }
-  
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.addProperty("value", this.getValue());
-    return json;
   }
   
   @Override

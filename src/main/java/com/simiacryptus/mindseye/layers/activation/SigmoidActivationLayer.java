@@ -19,7 +19,22 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
+
+import java.util.UUID;
+
 public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static SigmoidActivationLayer fromJson(JsonObject json) {
+    return new SigmoidActivationLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected SigmoidActivationLayer(UUID id) {
+    super(id);
+  }
   
   private static final double MIN_X = -20;
   private static final double MAX_X = -MIN_X;

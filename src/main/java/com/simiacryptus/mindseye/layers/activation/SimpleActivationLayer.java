@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -28,9 +29,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer {
+  
+  protected SimpleActivationLayer(UUID id) {
+    super(id);
+  }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);

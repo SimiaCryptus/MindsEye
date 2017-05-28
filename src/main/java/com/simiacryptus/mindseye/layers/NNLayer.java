@@ -20,11 +20,13 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -36,13 +38,18 @@ import java.util.UUID;
  */
 public abstract class NNLayer implements Serializable {
   
-  /**
-   *
-   */
-  private static final long serialVersionUID = 8741041477497062122L;
-  public final String[] createdBy = Util.currentStack();
-  public final UUID id = Util.uuid();
+  public final UUID id;
   private boolean frozen = false;
+  private String name;
+  
+  protected NNLayer(UUID id) {
+    this.id = id;
+    this.name = getClass().getSimpleName() + "/" + id;
+  }
+  
+  public NNLayer() {
+    this(Util.uuid());
+  }
   
   @Override
   public boolean equals(final Object obj) {
@@ -71,10 +78,6 @@ public abstract class NNLayer implements Serializable {
   
   public abstract NNResult eval(NNResult... array);
   
-  public NNLayer evolve() {
-    return null;
-  }
-  
   public NNLayer freeze() {
     return setFrozen(true);
   }
@@ -93,9 +96,19 @@ public abstract class NNLayer implements Serializable {
     return this.id;
   }
   
-  public JsonObject getJson() {
+  public static NNLayer fromJson(JsonObject inner) {
+    String className = inner.get("class").getAsString();
+    try {
+      return (NNLayer) Class.forName(className).getMethod("fromJson", JsonObject.class).invoke(null, inner);
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  public abstract JsonObject getJson();
+  public JsonObject getJsonStub() {
     final JsonObject json = new JsonObject();
-    json.addProperty("class", getClass().getSimpleName());
+    json.addProperty("class", getClass().getCanonicalName());
     json.addProperty("id", getId().toString());
     return json;
   }
@@ -126,7 +139,16 @@ public abstract class NNLayer implements Serializable {
   
   @Override
   public final String toString() {
-    return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
+    return getName();
+  }
+  
+  public String getName() {
+    return name;
+  }
+  
+  public NNLayer setName(String name) {
+    this.name = name;
+    return this;
   }
   
   public static final class ConstNNResult extends NNResult {

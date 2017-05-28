@@ -20,7 +20,9 @@
 package com.simiacryptus.mindseye.network.graph;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.ml.Tensor;
@@ -40,14 +42,77 @@ import java.util.stream.Stream;
  */
 public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    JsonArray inputs = new JsonArray();
+    json.add("inputs", inputs);
+    inputHandles.forEach(uuid->inputs.add(new JsonPrimitive(uuid.toString())));
+    JsonObject nodeMap = new JsonObject();
+    json.add("nodes", nodeMap);
+    JsonObject links = new JsonObject();
+    json.add("links", links);
+    nodesById.forEach((k, v) -> {
+      JsonArray linkArray = new JsonArray();
+      Arrays.stream(v.getInputs()).forEach(input->linkArray.add(new JsonPrimitive(input.getId().toString())));
+      nodeMap.add(k.toString(),v.getLayer().getJson());
+      links.add(k.toString(),linkArray);
+    });
+    return json;
+  }
+  
+  protected DAGNetwork(JsonObject json) {
+    super(UUID.fromString(json.get("id").getAsString()));
+    inputHandles = new ArrayList<>();
+    inputNodes = new LinkedHashMap<>();
+    for(JsonElement item : json.getAsJsonArray("inputs")) {
+      UUID key = UUID.fromString(item.getAsString());
+      inputHandles.add(key);
+      inputNodes.put(key, new InputNode(this, key));
+    }
+    JsonObject jsonNodes = json.getAsJsonObject("nodes");
+    JsonObject jsonLinks = json.getAsJsonObject("links");
+    Map<UUID, NNLayer> deserializedNodes = new HashMap<>();
+    for(Map.Entry<String, JsonElement> e : jsonNodes.entrySet()) {
+      deserializedNodes.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject()));
+    }
+    Map<UUID, List<UUID>> deserializedLinks = new HashMap<>();
+    for(Map.Entry<String, JsonElement> e : jsonLinks.entrySet()) {
+      ArrayList<UUID> linkList = new ArrayList<>();
+      for(JsonElement linkItem : e.getValue().getAsJsonArray()) {
+        linkList.add(UUID.fromString(linkItem.getAsString()));
+      }
+      deserializedLinks.put(UUID.fromString(e.getKey()), linkList);
+    }
+    int maxLoops = 100;
+    while(deserializedNodes.size() > layersById.size()) {
+      if(maxLoops--<0) throw new RuntimeException();
+      for(Map.Entry<UUID, NNLayer> e : deserializedNodes.entrySet()) {
+        if(layersById.containsKey(e.getKey())) continue;
+        List<UUID> links = deserializedLinks.get(e.getKey());
+        DAGNode[] inputs = links.stream().map(id -> getNode(id)).toArray(i -> new DAGNode[i]);
+        if(Arrays.stream(inputs).allMatch(x->null!=x)) {
+          add(e.getValue(),inputs);
+        }
+      }
+    }
+  }
+  
+  private DAGNode getNode(UUID id) {
+    DAGNode returnValue = nodesById.get(id);
+    if(null == returnValue) {
+      returnValue = inputNodes.get(id);
+    }
+    return returnValue;
+  }
+  
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
   
-  private static final long serialVersionUID = -5683282519002886564L;
   public final LinkedHashMap<UUID, InputNode> inputNodes;
   public final List<UUID> inputHandles;
-  final LinkedHashMap<UUID, NNLayer> byId = new LinkedHashMap<>();
-  final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
+  protected final LinkedHashMap<UUID, NNLayer> layersById = new LinkedHashMap<>();
+  protected final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
   
   public DAGNetwork(int inputs) {
     inputHandles = new ArrayList<>();
@@ -84,40 +149,27 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   }
   
   @Override
-  public NNLayer evolve() {
-    if (0 == this.byId.values().stream().filter(l -> {
-      final NNLayer evolve = l.evolve();
-      if (null != evolve && evolve != l)
-        throw new RuntimeException("Not implemented: Substitution via evolution in DAGNetwork");
-      return null != evolve;
-    }).count())
-      return null;
-    else
-      return this;
-  }
-  
-  @Override
   public DAGNetwork freeze() {
-    this.byId.values().forEach(l -> l.freeze());
+    this.layersById.values().forEach(l -> l.freeze());
     return (DAGNetwork) super.freeze();
   }
   
   public NNLayer get(final int i) {
-    return this.byId.get(i);
+    return this.layersById.get(i);
   }
   
   @Override
   public NNLayer getChild(final UUID id) {
     if (this.id.equals(id))
       return this;
-    if (this.byId.containsKey(id))
-      return this.byId.get(id);
-    return this.byId.values().stream().map(x -> x.getChild(id)).findAny().orElse(null);
+    if (this.layersById.containsKey(id))
+      return this.layersById.get(id);
+    return this.layersById.values().stream().map(x -> x.getChild(id)).findAny().orElse(null);
   }
   
   @Override
   public List<NNLayer> getChildren() {
-    return this.byId.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
+    return this.layersById.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
   
   public List<DAGNode> getInput() {
@@ -126,18 +178,9 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return list;
   }
   
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    JsonArray nodes = new JsonArray();
-    nodesById.forEach((k, v) -> nodes.add(v.toJson()));
-    json.add("nodes", nodes);
-    return json;
-  }
-  
   public NNLayer getLayer(final DAGNode head) {
     if (head instanceof InnerNode)
-      return DAGNetwork.this.byId.get(((InnerNode) head).id);
+      return DAGNetwork.this.layersById.get(((InnerNode) head).id);
     else
       return null;
   }
@@ -164,9 +207,9 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   }
   
   public DAGNode add(final NNLayer nextHead, final DAGNode... head) {
-    this.byId.put(nextHead.getId(), nextHead);
     assert null != getInput();
     final InnerNode node = new InnerNode(this, nextHead, head);
+    this.layersById.put(nextHead.getId(), nextHead);
     nodesById.put(nextHead.getId(), node);
     return node;
   }
@@ -180,13 +223,6 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   @Override
   public NNLayer getLayer() {
     return this;
-  }
-  
-  @Override
-  public JsonObject toJson() {
-    final JsonObject json = new JsonObject();
-    json.add("head", getHead().toJson());
-    return json;
   }
   
 }

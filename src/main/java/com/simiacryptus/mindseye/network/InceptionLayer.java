@@ -69,7 +69,7 @@ public class InceptionLayer extends DAGNetwork {
   @Override
   public JsonObject getJson() {
     final JsonObject json = super.getJson();
-    json.add("root", getHead().toJson());
+    json.add("root", getHead().getLayer().getJson());
     return json;
   }
   

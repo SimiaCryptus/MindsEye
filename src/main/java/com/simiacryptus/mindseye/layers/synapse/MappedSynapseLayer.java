@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.media.MaxSubsampleLayer;
+import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
@@ -38,6 +41,28 @@ import java.util.stream.IntStream;
 public abstract class MappedSynapseLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MappedSynapseLayer.class);
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("outputDims", JsonUtil.getJson(outputDims));
+    json.add("inputDims", JsonUtil.getJson(inputDims));
+    json.addProperty("outputSize", outputSize);
+    json.addProperty("inputSize", inputSize);
+    json.add("mappingMatrix", JsonUtil.getJson(mappingMatrix));
+    json.add("weights", weights.getJson());
+    return json;
+  }
+  
+  protected MappedSynapseLayer(JsonObject json) {
+    super(UUID.fromString(json.get("id").getAsString()));
+    this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
+    this.inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
+    this.outputSize = json.get("outputSize").getAsInt();
+    this.inputSize = json.get("inputSize").getAsInt();
+    this.mappingMatrix = JsonUtil.getIntArray(json.getAsJsonArray("mappingMatrix"));
+    this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
+  }
+  
   
   private static final long serialVersionUID = 3538627887600182889L;
   public final int[] outputDims;
@@ -115,13 +140,6 @@ public abstract class MappedSynapseLayer extends NNLayer {
     final Tensor output = new Tensor(this.outputDims);
     DenseSynapseLayer.multiply(wdata, indata, output.getData());
     return output;
-  }
-  
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.addProperty("weights", getWeights().toString());
-    return json;
   }
   
   public MappedSynapseLayer setWeights(final double[] data) {

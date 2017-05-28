@@ -54,21 +54,13 @@ public final class InnerNode extends LazyResult {
   protected NNResult eval(final EvaluationContext ctx) {
     if (1 == this.inputNodes.length) {
       final NNResult in = this.inputNodes[0].get(ctx);
-      final NNResult output = dagNetwork.byId.get(this.id).eval(in);
+      final NNResult output = dagNetwork.layersById.get(this.id).eval(in);
       return output;
     } else {
       final NNResult[] in = Arrays.stream(this.inputNodes).map(x -> x.get(ctx)).toArray(i -> new NNResult[i]);
-      final NNResult output = dagNetwork.byId.get(this.id).eval(in);
+      final NNResult output = dagNetwork.layersById.get(this.id).eval(in);
       return output;
     }
-  }
-  
-  @Override
-  public JsonObject toJson() {
-    final JsonObject json = new JsonObject();
-    json.add("id", dagNetwork.byId.get(this.id).getJson());
-    if (this.inputNodes.length > 0) json.add("prev0", this.inputNodes[0].toJson());
-    return json;
   }
   
   @Override

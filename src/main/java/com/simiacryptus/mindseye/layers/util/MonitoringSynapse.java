@@ -19,24 +19,46 @@
 
 package com.simiacryptus.mindseye.layers.util;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
 import com.simiacryptus.util.ml.Tensor;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("totalBatches",totalBatches);
+    json.addProperty("totalItems",totalItems);
+    json.addProperty("enabled",enabled);
+    return json;
+  }
+  public static MonitoringSynapse fromJson(JsonObject json) {
+    MonitoringSynapse obj = new MonitoringSynapse(UUID.fromString(json.get("id").getAsString()));
+    obj.totalBatches = json.get("totalBatches").getAsInt();
+    obj.totalItems = json.get("totalItems").getAsInt();
+    obj.enabled = json.get("enabled").getAsBoolean();
+    obj.backpropStatistics.readJson(json.getAsJsonObject("backpropStatistics"));
+    obj.forwardStatistics.readJson(json.getAsJsonObject("forwardStatistics"));
+    return obj;
+  }
+  protected MonitoringSynapse(UUID id) {
+    super(id);
+  }
+  
   private int totalBatches = 0;
   private int totalItems = 0;
+  private final ScalarStatistics backpropStatistics = new ScalarStatistics();
+  private final ScalarStatistics forwardStatistics = new ScalarStatistics();
+  boolean enabled = false;
   
   public MonitoringSynapse() {
   }
@@ -81,10 +103,6 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
-  private final ScalarStatistics backpropStatistics = new ScalarStatistics();
-  private final ScalarStatistics forwardStatistics = new ScalarStatistics();
-  boolean enabled = false;
   
   @Override
   public Map<String, Object> getMetrics() {

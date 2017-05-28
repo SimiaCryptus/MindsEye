@@ -44,6 +44,4 @@ abstract class LazyResult implements DAGNode {
     return t.cache.computeIfAbsent(this.key, k -> eval(t));
   }
   
-  public abstract JsonObject toJson();
-  
 }

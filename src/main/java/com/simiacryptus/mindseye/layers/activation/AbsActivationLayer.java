@@ -19,7 +19,21 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+import com.google.gson.JsonObject;
+
+import java.util.UUID;
+
 public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivationLayer> {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static AbsActivationLayer fromJson(JsonObject json) {
+    return new AbsActivationLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected AbsActivationLayer(UUID id) {
+    super(id);
+  }
   
   private static final long serialVersionUID = -5520500379591109767L;
   

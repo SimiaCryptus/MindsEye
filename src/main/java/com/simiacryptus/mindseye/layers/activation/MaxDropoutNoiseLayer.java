@@ -23,8 +23,10 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
 import com.simiacryptus.util.IntArray;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -36,6 +38,21 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MaxDropoutNoiseLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("kernelSize", JsonUtil.getJson(kernelSize));
+    return json;
+  }
+  
+  public static MaxDropoutNoiseLayer fromJson(JsonObject json) {
+    return new MaxDropoutNoiseLayer(json);
+  }
+  protected MaxDropoutNoiseLayer(JsonObject json) {
+    super(UUID.fromString(json.get("id").getAsString()));
+    this.kernelSize = JsonUtil.getIntArray(json.getAsJsonArray("kernelSize"));
+  }
+  
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxDropoutNoiseLayer.class);
   private static final long serialVersionUID = -2105152439043901220L;
@@ -89,13 +106,6 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   }
   private final Function<IntArray,List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
   
-  
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    //json.addProperty("value", this.kernelSize);
-    return json;
-  }
   
   @Override
   public List<double[]> state() {

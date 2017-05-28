@@ -22,9 +22,11 @@ package com.simiacryptus.mindseye.layers.media;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -34,11 +36,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class SumSubsampleLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("inner", JsonUtil.getJson(kernelDims));
+    return json;
+  }
+  
+  public static SumSubsampleLayer fromJson(JsonObject json) {
+    return new SumSubsampleLayer(UUID.fromString(json.get("id").getAsString()),
+                                    JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+  }
+  protected SumSubsampleLayer(UUID id, int... kernelDims) {
+    super(id);
+    this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
+  }
+  
   
   public static final LoadingCache<IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
                                                                                                   .build(new CacheLoader<IndexMapKey, Map<Coordinate, List<int[]>>>() {

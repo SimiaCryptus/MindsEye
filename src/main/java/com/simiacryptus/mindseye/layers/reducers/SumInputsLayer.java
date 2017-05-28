@@ -19,18 +19,31 @@
 
 package com.simiacryptus.mindseye.layers.reducers;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.activation.L1NormalizationLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class SumInputsLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static SumInputsLayer fromJson(JsonObject json) {
+    return new SumInputsLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected SumInputsLayer(UUID id) {
+    super(id);
+  }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumInputsLayer.class);

@@ -30,9 +30,25 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class GaussianNoiseLayer extends NNLayer {
+  
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
+  }
+  
+  public static GaussianNoiseLayer fromJson(JsonObject json) {
+    return new GaussianNoiseLayer(json);
+  }
+  protected GaussianNoiseLayer(JsonObject json) {
+    super(UUID.fromString(json.get("id").getAsString()));
+    this.value = json.get("value").getAsDouble();
+  }
   
   public static final ThreadLocal<Random> random = new ThreadLocal<Random>() {
     @Override
@@ -42,7 +58,6 @@ public class GaussianNoiseLayer extends NNLayer {
   };
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(GaussianNoiseLayer.class);
-  private static final long serialVersionUID = -2105152439043901220L;
   private double value;
   private long seed = random.get().nextLong();
   
@@ -72,13 +87,6 @@ public class GaussianNoiseLayer extends NNLayer {
       return output;
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
-  }
-  
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.addProperty("value", this.getValue());
-    return json;
   }
   
   @Override

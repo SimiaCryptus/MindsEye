@@ -23,24 +23,42 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.opencl.ConvolutionController;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 public class ImgConvolutionSynapseLayer extends NNLayer {
   
-  private static final long serialVersionUID = -139062498597441290L;
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("kernel", kernel.getJson());
+    return json;
+  }
+  
+  public static ImgConvolutionSynapseLayer fromJson(JsonObject json) {
+    return new ImgConvolutionSynapseLayer(json);
+  }
+  protected ImgConvolutionSynapseLayer(JsonObject json) {
+    super(UUID.fromString(json.get("id").getAsString()));
+    this.kernel = Tensor.fromJson(json.getAsJsonObject("kernel"));
+  }
+  
+  
   public final Tensor kernel;
   
   protected ImgConvolutionSynapseLayer() {
-    this(null);
+    this((Tensor)null);
   }
   
   protected ImgConvolutionSynapseLayer(Tensor kernel) {
@@ -122,13 +140,6 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
         return input.isAlive() || !isFrozen();
       }
     };
-  }
-  
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.addProperty("kernel", this.kernel.toString());
-    return json;
   }
   
   public ImgConvolutionSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {

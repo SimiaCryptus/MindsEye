@@ -19,18 +19,39 @@
 
 package com.simiacryptus.mindseye.layers.meta;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.util.MonitoringWrapper;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.UUID;
 
 @SuppressWarnings("serial")
 public final class WeightExtractor extends NNLayer {
-
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("inner",inner.getJson());
+    json.addProperty("index",index);
+    return json;
+  }
+  public static WeightExtractor fromJson(JsonObject json) {
+    WeightExtractor obj = new WeightExtractor(UUID.fromString(json.get("id").getAsString()),
+                                                 json.get("index").getAsInt(),
+                                                 NNLayer.fromJson(json.getAsJsonObject("inner")));
+    return obj;
+  }
+  protected WeightExtractor(UUID id, final int index, NNLayer inner) {
+    super(id);
+    this.inner = inner;
+    this.index = index;
+  }
+  
   static final Logger log = LoggerFactory.getLogger(WeightExtractor.class);
 
   private final NNLayer inner;

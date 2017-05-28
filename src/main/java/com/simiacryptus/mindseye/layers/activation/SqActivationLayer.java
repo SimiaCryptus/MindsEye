@@ -19,11 +19,23 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.meta.CrossDotMetaLayer;
+
+import java.util.UUID;
+
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
   
-  /**
-   *
-   */
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static SqActivationLayer fromJson(JsonObject json) {
+    return new SqActivationLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected SqActivationLayer(UUID id) {
+    super(id);
+  }
+  
   private static final long serialVersionUID = -5520500379591109767L;
   
   public SqActivationLayer() {

@@ -19,9 +19,26 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+import com.google.gson.JsonObject;
+
+import java.util.UUID;
+
 @SuppressWarnings("serial")
 public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
-
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static EntropyLayer fromJson(JsonObject json) {
+    return new EntropyLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected EntropyLayer(UUID id) {
+    super(id);
+  }
+  public EntropyLayer() {
+    this(UUID.randomUUID());
+  }
+  
   @Override
   protected void eval(final double x, final double[] results) {
     final double minDeriv = 0;

@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.layers.reducers;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.meta.AvgMetaLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +31,19 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class ImgConcatLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  public static ImgConcatLayer fromJson(JsonObject json) {
+    return new ImgConcatLayer(UUID.fromString(json.get("id").getAsString()));
+  }
+  protected ImgConcatLayer(UUID id) {
+    super(id);
+  }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);

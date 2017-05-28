@@ -38,6 +38,5 @@ public interface DAGNode extends Serializable {
     return new DAGNode[]{};
   }
   
-  JsonObject toJson();
   
 }

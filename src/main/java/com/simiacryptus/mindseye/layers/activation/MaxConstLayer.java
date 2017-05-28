@@ -19,8 +19,35 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.media.SumSubsampleLayer;
+import com.simiacryptus.util.io.JsonUtil;
+
+import java.util.Arrays;
+import java.util.UUID;
+
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
+  }
+  
+  public static MaxConstLayer fromJson(JsonObject json) {
+    MaxConstLayer obj = new MaxConstLayer(UUID.fromString(json.get("id").getAsString()));
+    obj.value = json.get("value").getAsDouble();
+    return obj;
+  }
+  protected MaxConstLayer(UUID id) {
+    super(id);
+  }
+  
+  public MaxConstLayer() {
+    this(UUID.randomUUID());
+  }
+  
   
   private double value = 0;
   

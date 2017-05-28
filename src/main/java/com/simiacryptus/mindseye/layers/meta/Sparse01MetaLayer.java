@@ -19,19 +19,36 @@
 
 package com.simiacryptus.mindseye.layers.meta;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.util.MonitoringSynapse;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
 public class Sparse01MetaLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("sparsity",sparsity);
+    return json;
+  }
+  public static Sparse01MetaLayer fromJson(JsonObject json) {
+    Sparse01MetaLayer obj = new Sparse01MetaLayer(UUID.fromString(json.get("id").getAsString()));
+    obj.sparsity = json.get("sparsity").getAsInt();
+    return obj;
+  }
+  protected Sparse01MetaLayer(UUID id) {
+    super(id);
+  }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(Sparse01MetaLayer.class);

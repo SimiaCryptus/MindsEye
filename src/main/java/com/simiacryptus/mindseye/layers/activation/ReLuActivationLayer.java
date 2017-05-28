@@ -23,17 +23,37 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
 public class ReLuActivationLayer extends NNLayer {
+  
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("weights", weights.getJson());
+    return json;
+  }
+  
+  public static ReLuActivationLayer fromJson(JsonObject json) {
+    return new ReLuActivationLayer(json);
+  }
+  protected ReLuActivationLayer(JsonObject json) {
+    super(UUID.fromString(json.get("id").getAsString()));
+    this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
+  }
+  
+  
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ReLuActivationLayer.class);
   /**
@@ -69,12 +89,6 @@ public class ReLuActivationLayer extends NNLayer {
     return new Result(outputA, inObj[0]);
   }
   
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.addProperty("weights", this.weights.toString());
-    return json;
-  }
   
   protected double getMobility() {
     return 1;

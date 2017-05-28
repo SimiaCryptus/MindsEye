@@ -45,13 +45,6 @@ final class InputNode extends LazyResult {
   }
   
   @Override
-  public JsonObject toJson() {
-    final JsonObject json = new JsonObject();
-    json.addProperty("target", dagNetwork.inputHandles.toString());
-    return json;
-  }
-  
-  @Override
   public UUID getId() {
     return handle;
   }

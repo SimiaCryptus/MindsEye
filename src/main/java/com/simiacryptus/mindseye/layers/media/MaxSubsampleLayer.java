@@ -19,29 +19,46 @@
 
 package com.simiacryptus.mindseye.layers.media;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.lang.Tuple2;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Coordinate;
+import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
-import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MaxSubsampleLayer extends NNLayer {
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("inner", JsonUtil.getJson(kernelDims));
+    return json;
+  }
+  
+  public static MaxSubsampleLayer fromJson(JsonObject json) {
+    return new MaxSubsampleLayer(UUID.fromString(json.get("id").getAsString()),
+                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+  }
+  protected MaxSubsampleLayer(UUID id, int... kernelDims) {
+    super(id);
+    this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
+  }
+  
+  
   private static final Function<CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxSubsampleLayer::calcRegions);
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
-  private static final long serialVersionUID = -4486788592198117530L;
   private int[] kernelDims;
   
   protected MaxSubsampleLayer() {

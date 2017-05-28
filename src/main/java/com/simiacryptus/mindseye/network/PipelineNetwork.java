@@ -20,25 +20,44 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.util.io.JsonUtil;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class PipelineNetwork extends DAGNetwork {
   
-  private final HashMap<NNLayer, NNLayer> forwardLinkIndex = new HashMap<>();
-  private final HashMap<NNLayer, NNLayer> backwardLinkIndex = new HashMap<>();
-  private DAGNode head = getInput().get(0);
+  public JsonObject getJson() {
+    JsonObject json = super.getJson();
+    json.addProperty("head", head.getId().toString());
+    return json;
+  }
+  
+  public static PipelineNetwork fromJson(JsonObject json) {
+    return new PipelineNetwork(json);
+  }
+  protected PipelineNetwork(JsonObject json) {
+    super(json);
+    UUID head = UUID.fromString(json.get("head").getAsString());
+    this.head = nodesById.get(head);
+    if(null == this.head) throw new IllegalArgumentException();
+  }
+  
+  private DAGNode head;
   
   public PipelineNetwork() {
     this(1);
+    head = getInput().get(0);
   }
   
   public PipelineNetwork(int inputs) {
     super(inputs);
+    head = getInput().get(0);
   }
   
   @SafeVarargs
@@ -46,12 +65,6 @@ public class PipelineNetwork extends DAGNetwork {
   public final DAGNode add(final NNLayer nextHead, final DAGNode... head) {
     DAGNode node = super.add(nextHead, head);
     assert Arrays.stream(head).allMatch(x -> x != null);
-    if (head.length > 0) {
-      // XXX: Prev/next linking only tracks first input node
-      final NNLayer prevHead = getLayer(head[0]);
-      this.backwardLinkIndex.put(nextHead, prevHead);
-      this.forwardLinkIndex.put(prevHead, nextHead);
-    }
     assert null != getInput();
     setHead(node);
     return node;
@@ -69,13 +82,6 @@ public class PipelineNetwork extends DAGNetwork {
   
   public void setHead(final DAGNode imageRMS) {
     this.head = imageRMS;
-  }
-  
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJson();
-    json.add("root", getHead().toJson());
-    return json;
   }
   
 }

@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.layers.util;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
@@ -30,16 +32,38 @@ import com.simiacryptus.util.ml.Tensor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @SuppressWarnings("serial")
 public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("forwardPerf",forwardPerf.getJson());
+    json.add("backwardPerf",backwardPerf.getJson());
+    json.add("inner",inner.getJson());
+    json.addProperty("totalBatches",totalBatches);
+    json.addProperty("totalItems",totalItems);
+    return json;
+  }
+  public static MonitoringWrapper fromJson(JsonObject json) {
+    MonitoringWrapper obj = new MonitoringWrapper(UUID.fromString(json.get("id").getAsString()),NNLayer.fromJson(json.getAsJsonObject("inner")));
+    obj.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
+    obj.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
+    obj.totalBatches = json.get("totalBatches").getAsInt();
+    obj.totalItems = json.get("totalItems").getAsInt();
+    return obj;
+  }
+  protected MonitoringWrapper(UUID id, NNLayer inner) {
+    super(id);
+    this.inner = inner;
+  }
   
   public final NNLayer inner;
   private final ScalarStatistics forwardPerf = new ScalarStatistics();
   private final ScalarStatistics backwardPerf = new ScalarStatistics();
   private int totalBatches = 0;
   private int totalItems = 0;
-  private boolean enabled = false;
   
   public MonitoringWrapper(final NNLayer inner) {
     this.inner = inner;
@@ -97,7 +121,6 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   }
   
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
-    this.enabled = true;
     obj.addObj(name,this);
     return this;
   }
