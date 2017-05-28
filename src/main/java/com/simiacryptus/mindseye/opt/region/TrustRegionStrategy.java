@@ -29,7 +29,10 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.util.ArrayUtil;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import static com.simiacryptus.util.ArrayUtil.*;
 
@@ -37,6 +40,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
   
   
   public final OrientationStrategy inner;
+  private int maxHistory = 10;
   
   public TrustRegionStrategy() {
     this(new LBFGS());
@@ -46,8 +50,12 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
     this.inner = inner;
   }
   
+  private final List<Trainable.PointSample> history = new LinkedList<>();
+  
   @Override
   public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+    history.add(0,measurement);
+    while(history.size() > maxHistory) history.remove(history.size()-1);
     DeltaSet direction = ((SimpleLineSearchCursor) inner.orient(subject, measurement, monitor)).direction;
     return new LineSearchCursor() {
       @Override
@@ -63,7 +71,8 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
           double[] projected = add(deltaBuffer.target, delta);
           TrustRegion region = getRegionPolicy(layer);
           if(null != region) {
-            double[] adjusted = region.project(deltaBuffer.target, projected);
+            double[][] historyData = history.stream().map(x -> x.weights.map.get(layer).delta).toArray(i -> new double[i][]);
+            double[] adjusted = region.project(historyData, projected);
             if(adjusted != projected) {
               double[] correction = subtract(adjusted, projected);
               double correctionMagSq = ArrayUtil.dot(correction,correction);
@@ -99,4 +108,12 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
   
+  public int getMaxHistory() {
+    return maxHistory;
+  }
+  
+  public TrustRegionStrategy setMaxHistory(int maxHistory) {
+    this.maxHistory = maxHistory;
+    return this;
+  }
 }

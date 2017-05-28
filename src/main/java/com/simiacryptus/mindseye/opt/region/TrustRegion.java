@@ -19,9 +19,14 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
-/**
- * Created by Andrew Charneski on 5/23/2017.
- */
+import com.simiacryptus.util.lang.NotImplementedException;
+
 public interface TrustRegion {
-  double[] project(double[] state, double[] point);
+  @Deprecated
+  default double[] project(double[] state, double[] point) {
+    throw new NotImplementedException();
+  }
+  default double[] project(double[][] history, double[] point) {
+    return project(history[0],point);
+  };
 }
