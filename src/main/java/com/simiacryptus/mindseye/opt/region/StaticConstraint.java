@@ -21,34 +21,9 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
-public class LinearSumConstraint implements TrustRegion {
-  private boolean permitDecrease = true;
-  
+public class StaticConstraint implements TrustRegion {
   @Override
   public double[] project(double[] weights, double[] point) {
-    double deltaSum = 0;
-    for (int i = 0; i < point.length; i++) {
-      deltaSum += (point[i] - weights[i]) * sign(point[i]);
-    }
-    if(deltaSum <= 0 && permitDecrease) return point;
-    deltaSum /= point.length;
-    double[] returnValue = new double[point.length];
-    for (int i = 0; i < point.length; i++) {
-      returnValue[i] = point[i] - deltaSum * sign(point[i]);
-    }
-    return returnValue;
-  }
-  
-  public int sign(double weight) {
-    return (weight > 0)?1:-1;
-  }
-  
-  public boolean isPermitDecrease() {
-    return permitDecrease;
-  }
-  
-  public LinearSumConstraint setPermitDecrease(boolean permitDecrease) {
-    this.permitDecrease = permitDecrease;
-    return this;
+    return weights;
   }
 }

@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class IterativeTrainer {
   
@@ -40,6 +41,7 @@ public class IterativeTrainer {
   private LineSearchStrategy scaling = new ArmijoWolfeConditions();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
+  private AtomicInteger currentIteration = new AtomicInteger(0);
   
   public IterativeTrainer(Trainable subject) {
     this.subject = subject;
@@ -57,16 +59,15 @@ public class IterativeTrainer {
   }
   
   public double run() {
-    int currentIteration = 0;
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     Trainable.PointSample currentPoint = measure();
-    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && ++currentIteration < maxIterations) {
+    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && currentIteration.incrementAndGet() < maxIterations) {
       System.gc();
       currentPoint = measure();
       LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
       currentPoint = scaling.step(direction, monitor);
-      monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration, currentPoint.value));
-      monitor.onStepComplete(new IterativeTrainer.Step(currentPoint, currentIteration));
+      monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+      monitor.onStepComplete(new IterativeTrainer.Step(currentPoint, currentIteration.get()));
     }
     return null == currentPoint ? Double.NaN : currentPoint.value;
   }
@@ -134,6 +135,15 @@ public class IterativeTrainer {
   
   public IterativeTrainer setMonitor(TrainingMonitor monitor) {
     this.monitor = monitor;
+    return this;
+  }
+  
+  public AtomicInteger getCurrentIteration() {
+    return currentIteration;
+  }
+  
+  public IterativeTrainer setCurrentIteration(AtomicInteger currentIteration) {
+    this.currentIteration = currentIteration;
     return this;
   }
   

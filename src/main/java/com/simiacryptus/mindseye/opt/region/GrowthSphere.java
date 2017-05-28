@@ -24,18 +24,19 @@ import com.simiacryptus.util.ArrayUtil;
 public class GrowthSphere implements TrustRegion {
   private double growthFactor = 1.5;
   private double minRadius = 1;
+  private boolean allowShrink = true;
   
   @Override
   public double[] project(double[] weights, double[] point) {
     double stateMagnitude = length(weights);
     double frontier = getRadius(stateMagnitude);
     double pointMag = length(point);
-    if (pointMag < frontier) return point;
+    if (pointMag < frontier && allowShrink) return point;
     return ArrayUtil.multiply(point, frontier / pointMag);
   }
   
   public double length(double[] weights) {
-    return Math.sqrt(ArrayUtil.dot(weights, weights));
+    return ArrayUtil.magnitude(weights);
   }
   
   public double getRadius(double stateMagnitude) {
@@ -57,6 +58,15 @@ public class GrowthSphere implements TrustRegion {
   
   public GrowthSphere setMinRadius(double minRadius) {
     this.minRadius = minRadius;
+    return this;
+  }
+  
+  public boolean isAllowShrink() {
+    return allowShrink;
+  }
+  
+  public GrowthSphere setAllowShrink(boolean allowShrink) {
+    this.allowShrink = allowShrink;
     return this;
   }
 }

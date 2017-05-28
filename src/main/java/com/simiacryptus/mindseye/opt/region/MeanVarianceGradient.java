@@ -21,34 +21,31 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
-public class LinearSumConstraint implements TrustRegion {
-  private boolean permitDecrease = true;
+public class MeanVarianceGradient implements TrustRegion {
+  
+  private double max = Double.POSITIVE_INFINITY;
   
   @Override
   public double[] project(double[] weights, double[] point) {
-    double deltaSum = 0;
-    for (int i = 0; i < point.length; i++) {
-      deltaSum += (point[i] - weights[i]) * sign(point[i]);
-    }
-    if(deltaSum <= 0 && permitDecrease) return point;
-    deltaSum /= point.length;
-    double[] returnValue = new double[point.length];
-    for (int i = 0; i < point.length; i++) {
-      returnValue[i] = point[i] - deltaSum * sign(point[i]);
-    }
-    return returnValue;
+    double meanWeight = ArrayUtil.mean(weights);
+    double meanPoint = ArrayUtil.mean(point);
+    double varWeights = ArrayUtil.mean(ArrayUtil.op(weights, x -> Math.abs(x - meanWeight)));
+    double varPoint = ArrayUtil.mean(ArrayUtil.op(point, x -> Math.abs(x - meanPoint)));
+    return ArrayUtil.op(weights, v -> {
+      return (v - meanWeight)*(varPoint/varWeights)+meanPoint;
+    });
   }
   
-  public int sign(double weight) {
-    return (weight > 0)?1:-1;
+  public double length(double[] weights) {
+    return ArrayUtil.magnitude(weights);
   }
   
-  public boolean isPermitDecrease() {
-    return permitDecrease;
+  public double getMax() {
+    return max;
   }
   
-  public LinearSumConstraint setPermitDecrease(boolean permitDecrease) {
-    this.permitDecrease = permitDecrease;
+  public MeanVarianceGradient setMax(double max) {
+    this.max = max;
     return this;
   }
 }

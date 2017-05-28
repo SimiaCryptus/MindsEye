@@ -21,34 +21,27 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
-public class LinearSumConstraint implements TrustRegion {
-  private boolean permitDecrease = true;
+public class DistanceConstraint implements TrustRegion {
+  
+  private double max = Double.POSITIVE_INFINITY;
   
   @Override
   public double[] project(double[] weights, double[] point) {
-    double deltaSum = 0;
-    for (int i = 0; i < point.length; i++) {
-      deltaSum += (point[i] - weights[i]) * sign(point[i]);
-    }
-    if(deltaSum <= 0 && permitDecrease) return point;
-    deltaSum /= point.length;
-    double[] returnValue = new double[point.length];
-    for (int i = 0; i < point.length; i++) {
-      returnValue[i] = point[i] - deltaSum * sign(point[i]);
-    }
-    return returnValue;
+    double[] delta = ArrayUtil.subtract(point, weights);
+    double distance = ArrayUtil.magnitude(delta);
+    return distance>max?ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)):point;
   }
   
-  public int sign(double weight) {
-    return (weight > 0)?1:-1;
+  public double length(double[] weights) {
+    return ArrayUtil.magnitude(weights);
   }
   
-  public boolean isPermitDecrease() {
-    return permitDecrease;
+  public double getMax() {
+    return max;
   }
   
-  public LinearSumConstraint setPermitDecrease(boolean permitDecrease) {
-    this.permitDecrease = permitDecrease;
+  public DistanceConstraint setMax(double max) {
+    this.max = max;
     return this;
   }
 }
