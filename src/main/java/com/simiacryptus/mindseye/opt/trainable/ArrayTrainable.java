@@ -38,7 +38,7 @@ public class ArrayTrainable implements Trainable {
   }
   
   @Override
-  public PointSample measure() {
+  public Trainable.PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(trainingData);
     NNResult result = network.eval(input);
     DeltaSet deltaSet = new DeltaSet();
@@ -49,7 +49,7 @@ public class ArrayTrainable implements Trainable {
     });
     assert (Arrays.stream(result.data).allMatch(x -> x.dim() == 1));
     double meanValue = Arrays.stream(result.data).mapToDouble(x -> x.getData()[0]).average().getAsDouble();
-    return new PointSample(deltaSet, stateSet, meanValue);
+    return new Trainable.PointSample(deltaSet, stateSet, meanValue);
   }
   
   @Override

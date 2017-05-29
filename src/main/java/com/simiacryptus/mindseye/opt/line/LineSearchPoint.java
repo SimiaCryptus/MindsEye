@@ -20,15 +20,16 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 /**
  * Created by Andrew Charneski on 5/9/2017.
  */
 public class LineSearchPoint {
-  public final Trainable.PointSample point;
+  public final PointSample point;
   public final double derivative;
   
-  public LineSearchPoint(Trainable.PointSample point, double derivative) {
+  public LineSearchPoint(PointSample point, double derivative) {
     this.point = point;
     this.derivative = derivative;
   }

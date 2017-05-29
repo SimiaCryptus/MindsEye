@@ -59,10 +59,10 @@ public class SumSubsampleLayer extends NNLayer {
   }
   
   
-  public static final LoadingCache<IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-                                                                                                  .build(new CacheLoader<IndexMapKey, Map<Coordinate, List<int[]>>>() {
+  public static final LoadingCache<SumSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
+                                                                                                  .build(new CacheLoader<SumSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
                                                                                                     @Override
-                                                                                                    public Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
+                                                                                                    public Map<Coordinate, List<int[]>> load(final SumSubsampleLayer.IndexMapKey key) throws Exception {
                                                                                                       final int[] ksize = key.kernel;
                                                                                                       final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(false).collect(Collectors.toMap(o -> o, o -> {
                                                                                                         return new Tensor(ksize).coordStream(false).map(kernelCoord -> {
@@ -95,7 +95,7 @@ public class SumSubsampleLayer extends NNLayer {
   
   private static Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
     try {
-      return indexMapCache.get(new IndexMapKey(kernelDims, outDims));
+      return indexMapCache.get(new SumSubsampleLayer.IndexMapKey(kernelDims, outDims));
     } catch (final ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -197,7 +197,7 @@ public class SumSubsampleLayer extends NNLayer {
         return false;
       if (getClass() != obj.getClass())
         return false;
-      final IndexMapKey other = (IndexMapKey) obj;
+      final SumSubsampleLayer.IndexMapKey other = (SumSubsampleLayer.IndexMapKey) obj;
       if (!Arrays.equals(this.kernel, other.kernel))
         return false;
       return Arrays.equals(this.output, other.output);

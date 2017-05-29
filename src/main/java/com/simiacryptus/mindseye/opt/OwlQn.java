@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class OwlQn implements OrientationStrategy {
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     SimpleLineSearchCursor gradient = (SimpleLineSearchCursor) inner.orient(subject, measurement, monitor);
     DeltaSet searchDirection = gradient.direction.copy();
     DeltaSet orthant = new DeltaSet();

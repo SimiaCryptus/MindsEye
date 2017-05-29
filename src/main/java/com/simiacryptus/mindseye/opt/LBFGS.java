@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import com.simiacryptus.util.ArrayUtil;
 
 import java.util.ArrayList;
@@ -36,12 +37,12 @@ import static com.simiacryptus.util.ArrayUtil.dot;
 
 public class LBFGS implements OrientationStrategy {
   
-  public final ArrayList<Trainable.PointSample> history = new ArrayList<>();
+  public final ArrayList<PointSample> history = new ArrayList<>();
   private int minHistory = 3;
   private int maxHistory = 10;
   
   @Override
-  public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     if (!measurement.delta.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))) {
       monitor.log("Corrupt measurement");
       return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
@@ -57,7 +58,7 @@ public class LBFGS implements OrientationStrategy {
     return new SimpleLineSearchCursor(subject, measurement, _orient(measurement, monitor));
   }
   
-  public DeltaSet _orient(Trainable.PointSample measurement, TrainingMonitor monitor) {
+  public DeltaSet _orient(PointSample measurement, TrainingMonitor monitor) {
     List<DeltaBuffer> defaultValue = measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList());
     
     // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce (Large-scale L-BFGS using MapReduce)

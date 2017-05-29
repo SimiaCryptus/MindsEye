@@ -19,10 +19,12 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.opt.IterativeTrainer.Step;
+
 public class TrainingMonitor {
   public void log(String msg) {
   }
   
-  public void onStepComplete(IterativeTrainer.Step currentPoint) {
+  public void onStepComplete(Step currentPoint) {
   }
 }

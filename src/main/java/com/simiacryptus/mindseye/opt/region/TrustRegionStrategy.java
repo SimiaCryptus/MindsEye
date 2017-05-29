@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import com.simiacryptus.util.ArrayUtil;
 
 import java.util.ArrayList;
@@ -50,10 +51,10 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
     this.inner = inner;
   }
   
-  private final List<Trainable.PointSample> history = new LinkedList<>();
+  private final List<PointSample> history = new LinkedList<>();
   
   @Override
-  public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     history.add(0,measurement);
     while(history.size() > maxHistory) history.remove(history.size()-1);
     DeltaSet direction = ((SimpleLineSearchCursor) inner.orient(subject, measurement, monitor)).direction;
@@ -81,7 +82,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
                 double a = dot / correctionMagSq;
                 if(a != -1) {
                   double[] tangent = add(delta, multiply(correction, -a));
-                  assert(ArrayUtil.dot(tangent, tangent) < ArrayUtil.dot(delta, delta));
+                  assert(ArrayUtil.dot(tangent, tangent) <= ArrayUtil.dot(delta, delta));
                   for (int i = 0; i < tangent.length; i++) {
                     projected[i] = adjusted[i];
                     deltaBuffer.delta[i] = tangent[i];
@@ -95,7 +96,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
           }
         });
         // Execute measurement and return
-        Trainable.PointSample measurement = subject.measure();
+        PointSample measurement = subject.measure();
         return new LineSearchPoint(measurement, dot(currentDirection.vector(), measurement.delta.vector()));
       }
     };

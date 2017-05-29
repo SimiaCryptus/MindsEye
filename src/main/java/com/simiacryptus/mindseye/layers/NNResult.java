@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.layers.NNLayer.ConstNNResult;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
@@ -38,11 +39,11 @@ public abstract class NNResult {
    * @return
    */
   public static NNResult[] singleResultArray(Tensor[][] input) {
-    return Arrays.stream(input).map((Tensor[] x) -> new NNLayer.ConstNNResult(x)).toArray(i -> new NNResult[i]);
+    return Arrays.stream(input).map((Tensor[] x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
   }
   
   public static NNResult[] singleResultArray(Tensor[] input) {
-    return Arrays.stream(input).map((Tensor x) -> new NNLayer.ConstNNResult(x)).toArray(i -> new NNResult[i]);
+    return Arrays.stream(input).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
   }
   
   /**
@@ -53,7 +54,7 @@ public abstract class NNResult {
     return IntStream.range(0, batchData[0].length).mapToObj(inputIndex -> {
       Tensor[] inputBatch = IntStream.range(0, batchData.length)
                   .mapToObj(trainingExampleId ->batchData[trainingExampleId][inputIndex]).toArray(i -> new Tensor[i]);
-      return new NNLayer.ConstNNResult(inputBatch);
+      return new ConstNNResult(inputBatch);
     }).toArray(x -> new NNResult[x]);
   }
   

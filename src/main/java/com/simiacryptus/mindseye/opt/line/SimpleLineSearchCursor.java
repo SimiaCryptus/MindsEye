@@ -23,16 +23,17 @@ import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
 public class SimpleLineSearchCursor implements LineSearchCursor {
-  public final Trainable.PointSample origin;
+  public final PointSample origin;
   public final DeltaSet direction;
   public final Trainable subject;
   
-  public SimpleLineSearchCursor(Trainable subject, Trainable.PointSample origin, DeltaSet direction) {
+  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSet direction) {
     this.origin = origin;
     this.direction = direction;
     this.subject = subject;
@@ -47,7 +48,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     origin.weights.vector().stream().forEach(d -> d.overwrite());
     direction.vector().stream().forEach(d -> d.write(alpha));
-    Trainable.PointSample sample = subject.measure();
+    PointSample sample = subject.measure();
     return new LineSearchPoint(sample, dot(direction.vector(), sample.delta.vector()));
   }
   

@@ -52,6 +52,6 @@ public class SingleOrthant implements TrustRegion {
     return 0;
   }
   
-  private double zeroTol = 1e-20;
+  private final double zeroTol = 1e-20;
   
 }

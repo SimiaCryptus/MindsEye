@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,11 +74,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     JsonObject jsonNodes = json.getAsJsonObject("nodes");
     JsonObject jsonLinks = json.getAsJsonObject("links");
     Map<UUID, NNLayer> deserializedNodes = new HashMap<>();
-    for(Map.Entry<String, JsonElement> e : jsonNodes.entrySet()) {
+    for(Entry<String, JsonElement> e : jsonNodes.entrySet()) {
       deserializedNodes.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject()));
     }
     Map<UUID, List<UUID>> deserializedLinks = new HashMap<>();
-    for(Map.Entry<String, JsonElement> e : jsonLinks.entrySet()) {
+    for(Entry<String, JsonElement> e : jsonLinks.entrySet()) {
       ArrayList<UUID> linkList = new ArrayList<>();
       for(JsonElement linkItem : e.getValue().getAsJsonArray()) {
         linkList.add(UUID.fromString(linkItem.getAsString()));
@@ -87,7 +88,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     int maxLoops = 100;
     while(deserializedNodes.size() > layersById.size()) {
       if(maxLoops--<0) throw new RuntimeException();
-      for(Map.Entry<UUID, NNLayer> e : deserializedNodes.entrySet()) {
+      for(Entry<UUID, NNLayer> e : deserializedNodes.entrySet()) {
         if(layersById.containsKey(e.getKey())) continue;
         List<UUID> links = deserializedLinks.get(e.getKey());
         DAGNode[] inputs = links.stream().map(id -> getNode(id)).toArray(i -> new DAGNode[i]);

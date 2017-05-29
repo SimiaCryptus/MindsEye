@@ -70,7 +70,7 @@ public class AutoencoderNetwork {
   
     public AutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int pretrainIterations, int[] dims) {
       trainingMode();
-      AutoencoderNetwork newLayer = configure(AutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
+      AutoencoderNetwork newLayer = configure(newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
 
       Tensor[] data = representations.get(representations.size() - 1);
       dimensions.add(dims);
@@ -92,7 +92,7 @@ public class AutoencoderNetwork {
     }
   
     public void tune() {
-      configure(new TrainingParameters() {
+      configure(new AutoencoderNetwork.TrainingParameters() {
         @Override
         protected TrainingMonitor wrap(TrainingMonitor monitor) {
           return new TrainingMonitor() {
@@ -122,11 +122,11 @@ public class AutoencoderNetwork {
       }).run(representations.get(0));
     }
     
-    protected TrainingParameters configure(TrainingParameters trainingParameters) {
+    protected AutoencoderNetwork.TrainingParameters configure(AutoencoderNetwork.TrainingParameters trainingParameters) {
       return trainingParameters;
     }
     
-    protected Builder configure(Builder builder) {
+    protected AutoencoderNetwork.Builder configure(AutoencoderNetwork.Builder builder) {
       return builder;
     }
     
@@ -158,8 +158,8 @@ public class AutoencoderNetwork {
     }
   }
   
-  public TrainingParameters train() {
-    return new TrainingParameters() {
+  public AutoencoderNetwork.TrainingParameters train() {
+    return new AutoencoderNetwork.TrainingParameters() {
       @Override
       protected TrainingMonitor wrap(TrainingMonitor monitor) {
         return new TrainingMonitor() {
@@ -187,8 +187,8 @@ public class AutoencoderNetwork {
     };
   }
   
-  public static Builder newLayer(int[] outerSize, int[] innerSize) {
-    return new Builder(outerSize, innerSize);
+  public static AutoencoderNetwork.Builder newLayer(int[] outerSize, int[] innerSize) {
+    return new AutoencoderNetwork.Builder(outerSize, innerSize);
   }
   
   private final int[] outerSize;
@@ -203,10 +203,10 @@ public class AutoencoderNetwork {
   private final ReLuActivationLayer decoderActivation;
   private final PipelineNetwork encoder;
   private final PipelineNetwork decoder;
-  private final Builder networkParameters;
+  private final AutoencoderNetwork.Builder networkParameters;
   private final VariableLayer decoderSynapsePlaceholder;
   
-  protected AutoencoderNetwork(Builder networkParameters) {
+  protected AutoencoderNetwork(AutoencoderNetwork.Builder networkParameters) {
     this.networkParameters = networkParameters;
     this.outerSize = networkParameters.getOuterSize();
     this.innerSize = networkParameters.getInnerSize();
@@ -361,47 +361,47 @@ public class AutoencoderNetwork {
       return endFitness;
     }
     
-    public TrainingParameters setSampleSize(int sampleSize) {
+    public AutoencoderNetwork.TrainingParameters setSampleSize(int sampleSize) {
       this.sampleSize = sampleSize;
       return this;
     }
     
-    public TrainingParameters setL1normalization(double l1normalization) {
+    public AutoencoderNetwork.TrainingParameters setL1normalization(double l1normalization) {
       this.l1normalization = l1normalization;
       return this;
     }
     
-    public TrainingParameters setL2normalization(double l2normalization) {
+    public AutoencoderNetwork.TrainingParameters setL2normalization(double l2normalization) {
       this.l2normalization = l2normalization;
       return this;
     }
     
-    public TrainingParameters setOrient(OrientationStrategy orient) {
+    public AutoencoderNetwork.TrainingParameters setOrient(OrientationStrategy orient) {
       this.orient = orient;
       return this;
     }
     
-    public TrainingParameters setStep(LineSearchStrategy step) {
+    public AutoencoderNetwork.TrainingParameters setStep(LineSearchStrategy step) {
       this.step = step;
       return this;
     }
     
-    public TrainingParameters setMonitor(TrainingMonitor monitor) {
+    public AutoencoderNetwork.TrainingParameters setMonitor(TrainingMonitor monitor) {
       this.monitor = monitor;
       return this;
     }
     
-    public TrainingParameters setTimeoutMinutes(int timeoutMinutes) {
+    public AutoencoderNetwork.TrainingParameters setTimeoutMinutes(int timeoutMinutes) {
       this.timeoutMinutes = timeoutMinutes;
       return this;
     }
     
-    public TrainingParameters setEndFitness(double endFitness) {
+    public AutoencoderNetwork.TrainingParameters setEndFitness(double endFitness) {
       this.endFitness = endFitness;
       return this;
     }
   
-    public TrainingParameters setMaxIterations(int maxIterations) {
+    public AutoencoderNetwork.TrainingParameters setMaxIterations(int maxIterations) {
       this.maxIterations = maxIterations;
       return this;
     }
@@ -454,33 +454,33 @@ public class AutoencoderNetwork {
       return dropout;
     }
     
-    public Builder setNoise(double noise) {
+    public AutoencoderNetwork.Builder setNoise(double noise) {
       this.noise = noise;
       return this;
     }
     
-    public Builder setInitRadius(double initRadius) {
+    public AutoencoderNetwork.Builder setInitRadius(double initRadius) {
       this.initRadius = initRadius;
       return this;
     }
     
-    public Builder setInitStiffness(int initStiffness) {
+    public AutoencoderNetwork.Builder setInitStiffness(int initStiffness) {
       this.initStiffness = initStiffness;
       return this;
     }
     
-    public Builder setInitPeak(double initPeak) {
+    public AutoencoderNetwork.Builder setInitPeak(double initPeak) {
       this.initPeak = initPeak;
       return this;
     }
     
-    public Builder setDropout(double dropout) {
+    public AutoencoderNetwork.Builder setDropout(double dropout) {
       this.dropout = dropout;
       return this;
     }
     
     public AutoencoderNetwork build() {
-      return new AutoencoderNetwork(Builder.this);
+      return new AutoencoderNetwork(AutoencoderNetwork.Builder.this);
     }
   }
 }

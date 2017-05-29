@@ -20,11 +20,13 @@
 package com.simiacryptus.mindseye.opencl;
 
 import com.aparapi.Kernel;
+import com.aparapi.Kernel.EXECUTION_MODE;
 import com.aparapi.Range;
 import com.aparapi.device.Device;
 import com.aparapi.device.OpenCLDevice;
 import com.aparapi.internal.opencl.OpenCLPlatform;
 import com.aparapi.opencl.OpenCL;
+import com.aparapi.opencl.OpenCL.Resource;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -163,8 +165,8 @@ public class AparapiTest {
     
     final OpenCLDevice openclDevice = (OpenCLDevice) Device.best();
     // final Convolution convolution = openclDevice.bind(Convolution.class);
-    final TestKernel testKernel = new TestKernel();
-    testKernel.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+    final AparapiTest.TestKernel testKernel = new AparapiTest.TestKernel();
+    testKernel.setExecutionMode(EXECUTION_MODE.GPU);
     testKernel.setExplicit(true);
     final Range range = openclDevice.createRange3D(100, 100, 8);
     for (int j = 0; j < 2048; j++) {
@@ -195,20 +197,20 @@ public class AparapiTest {
     kernel.execute(range);
   }
   
-  @OpenCL.Resource("com/amd/aparapi/sample/convolution/convolution.cl")
-  interface Convolution extends com.aparapi.opencl.OpenCL<Convolution> {
-    Convolution applyConvolution(//
+  @Resource("com/amd/aparapi/sample/convolution/convolution.cl")
+  interface Convolution extends com.aparapi.opencl.OpenCL<AparapiTest.Convolution> {
+    AparapiTest.Convolution applyConvolution(//
                                  Range range, //
-                                 @GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
+                                 @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
                                  //// from
                                  //// kernel
-                                 @GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from kernel
+                                 @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from kernel
                                  // (actually char[])
-                                 @GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
+                                 @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
                                  // read) from kernel
                                  // (actually char[])
-                                 @Arg("_width") int _width, //
-                                 @Arg("_height") int _height);
+                                 @OpenCL.Arg("_width") int _width, //
+                                 @OpenCL.Arg("_height") int _height);
   }
   
   public static class TestKernel extends Kernel {

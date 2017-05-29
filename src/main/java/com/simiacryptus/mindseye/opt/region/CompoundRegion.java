@@ -19,14 +19,21 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
-import com.simiacryptus.util.lang.NotImplementedException;
-
-public interface TrustRegion {
-  @Deprecated
-  default double[] project(double[] state, double[] point) {
-    throw new NotImplementedException();
+public class CompoundRegion implements TrustRegion {
+  
+  private final TrustRegion[] inner;
+  
+  public CompoundRegion(TrustRegion... inner) {
+    this.inner = inner;
   }
-  default double[] project(double[][] history, double[] point) {
-    return project(history[0],point);
+  
+  @Override
+  public double[] project(double[][] history, double[] point) {
+    double[] returnValue = point;
+    for (int i = 0; i < inner.length; i++) {
+      returnValue = inner[i].project(history, returnValue);
+    }
+    return returnValue;
   }
+  
 }

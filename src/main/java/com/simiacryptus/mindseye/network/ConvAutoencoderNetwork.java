@@ -75,7 +75,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     }
   
     public ConvAutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int maxIterations, int[] dims) {
-      ConvAutoencoderNetwork newLayer = configure(ConvAutoencoderNetwork.newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
+      ConvAutoencoderNetwork newLayer = configure(newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
       dimensions.add(dims);
       layers.add(newLayer);
       Tensor[] data = representations.get(representations.size() - 1);
@@ -91,7 +91,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     }
   
     public void tune() {
-      configure(new TrainingParameters() {
+      configure(new ConvAutoencoderNetwork.TrainingParameters() {
         @Override
         protected TrainingMonitor wrap(TrainingMonitor monitor) {
           return new TrainingMonitor() {
@@ -121,11 +121,11 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       }).train(representations.get(0));
     }
     
-    protected TrainingParameters configure(TrainingParameters trainingParameters) {
+    protected ConvAutoencoderNetwork.TrainingParameters configure(ConvAutoencoderNetwork.TrainingParameters trainingParameters) {
       return trainingParameters;
     }
     
-    protected Builder configure(Builder builder) {
+    protected ConvAutoencoderNetwork.Builder configure(ConvAutoencoderNetwork.Builder builder) {
       return builder;
     }
     
@@ -158,8 +158,8 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
   
     }
   
-  public TrainingParameters newTrainer() {
-    return new TrainingParameters() {
+  public ConvAutoencoderNetwork.TrainingParameters newTrainer() {
+    return new ConvAutoencoderNetwork.TrainingParameters() {
       @Override
       protected TrainingMonitor wrap(TrainingMonitor monitor) {
         return new TrainingMonitor() {
@@ -187,8 +187,8 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     };
   }
   
-  public static Builder newLayer(int[] outerSize, int[] innerSize) {
-    return new Builder(outerSize, innerSize);
+  public static ConvAutoencoderNetwork.Builder newLayer(int[] outerSize, int[] innerSize) {
+    return new ConvAutoencoderNetwork.Builder(outerSize, innerSize);
   }
   
   private final int[] outerSize;
@@ -205,7 +205,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
   private final NNLayer encoder;
   private final NNLayer decoder;
   
-  protected ConvAutoencoderNetwork(Builder networkParameters) {
+  protected ConvAutoencoderNetwork(ConvAutoencoderNetwork.Builder networkParameters) {
     Random random = new Random();
     
     this.outerSize = networkParameters.getOuterSize();
@@ -353,47 +353,47 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       return endFitness;
     }
     
-    public TrainingParameters setSampleSize(int sampleSize) {
+    public ConvAutoencoderNetwork.TrainingParameters setSampleSize(int sampleSize) {
       this.sampleSize = sampleSize;
       return this;
     }
     
-    public TrainingParameters setL1normalization(double l1normalization) {
+    public ConvAutoencoderNetwork.TrainingParameters setL1normalization(double l1normalization) {
       this.l1normalization = l1normalization;
       return this;
     }
     
-    public TrainingParameters setL2normalization(double l2normalization) {
+    public ConvAutoencoderNetwork.TrainingParameters setL2normalization(double l2normalization) {
       this.l2normalization = l2normalization;
       return this;
     }
     
-    public TrainingParameters setOrient(OrientationStrategy orient) {
+    public ConvAutoencoderNetwork.TrainingParameters setOrient(OrientationStrategy orient) {
       this.orient = orient;
       return this;
     }
     
-    public TrainingParameters setStep(LineSearchStrategy step) {
+    public ConvAutoencoderNetwork.TrainingParameters setStep(LineSearchStrategy step) {
       this.step = step;
       return this;
     }
     
-    public TrainingParameters setMonitor(TrainingMonitor monitor) {
+    public ConvAutoencoderNetwork.TrainingParameters setMonitor(TrainingMonitor monitor) {
       this.monitor = monitor;
       return this;
     }
     
-    public TrainingParameters setTimeoutMinutes(int timeoutMinutes) {
+    public ConvAutoencoderNetwork.TrainingParameters setTimeoutMinutes(int timeoutMinutes) {
       this.timeoutMinutes = timeoutMinutes;
       return this;
     }
     
-    public TrainingParameters setEndFitness(double endFitness) {
+    public ConvAutoencoderNetwork.TrainingParameters setEndFitness(double endFitness) {
       this.endFitness = endFitness;
       return this;
     }
   
-    public TrainingParameters setMaxIterations(int maxIterations) {
+    public ConvAutoencoderNetwork.TrainingParameters setMaxIterations(int maxIterations) {
       this.maxIterations = maxIterations;
       return this;
     }
@@ -446,33 +446,33 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       return dropout;
     }
     
-    public Builder setNoise(double noise) {
+    public ConvAutoencoderNetwork.Builder setNoise(double noise) {
       this.noise = noise;
       return this;
     }
     
-    public Builder setInitRadius(double initRadius) {
+    public ConvAutoencoderNetwork.Builder setInitRadius(double initRadius) {
       this.initRadius = initRadius;
       return this;
     }
     
-    public Builder setInitStiffness(int initStiffness) {
+    public ConvAutoencoderNetwork.Builder setInitStiffness(int initStiffness) {
       this.initStiffness = initStiffness;
       return this;
     }
     
-    public Builder setInitPeak(double initPeak) {
+    public ConvAutoencoderNetwork.Builder setInitPeak(double initPeak) {
       this.initPeak = initPeak;
       return this;
     }
     
-    public Builder setDropout(double dropout) {
+    public ConvAutoencoderNetwork.Builder setDropout(double dropout) {
       this.dropout = dropout;
       return this;
     }
     
     public ConvAutoencoderNetwork build() {
-      return new ConvAutoencoderNetwork(Builder.this);
+      return new ConvAutoencoderNetwork(ConvAutoencoderNetwork.Builder.this);
     }
   }
 }

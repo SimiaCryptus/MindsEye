@@ -55,7 +55,7 @@ public class ConstL12Normalizer extends L12Normalizer {
     return factor_L1;
   }
   
-  public com.simiacryptus.mindseye.opt.trainable.ConstL12Normalizer setFactor_L1(double factor_L1) {
+  public ConstL12Normalizer setFactor_L1(double factor_L1) {
     this.factor_L1 = factor_L1;
     return this;
   }
@@ -64,7 +64,7 @@ public class ConstL12Normalizer extends L12Normalizer {
     return factor_L2;
   }
   
-  public com.simiacryptus.mindseye.opt.trainable.ConstL12Normalizer setFactor_L2(double factor_L2) {
+  public ConstL12Normalizer setFactor_L2(double factor_L2) {
     this.factor_L2 = factor_L2;
     return this;
   }

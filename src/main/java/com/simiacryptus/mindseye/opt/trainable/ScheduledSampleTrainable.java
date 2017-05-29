@@ -60,7 +60,7 @@ public class ScheduledSampleTrainable implements Trainable {
   }
   
   @Override
-  public PointSample measure() {
+  public Trainable.PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
     NNResult result = network.eval(input);
     DeltaSet deltaSet = new DeltaSet();
@@ -72,7 +72,7 @@ public class ScheduledSampleTrainable implements Trainable {
     assert (Arrays.stream(result.data).allMatch(x -> x.dim() == 1));
     ScalarStatistics statistics = new ScalarStatistics();
     Arrays.stream(result.data).flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
-    return new PointSample(deltaSet, stateSet, statistics.getMean());
+    return new Trainable.PointSample(deltaSet, stateSet, statistics.getMean());
   }
   
   @Override

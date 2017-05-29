@@ -56,7 +56,7 @@ public class MaxSubsampleLayer extends NNLayer {
   }
   
   
-  private static final Function<CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxSubsampleLayer::calcRegions);
+  private static final Function<MaxSubsampleLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxSubsampleLayer::calcRegions);
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
   private int[] kernelDims;
@@ -70,7 +70,7 @@ public class MaxSubsampleLayer extends NNLayer {
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
   
-  private static List<Tuple2<Integer, int[]>> calcRegions(final CalcRegionsParameter p) {
+  private static List<Tuple2<Integer, int[]>> calcRegions(final MaxSubsampleLayer.CalcRegionsParameter p) {
     final Tensor input = new Tensor(p.inputDims);
     final int[] newDims = IntStream.range(0, p.inputDims.length).map(i -> {
       //assert 0 == p.inputDims[i] % p.kernelDims[i];
@@ -101,7 +101,7 @@ public class MaxSubsampleLayer extends NNLayer {
     int itemCnt = in.data.length;
     
     final int[] inputDims = in.data[0].getDims();
-      final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new CalcRegionsParameter(inputDims, this.kernelDims));
+      final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxSubsampleLayer.CalcRegionsParameter(inputDims, this.kernelDims));
     Tensor[] outputA = IntStream.range(0, in.data.length).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         return (int) Math.ceil(inputDims[i] * 1.0 / this.kernelDims[i]);
@@ -179,7 +179,7 @@ public class MaxSubsampleLayer extends NNLayer {
         return false;
       if (getClass() != obj.getClass())
         return false;
-      final CalcRegionsParameter other = (CalcRegionsParameter) obj;
+      final MaxSubsampleLayer.CalcRegionsParameter other = (MaxSubsampleLayer.CalcRegionsParameter) obj;
       if (!Arrays.equals(this.inputDims, other.inputDims))
         return false;
       return Arrays.equals(this.kernelDims, other.kernelDims);

@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeConditions;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import com.simiacryptus.util.Util;
 
 import java.time.Duration;
@@ -60,20 +61,20 @@ public class IterativeTrainer {
   
   public double run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
-    Trainable.PointSample currentPoint = measure();
+    PointSample currentPoint = measure();
     while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && currentIteration.incrementAndGet() < maxIterations) {
       System.gc();
       currentPoint = measure();
       LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
       currentPoint = scaling.step(direction, monitor);
       monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
-      monitor.onStepComplete(new IterativeTrainer.Step(currentPoint, currentIteration.get()));
+      monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
     return null == currentPoint ? Double.NaN : currentPoint.value;
   }
   
-  public Trainable.PointSample measure() {
-    Trainable.PointSample currentPoint;
+  public PointSample measure() {
+    PointSample currentPoint;
     int retries = 0;
     do {
       if (3 < retries++) throw new RuntimeException();
@@ -148,11 +149,11 @@ public class IterativeTrainer {
   }
   
   public static class Step {
-    public final Trainable.PointSample point;
+    public final PointSample point;
     public final long time = System.currentTimeMillis();
     public final long iteration;
     
-    private Step(Trainable.PointSample point, long iteration) {
+    private Step(PointSample point, long iteration) {
       this.point = point;
       this.iteration = iteration;
     }

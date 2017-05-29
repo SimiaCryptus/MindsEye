@@ -22,11 +22,11 @@ package com.simiacryptus.mindseye.opt.trainable;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 
 public interface Trainable {
-  PointSample measure();
+  Trainable.PointSample measure();
   
-  default void resetToFull() {};
+  default void resetToFull() {}
   
-  default void resetSampling() {};
+  default void resetSampling() {}
   
   class PointSample {
     public final DeltaSet delta;

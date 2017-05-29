@@ -183,7 +183,7 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
         return false;
       if (getClass() != obj.getClass())
         return false;
-      final IndexMapKey other = (IndexMapKey) obj;
+      final ImgConvolutionSynapseLayer.IndexMapKey other = (ImgConvolutionSynapseLayer.IndexMapKey) obj;
       if (!Arrays.equals(this.input, other.input))
         return false;
       if (!Arrays.equals(this.kernel, other.kernel))

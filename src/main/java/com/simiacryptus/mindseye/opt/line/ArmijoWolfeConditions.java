@@ -21,18 +21,19 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 public class ArmijoWolfeConditions implements LineSearchStrategy {
   
   private double minAlpha = 1e-15;
   private double maxAlpha = 1e2;
-  private double c1 = 1e-4;
-  private double c2 = 0.8;
+  private double c1 = 1e-6;
+  private double c2 = 0.9;
   private double alpha = 1.0;
   private double alphaGrowth = Math.pow(3.0, Math.pow(5.0, -1.0));
   
   @Override
-  public Trainable.PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
+  public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
     alpha *= alphaGrowth; // Keep memory of alpha from one iteration to next, but have a bias for growing the value
     // See http://cs.nyu.edu/overton/mstheses/skajaa/msthesis.pdf page 14
     double mu = 0;

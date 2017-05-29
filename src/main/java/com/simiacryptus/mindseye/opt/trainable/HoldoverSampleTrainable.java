@@ -63,7 +63,7 @@ public class HoldoverSampleTrainable implements Trainable {
   }
   
   @Override
-  public PointSample measure() {
+  public Trainable.PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
     NNResult result = network.eval(input);
     DeltaSet deltaSet = new DeltaSet();
@@ -81,7 +81,7 @@ public class HoldoverSampleTrainable implements Trainable {
                            .toArray(i -> new Tensor[i][]);
     ScalarStatistics statistics = new ScalarStatistics();
     Arrays.stream(result.data).flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
-    return new PointSample(deltaSet, stateSet, statistics.getMean());
+    return new Trainable.PointSample(deltaSet, stateSet, statistics.getMean());
   }
   
   @Override

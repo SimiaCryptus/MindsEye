@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.layers.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.layers.meta.AvgMetaLayer;
 import com.simiacryptus.mindseye.layers.meta.CrossDotMetaLayer;
 import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;
@@ -50,7 +49,7 @@ public class MetaComponentValidationTests {
       final int outputCoord = outCoord;
       for (int outItem = 0; outItem < outputPrototype.length; outItem++) {
         final int outputItem = outItem;
-        final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
+        final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNLayer.ConstNNResult(x)).toArray(i -> new NNResult[i]);
         copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
           @Override
           public void accumulate(final DeltaSet buffer, final Tensor[] data) {

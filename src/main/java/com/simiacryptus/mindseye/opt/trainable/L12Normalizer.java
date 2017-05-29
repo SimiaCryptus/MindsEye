@@ -33,15 +33,15 @@ import java.util.stream.Collectors;
 public abstract class L12Normalizer implements Trainable {
   public final Trainable inner;
   
-  private boolean hideAdj = false;
+  private final boolean hideAdj = false;
   
   public L12Normalizer(Trainable inner) {
     this.inner = inner;
   }
   
   @Override
-  public PointSample measure() {
-    PointSample innerMeasure = inner.measure();
+  public Trainable.PointSample measure() {
+    Trainable.PointSample innerMeasure = inner.measure();
     DeltaSet normalizationVector = new DeltaSet();
     double valueAdj = 0;
     for (NNLayer layer : getLayers(innerMeasure.delta.map.keySet())) {
@@ -56,7 +56,7 @@ public abstract class L12Normalizer implements Trainable {
       }
       assert (null != gradientAdj);
     }
-    return new PointSample(
+    return new Trainable.PointSample(
                               innerMeasure.delta.add(normalizationVector),
                               innerMeasure.weights,
                               innerMeasure.value + (hideAdj?0:valueAdj));
