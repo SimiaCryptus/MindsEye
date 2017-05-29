@@ -203,10 +203,6 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return getHead().get(buildExeCtx(input));
   }
   
-  public NNResult batch(final Tensor[][] data) {
-    return getHead().get(batchExeContext(data));
-  }
-  
   public DAGNode add(final NNLayer nextHead, final DAGNode... head) {
     assert null != getInput();
     final InnerNode node = new InnerNode(this, nextHead, head);

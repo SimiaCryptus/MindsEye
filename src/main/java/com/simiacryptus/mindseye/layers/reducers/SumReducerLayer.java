@@ -56,10 +56,10 @@ public class SumReducerLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    double outputA = IntStream.range(0, inObj[0].data.length).mapToDouble(dataIndex -> {
+    double outputA = IntStream.range(0, inObj[0].data.length).mapToDouble(batchIndex -> {
       double sum = 0;
       for (final NNResult element : inObj) {
-        final double[] input = element.data[dataIndex].getData();
+        final double[] input = element.data[batchIndex].getData();
         for (final double element2 : input) {
           sum += element2;
         }

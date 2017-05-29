@@ -64,12 +64,14 @@ public class ImgBandBiasLayer extends NNLayer {
     this.bias = null;
   }
   
-  public ImgBandBiasLayer(final int... outputDims) {
-    assert (outputDims.length >= 3);
-    this.bias = new double[outputDims[2]];
+  public ImgBandBiasLayer(final int bands) {
+    super();
+    this.bias = new double[bands];
   }
   
   public double[] add(final double[] input) {
+    assert(null != input);
+    assert(null != bias);
     final double[] array = new double[input.length];
     int size = input.length / bias.length;
     for (int i = 0; i < array.length; i++) {

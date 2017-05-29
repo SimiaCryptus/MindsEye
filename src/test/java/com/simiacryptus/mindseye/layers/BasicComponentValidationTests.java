@@ -49,7 +49,7 @@ public class BasicComponentValidationTests {
   public void testImgBandBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2,2,3);
     final Tensor inputPrototype = new Tensor(2,2,3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ImgBandBiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgBandBiasLayer(outputPrototype.getDims()[2]).setWeights(i -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -185,7 +185,7 @@ public class BasicComponentValidationTests {
   
   @Test
   public void testSumLayer() throws Throwable {
-    final Tensor outputPrototype = new Tensor(1);
+    final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new SumInputsLayer();

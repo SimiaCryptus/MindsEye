@@ -44,45 +44,24 @@ public class SumInputsLayer extends NNLayer {
   protected SumInputsLayer(UUID id) {
     super(id);
   }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SumInputsLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = -5171545060770814729L;
-  
+
   public SumInputsLayer() {
   }
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    double[] sum_A = new double[inObj[0].data.length];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
-      double sum = 0;
-      for (final NNResult element : inObj) {
-        final double[] input = element.data[dataIndex].getData();
-        for (final double element2 : input) {
-          sum += element2;
-        }
-      }
-      sum_A[dataIndex] = sum;
-      return new Tensor(new int[]{1}, new double[]{sum});
-    }).toArray(i -> new Tensor[i]);
-    return new NNResult(outputA) {
+    Tensor[] data = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
+      return IntStream.range(0, l.length)
+                 .parallel()
+                 .mapToObj(i->Tensor.add(l[i], r[i]))
+                 .toArray(i->new Tensor[i]);
+    }).get();
+    return new NNResult(data) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        for (final NNResult in_l : inObj) {
-          if (in_l.isAlive()) {
-            Tensor[] passbackA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
-              final double delta = data[dataIndex].get(0);
-              final Tensor passback = new Tensor(in_l.data[dataIndex].getDims());
-              for (int i = 0; i < in_l.data[dataIndex].dim(); i++) {
-                passback.set(i, delta);
-              }
-              return passback;
-            }).toArray(i -> new Tensor[i]);
-            in_l.accumulate(buffer, passbackA);
+        for (final NNResult input : inObj) {
+          if (input.isAlive()) {
+            input.accumulate(buffer, data);
           }
         }
       }

@@ -105,6 +105,10 @@ public abstract class NNLayer implements Serializable {
     }
   }
   
+  public String getJsonString() {
+    return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
+  }
+  
   public abstract JsonObject getJson();
   public JsonObject getJsonStub() {
     final JsonObject json = new JsonObject();

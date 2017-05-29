@@ -62,9 +62,13 @@ public class DropoutNoiseLayer extends NNLayer {
   long seed = random.get().nextLong();
   private double value;
   
-  public DropoutNoiseLayer() {
+  public DropoutNoiseLayer(double value) {
     super();
-    this.setValue(1.0);
+    this.setValue(value);
+  }
+  
+  public DropoutNoiseLayer() {
+    this(0.5);
   }
   
   public double getValue() {
