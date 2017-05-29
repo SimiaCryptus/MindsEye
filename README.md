@@ -39,6 +39,8 @@ http://mvnrepository.com/artifact/com.simiacryptus/mindseye
 
 ## Getting Started
 
+[MindsEye](http://mvnrepository.com/artifact/com.simiacryptus/mindseye) is available in the central maven repository.
+
 [This demo](https://github.com/SimiaCryptus/MindsEye/blob/master/reports/com.simiacryptus.mindseye.MNistDemo/basic.md) will show how to create and train a basic neural network.
 
 [This demo](https://github.com/SimiaCryptus/MindsEye/blob/master/reports/com.simiacryptus.mindseye.MNistDemo/bellsAndWhistles.md) shows various options for the optimizer.
