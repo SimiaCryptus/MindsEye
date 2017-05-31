@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.mindseye.layers.meta.AvgMetaLayer;
 import com.simiacryptus.mindseye.layers.meta.CrossDotMetaLayer;
 import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;
+import com.simiacryptus.mindseye.layers.meta.SumMetaLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.KryoUtil;
@@ -228,6 +229,15 @@ public class MetaComponentValidationTests {
   @Test
   public void testAvgMetaLayer() throws Throwable {
     final NNLayer component = new AvgMetaLayer();
+    Tensor[][] inputPrototype = Arrays.stream(new Tensor[][]{replicate(new Tensor(3), 5)})
+                                    .map(x -> Arrays.stream(x).map(y -> y.map(z -> Util.R.get().nextDouble())).toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
+    Tensor[] outputPrototype = replicate(new Tensor(3), 1);
+    test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
+  public void testSumMetaLayer() throws Throwable {
+    final NNLayer component = new SumMetaLayer();
     Tensor[][] inputPrototype = Arrays.stream(new Tensor[][]{replicate(new Tensor(3), 5)})
                                     .map(x -> Arrays.stream(x).map(y -> y.map(z -> Util.R.get().nextDouble())).toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
     Tensor[] outputPrototype = replicate(new Tensor(3), 1);

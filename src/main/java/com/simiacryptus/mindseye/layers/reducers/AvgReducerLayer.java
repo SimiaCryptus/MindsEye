@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-public class SumReducerLayer extends NNLayer {
+public class AvgReducerLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
@@ -40,18 +40,14 @@ public class SumReducerLayer extends NNLayer {
   public static SumReducerLayer fromJson(JsonObject json) {
     return new SumReducerLayer(UUID.fromString(json.get("id").getAsString()));
   }
-  protected SumReducerLayer(UUID id) {
+  protected AvgReducerLayer(UUID id) {
     super(id);
   }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = -5171545060770814729L;
   
-  public SumReducerLayer() {
+  public AvgReducerLayer() {
   }
   
   @Override
@@ -61,7 +57,7 @@ public class SumReducerLayer extends NNLayer {
       for (final NNResult element : inObj) {
         final double[] input = element.data[dataIndex].getData();
         for (final double element2 : input) {
-          sum += element2;
+          sum += element2 / input.length;
         }
       }
       return sum;
@@ -73,8 +69,9 @@ public class SumReducerLayer extends NNLayer {
             in_l.accumulate(buffer, IntStream.range(0, in_l.data.length).mapToObj(dataIndex -> {
               final double delta = data[dataIndex].get(0);
               final Tensor passback = new Tensor(in_l.data[dataIndex].getDims());
-              for (int i = 0; i < in_l.data[dataIndex].dim(); i++) {
-                passback.set(i, delta);
+              int dim = in_l.data[dataIndex].dim();
+              for (int i = 0; i < dim; i++) {
+                passback.set(i, delta / dim);
               }
               return passback;
             }).toArray(i -> new Tensor[i]));

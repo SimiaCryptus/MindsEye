@@ -20,15 +20,19 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.layers.activation.*;
+import com.simiacryptus.mindseye.layers.cross.CrossDifferenceLayer;
+import com.simiacryptus.mindseye.layers.cross.CrossProductLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.reducers.ProductLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
 import com.simiacryptus.mindseye.layers.synapse.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,12 +179,42 @@ public class BasicComponentValidationTests {
   }
   
   @Test
+  public void testLogActivationLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3);
+    final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new LogActivationLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
   public void testSqLossLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new MeanSqLossLayer();
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+  
+  @Test
+  public void testCrossProductLayer() throws Throwable {
+    Assert.assertEquals(0, CrossProductLayer.index(0,1, 4));
+    Assert.assertEquals(3, CrossProductLayer.index(1,2, 4));
+    Assert.assertEquals(5, CrossProductLayer.index(2,3, 4));
+    final Tensor outputPrototype = new Tensor(6);
+    final Tensor inputPrototype1 = new Tensor(4).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new CrossProductLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype1);
+  }
+  
+  @Test
+  public void testCrossDifferenceLayer() throws Throwable {
+    Assert.assertEquals(0, CrossDifferenceLayer.index(0,1, 4));
+    Assert.assertEquals(3, CrossDifferenceLayer.index(1,2, 4));
+    Assert.assertEquals(5, CrossDifferenceLayer.index(2,3, 4));
+    final Tensor outputPrototype = new Tensor(6);
+    final Tensor inputPrototype1 = new Tensor(4).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new CrossDifferenceLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype1);
   }
   
   @Test
@@ -198,6 +232,15 @@ public class BasicComponentValidationTests {
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new SumReducerLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+  
+  @Test
+  public void testAvgReducerLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(1);
+    final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
+    final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new AvgReducerLayer();
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
