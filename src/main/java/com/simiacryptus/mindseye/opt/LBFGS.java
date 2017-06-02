@@ -55,15 +55,17 @@ public class LBFGS implements OrientationStrategy {
     }
     if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) history.add(measurement);
     while(history.size() > maxHistory) history.remove(0);
-    return new SimpleLineSearchCursor(subject, measurement, _orient(measurement, monitor));
+    return _orient(subject, measurement, monitor);
   }
   
-  public DeltaSet _orient(PointSample measurement, TrainingMonitor monitor) {
+  private SimpleLineSearchCursor _orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     List<DeltaBuffer> defaultValue = measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList());
     
     // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce (Large-scale L-BFGS using MapReduce)
+    String type = "";
     List<DeltaBuffer> descent = defaultValue;
     if (history.size() > minHistory) {
+      type = "LBFGS";
       List<double[]> p = descent.stream().map(x -> x.copyDelta()).collect(Collectors.toList());
       assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       double[] alphas = new double[history.size()];
@@ -74,7 +76,7 @@ public class LBFGS implements OrientationStrategy {
         if (0 == denominator) {
           history.remove(0);
           monitor.log("Orientation vanished. Popping history element from " + (history.size() - 1));
-          return _orient(measurement, monitor);
+          return _orient(subject, measurement, monitor);
         }
         alphas[i] = dot(si, p) / denominator;
         p = ArrayUtil.minus(p, ArrayUtil.multiply(yi, alphas[i]));
@@ -100,9 +102,9 @@ public class LBFGS implements OrientationStrategy {
     if (accept(measurement.delta.vector(), descent)) {
       history.remove(0);
       monitor.log("Orientation rejected. Popping history element from " + (history.size() - 1));
-      return _orient(measurement, monitor);
+      return _orient(subject, measurement, monitor);
     }
-    return DeltaSet.fromList(descent);
+    return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(descent)).setDirectionType(type);
   }
   
   private boolean accept(List<DeltaBuffer> gradient, List<DeltaBuffer> direction) {

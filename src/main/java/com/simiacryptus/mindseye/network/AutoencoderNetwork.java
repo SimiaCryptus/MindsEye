@@ -316,7 +316,7 @@ public class AutoencoderNetwork {
       L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
       IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());
-      trainer.setScaling(getStep());
+      trainer.setLineSearchFactory(()->getStep());
       TrainingMonitor monitor = getMonitor();
       trainer.setMonitor(wrap(monitor));
       trainer.setTimeout(getTimeoutMinutes(), TimeUnit.MINUTES);

@@ -32,6 +32,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public final PointSample origin;
   public final DeltaSet direction;
   public final Trainable subject;
+  private String type = "";
   
   public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSet direction) {
     this.origin = origin;
@@ -45,6 +46,11 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   }
   
   @Override
+  public String getDirectionType() {
+    return type;
+  }
+  
+  @Override
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     origin.weights.vector().stream().forEach(d -> d.overwrite());
     direction.vector().stream().forEach(d -> d.write(alpha));
@@ -52,4 +58,8 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     return new LineSearchPoint(sample, dot(direction.vector(), sample.delta.vector()));
   }
   
+  public SimpleLineSearchCursor setDirectionType(String type) {
+    this.type = type;
+    return this;
+  }
 }

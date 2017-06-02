@@ -43,7 +43,7 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
     this.loss = add(new MeanSqLossLayer(), this.decoder, getInput(0));
     this.sparsity = add(new Sparse01MetaLayer(), this.encoder);
     this.sumSparsityLayer = add(new SumReducerLayer(), this.sparsity);
-    this.sparsityThrottleLayer = add(new LinearActivationLayer().setWeight(0.5), this.sumSparsityLayer);
+    this.sparsityThrottleLayer = add(new LinearActivationLayer().setScale(0.5), this.sumSparsityLayer);
     this.sumFitnessLayer = add(new SumReducerLayer(), this.sparsityThrottleLayer, this.loss);
   }
   

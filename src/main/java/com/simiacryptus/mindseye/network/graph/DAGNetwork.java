@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.ml.Tensor;
@@ -200,7 +201,18 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
   @Override
   public NNResult eval(final NNResult... input) {
-    return getHead().get(buildExeCtx(input));
+    NNResult innerResult = getHead().get(buildExeCtx(input));
+    return new NNResult(innerResult.data) {
+      @Override
+      public void accumulate(DeltaSet buffer, Tensor[] data) {
+        if(!DAGNetwork.this.isFrozen()) innerResult.accumulate(buffer, data);
+      }
+  
+      @Override
+      public boolean isAlive() {
+        return !DAGNetwork.this.isFrozen() && innerResult.isAlive();
+      }
+    };
   }
   
   public DAGNode add(final NNLayer nextHead, final DAGNode... head) {

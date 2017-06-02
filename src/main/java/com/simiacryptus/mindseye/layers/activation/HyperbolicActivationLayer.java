@@ -23,9 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
-import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +30,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
-public class LinearActivationLayer extends NNLayer {
+public class HyperbolicActivationLayer extends NNLayer {
   
   
   public JsonObject getJson() {
@@ -45,23 +41,22 @@ public class LinearActivationLayer extends NNLayer {
     return json;
   }
   
-  public static LinearActivationLayer fromJson(JsonObject json) {
-    return new LinearActivationLayer(json);
+  public static HyperbolicActivationLayer fromJson(JsonObject json) {
+    return new HyperbolicActivationLayer(json);
   }
-  protected LinearActivationLayer(JsonObject json) {
+  protected HyperbolicActivationLayer(JsonObject json) {
     super(UUID.fromString(json.get("id").getAsString()));
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
   }
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(HyperbolicActivationLayer.class);
   private final Tensor weights;
   
-  public LinearActivationLayer() {
+  public HyperbolicActivationLayer() {
     super();
-    this.weights = new Tensor(2);
+    this.weights = new Tensor(1);
     this.weights.set(0, 1.);
-    this.weights.set(1, 0.);
   }
   
   @Override
@@ -69,10 +64,8 @@ public class LinearActivationLayer extends NNLayer {
     int itemCnt = inObj[0].data.length;
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];
-      final double scale = this.weights.get(0);
-      final double bias = this.weights.get(1);
-      final Tensor output = input.map(v->scale*v+bias);
-      return output;
+      final double a = this.weights.get(0);
+      return input.map(v->(Math.sqrt(Math.pow(a*v,2)+1)-a)/a);
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
   }
@@ -82,21 +75,12 @@ public class LinearActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
   
-  public double getBias() {
-    return this.weights.get(1);
-  }
-  
-  public LinearActivationLayer setBias(double bias) {
-    this.weights.set(1, bias);
-    return this;
-  }
-  
   public double getScale() {
-    return this.weights.get(0);
+    return 1/this.weights.get(0);
   }
   
-  public LinearActivationLayer setScale(double scale) {
-    this.weights.set(0, scale);
+  public HyperbolicActivationLayer setScale(double scale) {
+    this.weights.set(0, 1/scale);
     return this;
   }
   
@@ -110,17 +94,19 @@ public class LinearActivationLayer extends NNLayer {
     
     @Override
     public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
-      
+  
+      double a = HyperbolicActivationLayer.this.weights.getData()[0];
       if (!isFrozen()) {
         IntStream.range(0, delta.length).forEach(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
           final double[] inputData = this.inObj.data[dataIndex].getData();
-          final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDims());
+          final Tensor weightDelta = new Tensor(HyperbolicActivationLayer.this.weights.getDims());
           for (int i = 0; i < deltaData.length; i++) {
-            weightDelta.add(0, deltaData[i] * inputData[i]);
-            weightDelta.add(1, deltaData[i]);
+            double d = deltaData[i];
+            double x = inputData[i];
+            weightDelta.add(0, -d /(a*a*Math.sqrt(1+Math.pow(a*x,2))));
           }
-          buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).accumulate(weightDelta.getData());
+          buffer.get(HyperbolicActivationLayer.this, HyperbolicActivationLayer.this.weights).accumulate(weightDelta.getData());
         });
       }
       if (this.inObj.isAlive()) {
@@ -129,7 +115,9 @@ public class LinearActivationLayer extends NNLayer {
           final int[] dims = this.inObj.data[dataIndex].getDims();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, deltaData[i] * LinearActivationLayer.this.weights.getData()[0]);
+            double x = this.inObj.data[dataIndex].getData()[i];
+            double d = deltaData[i];
+            passback.set(i, d * a * x / Math.sqrt(1+a * x*a * x));
           }
           return passback;
         }).toArray(i -> new Tensor[i]);

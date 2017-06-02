@@ -26,5 +26,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  */
 public interface LineSearchCursor {
   
+  String getDirectionType();
+  
   LineSearchPoint step(double alpha, TrainingMonitor monitor);
 }

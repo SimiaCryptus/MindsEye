@@ -147,6 +147,14 @@ public class BasicComponentValidationTests {
   }
   
   @Test
+  public void testHyperbolicActivationLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3);
+    final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new HyperbolicActivationLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
   public void testSigmoidLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());

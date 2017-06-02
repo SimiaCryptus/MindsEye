@@ -41,6 +41,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     LineSearchPoint startPoint = cursor.step(0, monitor);
     double startLineDeriv = startPoint.derivative; // theta'(0)
     double startValue = startPoint.point.value; // theta(0)
+    LineSearchPoint lastStep = null;
     while (true) {
       if (!isAlphaValid()) {
         monitor.log(String.format("INVALID ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
@@ -50,25 +51,29 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
         c1 *= 0.2;
         c2 = Math.pow(c2,c2<1?0.3:3);
+        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if ((nu / mu) < (11.0 / 10.0)) {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
         c1 *= 0.2;
         c2 = Math.pow(c2,c2<1?0.3:3);
+        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if (Math.abs(alpha) < minAlpha) {
         alpha = 1;
         monitor.log(String.format("MIN ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if (Math.abs(alpha) > maxAlpha) {
         alpha = 1;
         monitor.log(String.format("MAX ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
-      LineSearchPoint lastStep = cursor.step(alpha, monitor);
+      lastStep = cursor.step(alpha, monitor);
       if (lastStep.point.value > startValue + alpha * c1 * startLineDeriv) {
         // Armijo condition fails
         monitor.log(String.format("ARMIJO: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f > %f;th'(alpha)=%f >= %f",

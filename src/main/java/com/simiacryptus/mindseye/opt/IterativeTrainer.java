@@ -29,8 +29,11 @@ import com.simiacryptus.util.Util;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public class IterativeTrainer {
   
@@ -39,7 +42,8 @@ public class IterativeTrainer {
   private Duration timeout;
   private double terminateThreshold;
   private OrientationStrategy orientation = new LBFGS();
-  private LineSearchStrategy scaling = new ArmijoWolfeConditions();
+  private Supplier<LineSearchStrategy> lineSearchFactory = () -> new ArmijoWolfeConditions();
+  private Map<String,LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -63,10 +67,14 @@ public class IterativeTrainer {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample currentPoint = measure();
     while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && currentIteration.incrementAndGet() < maxIterations) {
-      System.gc();
       currentPoint = measure();
       LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
-      currentPoint = scaling.step(direction, monitor);
+      LineSearchStrategy lineSearchStrategy = lineSearchStrategyMap.get(direction.getDirectionType());
+      if(null == lineSearchStrategy) {
+        lineSearchStrategy = lineSearchFactory.get();
+        lineSearchStrategyMap.put(direction.getDirectionType(), lineSearchStrategy);
+      }
+      currentPoint = lineSearchStrategy.step(direction, monitor);
       monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
@@ -121,15 +129,6 @@ public class IterativeTrainer {
     return this;
   }
   
-  public LineSearchStrategy getScaling() {
-    return scaling;
-  }
-  
-  public IterativeTrainer setScaling(LineSearchStrategy scaling) {
-    this.scaling = scaling;
-    return this;
-  }
-  
   public TrainingMonitor getMonitor() {
     return monitor;
   }
@@ -145,6 +144,15 @@ public class IterativeTrainer {
   
   public IterativeTrainer setCurrentIteration(AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
+    return this;
+  }
+  
+  public Supplier<LineSearchStrategy> getLineSearchFactory() {
+    return lineSearchFactory;
+  }
+  
+  public IterativeTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = lineSearchFactory;
     return this;
   }
   

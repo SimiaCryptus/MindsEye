@@ -57,8 +57,14 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     history.add(0,measurement);
     while(history.size() > maxHistory) history.remove(history.size()-1);
-    DeltaSet direction = ((SimpleLineSearchCursor) inner.orient(subject, measurement, monitor)).direction;
+    LineSearchCursor orient = inner.orient(subject, measurement, monitor);
+    DeltaSet direction = ((SimpleLineSearchCursor) orient).direction;
     return new LineSearchCursor() {
+      @Override
+      public String getDirectionType() {
+        return orient + "+Trust";
+      }
+  
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
         // Restore to orginal position
