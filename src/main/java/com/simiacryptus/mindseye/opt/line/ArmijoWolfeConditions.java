@@ -47,46 +47,50 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
         monitor.log(String.format("INVALID ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
         return cursor.step(0, monitor).point;
       }
+      double lastValue = (null == lastStep)?Double.POSITIVE_INFINITY:lastStep.point.value;
+      if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
       if (mu >= nu) {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
         c1 *= 0.2;
         c2 = Math.pow(c2,c2<1?0.3:3);
-        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
+        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if ((nu / mu) < (11.0 / 10.0)) {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
         c1 *= 0.2;
         c2 = Math.pow(c2,c2<1?0.3:3);
-        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
+        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if (Math.abs(alpha) < minAlpha) {
         alpha = 1;
         monitor.log(String.format("MIN ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
-        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
+        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if (Math.abs(alpha) > maxAlpha) {
         alpha = 1;
         monitor.log(String.format("MAX ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
-        if(null != lastStep && lastStep.point.value < startValue) return lastStep.point;
+        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       lastStep = cursor.step(alpha, monitor);
-      if (lastStep.point.value > startValue + alpha * c1 * startLineDeriv) {
+      lastValue = lastStep.point.value;
+      if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
+      if (lastValue > startValue + alpha * c1 * startLineDeriv) {
         // Armijo condition fails
         monitor.log(String.format("ARMIJO: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f > %f;th'(alpha)=%f >= %f",
-            startValue, startLineDeriv, mu, alpha, nu, lastStep.point.value, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
+            startValue, startLineDeriv, mu, alpha, nu, lastValue, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
         nu = alpha;
       } else if (lastStep.derivative < c2 * startLineDeriv) {
         // Weak Wolfe condition fails
         monitor.log(String.format("WOLFE: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f <= %f;th'(alpha)=%f < %f",
-            startValue, startLineDeriv, mu, alpha, nu, lastStep.point.value, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
+            startValue, startLineDeriv, mu, alpha, nu, lastValue, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
         mu = alpha;
       } else {
         monitor.log(String.format("END: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%5f;th'(alpha)=%5f",
-            startValue, startLineDeriv, mu, alpha, nu, lastStep.point.value, lastStep.derivative));
+            startValue, startLineDeriv, mu, alpha, nu, lastValue, lastStep.derivative));
         return lastStep.point;
       }
       if (Double.isFinite(nu)) {

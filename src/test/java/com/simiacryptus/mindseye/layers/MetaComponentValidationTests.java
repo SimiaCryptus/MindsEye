@@ -19,10 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.layers.meta.AvgMetaLayer;
-import com.simiacryptus.mindseye.layers.meta.CrossDotMetaLayer;
-import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;
-import com.simiacryptus.mindseye.layers.meta.SumMetaLayer;
+import com.simiacryptus.mindseye.layers.meta.*;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.KryoUtil;
@@ -46,9 +43,9 @@ public class MetaComponentValidationTests {
                                                         .mapToObj(j -> new Tensor(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
                                                         .toArray(j -> new Tensor[j]))
                                      .toArray(i -> new Tensor[i][]);
-    for (int outCoord = 0; outCoord < outputPrototype[0].dim(); outCoord++) {
-      final int outputCoord = outCoord;
-      for (int outItem = 0; outItem < outputPrototype.length; outItem++) {
+    for (int outItem = 0; outItem < outputPrototype.length; outItem++) {
+      for (int outCoord = 0; outCoord < outputPrototype[outItem].dim(); outCoord++) {
+        final int outputCoord = outCoord;
         final int outputItem = outItem;
         final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNLayer.ConstNNResult(x)).toArray(i -> new NNResult[i]);
         copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
@@ -83,7 +80,7 @@ public class MetaComponentValidationTests {
                                      .toArray(i -> new Tensor[i][]);
     final Tensor[] baseOutput = component.eval(inputPrototype).data;
     for (int inputItem = 0; inputItem < inputPrototype[inputIndex].length; inputItem++) {
-      for (int inputCoord = 0; inputCoord < inputPrototype[inputIndex][0].dim(); inputCoord++) {
+      for (int inputCoord = 0; inputCoord < inputPrototype[inputIndex][inputItem].dim(); inputCoord++) {
         final Tensor[][] copyInput = Arrays.stream(inputPrototype)
                                          .map(a -> Arrays.stream(a).map(b -> b.copy()).toArray(ii -> new Tensor[ii])).toArray(ii -> new Tensor[ii][]);
         copyInput[inputIndex][inputItem].add(inputCoord, deltaFactor * 1);
@@ -103,9 +100,9 @@ public class MetaComponentValidationTests {
     final double[] stateArray = component.state().get(layerNum);
     final int stateLen = stateArray.length;
     final Tensor[] gradient = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(stateLen, outputPrototype[0].dim())).toArray(i -> new Tensor[i]);
-    for (int outCoord = 0; outCoord < outputPrototype[0].dim(); outCoord++) {
-      final int outputCoord = outCoord;
-      for (int outputItem = 0; outputItem < outputPrototype.length; outputItem++) {
+    for (int outputItem = 0; outputItem < outputPrototype.length; outputItem++) {
+      for (int outCoord = 0; outCoord < outputPrototype[outputItem].dim(); outCoord++) {
+        final int outputCoord = outCoord;
         final DeltaSet buffer = new DeltaSet();
         NNResult eval = component.eval(inputPrototype);
         Tensor[] feedback = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(outputPrototype[0].getDims())).toArray(i -> new Tensor[i]);
@@ -238,11 +235,44 @@ public class MetaComponentValidationTests {
   @Test
   public void testSumMetaLayer() throws Throwable {
     final NNLayer component = new SumMetaLayer();
-    Tensor[][] inputPrototype = Arrays.stream(new Tensor[][]{replicate(new Tensor(3), 5)})
-                                    .map(x -> Arrays.stream(x).map(y -> y.map(z -> Util.R.get().nextDouble())).toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
+    Tensor[][] inputPrototype = new Tensor[][]{
+        IntStream.range(0,5).mapToObj(y -> new Tensor(3).map(z -> Util.R.get().nextDouble())).toArray(i -> new Tensor[i])
+    };
     Tensor[] outputPrototype = replicate(new Tensor(3), 1);
     test(component, outputPrototype, inputPrototype);
   }
   
+  @Test
+  public void testMaxMetaLayer() throws Throwable {
+    final NNLayer component = new MaxMetaLayer();
+    Tensor[][] inputPrototype = new Tensor[][]{
+        IntStream.range(0,5).mapToObj(y -> new Tensor(3).map(z -> Util.R.get().nextDouble())).toArray(i -> new Tensor[i])
+    };
+    Tensor[] outputPrototype = replicate(new Tensor(3), 1);
+    test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
+  public void testScaleMetaLayer() throws Throwable {
+    final NNLayer component = new ScaleMetaLayer();
+    Tensor[][] inputPrototype = new Tensor[][]{
+        IntStream.range(0,5).mapToObj(y -> new Tensor(3).map(z -> Util.R.get().nextDouble())).toArray(i -> new Tensor[i]),
+        new Tensor[]{new Tensor(3).map(z -> Util.R.get().nextDouble())}
+    };
+    Tensor[] outputPrototype = replicate(new Tensor(3), 5);
+    test(component, outputPrototype, inputPrototype);
+  }
+
+  @Test
+  public void testBiasMetaLayer() throws Throwable {
+    final NNLayer component = new BiasMetaLayer();
+    Tensor[][] inputPrototype = new Tensor[][]{
+        IntStream.range(0,5).mapToObj(y -> new Tensor(3).map(z -> Util.R.get().nextDouble())).toArray(i -> new Tensor[i]),
+        new Tensor[]{new Tensor(3).map(z -> Util.R.get().nextDouble())}
+    };
+    Tensor[] outputPrototype = replicate(new Tensor(3), 5);
+    test(component, outputPrototype, inputPrototype);
+  }
+
   
 }

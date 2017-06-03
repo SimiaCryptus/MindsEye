@@ -85,7 +85,7 @@ public class IterativeTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if (3 < retries++) throw new RuntimeException();
+      if (10 < retries++) throw new RuntimeException();
       subject.resetSampling();
       currentPoint = subject.measure();
     } while (!Double.isFinite(currentPoint.value));

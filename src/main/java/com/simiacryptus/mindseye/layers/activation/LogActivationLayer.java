@@ -43,8 +43,8 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
-    final double d = 0==x?0:1 / x;
-    final double f = 0==x?0:Math.log(Math.abs(x));
+    final double d = 0==x?Double.NaN:1 / x;
+    final double f = 0==x?Double.NEGATIVE_INFINITY:Math.log(Math.abs(x));
     assert Double.isFinite(d);
     assert minDeriv <= Math.abs(d);
     results[0] = f;

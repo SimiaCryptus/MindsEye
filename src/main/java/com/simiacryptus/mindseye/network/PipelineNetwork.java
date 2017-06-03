@@ -21,10 +21,12 @@ package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
+import com.simiacryptus.mindseye.network.graph.ConstNode;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,6 +70,10 @@ public class PipelineNetwork extends DAGNetwork {
     assert null != getInput();
     setHead(node);
     return node;
+  }
+  
+  public DAGNode constValue(Tensor tensor) {
+    return new ConstNode(tensor);
   }
   
   public DAGNode add(NNLayer nextHead) {

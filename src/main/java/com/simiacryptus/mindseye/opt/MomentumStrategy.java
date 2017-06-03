@@ -36,12 +36,12 @@ import java.util.stream.IntStream;
 
 import static com.simiacryptus.util.ArrayUtil.*;
 
-public abstract class MomentumStrategy implements OrientationStrategy {
+public class MomentumStrategy implements OrientationStrategy {
   
   public final OrientationStrategy inner;
   private double carryOver = 0.1;
   
-  protected MomentumStrategy(OrientationStrategy inner) {
+  public MomentumStrategy(OrientationStrategy inner) {
     this.inner = inner;
   }
 

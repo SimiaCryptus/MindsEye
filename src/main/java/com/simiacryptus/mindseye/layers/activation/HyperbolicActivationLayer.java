@@ -52,6 +52,22 @@ public class HyperbolicActivationLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(HyperbolicActivationLayer.class);
   private final Tensor weights;
+  private int negativeMode = 1;
+  
+  public HyperbolicActivationLayer setModeEven() {
+    negativeMode = 1;
+    return this;
+  }
+  
+  public HyperbolicActivationLayer setModeOdd() {
+    negativeMode = -1;
+    return this;
+  }
+  
+  public HyperbolicActivationLayer setModeAsymetric() {
+    negativeMode = 0;
+    return this;
+  }
   
   public HyperbolicActivationLayer() {
     super();
@@ -65,7 +81,10 @@ public class HyperbolicActivationLayer extends NNLayer {
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];
       final double a = this.weights.get(0);
-      return input.map(v->(Math.sqrt(Math.pow(a*v,2)+1)-a)/a);
+      return input.map(v -> {
+        final int sign = v<0?negativeMode:1;
+        return sign * (Math.sqrt(Math.pow(a * v, 2) + 1) - a) / a;
+      });
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
   }
@@ -104,7 +123,8 @@ public class HyperbolicActivationLayer extends NNLayer {
           for (int i = 0; i < deltaData.length; i++) {
             double d = deltaData[i];
             double x = inputData[i];
-            weightDelta.add(0, -d /(a*a*Math.sqrt(1+Math.pow(a*x,2))));
+            final int sign = x<0?negativeMode:1;
+            weightDelta.add(0, -sign * d /(a*a*Math.sqrt(1+Math.pow(a*x,2))));
           }
           buffer.get(HyperbolicActivationLayer.this, HyperbolicActivationLayer.this.weights).accumulate(weightDelta.getData());
         });
@@ -117,7 +137,8 @@ public class HyperbolicActivationLayer extends NNLayer {
           for (int i = 0; i < passback.dim(); i++) {
             double x = this.inObj.data[dataIndex].getData()[i];
             double d = deltaData[i];
-            passback.set(i, d * a * x / Math.sqrt(1+a * x*a * x));
+            final int sign = x<0?negativeMode:1;
+            passback.set(i, sign * d * a * x / Math.sqrt(1+a * x*a * x));
           }
           return passback;
         }).toArray(i -> new Tensor[i]);

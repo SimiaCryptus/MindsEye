@@ -28,50 +28,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
-public class AvgMetaLayer extends NNLayer {
+public class MaxMetaLayer extends NNLayer {
   
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-  public static AvgMetaLayer fromJson(JsonObject json) {
-    return new AvgMetaLayer(UUID.fromString(json.get("id").getAsString()));
+  public static MaxMetaLayer fromJson(JsonObject json) {
+    return new MaxMetaLayer(UUID.fromString(json.get("id").getAsString()));
   }
-  protected AvgMetaLayer(UUID id) {
+  protected MaxMetaLayer(UUID id) {
     super(id);
   }
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(AvgMetaLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(MaxMetaLayer.class);
   
-  public AvgMetaLayer() {
+  public MaxMetaLayer() {
   }
   
   @Override
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length;
-    Tensor avgActivationArray = input.data[0].mapParallel((v, c) ->
-                                                      IntStream.range(0, itemCnt)
-                                                          .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
-                                                          .average().getAsDouble());
-    return new NNResult(avgActivationArray) {
+    int vectorSize = input.data[0].dim();
+    int[] indicies = new int[vectorSize];
+    for(int i=0;i<vectorSize;i++) {
+      int itemNumber = i;
+      indicies[i] = IntStream.range(0, itemCnt)
+                             .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.data[dataIndex].getData()[itemNumber])).get();
+    }
+    return new NNResult(input.data[0].map((v, c) -> {
+      return input.data[indicies[c.index]].getData()[c.index];
+    })) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {
           Tensor delta = data[0];
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDims()));
-          avgActivationArray.mapParallel((rho, inputCoord) -> {
-            for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
-              feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
-            }
-            return 0;
+          input.data[0].coordStream().forEach((inputCoord) -> {
+            feedback[indicies[inputCoord.index]].add(inputCoord, delta.get(inputCoord));
           });
           input.accumulate(buffer, feedback);
         }

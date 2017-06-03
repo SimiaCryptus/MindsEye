@@ -19,29 +19,34 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.util.ConstNNLayer;
 import com.simiacryptus.util.ml.Tensor;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
-public interface DAGNode extends Serializable {
+public class ConstNode implements DAGNode {
   
+  private final UUID id = UUID.randomUUID();
+  private final ConstNNLayer layer;
   
-  UUID getId();
-  
-  NNLayer getLayer();
-  
-  NNResult get(EvaluationContext buildExeCtx);
-  
-  default DAGNode[] getInputs() {
-    return new DAGNode[]{};
+  public ConstNode(Tensor tensor) {
+    this.layer = new ConstNNLayer(id, tensor);
   }
   
+  @Override
+  public UUID getId() {
+    return id;
+  }
   
+  @Override
+  public NNLayer getLayer() {
+    return layer;
+  }
+  
+  @Override
+  public NNResult get(EvaluationContext buildExeCtx) {
+    return layer.eval(new NNResult[]{});
+  }
 }

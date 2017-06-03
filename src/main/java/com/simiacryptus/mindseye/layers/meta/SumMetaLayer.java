@@ -56,7 +56,7 @@ public class SumMetaLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length;
-    Tensor avgActivationArray = input.data[0].map((v, c) ->
+    Tensor avgActivationArray = input.data[0].mapParallel((v, c) ->
                                                       IntStream.range(0, itemCnt)
                                                           .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
                                                           .sum());
@@ -67,7 +67,7 @@ public class SumMetaLayer extends NNLayer {
           Tensor delta = data[0];
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDims()));
-          avgActivationArray.map((rho, inputCoord) -> {
+          avgActivationArray.mapParallel((rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord));
             }

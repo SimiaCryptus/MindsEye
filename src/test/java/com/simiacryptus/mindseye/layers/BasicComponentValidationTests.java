@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.layers.reducers.ProductLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
 import com.simiacryptus.mindseye.layers.synapse.*;
+import com.simiacryptus.mindseye.layers.util.ConstNNLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Assert;
@@ -40,6 +41,13 @@ import org.slf4j.LoggerFactory;
 public class BasicComponentValidationTests {
   
   private static final Logger log = LoggerFactory.getLogger(BasicComponentValidationTests.class);
+  
+  @Test
+  public void testConstNNLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3);
+    final NNLayer component = new ConstNNLayer(new Tensor(outputPrototype.getDims()).map(i -> Util.R.get().nextGaussian()));
+    ComponentTestUtil.test(component, outputPrototype);
+  }
   
   @Test
   public void testBiasLayer() throws Throwable {
@@ -148,9 +156,14 @@ public class BasicComponentValidationTests {
   
   @Test
   public void testHyperbolicActivationLayer() throws Throwable {
-    final Tensor outputPrototype = new Tensor(3);
-    final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new HyperbolicActivationLayer();
+    final Tensor outputPrototype = new Tensor(10);
+    final Tensor inputPrototype = new Tensor(10).fill(() -> Util.R.get().nextGaussian());
+    final HyperbolicActivationLayer component = new HyperbolicActivationLayer();
+    component.setModeEven();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    component.setModeOdd();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    component.setModeAsymetric();
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   

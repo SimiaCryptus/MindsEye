@@ -120,6 +120,20 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
     return map;
   }
   
+  @Override
+  public String getName() {
+    return inner.getName();
+  }
+  
+  @Override
+  public NNLayer setName(String name) {
+    return inner.setName(name);
+  }
+  
+  public MonitoringWrapper addTo(MonitoredObject obj) {
+    return addTo(obj, inner.getName());
+  }
+  
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
     obj.addObj(name,this);
     return this;

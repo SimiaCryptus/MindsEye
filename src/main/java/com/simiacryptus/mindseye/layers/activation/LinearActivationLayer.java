@@ -67,12 +67,11 @@ public class LinearActivationLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     int itemCnt = inObj[0].data.length;
+    final double scale = this.weights.get(0);
+    final double bias = this.weights.get(1);
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];
-      final double scale = this.weights.get(0);
-      final double bias = this.weights.get(1);
-      final Tensor output = input.map(v->scale*v+bias);
-      return output;
+      return input.map(v->scale*v+bias);
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
   }
