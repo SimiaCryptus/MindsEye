@@ -62,7 +62,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
     return new LineSearchCursor() {
       @Override
       public String getDirectionType() {
-        return orient + "+Trust";
+        return orient.getDirectionType() + "+Trust";
       }
   
       @Override

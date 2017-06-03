@@ -42,6 +42,12 @@ public abstract class NNLayer implements Serializable {
   private boolean frozen = false;
   private String name;
   
+  protected NNLayer(JsonObject json) {
+    this(UUID.fromString(json.get("id").getAsString()));
+    if(json.has("isFrozen")) setFrozen(json.get("isFrozen").getAsBoolean());
+  }
+  
+  @Deprecated
   protected NNLayer(UUID id) {
     this.id = id;
     this.name = getClass().getSimpleName() + "/" + id;
@@ -114,6 +120,7 @@ public abstract class NNLayer implements Serializable {
     final JsonObject json = new JsonObject();
     json.addProperty("class", getClass().getCanonicalName());
     json.addProperty("id", getId().toString());
+    json.addProperty("isFrozen", isFrozen());
     return json;
   }
   
@@ -125,11 +132,11 @@ public abstract class NNLayer implements Serializable {
     return result;
   }
   
-  public final boolean isFrozen() {
+  public boolean isFrozen() {
     return this.frozen;
   }
   
-  public final NNLayer setFrozen(final boolean frozen) {
+  public NNLayer setFrozen(final boolean frozen) {
     this.frozen = frozen;
     return self();
   }

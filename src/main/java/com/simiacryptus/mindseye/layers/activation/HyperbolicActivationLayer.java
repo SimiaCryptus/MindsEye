@@ -38,6 +38,7 @@ public class HyperbolicActivationLayer extends NNLayer {
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.add("weights", weights.getJson());
+    json.addProperty("negativeMode", negativeMode);
     return json;
   }
   
@@ -47,6 +48,7 @@ public class HyperbolicActivationLayer extends NNLayer {
   protected HyperbolicActivationLayer(JsonObject json) {
     super(UUID.fromString(json.get("id").getAsString()));
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
+    this.negativeMode = json.getAsJsonPrimitive("negativeMode").getAsInt();
   }
   
   @SuppressWarnings("unused")
@@ -71,8 +73,9 @@ public class HyperbolicActivationLayer extends NNLayer {
   
   public HyperbolicActivationLayer() {
     super();
-    this.weights = new Tensor(1);
+    this.weights = new Tensor(2);
     this.weights.set(0, 1.);
+    this.weights.set(1, 1.);
   }
   
   @Override
@@ -80,9 +83,9 @@ public class HyperbolicActivationLayer extends NNLayer {
     int itemCnt = inObj[0].data.length;
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];
-      final double a = this.weights.get(0);
       return input.map(v -> {
         final int sign = v<0?negativeMode:1;
+        final double a = this.weights.get(v<0?1:0);
         return sign * (Math.sqrt(Math.pow(a * v, 2) + 1) - a) / a;
       });
     }).toArray(i -> new Tensor[i]);
@@ -94,12 +97,16 @@ public class HyperbolicActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
   
-  public double getScale() {
+  public double getScaleR() {
     return 1/this.weights.get(0);
+  }
+  public double getScaleL() {
+    return 1/this.weights.get(1);
   }
   
   public HyperbolicActivationLayer setScale(double scale) {
     this.weights.set(0, 1/scale);
+    this.weights.set(1, 1/scale);
     return this;
   }
   
@@ -114,7 +121,6 @@ public class HyperbolicActivationLayer extends NNLayer {
     @Override
     public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
   
-      double a = HyperbolicActivationLayer.this.weights.getData()[0];
       if (!isFrozen()) {
         IntStream.range(0, delta.length).forEach(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
@@ -124,7 +130,8 @@ public class HyperbolicActivationLayer extends NNLayer {
             double d = deltaData[i];
             double x = inputData[i];
             final int sign = x<0?negativeMode:1;
-            weightDelta.add(0, -sign * d /(a*a*Math.sqrt(1+Math.pow(a*x,2))));
+            double a = HyperbolicActivationLayer.this.weights.getData()[x<0?1:0];
+            weightDelta.add(x<0?1:0, -sign * d /(a*a*Math.sqrt(1+Math.pow(a*x,2))));
           }
           buffer.get(HyperbolicActivationLayer.this, HyperbolicActivationLayer.this.weights).accumulate(weightDelta.getData());
         });
@@ -138,6 +145,7 @@ public class HyperbolicActivationLayer extends NNLayer {
             double x = this.inObj.data[dataIndex].getData()[i];
             double d = deltaData[i];
             final int sign = x<0?negativeMode:1;
+            double a = HyperbolicActivationLayer.this.weights.getData()[x<0?1:0];
             passback.set(i, sign * d * a * x / Math.sqrt(1+a * x*a * x));
           }
           return passback;

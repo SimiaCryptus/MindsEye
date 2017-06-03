@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
@@ -83,11 +82,13 @@ public class BiasLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    return eval(inObj[0]);
-  }
-  
-  public NNResult eval(NNResult input) {
-    Tensor[] outputA = Arrays.stream(input.data).parallel()
+    Tensor[] input;
+    if(0==inObj.length) {
+      input = new Tensor[]{};
+    } else {
+      input = inObj[0].data;
+    }
+    Tensor[] outputA = Arrays.stream(input).parallel()
                            .map(r -> new Tensor(r.getDims(), add(r.getData())))
                            .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
@@ -97,14 +98,14 @@ public class BiasLayer extends NNLayer {
           DeltaBuffer deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
           Arrays.stream(data).parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
         }
-        if (input.isAlive()) {
-          input.accumulate(buffer, data);
+        if (0 < inObj.length && inObj[0].isAlive()) {
+          inObj[0].accumulate(buffer, data);
         }
       }
       
       @Override
       public boolean isAlive() {
-        return input.isAlive() || !isFrozen();
+        return (0 < inObj.length && inObj[0].isAlive()) || !isFrozen();
       }
     };
   }

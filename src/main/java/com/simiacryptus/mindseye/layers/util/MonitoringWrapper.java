@@ -138,4 +138,20 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
     obj.addObj(name,this);
     return this;
   }
+  
+  @Override
+  public NNLayer freeze() {
+    return inner.freeze();
+  }
+  
+  @Override
+  public boolean isFrozen() {
+    return inner.isFrozen();
+  }
+  
+  @Override
+  public NNLayer setFrozen(boolean frozen) {
+    return inner.setFrozen(frozen);
+  }
+  
 }
