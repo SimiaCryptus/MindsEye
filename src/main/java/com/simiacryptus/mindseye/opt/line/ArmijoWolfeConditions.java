@@ -30,7 +30,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
   private double c1 = 1e-6;
   private double c2 = 0.9;
   private double alpha = 1.0;
-  private double alphaGrowth = Math.pow(3.0, Math.pow(5.0, -1.0));
+  private double alphaGrowth = Math.pow(10.0, Math.pow(3.0, -1.0));
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
@@ -42,6 +42,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     double startLineDeriv = startPoint.derivative; // theta'(0)
     double startValue = startPoint.point.value; // theta(0)
     LineSearchPoint lastStep = null;
+    int stepBias = 0;
     while (true) {
       if (!isAlphaValid()) {
         monitor.log(String.format("INVALID ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
@@ -51,15 +52,13 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
       if (mu >= nu) {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
-        c1 *= 0.2;
-        c2 = Math.pow(c2,c2<1?0.3:3);
+        loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if ((nu / mu) < (11.0 / 10.0)) {
         monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
-        c1 *= 0.2;
-        c2 = Math.pow(c2,c2<1?0.3:3);
+        loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
@@ -83,22 +82,32 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
         monitor.log(String.format("ARMIJO: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f > %f;th'(alpha)=%f >= %f",
             startValue, startLineDeriv, mu, alpha, nu, lastValue, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
         nu = alpha;
+        stepBias = Math.min(-1, stepBias-1);
       } else if (lastStep.derivative < c2 * startLineDeriv) {
         // Weak Wolfe condition fails
         monitor.log(String.format("WOLFE: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f <= %f;th'(alpha)=%f < %f",
             startValue, startLineDeriv, mu, alpha, nu, lastValue, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
         mu = alpha;
+        stepBias = Math.max(1, stepBias+1);
       } else {
         monitor.log(String.format("END: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%5f;th'(alpha)=%5f",
             startValue, startLineDeriv, mu, alpha, nu, lastValue, lastStep.derivative));
+        stepBias = 0;
         return lastStep.point;
       }
-      if (Double.isFinite(nu)) {
-        alpha = (mu + nu) / 2;
+      if (!Double.isFinite(nu)) {
+        alpha = (1+Math.abs(stepBias)) * alpha;
+      } else if (0.0 == mu) {
+        alpha = nu / (1+Math.abs(stepBias));
       } else {
-        alpha = 2 * alpha;
+        alpha = (mu + nu) / 2;
       }
     }
+  }
+  
+  public void loosenMetaparameters() {
+    c1 *= 0.2;
+    c2 = Math.pow(c2,c2<1?0.3:3);
   }
   
   private boolean isAlphaValid() {

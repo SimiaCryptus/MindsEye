@@ -67,9 +67,9 @@ public class IterativeTrainer {
   public double run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample currentPoint = measure();
-    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && currentIteration.incrementAndGet() < maxIterations) {
+    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && currentIteration.get() < maxIterations) {
       currentPoint = measure();
-      for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
+      subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
         LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
         String directionType = direction.getDirectionType();
         LineSearchStrategy lineSearchStrategy = lineSearchStrategyMap.get(directionType);
@@ -78,9 +78,11 @@ public class IterativeTrainer {
           lineSearchStrategy = lineSearchFactory.get();
           lineSearchStrategyMap.put(directionType, lineSearchStrategy);
         }
+        PointSample previous = currentPoint;
         currentPoint = lineSearchStrategy.step(direction, monitor);
-        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.incrementAndGet(), currentPoint.value));
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
+        if(previous.value == currentPoint.value) break subiterationLoop;
       }
     }
     return null == currentPoint ? Double.NaN : currentPoint.value;
