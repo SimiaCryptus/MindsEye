@@ -47,6 +47,7 @@ public class IterativeTrainer {
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
+  private int iterationsPerSample = 1;
   
   public IterativeTrainer(Trainable subject) {
     this.subject = subject;
@@ -68,17 +69,19 @@ public class IterativeTrainer {
     PointSample currentPoint = measure();
     while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && currentIteration.incrementAndGet() < maxIterations) {
       currentPoint = measure();
-      LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
-      String directionType = direction.getDirectionType();
-      LineSearchStrategy lineSearchStrategy = lineSearchStrategyMap.get(directionType);
-      if(null == lineSearchStrategy) {
-        System.out.println(String.format("Constructing line search parameters: %s", directionType));
-        lineSearchStrategy = lineSearchFactory.get();
-        lineSearchStrategyMap.put(directionType, lineSearchStrategy);
+      for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
+        LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
+        String directionType = direction.getDirectionType();
+        LineSearchStrategy lineSearchStrategy = lineSearchStrategyMap.get(directionType);
+        if(null == lineSearchStrategy) {
+          System.out.println(String.format("Constructing line search parameters: %s", directionType));
+          lineSearchStrategy = lineSearchFactory.get();
+          lineSearchStrategyMap.put(directionType, lineSearchStrategy);
+        }
+        currentPoint = lineSearchStrategy.step(direction, monitor);
+        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+        monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
       }
-      currentPoint = lineSearchStrategy.step(direction, monitor);
-      monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
-      monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
     return null == currentPoint ? Double.NaN : currentPoint.value;
   }
@@ -155,6 +158,15 @@ public class IterativeTrainer {
   
   public IterativeTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
+    return this;
+  }
+  
+  public int getIterationsPerSample() {
+    return iterationsPerSample;
+  }
+  
+  public IterativeTrainer setIterationsPerSample(int iterationsPerSample) {
+    this.iterationsPerSample = iterationsPerSample;
     return this;
   }
   
