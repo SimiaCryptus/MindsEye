@@ -85,7 +85,7 @@ public class HyperbolicActivationLayer extends NNLayer {
       final Tensor input = inObj[0].data[dataIndex];
       return input.map(v -> {
         final int sign = v<0?negativeMode:1;
-        final double a = this.weights.get(v<0?1:0);
+        final double a = Math.max(0, this.weights.get(v<0?1:0));
         return sign * (Math.sqrt(Math.pow(a * v, 2) + 1) - a) / a;
       });
     }).toArray(i -> new Tensor[i]);
@@ -130,7 +130,7 @@ public class HyperbolicActivationLayer extends NNLayer {
             double d = deltaData[i];
             double x = inputData[i];
             final int sign = x<0?negativeMode:1;
-            double a = HyperbolicActivationLayer.this.weights.getData()[x<0?1:0];
+            double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x<0?1:0]);
             weightDelta.add(x<0?1:0, -sign * d /(a*a*Math.sqrt(1+Math.pow(a*x,2))));
           }
           buffer.get(HyperbolicActivationLayer.this, HyperbolicActivationLayer.this.weights).accumulate(weightDelta.getData());
@@ -145,7 +145,7 @@ public class HyperbolicActivationLayer extends NNLayer {
             double x = this.inObj.data[dataIndex].getData()[i];
             double d = deltaData[i];
             final int sign = x<0?negativeMode:1;
-            double a = HyperbolicActivationLayer.this.weights.getData()[x<0?1:0];
+            double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x<0?1:0]);
             passback.set(i, sign * d * a * x / Math.sqrt(1+a * x*a * x));
           }
           return passback;

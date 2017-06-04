@@ -33,55 +33,52 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
-public class AvgMetaLayer extends NNLayer {
+public class OffsetMetaLayer extends NNLayer {
   
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-  public static AvgMetaLayer fromJson(JsonObject json) {
-    return new AvgMetaLayer(UUID.fromString(json.get("id").getAsString()));
+  public static OffsetMetaLayer fromJson(JsonObject json) {
+    return new OffsetMetaLayer(UUID.fromString(json.get("id").getAsString()));
   }
-  protected AvgMetaLayer(UUID id) {
+  protected OffsetMetaLayer(UUID id) {
     super(id);
   }
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(AvgMetaLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(OffsetMetaLayer.class);
   
-  public AvgMetaLayer() {
+  public OffsetMetaLayer() {
   }
-  
-  public Tensor lastResult;
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    NNResult input = inObj[0];
-    int itemCnt = input.data.length;
-    if(1<itemCnt) lastResult = input.data[0].mapParallel((v, c) ->
-                                                      IntStream.range(0, itemCnt)
-                                                          .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
-                                                          .average().getAsDouble());
-    return new NNResult(lastResult) {
+    int itemCnt = inObj[0].data.length;
+    double scale = inObj[1].data[0].getData()[0];
+    Tensor[] tensors = IntStream.range(0, itemCnt)
+                           .parallel()
+                           .mapToObj(dataIndex -> inObj[0].data[dataIndex].map((v, c) -> v + scale))
+                           .toArray(i -> new Tensor[i]);
+    return new NNResult(tensors) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        if (input.isAlive()) {
-          Tensor delta = data[0];
-          Tensor feedback[] = new Tensor[itemCnt];
-          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDims()));
-          lastResult.mapParallel((rho, inputCoord) -> {
-            for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
-              feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
-            }
-            return 0;
-          });
-          input.accumulate(buffer, feedback);
+        if (inObj[0].isAlive()) {
+          inObj[0].accumulate(buffer, Arrays.stream(data).map(t -> t.mapParallel((v,c) -> v)).toArray(i -> new Tensor[i]));
+        }
+        if (inObj[1].isAlive()) {
+          double delta = tensors[0].mapParallel((v, c) -> {
+            return IntStream.range(0, itemCnt).mapToDouble(i -> data[i].get(c)).sum();
+          }).sum();
+          Tensor passback = new Tensor(1);
+          passback.set(0,delta);
+          inObj[1].accumulate(buffer, new Tensor[]{passback});
         }
       }
       
       @Override
       public boolean isAlive() {
-        return input.isAlive();
+        return inObj[0].isAlive() || inObj[1].isAlive();
       }
       
     };

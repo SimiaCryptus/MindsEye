@@ -204,6 +204,23 @@ public class MetaComponentValidationTests {
     final NNLayer component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
+  @Test
+  public void testOffsetMetaLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3);
+    final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
+    final Tensor inputPrototype2 = new Tensor(1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new OffsetMetaLayer();
+    test(component, outputPrototype, inputPrototype, inputPrototype2);
+  }
+  
+  @Test
+  public void testScaleUniformMetaLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3);
+    final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
+    final Tensor inputPrototype2 = new Tensor(1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ScaleUniformMetaLayer();
+    test(component, outputPrototype, inputPrototype, inputPrototype2);
+  }
   
   @Test
   public void testSparse01MetaLayer() throws Throwable {
