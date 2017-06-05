@@ -30,9 +30,9 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
     return super.getJsonStub();
   }
   public static SqActivationLayer fromJson(JsonObject json) {
-    return new SqActivationLayer(UUID.fromString(json.get("id").getAsString()));
+    return new SqActivationLayer(json);
   }
-  protected SqActivationLayer(UUID id) {
+  protected SqActivationLayer(JsonObject id) {
     super(id);
   }
   

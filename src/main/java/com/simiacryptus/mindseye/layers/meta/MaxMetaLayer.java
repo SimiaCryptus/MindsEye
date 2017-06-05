@@ -41,9 +41,9 @@ public class MaxMetaLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static MaxMetaLayer fromJson(JsonObject json) {
-    return new MaxMetaLayer(UUID.fromString(json.get("id").getAsString()));
+    return new MaxMetaLayer(json);
   }
-  protected MaxMetaLayer(UUID id) {
+  protected MaxMetaLayer(JsonObject id) {
     super(id);
   }
   

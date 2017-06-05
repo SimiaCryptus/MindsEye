@@ -39,9 +39,9 @@ public class CrossDotMetaLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static CrossDotMetaLayer fromJson(JsonObject json) {
-    return new CrossDotMetaLayer(UUID.fromString(json.get("id").getAsString()));
+    return new CrossDotMetaLayer(json);
   }
-  protected CrossDotMetaLayer(UUID id) {
+  protected CrossDotMetaLayer(JsonObject id) {
     super(id);
   }
   

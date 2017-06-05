@@ -42,11 +42,11 @@ public class Sparse01MetaLayer extends NNLayer {
     return json;
   }
   public static Sparse01MetaLayer fromJson(JsonObject json) {
-    Sparse01MetaLayer obj = new Sparse01MetaLayer(UUID.fromString(json.get("id").getAsString()));
+    Sparse01MetaLayer obj = new Sparse01MetaLayer(json);
     obj.sparsity = json.get("sparsity").getAsInt();
     return obj;
   }
-  protected Sparse01MetaLayer(UUID id) {
+  protected Sparse01MetaLayer(JsonObject id) {
     super(id);
   }
   

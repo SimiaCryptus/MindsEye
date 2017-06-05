@@ -41,12 +41,12 @@ public final class WeightExtractor extends NNLayer {
     return json;
   }
   public static WeightExtractor fromJson(JsonObject json) {
-    WeightExtractor obj = new WeightExtractor(UUID.fromString(json.get("id").getAsString()),
+    WeightExtractor obj = new WeightExtractor(json,
                                                  json.get("index").getAsInt(),
                                                  NNLayer.fromJson(json.getAsJsonObject("inner")));
     return obj;
   }
-  protected WeightExtractor(UUID id, final int index, NNLayer inner) {
+  protected WeightExtractor(JsonObject id, final int index, NNLayer inner) {
     super(id);
     this.inner = inner;
     this.index = index;

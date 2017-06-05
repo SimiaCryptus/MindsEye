@@ -36,16 +36,16 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   }
   
   public static MaxConstLayer fromJson(JsonObject json) {
-    MaxConstLayer obj = new MaxConstLayer(UUID.fromString(json.get("id").getAsString()));
+    MaxConstLayer obj = new MaxConstLayer(json);
     obj.value = json.get("value").getAsDouble();
     return obj;
   }
-  protected MaxConstLayer(UUID id) {
+  protected MaxConstLayer(JsonObject id) {
     super(id);
   }
   
   public MaxConstLayer() {
-    this(UUID.randomUUID());
+    super();
   }
   
   

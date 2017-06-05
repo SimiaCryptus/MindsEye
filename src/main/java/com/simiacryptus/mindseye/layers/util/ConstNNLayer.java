@@ -42,18 +42,14 @@ public class ConstNNLayer extends NNLayer {
     return new ConstNNLayer(json);
   }
   protected ConstNNLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.tensor = Tensor.fromJson(json.getAsJsonObject("value"));
   }
   
   Tensor tensor;
   
   public ConstNNLayer(Tensor tensor) {
-    this(UUID.randomUUID(), tensor);
-  }
-  
-  public ConstNNLayer(UUID id, Tensor tensor) {
-    super(id);
+    super();
     this.tensor = tensor;
   }
   

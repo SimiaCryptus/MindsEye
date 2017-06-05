@@ -50,7 +50,7 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     return new ImgConvolutionSynapseLayer(json);
   }
   protected ImgConvolutionSynapseLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.kernel = Tensor.fromJson(json.getAsJsonObject("kernel"));
   }
   

@@ -39,9 +39,9 @@ public class L1NormalizationLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static L1NormalizationLayer fromJson(JsonObject json) {
-    return new L1NormalizationLayer(UUID.fromString(json.get("id").getAsString()));
+    return new L1NormalizationLayer(json);
   }
-  protected L1NormalizationLayer(UUID id) {
+  protected L1NormalizationLayer(JsonObject id) {
     super(id);
   }
   

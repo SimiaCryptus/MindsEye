@@ -46,7 +46,7 @@ public class HyperbolicActivationLayer extends NNLayer {
     return new HyperbolicActivationLayer(json);
   }
   protected HyperbolicActivationLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
     this.negativeMode = json.getAsJsonPrimitive("negativeMode").getAsInt();
   }

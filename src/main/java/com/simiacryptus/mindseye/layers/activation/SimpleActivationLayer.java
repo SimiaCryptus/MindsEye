@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
 
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer {
   
-  protected SimpleActivationLayer(UUID id) {
+  protected SimpleActivationLayer(JsonObject id) {
     super(id);
   }
   

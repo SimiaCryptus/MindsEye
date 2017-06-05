@@ -54,7 +54,7 @@ public abstract class MappedSynapseLayer extends NNLayer {
   }
   
   protected MappedSynapseLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     this.inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
     this.outputSize = json.get("outputSize").getAsInt();

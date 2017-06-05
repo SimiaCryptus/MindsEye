@@ -40,9 +40,9 @@ public class OffsetMetaLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static OffsetMetaLayer fromJson(JsonObject json) {
-    return new OffsetMetaLayer(UUID.fromString(json.get("id").getAsString()));
+    return new OffsetMetaLayer(json);
   }
-  protected OffsetMetaLayer(UUID id) {
+  protected OffsetMetaLayer(JsonObject id) {
     super(id);
   }
   

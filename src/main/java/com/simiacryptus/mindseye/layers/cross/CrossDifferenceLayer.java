@@ -36,9 +36,9 @@ public class CrossDifferenceLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static CrossDifferenceLayer fromJson(JsonObject json) {
-    return new CrossDifferenceLayer(UUID.fromString(json.get("id").getAsString()));
+    return new CrossDifferenceLayer(json);
   }
-  protected CrossDifferenceLayer(UUID id) {
+  protected CrossDifferenceLayer(JsonObject id) {
     super(id);
   }
 

@@ -42,7 +42,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     return json;
   }
   public static MonitoringSynapse fromJson(JsonObject json) {
-    MonitoringSynapse obj = new MonitoringSynapse(UUID.fromString(json.get("id").getAsString()));
+    MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
     obj.totalItems = json.get("totalItems").getAsInt();
     obj.enabled = json.get("enabled").getAsBoolean();
@@ -50,7 +50,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     obj.forwardStatistics.readJson(json.getAsJsonObject("forwardStatistics"));
     return obj;
   }
-  protected MonitoringSynapse(UUID id) {
+  protected MonitoringSynapse(JsonObject id) {
     super(id);
   }
   

@@ -36,9 +36,9 @@ public class CrossProductLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static CrossProductLayer fromJson(JsonObject json) {
-    return new CrossProductLayer(UUID.fromString(json.get("id").getAsString()));
+    return new CrossProductLayer(json);
   }
-  protected CrossProductLayer(UUID id) {
+  protected CrossProductLayer(JsonObject id) {
     super(id);
   }
 

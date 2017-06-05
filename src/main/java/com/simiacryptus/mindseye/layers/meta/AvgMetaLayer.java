@@ -37,13 +37,16 @@ public class AvgMetaLayer extends NNLayer {
   
   
   public JsonObject getJson() {
-    return super.getJsonStub();
+    JsonObject json = super.getJsonStub();
+    json.add("lastResult", lastResult.getJson());
+    return json;
   }
   public static AvgMetaLayer fromJson(JsonObject json) {
-    return new AvgMetaLayer(UUID.fromString(json.get("id").getAsString()));
+    return new AvgMetaLayer(json);
   }
-  protected AvgMetaLayer(UUID id) {
+  protected AvgMetaLayer(JsonObject id) {
     super(id);
+    lastResult = Tensor.fromJson(id.getAsJsonObject("lastResult"));
   }
   
   @SuppressWarnings("unused")

@@ -50,10 +50,10 @@ public class SumSubsampleLayer extends NNLayer {
   }
   
   public static SumSubsampleLayer fromJson(JsonObject json) {
-    return new SumSubsampleLayer(UUID.fromString(json.get("id").getAsString()),
+    return new SumSubsampleLayer(json,
                                     JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
-  protected SumSubsampleLayer(UUID id, int... kernelDims) {
+  protected SumSubsampleLayer(JsonObject id, int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }

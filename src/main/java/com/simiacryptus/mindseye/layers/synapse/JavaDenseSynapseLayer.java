@@ -50,7 +50,7 @@ public class JavaDenseSynapseLayer extends NNLayer {
     return new JavaDenseSynapseLayer(json);
   }
   protected JavaDenseSynapseLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
   }

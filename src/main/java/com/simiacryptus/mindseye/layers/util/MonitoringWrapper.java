@@ -39,24 +39,23 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("forwardPerf",forwardPerf.getJson());
-    json.add("backwardPerf",backwardPerf.getJson());
+    //json.add("forwardPerf",forwardPerf.getJson());
+    //json.add("backwardPerf",backwardPerf.getJson());
     json.add("inner",inner.getJson());
     json.addProperty("totalBatches",totalBatches);
     json.addProperty("totalItems",totalItems);
     return json;
   }
   public static MonitoringWrapper fromJson(JsonObject json) {
-    MonitoringWrapper obj = new MonitoringWrapper(UUID.fromString(json.get("id").getAsString()),NNLayer.fromJson(json.getAsJsonObject("inner")));
-    obj.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
-    obj.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
-    obj.totalBatches = json.get("totalBatches").getAsInt();
-    obj.totalItems = json.get("totalItems").getAsInt();
-    return obj;
+    return new MonitoringWrapper(json);
   }
-  protected MonitoringWrapper(UUID id, NNLayer inner) {
-    super(id);
-    this.inner = inner;
+  protected MonitoringWrapper(JsonObject json) {
+    super(json);
+    this.inner = NNLayer.fromJson(json.getAsJsonObject("inner"));
+    if(json.has("forwardPerf")) this.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
+    if(json.has("backwardPerf")) this.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
+    this.totalBatches = json.get("totalBatches").getAsInt();
+    this.totalItems = json.get("totalItems").getAsInt();
   }
   
   public final NNLayer inner;
@@ -127,7 +126,8 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   
   @Override
   public NNLayer setName(String name) {
-    return inner.setName(name);
+    if(null != inner) inner.setName(name);
+    return this;
   }
   
   public MonitoringWrapper addTo(MonitoredObject obj) {
@@ -141,17 +141,20 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   
   @Override
   public NNLayer freeze() {
-    return inner.freeze();
+    inner.freeze();
+    return this;
   }
   
   @Override
   public boolean isFrozen() {
+    if(null == inner) return true;
     return inner.isFrozen();
   }
   
   @Override
   public NNLayer setFrozen(boolean frozen) {
-    return inner.setFrozen(frozen);
+    if(inner!=null) inner.setFrozen(frozen);
+    return this;
   }
   
 }

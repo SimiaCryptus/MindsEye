@@ -39,9 +39,9 @@ public class ProductLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static ProductLayer fromJson(JsonObject json) {
-    return new ProductLayer(UUID.fromString(json.get("id").getAsString()));
+    return new ProductLayer(json);
   }
-  protected ProductLayer(UUID id) {
+  protected ProductLayer(JsonObject id) {
     super(id);
   }
   

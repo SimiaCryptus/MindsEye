@@ -49,7 +49,7 @@ public class ImgBandBiasLayer extends NNLayer {
     return new ImgBandBiasLayer(json);
   }
   protected ImgBandBiasLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
   

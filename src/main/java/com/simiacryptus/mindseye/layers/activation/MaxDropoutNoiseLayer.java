@@ -49,7 +49,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     return new MaxDropoutNoiseLayer(json);
   }
   protected MaxDropoutNoiseLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.kernelSize = JsonUtil.getIntArray(json.getAsJsonArray("kernelSize"));
   }
   

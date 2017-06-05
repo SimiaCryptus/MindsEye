@@ -46,7 +46,7 @@ public class GaussianNoiseLayer extends NNLayer {
     return new GaussianNoiseLayer(json);
   }
   protected GaussianNoiseLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.value = json.get("value").getAsDouble();
   }
   

@@ -47,10 +47,10 @@ public class MaxSubsampleLayer extends NNLayer {
   }
   
   public static MaxSubsampleLayer fromJson(JsonObject json) {
-    return new MaxSubsampleLayer(UUID.fromString(json.get("id").getAsString()),
+    return new MaxSubsampleLayer(json,
                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
-  protected MaxSubsampleLayer(UUID id, int... kernelDims) {
+  protected MaxSubsampleLayer(JsonObject id, int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }

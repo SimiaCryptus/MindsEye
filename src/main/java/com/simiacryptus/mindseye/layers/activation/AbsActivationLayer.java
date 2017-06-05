@@ -29,9 +29,9 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
     return super.getJsonStub();
   }
   public static AbsActivationLayer fromJson(JsonObject json) {
-    return new AbsActivationLayer(UUID.fromString(json.get("id").getAsString()));
+    return new AbsActivationLayer(json);
   }
-  protected AbsActivationLayer(UUID id) {
+  protected AbsActivationLayer(JsonObject id) {
     super(id);
   }
   

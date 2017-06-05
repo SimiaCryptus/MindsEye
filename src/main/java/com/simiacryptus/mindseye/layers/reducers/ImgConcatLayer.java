@@ -39,9 +39,9 @@ public class ImgConcatLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static ImgConcatLayer fromJson(JsonObject json) {
-    return new ImgConcatLayer(UUID.fromString(json.get("id").getAsString()));
+    return new ImgConcatLayer(json);
   }
-  protected ImgConcatLayer(UUID id) {
+  protected ImgConcatLayer(JsonObject id) {
     super(id);
   }
   

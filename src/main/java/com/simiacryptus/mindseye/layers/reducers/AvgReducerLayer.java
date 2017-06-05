@@ -37,10 +37,10 @@ public class AvgReducerLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-  public static SumReducerLayer fromJson(JsonObject json) {
-    return new SumReducerLayer(UUID.fromString(json.get("id").getAsString()));
+  public static AvgReducerLayer fromJson(JsonObject json) {
+    return new AvgReducerLayer(json);
   }
-  protected AvgReducerLayer(UUID id) {
+  protected AvgReducerLayer(JsonObject id) {
     super(id);
   }
   

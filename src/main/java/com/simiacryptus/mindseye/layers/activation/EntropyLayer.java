@@ -30,13 +30,13 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
     return super.getJsonStub();
   }
   public static EntropyLayer fromJson(JsonObject json) {
-    return new EntropyLayer(UUID.fromString(json.get("id").getAsString()));
+    return new EntropyLayer(json);
   }
-  protected EntropyLayer(UUID id) {
+  protected EntropyLayer(JsonObject id) {
     super(id);
   }
   public EntropyLayer() {
-    this(UUID.randomUUID());
+    super();
   }
   
   @Override

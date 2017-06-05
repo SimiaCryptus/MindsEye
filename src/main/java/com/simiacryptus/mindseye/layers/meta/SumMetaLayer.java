@@ -36,14 +36,19 @@ import java.util.stream.IntStream;
 public class SumMetaLayer extends NNLayer {
   
   
+  private Tensor lastResult;
+  
   public JsonObject getJson() {
-    return super.getJsonStub();
+    JsonObject json = super.getJsonStub();
+    json.add("lastResult", lastResult.getJson());
+    return json;
   }
   public static SumMetaLayer fromJson(JsonObject json) {
-    return new SumMetaLayer(UUID.fromString(json.get("id").getAsString()));
+    return new SumMetaLayer(json);
   }
-  protected SumMetaLayer(UUID id) {
+  protected SumMetaLayer(JsonObject id) {
     super(id);
+    lastResult = Tensor.fromJson(id.getAsJsonObject("lastResult"));
   }
   
   @SuppressWarnings("unused")
@@ -56,18 +61,18 @@ public class SumMetaLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length;
-    Tensor avgActivationArray = input.data[0].mapParallel((v, c) ->
+    if(1<itemCnt) lastResult = input.data[0].mapParallel((v, c) ->
                                                       IntStream.range(0, itemCnt)
                                                           .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
                                                           .sum());
-    return new NNResult(avgActivationArray) {
+    return new NNResult(lastResult) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {
           Tensor delta = data[0];
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDims()));
-          avgActivationArray.mapParallel((rho, inputCoord) -> {
+          lastResult.mapParallel((rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord));
             }

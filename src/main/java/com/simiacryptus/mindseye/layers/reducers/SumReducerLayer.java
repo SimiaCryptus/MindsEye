@@ -38,9 +38,9 @@ public class SumReducerLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static SumReducerLayer fromJson(JsonObject json) {
-    return new SumReducerLayer(UUID.fromString(json.get("id").getAsString()));
+    return new SumReducerLayer(json);
   }
-  protected SumReducerLayer(UUID id) {
+  protected SumReducerLayer(JsonObject id) {
     super(id);
   }
   

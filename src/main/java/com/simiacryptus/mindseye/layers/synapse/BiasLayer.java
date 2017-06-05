@@ -48,7 +48,7 @@ public class BiasLayer extends NNLayer {
     return new BiasLayer(json);
   }
   protected BiasLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
   

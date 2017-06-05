@@ -67,9 +67,11 @@ public class IterativeTrainer {
   public double run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample currentPoint = measure();
-    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold && currentIteration.get() < maxIterations) {
+    mainLoop: while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
+      if(currentIteration.get() > maxIterations) break;
       currentPoint = measure();
       subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
+        if(currentIteration.incrementAndGet() > maxIterations) break;
         LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
         String directionType = direction.getDirectionType();
         LineSearchStrategy lineSearchStrategy = lineSearchStrategyMap.get(directionType);
@@ -80,7 +82,7 @@ public class IterativeTrainer {
         }
         PointSample previous = currentPoint;
         currentPoint = lineSearchStrategy.step(direction, monitor);
-        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.incrementAndGet(), currentPoint.value));
+        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
         if(previous.value == currentPoint.value) break subiterationLoop;
       }

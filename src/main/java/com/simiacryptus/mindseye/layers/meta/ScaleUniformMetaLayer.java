@@ -40,9 +40,9 @@ public class ScaleUniformMetaLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static ScaleUniformMetaLayer fromJson(JsonObject json) {
-    return new ScaleUniformMetaLayer(UUID.fromString(json.get("id").getAsString()));
+    return new ScaleUniformMetaLayer(json);
   }
-  protected ScaleUniformMetaLayer(UUID id) {
+  protected ScaleUniformMetaLayer(JsonObject id) {
     super(id);
   }
   

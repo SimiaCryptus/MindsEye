@@ -38,9 +38,9 @@ public class MeanSqLossLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static MeanSqLossLayer fromJson(JsonObject json) {
-    return new MeanSqLossLayer(UUID.fromString(json.get("id").getAsString()));
+    return new MeanSqLossLayer(json);
   }
-  protected MeanSqLossLayer(UUID id) {
+  protected MeanSqLossLayer(JsonObject id) {
     super(id);
   }
   

@@ -30,9 +30,9 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     return super.getJsonStub();
   }
   public static SigmoidActivationLayer fromJson(JsonObject json) {
-    return new SigmoidActivationLayer(UUID.fromString(json.get("id").getAsString()));
+    return new SigmoidActivationLayer(json);
   }
-  protected SigmoidActivationLayer(UUID id) {
+  protected SigmoidActivationLayer(JsonObject id) {
     super(id);
   }
   

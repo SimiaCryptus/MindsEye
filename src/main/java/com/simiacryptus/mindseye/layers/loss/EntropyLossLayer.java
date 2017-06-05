@@ -38,9 +38,9 @@ public class EntropyLossLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static EntropyLossLayer fromJson(JsonObject json) {
-    return new EntropyLossLayer(UUID.fromString(json.get("id").getAsString()));
+    return new EntropyLossLayer(json);
   }
-  protected EntropyLossLayer(UUID id) {
+  protected EntropyLossLayer(JsonObject id) {
     super(id);
   }
   

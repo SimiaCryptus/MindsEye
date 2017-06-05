@@ -46,7 +46,7 @@ public class DropoutNoiseLayer extends NNLayer {
     return new DropoutNoiseLayer(json);
   }
   protected DropoutNoiseLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.value = json.get("value").getAsDouble();
   }
   

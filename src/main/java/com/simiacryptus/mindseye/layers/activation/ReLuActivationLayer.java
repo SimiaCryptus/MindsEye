@@ -49,7 +49,7 @@ public class ReLuActivationLayer extends NNLayer {
     return new ReLuActivationLayer(json);
   }
   protected ReLuActivationLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
   }
   

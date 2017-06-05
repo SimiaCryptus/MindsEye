@@ -39,9 +39,9 @@ public class SumInputsLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static SumInputsLayer fromJson(JsonObject json) {
-    return new SumInputsLayer(UUID.fromString(json.get("id").getAsString()));
+    return new SumInputsLayer(json);
   }
-  protected SumInputsLayer(UUID id) {
+  protected SumInputsLayer(JsonObject id) {
     super(id);
   }
 

@@ -29,9 +29,9 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
     return super.getJsonStub();
   }
   public static LogActivationLayer fromJson(JsonObject json) {
-    return new LogActivationLayer(UUID.fromString(json.get("id").getAsString()));
+    return new LogActivationLayer(json);
   }
-  protected LogActivationLayer(UUID id) {
+  protected LogActivationLayer(JsonObject id) {
     super(id);
   }
   

@@ -28,13 +28,16 @@ public final class NthPowerActivationLayer extends SimpleActivationLayer<NthPowe
   private double power = 1.0;
   
   public JsonObject getJson() {
-    return super.getJsonStub();
+    JsonObject json = super.getJsonStub();
+    json.addProperty("power", power);
+    return json;
   }
   public static NthPowerActivationLayer fromJson(JsonObject json) {
-    return new NthPowerActivationLayer(UUID.fromString(json.get("id").getAsString()));
+    return new NthPowerActivationLayer(json);
   }
-  protected NthPowerActivationLayer(UUID id) {
+  protected NthPowerActivationLayer(JsonObject id) {
     super(id);
+    power = id.get("power").getAsDouble();
   }
   
   public NthPowerActivationLayer() {

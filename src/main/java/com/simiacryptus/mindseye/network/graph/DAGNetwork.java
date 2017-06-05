@@ -64,7 +64,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   }
   
   protected DAGNetwork(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     inputHandles = new ArrayList<>();
     inputNodes = new LinkedHashMap<>();
     for(JsonElement item : json.getAsJsonArray("inputs")) {

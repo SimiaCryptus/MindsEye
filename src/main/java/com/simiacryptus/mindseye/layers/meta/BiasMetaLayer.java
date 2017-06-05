@@ -40,9 +40,9 @@ public class BiasMetaLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static BiasMetaLayer fromJson(JsonObject json) {
-    return new BiasMetaLayer(UUID.fromString(json.get("id").getAsString()));
+    return new BiasMetaLayer(json);
   }
-  protected BiasMetaLayer(UUID id) {
+  protected BiasMetaLayer(JsonObject id) {
     super(id);
   }
   

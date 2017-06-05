@@ -40,9 +40,9 @@ public class SoftmaxActivationLayer extends NNLayer {
     return super.getJsonStub();
   }
   public static SoftmaxActivationLayer fromJson(JsonObject json) {
-    return new SoftmaxActivationLayer(UUID.fromString(json.get("id").getAsString()));
+    return new SoftmaxActivationLayer(json);
   }
-  protected SoftmaxActivationLayer(UUID id) {
+  protected SoftmaxActivationLayer(JsonObject id) {
     super(id);
   }
   

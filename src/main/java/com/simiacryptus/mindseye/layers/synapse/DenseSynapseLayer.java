@@ -55,7 +55,7 @@ public class DenseSynapseLayer extends NNLayer {
     return new DenseSynapseLayer(json);
   }
   protected DenseSynapseLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     this.inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));

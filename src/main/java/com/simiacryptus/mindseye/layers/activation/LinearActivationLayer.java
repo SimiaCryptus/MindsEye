@@ -49,7 +49,7 @@ public class LinearActivationLayer extends NNLayer {
     return new LinearActivationLayer(json);
   }
   protected LinearActivationLayer(JsonObject json) {
-    super(UUID.fromString(json.get("id").getAsString()));
+    super(json);
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
   }
   

@@ -28,11 +28,12 @@ import java.util.UUID;
 
 public class ConstNode implements DAGNode {
   
-  private final UUID id = UUID.randomUUID();
+  private final UUID id;
   private final ConstNNLayer layer;
   
   public ConstNode(Tensor tensor) {
-    this.layer = new ConstNNLayer(id, tensor);
+    this.layer = new ConstNNLayer(tensor);
+    id = this.layer.id;
   }
   
   @Override
