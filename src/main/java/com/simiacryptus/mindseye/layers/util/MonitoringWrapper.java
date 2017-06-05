@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
@@ -32,10 +31,9 @@ import com.simiacryptus.util.ml.Tensor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @SuppressWarnings("serial")
-public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
+public final class MonitoringWrapper extends NNLayerWrapper implements MonitoredItem {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
@@ -51,51 +49,21 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   }
   protected MonitoringWrapper(JsonObject json) {
     super(json);
-    this.inner = NNLayer.fromJson(json.getAsJsonObject("inner"));
     if(json.has("forwardPerf")) this.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
     if(json.has("backwardPerf")) this.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
     this.totalBatches = json.get("totalBatches").getAsInt();
     this.totalItems = json.get("totalItems").getAsInt();
   }
   
-  public final NNLayer inner;
   private final ScalarStatistics forwardPerf = new ScalarStatistics();
   private final ScalarStatistics backwardPerf = new ScalarStatistics();
   private int totalBatches = 0;
   private int totalItems = 0;
   
   public MonitoringWrapper(final NNLayer inner) {
-    this.inner = inner;
+    super(inner);
   }
   
-  @Override
-  public NNResult eval(final NNResult... inObj) {
-    long start = System.nanoTime();
-    final NNResult result = this.inner.eval(inObj);
-    forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
-    totalBatches++;
-    totalItems += inObj[0].data.length;
-    return new NNResult(result.data) {
-      @Override
-      public void accumulate(DeltaSet buffer, Tensor[] data) {
-        long start = System.nanoTime();
-        result.accumulate(buffer, data);
-        backwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
-      }
-  
-      @Override
-      public boolean isAlive() {
-        return result.isAlive();
-      }
-    };
-  }
-  
-  @Override
-  public List<double[]> state() {
-    return this.inner.state();
-  }
-  
-  @Override
   public Map<String, Object> getMetrics() {
     HashMap<String, Object> map = new HashMap<>();
     map.put("totalBatches", totalBatches);
@@ -120,14 +88,25 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   }
   
   @Override
-  public String getName() {
-    return inner.getName();
-  }
+  public NNResult eval(final NNResult... inObj) {
+    long start = System.nanoTime();
+    final NNResult result = this.inner.eval(inObj);
+    forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
+    totalBatches++;
+    totalItems += inObj[0].data.length;
+    return new NNResult(result.data) {
+      @Override
+      public void accumulate(DeltaSet buffer, Tensor[] data) {
+        long start = System.nanoTime();
+        result.accumulate(buffer, data);
+        backwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
+      }
   
-  @Override
-  public NNLayer setName(String name) {
-    if(null != inner) inner.setName(name);
-    return this;
+      @Override
+      public boolean isAlive() {
+        return result.isAlive();
+      }
+    };
   }
   
   public MonitoringWrapper addTo(MonitoredObject obj) {
@@ -136,24 +115,6 @@ public final class MonitoringWrapper extends NNLayer implements MonitoredItem {
   
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
     obj.addObj(name,this);
-    return this;
-  }
-  
-  @Override
-  public NNLayer freeze() {
-    inner.freeze();
-    return this;
-  }
-  
-  @Override
-  public boolean isFrozen() {
-    if(null == inner) return true;
-    return inner.isFrozen();
-  }
-  
-  @Override
-  public NNLayer setFrozen(boolean frozen) {
-    if(inner!=null) inner.setFrozen(frozen);
     return this;
   }
   
