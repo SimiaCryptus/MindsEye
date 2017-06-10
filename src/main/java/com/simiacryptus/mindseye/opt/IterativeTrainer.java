@@ -82,9 +82,18 @@ public class IterativeTrainer {
         }
         PointSample previous = currentPoint;
         currentPoint = lineSearchStrategy.step(direction, monitor);
-        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
-        if(previous.value == currentPoint.value) break subiterationLoop;
+        if(previous.value == currentPoint.value) {
+          if(subject.resetSampling()) {
+            monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
+            break subiterationLoop;
+          } else {
+            monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
+            break mainLoop;
+          }
+        } else {
+          monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+        }
       }
     }
     return null == currentPoint ? Double.NaN : currentPoint.value;
@@ -94,8 +103,8 @@ public class IterativeTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
+      if(!subject.resetSampling() && retries>0) throw new RuntimeException();
       if (10 < retries++) throw new RuntimeException();
-      subject.resetSampling();
       currentPoint = subject.measure();
     } while (!Double.isFinite(currentPoint.value));
     assert (Double.isFinite(currentPoint.value));

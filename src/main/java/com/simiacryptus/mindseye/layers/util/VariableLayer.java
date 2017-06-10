@@ -27,7 +27,6 @@ import java.util.List;
 
 public class VariableLayer extends NNLayer {
 
-  private static final long serialVersionUID = 6284058717982209085L;
   private NNLayer inner;
 
   public VariableLayer(final NNLayer inner) {

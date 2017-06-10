@@ -39,6 +39,10 @@ public abstract class NNLayerWrapper extends NNLayer {
     this.inner = inner;
   }
   
+  protected NNLayerWrapper() {
+    this.inner = null;
+  }
+  
   @Override
   public List<double[]> state() {
     return this.inner.state();

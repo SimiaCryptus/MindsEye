@@ -38,14 +38,12 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     JsonObject json = super.getJsonStub();
     json.addProperty("totalBatches",totalBatches);
     json.addProperty("totalItems",totalItems);
-    json.addProperty("enabled",enabled);
     return json;
   }
   public static MonitoringSynapse fromJson(JsonObject json) {
     MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
     obj.totalItems = json.get("totalItems").getAsInt();
-    obj.enabled = json.get("enabled").getAsBoolean();
     obj.backpropStatistics.readJson(json.getAsJsonObject("backpropStatistics"));
     obj.forwardStatistics.readJson(json.getAsJsonObject("forwardStatistics"));
     return obj;
@@ -58,9 +56,9 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   private int totalItems = 0;
   private final ScalarStatistics backpropStatistics = new ScalarStatistics();
   private final ScalarStatistics forwardStatistics = new ScalarStatistics();
-  boolean enabled = false;
   
   public MonitoringSynapse() {
+    super();
   }
   
   
@@ -68,16 +66,14 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   public NNResult eval(final NNResult... inObj) {
     assert(1==inObj.length);
     NNResult input = inObj[0];
-    if(enabled) {
-      long start = System.nanoTime();
-      double elapsed = (System.nanoTime() - start) / 1000000000.0;
-      totalBatches++;
-      totalItems += input.data.length;
-      forwardStatistics.clear();
-      for(Tensor t : input.data) {
-        for(double v : t.getData()) {
-          forwardStatistics.add(v);
-        }
+    long start = System.nanoTime();
+    double elapsed = (System.nanoTime() - start) / 1000000000.0;
+    totalBatches++;
+    totalItems += input.data.length;
+    forwardStatistics.clear();
+    for(Tensor t : input.data) {
+      for(double v : t.getData()) {
+        forwardStatistics.add(v);
       }
     }
     return new NNResult(input.data) {
@@ -115,8 +111,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   }
   
   public MonitoringSynapse addTo(MonitoredObject obj, String name) {
-    this.enabled = true;
-    obj.addObj(name,this);
+    setName(name);
+    obj.addObj(getName(),this);
     return this;
   }
 }

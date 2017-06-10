@@ -56,8 +56,4 @@ public class ArrayTrainable implements Trainable {
   public void resetToFull() {
   }
   
-  @Override
-  public void resetSampling() {
-  }
-  
 }

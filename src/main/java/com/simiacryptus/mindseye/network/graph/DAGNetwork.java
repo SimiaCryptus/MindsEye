@@ -26,12 +26,15 @@ import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.util.MonitoredItem;
+import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -115,6 +118,23 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   public final List<UUID> inputHandles;
   protected final LinkedHashMap<UUID, NNLayer> layersById = new LinkedHashMap<>();
   protected final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
+  
+  public void visit(Consumer<NNLayer> visitor) {
+    layersById.values().forEach(layer->{
+      if(layer instanceof DAGNetwork) {
+        ((DAGNetwork)layer).visit(visitor);
+      }
+      visitor.accept(layer);
+    });
+  }
+  
+  public void attach(MonitoredObject obj) {
+    visit(layer->{
+      if(layer instanceof MonitoredItem) {
+        obj.addObj(layer.getName(),(MonitoredItem)layer);
+      }
+    });
+  }
   
   public DAGNetwork(int inputs) {
     inputHandles = new ArrayList<>();

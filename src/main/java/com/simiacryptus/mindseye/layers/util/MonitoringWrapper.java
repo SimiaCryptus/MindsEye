@@ -114,7 +114,8 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   }
   
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
-    obj.addObj(name,this);
+    setName(name);
+    obj.addObj(getName(),this);
     return this;
   }
   

@@ -19,24 +19,24 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class StochasticArrayTrainable implements Trainable {
+public class LinkedExampleArrayTrainable implements Trainable {
   
-  private final Tensor[][] trainingData;
+  private final Tensor[][][] trainingData;
   private final DAGNetwork network;
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
   private Tensor[][] sampledData;
   
-  public StochasticArrayTrainable(Tensor[][] trainingData, DAGNetwork network, int trainingSize) {
+  public LinkedExampleArrayTrainable(Tensor[][][] trainingData, DAGNetwork network, int trainingSize) {
     this.trainingData = trainingData;
     this.network = network;
     this.trainingSize = trainingSize;
@@ -44,7 +44,7 @@ public class StochasticArrayTrainable implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure() {
+  public PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
     NNResult result = network.eval(input);
     DeltaSet deltaSet = new DeltaSet();
@@ -55,12 +55,12 @@ public class StochasticArrayTrainable implements Trainable {
     });
     assert (Arrays.stream(result.data).allMatch(x -> x.dim() == 1));
     double meanValue = Arrays.stream(result.data).mapToDouble(x -> x.getData()[0]).average().getAsDouble();
-    return new Trainable.PointSample(deltaSet, stateSet, meanValue);
+    return new PointSample(deltaSet, stateSet, meanValue);
   }
   
   @Override
   public void resetToFull() {
-    sampledData = trainingData;
+    sampledData = Arrays.stream(trainingData).parallel().flatMap(x-> Arrays.stream(x)).toArray(i -> new Tensor[i][]);
   }
   
   @Override
@@ -73,7 +73,7 @@ public class StochasticArrayTrainable implements Trainable {
     return this.trainingSize;
   }
   
-  public StochasticArrayTrainable setTrainingSize(final int trainingSize) {
+  public LinkedExampleArrayTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
     return this;
@@ -86,11 +86,10 @@ public class StochasticArrayTrainable implements Trainable {
   }
   
   private void refreshSampledData() {
-    final Tensor[][] rawData = trainingData;
-    assert 0 < rawData.length;
     assert 0 < getTrainingSize();
-    this.sampledData = Arrays.stream(rawData).parallel() //
+    this.sampledData = Arrays.stream(trainingData).parallel() //
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+                           .flatMap(x-> Arrays.stream(x)) //
                            .limit(getTrainingSize()) //
                            .toArray(i -> new Tensor[i][]);
   }

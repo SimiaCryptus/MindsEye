@@ -21,8 +21,6 @@ package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.synapse.JavaDenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.synapse.ToeplitzSynapseLayer;
@@ -72,8 +70,8 @@ public abstract class L12Normalizer implements Trainable {
   }
   
   @Override
-  public void resetSampling() {
-    inner.resetSampling();
+  public boolean resetSampling() {
+    return inner.resetSampling();
   }
   
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {

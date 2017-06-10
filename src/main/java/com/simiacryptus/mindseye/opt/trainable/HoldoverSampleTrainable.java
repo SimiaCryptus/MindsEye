@@ -90,8 +90,9 @@ public class HoldoverSampleTrainable implements Trainable {
   }
   
   @Override
-  public void resetSampling() {
+  public boolean resetSampling() {
     setHash(Util.R.get().nextLong());
+    return true;
   }
   
   public double getTrainingSize() {

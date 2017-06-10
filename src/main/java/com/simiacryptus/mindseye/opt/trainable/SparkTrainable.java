@@ -147,8 +147,5 @@ public class SparkTrainable implements Trainable {
     return StreamSupport.stream(spliterator, parallel);
   }
   
-  @Override
-  public void resetSampling() {
-  }
   
 }

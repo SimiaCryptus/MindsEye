@@ -26,7 +26,9 @@ public interface Trainable {
   
   default void resetToFull() {}
   
-  default void resetSampling() {}
+  default boolean resetSampling() {
+    return false;
+  }
   
   class PointSample {
     public final DeltaSet delta;
