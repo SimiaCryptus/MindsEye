@@ -20,11 +20,6 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.media.SumSubsampleLayer;
-import com.simiacryptus.util.io.JsonUtil;
-
-import java.util.Arrays;
-import java.util.UUID;
 
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {

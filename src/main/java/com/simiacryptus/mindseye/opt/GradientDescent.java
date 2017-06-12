@@ -30,7 +30,7 @@ public class GradientDescent implements OrientationStrategy {
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     DeltaSet direction = measurement.delta.scale(-1);
-    return new SimpleLineSearchCursor(subject, measurement, direction);
+    return new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
   }
   
 }

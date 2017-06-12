@@ -36,12 +36,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class SumSubsampleLayer extends NNLayer {
+public class AvgSubsampleLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
@@ -49,20 +48,20 @@ public class SumSubsampleLayer extends NNLayer {
     return json;
   }
   
-  public static SumSubsampleLayer fromJson(JsonObject json) {
-    return new SumSubsampleLayer(json,
+  public static AvgSubsampleLayer fromJson(JsonObject json) {
+    return new AvgSubsampleLayer(json,
                                     JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
-  protected SumSubsampleLayer(JsonObject id, int... kernelDims) {
+  protected AvgSubsampleLayer(JsonObject id, int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
   
   
-  public static final LoadingCache<SumSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-                                                                                                  .build(new CacheLoader<SumSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
+  public static final LoadingCache<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
+                                                                                                  .build(new CacheLoader<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
                                                                                                     @Override
-                                                                                                    public Map<Coordinate, List<int[]>> load(final SumSubsampleLayer.IndexMapKey key) throws Exception {
+                                                                                                    public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
                                                                                                       final int[] ksize = key.kernel;
                                                                                                       final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(false).collect(Collectors.toMap(o -> o, o -> {
                                                                                                         return new Tensor(ksize).coordStream(false).map(kernelCoord -> {
@@ -77,25 +76,25 @@ public class SumSubsampleLayer extends NNLayer {
                                                                                                     }
                                                                                                   });
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SumSubsampleLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(AvgSubsampleLayer.class);
   /**
    *
    */
   private static final long serialVersionUID = 7441695931197085499L;
   private int[] kernelDims;
   
-  protected SumSubsampleLayer() {
+  protected AvgSubsampleLayer() {
     super();
   }
   
-  public SumSubsampleLayer(final int... kernelDims) {
+  public AvgSubsampleLayer(final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
   
   private static Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
     try {
-      return indexMapCache.get(new SumSubsampleLayer.IndexMapKey(kernelDims, outDims));
+      return indexMapCache.get(new AvgSubsampleLayer.IndexMapKey(kernelDims, outDims));
     } catch (final ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -160,19 +159,6 @@ public class SumSubsampleLayer extends NNLayer {
     return Arrays.asList();
   }
   
-  // public Stream<int[]> getKernelInputCoords(Coordinate outCoord) {
-  // List<int[]> kernelCoords = new
-  // Tensor(this.kernelDims).coordStream(false).map(kernelCoord -> {
-  // final int[] r = new int[outCoord.coords.length];
-  // for (int i1 = 0; i1 < outCoord.coords.length; i1++) {
-  // r[i1] = outCoord.coords[i1] * this.kernelDims[i1] + kernelCoord.coords[i1];
-  // }
-  // return r;
-  // }).collect(java.util.stream.Collectors.toList());
-  // Stream<int[]> stream = kernelCoords.stream();
-  // return stream;
-  // }
-  
   public static final class IndexMapKey {
     int[] kernel;
     int[] output;
@@ -197,7 +183,7 @@ public class SumSubsampleLayer extends NNLayer {
         return false;
       if (getClass() != obj.getClass())
         return false;
-      final SumSubsampleLayer.IndexMapKey other = (SumSubsampleLayer.IndexMapKey) obj;
+      final AvgSubsampleLayer.IndexMapKey other = (AvgSubsampleLayer.IndexMapKey) obj;
       if (!Arrays.equals(this.kernel, other.kernel))
         return false;
       return Arrays.equals(this.output, other.output);

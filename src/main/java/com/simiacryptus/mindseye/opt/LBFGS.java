@@ -45,13 +45,15 @@ public class LBFGS implements OrientationStrategy {
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     if (!measurement.delta.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))) {
       monitor.log("Corrupt measurement");
-      return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
-      );
+      return new SimpleLineSearchCursor(
+          subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
+      ).setDirectionType("GD");
     }
     if (!measurement.weights.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))) {
       monitor.log("Corrupt measurement");
-      return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
-      );
+      return new SimpleLineSearchCursor(
+          subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
+      ).setDirectionType("GD");
     }
     if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) history.add(measurement);
     while(history.size() > maxHistory) history.remove(0);
@@ -62,7 +64,7 @@ public class LBFGS implements OrientationStrategy {
     List<DeltaBuffer> defaultValue = measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList());
     
     // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce (Large-scale L-BFGS using MapReduce)
-    String type = "";
+    String type = "GD";
     List<DeltaBuffer> descent = defaultValue;
     if (history.size() > minHistory) {
       type = "LBFGS";

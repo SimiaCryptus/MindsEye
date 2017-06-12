@@ -86,7 +86,7 @@ public class OwlQn implements OrientationStrategy {
         });
         return new LineSearchPoint(subject.measure(), dot(currentDirection.vector(), subject.measure().delta.vector()));
       }
-    };
+    }.setDirectionType("OWL/QN");
   }
   
   protected int sign(double weight) {

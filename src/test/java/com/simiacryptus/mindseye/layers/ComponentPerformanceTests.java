@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.layers.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.media.AvgImageBandLayer;
+import com.simiacryptus.mindseye.layers.media.MaxImageBandLayer;
 import com.simiacryptus.mindseye.layers.media.MaxSubsampleLayer;
 import com.simiacryptus.mindseye.layers.reducers.ProductLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
@@ -107,6 +109,22 @@ public class ComponentPerformanceTests {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new MaxSubsampleLayer(2, 2, 1);
+    test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
+  public void testMaxImageBandLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(1, 1, 1);
+    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new MaxImageBandLayer();
+    test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
+  public void testAvgImageBandLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(1, 1, 1);
+    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new AvgImageBandLayer();
     test(component, outputPrototype, inputPrototype);
   }
   

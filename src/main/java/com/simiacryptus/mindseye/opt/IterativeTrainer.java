@@ -74,8 +74,10 @@ public class IterativeTrainer {
         if(currentIteration.incrementAndGet() > maxIterations) break;
         LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
         String directionType = direction.getDirectionType();
-        LineSearchStrategy lineSearchStrategy = lineSearchStrategyMap.get(directionType);
-        if(null == lineSearchStrategy) {
+        LineSearchStrategy lineSearchStrategy;
+        if(lineSearchStrategyMap.containsKey(directionType)) {
+          lineSearchStrategy = lineSearchStrategyMap.get(directionType);
+        } else {
           System.out.println(String.format("Constructing line search parameters: %s", directionType));
           lineSearchStrategy = lineSearchFactory.get();
           lineSearchStrategyMap.put(directionType, lineSearchStrategy);

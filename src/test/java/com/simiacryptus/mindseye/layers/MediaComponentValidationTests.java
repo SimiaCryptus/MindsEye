@@ -19,14 +19,12 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.layers.media.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.layers.activation.L1NormalizationLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxDropoutNoiseLayer;
-import com.simiacryptus.mindseye.layers.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.mindseye.layers.activation.EntropyLayer;
-import com.simiacryptus.mindseye.layers.media.MaxSubsampleLayer;
-import com.simiacryptus.mindseye.layers.media.SumSubsampleLayer;
 import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
@@ -126,6 +124,22 @@ public class MediaComponentValidationTests {
   }
   
   @Test
+  public void testMaxImageBandLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(1, 1, 1);
+    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new MaxImageBandLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
+  public void testAvgImageBandLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(1, 1, 1);
+    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new AvgImageBandLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
   public void testMaxDropoutNoiseLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2, 2, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
@@ -137,7 +151,7 @@ public class MediaComponentValidationTests {
   public void testSumSubsampleLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
     final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new SumSubsampleLayer(2, 2, 1);
+    final NNLayer component = new AvgSubsampleLayer(2, 2, 1);
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -145,7 +159,7 @@ public class MediaComponentValidationTests {
   public void testSumSubsampleLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 2);
     final Tensor inputPrototype = new Tensor(3, 5, 2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new SumSubsampleLayer(3, 5, 1);
+    final NNLayer component = new AvgSubsampleLayer(3, 5, 1);
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
