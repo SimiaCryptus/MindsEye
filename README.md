@@ -8,8 +8,6 @@ Welcome! This is MindsEye, a neural network library written in Java 8 and Scala.
 
 **Maven -** [http://mvnrepository.com/artifact/com.simiacryptus/mindseye](http://mvnrepository.com/artifact/com.simiacryptus/mindseye) 
 
-[[TOC]]
-
 # Introduction
 
 ## Why MindsEye?
