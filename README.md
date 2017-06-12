@@ -4,8 +4,6 @@ Welcome! MindsEye is a project I started for personal research into deep learnin
 
 ## Why MindsEye?
  
-I created MindsEye because…. why not? I’ve wanted to build "SkyNet" ever since I was a kid.
- 
 You might be interested in MindsEye bacause:
 1. I am a professional software developer, not a research scientist. I’ve worked with many APIs and software patterns and architectures, and I have an accordingly different perspective on writing software. You may find my approach more compatible to your thinking - or not.
 1. You want detailed control over the optimization process itself. Perhaps you are a researcher looking for an A/B comparison, or you simply want/need certain customizations. I have paid particular attention to the design of the optimization package.
@@ -39,11 +37,10 @@ http://mvnrepository.com/artifact/com.simiacryptus/mindseye
 
 ## Getting Started
 
-[MindsEye](http://mvnrepository.com/artifact/com.simiacryptus/mindseye) is available in the central maven repository.
-
-[This demo](https://github.com/SimiaCryptus/MindsEye/blob/master/reports/com.simiacryptus.mindseye.MNistDemo/basic.md) will show how to create and train a basic neural network.
-
-[This demo](https://github.com/SimiaCryptus/MindsEye/blob/master/reports/com.simiacryptus.mindseye.MNistDemo/bellsAndWhistles.md) shows various options for the optimizer.
+* [MindsEye](http://mvnrepository.com/artifact/com.simiacryptus/mindseye) is available in the central maven repository.
+* [This demo](https://github.com/SimiaCryptus/MindsEye/blob/master/reports/com.simiacryptus.mindseye.MNistDemo/basic.md) will show how to create and train a basic neural network.
+* [This demo](https://github.com/SimiaCryptus/MindsEye/blob/master/reports/com.simiacryptus.mindseye.MNistDemo/bellsAndWhistles.md) shows various options for the optimizer.
+* [This report](https://simiacryptus.github.io/mindseye-scala/mnist/www/2017-06-11-18-07/index.html) shows a scala report fitting a simple model, including supplemental metrics
 
  ## Features
  

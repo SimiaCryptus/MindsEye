@@ -2,7 +2,7 @@ First, define a model:
 
 This is a very simple model that performs basic logistic regression. It is expected to be trainable to about 91% accuracy on MNIST.
 
-Code from [MNistDemo.java:137](../../src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L137) executed in 0.01 seconds: 
+Code from [MNistDemo.java:137](../.././src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L137) executed in 0.01 seconds: 
 ```java
     PipelineNetwork network = new PipelineNetwork();
     network.add(new BiasLayer(28,28,1));
@@ -15,14 +15,14 @@ Code from [MNistDemo.java:137](../../src/test/java/com/simiacryptus/mindseye/MNi
 Returns: 
 
 ```
-    PipelineNetwork/b972ebcf-164e-4958-9425-0b8e00000007
+    PipelineNetwork/fcd30a0f-ce26-4a55-aa93-165a00000007
 ```
 
 
 
 We use the standard MNIST dataset, made available by a helper function. In order to use data, we convert it into data tensors; helper functions are defined to work with images.
 
-Code from [MNistDemo.java:120](../../src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L120) executed in 0.28 seconds: 
+Code from [MNistDemo.java:120](../.././src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L120) executed in 0.88 seconds: 
 ```java
     try {
       return MNIST.trainingDataStream().map(labeledObject -> {
@@ -39,12 +39,12 @@ Code from [MNistDemo.java:120](../../src/test/java/com/simiacryptus/mindseye/MNi
 Returns: 
 
 ```
-    [[Lcom.simiacryptus.util.ml.Tensor;@524a076e
+    [[Lcom.simiacryptus.util.ml.Tensor;@6535117e
 ```
 
 
 
-Code from [MNistDemo.java:169](../../src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L169) executed in 300.40 seconds: 
+Code from [MNistDemo.java:169](../.././src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L169) executed in 300.68 seconds: 
 ```java
     SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     Trainable trainable = ScheduledSampleTrainable.Pow(trainingData, supervisedNetwork, 1000, 1, 0.0);
@@ -61,7 +61,7 @@ Code from [MNistDemo.java:169](../../src/test/java/com/simiacryptus/mindseye/MNi
       }
     };
     IterativeTrainer trainer = new IterativeTrainer(normalizer);
-    trainer.setScaling(new ArmijoWolfeConditions().setC1(1e-4).setC2(0.9));
+    trainer.setLineSearchFactory(()->new ArmijoWolfeConditions().setC1(1e-4).setC2(0.9));
     trainer.setOrientation(new TrustRegionStrategy(new LBFGS().setMinHistory(5)) {
       @Override
       public TrustRegion getRegionPolicy(NNLayer layer) {
@@ -84,14 +84,16 @@ Code from [MNistDemo.java:169](../../src/test/java/com/simiacryptus/mindseye/MNi
 ```
 Logging: 
 ```
-    ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 1.2457309396155174 - Infinity	th(alpha)=13550.376887 > -12819915.944598;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.6228654698077587 - 1.2457309396155174	th(alpha)=6782.943765 > -6409956.613088;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.31143273490387935 - 0.6228654698077587	th(alpha)=3399.227205 > -3204976.947333;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.15571636745193967 - 0.31143273490387935	th(alpha)=1707.368924 > -1602487.114456;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.07785818372596984 - 0.15571636745193967	th(alpha)=861.439784 > -801242.198017;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.03892909186298492 - 0.07785818372596984	th(alpha)=438.475214 > -400619.739798;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.01946454593149246 - 0.03892909186298492	th(alpha)=226.992929 > -200308.510688;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.00973227296574623 - 0.01946454593149246	th(alpha)=121.251786 > -100152.896133;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.004866136482873115 - 0.00973227296574623	th(alpha)=68.381215 > -50075.088856;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.0024330682414365574 - 0.004866136482873115	th(alpha)=41.945929 > -25036.185217;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 0.0012165341207182787 - 0.0024330682414365574	th(alpha)=28.728286 > -12516.733398;th'(alpha)=0.000000 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 6.082670603591394E-4 - 0.0012165341207182787	th(alpha)=22.119465 > -6257.007488;th'(alpha)=0.510258 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 3.041335301795697E-4 - 6.082670603591394E-4	th(alpha)=18.802522 > -3127.144533;th'(alpha)=14.656722 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 1.5206676508978484E-4 - 3.041335301795697E-4	th(alpha)=17.142019 > -1562.213056;th'(alpha)=1361.991670 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 7.603338254489242E-5 - 1.5206676508978484E-4	th(alpha)=16.311842 > -779.747317;th'(alpha)=2061.113014 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 3.801669127244621E-5 - 7.603338254489242E-5	th(alpha)=15.892794 > -388.514448;th'(alpha)=24.323380 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 1.9008345636223105E-5 - 3.801669127244621E-5	th(alpha)=15.668288 > -192.898013;th'(alpha)=1.817943 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 9.504172818111552E-6 - 1.9008345636223105E-5	th(alpha)=15.510755 > -95.089796;th'(alpha)=174.164435 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 4.752086409055776E-6 - 9.504172818111552E-6	th(alpha)=15.382783 > -46.185687;th'(alpha)=97.189009 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 2.376043204527888E-6 - 4.752086409055776E-6	th(alpha)=15.265819 > -21.733633;th'(alpha)=241.448315 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 1.188021602263944E-6 - 2.376043204527888E-6	th(alpha)=15.018774 > -9.507605;th'(alpha)=606.673481 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 5.94010801131972E-7 - 1.188021602263944E-6	th(alpha)=14.264316 > -3.394592;th'(alpha)=1830.892039 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 2.97005400565986E-7 - 5.94010801131972E-7	th(alpha)=11.817779 > -0.338085;th'(alpha)=5725.573380 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 1.48502700282993E-7 - 2.97005400565986E-7	th(alpha)=7.535272 > 1.190168;th'(alpha)=6061.234407 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 7.42513501414965E-8 - 1.48502700282993E-7	th(alpha)=4.095279 > 1.954295;th'(alpha)=3337.373387 >= -92619733762.725660ARMIJO: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 3.712567507074825E-8 - 7.42513501414965E-8	th(alpha)=2.406706 > 2.336358;th'(alpha)=1421.479775 >= -92619733762.725660END: th(0)=2.718422;th'(0)=-102910815291.917400;	0.0 - 1.8562837535374126E-8 - 3.712567507074825E-8	th(alpha)=1.893834;th'(alpha)=124.331630Iteration 1 complete. Error: 1.8938342170559799ARMIJO: th(0)=1.892951;th'(0)=-155500663091.961760;	0.0 - 2.3124301044871804E-8 - Infinity	th(alpha)=2.434428 > 1.533366;th'(alpha)=1927.776972 >= -139950596782.765600END: th(0)=1.892951;th'(0)=-155500663091.961760;	0.0 - 1.1562150522435902E-8 - 2.3124301044871804E-8	th(alpha)=1.544838;th'(alpha)=535.807934Iteration 2 complete. Error: 1.544838451012342END: th(0)=1.546184;th'(0)=-94179285092.695130;	0.0 - 1.4403328634290123E-8 - Infinity	th(alpha)=1.266591;th'(alpha)=599.385095Iteration 3 complete. Error: 1.2665914142147638ARMIJO: th(0)=1.268033;th'(0)=-61891799394.973080;	0.0 - 1.7942672113185322E-8 - Infinity	th(alpha)=1.174309 > 1.156982;th'(alpha)=925.847925 >= -55702619455.475780END: th(0)=1.268033;th'(0)=-61891799394.973080;	0.0 - 8.971336056592661E-9 - 1.7942672113185322E-8	th(alpha)=0.958421;th'(alpha)=-60.235209Iteration 4 complete. Error: 0.9584207663952887END: th(0)=0.958848;th'(0)=-15190618980.932812;	0.0 - 1.1175870895385745E-8 - Infinity	th(alpha)=0.878168;th'(alpha)=-16.615371Iteration 5 complete. Error: 0.8781680736999875WOLFE: th(0)=0.879261;th'(0)=-230.400319;	0.0 - 1.3922128151530598E-8 - Infinity	th(alpha)=0.879261 <= 0.879261;th'(alpha)=-236.865858 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	1.3922128151530598E-8 - 2.7844256303061195E-8 - Infinity	th(alpha)=0.879261 <= 0.879261;th'(alpha)=-228.869968 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	2.7844256303061195E-8 - 5.568851260612239E-8 - Infinity	th(alpha)=0.879261 <= 0.879261;th'(alpha)=-234.071455 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	5.568851260612239E-8 - 1.1137702521224478E-7 - Infinity	th(alpha)=0.879261 <= 0.879261;th'(alpha)=-230.031156 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	1.1137702521224478E-7 - 2.2275405042448956E-7 - Infinity	th(alpha)=0.879261 <= 0.879261;th'(alpha)=-233.742598 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	2.2275405042448956E-7 - 4.455081008489791E-7 - Infinity	th(alpha)=0.879261 <= 0.879261;th'(alpha)=-228.400939 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	4.455081008489791E-7 - 8.910162016979582E-7 - Infinity	th(alpha)=0.879261 <= 0.879261;th'(alpha)=-238.354533 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	8.910162016979582E-7 - 1.7820324033959165E-6 - Infinity	th(alpha)=0.879260 <= 0.879261;th'(alpha)=-232.919990 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	1.7820324033959165E-6 - 3.564064806791833E-6 - Infinity	th(alpha)=0.879260 <= 0.879261;th'(alpha)=-225.365406 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	3.564064806791833E-6 - 7.128129613583666E-6 - Infinity	th(alpha)=0.879259 <= 0.879261;th'(alpha)=-238.351135 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	7.128129613583666E-6 - 1.4256259227167332E-5 - Infinity	th(alpha)=0.879257 <= 0.879260;th'(alpha)=-225.800860 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	1.4256259227167332E-5 - 2.8512518454334664E-5 - Infinity	th(alpha)=0.879254 <= 0.879260;th'(alpha)=-227.226443 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	2.8512518454334664E-5 - 5.702503690866933E-5 - Infinity	th(alpha)=0.879247 <= 0.879260;th'(alpha)=-234.190431 < -207.360287WOLFE: th(0)=0.879261;th'(0)=-230.400319;	5.702503690866933E-5 - 1.1405007381733866E-4 - Infinity	th(alpha)=0.879233 <= 0.879258;th'(alpha)=-230.583204 < -207.360287WOL
-    ...skipping 274837 bytes...
-    ha)=0.118226;th'(alpha)=0.011185Iteration 492 complete. Error: 0.11822564053340028END: th(0)=0.118162;th'(0)=-2.255464;	0.0 - 0.01248246146442363 - Infinity	th(alpha)=0.118143;th'(alpha)=-2.162634Iteration 493 complete. Error: 0.11814343599588423END: th(0)=0.118080;th'(0)=-0.821133;	0.0 - 0.015549788448790935 - Infinity	th(alpha)=0.118071;th'(alpha)=-0.012488Iteration 494 complete. Error: 0.11807133162388227END: th(0)=0.118008;th'(0)=-25.087636;	0.0 - 0.01937085257513485 - Infinity	th(alpha)=0.117745;th'(alpha)=-0.308254Iteration 495 complete. Error: 0.11774482158813945END: th(0)=0.117682;th'(0)=-2.393430;	0.0 - 0.0241308703795764 - Infinity	th(alpha)=0.117647;th'(alpha)=-2.127397Iteration 496 complete. Error: 0.11764700961332364END: th(0)=0.117584;th'(0)=-1.726680;	0.0 - 0.030060571831689965 - Infinity	th(alpha)=0.117544;th'(alpha)=-0.059413Iteration 497 complete. Error: 0.11754420224251554END: th(0)=0.117481;th'(0)=-1.004643;	0.0 - 0.037447384393270895 - Infinity	th(alpha)=0.117457;th'(alpha)=-0.036693Iteration 498 complete. Error: 0.11745717775875446END: th(0)=0.117394;th'(0)=-2.379811;	0.0 - 0.04664936534637282 - Infinity	th(alpha)=0.117326;th'(alpha)=-2.169813Iteration 499 complete. Error: 0.11732615359749787END: th(0)=0.125485;th'(0)=-10.553128;	0.0 - 0.058112557725404565 - Infinity	th(alpha)=0.125179;th'(alpha)=-5.945518Iteration 500 complete. Error: 0.12517947709346877END: th(0)=0.125112;th'(0)=-11.767781;	0.0 - 0.07239261113872922 - Infinity	th(alpha)=0.124637;th'(alpha)=-0.574340Iteration 501 complete. Error: 0.12463697568325055END: th(0)=0.124570;th'(0)=-8.578941;	0.0 - 0.09018171549506993 - Infinity	th(alpha)=0.124114;th'(alpha)=-0.550836Iteration 502 complete. Error: 0.12411421746305674END: th(0)=0.124047;th'(0)=-1.698297;	0.0 - 0.11234215317981272 - Infinity	th(alpha)=0.123929;th'(alpha)=-1.371328Iteration 503 complete. Error: 0.12392866051575534END: th(0)=0.123862;th'(0)=-1.327511;	0.0 - 0.13994809603911848 - Infinity	th(alpha)=0.123738;th'(alpha)=-0.171057Iteration 504 complete. Error: 0.12373797772346866END: th(0)=0.123671;th'(0)=-1.290833;	0.0 - 0.17433767317621374 - Infinity	th(alpha)=0.123533;th'(alpha)=-1.076873Iteration 505 complete. Error: 0.12353335843702368END: th(0)=0.123467;th'(0)=-1.334090;	0.0 - 0.2171778334161877 - Infinity	th(alpha)=0.123283;th'(alpha)=-0.220808Iteration 506 complete. Error: 0.12328320048598673END: th(0)=0.123217;th'(0)=-0.510626;	0.0 - 0.27054514648520983 - Infinity	th(alpha)=0.123130;th'(alpha)=-0.115004Iteration 507 complete. Error: 0.12312994824695657END: th(0)=0.123094;th'(0)=-0.879850;	0.0 - 0.3370264595394382 - Infinity	th(alpha)=0.122949;th'(alpha)=-0.187109Iteration 508 complete. Error: 0.1229485304703669END: th(0)=0.122882;th'(0)=-8.585496;	0.0 - 0.4198442881173555 - Infinity	th(alpha)=0.120459;th'(alpha)=-3.547143Iteration 509 complete. Error: 0.12045894507885911ARMIJO: th(0)=0.120395;th'(0)=-135.928369;	0.0 - 0.5230130195286413 - Infinity	th(alpha)=0.479228 > 0.120110;th'(alpha)=1357.560584 >= -134.645527ARMIJO: th(0)=0.120395;th'(0)=-135.928369;	0.0 - 0.26150650976432066 - 0.5230130195286413	th(alpha)=0.165688 > 0.120252;th'(alpha)=224.068298 >= -134.645527ARMIJO: th(0)=0.120395;th'(0)=-135.928369;	0.0 - 0.13075325488216033 - 0.26150650976432066	th(alpha)=0.121616 > 0.120324;th'(alpha)=34.782732 >= -134.645527END: th(0)=0.120395;th'(0)=-135.928369;	0.0 - 0.06537662744108017 - 0.13075325488216033	th(alpha)=0.115688;th'(alpha)=-0.792130Iteration 510 complete. Error: 0.115688158664901END: th(0)=0.133889;th'(0)=-10.508295;	0.0 - 0.08144168753107041 - Infinity	th(alpha)=0.133578;th'(alpha)=-0.200046Iteration 511 complete. Error: 0.13357844232219368END: th(0)=0.133506;th'(0)=-0.606726;	0.0 - 0.10145442993195371 - Infinity	th(alpha)=0.133467;th'(alpha)=-0.545053Iteration 512 complete. Error: 0.13346703855291567END: th(0)=0.134215;th'(0)=-0.994949;	0.0 - 0.12638492232728937 - Infinity	th(alpha)=0.134140;th'(alpha)=-0.101429Iteration 513 complete. Error: 0.13414008354747659END: th(0)=0.134067;th'(0)=-23.322219;	0.0 - 0.15744160804400836 - Infinity	th(alpha)=0.133926;th'(alpha)=2.034911Iteration 514 complete. Error: 0.13392605636599317ARMIJO: th(0)=0.134938;th'(0)=-7.764857;	0.0 - 0.19612988232324055 - Infinity	th(alpha)=0.135146 > 0.134932;th'(alpha)=2.766167 >= -7.691575END: th(0)=0.134938;th'(0)=-7.764857;	0.0 - 0.09806494116162028 - 0.19612988232324055	th(alpha)=0.134699;th'(alpha)=0.066941Iteration 515 complete. Error: 0.1346987306530636END: th(0)=0.134625;th'(0)=-1.967482;	0.0 - 0.12216253129660565 - Infinity	th(alpha)=0.134477;th'(alpha)=-1.771484Iteration 516 complete. Error: 0.13447711528720022END: th(0)=0.152528;th'(0)=-14.898185;	0.0 - 0.1521816448979306 - Infinity	th(alpha)=0.151594;th'(alpha)=-0.631048Iteration 517 complete. Error: 0.15159445520116924END: th(0)=0.152639;th'(0)=-4.408302;	0.0 - 0.1895773834909341 - Infinity	th(alpha)=0.152167;th'(alpha)=-0.635360Iteration 518 complete. Error: 0.15216695371711073END: th(0)=0.155314;th'(0)=-2.461918;	0.0 - 0.2361624120660126 - Infinity	th(alpha)=0.154969;th'(alpha)=-0.482020Iteration 519 complete. Error: 0.15496896802832716END: th(0)=0.154882;th'(0)=-9.735514;	0.0 - 0.29419482348486087 - Infinity	th(alpha)=0.153549;th'(alpha)=-1.359119Iteration 520 complete. Error: 0.15354880909696714END: th(0)=0.153465;th'(0)=-5.059611;	0.0 - 0.366487593889817 - Infinity	th(alpha)=0.152411;th'(alpha)=-1.361056Iteration 521 complete. Error: 0.15241097064140413END: th(0)=0.152326;th'(0)=-11.781151;	0.0 - 0.45654493469379187 - Infinity	th(alpha)=0.149469;th'(alpha)=-3.419057Iteration 522 complete. Error: 0.14946934660609879END: th(0)=0.149387;th'(0)=-13.907421;	0.0 - 0.5687321504728023 - Infinity	th(alpha)=0.147949;th'(alpha)=6.014281Iteration 523 complete. Error: 0.14794921322054766END: th(0)=0.147868;th'(0)=-10.834803;	0.0 - 0.7084872361980379 - Infinity	th(alpha)=0.145788;th'(alpha)=-0.559332Iteration 524 complete. Error: 0.14578782471431997END: th(0)=0.145708;th'(0)=-9.802349;	0.0 - 0.8825844704545828 - Infinity	th(alpha)=0.143942;th'(alpha)=0.801765Iteration 525 complete. Error: 0.1439421288442921END: th(0)=0.143863;th'(0)=-4.715858;	0.0 - 1.0994627816694513 - Infinity	th(alpha)=0.141296;th'(alpha)=-2.585216Iteration 526 complete. Error: 0.14129552946389579ARMIJO: th(0)=0.141218;th'(0)=-22.744240;	0.0 - 1.3696348040813762 - Infinity	th(alpha)=0.173495 > 0.141094;th'(alpha)=163.489971 >= -22.529588END: th(0)=0.141218;th'(0)=-22.744240;	0.0 - 0.6848174020406881 - 1.3696348040813762	th(alpha)=0.140415;th'(alpha)=23.796487Iteration 527 complete. Error: 0.14041546190967769END: th(0)=0.140339;th'(0)=-21.687544;	0.0 - 0.8530982257092039 - Infinity	th(alpha)=0.134324;th'(alpha)=-0.397675Iteration 528 complete. Error: 0.134323939408631END: th(0)=0.134251;th'(0)=-3.100807;	0.0 - 1.0627308542970573 - Infinity	th(alpha)=0.133172;th'(alpha)=-0.494858Iteration 529 complete. Error: 0.13317195790720454END: th(0)=0.149146;th'(0)=-4.018904;	0.0 - 1.3238767056818748 - Infinity	th(alpha)=0.146889;th'(alpha)=-1.720549Iteration 530 complete. Error: 0.1468891735280746END: th(0)=0.146809;th'(0)=-5.287698;	0.0 - 1.6491941725041777 - Infinity	th(alpha)=0.144918;th'(alpha)=6.734274Iteration 531 complete. Error: 0.14491775996484177END: th(0)=0.144838;th'(0)=-9.459829;	0.0 - 2.054452206122065 - Infinity	th(alpha)=0.139352;th'(alpha)=-4.237127Iteration 532 complete. Error: 0.13935224805313812ARMIJO: th(0)=0.139451;th'(0)=-12.042273;	0.0 - 2.5592946771276126 - Infinity	th(alpha)=0.151617 > 0.139327;th'(alpha)=125.859767 >= -11.928622END: th(0)=0.139451;th'(0)=-12.042273;	0.0 - 1.2796473385638063 - 2.5592946771276126	th(alpha)=0.132959;th'(alpha)=1.127237Iteration 533 complete. Error: 0.13295851901086828END: th(0)=0.150876;th'(0)=-14.460003;	0.0 - 1.5940962814455866 - Infinity	th(alpha)=0.142730;th'(alpha)=1.767491Iteration 534 complete. Error: 0.14272975126593898ARMIJO: th(0)=0.142652;th'(0)=-23.583039;	0.0 - 1.985815058522813 - Infinity	th(alpha)=0.158949 > 0.142465;th'(alpha)=128.300172 >= -23.360471END: th(0)=0.142652;th'(0)=-23.583039;	0.0 - 0.9929075292614065 - 1.985815058522813	th(alpha)=0.134547;th'(alpha)=1.930498Iteration 535 complete. Error: 0.13454749795786586
+    Constructing line search parameters: GD+Trust
+    ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 2.154434690031884 - Infinity	th(alpha)=28130.943396 > -36152997.431146;th'(alpha)=0.000000 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 1.077217345015942 - 2.154434690031884	th(alpha)=14074.700854 > -18076497.441503;th'(alpha)=0.000000 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 0.3590724483386473 - 1.077217345015942	th(alpha)=4703.872494 > -6025497.448407;th'(alpha)=0.000000 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 0.08976811208466183 - 0.3590724483386473	th(alpha)=1189.811858 > -1506372.450996;th'(alpha)=0.000000 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 0.017953622416932366 - 0.08976811208466183	th(alpha)=252.729022 > -301272.451686;th'(alpha)=0.000000 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 0.002992270402822061 - 0.017953622416932366	th(alpha)=57.503431 > -50209.951830;th'(alpha)=0.000000 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 4.2746720040315154E-4 - 0.002992270402822061	th(alpha)=24.036188 > -7170.666140;th'(alpha)=3.601790 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 5.343340005039394E-5 - 4.2746720040315154E-4	th(alpha)=19.132312 > -894.103644;th'(alpha)=5.794354 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 5.9370444500437714E-6 - 5.343340005039394E-5	th(alpha)=18.306178 > -97.079835;th'(alpha)=139.960135 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 5.937044450043771E-7 - 5.9370444500437714E-6	th(alpha)=15.912144 > -7.414656;th'(alpha)=2742.157741 >= -151026624904.919200ARMIJO: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 5.397313136403428E-8 - 5.937044450043771E-7	th(alpha)=4.280517 > 1.642433;th'(alpha)=3616.897241 >= -151026624904.919200END: th(0)=2.548141;th'(0)=-167807361005.465760;	0.0 - 4.4977609470028565E-9 - 5.397313136403428E-8	th(alpha)=2.094634;th'(alpha)=-191.270830Iteration 1 complete. Error: 2.0946343221108705END: th(0)=2.094892;th'(0)=-61781786268.377920;	0.0 - 9.690132211693611E-9 - Infinity	th(alpha)=1.602651;th'(alpha)=-362.734759Iteration 2 complete. Error: 1.6026509831392544END: th(0)=1.603672;th'(0)=-37400405358.896210;	0.0 - 2.0876756987868097E-8 - Infinity	th(alpha)=1.136853;th'(alpha)=-205.163752Iteration 3 complete. Error: 1.136853495652726ARMIJO: th(0)=1.136524;th'(0)=-37427820771.785164;	0.0 - 4.497760947002857E-8 - Infinity	th(alpha)=3.049645 > 0.968182;th'(alpha)=3679.764976 >= -33685038694.606647ARMIJO: th(0)=1.136524;th'(0)=-37427820771.785164;	0.0 - 2.2488804735014283E-8 - 4.497760947002857E-8	th(alpha)=1.396614 > 1.052353;th'(alpha)=1154.858965 >= -33685038694.606647END: th(0)=1.136524;th'(0)=-37427820771.785164;	0.0 - 7.49626824500476E-9 - 2.2488804735014283E-8	th(alpha)=0.985728;th'(alpha)=-24.652476Iteration 4 complete. Error: 0.9857283915639307END: th(0)=0.986644;th'(0)=-11830865626.335201;	0.0 - 1.6150220352822687E-8 - Infinity	th(alpha)=0.877605;th'(alpha)=-47.756198Iteration 5 complete. Error: 0.8776052066132306Constructing line search parameters: LBFGS+Trust
+    END: th(0)=0.878320;th'(0)=-331.839146;	0.0 - 2.154434690031884 - Infinity	th(alpha)=0.545302;th'(alpha)=-103.863151Iteration 6 complete. Error: 0.5453019530863209ARMIJO: th(0)=0.544823;th'(0)=-177.483856;	0.0 - 4.641588833612779 - Infinity	th(alpha)=1.462636 > 0.462443;th'(alpha)=1792.611615 >= -159.735470ARMIJO: th(0)=0.544823;th'(0)=-177.483856;	0.0 - 2.3207944168063896 - 4.641588833612779	th(alpha)=0.713217 > 0.503633;th'(alpha)=522.091418 >= -159.735470END: th(0)=0.544823;th'(0)=-177.483856;	0.0 - 0.7735981389354633 - 2.3207944168063896	th(alpha)=0.496628;th'(alpha)=16.941826Iteration 7 complete. Error: 0.4966283579982872END: th(0)=0.496744;th'(0)=-69.231349;	0.0 - 1.666666666666667 - Infinity	th(alpha)=0.426182;th'(alpha)=-37.334006Iteration 8 complete. Error: 0.426182197919002END: th(0)=0.425766;th'(0)=-62.937572;	0.0 - 3.5907244833864738 - Infinity	th(alpha)=0.360211;th'(alpha)=30.343807Iteration 9 complete. Error: 0.3602114511625476ARMIJO: th(0)=0.359915;th'(0)=-67.145251;	0.0 - 7.735981389354634 - Infinity	th(alpha)=0.770420 > 0.307971;th'(alpha)=864.224182 >= -60.430726ARMIJO: th(0)=0.359915;th'(0)=-67.145251;	0.0 - 3.867990694677317 - 7.735981389354634	th(alpha)=0.414989 > 0.333943;th'(alpha)=239.755922 >= -60.430726END: th(0)=0.359915;th'(0)=-67.145251;	0.0 - 1.2893302315591055 - 3.867990694677317	th(alpha)=0.324093;th'(alpha)=1.039856Iteration 10 complete. Error: 0.3240929239596477WOLFE: th(0)=0.323777;th'(0)=-13.716004;	0.0 - 2.7777777777777786 - Infinity	th(alpha)=0.297160 <= 0.319967;th'(alpha)=-19.858857 < -12.344404WOLFE: th(0)=0.323777;th'(0)=-13.716004;	2.7777777777777786 - 5.555555555555557 - Infinity	th(alpha)=0.283025 <= 0.316157;th'(alpha)=-16.614883 < -12.344404ARMIJO: th(0)=0.323777;th'(0)=-13.716004;	5.555555555555557 - 16.66666666666667 - Infinity	th(alpha)=0.336287 > 0.300917;th'(alpha)=189.138418 >= -12.344404END: th(0)=0.323777;th'(0)=-13.716004;	5.555555555555557 - 11.111111111111114 - 16.66666666666667	th(alpha)=0.289214;th'(alpha)=56.166366Iteration 11 complete. Error: 0.2892137193108815ARMIJO: th(0)=0.288948;th'(0)=-67.859941;	0.0 - 23.938163222576495 - Infinity	th(alpha)=3.253005 > 0.126504;th'(alpha)=3863.171024 >= -61.073947ARMIJO: th(0)=0.288948;th'(0)=-67.859941;	0.0 - 11.969081611288248 - 23.938163222576495	th(alpha)=1.375368 > 0.207726;th'(alpha)=1782.251565 >= -61.073947ARMIJO: th(0)=0.288948;th'(0)=-67.859941;	0.0 - 3.989693870429416 - 11.969081611288248	th(alpha)=0.344757 > 0.261874;th'(alpha)=307.657733 >= -61.073947END: th(0)=0.288948;th'(0)=-67.859941;	0.0 - 0.997423467607354 - 3.989693870429416	th(alpha)=0.251943;th'(alpha)=-15.297586Iteration 12 complete. Error: 0.2519430542460411END: th(0)=0.252672;th'(0)=-22.833204;	0.0 - 2.1488837192651764 - Infinity	th(alpha)=0.226581;th'(alpha)=-3.398828Iteration 13 complete. Error: 0.2265812923097165END: th(0)=0.226517;th'(0)=-25.179199;	0.0 - 4.6296296296296315 - Infinity	th(alpha)=0.192632;th'(alpha)=49.609219Iteration 14 complete. Error: 0.1926320964286099ARMIJO: th(0)=0.192912;th'(0)=-57.023395;	0.0 - 9.97423467607354 - Infinity	th(alpha)=0.689945 > 0.136036;th'(alpha)=1163.825824 >= -51.321055ARMIJO: th(0)=0.192912;th'(0)=-57.023395;	0.0 - 4.98711733803677 - 9.97423467607354	th(alpha)=0.254802 > 0.164474;th'(alpha)=260.343473 >= -51.321055END: th(0)=0.192912;th'(0)=-57.023395;	0.0 - 1.6623724460122566 - 4.98711733803677	th(alpha)=0.156911;th'(alpha)=1.828598Iteration 15 complete. Error: 0.15691093654816257END: th(0)=0.156773;th'(0)=-10.645661;	0.0 - 3.5814728654419605 - Infinity	th(alpha)=0.136272;th'(alpha)=-5.678105Iteration 16 complete. Error: 0.13627223630015844END: th(0)=0.136147;th'(0)=-30.949019;	0.0 - 7.716049382716053 - Infinity	th(alpha)=0.110799;th'(alpha)=79.392027Iteration 17 complete. Error: 0.11079857469568549ARMIJO: th(0)=0.114769;th'(0)=-153.420286;	0.0 - 16.623724460122567 - Infinity	th(alpha)=2.623089 > -0.140272;th'(alpha)=2286.134769 >= -138.078258ARMIJO: th(0)=0.114769;th'(0)=-153.420286;	0.0 - 8.311862230061283 - 16.623724460122567	th(alpha)=1.166529 > -0.012751;th'(alpha)=1720.198093 >= -138.078258ARMIJO: th(0)=0.114769;th'(0)=-153.420286;	0.0 - 2.7706207433537613 - 8.311862230061283	th(alpha)=0.188085 > 0.072263;th'(alpha)=286.215114 >= -138.078258END: th(0)=0.114769;th'(0)=-153.420286;	0.0 - 0.6926551858384403 - 2.7706207433537613	th(alpha)=0.075188;th'(alpha)=-8.306247Iteration 18 complete. Error: 0.07518836722701232END: th(0)=0.075123;th'(0)=-30.678809;	0.0 - 1.492280360600817 - Infinity	th(alpha)=0.051488;th'(alpha)=-12.644908Iteration 19 complete. Error: 0.051487822447910385END: th(0)=0.051445;th'(0)=-26.587309;	0.0 - 3.215020576131689 - Infinity	th(alpha)=0.042329;th'(alpha)=34.868577Iteration 20 complete. Error: 0.04232865052918268ARMIJO: th(0)=0.042296;th'(0)=-26.581142;	0.0 - 6.926551858384404 - Infinity	th(alpha)=0.153040 > 0.023884;th'(alpha)=397.202965 >= -23
+    ...skipping 283451 bytes...
+    (0)=-0.036966;	0.0 - 9.40225237976971E-9 - 1.034247761774668E-7	th(alpha)=0.065527 > 0.065527;th'(alpha)=-0.036329 >= -0.036965ARMIJO: th(0)=0.065527;th'(0)=-0.036966;	0.0 - 7.835210316474758E-10 - 9.40225237976971E-9	th(alpha)=0.065527 > 0.065527;th'(alpha)=-0.035585 >= -0.036965ARMIJO: th(0)=0.065527;th'(0)=-0.036966;	0.0 - 6.027084858826737E-11 - 7.835210316474758E-10	th(alpha)=0.065527 > 0.065527;th'(alpha)=-0.038043 >= -0.036965ARMIJO: th(0)=0.065527;th'(0)=-0.036966;	0.0 - 4.305060613447669E-12 - 6.027084858826737E-11	th(alpha)=0.065527 > 0.065527;th'(alpha)=-0.033794 >= -0.036965END: th(0)=0.065527;th'(0)=-0.036966;	0.0 - 2.870040408965113E-13 - 4.305060613447669E-12	th(alpha)=0.065527;th'(alpha)=-0.036782Iteration 769 complete. Error: 0.065527412177737ARMIJO: th(0)=0.067587;th'(0)=-0.226217;	0.0 - 6.183314618867734E-13 - Infinity	th(alpha)=0.067587 > 0.067587;th'(alpha)=-0.225194 >= -0.226212ARMIJO: th(0)=0.067587;th'(0)=-0.226217;	0.0 - 3.091657309433867E-13 - 6.183314618867734E-13	th(alpha)=0.067587 > 0.067587;th'(alpha)=-0.230087 >= -0.226212END: th(0)=0.067587;th'(0)=-0.226217;	0.0 - 1.0305524364779557E-13 - 3.091657309433867E-13	th(alpha)=0.067587;th'(alpha)=-0.220586Iteration 770 complete. Error: 0.06758652747153975ARMIJO: th(0)=0.067650;th'(0)=-0.016287;	0.0 - 2.2202579190449872E-13 - Infinity	th(alpha)=0.067650 > 0.067650;th'(alpha)=-0.016604 >= -0.016286ARMIJO: th(0)=0.067650;th'(0)=-0.016287;	0.0 - 1.1101289595224936E-13 - 2.2202579190449872E-13	th(alpha)=0.067650 > 0.067650;th'(alpha)=-0.016287 >= -0.016286WOLFE: th(0)=0.067650;th'(0)=-0.016287;	0.0 - 3.7004298650749785E-14 - 1.1101289595224936E-13	th(alpha)=0.067650 <= 0.067650;th'(alpha)=-0.016808 < -0.016286ARMIJO: th(0)=0.067650;th'(0)=-0.016287;	3.7004298650749785E-14 - 7.400859730149957E-14 - 1.1101289595224936E-13	th(alpha)=0.067650 > 0.067650;th'(alpha)=-0.015786 >= -0.016286WOLFE: th(0)=0.067650;th'(0)=-0.016287;	3.7004298650749785E-14 - 5.550644797612468E-14 - 7.400859730149957E-14	th(alpha)=0.067650 <= 0.067650;th'(alpha)=-0.016473 < -0.016286ARMIJO: th(0)=0.067650;th'(0)=-0.016287;	5.550644797612468E-14 - 6.475752263881212E-14 - 7.400859730149957E-14	th(alpha)=0.067650 > 0.067650;th'(alpha)=-0.016679 >= -0.016286ARMIJO: th(0)=0.067650;th'(0)=-0.016287;	5.550644797612468E-14 - 6.01319853074684E-14 - 6.475752263881212E-14	th(alpha)=0.067650 > 0.067650;th'(alpha)=-0.016507 >= -0.016286mu >= nu: th(0)=0.067650;th'(0)=-0.016287;	5.550644797612468E-14 - 5.781921664179655E-14 - 6.01319853074684E-14Iteration 771 failed, retrying. Error: 0.06764979551135065Orientation vanished. Popping history element from 8Orientation vanished. Popping history element from 7Orientation vanished. Popping history element from 6Orientation vanished. Popping history element from 5Orientation vanished. Popping history element from 4ARMIJO: th(0)=0.075520;th'(0)=-21846604.446354;	0.0 - 1.3872480100509904E-6 - Infinity	th(alpha)=0.081215 > 0.072490;th'(alpha)=107.569742 >= -19661944.001719END: th(0)=0.075520;th'(0)=-21846604.446354;	0.0 - 6.936240050254952E-7 - 1.3872480100509904E-6	th(alpha)=0.069808;th'(alpha)=-2.493557Iteration 772 complete. Error: 0.069808472765988Orientation vanished. Popping history element from 4ARMIJO: th(0)=0.069781;th'(0)=-10158253.202887;	0.0 - 1.4943676182657766E-6 - Infinity	th(alpha)=0.073110 > 0.068263;th'(alpha)=35.235427 >= -9142427.882598END: th(0)=0.069781;th'(0)=-10158253.202887;	0.0 - 7.471838091328883E-7 - 1.4943676182657766E-6	th(alpha)=0.067631;th'(alpha)=1.118247Iteration 773 complete. Error: 0.0676308900960497Orientation vanished. Popping history element from 4ARMIJO: th(0)=0.067604;th'(0)=-11036279.767328;	0.0 - 1.6097587182260564E-6 - Infinity	th(alpha)=0.076539 > 0.065828;th'(alpha)=66.209304 >= -9932651.790595ARMIJO: th(0)=0.067604;th'(0)=-11036279.767328;	0.0 - 8.048793591130282E-7 - 1.6097587182260564E-6	th(alpha)=0.067511 > 0.066716;th'(alpha)=5.123023 >= -9932651.790595END: th(0)=0.067604;th'(0)=-11036279.767328;	0.0 - 2.6829311970434274E-7 - 8.048793591130282E-7	th(alpha)=0.066782;th'(alpha)=-0.365924Iteration 774 complete. Error: 0.06678150549262711Orientation vanished. Popping history element from 4END: th(0)=0.066756;th'(0)=-4071072.258912;	0.0 - 5.780200041879127E-7 - Infinity	th(alpha)=0.066424;th'(alpha)=1.042333Iteration 775 complete. Error: 0.06642443079710823Orientation vanished. Popping history element from 4ARMIJO: th(0)=0.066833;th'(0)=-6070196.720491;	0.0 - 1.245306348554814E-6 - Infinity	th(alpha)=0.067314 > 0.066077;th'(alpha)=5.470303 >= -5463177.048442END: th(0)=0.066833;th'(0)=-6070196.720491;	0.0 - 6.22653174277407E-7 - 1.245306348554814E-6	th(alpha)=0.066251;th'(alpha)=0.848448Iteration 776 complete. Error: 0.06625119234493002END: th(0)=0.066226;th'(0)=-1.972776;	0.0 - 1.2456772608355527E-13 - Infinity	th(alpha)=0.066226;th'(alpha)=-1.963524Iteration 777 complete. Error: 0.06622557970465504END: th(0)=0.066676;th'(0)=-10.395231;	0.0 - 2.68373030332801E-13 - Infinity	th(alpha)=0.066676;th'(alpha)=0.000000Iteration 778 complete. Error: 0.06667581347211238END: th(0)=0.066651;th'(0)=-1.816712;	0.0 - 5.781921664179655E-13 - Infinity	th(alpha)=0.066651;th'(alpha)=-1.812934Iteration 779 complete. Error: 0.0666508525711671END: th(0)=0.066625;th'(0)=-7.953777;	0.0 - 1.245677260835553E-12 - Infinity	th(alpha)=0.066625;th'(alpha)=0.000000Iteration 780 complete. Error: 0.0666250628407443END: th(0)=0.066599;th'(0)=-10.018458;	0.0 - 2.6837303033280106E-12 - Infinity	th(alpha)=0.066599;th'(alpha)=-9.737175Iteration 781 complete. Error: 0.0665993036105641WOLFE: th(0)=0.066594;th'(0)=-0.007696;	0.0 - 5.781921664179656E-12 - Infinity	th(alpha)=0.066594 <= 0.066594;th'(alpha)=-0.007725 < -0.007696END: th(0)=0.066594;th'(0)=-0.007696;	5.781921664179656E-12 - 1.1563843328359313E-11 - Infinity	th(alpha)=0.066594;th'(alpha)=-0.007653Iteration 782 complete. Error: 0.06659383813451972END: th(0)=0.066568;th'(0)=-0.000167;	0.0 - 2.4913545216711064E-11 - Infinity	th(alpha)=0.066568;th'(alpha)=-0.000120Iteration 783 failed, retrying. Error: 0.06656812199864098END: th(0)=0.066534;th'(0)=-0.000050;	0.0 - 5.367460606656022E-11 - Infinity	th(alpha)=0.066534;th'(alpha)=-0.000050Iteration 784 failed, retrying. Error: 0.06653386744127603END: th(0)=0.066483;th'(0)=-0.000053;	0.0 - 1.1563843328359314E-10 - Infinity	th(alpha)=0.066483;th'(alpha)=-0.000024Iteration 785 complete. Error: 0.0664826131319029END: th(0)=0.066457;th'(0)=-0.000000;	0.0 - 2.4913545216711066E-10 - Infinity	th(alpha)=0.066457;th'(alpha)=-0.000000Iteration 786 failed, retrying. Error: 0.06645702796581232WOLFE: th(0)=0.066409;th'(0)=-0.000000;	0.0 - 5.367460606656023E-10 - Infinity	th(alpha)=0.066409 <= 0.066409;th'(alpha)=-0.000000 < -0.000000END: th(0)=0.066409;th'(0)=-0.000000;	5.367460606656023E-10 - 1.0734921213312046E-9 - Infinity	th(alpha)=0.066409;th'(alpha)=-0.000000Iteration 787 failed, retrying. Error: 0.06640932607513478WOLFE: th(0)=0.066358;th'(0)=-0.000000;	0.0 - 2.312768665671863E-9 - Infinity	th(alpha)=0.066358 <= 0.066358;th'(alpha)=-0.000000 < -0.000000WOLFE: th(0)=0.066358;th'(0)=-0.000000;	2.312768665671863E-9 - 4.625537331343726E-9 - Infinity	th(alpha)=0.066358 <= 0.066358;th'(alpha)=-0.000000 < -0.000000WOLFE: th(0)=0.066358;th'(0)=-0.000000;	4.625537331343726E-9 - 1.3876611994031178E-8 - Infinity	th(alpha)=0.066358 <= 0.066358;th'(alpha)=-0.000000 < -0.000000WOLFE: th(0)=0.066358;th'(0)=-0.000000;	1.3876611994031178E-8 - 5.5506447976124713E-8 - Infinity	th(alpha)=0.066358 <= 0.066358;th'(alpha)=-0.000000 < -0.000000WOLFE: th(0)=0.066358;th'(0)=-0.000000;	5.5506447976124713E-8 - 2.7753223988062357E-7 - Infinity	th(alpha)=0.066358 <= 0.066358;th'(alpha)=-0.000000 < -0.000000WOLFE: th(0)=0.066358;th'(0)=-0.000000;	2.7753223988062357E-7 - 1.6651934392837414E-6 - Infinity	th(alpha)=0.066358 <= 0.066358;th'(alpha)=-0.000000 < -0.000000WOLFE: th(0)=0.066358;th'(0)=-0.000000;	1.6651934392837414E-6 - 1.165635407498619E-5 - Infinity	th(alpha)=0.066358 <= 0.066358;th'(alpha)=-0.000000 < -0.000000END: th(0)=0.066358;th'(0)=-0.000000;	1.165635407498619E-5 - 9.325083259988952E-5 - Infinity	th(alpha)=0.066358;th'(alpha)=-0.000000Iteration 788 complete. Error: 0.06635834716282406
 ```
 
 If we test our model against the entire validation dataset, we get this accuracy:
 
-Code from [MNistDemo.java:61](../../src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L61) executed in 0.50 seconds: 
+Code from [MNistDemo.java:61](../.././src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L61) executed in 0.49 seconds: 
 ```java
     try {
       return MNIST.validationDataStream().mapToDouble(labeledObject->{
@@ -108,14 +110,14 @@ Code from [MNistDemo.java:61](../../src/test/java/com/simiacryptus/mindseye/MNis
 Returns: 
 
 ```
-    84.69
+    85.76
 ```
 
 
 
 Let's examine some incorrectly predicted results in more detail:
 
-Code from [MNistDemo.java:75](../../src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L75) executed in 0.61 seconds: 
+Code from [MNistDemo.java:75](../.././src/test/java/com/simiacryptus/mindseye/MNistDemo.java#L75) executed in 0.60 seconds: 
 ```java
     try {
       TableOutput table = new TableOutput();
@@ -145,106 +147,106 @@ Returns:
 
 Image | Prediction
 ----- | ----------
-![[5]](etc/bellsAndWhistles.1.png)   | 2 (100.0%), 4 (0.0%), 6 (0.0%) 
-![[6]](etc/bellsAndWhistles.2.png)   | 2 (99.9%), 6 (0.1%), 1 (0.0%)  
-![[4]](etc/bellsAndWhistles.3.png)   | 6 (56.8%), 4 (43.1%), 5 (0.1%) 
-![[3]](etc/bellsAndWhistles.4.png)   | 5 (62.4%), 3 (37.6%), 6 (0.0%) 
-![[5]](etc/bellsAndWhistles.5.png)   | 4 (97.6%), 8 (2.0%), 5 (0.3%)  
-![[6]](etc/bellsAndWhistles.6.png)   | 2 (100.0%), 6 (0.0%), 3 (0.0%) 
-![[7]](etc/bellsAndWhistles.7.png)   | 2 (78.9%), 7 (21.1%), 3 (0.0%) 
-![[4]](etc/bellsAndWhistles.8.png)   | 9 (76.7%), 4 (19.2%), 5 (2.6%) 
-![[6]](etc/bellsAndWhistles.9.png)   | 2 (100.0%), 7 (0.0%), 6 (0.0%) 
-![[7]](etc/bellsAndWhistles.10.png)  | 9 (99.5%), 5 (0.5%), 7 (0.0%)  
-![[7]](etc/bellsAndWhistles.11.png)  | 3 (92.2%), 7 (7.6%), 5 (0.2%)  
-![[9]](etc/bellsAndWhistles.12.png)  | 7 (66.1%), 9 (33.9%), 4 (0.0%) 
-![[2]](etc/bellsAndWhistles.13.png)  | 9 (99.4%), 2 (0.6%), 8 (0.0%)  
-![[4]](etc/bellsAndWhistles.14.png)  | 6 (100.0%), 4 (0.0%), 7 (0.0%) 
-![[7]](etc/bellsAndWhistles.15.png)  | 4 (100.0%), 9 (0.0%), 7 (0.0%) 
-![[0]](etc/bellsAndWhistles.16.png)  | 3 (98.6%), 0 (1.4%), 2 (0.0%)  
-![[7]](etc/bellsAndWhistles.17.png)  | 2 (64.2%), 7 (35.8%), 9 (0.0%) 
-![[2]](etc/bellsAndWhistles.18.png)  | 9 (100.0%), 8 (0.0%), 6 (0.0%) 
-![[9]](etc/bellsAndWhistles.19.png)  | 2 (100.0%), 9 (0.0%), 7 (0.0%) 
-![[2]](etc/bellsAndWhistles.20.png)  | 3 (100.0%), 2 (0.0%), 8 (0.0%) 
-![[9]](etc/bellsAndWhistles.21.png)  | 3 (77.1%), 4 (22.9%), 9 (0.0%) 
-![[6]](etc/bellsAndWhistles.22.png)  | 5 (100.0%), 0 (0.0%), 8 (0.0%) 
-![[3]](etc/bellsAndWhistles.23.png)  | 5 (97.5%), 3 (2.5%), 9 (0.0%)  
-![[8]](etc/bellsAndWhistles.24.png)  | 7 (100.0%), 9 (0.0%), 5 (0.0%) 
-![[5]](etc/bellsAndWhistles.25.png)  | 8 (100.0%), 5 (0.0%), 9 (0.0%) 
-![[9]](etc/bellsAndWhistles.26.png)  | 5 (99.2%), 3 (0.6%), 9 (0.1%)  
-![[7]](etc/bellsAndWhistles.27.png)  | 3 (99.5%), 4 (0.5%), 7 (0.0%)  
-![[3]](etc/bellsAndWhistles.28.png)  | 5 (100.0%), 3 (0.0%), 0 (0.0%) 
-![[4]](etc/bellsAndWhistles.29.png)  | 2 (99.6%), 3 (0.3%), 6 (0.0%)  
-![[8]](etc/bellsAndWhistles.30.png)  | 1 (85.2%), 8 (14.3%), 2 (0.5%) 
-![[6]](etc/bellsAndWhistles.31.png)  | 0 (90.8%), 6 (9.2%), 4 (0.0%)  
-![[9]](etc/bellsAndWhistles.32.png)  | 3 (99.7%), 5 (0.3%), 9 (0.0%)  
-![[8]](etc/bellsAndWhistles.33.png)  | 5 (77.9%), 4 (17.7%), 0 (4.4%) 
-![[8]](etc/bellsAndWhistles.34.png)  | 4 (99.9%), 1 (0.1%), 9 (0.0%)  
-![[4]](etc/bellsAndWhistles.35.png)  | 6 (62.0%), 2 (36.8%), 5 (0.8%) 
-![[7]](etc/bellsAndWhistles.36.png)  | 2 (100.0%), 7 (0.0%), 3 (0.0%) 
-![[3]](etc/bellsAndWhistles.37.png)  | 5 (100.0%), 4 (0.0%), 3 (0.0%) 
-![[2]](etc/bellsAndWhistles.38.png)  | 0 (100.0%), 2 (0.0%), 3 (0.0%) 
-![[5]](etc/bellsAndWhistles.39.png)  | 4 (100.0%), 5 (0.0%), 6 (0.0%) 
-![[9]](etc/bellsAndWhistles.40.png)  | 7 (100.0%), 1 (0.0%), 9 (0.0%) 
-![[2]](etc/bellsAndWhistles.41.png)  | 7 (100.0%), 3 (0.0%), 2 (0.0%) 
-![[4]](etc/bellsAndWhistles.42.png)  | 9 (85.5%), 4 (14.5%), 8 (0.0%) 
-![[3]](etc/bellsAndWhistles.43.png)  | 2 (70.5%), 3 (29.5%), 8 (0.0%) 
-![[8]](etc/bellsAndWhistles.44.png)  | 0 (100.0%), 8 (0.0%), 5 (0.0%) 
-![[6]](etc/bellsAndWhistles.45.png)  | 9 (98.4%), 6 (1.4%), 4 (0.1%)  
-![[3]](etc/bellsAndWhistles.46.png)  | 5 (99.5%), 3 (0.5%), 0 (0.0%)  
-![[8]](etc/bellsAndWhistles.47.png)  | 5 (71.7%), 8 (28.2%), 3 (0.1%) 
-![[3]](etc/bellsAndWhistles.48.png)  | 7 (89.5%), 3 (10.5%), 9 (0.0%) 
-![[5]](etc/bellsAndWhistles.49.png)  | 3 (69.0%), 0 (31.0%), 5 (0.0%) 
-![[1]](etc/bellsAndWhistles.50.png)  | 3 (99.5%), 1 (0.4%), 7 (0.1%)  
-![[7]](etc/bellsAndWhistles.51.png)  | 3 (88.8%), 9 (11.2%), 1 (0.0%) 
-![[2]](etc/bellsAndWhistles.52.png)  | 7 (100.0%), 3 (0.0%), 2 (0.0%) 
-![[4]](etc/bellsAndWhistles.53.png)  | 9 (98.2%), 4 (1.8%), 3 (0.0%)  
-![[6]](etc/bellsAndWhistles.54.png)  | 5 (99.6%), 9 (0.4%), 0 (0.0%)  
-![[9]](etc/bellsAndWhistles.55.png)  | 7 (99.6%), 5 (0.4%), 9 (0.0%)  
-![[8]](etc/bellsAndWhistles.56.png)  | 5 (99.1%), 8 (0.9%), 2 (0.0%)  
-![[5]](etc/bellsAndWhistles.57.png)  | 8 (100.0%), 5 (0.0%), 3 (0.0%) 
-![[8]](etc/bellsAndWhistles.58.png)  | 9 (56.7%), 2 (43.3%), 5 (0.0%) 
-![[2]](etc/bellsAndWhistles.59.png)  | 0 (93.1%), 2 (6.9%), 5 (0.0%)  
-![[8]](etc/bellsAndWhistles.60.png)  | 4 (98.7%), 2 (1.0%), 5 (0.3%)  
-![[8]](etc/bellsAndWhistles.61.png)  | 7 (100.0%), 9 (0.0%), 8 (0.0%) 
-![[8]](etc/bellsAndWhistles.62.png)  | 5 (99.4%), 8 (0.6%), 7 (0.0%)  
-![[2]](etc/bellsAndWhistles.63.png)  | 8 (100.0%), 5 (0.0%), 2 (0.0%) 
-![[6]](etc/bellsAndWhistles.64.png)  | 0 (100.0%), 7 (0.0%), 5 (0.0%) 
-![[9]](etc/bellsAndWhistles.65.png)  | 5 (100.0%), 8 (0.0%), 9 (0.0%) 
-![[3]](etc/bellsAndWhistles.66.png)  | 5 (100.0%), 3 (0.0%), 2 (0.0%) 
-![[3]](etc/bellsAndWhistles.67.png)  | 5 (63.0%), 3 (37.0%), 9 (0.0%) 
-![[2]](etc/bellsAndWhistles.68.png)  | 8 (100.0%), 2 (0.0%), 1 (0.0%) 
-![[6]](etc/bellsAndWhistles.69.png)  | 5 (100.0%), 9 (0.0%), 6 (0.0%) 
-![[3]](etc/bellsAndWhistles.70.png)  | 7 (100.0%), 3 (0.0%), 8 (0.0%) 
-![[8]](etc/bellsAndWhistles.71.png)  | 9 (96.4%), 8 (3.6%), 7 (0.0%)  
-![[7]](etc/bellsAndWhistles.72.png)  | 2 (94.4%), 7 (5.6%), 9 (0.0%)  
-![[5]](etc/bellsAndWhistles.73.png)  | 8 (73.3%), 5 (26.7%), 9 (0.0%) 
-![[5]](etc/bellsAndWhistles.74.png)  | 8 (56.8%), 2 (43.2%), 5 (0.0%) 
-![[9]](etc/bellsAndWhistles.75.png)  | 3 (100.0%), 7 (0.0%), 5 (0.0%) 
-![[5]](etc/bellsAndWhistles.76.png)  | 7 (100.0%), 0 (0.0%), 8 (0.0%) 
-![[8]](etc/bellsAndWhistles.77.png)  | 4 (56.6%), 5 (42.3%), 8 (0.9%) 
-![[9]](etc/bellsAndWhistles.78.png)  | 7 (99.0%), 9 (1.0%), 3 (0.0%)  
-![[8]](etc/bellsAndWhistles.79.png)  | 0 (79.5%), 2 (11.9%), 5 (8.4%) 
-![[4]](etc/bellsAndWhistles.80.png)  | 7 (97.2%), 4 (2.2%), 9 (0.6%)  
-![[5]](etc/bellsAndWhistles.81.png)  | 3 (99.9%), 5 (0.1%), 1 (0.0%)  
-![[3]](etc/bellsAndWhistles.82.png)  | 5 (100.0%), 3 (0.0%), 9 (0.0%) 
-![[6]](etc/bellsAndWhistles.83.png)  | 5 (61.8%), 8 (36.2%), 0 (2.0%) 
-![[4]](etc/bellsAndWhistles.84.png)  | 1 (94.0%), 8 (6.0%), 7 (0.0%)  
-![[6]](etc/bellsAndWhistles.85.png)  | 2 (100.0%), 3 (0.0%), 7 (0.0%) 
-![[3]](etc/bellsAndWhistles.86.png)  | 8 (63.7%), 2 (36.3%), 3 (0.0%) 
-![[3]](etc/bellsAndWhistles.87.png)  | 5 (100.0%), 0 (0.0%), 3 (0.0%) 
-![[3]](etc/bellsAndWhistles.88.png)  | 2 (100.0%), 3 (0.0%), 8 (0.0%) 
-![[9]](etc/bellsAndWhistles.89.png)  | 4 (99.9%), 9 (0.1%), 2 (0.0%)  
-![[3]](etc/bellsAndWhistles.90.png)  | 6 (100.0%), 3 (0.0%), 8 (0.0%) 
-![[8]](etc/bellsAndWhistles.91.png)  | 3 (84.4%), 2 (15.6%), 4 (0.0%) 
-![[0]](etc/bellsAndWhistles.92.png)  | 9 (100.0%), 5 (0.0%), 0 (0.0%) 
-![[8]](etc/bellsAndWhistles.93.png)  | 6 (100.0%), 8 (0.0%), 5 (0.0%) 
-![[9]](etc/bellsAndWhistles.94.png)  | 7 (92.9%), 9 (7.1%), 8 (0.0%)  
-![[3]](etc/bellsAndWhistles.95.png)  | 5 (100.0%), 3 (0.0%), 4 (0.0%) 
-![[8]](etc/bellsAndWhistles.96.png)  | 5 (100.0%), 9 (0.0%), 8 (0.0%) 
-![[3]](etc/bellsAndWhistles.97.png)  | 8 (92.1%), 9 (6.6%), 3 (1.3%)  
-![[8]](etc/bellsAndWhistles.98.png)  | 2 (100.0%), 8 (0.0%), 1 (0.0%) 
-![[2]](etc/bellsAndWhistles.99.png)  | 3 (48.5%), 2 (31.2%), 8 (20.3%)
-![[5]](etc/bellsAndWhistles.100.png) | 9 (99.3%), 5 (0.7%), 4 (0.0%)  
+![[5]](etc/bellsAndWhistles.1.png)   | 2 (98.9%), 4 (1.1%), 6 (0.0%)  
+![[4]](etc/bellsAndWhistles.2.png)   | 6 (98.2%), 5 (1.8%), 0 (0.0%)  
+![[6]](etc/bellsAndWhistles.3.png)   | 2 (100.0%), 6 (0.0%), 4 (0.0%) 
+![[3]](etc/bellsAndWhistles.4.png)   | 2 (99.9%), 3 (0.1%), 9 (0.0%)  
+![[7]](etc/bellsAndWhistles.5.png)   | 2 (99.6%), 7 (0.4%), 3 (0.0%)  
+![[6]](etc/bellsAndWhistles.6.png)   | 2 (100.0%), 7 (0.0%), 6 (0.0%) 
+![[9]](etc/bellsAndWhistles.7.png)   | 7 (96.6%), 9 (3.4%), 8 (0.0%)  
+![[2]](etc/bellsAndWhistles.8.png)   | 9 (58.3%), 7 (21.1%), 2 (20.5%)
+![[7]](etc/bellsAndWhistles.9.png)   | 9 (100.0%), 7 (0.0%), 5 (0.0%) 
+![[4]](etc/bellsAndWhistles.10.png)  | 9 (80.2%), 4 (19.8%), 6 (0.0%) 
+![[2]](etc/bellsAndWhistles.11.png)  | 9 (77.9%), 2 (22.0%), 8 (0.1%) 
+![[4]](etc/bellsAndWhistles.12.png)  | 6 (93.1%), 4 (6.9%), 7 (0.0%)  
+![[7]](etc/bellsAndWhistles.13.png)  | 3 (86.0%), 7 (14.0%), 9 (0.0%) 
+![[7]](etc/bellsAndWhistles.14.png)  | 4 (99.7%), 9 (0.3%), 7 (0.0%)  
+![[0]](etc/bellsAndWhistles.15.png)  | 3 (81.0%), 0 (18.8%), 2 (0.1%) 
+![[7]](etc/bellsAndWhistles.16.png)  | 2 (99.0%), 7 (1.0%), 3 (0.0%)  
+![[2]](etc/bellsAndWhistles.17.png)  | 8 (98.2%), 4 (1.3%), 9 (0.5%)  
+![[9]](etc/bellsAndWhistles.18.png)  | 4 (86.8%), 9 (13.2%), 2 (0.0%) 
+![[9]](etc/bellsAndWhistles.19.png)  | 2 (100.0%), 9 (0.0%), 3 (0.0%) 
+![[5]](etc/bellsAndWhistles.20.png)  | 4 (100.0%), 5 (0.0%), 3 (0.0%) 
+![[2]](etc/bellsAndWhistles.21.png)  | 3 (99.7%), 2 (0.3%), 0 (0.0%)  
+![[9]](etc/bellsAndWhistles.22.png)  | 4 (100.0%), 9 (0.0%), 3 (0.0%) 
+![[5]](etc/bellsAndWhistles.23.png)  | 7 (92.6%), 5 (7.4%), 0 (0.0%)  
+![[6]](etc/bellsAndWhistles.24.png)  | 5 (100.0%), 8 (0.0%), 4 (0.0%) 
+![[5]](etc/bellsAndWhistles.25.png)  | 7 (68.0%), 5 (32.0%), 8 (0.0%) 
+![[7]](etc/bellsAndWhistles.26.png)  | 9 (85.2%), 7 (14.8%), 5 (0.0%) 
+![[8]](etc/bellsAndWhistles.27.png)  | 7 (100.0%), 9 (0.0%), 8 (0.0%) 
+![[5]](etc/bellsAndWhistles.28.png)  | 8 (91.5%), 5 (8.5%), 3 (0.0%)  
+![[9]](etc/bellsAndWhistles.29.png)  | 5 (99.3%), 2 (0.7%), 9 (0.0%)  
+![[7]](etc/bellsAndWhistles.30.png)  | 3 (99.9%), 4 (0.1%), 7 (0.0%)  
+![[2]](etc/bellsAndWhistles.31.png)  | 9 (99.8%), 2 (0.2%), 7 (0.0%)  
+![[3]](etc/bellsAndWhistles.32.png)  | 5 (100.0%), 3 (0.0%), 2 (0.0%) 
+![[2]](etc/bellsAndWhistles.33.png)  | 1 (54.5%), 2 (45.5%), 3 (0.0%) 
+![[9]](etc/bellsAndWhistles.34.png)  | 3 (100.0%), 9 (0.0%), 4 (0.0%) 
+![[8]](etc/bellsAndWhistles.35.png)  | 4 (65.2%), 5 (34.7%), 8 (0.1%) 
+![[3]](etc/bellsAndWhistles.36.png)  | 5 (80.9%), 3 (19.1%), 8 (0.0%) 
+![[4]](etc/bellsAndWhistles.37.png)  | 9 (71.8%), 4 (28.2%), 2 (0.0%) 
+![[5]](etc/bellsAndWhistles.38.png)  | 6 (98.5%), 4 (1.5%), 5 (0.0%)  
+![[8]](etc/bellsAndWhistles.39.png)  | 4 (100.0%), 1 (0.0%), 3 (0.0%) 
+![[4]](etc/bellsAndWhistles.40.png)  | 6 (100.0%), 4 (0.0%), 2 (0.0%) 
+![[7]](etc/bellsAndWhistles.41.png)  | 2 (72.3%), 7 (27.7%), 3 (0.0%) 
+![[3]](etc/bellsAndWhistles.42.png)  | 5 (100.0%), 4 (0.0%), 3 (0.0%) 
+![[5]](etc/bellsAndWhistles.43.png)  | 1 (65.2%), 4 (34.7%), 5 (0.1%) 
+![[9]](etc/bellsAndWhistles.44.png)  | 7 (100.0%), 8 (0.0%), 1 (0.0%) 
+![[2]](etc/bellsAndWhistles.45.png)  | 7 (100.0%), 8 (0.0%), 9 (0.0%) 
+![[0]](etc/bellsAndWhistles.46.png)  | 5 (74.4%), 0 (23.9%), 9 (1.7%) 
+![[4]](etc/bellsAndWhistles.47.png)  | 9 (99.6%), 4 (0.4%), 8 (0.0%)  
+![[9]](etc/bellsAndWhistles.48.png)  | 4 (88.1%), 9 (11.9%), 2 (0.0%) 
+![[8]](etc/bellsAndWhistles.49.png)  | 3 (47.7%), 5 (44.7%), 0 (5.6%) 
+![[6]](etc/bellsAndWhistles.50.png)  | 4 (59.3%), 6 (40.7%), 2 (0.1%) 
+![[3]](etc/bellsAndWhistles.51.png)  | 7 (95.4%), 3 (4.6%), 9 (0.0%)  
+![[5]](etc/bellsAndWhistles.52.png)  | 3 (100.0%), 0 (0.0%), 5 (0.0%) 
+![[1]](etc/bellsAndWhistles.53.png)  | 7 (48.3%), 1 (38.7%), 3 (11.2%)
+![[7]](etc/bellsAndWhistles.54.png)  | 9 (100.0%), 3 (0.0%), 1 (0.0%) 
+![[9]](etc/bellsAndWhistles.55.png)  | 4 (100.0%), 9 (0.0%), 8 (0.0%) 
+![[2]](etc/bellsAndWhistles.56.png)  | 7 (99.3%), 2 (0.6%), 3 (0.0%)  
+![[5]](etc/bellsAndWhistles.57.png)  | 8 (85.8%), 5 (14.2%), 2 (0.0%) 
+![[4]](etc/bellsAndWhistles.58.png)  | 9 (54.5%), 4 (45.5%), 5 (0.0%) 
+![[3]](etc/bellsAndWhistles.59.png)  | 7 (100.0%), 3 (0.0%), 2 (0.0%) 
+![[6]](etc/bellsAndWhistles.60.png)  | 5 (61.1%), 9 (38.9%), 6 (0.0%) 
+![[9]](etc/bellsAndWhistles.61.png)  | 7 (82.9%), 9 (16.0%), 4 (1.0%) 
+![[8]](etc/bellsAndWhistles.62.png)  | 5 (89.9%), 8 (10.1%), 2 (0.0%) 
+![[5]](etc/bellsAndWhistles.63.png)  | 8 (75.2%), 5 (24.6%), 3 (0.2%) 
+![[8]](etc/bellsAndWhistles.64.png)  | 9 (100.0%), 5 (0.0%), 2 (0.0%) 
+![[9]](etc/bellsAndWhistles.65.png)  | 7 (99.2%), 9 (0.8%), 4 (0.0%)  
+![[8]](etc/bellsAndWhistles.66.png)  | 4 (98.6%), 2 (1.4%), 8 (0.0%)  
+![[8]](etc/bellsAndWhistles.67.png)  | 7 (100.0%), 9 (0.0%), 8 (0.0%) 
+![[8]](etc/bellsAndWhistles.68.png)  | 5 (97.4%), 8 (2.6%), 7 (0.0%)  
+![[2]](etc/bellsAndWhistles.69.png)  | 8 (100.0%), 2 (0.0%), 5 (0.0%) 
+![[6]](etc/bellsAndWhistles.70.png)  | 0 (98.1%), 7 (1.9%), 6 (0.0%)  
+![[9]](etc/bellsAndWhistles.71.png)  | 5 (99.9%), 8 (0.1%), 3 (0.0%)  
+![[3]](etc/bellsAndWhistles.72.png)  | 5 (100.0%), 3 (0.0%), 2 (0.0%) 
+![[3]](etc/bellsAndWhistles.73.png)  | 2 (75.1%), 3 (24.9%), 5 (0.0%) 
+![[2]](etc/bellsAndWhistles.74.png)  | 8 (100.0%), 2 (0.0%), 3 (0.0%) 
+![[6]](etc/bellsAndWhistles.75.png)  | 5 (95.3%), 6 (4.7%), 8 (0.0%)  
+![[3]](etc/bellsAndWhistles.76.png)  | 7 (100.0%), 3 (0.0%), 8 (0.0%) 
+![[8]](etc/bellsAndWhistles.77.png)  | 9 (72.3%), 8 (16.3%), 7 (11.3%)
+![[7]](etc/bellsAndWhistles.78.png)  | 2 (100.0%), 7 (0.0%), 9 (0.0%) 
+![[5]](etc/bellsAndWhistles.79.png)  | 8 (98.6%), 5 (1.4%), 3 (0.0%)  
+![[5]](etc/bellsAndWhistles.80.png)  | 8 (68.4%), 2 (31.4%), 4 (0.1%) 
+![[9]](etc/bellsAndWhistles.81.png)  | 5 (99.1%), 4 (0.8%), 3 (0.1%)  
+![[5]](etc/bellsAndWhistles.82.png)  | 7 (100.0%), 8 (0.0%), 0 (0.0%) 
+![[9]](etc/bellsAndWhistles.83.png)  | 7 (51.5%), 9 (48.5%), 4 (0.0%) 
+![[8]](etc/bellsAndWhistles.84.png)  | 5 (54.0%), 2 (44.0%), 8 (2.1%) 
+![[5]](etc/bellsAndWhistles.85.png)  | 3 (91.8%), 5 (7.6%), 1 (0.6%)  
+![[3]](etc/bellsAndWhistles.86.png)  | 5 (100.0%), 4 (0.0%), 9 (0.0%) 
+![[6]](etc/bellsAndWhistles.87.png)  | 5 (75.9%), 8 (14.1%), 6 (10.0%)
+![[7]](etc/bellsAndWhistles.88.png)  | 2 (100.0%), 7 (0.0%), 9 (0.0%) 
+![[4]](etc/bellsAndWhistles.89.png)  | 8 (99.5%), 1 (0.3%), 7 (0.1%)  
+![[6]](etc/bellsAndWhistles.90.png)  | 2 (99.9%), 6 (0.0%), 7 (0.0%)  
+![[3]](etc/bellsAndWhistles.91.png)  | 8 (100.0%), 2 (0.0%), 3 (0.0%) 
+![[3]](etc/bellsAndWhistles.92.png)  | 5 (100.0%), 3 (0.0%), 4 (0.0%) 
+![[3]](etc/bellsAndWhistles.93.png)  | 2 (99.9%), 3 (0.1%), 8 (0.0%)  
+![[9]](etc/bellsAndWhistles.94.png)  | 4 (99.5%), 9 (0.5%), 2 (0.0%)  
+![[3]](etc/bellsAndWhistles.95.png)  | 6 (100.0%), 2 (0.0%), 3 (0.0%) 
+![[2]](etc/bellsAndWhistles.96.png)  | 1 (66.5%), 2 (33.5%), 3 (0.0%) 
+![[8]](etc/bellsAndWhistles.97.png)  | 3 (94.9%), 4 (5.1%), 2 (0.0%)  
+![[7]](etc/bellsAndWhistles.98.png)  | 9 (100.0%), 7 (0.0%), 3 (0.0%) 
+![[7]](etc/bellsAndWhistles.99.png)  | 3 (96.8%), 9 (1.2%), 4 (1.1%)  
+![[0]](etc/bellsAndWhistles.100.png) | 9 (100.0%), 5 (0.0%), 0 (0.0%) 
 
 
 
