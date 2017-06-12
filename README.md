@@ -268,8 +268,10 @@ Creating an EC2 node for AI is very easy. The cost is currently about 0.9 $/hr.
 (This is the only AWS instance type that supports OpenCL, and MindsEye can only leverage a single GPU. For larger scale, use Spark.)
 
 2. Log into the EC2 instance and install needed software:
+```
 sudo apt-get update
 sudo apt-get install maven git default-jdk nvidia-opencl-dev
+```
 
 ### Run Example Report
 
