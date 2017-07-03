@@ -25,10 +25,7 @@ import com.simiacryptus.mindseye.layers.cross.CrossProductLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
-import com.simiacryptus.mindseye.layers.reducers.ProductLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
+import com.simiacryptus.mindseye.layers.reducers.*;
 import com.simiacryptus.mindseye.layers.synapse.*;
 import com.simiacryptus.mindseye.layers.util.ConstNNLayer;
 import com.simiacryptus.util.Util;
@@ -244,6 +241,15 @@ public class BasicComponentValidationTests {
     final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new SumInputsLayer();
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
+  }
+  
+  @Test
+  public void testProductInputsLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(2);
+    final Tensor inputPrototype1 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
+    final Tensor inputPrototype2 = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ProductInputsLayer();
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.util;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.ScalarStatistics;
 
 import java.util.HashMap;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class NNLayerWrapper extends NNLayer {
-  public final NNLayer inner;
+  protected NNLayer inner;
   
   public NNLayerWrapper(JsonObject json) {
     super(json);
@@ -49,14 +50,12 @@ public abstract class NNLayerWrapper extends NNLayer {
   }
   
   @Override
-  public String getName() {
-    return inner.getName();
+  public NNResult eval(final NNResult... array) {
+    return inner.eval(array);
   }
   
-  @Override
-  public NNLayer setName(String name) {
-    if(null != inner) inner.setName(name);
-    return this;
+  public final NNLayer getInner() {
+    return this.inner;
   }
   
   @Override

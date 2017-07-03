@@ -40,5 +40,13 @@ public interface Trainable {
       this.weights = weights;
       this.value = value;
     }
+    
+    @Override
+    public String toString() {
+      final StringBuffer sb = new StringBuffer("PointSample{");
+      sb.append("value=").append(value);
+      sb.append('}');
+      return sb.toString();
+    }
   }
 }

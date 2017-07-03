@@ -39,7 +39,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     JsonObject json = super.getJsonStub();
     //json.add("forwardPerf",forwardPerf.getJson());
     //json.add("backwardPerf",backwardPerf.getJson());
-    json.add("inner",inner.getJson());
+    json.add("inner", getInner().getJson());
     json.addProperty("totalBatches",totalBatches);
     json.addProperty("totalItems",totalItems);
     return json;
@@ -90,7 +90,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   @Override
   public NNResult eval(final NNResult... inObj) {
     long start = System.nanoTime();
-    final NNResult result = this.inner.eval(inObj);
+    final NNResult result = this.getInner().eval(inObj);
     forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
     totalItems += inObj[0].data.length;
@@ -110,12 +110,23 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   }
   
   public MonitoringWrapper addTo(MonitoredObject obj) {
-    return addTo(obj, inner.getName());
+    return addTo(obj, getInner().getName());
   }
   
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
     setName(name);
     obj.addObj(getName(),this);
+    return this;
+  }
+  
+  @Override
+  public String getName() {
+    return getInner().getName();
+  }
+  
+  @Override
+  public NNLayer setName(String name) {
+    if(null != getInner()) getInner().setName(name);
     return this;
   }
   

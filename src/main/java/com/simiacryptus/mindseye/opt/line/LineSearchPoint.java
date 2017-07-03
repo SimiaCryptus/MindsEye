@@ -33,4 +33,13 @@ public class LineSearchPoint {
     this.point = point;
     this.derivative = derivative;
   }
+  
+  @Override
+  public String toString() {
+    final StringBuffer sb = new StringBuffer("LineSearchPoint{");
+    sb.append("point=").append(point);
+    sb.append(", derivative=").append(derivative);
+    sb.append('}');
+    return sb.toString();
+  }
 }

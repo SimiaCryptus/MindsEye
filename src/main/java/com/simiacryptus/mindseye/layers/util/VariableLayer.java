@@ -21,22 +21,26 @@ package com.simiacryptus.mindseye.layers.util;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.List;
 
-public class VariableLayer extends NNLayer {
-
-  private NNLayer inner;
-
+public class VariableLayer extends NNLayerWrapper {
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("inner", getInner().getJson());
+    return json;
+  }
+  public static VariableLayer fromJson(JsonObject json) {
+    return new VariableLayer(json);
+  }
+  protected VariableLayer(JsonObject json) {
+    super(json);
+  }
+  
   public VariableLayer(final NNLayer inner) {
     super();
     setInner(inner);
-  }
-
-  @Override
-  public NNResult eval(final NNResult... array) {
-    return getInner().eval(array);
   }
 
   @Override
@@ -44,22 +48,8 @@ public class VariableLayer extends NNLayer {
     return super.getChildren();
   }
 
-  public final NNLayer getInner() {
-    return this.inner;
-  }
-
   public final void setInner(final NNLayer inner) {
     this.inner = inner;
-  }
-
-  @Override
-  public JsonObject getJson() {
-    return this.inner.getJson();
-  }
-
-  @Override
-  public List<double[]> state() {
-    return getInner().state();
   }
 
 }

@@ -88,7 +88,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
                 double a = dot / correctionMagSq;
                 if(a != -1) {
                   double[] tangent = add(delta, multiply(correction, -a));
-                  assert(ArrayUtil.dot(tangent, tangent) <= ArrayUtil.dot(delta, delta));
+                  //assert(ArrayUtil.dot(tangent, tangent) <= ArrayUtil.dot(delta, delta));
                   for (int i = 0; i < tangent.length; i++) {
                     projected[i] = adjusted[i];
                     deltaBuffer.delta[i] = tangent[i];

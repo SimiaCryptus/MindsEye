@@ -75,6 +75,7 @@ public class ReLuActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+    assert Arrays.stream(inObj).flatMapToDouble(input->Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     int itemCnt = inObj[0].data.length;
     Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];
@@ -86,6 +87,7 @@ public class ReLuActivationLayer extends NNLayer {
       }
       return output;
     }).toArray(i -> new Tensor[i]);
+    assert Arrays.stream(outputA).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new Result(outputA, inObj[0]);
   }
   

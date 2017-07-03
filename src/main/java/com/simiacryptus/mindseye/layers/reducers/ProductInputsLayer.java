@@ -23,46 +23,53 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.activation.L1NormalizationLayer;
 import com.simiacryptus.util.ml.Tensor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
-public class SumInputsLayer extends NNLayer {
+public class ProductInputsLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-  public static SumInputsLayer fromJson(JsonObject json) {
-    return new SumInputsLayer(json);
+  public static ProductInputsLayer fromJson(JsonObject json) {
+    return new ProductInputsLayer(json);
   }
-  protected SumInputsLayer(JsonObject id) {
+  protected ProductInputsLayer(JsonObject id) {
     super(id);
   }
 
-  public SumInputsLayer() {
+  public ProductInputsLayer() {
   }
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    Tensor[] data = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
-      return IntStream.range(0, l.length)
+    assert inObj.length > 1;
+    for(int i=1;i<inObj.length;i++) {
+      if(!Arrays.equals(inObj[0].data[0].getDims(), inObj[i].data[0].getDims()))
+        throw new RuntimeException(Arrays.toString(inObj[0].data[0].getDims()) + " != " + Arrays.toString(inObj[i].data[0].getDims()));
+    }
+    Tensor[] result = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
+      return IntStream.range(0, Math.max(l.length,r.length))
                  .parallel()
-                 .mapToObj(i->Tensor.add(l[i], r[i]))
+                 .mapToObj(i->Tensor.product(l[Math.min(i,l.length-1)], r[Math.min(i,r.length-1)]))
                  .toArray(i->new Tensor[i]);
     }).get();
-    return new NNResult(data) {
+    return new NNResult(result) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
+        assert Arrays.stream(delta).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            input.accumulate(buffer, data);
+            input.accumulate(buffer, IntStream.range(0,input.data.length).mapToObj(i -> {
+              return delta[Math.min(i,delta.length)].map((v, c)->{
+                double v1 = input.data[i].get(c);
+                double r = v * result[Math.min(i, result.length)].get(c) / v1;
+                return Double.isFinite(r)?r:0.0;
+              });
+            }).toArray(i->new Tensor[i]));
           }
         }
       }

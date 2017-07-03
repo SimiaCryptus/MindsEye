@@ -102,6 +102,8 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+    assert Arrays.stream(inObj).flatMapToDouble(input->Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    
     final NNResult input = inObj[0];
     final Tensor[] batch = input.data;
     final int[] inputDims = batch[0].getDims();
@@ -114,10 +116,12 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolutionController.convolve(inputBuffers, this.kernel.getData(), outputBuffers);
     }
-    
+    assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+  
     return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] error) {
+        assert Arrays.stream(error).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = Arrays.stream(batch).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
@@ -131,6 +135,7 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
           convolutionController.backprop(inputBuffers, ImgConvolutionSynapseLayer.this.kernel.getData(), outputBuffers);
+          assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           input.accumulate(buffer, inputBufferTensors);
         }
       }

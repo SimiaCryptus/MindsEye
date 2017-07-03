@@ -57,10 +57,14 @@ public class MeanSqLossLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
+    if(2 != inObj.length) throw new IllegalArgumentException();
+    if(inObj[0].data.length != inObj[1].data.length) throw new IllegalArgumentException();
+    assert Arrays.stream(inObj).flatMapToDouble(input->Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     Tensor rA[] = new Tensor[inObj[0].data.length];
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
       final Tensor a = inObj[0].data[dataIndex];
       final Tensor b = inObj[1].data[dataIndex];
+      if(a.dim() != b.dim()) throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDims()), Arrays.toString(b.getDims())));
       final Tensor r = new Tensor(a.getDims());
       double total = 0;
       for (int i = 0; i < a.dim(); i++) {
@@ -75,6 +79,7 @@ public class MeanSqLossLayer extends NNLayer {
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
             final Tensor passback = new Tensor(inObj[0].data[0].getDims());

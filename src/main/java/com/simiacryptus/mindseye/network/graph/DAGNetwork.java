@@ -26,6 +26,7 @@ import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.util.NNLayerWrapper;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ml.Tensor;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -119,12 +121,24 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   protected final LinkedHashMap<UUID, NNLayer> layersById = new LinkedHashMap<>();
   protected final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
   
+  public <T extends NNLayer> T getByName(String name) {
+    if(null == name) return null;
+    AtomicReference<NNLayer> result = new AtomicReference<>();
+    visit(n->{
+      if(name.equals(n.getName())) result.set(n);
+    });
+    return (T) result.get();
+  }
+  
   public void visit(Consumer<NNLayer> visitor) {
     layersById.values().forEach(layer->{
       if(layer instanceof DAGNetwork) {
         ((DAGNetwork)layer).visit(visitor);
       }
       visitor.accept(layer);
+      if(layer instanceof NNLayerWrapper) {
+        visitor.accept(((NNLayerWrapper)layer).getInner());
+      }
     });
   }
   
@@ -225,6 +239,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return new NNResult(innerResult.data) {
       @Override
       public void accumulate(DeltaSet buffer, Tensor[] data) {
+        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if(!DAGNetwork.this.isFrozen()) innerResult.accumulate(buffer, data);
       }
   

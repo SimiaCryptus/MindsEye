@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.opt;
 import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
@@ -43,21 +44,19 @@ public class LBFGS implements OrientationStrategy {
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    if (!measurement.delta.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))) {
-      monitor.log("Corrupt measurement");
-      return new SimpleLineSearchCursor(
-          subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
-      ).setDirectionType("GD");
-    }
-    if (!measurement.weights.vector().stream().allMatch(y -> Arrays.stream(y.delta).allMatch(d -> Double.isFinite(d)))) {
-      monitor.log("Corrupt measurement");
-      return new SimpleLineSearchCursor(
-          subject, measurement, DeltaSet.fromList(measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList()))
-      ).setDirectionType("GD");
-    }
-    if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) history.add(measurement);
-    while(history.size() > maxHistory) history.remove(0);
+    addToHistory(measurement, monitor);
     return _orient(subject, measurement, monitor);
+  }
+  
+  public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
+    if (!measurement.delta.vector().stream().flatMapToDouble(y->Arrays.stream(y.delta)).allMatch(d -> Double.isFinite(d))) {
+      monitor.log("Corrupt measurement");
+    } else if (!measurement.weights.vector().stream().flatMapToDouble(y->Arrays.stream(y.delta)).allMatch(d -> Double.isFinite(d))) {
+      monitor.log("Corrupt measurement");
+    } else if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) {
+      history.add(measurement);
+      while(history.size() > maxHistory) history.remove(0);
+    }
   }
   
   private SimpleLineSearchCursor _orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
@@ -106,7 +105,16 @@ public class LBFGS implements OrientationStrategy {
       monitor.log("Orientation rejected. Popping history element from " + (history.size() - 1));
       return _orient(subject, measurement, monitor);
     }
-    return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(descent)).setDirectionType(type);
+    return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(descent))
+    {
+      @Override
+      public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
+        LineSearchPoint step = super.step(alpha, monitor);
+        addToHistory(step.point, monitor);
+        return step;
+      }
+    }
+    .setDirectionType(type);
   }
   
   private boolean accept(List<DeltaBuffer> gradient, List<DeltaBuffer> direction) {
