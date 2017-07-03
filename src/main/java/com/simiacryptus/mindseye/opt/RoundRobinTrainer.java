@@ -29,27 +29,27 @@ import com.simiacryptus.util.Util;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class IterativeTrainer {
+public class RoundRobinTrainer {
   
   
   private final Trainable subject;
   private Duration timeout;
   private double terminateThreshold;
-  private OrientationStrategy orientation = new LBFGS();
-  private Supplier<LineSearchStrategy> lineSearchFactory = () -> new ArmijoWolfeConditions();
+  private List<OrientationStrategy> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
+  private Function<String, LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeConditions();
   private Map<String,LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
   
-  public IterativeTrainer(Trainable subject) {
+  public RoundRobinTrainer(Trainable subject) {
     this.subject = subject;
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = Double.NEGATIVE_INFINITY;
@@ -59,7 +59,7 @@ public class IterativeTrainer {
     return maxIterations;
   }
   
-  public IterativeTrainer setMaxIterations(int maxIterations) {
+  public RoundRobinTrainer setMaxIterations(int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
@@ -72,29 +72,31 @@ public class IterativeTrainer {
       currentPoint = measure();
       subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
         if(currentIteration.incrementAndGet() > maxIterations) break;
-        LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
-        String directionType = direction.getDirectionType();
-        LineSearchStrategy lineSearchStrategy;
-        if(lineSearchStrategyMap.containsKey(directionType)) {
-          lineSearchStrategy = lineSearchStrategyMap.get(directionType);
-        } else {
-          System.out.println(String.format("Constructing line search parameters: %s", directionType));
-          lineSearchStrategy = lineSearchFactory.get();
-          lineSearchStrategyMap.put(directionType, lineSearchStrategy);
-        }
-        PointSample previous = currentPoint;
-        currentPoint = lineSearchStrategy.step(direction, monitor);
-        monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
-        if(previous.value == currentPoint.value) {
-          if(subject.resetSampling()) {
-            monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
-            break subiterationLoop;
+        for(OrientationStrategy orientation : orientations) {
+          LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
+          String directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
+          LineSearchStrategy lineSearchStrategy;
+          if(lineSearchStrategyMap.containsKey(directionType)) {
+            lineSearchStrategy = lineSearchStrategyMap.get(directionType);
           } else {
-            monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
-            break mainLoop;
+            System.out.println(String.format("Constructing line search parameters: %s", directionType));
+            lineSearchStrategy = lineSearchFactory.apply(directionType);
+            lineSearchStrategyMap.put(directionType, lineSearchStrategy);
           }
-        } else {
-          monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+          PointSample previous = currentPoint;
+          currentPoint = lineSearchStrategy.step(direction, monitor);
+          monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
+          if(previous.value == currentPoint.value) {
+            if(subject.resetSampling()) {
+              monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
+              break subiterationLoop;
+            } else {
+              monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
+              break mainLoop;
+            }
+          } else {
+            monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+          }
         }
       }
     }
@@ -117,16 +119,16 @@ public class IterativeTrainer {
     return timeout;
   }
   
-  public IterativeTrainer setTimeout(Duration timeout) {
+  public RoundRobinTrainer setTimeout(Duration timeout) {
     this.timeout = timeout;
     return this;
   }
   
-  public IterativeTrainer setTimeout(int number, TimeUnit units) {
+  public RoundRobinTrainer setTimeout(int number, TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
-  public IterativeTrainer setTimeout(int number, TemporalUnit units) {
+  public RoundRobinTrainer setTimeout(int number, TemporalUnit units) {
     this.timeout = Duration.of(number, units);
     return this;
   }
@@ -135,17 +137,17 @@ public class IterativeTrainer {
     return terminateThreshold;
   }
   
-  public IterativeTrainer setTerminateThreshold(double terminateThreshold) {
+  public RoundRobinTrainer setTerminateThreshold(double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
   
-  public OrientationStrategy getOrientation() {
-    return orientation;
+  public List<OrientationStrategy> getOrientations() {
+    return orientations;
   }
   
-  public IterativeTrainer setOrientation(OrientationStrategy orientation) {
-    this.orientation = orientation;
+  public RoundRobinTrainer setOrientations(OrientationStrategy... orientations) {
+    this.orientations = new ArrayList<>(Arrays.asList(orientations));
     return this;
   }
   
@@ -153,7 +155,7 @@ public class IterativeTrainer {
     return monitor;
   }
   
-  public IterativeTrainer setMonitor(TrainingMonitor monitor) {
+  public RoundRobinTrainer setMonitor(TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
   }
@@ -162,16 +164,21 @@ public class IterativeTrainer {
     return currentIteration;
   }
   
-  public IterativeTrainer setCurrentIteration(AtomicInteger currentIteration) {
+  public RoundRobinTrainer setCurrentIteration(AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
   }
   
-  public Supplier<LineSearchStrategy> getLineSearchFactory() {
+  public Function<String, LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
   
-  public IterativeTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
+  public RoundRobinTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = s -> lineSearchFactory.get();
+    return this;
+  }
+  
+  public RoundRobinTrainer setLineSearchFactory(Function<String, LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }
@@ -180,7 +187,7 @@ public class IterativeTrainer {
     return iterationsPerSample;
   }
   
-  public IterativeTrainer setIterationsPerSample(int iterationsPerSample) {
+  public RoundRobinTrainer setIterationsPerSample(int iterationsPerSample) {
     this.iterationsPerSample = iterationsPerSample;
     return this;
   }

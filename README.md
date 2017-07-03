@@ -173,7 +173,7 @@ Finally, the [Monitor](https://github.com/SimiaCryptus/MindsEye/blob/master/src/
 
 ### Stochastic Gradient Descent
 
-The "gradient descent" part of SGD is defined by the simplest orientation strategy, which simply moves along the [raw gradient](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/GradientDescent.java). The stochastic part is implemented in a trainable component ([StochasticArrayTrainable](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/trainable/StochasticArrayTrainable.java)) that uses a random subset of the training data for evaluation.
+The "gradient descent" part of SGD is defined by the simplest orientations strategy, which simply moves along the [raw gradient](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/GradientDescent.java). The stochastic part is implemented in a trainable component ([StochasticArrayTrainable](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/trainable/StochasticArrayTrainable.java)) that uses a random subset of the training data for evaluation.
 
 ### L1 and L2 normalization
 
@@ -181,17 +181,17 @@ Normalization factors could be implemented as part of the network itself, summin
 
 ### Momentum
 
-[Momentum](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/MomentumStrategy.java) can be added to the orientation strategy by wrapping an underlying strategy such as Gradient Descent. Momentum will keep a delta vector in its memory, using it to accumulate new movement and modifying the returned vector (orientated line search).
+[Momentum](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/MomentumStrategy.java) can be added to the orientations strategy by wrapping an underlying strategy such as Gradient Descent. Momentum will keep a delta vector in its memory, using it to accumulate new movement and modifying the returned vector (orientated line search).
 
 ### L-BFGS
 
-[L-BFGS](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/LBFGS.java) uses previously sampled points (along with their gradients) to estimate something known as the inverse Hessian. The Hessian is to a gradient as a second derivative is to a first, and knowing it can allow us to adapt our step since instead of a linear local model we now have a quadratic local model, which has a known minimum. This makes a more informed selection of both our step direction and our step size (since the orientated step is not necessarily a unit vector). It is implemented as an orientation strategy.
+[L-BFGS](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/LBFGS.java) uses previously sampled points (along with their gradients) to estimate something known as the inverse Hessian. The Hessian is to a gradient as a second derivative is to a first, and knowing it can allow us to adapt our step since instead of a linear local model we now have a quadratic local model, which has a known minimum. This makes a more informed selection of both our step direction and our step size (since the orientated step is not necessarily a unit vector). It is implemented as an orientations strategy.
 
 ### OWL-QN
 
 In the case of [OWL-QN](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/OwlQn.java), the Orientation strategy passes a special "line search problem" to the stepper that isn’t a simple straight line. Instead, the line is constrained to the current “orthant”, and will follow the orthant boundaries where some weight values are zero. This “trust region” approach is very effective in finding a sparse model where many weights are zero.
 
-OWL-QN is also implemented as an orientation strategy which wraps another "base" strategy. This new strategy will then wrap the line search object returned by the base strategy, and this new line search object will implement the orthant.
+OWL-QN is also implemented as an orientations strategy which wraps another "base" strategy. This new strategy will then wrap the line search object returned by the base strategy, and this new line search object will implement the orthant.
 
 A very [similar strategy](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/region/TrustRegionStrategy.java) is used in a more general fashion to support arbitrary per-layer trust regions, as discussed below.
 

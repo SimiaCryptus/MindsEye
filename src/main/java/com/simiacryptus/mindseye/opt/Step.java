@@ -19,10 +19,18 @@
 
 package com.simiacryptus.mindseye.opt;
 
-public class TrainingMonitor {
-  public void log(String msg) {
-  }
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
+
+/**
+ * Created by Andrew Charneski on 7/2/2017.
+ */
+public class Step {
+  public final Trainable.PointSample point;
+  public final long time = System.currentTimeMillis();
+  public final long iteration;
   
-  public void onStepComplete(Step currentPoint) {
+  Step(Trainable.PointSample point, long iteration) {
+    this.point = point;
+    this.iteration = iteration;
   }
 }

@@ -101,7 +101,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
             }
       
             @Override
-            public void onStepComplete(IterativeTrainer.Step currentPoint) {
+            public void onStepComplete(Step currentPoint) {
               layers.forEach(layer->{
                 layer.inputNoise.shuffle();
                 layer.encodedNoise.shuffle();
@@ -169,7 +169,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
           }
           
           @Override
-          public void onStepComplete(IterativeTrainer.Step currentPoint) {
+          public void onStepComplete(Step currentPoint) {
             inputNoise.shuffle();
             encodedNoise.shuffle();
             monitor.onStepComplete(currentPoint);

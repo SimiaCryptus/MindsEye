@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.LBFGS;
+import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeConditions;
 import com.simiacryptus.mindseye.opt.region.SingleOrthant;
@@ -197,7 +198,7 @@ public class MNistDemo {
               }
   
               @Override
-              public void onStepComplete(IterativeTrainer.Step currentPoint) {
+              public void onStepComplete(Step currentPoint) {
                 super.onStepComplete(currentPoint);
               }
             });

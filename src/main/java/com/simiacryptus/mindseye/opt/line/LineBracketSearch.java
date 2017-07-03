@@ -68,16 +68,19 @@ public class LineBracketSearch implements LineSearchStrategy {
       } else break;
     }
   
-    if(this.currentRate < rightX) return rightPoint.point;
+    if(this.currentRate < rightX) {
+      currentRate = rightX;
+      return rightPoint.point;
+    }
     
     LineSearchPoint searchPoint;
     while(true) {
       double thisX;
-      if(Math.abs(Math.log10(Math.abs(rightLineDeriv/leftLineDeriv))) > 2) {
-        thisX = (rightX + leftX) / 2;
-      } else {
-        thisX = (leftX * rightLineDeriv - rightX * leftLineDeriv) / (rightLineDeriv - leftLineDeriv);
-      }
+      thisX = (rightX + leftX) / 2;
+//      if(Math.abs(Math.log10(Math.abs(rightLineDeriv/leftLineDeriv))) > 2) {
+//      } else {
+//        thisX = (leftX * rightLineDeriv - rightX * leftLineDeriv) / (rightLineDeriv - leftLineDeriv);
+//      }
       //monitor.log(String.format("MidP(%s,%s) => %s", rightX, leftX, thisX));
       searchPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s", thisX, searchPoint));
