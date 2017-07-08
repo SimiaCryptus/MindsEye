@@ -110,6 +110,10 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     return map;
   }
   
+  public MonitoringSynapse addTo(MonitoredObject obj) {
+    return addTo(obj, getName());
+  }
+  
   public MonitoringSynapse addTo(MonitoredObject obj, String name) {
     setName(name);
     obj.addObj(getName(),this);

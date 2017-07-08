@@ -22,15 +22,14 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
-public class SimpleLearningRate implements LineSearchStrategy {
+public class StaticLearningRate implements LineSearchStrategy {
   
   private double rate = 1e-4;
-  private double rateGrowth = 1.0;
-  private double rateShrink = 0.5;
+  private double minimumRate = 1e-12;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
-    rate *= rateGrowth; // Keep memory of rate from one iteration to next, but have a bias for growing the value
+    double thisRate = rate;
     LineSearchPoint startPoint = cursor.step(0, monitor);
     double startLineDeriv = startPoint.derivative; // theta'(0)
     double startValue = startPoint.point.value; // theta(0)
@@ -38,12 +37,15 @@ public class SimpleLearningRate implements LineSearchStrategy {
     while (true) {
       double lastValue = (null == lastStep)?Double.POSITIVE_INFINITY:lastStep.point.value;
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
-      lastStep = cursor.step(rate, monitor);
+      lastStep = cursor.step(thisRate, monitor);
       lastValue = lastStep.point.value;
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
       if (lastValue > startValue) {
-        monitor.log(String.format("Non-decreasing step. %s > %s New rate: " + rate, lastValue, startValue));
-        rate *= rateShrink;
+        monitor.log(String.format("Non-decreasing step. %s > %s at " + thisRate, lastValue, startValue));
+        thisRate /= 2;
+        if(thisRate < getMinimumRate()) {
+          return startPoint.point;
+        }
       } else {
         return lastStep.point;
       }
@@ -54,26 +56,17 @@ public class SimpleLearningRate implements LineSearchStrategy {
     return rate;
   }
   
-  public SimpleLearningRate setRate(double rate) {
+  public StaticLearningRate setRate(double rate) {
     this.rate = rate;
     return this;
   }
   
-  public double getRateGrowth() {
-    return rateGrowth;
+  public double getMinimumRate() {
+    return minimumRate;
   }
   
-  public SimpleLearningRate setRateGrowth(double rateGrowth) {
-    this.rateGrowth = rateGrowth;
-    return this;
-  }
-  
-  public double getRateShrink() {
-    return rateShrink;
-  }
-  
-  public SimpleLearningRate setRateShrink(double rateShrink) {
-    this.rateShrink = rateShrink;
+  public StaticLearningRate setMinimumRate(double minimumRate) {
+    this.minimumRate = minimumRate;
     return this;
   }
 }

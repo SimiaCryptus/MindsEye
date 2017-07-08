@@ -60,12 +60,14 @@ public class LBFGS implements OrientationStrategy {
   }
   
   private SimpleLineSearchCursor _orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    List<DeltaBuffer> defaultValue = measurement.delta.vector().stream().map(x -> x.scale(-1)).collect(Collectors.toList());
+    List<DeltaBuffer> deltaVector = measurement.delta.vector();
+    List<DeltaBuffer> defaultValue = deltaVector.stream().map(x -> x.scale(-1)).collect(Collectors.toList());
     
     // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce (Large-scale L-BFGS using MapReduce)
     String type = "GD";
     List<DeltaBuffer> descent = defaultValue;
     if (history.size() > minHistory) {
+      List<double[]> gradient = defaultValue.stream().map(x -> Arrays.copyOf(x.delta,x.delta.length)).collect(Collectors.toList());
       type = "LBFGS";
       List<double[]> p = descent.stream().map(x -> x.copyDelta()).collect(Collectors.toList());
       assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
@@ -99,8 +101,13 @@ public class LBFGS implements OrientationStrategy {
         int _i = i;
         Arrays.setAll(descent.get(i).delta, j -> _p.get(_i)[j]);
       }
+      List<double[]> lbfgs = descent.stream().map(x -> x.delta).collect(Collectors.toList());
+      double dot = ArrayUtil.dot(lbfgs, gradient);
+      double mag = Math.sqrt(ArrayUtil.dot(lbfgs,lbfgs));
+      double magGrad = Math.sqrt(ArrayUtil.dot(gradient,gradient));
+      monitor.log(String.format("LBFGS Orientation magnitude: %s, gradient %s, dot %s", mag, magGrad, dot));
     }
-    if (accept(measurement.delta.vector(), descent)) {
+    if (accept(deltaVector, descent)) {
       history.remove(0);
       monitor.log("Orientation rejected. Popping history element from " + (history.size() - 1));
       return _orient(subject, measurement, monitor);
