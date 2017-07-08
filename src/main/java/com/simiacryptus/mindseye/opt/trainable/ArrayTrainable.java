@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -30,26 +31,33 @@ public class ArrayTrainable implements Trainable {
   
   private final Tensor[][] trainingData;
   private final DAGNetwork network;
+  private final int batchSize;
   
   public ArrayTrainable(Tensor[][] trainingData, DAGNetwork network) {
+    this(trainingData, network, trainingData.length);
+  }
+  public ArrayTrainable(Tensor[][] trainingData, DAGNetwork network, int batchSize) {
     this.trainingData = trainingData;
     this.network = network;
+    this.batchSize = batchSize;
     resetSampling();
   }
   
   @Override
-  public Trainable.PointSample measure() {
-    NNResult[] input = NNResult.batchResultArray(trainingData);
-    NNResult result = network.eval(input);
-    DeltaSet deltaSet = new DeltaSet();
-    result.accumulate(deltaSet);
-    DeltaSet stateSet = new DeltaSet();
-    deltaSet.map.forEach((layer, layerDelta) -> {
-      stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
-    assert (Arrays.stream(result.data).allMatch(x -> x.dim() == 1));
-    double meanValue = Arrays.stream(result.data).mapToDouble(x -> x.getData()[0]).average().getAsDouble();
-    return new Trainable.PointSample(deltaSet, stateSet, meanValue);
+  public PointSample measure() {
+    return Lists.partition(Arrays.asList(trainingData), 100).stream().map(trainingData->{
+      NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
+      NNResult result = network.eval(input);
+      DeltaSet deltaSet = new DeltaSet();
+      result.accumulate(deltaSet);
+      DeltaSet stateSet = new DeltaSet();
+      deltaSet.map.forEach((layer, layerDelta) -> {
+        stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
+      });
+      assert (Arrays.stream(result.data).allMatch(x -> x.dim() == 1));
+      double meanValue = Arrays.stream(result.data).mapToDouble(x -> x.getData()[0]).average().getAsDouble();
+      return new PointSample(deltaSet, stateSet, meanValue);
+    }).reduce((a,b)->new PointSample(a.weights, a.delta.add(b.delta),a.value + b.value)).get();
   }
   
   @Override
