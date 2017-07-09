@@ -71,20 +71,16 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     totalBatches++;
     totalItems += input.data.length;
     forwardStatistics.clear();
-    for(Tensor t : input.data) {
-      for(double v : t.getData()) {
-        forwardStatistics.add(v);
-      }
-    }
+    Arrays.stream(input.data).parallel().forEach(t->{
+      forwardStatistics.add(t.getData());
+    });
     return new NNResult(input.data) {
       @Override
       public void accumulate(DeltaSet buffer, Tensor[] data) {
         backpropStatistics.clear();
-        for(Tensor t : data) {
-          for(double v : t.getData()) {
-            backpropStatistics.add(v);
-          }
-        }
+        Arrays.stream(data).parallel().forEach(t->{
+          backpropStatistics.add(t.getData());
+        });
         input.accumulate(buffer, data);
       }
   

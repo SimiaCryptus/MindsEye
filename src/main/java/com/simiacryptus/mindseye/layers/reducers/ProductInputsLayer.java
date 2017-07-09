@@ -51,9 +51,8 @@ public class ProductInputsLayer extends NNLayer {
       if(!Arrays.equals(inObj[0].data[0].getDims(), inObj[i].data[0].getDims()))
         throw new RuntimeException(Arrays.toString(inObj[0].data[0].getDims()) + " != " + Arrays.toString(inObj[i].data[0].getDims()));
     }
-    Tensor[] result = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
-      return IntStream.range(0, Math.max(l.length,r.length))
-                 .parallel()
+    Tensor[] result = Arrays.stream(inObj).parallel().map(x -> x.data).reduce((l, r) -> {
+      return IntStream.range(0, Math.max(l.length,r.length)).parallel()
                  .mapToObj(i->Tensor.product(l[Math.min(i,l.length-1)], r[Math.min(i,r.length-1)]))
                  .toArray(i->new Tensor[i]);
     }).get();

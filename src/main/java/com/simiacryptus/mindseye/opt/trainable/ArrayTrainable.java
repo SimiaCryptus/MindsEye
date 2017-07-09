@@ -26,12 +26,15 @@ import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class ArrayTrainable implements Trainable {
   
   private final Tensor[][] trainingData;
   private final DAGNetwork network;
   private final int batchSize;
+  private boolean parallel = false;
   
   public ArrayTrainable(Tensor[][] trainingData, DAGNetwork network) {
     this(trainingData, network, trainingData.length);
@@ -45,7 +48,9 @@ public class ArrayTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    return Lists.partition(Arrays.asList(trainingData), 100).stream().map(trainingData->{
+    Stream<List<Tensor[]>> stream = Lists.partition(Arrays.asList(trainingData), batchSize).stream();
+    if(isParallel()) stream = stream.parallel();
+    return stream.map(trainingData->{
       NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
       NNResult result = network.eval(input);
       DeltaSet deltaSet = new DeltaSet();
@@ -64,4 +69,16 @@ public class ArrayTrainable implements Trainable {
   public void resetToFull() {
   }
   
+  public int getBatchSize() {
+    return batchSize;
+  }
+  
+  public boolean isParallel() {
+    return parallel;
+  }
+  
+  public ArrayTrainable setParallel(boolean parallel) {
+    this.parallel = parallel;
+    return this;
+  }
 }
