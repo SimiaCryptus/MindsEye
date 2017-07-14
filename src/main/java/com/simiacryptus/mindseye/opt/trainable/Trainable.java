@@ -34,11 +34,17 @@ public interface Trainable {
     public final DeltaSet delta;
     public final DeltaSet weights;
     public final double value;
-    
+    public double rate;
+  
     public PointSample(DeltaSet delta, DeltaSet weights, double value) {
+      this(delta,weights,value, Double.NaN);
+    }
+    
+    public PointSample(DeltaSet delta, DeltaSet weights, double value, double rate) {
       this.delta = delta;
       this.weights = weights;
       this.value = value;
+      this.setRate(rate);
     }
     
     @Override
@@ -47,6 +53,15 @@ public interface Trainable {
       sb.append("value=").append(value);
       sb.append('}');
       return sb.toString();
+    }
+  
+    public double getRate() {
+      return rate;
+    }
+  
+    public PointSample setRate(double rate) {
+      this.rate = rate;
+      return this;
     }
   }
 }

@@ -93,10 +93,9 @@ public class DeltaSet {
   public DeltaSet add(DeltaSet right) {
     DeltaSet returnValue = new DeltaSet();
     map.forEach((layer, buffer) -> {
-      DeltaBuffer returnBuffer = returnValue.get(layer, buffer.target).accumulate(buffer.delta);
-      if (right.map.contains(layer)) {
-        returnBuffer.accumulate(right.map.get(layer).delta);
-      }
+      returnValue.get(layer, buffer.target)
+          .accumulate(buffer.delta)
+          .accumulate(right.get(layer, buffer.target).delta);
     });
     return returnValue;
   }

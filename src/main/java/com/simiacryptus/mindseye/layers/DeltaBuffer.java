@@ -56,8 +56,7 @@ public class DeltaBuffer {
   public DeltaBuffer accumulate(final double[] data) {
     final int dim = length();
     for (int i = 0; i < dim; i++) {
-      final double prev = this.delta[i];
-      this.delta[i] = prev + data[i];
+      this.delta[i] = this.delta[i] + data[i];
     }
     return this;
   }

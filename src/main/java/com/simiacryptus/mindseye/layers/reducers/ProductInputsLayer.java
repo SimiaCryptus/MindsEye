@@ -62,7 +62,7 @@ public class ProductInputsLayer extends NNLayer {
         assert Arrays.stream(delta).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            input.accumulate(buffer, IntStream.range(0,input.data.length).mapToObj(i -> {
+            input.accumulate(buffer, IntStream.range(0,input.data.length).parallel().mapToObj(i -> {
               return delta[Math.min(i,delta.length)].map((v, c)->{
                 double v1 = input.data[i].get(c);
                 double r = v * result[Math.min(i, result.length)].get(c) / v1;

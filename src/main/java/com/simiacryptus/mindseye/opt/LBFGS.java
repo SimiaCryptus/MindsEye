@@ -102,9 +102,9 @@ public class LBFGS implements OrientationStrategy {
         Arrays.setAll(descent.get(i).delta, j -> _p.get(_i)[j]);
       }
       List<double[]> lbfgs = descent.stream().map(x -> x.delta).collect(Collectors.toList());
-      double dot = ArrayUtil.dot(lbfgs, gradient);
       double mag = Math.sqrt(ArrayUtil.dot(lbfgs,lbfgs));
       double magGrad = Math.sqrt(ArrayUtil.dot(gradient,gradient));
+      double dot = ArrayUtil.dot(lbfgs, gradient) / (mag * magGrad);
       monitor.log(String.format("LBFGS Orientation magnitude: %s, gradient %s, dot %s", mag, magGrad, dot));
     }
     if (accept(deltaVector, descent)) {
