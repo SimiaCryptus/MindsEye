@@ -58,6 +58,22 @@ public class MediaComponentValidationTests {
   }
   
   @Test
+  public void testImgReshapeLayer1() throws Throwable {
+    final Tensor outputPrototype = new Tensor(6, 6, 1);
+    final Tensor inputPrototype = new Tensor(3, 3, 4).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgReshapeLayer(2, 2, true);
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
+  public void testImgReshapeLayer2() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3, 3, 4);
+    final Tensor inputPrototype = new Tensor(6, 6, 1).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgReshapeLayer(2, 2, false);
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+  }
+  
+  @Test
   public void testConvolutionSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(3, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());

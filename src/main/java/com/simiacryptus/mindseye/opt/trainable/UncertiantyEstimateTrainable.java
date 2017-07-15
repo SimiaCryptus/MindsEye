@@ -90,5 +90,8 @@ public class UncertiantyEstimateTrainable implements Trainable {
     onReset();
     return inner.stream().map(x->x.resetSampling()).reduce((a,b)->a||b).get();
   }
-  
+
+  public double getUncertianty() {
+    return (null==lastStatistics?firstStatistics:lastStatistics).getStandardDeviation();
+  }
 }

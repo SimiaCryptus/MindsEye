@@ -1,0 +1,171 @@
+/*
+ * Copyright (c) 2017 by Andrew Charneski.
+ *
+ * The author licenses this file to you under the
+ * Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance
+ * with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.simiacryptus.mindseye.layers.media;
+
+import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.util.ml.Tensor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
+
+public class ImgReshapeLayer extends NNLayer {
+  
+  
+  private final int kernelSizeX;
+  private final int kernelSizeY;
+  private final boolean expand;
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("kernelSizeX", kernelSizeX);
+    json.addProperty("kernelSizeY", kernelSizeX);
+    json.addProperty("expand", expand);
+    return json;
+  }
+  
+  public static ImgReshapeLayer fromJson(JsonObject json) {
+    return new ImgReshapeLayer(json);
+  }
+  protected ImgReshapeLayer(JsonObject json) {
+    super(json);
+    this.kernelSizeX = json.getAsJsonPrimitive("kernelSizeX").getAsInt();
+    this.kernelSizeY = json.getAsJsonPrimitive("kernelSizeY").getAsInt();
+    this.expand = json.getAsJsonPrimitive("expand").getAsBoolean();
+  }
+  
+  public ImgReshapeLayer(int kernelSizeX, int kernelSizeY, boolean expand) {
+    super();
+    this.kernelSizeX = kernelSizeX;
+    this.kernelSizeY = kernelSizeY;
+    this.expand = expand;
+  }
+  
+  @Override
+  public NNResult eval(final NNResult... inObj) {
+    assert Arrays.stream(inObj).flatMapToDouble(input->Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    
+    final NNResult input = inObj[0];
+    final Tensor[] batch = input.data;
+    final int[] inputDims = batch[0].getDims();
+    assert(3 == inputDims.length);
+    assert(expand || 0 == inputDims[0] % kernelSizeX);
+    assert(expand || 0 == inputDims[1] % kernelSizeX);
+    assert(!expand || 0 == inputDims[2] % (kernelSizeX*kernelSizeY));
+    assert Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    Tensor outputDims;
+    if(expand) {
+      outputDims = new Tensor(inputDims[0] * kernelSizeX,
+                                 inputDims[1] * kernelSizeY,
+                                 inputDims[2] / (kernelSizeX * kernelSizeY));
+    } else {
+      outputDims = new Tensor(inputDims[0] / kernelSizeX,
+                                     inputDims[1] / kernelSizeY,
+                                     inputDims[2] * kernelSizeX * kernelSizeY);
+    }
+    return new NNResult(IntStream.range(0, batch.length)
+                           .mapToObj(dataIndex -> expand?copyExpand(batch[dataIndex], outputDims.copy()):copyCondense(batch[dataIndex], outputDims.copy()))
+                           .toArray(i -> new Tensor[i])) {
+      @Override
+      public void accumulate(final DeltaSet buffer, final Tensor[] error) {
+        assert Arrays.stream(error).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        if (input.isAlive()) {
+          input.accumulate(buffer, IntStream.range(0, error.length)
+             .mapToObj(dataIndex -> {
+               Tensor passback = new Tensor(inputDims);
+               Tensor err = error[dataIndex];
+               return expand ? copyCondense(err, passback) : copyExpand(err, passback);
+             }).toArray(i -> new Tensor[i]));
+        }
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return input.isAlive() || !isFrozen();
+      }
+    };
+  }
+  
+  public static Tensor copyCondense(Tensor inputData, Tensor outputData) {
+    int[] inDim = inputData.getDims();
+    int[] outDim = outputData.getDims();
+    assert 3 == inDim.length;
+    assert 3 == outDim.length;
+    assert inDim[0] >= outDim[0];
+    assert inDim[1] >= outDim[1];
+    assert inDim[2] < outDim[2];
+    assert 0 == inDim[0] % outDim[0];
+    assert 0 == inDim[1] % outDim[1];
+    int kernelSizeX = inDim[0] / outDim[0];
+    int kernelSizeY = inDim[0] / outDim[0];
+    int index = 0;
+    for(int xx=0;xx<kernelSizeX;xx++) {
+      for(int yy=0;yy<kernelSizeY;yy++) {
+        for(int z = 0; z< inDim[2]; z++) {
+          for(int x = 0; x< inDim[0]; x+=kernelSizeX) {
+            for(int y = 0; y< inDim[1]; y+=kernelSizeY) {
+              outputData.getData()[index++] = inputData.get(x+xx, y+yy, z);
+            }
+          }
+        }
+      }
+    }
+    return outputData;
+  }
+  
+  public static Tensor copyExpand(Tensor inputData, Tensor outputData) {
+    int[] inDim = inputData.getDims();
+    int[] outDim = outputData.getDims();
+    assert 3 == inDim.length;
+    assert 3 == outDim.length;
+    assert inDim[0] <= outDim[0];
+    assert inDim[1] <= outDim[1];
+    assert inDim[2] > outDim[2];
+    assert 0 == outDim[0] % inDim[0];
+    assert 0 == outDim[1] % inDim[1];
+    int kernelSizeX = outDim[0] / inDim[0];
+    int kernelSizeY = outDim[0] / inDim[0];
+    int index = 0;
+    for(int xx=0;xx<kernelSizeX;xx++) {
+      for(int yy=0;yy<kernelSizeY;yy++) {
+        for(int z = 0; z< outDim[2]; z++) {
+          for(int x = 0; x< outDim[0]; x+=kernelSizeX) {
+            for(int y = 0; y< outDim[1]; y+=kernelSizeY) {
+              outputData.set(new int[]{x+xx, y+yy, z}, inputData.getData()[index++]);
+            }
+          }
+        }
+      }
+    }
+    return outputData;
+  }
+  
+  
+  @Override
+  public List<double[]> state() {
+    return new ArrayList<>();
+  }
+  
+  
+}

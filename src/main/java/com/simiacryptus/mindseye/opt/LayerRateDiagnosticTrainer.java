@@ -48,6 +48,7 @@ public class LayerRateDiagnosticTrainer {
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
   private boolean strict = false;
+  private final Map<NNLayer,Double> layerRates = new HashMap<>();
   
   public LayerRateDiagnosticTrainer(Trainable subject) {
     this.subject = subject;
@@ -69,7 +70,6 @@ public class LayerRateDiagnosticTrainer {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
     ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.map.keySet());
-    Map<NNLayer,Double> layerRates = new HashMap<>();
     mainLoop: while (timeoutMs > System.currentTimeMillis() && measure.value > terminateThreshold) {
       if(currentIteration.get() > maxIterations) break;
       final PointSample initialPhasePoint = measure();
@@ -121,7 +121,7 @@ public class LayerRateDiagnosticTrainer {
               bestOrient = orient;
               bestPoint = measure;
             }
-            layerRates.put(layer, measure.getRate());
+            getLayerRates().put(layer, measure.getRate());
             orient.step(0, monitor);
             measure = previous;
           } else if(previous.value == measure.value) {
@@ -129,17 +129,17 @@ public class LayerRateDiagnosticTrainer {
           } else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.value));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
-            layerRates.put(layer, measure.getRate());
+            getLayerRates().put(layer, measure.getRate());
           }
         }
-        monitor.log(String.format("Ideal rates: %s", layerRates));
+        monitor.log(String.format("Ideal rates: %s", getLayerRates()));
         if(null != bestPoint) {
           bestOrient.step(bestPoint.rate, monitor);
         }
         monitor.onStepComplete(new Step(measure, currentIteration.get()));
       }
     }
-    return layerRates;
+    return getLayerRates();
   }
   
   private DeltaSet filterDirection(DeltaSet direction, NNLayer layer) {
@@ -231,5 +231,9 @@ public class LayerRateDiagnosticTrainer {
   public LayerRateDiagnosticTrainer setOrientation(OrientationStrategy orientation) {
     this.orientation = orientation;
     return this;
+  }
+  
+  public Map<NNLayer, Double> getLayerRates() {
+    return layerRates;
   }
 }
