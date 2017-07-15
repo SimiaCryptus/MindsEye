@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
-public class LineBracketSearch implements LineSearchStrategy {
+public class BisectionSearch implements LineSearchStrategy {
   
   private double zeroTol = 1e-20;
   private double currentRate = 1.0;
@@ -77,11 +77,6 @@ public class LineBracketSearch implements LineSearchStrategy {
     while(true) {
       double thisX;
       thisX = (rightX + leftX) / 2;
-//      if(Math.abs(Math.log10(Math.abs(rightLineDeriv/leftLineDeriv))) > 2) {
-//      } else {
-//        thisX = (leftX * rightLineDeriv - rightX * leftLineDeriv) / (rightLineDeriv - leftLineDeriv);
-//      }
-      //monitor.log(String.format("MidP(%s,%s) => %s", rightX, leftX, thisX));
       searchPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s", thisX, searchPoint));
       if(searchPoint.derivative < -zeroTol) {
@@ -119,7 +114,7 @@ public class LineBracketSearch implements LineSearchStrategy {
     return zeroTol;
   }
   
-  public LineBracketSearch setZeroTol(double zeroTol) {
+  public BisectionSearch setZeroTol(double zeroTol) {
     this.zeroTol = zeroTol;
     return this;
   }
@@ -128,7 +123,7 @@ public class LineBracketSearch implements LineSearchStrategy {
     return currentRate;
   }
   
-  public LineBracketSearch setCurrentRate(double currentRate) {
+  public BisectionSearch setCurrentRate(double currentRate) {
     this.currentRate = currentRate;
     return this;
   }

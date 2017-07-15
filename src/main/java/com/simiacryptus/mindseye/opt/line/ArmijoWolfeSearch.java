@@ -20,10 +20,9 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
-public class ArmijoWolfeConditions implements LineSearchStrategy {
+public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   private double minAlpha = 1e-15;
   private double maxAlpha = 1e2;
@@ -118,7 +117,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     return alphaGrowth;
   }
   
-  public ArmijoWolfeConditions setAlphaGrowth(double alphaGrowth) {
+  public ArmijoWolfeSearch setAlphaGrowth(double alphaGrowth) {
     this.alphaGrowth = alphaGrowth;
     return this;
   }
@@ -127,7 +126,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     return c1;
   }
   
-  public ArmijoWolfeConditions setC1(double c1) {
+  public ArmijoWolfeSearch setC1(double c1) {
     this.c1 = c1;
     return this;
   }
@@ -136,7 +135,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     return c2;
   }
   
-  public ArmijoWolfeConditions setC2(double c2) {
+  public ArmijoWolfeSearch setC2(double c2) {
     this.c2 = c2;
     return this;
   }
@@ -145,7 +144,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     return alpha;
   }
   
-  public ArmijoWolfeConditions setAlpha(double alpha) {
+  public ArmijoWolfeSearch setAlpha(double alpha) {
     this.alpha = alpha;
     return this;
   }
@@ -154,7 +153,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     return minAlpha;
   }
   
-  public ArmijoWolfeConditions setMinAlpha(double minAlpha) {
+  public ArmijoWolfeSearch setMinAlpha(double minAlpha) {
     this.minAlpha = minAlpha;
     return this;
   }
@@ -163,7 +162,7 @@ public class ArmijoWolfeConditions implements LineSearchStrategy {
     return maxAlpha;
   }
   
-  public ArmijoWolfeConditions setMaxAlpha(double maxAlpha) {
+  public ArmijoWolfeSearch setMaxAlpha(double maxAlpha) {
     this.maxAlpha = maxAlpha;
     return this;
   }

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
@@ -28,13 +27,13 @@ import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.LBFGS;
+import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeConditions;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.region.SingleOrthant;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
-import com.simiacryptus.mindseye.opt.region.TrustRegionStrategy;
+import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 import com.simiacryptus.mindseye.opt.trainable.L12Normalizer;
 import com.simiacryptus.mindseye.opt.trainable.ScheduledSampleTrainable;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
@@ -183,7 +182,7 @@ public class MNistDemo {
               }
             };
             IterativeTrainer trainer = new IterativeTrainer(normalizer);
-            trainer.setLineSearchFactory(()->new ArmijoWolfeConditions().setC1(1e-4).setC2(0.9));
+            trainer.setLineSearchFactory(()->new ArmijoWolfeSearch().setC1(1e-4).setC2(0.9));
             trainer.setOrientation(new TrustRegionStrategy(new LBFGS().setMinHistory(5)) {
               @Override
               public TrustRegion getRegionPolicy(NNLayer layer) {

@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.opt.line.*;
+import com.simiacryptus.mindseye.opt.orient.GradientDescent;
+import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import com.simiacryptus.util.Util;
@@ -63,14 +65,16 @@ public class LayerRateDiagnosticTrainer {
     return this;
   }
   
-  public double run() {
+  public Map<NNLayer, Double> run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
     ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.map.keySet());
     Map<NNLayer,Double> layerRates = new HashMap<>();
     mainLoop: while (timeoutMs > System.currentTimeMillis() && measure.value > terminateThreshold) {
       if(currentIteration.get() > maxIterations) break;
-      measure = measure();
+      final PointSample initialPhasePoint = measure();
+      
+      measure = initialPhasePoint;
       subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
         if(currentIteration.incrementAndGet() > maxIterations) break;
         
@@ -95,20 +99,32 @@ public class LayerRateDiagnosticTrainer {
           }
           monitor.log(String.format("Estimated ideal rates for layers: %s (%s overall; probed at %s)", steps, overallStepEstimate, stepSize));
         }
-        
-        for(NNLayer layer : layers) {
+  
+  
+        SimpleLineSearchCursor bestOrient = null;
+        PointSample bestPoint = null;
+        layerLoop: for(NNLayer layer : layers) {
           SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
-          DeltaSet direction = orient.direction;
-          DeltaSet maskedDelta = new DeltaSet();
-          direction.map.forEach((layer2,delta)->maskedDelta.get(layer2,delta.target));
-          maskedDelta.get(layer,layer.state().get(0)).accumulate(direction.get(layer,(double[])null).delta);
-          orient = new SimpleLineSearchCursor(orient.subject, orient.origin, maskedDelta);
+          DeltaSet direction = filterDirection(orient.direction, layer);
+          if(direction.getMagnitude() == 0) {
+            monitor.log(String.format("Zero derivative for layer %s; skipping", layer));
+            continue layerLoop;
+          }
+          orient = new SimpleLineSearchCursor(orient.subject, orient.origin, direction);
           LineSearchStrategy lineSearchStrategy = new QuadraticSearch();
           PointSample previous = measure;
           measure = lineSearchStrategy.step(orient, monitor);
-          if(isStrict()) orient.step(0, monitor);
-          monitor.onStepComplete(new Step(measure, currentIteration.get()));
-          if(previous.value == measure.value) {
+          if(isStrict()) {
+            monitor.log(String.format("Iteration %s reverting. Error: %s", currentIteration.get(), measure.value));
+            monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
+            if(null == bestPoint || bestPoint.value < measure.value) {
+              bestOrient = orient;
+              bestPoint = measure;
+            }
+            layerRates.put(layer, measure.getRate());
+            orient.step(0, monitor);
+            measure = previous;
+          } else if(previous.value == measure.value) {
             monitor.log(String.format("Iteration %s failed. Error: %s", currentIteration.get(), measure.value));
           } else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.value));
@@ -116,12 +132,21 @@ public class LayerRateDiagnosticTrainer {
             layerRates.put(layer, measure.getRate());
           }
         }
-
         monitor.log(String.format("Ideal rates: %s", layerRates));
-        if(isStrict()) break mainLoop;
+        if(null != bestPoint) {
+          bestOrient.step(bestPoint.rate, monitor);
+        }
+        monitor.onStepComplete(new Step(measure, currentIteration.get()));
       }
     }
-    return null == measure ? Double.NaN : measure.value;
+    return layerRates;
+  }
+  
+  private DeltaSet filterDirection(DeltaSet direction, NNLayer layer) {
+    DeltaSet maskedDelta = new DeltaSet();
+    direction.map.forEach((layer2,delta)->maskedDelta.get(layer2,delta.target));
+    maskedDelta.get(layer,layer.state().get(0)).accumulate(direction.get(layer,(double[])null).delta);
+    return maskedDelta;
   }
   
   public PointSample measure() {

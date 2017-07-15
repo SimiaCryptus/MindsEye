@@ -59,9 +59,7 @@ public class UncertiantyEstimateTrainable implements Trainable {
   @Override
   public PointSample measure() {
     List<PointSample> results = this.inner.stream().map(x -> {
-      PointSample measure = x.measure();
-      monitor.log(String.format("Measurement %s", measure.value));
-      return measure;
+      return x.measure();
     }).collect(Collectors.toList());
     DeltaSet deltaSet = results.stream().map(x->x.delta).reduce((a,b)->a.add(b)).get().scale(1.0/results.size());
     DoubleStatistics statistics = new DoubleStatistics().accept(results.stream().mapToDouble(x -> x.value).toArray());

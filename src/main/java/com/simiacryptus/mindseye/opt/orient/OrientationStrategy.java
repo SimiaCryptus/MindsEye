@@ -17,20 +17,17 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
-import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
-public class GradientDescent implements OrientationStrategy {
+/**
+ * Created by Andrew Charneski on 5/6/2017.
+ */
+public interface OrientationStrategy {
   
-  @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    DeltaSet direction = measurement.delta.scale(-1);
-    return new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
-  }
-  
+  LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor);
 }

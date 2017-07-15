@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeConditions;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
+import com.simiacryptus.mindseye.opt.orient.LBFGS;
+import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import com.simiacryptus.util.Util;
@@ -42,7 +44,7 @@ public class RoundRobinTrainer {
   private Duration timeout;
   private double terminateThreshold;
   private List<OrientationStrategy> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
-  private Function<String, LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeConditions();
+  private Function<String, LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
   private Map<String,LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
