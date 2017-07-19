@@ -49,4 +49,8 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
     return this;
   }
   
+  @Override
+  public void reset() {
+    inner.reset();
+  }
 }

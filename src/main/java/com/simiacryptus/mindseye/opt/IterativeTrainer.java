@@ -99,6 +99,7 @@ public class IterativeTrainer {
           monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
         }
       }
+      orientation.reset();
     }
     return null == currentPoint ? Double.NaN : currentPoint.value;
   }

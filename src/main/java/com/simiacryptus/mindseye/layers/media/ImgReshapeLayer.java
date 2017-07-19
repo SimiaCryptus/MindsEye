@@ -84,14 +84,14 @@ public class ImgReshapeLayer extends NNLayer {
                                      inputDims[1] / kernelSizeY,
                                      inputDims[2] * kernelSizeX * kernelSizeY);
     }
-    return new NNResult(IntStream.range(0, batch.length)
+    return new NNResult(IntStream.range(0, batch.length).parallel()
                            .mapToObj(dataIndex -> expand?copyExpand(batch[dataIndex], outputDims.copy()):copyCondense(batch[dataIndex], outputDims.copy()))
                            .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] error) {
         assert Arrays.stream(error).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (input.isAlive()) {
-          input.accumulate(buffer, IntStream.range(0, error.length)
+          input.accumulate(buffer, IntStream.range(0, error.length).parallel()
              .mapToObj(dataIndex -> {
                Tensor passback = new Tensor(inputDims);
                Tensor err = error[dataIndex];

@@ -50,6 +50,11 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
     this.inner = inner;
   }
   
+  @Override
+  public void reset() {
+    inner.reset();
+  }
+  
   private final List<PointSample> history = new LinkedList<>();
   
   @Override

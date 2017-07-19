@@ -34,4 +34,9 @@ public class GradientDescent implements OrientationStrategy {
     return new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
   }
   
+  @Override
+  public void reset() {
+  
+  }
+  
 }

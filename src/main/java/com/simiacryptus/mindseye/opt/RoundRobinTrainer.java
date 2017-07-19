@@ -73,8 +73,8 @@ public class RoundRobinTrainer {
       if(currentIteration.get() > maxIterations) break;
       currentPoint = measure();
       subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
-        if(currentIteration.incrementAndGet() > maxIterations) break;
         for(OrientationStrategy orientation : orientations) {
+          if(currentIteration.incrementAndGet() > maxIterations) break;
           LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
           String directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
           LineSearchStrategy lineSearchStrategy;

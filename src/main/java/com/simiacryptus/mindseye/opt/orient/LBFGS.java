@@ -49,6 +49,11 @@ public class LBFGS implements OrientationStrategy {
     return _orient(subject, measurement, monitor);
   }
   
+  @Override
+  public void reset() {
+    history.clear();
+  }
+  
   public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
     if (!measurement.delta.vector().stream().flatMapToDouble(y->Arrays.stream(y.delta)).allMatch(d -> Double.isFinite(d))) {
       monitor.log("Corrupt measurement");

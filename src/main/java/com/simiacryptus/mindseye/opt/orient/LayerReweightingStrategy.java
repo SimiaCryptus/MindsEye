@@ -50,6 +50,11 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
     public HashMap<NNLayer, Double> getMap() {
       return map;
     }
+  
+    @Override
+    public void reset() {
+      inner.reset();
+    }
   }
   
   

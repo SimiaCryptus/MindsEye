@@ -52,6 +52,11 @@ public class MomentumStrategy implements OrientationStrategy {
     return new SimpleLineSearchCursor(subject, measurement, newDelta);
   }
   
+  @Override
+  public void reset() {
+    inner.reset();
+  }
+  
   public double getCarryOver() {
     return carryOver;
   }

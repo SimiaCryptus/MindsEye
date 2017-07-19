@@ -90,6 +90,11 @@ public class OwlQn implements OrientationStrategy {
     }.setDirectionType("OWL/QN");
   }
   
+  @Override
+  public void reset() {
+    inner.reset();
+  }
+  
   protected int sign(double weight) {
     if (weight > zeroTol) {
       return 1;
