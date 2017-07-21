@@ -54,8 +54,6 @@ public class StdDevMetaLayer extends DAGNetwork {
       ));
   }
   
-  public Tensor lastResult;
-  
   @Override
   public DAGNode getHead() {
     return head;

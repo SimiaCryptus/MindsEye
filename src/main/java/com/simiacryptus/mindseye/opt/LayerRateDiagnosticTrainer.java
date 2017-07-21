@@ -39,6 +39,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LayerRateDiagnosticTrainer {
   
   
+  public static class LayerStats {
+    public final double rate;
+    public final double delta;
+  
+    public LayerStats(double rate, double delta) {
+      this.rate = rate;
+      this.delta = delta;
+    }
+  
+    @Override
+    public String toString() {
+      final StringBuffer sb = new StringBuffer("{");
+      sb.append("rate=").append(rate);
+      sb.append(", delta=").append(delta);
+      sb.append('}');
+      return sb.toString();
+    }
+  }
+  
   private final Trainable subject;
   private OrientationStrategy orientation;
   private Duration timeout;
@@ -48,7 +67,7 @@ public class LayerRateDiagnosticTrainer {
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
   private boolean strict = false;
-  private final Map<NNLayer,Double> layerRates = new HashMap<>();
+  private final Map<NNLayer,LayerStats> layerRates = new HashMap<>();
   
   public LayerRateDiagnosticTrainer(Trainable subject) {
     this.subject = subject;
@@ -66,7 +85,7 @@ public class LayerRateDiagnosticTrainer {
     return this;
   }
   
-  public Map<NNLayer, Double> run() {
+  public Map<NNLayer, LayerStats> run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
     ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.map.keySet());
@@ -121,7 +140,7 @@ public class LayerRateDiagnosticTrainer {
               bestOrient = orient;
               bestPoint = measure;
             }
-            getLayerRates().put(layer, measure.getRate());
+            getLayerRates().put(layer, new LayerStats(measure.getRate(),initialPhasePoint.value-measure.value));
             orient.step(0, monitor);
             measure = previous;
           } else if(previous.value == measure.value) {
@@ -129,7 +148,7 @@ public class LayerRateDiagnosticTrainer {
           } else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.value));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
-            getLayerRates().put(layer, measure.getRate());
+            getLayerRates().put(layer, new LayerStats(measure.getRate(),initialPhasePoint.value-measure.value));
           }
         }
         monitor.log(String.format("Ideal rates: %s", getLayerRates()));
@@ -233,7 +252,7 @@ public class LayerRateDiagnosticTrainer {
     return this;
   }
   
-  public Map<NNLayer, Double> getLayerRates() {
+  public Map<NNLayer, LayerStats> getLayerRates() {
     return layerRates;
   }
 }

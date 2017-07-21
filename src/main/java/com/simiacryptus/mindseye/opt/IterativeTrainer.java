@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class IterativeTrainer {
@@ -44,7 +45,7 @@ public class IterativeTrainer {
   private Duration timeout;
   private double terminateThreshold;
   private OrientationStrategy orientation = new LBFGS();
-  private Supplier<LineSearchStrategy> lineSearchFactory = () -> new ArmijoWolfeSearch();
+  private Function<String,LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
   private Map<String,LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
@@ -73,7 +74,7 @@ public class IterativeTrainer {
       if(currentIteration.get() > maxIterations) break;
       currentPoint = measure();
       subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
-        if(currentIteration.incrementAndGet() > maxIterations) break;
+        if(currentIteration.incrementAndGet() > maxIterations) break mainLoop;
         LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
         String directionType = direction.getDirectionType();
         LineSearchStrategy lineSearchStrategy;
@@ -81,7 +82,7 @@ public class IterativeTrainer {
           lineSearchStrategy = lineSearchStrategyMap.get(directionType);
         } else {
           System.out.println(String.format("Constructing line search parameters: %s", directionType));
-          lineSearchStrategy = lineSearchFactory.get();
+          lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
           lineSearchStrategyMap.put(directionType, lineSearchStrategy);
         }
         PointSample previous = currentPoint;
@@ -170,11 +171,11 @@ public class IterativeTrainer {
     return this;
   }
   
-  public Supplier<LineSearchStrategy> getLineSearchFactory() {
+  public Function<String,LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
   
-  public IterativeTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
+  public IterativeTrainer setLineSearchFactory(Function<String,LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.google.common.collect.Lists;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -32,14 +33,14 @@ import java.util.stream.Stream;
 public class ArrayTrainable implements Trainable {
   
   private final Tensor[][] trainingData;
-  private final DAGNetwork network;
+  private final NNLayer network;
   private final int batchSize;
   private boolean parallel = false;
   
-  public ArrayTrainable(Tensor[][] trainingData, DAGNetwork network) {
+  public ArrayTrainable(Tensor[][] trainingData, NNLayer network) {
     this(trainingData, network, trainingData.length);
   }
-  public ArrayTrainable(Tensor[][] trainingData, DAGNetwork network, int batchSize) {
+  public ArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
     this.trainingData = trainingData;
     this.network = network;
     this.batchSize = batchSize;

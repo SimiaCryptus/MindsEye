@@ -182,7 +182,7 @@ public class MNistDemo {
               }
             };
             IterativeTrainer trainer = new IterativeTrainer(normalizer);
-            trainer.setLineSearchFactory(()->new ArmijoWolfeSearch().setC1(1e-4).setC2(0.9));
+            trainer.setLineSearchFactory((s)->new ArmijoWolfeSearch().setC1(1e-4).setC2(0.9));
             trainer.setOrientation(new TrustRegionStrategy(new LBFGS().setMinHistory(5)) {
               @Override
               public TrustRegion getRegionPolicy(NNLayer layer) {

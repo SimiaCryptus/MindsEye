@@ -61,18 +61,19 @@ public class AvgMetaLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length;
-    if(1<itemCnt) lastResult = input.data[0].mapParallel((v, c) ->
-                                                      IntStream.range(0, itemCnt)
-                                                          .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
-                                                          .average().getAsDouble());
-    return new NNResult(lastResult) {
+    Tensor result = input.data[0].mapParallel((v, c) ->
+                                                  IntStream.range(0, itemCnt)
+                                                      .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
+                                                      .average().orElse(0.0));
+    lastResult = result;
+    return new NNResult(result) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (input.isAlive()) {
           Tensor delta = data[0];
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDims()));
-          lastResult.mapParallel((rho, inputCoord) -> {
+          ((null==result)?lastResult:result).mapParallel((rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }
