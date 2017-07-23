@@ -111,7 +111,7 @@ public class AvgSubsampleLayer extends NNLayer {
       final Tensor input = inObj[0].data[dataIndex];
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         if (!(0 == inputDims[i] % this.kernelDims[i])) {
-          assert (false);
+          assert (false) : inputDims[i] + ":" + this.kernelDims[i];
         }
         return inputDims[i] / this.kernelDims[i];
       }).toArray();

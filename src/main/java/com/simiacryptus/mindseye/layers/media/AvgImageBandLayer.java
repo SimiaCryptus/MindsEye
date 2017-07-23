@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.media;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
@@ -48,8 +49,8 @@ public class AvgImageBandLayer extends NNLayer {
   }
   
   public static AvgImageBandLayer fromJson(JsonObject json) {
-    return new AvgImageBandLayer(json,
-                                    JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+    JsonArray jsonArray = json.getAsJsonArray("inner");
+    return new AvgImageBandLayer(json, JsonUtil.getIntArray(jsonArray));
   }
   protected AvgImageBandLayer(JsonObject id, int... kernelDims) {
     super(id);

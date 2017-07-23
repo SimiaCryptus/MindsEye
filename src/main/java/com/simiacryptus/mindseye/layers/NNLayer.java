@@ -102,7 +102,9 @@ public abstract class NNLayer implements Serializable {
   public static NNLayer fromJson(JsonObject inner) {
     String className = inner.get("class").getAsString();
     try {
-      return (NNLayer) Class.forName(className).getMethod("fromJson", JsonObject.class).invoke(null, inner);
+      Class<?> clazz = Class.forName(className);
+      if(null == clazz) throw new ClassNotFoundException(className);
+      return (NNLayer) clazz.getMethod("fromJson", JsonObject.class).invoke(null, inner);
     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
