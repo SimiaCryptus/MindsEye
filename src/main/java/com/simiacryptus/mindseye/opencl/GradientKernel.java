@@ -32,6 +32,7 @@ public final class GradientKernel extends Kernel {
   double[] weights;
   int weightSize;
   int paralellism;
+  int[] kernelOffset;
   
   public GradientKernel() {
   }
@@ -54,8 +55,6 @@ public final class GradientKernel extends Kernel {
     final int k0 = k % ks0;
   
     double accum = 0.;
-    int ko1 = (this.kernelSize[1] - 1) / 2;
-    int ko0 = (this.kernelSize[0] - 1) / 2;
     for (int i = threadNumber; i < this.input.length; i+=paralellism) {
       if (0. != this.input[i]) {
         final int is0 = this.inputSize[0];
@@ -68,8 +67,8 @@ public final class GradientKernel extends Kernel {
   
         final int o2 = k2 - i2 * this.outputSize[2];
         if(o2 >= 0 && o2 < this.outputSize[2]) {
-          final int o1 = i1 + k1 - ko1;
-          final int o0 = i0 + k0 - ko0;
+          final int o1 = i1 + k1 - kernelOffset[1];
+          final int o0 = i0 + k0 - kernelOffset[0];
           if(o0 < this.outputSize[0] && o1 < this.outputSize[1] && o0 >= 0 && o1 >= 0) {
             final int o = o0 + this.outputSize[0] * (o1 + this.outputSize[1] * (o2 + this.outputSize[2] * batch));
             accum += this.input[i] * this.output[o];

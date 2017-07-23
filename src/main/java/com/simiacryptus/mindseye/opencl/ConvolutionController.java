@@ -19,13 +19,11 @@
 
 package com.simiacryptus.mindseye.opencl;
 
-import com.simiacryptus.mindseye.layers.media.ImgConvolutionSynapseLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 public final class ConvolutionController {
@@ -40,17 +38,37 @@ public final class ConvolutionController {
   private final int[] inputSize;
   private final int[] kernelSize;
   private final int[] outputSize;
+  private final boolean simple;
   
-  public ConvolutionController(final int[] inputSize, final int[] kernelSize) {
+  public int[] getOutputDims() {
+    return outputSize;
+  }
+  
+  public ConvolutionController(final int[] inputSize, final int[] kernelSize, boolean simple) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
-    this.outputSize = ImgConvolutionSynapseLayer.getOutputDims(inputSize, kernelSize);
+    this.simple = simple;
+    this.outputSize = IntStream.range(0, kernelSize.length).map(i -> {
+      int x;
+      if (i == kernelSize.length - 1) {
+        x = kernelSize[i] / inputSize[i];
+      } else if(simple) {
+        x = inputSize[i];
+      } else {
+        x = 1 + inputSize[i] - kernelSize[i];
+      }
+      if (0 >= x) {
+        assert false;
+      }
+      return x;
+    }).toArray();
     assert this.outputSize.length == 3;
     assert this.kernelSize.length == 3;
     assert this.inputSize.length == 3;
   }
   
   public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
+  
   public void backprop(final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
@@ -178,7 +196,12 @@ public final class ConvolutionController {
           backpropTask.outputSize = this.outputSize;
           backpropTask.inputSize = this.inputSize;
           backpropTask.kernelSize = this.kernelSize;
+          backpropTask.kernelOffset = new int[]{
+              simple?((this.kernelSize[1] - 1) / 2):0,
+              simple?((this.kernelSize[0] - 1) / 2):0
+          };
           backpropTask.setExplicit(true);
+          backpropTask.put(convolveTask.kernelOffset);
           backpropTask.put(backpropTask.outputSize);
           backpropTask.put(backpropTask.inputSize);
           backpropTask.put(backpropTask.kernelSize);
@@ -212,7 +235,12 @@ public final class ConvolutionController {
           convolveTask.outputSize = this.outputSize;
           convolveTask.inputSize = this.inputSize;
           convolveTask.kernelSize = this.kernelSize;
+          convolveTask.kernelOffset = new int[]{
+              simple?((this.kernelSize[1] - 1) / 2):0,
+              simple?((this.kernelSize[0] - 1) / 2):0
+          };
           convolveTask.setExplicit(true);
+          convolveTask.put(convolveTask.kernelOffset);
           convolveTask.put(convolveTask.outputSize);
           convolveTask.put(convolveTask.inputSize);
           convolveTask.put(convolveTask.kernelSize);
@@ -248,7 +276,12 @@ public final class ConvolutionController {
           kernelTask.kernelSize = this.kernelSize;
           kernelTask.weightSize = weightSize;
           kernelTask.paralellism = weights.length / weightSize;
+          kernelTask.kernelOffset = new int[]{
+              simple?((this.kernelSize[1] - 1) / 2):0,
+              simple?((this.kernelSize[0] - 1) / 2):0
+          };
           kernelTask.setExplicit(true);
+          kernelTask.put(convolveTask.kernelOffset);
           kernelTask.put(kernelTask.outputSize);
           kernelTask.put(kernelTask.inputSize);
           kernelTask.put(kernelTask.kernelSize);

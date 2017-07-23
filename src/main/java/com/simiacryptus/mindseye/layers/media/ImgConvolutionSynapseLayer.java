@@ -23,16 +23,13 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.opencl.ConvolutionController;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
@@ -43,6 +40,8 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.add("kernel", kernel.getJson());
+    json.add("skip", skip.getJson());
+    json.addProperty("simple", simple);
     return json;
   }
   
@@ -52,20 +51,24 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   protected ImgConvolutionSynapseLayer(JsonObject json) {
     super(json);
     this.kernel = Tensor.fromJson(json.getAsJsonObject("kernel"));
+    this.skip = Tensor.fromJson(json.getAsJsonObject("skip"));
+    this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
   
   
   public final Tensor kernel;
+  public final Tensor skip;
+  public final boolean simple;
   
   protected ImgConvolutionSynapseLayer() {
-    this((Tensor)null);
+    this((Tensor)null, (Tensor)null, true);
   }
   
-  protected ImgConvolutionSynapseLayer(Tensor kernel) {
+  protected ImgConvolutionSynapseLayer(Tensor kernel, Tensor skip, boolean simple) {
     super();
+    this.simple = simple;
+    this.skip = skip;
     if(kernel.getDims().length != 3) throw new IllegalArgumentException();
-    if(kernel.getDims()[0] % 2 != 1) throw new IllegalArgumentException();
-    if(kernel.getDims()[1] % 2 != 1) throw new IllegalArgumentException();
     if(kernel.getDims()[0] <= 0) throw new IllegalArgumentException();
     if(kernel.getDims()[1] <= 0) throw new IllegalArgumentException();
     if(kernel.getDims()[2] <= 0) throw new IllegalArgumentException();
@@ -76,23 +79,18 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     this(width, height, inputBands * outputBands);
   }
   
-  public ImgConvolutionSynapseLayer(final int width, int height, final int bands) {
-    this(new Tensor(width,height,bands));
+  public ImgConvolutionSynapseLayer(final int width, int height, final int bands, boolean simple) {
+    this(new Tensor(width,height,bands), new Tensor(new int[]{1,1}), simple);
+    assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
+    assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
   }
   
-  public static int[] getOutputDims(final int[] inputSize, final int[] kernelSize) {
-    return IntStream.range(0, kernelSize.length).map(i -> {
-      int x;
-      if (i == kernelSize.length - 1) {
-        x = kernelSize[i] / inputSize[i];
-      } else {
-        x = inputSize[i];
-      }
-      if (0 >= x) {
-        assert false;
-      }
-      return x;
-    }).toArray();
+  public ImgConvolutionSynapseLayer(final int width, int height, final int bands) {
+    this(width, height, bands, true);
+  }
+  
+  public ImgConvolutionSynapseLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
+    this(width, height, inputBands * outputBands, simple);
   }
   
   public ImgConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
@@ -107,9 +105,10 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     final NNResult input = inObj[0];
     final Tensor[] batch = input.data;
     final int[] inputDims = batch[0].getDims();
-    ConvolutionController convolutionController = new ConvolutionController(inputDims, this.kernel.getDims());
+    int[] kernelDims = this.kernel.getDims();
+    ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, simple);
     Tensor[] output = IntStream.range(0, batch.length)
-                           .mapToObj(dataIndex -> new Tensor(getOutputDims(inputDims, this.kernel.getDims())))
+                           .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
                            .toArray(i -> new Tensor[i]);
     {
       double[][] inputBuffers = Arrays.stream(batch).map(x -> x.getData()).toArray(i -> new double[i][]);
@@ -166,58 +165,4 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     return Arrays.asList(this.kernel.getData());
   }
   
-  public static final class IndexMapKey {
-    int[] input;
-    int[] kernel;
-    int[] output;
-    
-    public IndexMapKey(final int[] kernel, final int[] input, final int[] output) {
-      super();
-      this.kernel = kernel;
-      this.input = input;
-      this.output = output;
-      assert 3 == input.length;
-      assert 3 == kernel.length;
-    }
-    
-    @Override
-    public boolean equals(final Object obj) {
-      if (this == obj)
-        return true;
-      if (obj == null)
-        return false;
-      if (getClass() != obj.getClass())
-        return false;
-      final ImgConvolutionSynapseLayer.IndexMapKey other = (ImgConvolutionSynapseLayer.IndexMapKey) obj;
-      if (!Arrays.equals(this.input, other.input))
-        return false;
-      if (!Arrays.equals(this.kernel, other.kernel))
-        return false;
-      return Arrays.equals(this.output, other.output);
-    }
-    
-    @Override
-    public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + Arrays.hashCode(this.input);
-      result = prime * result + Arrays.hashCode(this.kernel);
-      result = prime * result + Arrays.hashCode(this.output);
-      return result;
-    }
-    
-    @Override
-    public String toString() {
-      final StringBuilder builder = new StringBuilder();
-      builder.append("IndexMapKey [input=");
-      builder.append(Arrays.toString(this.input));
-      builder.append(", kernel=");
-      builder.append(Arrays.toString(this.kernel));
-      builder.append(", output=");
-      builder.append(Arrays.toString(this.output));
-      builder.append("]");
-      return builder.toString();
-    }
-    
-  }
 }
