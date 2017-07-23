@@ -25,4 +25,7 @@ public class TrainingMonitor {
   
   public void onStepComplete(Step currentPoint) {
   }
+  
+  public void clear() {
+  }
 }

@@ -31,6 +31,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   private double alpha = 1.0;
   private double alphaGrowth = Math.pow(10.0, Math.pow(3.0, -1.0));
   private boolean strongWolfe = true;
+  private double absoluteTolerance = 1e-15;
+  private double relativeTolerance = 1e-2;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
@@ -51,14 +53,15 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
       }
       double lastValue = (null == lastStep)?Double.POSITIVE_INFINITY:lastStep.point.value;
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
-      if (mu >= nu) {
+      if (mu >= nu - absoluteTolerance) {
         monitor.log(String.format("mu >= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
-      if ((nu / mu) < (11.0 / 10.0)) {
-        monitor.log(String.format("mu >= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
+  
+      if ((nu - mu) < nu * relativeTolerance) {
+        monitor.log(String.format("mu /= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
@@ -178,6 +181,24 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   public ArmijoWolfeSearch setStrongWolfe(boolean strongWolfe) {
     this.strongWolfe = strongWolfe;
+    return this;
+  }
+  
+  public double getAbsoluteTolerance() {
+    return absoluteTolerance;
+  }
+  
+  public ArmijoWolfeSearch setAbsoluteTolerance(double absoluteTolerance) {
+    this.absoluteTolerance = absoluteTolerance;
+    return this;
+  }
+  
+  public double getRelativeTolerance() {
+    return relativeTolerance;
+  }
+  
+  public ArmijoWolfeSearch setRelativeTolerance(double relativeTolerance) {
+    this.relativeTolerance = relativeTolerance;
     return this;
   }
 }

@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class EntropyLossLayer extends NNLayer {
@@ -60,6 +59,7 @@ public class EntropyLossLayer extends NNLayer {
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
       final Tensor l = inObj[0].data[dataIndex];
       final Tensor b = inObj[1].data[dataIndex];
+      assert (l.dim() == b.dim()) : l.dim() + " != " + b.dim();
       final Tensor gradient = new Tensor(l.getDims());
       gradientA[dataIndex] = gradient;
       final double[] gradientData = gradient.getData();
