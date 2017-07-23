@@ -41,7 +41,13 @@ abstract class LazyResult implements DAGNode {
   
   @Override
   public NNResult get(final EvaluationContext t) {
-    return t.cache.computeIfAbsent(this.key, k -> eval(t));
+    return t.cache.computeIfAbsent(this.key, k -> {
+      try {
+        return eval(t);
+      } catch (Throwable e) {
+        throw new RuntimeException("Error with layer " + getLayer(), e);
+      }
+    });
   }
   
 }

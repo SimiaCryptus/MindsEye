@@ -135,10 +135,10 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
       if(layer instanceof DAGNetwork) {
         ((DAGNetwork)layer).visit(visitor);
       }
-      visitor.accept(layer);
       if(layer instanceof NNLayerWrapper) {
         visitor.accept(((NNLayerWrapper)layer).getInner());
       }
+      visitor.accept(layer);
     });
   }
   
@@ -182,12 +182,6 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
   protected EvaluationContext batchExeContext(final Tensor[][] batchData) {
     return this.buildExeCtx(NNResult.batchResultArray(batchData));
-  }
-  
-  @Override
-  public DAGNetwork freeze() {
-    this.layersById.values().forEach(l -> l.freeze());
-    return (DAGNetwork) super.freeze();
   }
   
   public NNLayer get(final int i) {
@@ -235,19 +229,18 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
   @Override
   public NNResult eval(final NNResult... input) {
-    NNResult innerResult = getHead().get(buildExeCtx(input));
-    return new NNResult(innerResult.data) {
-      @Override
-      public void accumulate(DeltaSet buffer, Tensor[] data) {
-        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-        if(!DAGNetwork.this.isFrozen()) innerResult.accumulate(buffer, data);
-      }
+    return getHead().get(buildExeCtx(input));
+  }
   
+  @Override
+  public DAGNetwork freeze() {
+    visit(new Consumer<NNLayer>() {
       @Override
-      public boolean isAlive() {
-        return !DAGNetwork.this.isFrozen() && innerResult.isAlive();
+      public void accept(NNLayer layer) {
+        layer.freeze();
       }
-    };
+    });
+    return this;
   }
   
   public DAGNode add(final NNLayer nextHead, final DAGNode... head) {

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.network.graph.ConstNode;
+import com.simiacryptus.mindseye.layers.util.ConstNNLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 import com.simiacryptus.mindseye.layers.NNLayer;
@@ -67,7 +67,7 @@ public class PipelineNetwork extends DAGNetwork {
   
   public PipelineNetwork(int inputs) {
     super(inputs);
-    head = getInput().get(0);
+    head = 0==inputs?null:getInput().get(0);
   }
   
   @SafeVarargs
@@ -84,7 +84,9 @@ public class PipelineNetwork extends DAGNetwork {
   }
   
   public DAGNode constValue(Tensor tensor) {
-    return new ConstNode(tensor);
+    DAGNode constNode = super.add(new ConstNNLayer(tensor));;
+    getLayers().add(constNode.getLayer());
+    return constNode;
   }
   
   public DAGNode add(NNLayer nextHead) {

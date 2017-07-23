@@ -130,9 +130,8 @@ public class LayerRateDiagnosticTrainer {
             continue layerLoop;
           }
           orient = new SimpleLineSearchCursor(orient.subject, orient.origin, direction);
-          LineSearchStrategy lineSearchStrategy = new QuadraticSearch();
           PointSample previous = measure;
-          measure = lineSearchStrategy.step(orient, monitor);
+          measure = getLineSearchStrategy().step(orient, monitor);
           if(isStrict()) {
             monitor.log(String.format("Iteration %s reverting. Error: %s", currentIteration.get(), measure.value));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
@@ -159,6 +158,10 @@ public class LayerRateDiagnosticTrainer {
       }
     }
     return getLayerRates();
+  }
+  
+  protected LineSearchStrategy getLineSearchStrategy() {
+    return new QuadraticSearch();
   }
   
   private DeltaSet filterDirection(DeltaSet direction, NNLayer layer) {

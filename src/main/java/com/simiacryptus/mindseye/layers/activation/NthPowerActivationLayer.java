@@ -45,11 +45,13 @@ public final class NthPowerActivationLayer extends SimpleActivationLayer<NthPowe
   
   @Override
   protected final void eval(final double x, final double[] results) {
-    final double minDeriv = 0;
-    final double d = power * Math.pow(x, power-1);
-    final double f = Math.pow(x, power);
-    assert Double.isFinite(d);
-    assert minDeriv <= Math.abs(d);
+    assert(0 < results.length);
+    assert Double.isFinite(x);
+    boolean isZero = Math.abs(x) < 1e-20;
+    double d = isZero?0.0:(power * Math.pow(x, power-1));
+    double f = isZero?0.0:Math.pow(x, power);
+    if(!Double.isFinite(d)) d = 0.0;
+    if(!Double.isFinite(f)) f = 0.0;
     results[0] = f;
     results[1] = d;
   }

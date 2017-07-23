@@ -47,6 +47,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   
   public SimpleActivationLayer() {
     super();
+    setFrozen(true);
   }
   
   protected abstract void eval(final double x, double[] results);
@@ -54,6 +55,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   @Override
   public NNResult eval(final NNResult... inObj) {
     int itemCnt = inObj[0].data.length;
+    assert(0 < itemCnt);
     Tensor inputGradientA[] = new Tensor[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];

@@ -50,7 +50,7 @@ public final class ConvolutionController {
     assert this.inputSize.length == 3;
   }
   
-  public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024;
+  public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
   public void backprop(final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);

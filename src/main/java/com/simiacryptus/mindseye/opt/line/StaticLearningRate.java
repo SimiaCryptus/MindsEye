@@ -40,7 +40,7 @@ public class StaticLearningRate implements LineSearchStrategy {
       lastStep = cursor.step(thisRate, monitor);
       lastValue = lastStep.point.value;
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
-      if (lastValue > startValue) {
+      if ((lastValue+(startValue*1e-15)) > startValue) {
         monitor.log(String.format("Non-decreasing step. %s > %s at " + thisRate, lastValue, startValue));
         thisRate /= 2;
         if(thisRate < getMinimumRate()) {

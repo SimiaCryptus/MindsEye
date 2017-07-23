@@ -54,7 +54,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     origin.weights.vector().stream().forEach(d -> d.overwrite());
     direction.vector().stream().forEach(d -> d.write(alpha));
-    PointSample sample = subject.measure();
+    PointSample sample = subject.measure().setRate(alpha);
     return new LineSearchPoint(sample, dot(direction.vector(), sample.delta.vector()));
   }
   

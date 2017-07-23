@@ -24,8 +24,8 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 public class QuadraticSearch implements LineSearchStrategy {
   
-  private double absoluteTolerance = 1e-20;
-  private double relativeTolerance = 1e-4;
+  private double absoluteTolerance = 1e-8;
+  private double relativeTolerance = 1e-2;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
@@ -37,38 +37,75 @@ public class QuadraticSearch implements LineSearchStrategy {
     double rightX = Math.abs(leftPoint.point.value * 1e-4 / leftPoint.derivative);
     LineSearchPoint rightPoint = cursor.step(rightX, monitor);
     monitor.log(String.format("F(%s) = %s", rightX, rightPoint));
-    
+  
+  
+    double lastX = rightX;
+    while(true) {
+      double startX = rightX;
+      if (rightPoint.point.value > leftPoint.point.value) {
+        rightX = rightX / 2;
+      } else {
+        break;
+      }
+      if(isSame(lastX, rightX)) break;
+      lastX = startX;
+      rightPoint = cursor.step(rightX, monitor);
+      monitor.log(String.format("F(%s) = %s", rightX, rightPoint));
+    }
     while(true) {
       double a = (rightPoint.derivative - leftPoint.derivative) / (rightX - leftX);
       double b = rightPoint.derivative - a * rightX;
       double thisX = - b / a;
+      boolean isBracketed = Math.signum(leftPoint.derivative) != Math.signum(rightPoint.derivative);
+      if(isBracketed && (leftX > thisX || rightX < thisX))
+      {
+        thisX = (rightX + leftX) / 2;
+      }
+      if(!isBracketed && thisX < 0) {
+        thisX = rightX * 2;
+      }
+      if(isSame(leftX, thisX) || isSame(thisX, rightX))
+      {
+        thisX = (rightX + leftX) / 2;
+      }
       LineSearchPoint thisPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s", thisX, thisPoint));
-      if(Math.abs(thisPoint.derivative) < absoluteTolerance) {
+      if(isSame(leftX, rightX)) {
         return thisPoint.point;
       }
-      boolean sameSign = leftPoint.derivative * rightPoint.derivative > 0 ? true : false;
       boolean test;
-      if(sameSign) {
-        test = Math.abs(rightPoint.derivative - thisPoint.derivative) > Math.abs(leftPoint.derivative - thisPoint.derivative);
+      if(!isBracketed) {
+        test = Math.abs(rightPoint.point.rate - thisPoint.point.rate) > Math.abs(leftPoint.point.rate - thisPoint.point.rate);
       } else {
-        test = thisPoint.derivative > 0;
+        test = thisPoint.derivative < 0;
       }
       if(test) {
-        rightX = thisX;
-        rightPoint = thisPoint;
-        monitor.log(String.format("Right bracket at %s", thisX));
-      } else {
+        if(thisPoint.point.value > leftPoint.point.value) return leftPoint.point;
+        if(!isBracketed && leftPoint.point.value < rightPoint.point.value) {
+          rightX = leftX;
+          rightPoint = leftPoint;
+        }
         leftPoint = thisPoint;
         leftX = thisX;
         monitor.log(String.format("Left bracket at %s", thisX));
-      }
-      if(Math.abs((rightX - leftX) * 2.0 / (leftX + rightX)) < getRelativeTolerance()) {
-        monitor.log(String.format("Interval converged at %s/%s", leftX, rightX));
-        return cursor.step(leftX, monitor).point.setRate(leftX);
+      } else {
+        if(thisPoint.point.value > rightPoint.point.value) return rightPoint.point;
+        if(!isBracketed && rightPoint.point.value < leftPoint.point.value) {
+          leftX = rightX;
+          leftPoint = rightPoint;
+        }
+        rightX = thisX;
+        rightPoint = thisPoint;
+        monitor.log(String.format("Right bracket at %s", thisX));
       }
     }
   
+  }
+  
+  protected boolean isSame(double a, double b) {
+    double diff = Math.abs(a - b);
+    double scale = Math.max(Math.abs(a), Math.abs(b));
+    return diff < absoluteTolerance || diff < (scale * relativeTolerance);
   }
   
   public double getAbsoluteTolerance() {

@@ -51,6 +51,7 @@ public class ConstNNLayer extends NNLayer {
   public ConstNNLayer(Tensor tensor) {
     super();
     this.tensor = tensor;
+    setFrozen(true);
   }
   
   @Override
@@ -67,7 +68,7 @@ public class ConstNNLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        return false;
+        return !ConstNNLayer.this.isFrozen();
       }
     };
   }

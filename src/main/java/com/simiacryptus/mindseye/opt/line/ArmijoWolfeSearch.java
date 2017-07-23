@@ -30,46 +30,48 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   private double c2 = 0.9;
   private double alpha = 1.0;
   private double alphaGrowth = Math.pow(10.0, Math.pow(3.0, -1.0));
+  private boolean strongWolfe = true;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
     alpha *= alphaGrowth; // Keep memory of alpha from one iteration to next, but have a bias for growing the value
-    // See http://cs.nyu.edu/overton/mstheses/skajaa/msthesis.pdf page 14
     double mu = 0;
     double nu = Double.POSITIVE_INFINITY;
-    LineSearchPoint startPoint = cursor.step(0, monitor);
-    double startLineDeriv = startPoint.derivative; // theta'(0)
-    double startValue = startPoint.point.value; // theta(0)
+    final LineSearchPoint startPoint = cursor.step(0, monitor);
+    final double startLineDeriv = startPoint.derivative; // theta'(0)
+    if(0<=startPoint.derivative) return cursor.step(0, monitor).point;
+    final double startValue = startPoint.point.value; // theta(0)
+    monitor.log(String.format("th(0)=%s;dx=%s", startValue, startLineDeriv));
     LineSearchPoint lastStep = null;
     int stepBias = 0;
     while (true) {
       if (!isAlphaValid()) {
-        monitor.log(String.format("INVALID ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        monitor.log(String.format("INVALID ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         return cursor.step(0, monitor).point;
       }
       double lastValue = (null == lastStep)?Double.POSITIVE_INFINITY:lastStep.point.value;
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
       if (mu >= nu) {
-        monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        monitor.log(String.format("mu >= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if ((nu / mu) < (11.0 / 10.0)) {
-        monitor.log(String.format("mu >= nu: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        monitor.log(String.format("mu >= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if (Math.abs(alpha) < minAlpha) {
         alpha = 1;
-        monitor.log(String.format("MIN ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        monitor.log(String.format("MIN ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
       if (Math.abs(alpha) > maxAlpha) {
         alpha = 1;
-        monitor.log(String.format("MAX ALPHA: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s", startValue, startLineDeriv, mu, alpha, nu));
+        monitor.log(String.format("MAX ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(0, monitor).point;
       }
@@ -77,20 +79,22 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
       lastValue = lastStep.point.value;
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
       if (lastValue > startValue + alpha * c1 * startLineDeriv) {
-        // Armijo condition fails
-        monitor.log(String.format("ARMIJO: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f > %f;th'(alpha)=%f >= %f",
-            startValue, startLineDeriv, mu, alpha, nu, lastValue, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
+        // Value did not decrease (enough) - It is gauranteed to decrease given an infitefimal rate; the rate must be less than this; this is a new ceiling
+        monitor.log(String.format("Armijo: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+        nu = alpha;
+        stepBias = Math.min(-1, stepBias-1);
+      } else  if (isStrongWolfe() && lastStep.derivative > 0) {
+        // If the slope is increasing, then we can go lower by choosing a lower rate; this is a new ceiling
+        monitor.log(String.format("WOLF (strong): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
         nu = alpha;
         stepBias = Math.min(-1, stepBias-1);
       } else if (lastStep.derivative < c2 * startLineDeriv) {
-        // Weak Wolfe condition fails
-        monitor.log(String.format("WOLFE: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%f <= %f;th'(alpha)=%f < %f",
-            startValue, startLineDeriv, mu, alpha, nu, lastValue, startValue + alpha * c1 * startLineDeriv, lastStep.derivative, c2 * startLineDeriv));
+        // Current slope decreases at no more than X - If it is still decreasing that fast, we know we want a rate of least this value; this is a new floor
+        monitor.log(String.format("WOLFE (weak): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
         mu = alpha;
         stepBias = Math.max(1, stepBias+1);
       } else {
-        monitor.log(String.format("END: th(0)=%5f;th'(0)=%5f;\t%s - %s - %s\tth(alpha)=%5f;th'(alpha)=%5f",
-            startValue, startLineDeriv, mu, alpha, nu, lastValue, lastStep.derivative));
+        monitor.log(String.format("END: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
         stepBias = 0;
         return lastStep.point;
       }
@@ -106,7 +110,8 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   public void loosenMetaparameters() {
     c1 *= 0.2;
-    c2 = Math.pow(c2,c2<1?0.3:3);
+    c2 = Math.pow(c2,c2<1?1.5:(1/1.5));
+    strongWolfe = false;
   }
   
   private boolean isAlphaValid() {
@@ -164,6 +169,15 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   public ArmijoWolfeSearch setMaxAlpha(double maxAlpha) {
     this.maxAlpha = maxAlpha;
+    return this;
+  }
+  
+  public boolean isStrongWolfe() {
+    return strongWolfe;
+  }
+  
+  public ArmijoWolfeSearch setStrongWolfe(boolean strongWolfe) {
+    this.strongWolfe = strongWolfe;
     return this;
   }
 }

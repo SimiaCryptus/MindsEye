@@ -106,7 +106,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
           }
         });
         // Execute measurement and return
-        PointSample measurement = subject.measure();
+        PointSample measurement = subject.measure().setRate(alpha);
         return new LineSearchPoint(measurement, dot(currentDirection.vector(), measurement.delta.vector()));
       }
     };
