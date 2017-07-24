@@ -110,10 +110,12 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     Tensor[] output = IntStream.range(0, batch.length)
                            .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
                            .toArray(i -> new Tensor[i]);
-    {
+    try {
       double[][] inputBuffers = Arrays.stream(batch).map(x -> x.getData()).toArray(i -> new double[i][]);
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolutionController.convolve(inputBuffers, this.kernel.getData(), outputBuffers);
+    } catch (Throwable e) {
+      throw new RuntimeException("Error with image res " + Arrays.toString(inputDims),e);
     }
     assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   

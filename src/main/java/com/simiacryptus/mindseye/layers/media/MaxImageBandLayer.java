@@ -92,7 +92,7 @@ public class MaxImageBandLayer extends NNLayer {
     int itemCnt = in.data.length;
     
     final int[] inputDims = in.data[0].getDims();
-      final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxImageBandLayer.CalcRegionsParameter(inputDims, inputDims));
+    final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxImageBandLayer.CalcRegionsParameter(inputDims, inputDims));
     Tensor[] outputA = IntStream.range(0, in.data.length).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> 1).toArray();
       final Tensor output = new Tensor(newDims);

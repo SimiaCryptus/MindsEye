@@ -66,7 +66,7 @@ public class SoftmaxActivationLayer extends NNLayer {
     final Tensor expA[] = new Tensor[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data[dataIndex];
-      assert 1 < input.dim();
+      assert (1 < input.dim()) : "input.dim() = " + input.dim();
       
       final Tensor exp;
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.Util;
@@ -31,12 +32,12 @@ import java.util.Comparator;
 public class LinkedExampleArrayTrainable implements Trainable {
   
   private final Tensor[][][] trainingData;
-  private final DAGNetwork network;
+  private final NNLayer network;
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
   private Tensor[][] sampledData;
   
-  public LinkedExampleArrayTrainable(Tensor[][][] trainingData, DAGNetwork network, int trainingSize) {
+  public LinkedExampleArrayTrainable(Tensor[][][] trainingData, NNLayer network, int trainingSize) {
     this.trainingData = trainingData;
     this.network = network;
     this.trainingSize = trainingSize;
