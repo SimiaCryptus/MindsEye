@@ -26,11 +26,13 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
@@ -53,7 +55,6 @@ public class MaxImageBandLayer extends NNLayer {
   }
   
   
-  private static final Function<MaxImageBandLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxImageBandLayer::calcRegions);
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
   
@@ -61,81 +62,40 @@ public class MaxImageBandLayer extends NNLayer {
     super();
   }
   
-  private static List<Tuple2<Integer, int[]>> calcRegions(final MaxImageBandLayer.CalcRegionsParameter p) {
-    final Tensor input = new Tensor(p.inputDims);
-    final int[] newDims = IntStream.range(0, p.inputDims.length).map(i -> {
-      //assert 0 == p.inputDims[i] % p.kernelDims[i];
-      return (int) Math.ceil(p.inputDims[i] * 1.0 / p.kernelDims[i]);
-    }).toArray();
-    final Tensor output = new Tensor(newDims);
-    
-    return output.coordStream(false).map(o -> {
-      final int[] inCoords = new Tensor(p.kernelDims).coordStream(false).mapToInt(kernelCoord -> {
-        final int[] result = new int[o.coords.length];
-        for (int index = 0; index < o.coords.length; index++) {
-          int outputCoordinate = o.coords[index];
-          int kernelSize = p.kernelDims[index];
-          int baseCoordinate = Math.min(outputCoordinate * kernelSize, p.inputDims[index] - kernelSize);
-          int kernelCoordinate = kernelCoord.coords[index];
-          result[index] = baseCoordinate + kernelCoordinate;
-        }
-        return input.index(result);
-      }).toArray();
-      return new Tuple2<>(o.index, inCoords);
-    }).collect(Collectors.toList());
-  }
-  
   @Override
   public NNResult eval(final NNResult... inObj) {
   
+    assert(1 == inObj.length);
     final NNResult in = inObj[0];
     int itemCnt = in.data.length;
-    
     final int[] inputDims = in.data[0].getDims();
-    final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxImageBandLayer.CalcRegionsParameter(inputDims, inputDims));
-    Tensor[] outputA = IntStream.range(0, in.data.length).mapToObj(dataIndex -> {
-      final int[] newDims = IntStream.range(0, inputDims.length).map(i -> 1).toArray();
-      final Tensor output = new Tensor(newDims);
-      return output;
+    assert(3 == inputDims.length);
+  
+    Coordinate[][] maxCoords = Arrays.stream(in.data).map(data -> {
+      return IntStream.range(0, inputDims[2]).mapToObj(band -> {
+        return data.coordStream().filter(e->e.coords[2]==band).max(Comparator.comparing(c -> data.get(c))).get();
+      }).toArray(i -> new Coordinate[i]);
+    }).toArray(i -> new Coordinate[i][]);
+  
+    Tensor[] results = IntStream.range(0, in.data.length).mapToObj(dataIndex -> {
+      return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).mapToDouble(band -> {
+        int[] maxCoord = maxCoords[dataIndex][band].coords;
+        return in.data[dataIndex].get(maxCoord[0], maxCoord[1], band);
+      }).toArray());
     }).toArray(i -> new Tensor[i]);
-    int sum = Arrays.stream(outputA).mapToInt(x -> x.dim()).sum();
-    @SuppressWarnings("unchecked") final int[][] gradientMapA = new int[in.data.length][];
-    IntStream.range(0, in.data.length).forEach(dataIndex -> {
-      final Tensor input = in.data[dataIndex];
-      final Tensor output = outputA[dataIndex];
-      final IntToDoubleFunction keyExtractor = inputCoords -> input.get(inputCoords);
-      int[] gradientMap = new int[input.dim()];
-      regions.parallelStream().forEach(tuple -> {
-        final Integer from = tuple.getFirst();
-        int[] toList = tuple.getSecond();
-        int toMax = -1;
-        double bestValue = Double.NEGATIVE_INFINITY;
-        for (int c : toList) {
-          double value = keyExtractor.applyAsDouble(c);
-          if (-1 == toMax || bestValue < value) {
-            bestValue = value;
-            toMax = c;
-          }
-        }
-        gradientMap[from] = toMax;
-        output.set(from, input.get(toMax));
-      });
-      gradientMapA[dataIndex] = gradientMap;
-    });
-    return new NNResult(outputA) {
+
+    return new NNResult(results) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (in.isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, in.data.length).parallel().mapToObj(dataIndex -> {
-            final Tensor backSignal = new Tensor(inputDims);
-            int[] ints = gradientMapA[dataIndex];
-            Tensor datum = data[dataIndex];
-            for(int i=0;i<datum.dim();i++){
-              backSignal.add(ints[i], datum.get(i));
-            }
-            return backSignal;
-          }).toArray(i -> new Tensor[i]);
-          in.accumulate(buffer, passbackA);
+          in.accumulate(buffer, IntStream.range(0, in.data.length).parallel().mapToObj(dataIndex -> {
+            Tensor passback = new Tensor(in.data[dataIndex].getDims());
+            IntStream.range(0, inputDims[2]).forEach(b -> {
+              int[] maxCoord = maxCoords[dataIndex][b].coords;
+              passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data[dataIndex].get(0,0,b));
+            });
+            return passback;
+          }).toArray(i -> new Tensor[i]));
         }
       }
       

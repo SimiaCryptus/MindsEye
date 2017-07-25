@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,23 +58,6 @@ public class AvgImageBandLayer extends NNLayer {
   }
   
   
-  public static final LoadingCache<AvgImageBandLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-                                                                                                  .build(new CacheLoader<AvgImageBandLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
-                                                                                                    @Override
-                                                                                                    public Map<Coordinate, List<int[]>> load(final AvgImageBandLayer.IndexMapKey key) throws Exception {
-                                                                                                      final int[] ksize = key.kernel;
-                                                                                                      final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(false).collect(Collectors.toMap(o -> o, o -> {
-                                                                                                        return new Tensor(ksize).coordStream(false).map(kernelCoord -> {
-                                                                                                          final int[] r = new int[o.coords.length];
-                                                                                                          for (int i = 0; i < o.coords.length; i++) {
-                                                                                                            r[i] = o.coords[i] * ksize[i] + kernelCoord.coords[i];
-                                                                                                          }
-                                                                                                          return r;
-                                                                                                        }).collect(Collectors.toList());
-                                                                                                      }));
-                                                                                                      return coordMap;
-                                                                                                    }
-                                                                                                  });
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgImageBandLayer.class);
   
@@ -81,65 +65,40 @@ public class AvgImageBandLayer extends NNLayer {
     super();
   }
   
-  private static Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
-    try {
-      return indexMapCache.get(new AvgImageBandLayer.IndexMapKey(kernelDims, outDims));
-    } catch (final ExecutionException e) {
-      throw new RuntimeException(e);
-    }
-  }
   
   @SuppressWarnings("unchecked")
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int[] inputDims = inObj[0].data[0].getDims();
-    int[] kernelDims = new int[]{ inputDims[0], inputDims[1], 1 };
-    final int kernelSize = new Tensor(kernelDims).dim();
-    int itemCnt = inObj[0].data.length;
-    final Map<Coordinate, List<int[]>> coordMapA[] = new Map[itemCnt];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
-      final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
-        if (!(0 == inputDims[i] % kernelDims[i])) {
-          assert (false);
-        }
-        return inputDims[i] / kernelDims[i];
-      }).toArray();
-      final Tensor output = new Tensor(newDims);
-      final Map<Coordinate, List<int[]>> coordMap = getCoordMap(kernelDims, output.getDims());
-      for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
-        double sum = 0;
-        for (final int[] inputCoord : outputMapping.getValue()) {
-          sum += input.get(inputCoord);
-        }
-        if (Double.isFinite(sum)) {
-          output.add(outputMapping.getKey(), sum / kernelSize);
-        }
-      }
-      coordMapA[dataIndex] = coordMap;
-      return output;
+  
+    assert(1 == inObj.length);
+    final NNResult in = inObj[0];
+    int itemCnt = in.data.length;
+    final int[] inputDims = in.data[0].getDims();
+    assert(3 == inputDims.length);
+  
+    Tensor[] results = Arrays.stream(in.data).map(data -> {
+      return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).mapToDouble(band -> {
+        int pixels = data.getDims()[0] * data.getDims()[1];
+        return data.coordStream().filter(e->e.coords[2]==band).mapToDouble(c -> data.get(c)).sum() / pixels;
+      }).toArray());
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(outputA) {
+  
+    return new NNResult(results) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
-            final Tensor backSignal = new Tensor(inputDims);
-            for (final Entry<Coordinate, List<int[]>> outputMapping : coordMapA[dataIndex].entrySet()) {
-              final double outputValue = data[dataIndex].get(outputMapping.getKey());
-              for (final int[] inputCoord : outputMapping.getValue()) {
-                backSignal.add(inputCoord, outputValue / kernelSize);
-              }
-            }
-            return backSignal;
-          }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, passbackA);
+        if (in.isAlive()) {
+          in.accumulate(buffer, IntStream.range(0, in.data.length).parallel().mapToObj(dataIndex -> {
+            return new Tensor(in.data[dataIndex].getDims()).map((v, c)->{
+              int pixels = in.data[dataIndex].getDims()[0] * in.data[dataIndex].getDims()[1];
+              return data[dataIndex].get(0,0,c.coords[2]) / pixels;
+            });
+          }).toArray(i -> new Tensor[i]));
         }
       }
-      
+    
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive();
+        return in.isAlive();
       }
     };
   }

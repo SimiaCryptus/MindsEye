@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.layers.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxDropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.EntropyLayer;
 import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
+import com.simiacryptus.mindseye.opencl.ConvolutionLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Test;
@@ -51,7 +52,7 @@ public class MediaComponentValidationTests {
   
   @Test
   public void testConvolutionSynapseLayerStress() throws Throwable {
-    final NNLayer component = new ImgConvolutionSynapseLayer(3, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ConvolutionLayer(3, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
     component.eval(NNResult.batchResultArray(IntStream.range(0,1000).mapToObj(i->{
       return new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
     }).map(i->new Tensor[]{i}).toArray(i->new Tensor[i][])));
@@ -77,7 +78,7 @@ public class MediaComponentValidationTests {
   public void testConvolutionSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(3, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ImgConvolutionSynapseLayer(3, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ConvolutionLayer(3, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -85,7 +86,7 @@ public class MediaComponentValidationTests {
   public void testConvolutionSynapseLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 2, 1);
     final Tensor inputPrototype = new Tensor(2, 3, 1).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ImgConvolutionSynapseLayer(2, 2, 1, false).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ConvolutionLayer(2, 2, 1, false).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -93,7 +94,7 @@ public class MediaComponentValidationTests {
   public void testConvolutionSynapseLayer3() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 2);
     final Tensor inputPrototype = new Tensor(1, 1, 2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ImgConvolutionSynapseLayer(1, 1, 4).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ConvolutionLayer(1, 1, 4).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -101,7 +102,7 @@ public class MediaComponentValidationTests {
   public void testConvolutionSynapseLayer4() throws Throwable {
     final Tensor outputPrototype = new Tensor(2, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 5, 2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ImgConvolutionSynapseLayer(2, 3, 4, false).addWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ConvolutionLayer(2, 3, 4, false).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -141,16 +142,16 @@ public class MediaComponentValidationTests {
   
   @Test
   public void testMaxImageBandLayer() throws Throwable {
-    final Tensor outputPrototype = new Tensor(1, 1, 1);
-    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final Tensor outputPrototype = new Tensor(1, 1, 2);
+    final Tensor inputPrototype = new Tensor(2, 2, 2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new MaxImageBandLayer();
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
   @Test
   public void testAvgImageBandLayer() throws Throwable {
-    final Tensor outputPrototype = new Tensor(1, 1, 1);
-    final Tensor inputPrototype = new Tensor(2, 2, 1).fill(() -> Util.R.get().nextGaussian());
+    final Tensor outputPrototype = new Tensor(1, 1, 2);
+    final Tensor inputPrototype = new Tensor(2, 2, 2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new AvgImageBandLayer();
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }

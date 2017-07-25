@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
-import com.simiacryptus.mindseye.layers.media.ImgConvolutionSynapseLayer;
+import com.simiacryptus.mindseye.opencl.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class InceptionLayer extends DAGNetwork {
   
   public final int[][][] kernels;
   private final DAGNode head;
-  List<ImgConvolutionSynapseLayer> convolutionLayers = new ArrayList<>();
+  List<ConvolutionLayer> convolutionLayers = new ArrayList<>();
   
   public InceptionLayer(int[][][] kernels) {
     super(1);
@@ -45,7 +45,7 @@ public class InceptionLayer extends DAGNetwork {
     for(int[][] kernelPipeline : this.kernels) {
       PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
       for(int[] kernel : kernelPipeline) {
-        ImgConvolutionSynapseLayer convolutionSynapseLayer = new ImgConvolutionSynapseLayer(kernel[0], kernel[1], kernel[2]);
+        ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
         convolutionLayers.add(convolutionSynapseLayer);
         kernelPipelineNetwork.add(convolutionSynapseLayer);
       }

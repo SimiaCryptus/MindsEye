@@ -17,13 +17,12 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.media;
+package com.simiacryptus.mindseye.opencl;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.opencl.ConvolutionController;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -34,7 +33,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
-public class ImgConvolutionSynapseLayer extends NNLayer {
+public class ConvolutionLayer extends NNLayer {
   
   
   public JsonObject getJson() {
@@ -45,10 +44,10 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     return json;
   }
   
-  public static ImgConvolutionSynapseLayer fromJson(JsonObject json) {
-    return new ImgConvolutionSynapseLayer(json);
+  public static ConvolutionLayer fromJson(JsonObject json) {
+    return new ConvolutionLayer(json);
   }
-  protected ImgConvolutionSynapseLayer(JsonObject json) {
+  protected ConvolutionLayer(JsonObject json) {
     super(json);
     this.kernel = Tensor.fromJson(json.getAsJsonObject("kernel"));
     this.skip = Tensor.fromJson(json.getAsJsonObject("skip"));
@@ -60,11 +59,11 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
   public final Tensor skip;
   public final boolean simple;
   
-  protected ImgConvolutionSynapseLayer() {
+  protected ConvolutionLayer() {
     this((Tensor)null, (Tensor)null, true);
   }
   
-  protected ImgConvolutionSynapseLayer(Tensor kernel, Tensor skip, boolean simple) {
+  protected ConvolutionLayer(Tensor kernel, Tensor skip, boolean simple) {
     super();
     this.simple = simple;
     this.skip = skip;
@@ -75,25 +74,25 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     this.kernel = kernel;
   }
   
-  public ImgConvolutionSynapseLayer(final int width, int height, final int inputBands, final int outputBands) {
+  public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
   
-  public ImgConvolutionSynapseLayer(final int width, int height, final int bands, boolean simple) {
+  public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
     this(new Tensor(width,height,bands), new Tensor(new int[]{1,1}), simple);
     assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
     assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
   }
   
-  public ImgConvolutionSynapseLayer(final int width, int height, final int bands) {
+  public ConvolutionLayer(final int width, int height, final int bands) {
     this(width, height, bands, true);
   }
   
-  public ImgConvolutionSynapseLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
+  public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
     this(width, height, inputBands * outputBands, simple);
   }
   
-  public ImgConvolutionSynapseLayer addWeights(final DoubleSupplier f) {
+  public ConvolutionLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.kernel.getData());
     return this;
   }
@@ -126,16 +125,16 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
         if (!isFrozen()) {
           double[][] inputBuffers = Arrays.stream(batch).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
-          final Tensor kernel = ImgConvolutionSynapseLayer.this.kernel;
+          final Tensor kernel = ConvolutionLayer.this.kernel;
           final Tensor weightGradient = new Tensor(kernel.getDims());
           convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
-          buffer.get(ImgConvolutionSynapseLayer.this, kernel).accumulate(weightGradient.getData());
+          buffer.get(ConvolutionLayer.this, kernel).accumulate(weightGradient.getData());
         }
         if (input.isAlive()) {
           Tensor[] inputBufferTensors = IntStream.range(0, data.length).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
-          convolutionController.backprop(inputBuffers, ImgConvolutionSynapseLayer.this.kernel.getData(), outputBuffers);
+          convolutionController.backprop(inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
           assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           input.accumulate(buffer, inputBufferTensors);
         }
@@ -148,14 +147,14 @@ public class ImgConvolutionSynapseLayer extends NNLayer {
     };
   }
   
-  public ImgConvolutionSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+  public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     this.kernel.coordStream().parallel().forEach(c -> {
       this.kernel.set(c, f.applyAsDouble(c));
     });
     return this;
   }
   
-  public ImgConvolutionSynapseLayer setWeights(final DoubleSupplier f) {
+  public ConvolutionLayer setWeights(final DoubleSupplier f) {
     this.kernel.coordStream().parallel().forEach(c -> {
       this.kernel.set(c, f.getAsDouble());
     });
