@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opencl;
+package com.simiacryptus.mindseye.layers.opencl;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;

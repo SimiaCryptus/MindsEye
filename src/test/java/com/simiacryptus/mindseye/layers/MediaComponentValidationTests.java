@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.activation.MaxConstLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxDropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.EntropyLayer;
 import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
-import com.simiacryptus.mindseye.opencl.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.opencl.ConvolutionLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Test;

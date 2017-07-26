@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opencl;
+package com.simiacryptus.mindseye.layers.opencl;
 
 import com.aparapi.Kernel;
 import com.aparapi.Kernel.EXECUTION_MODE;
