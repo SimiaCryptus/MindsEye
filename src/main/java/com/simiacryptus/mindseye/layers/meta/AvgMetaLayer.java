@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
@@ -60,10 +59,10 @@ public class AvgMetaLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
-    int itemCnt = input.data.length;
-    Tensor result = input.data[0].mapParallel((v, c) ->
+    int itemCnt = input.data.length();
+    Tensor result = input.data.get(0).mapParallel((v, c) ->
                                                   IntStream.range(0, itemCnt)
-                                                      .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
+                                                      .mapToDouble(dataIndex -> input.data.get(dataIndex).get(c))
                                                       .average().orElse(0.0));
     lastResult = result;
     return new NNResult(result) {
@@ -72,7 +71,7 @@ public class AvgMetaLayer extends NNLayer {
         if (input.isAlive()) {
           Tensor delta = data[0];
           Tensor feedback[] = new Tensor[itemCnt];
-          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDims()));
+          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
           ((null==result)?lastResult:result).mapParallel((rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);

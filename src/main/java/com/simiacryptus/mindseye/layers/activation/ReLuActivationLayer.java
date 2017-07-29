@@ -23,16 +23,13 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
@@ -75,10 +72,10 @@ public class ReLuActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    int itemCnt = inObj[0].data.length;
+    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    int itemCnt = inObj[0].data.length();
     Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
+      final Tensor input = inObj[0].data.get(dataIndex);
       final double a = this.weights.get(0);
       final Tensor output = input.multiply(a);
       double[] outputData = output.getData();
@@ -125,8 +122,8 @@ public class ReLuActivationLayer extends NNLayer {
       if (!isFrozen()) {
         IntStream.range(0, delta.length).parallel().forEach(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
-          final double[] inputData = this.inObj.data[dataIndex].getData();
-          final Tensor weightDelta = new Tensor(ReLuActivationLayer.this.weights.getDims());
+          final double[] inputData = this.inObj.data.get(dataIndex).getData();
+          final Tensor weightDelta = new Tensor(ReLuActivationLayer.this.weights.getDimensions());
           double[] weightDeltaData = weightDelta.getData();
           for (int i = 0; i < deltaData.length; i++) {
             weightDeltaData[0] = inputData[i] < 0 ? 0 : (deltaData[i] * inputData[i]);
@@ -138,8 +135,8 @@ public class ReLuActivationLayer extends NNLayer {
         double v = ReLuActivationLayer.this.weights.getData()[0];
         Tensor[] passbackA = IntStream.range(0, delta.length).parallel().mapToObj(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
-          final double[] inputData = this.inObj.data[dataIndex].getData();
-          final int[] dims = this.inObj.data[dataIndex].getDims();
+          final double[] inputData = this.inObj.data.get(dataIndex).getData();
+          final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, inputData[i] < 0 ? 0 : (deltaData[i] * v));

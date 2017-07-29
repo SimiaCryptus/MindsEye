@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorArray;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.activation.DropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.GaussianNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;
@@ -40,22 +42,22 @@ import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class AutoencoderNetwork {
   
   public static class RecursiveBuilder {
     
-    private final List<Tensor[]> representations = new ArrayList<>();
+    private final List<TensorList> representations = new ArrayList<>();
     private final List<int[]> dimensions = new ArrayList<>();
     private final List<AutoencoderNetwork> layers = new ArrayList<>();
     
-    public RecursiveBuilder(Tensor[] data) {
+    public RecursiveBuilder(TensorList data) {
       representations.add(data);
-      dimensions.add(data[0].getDims());
+      dimensions.add(data.get(0).getDimensions());
     }
   
     public void trainingMode() {
@@ -74,15 +76,15 @@ public class AutoencoderNetwork {
       trainingMode();
       AutoencoderNetwork newLayer = configure(newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
 
-      Tensor[] data = representations.get(representations.size() - 1);
+      TensorList data = representations.get(representations.size() - 1);
       dimensions.add(dims);
       layers.add(newLayer);
 
       if(pretrainingSize > 0 && pretrainIterations > 0 && pretrainingMinutes > 0) {
-        ArrayList<Tensor> list = new ArrayList<>(Arrays.asList(data));
+        ArrayList<Tensor> list = new ArrayList<>(data.stream().collect(Collectors.toList()));
         Collections.shuffle(list);
         Tensor[] pretrainingSet = list.subList(0, pretrainingSize).toArray(new Tensor[]{});
-        configure(newLayer.train()).setMaxIterations(pretrainIterations).setTimeoutMinutes(pretrainingMinutes).run(pretrainingSet);
+        configure(newLayer.train()).setMaxIterations(pretrainIterations).setTimeoutMinutes(pretrainingMinutes).run(new TensorArray(pretrainingSet));
       }
       newLayer.decoderSynapse = ((TransposedSynapseLayer)newLayer.decoderSynapse).asNewSynapseLayer();
       newLayer.decoderSynapsePlaceholder.setInner(newLayer.decoderSynapse);
@@ -237,9 +239,9 @@ public class AutoencoderNetwork {
     this.decoder.add(decoderActivation);
   }
   
-  public Tensor[] encode(Tensor[] data) {
+  public TensorList encode(TensorList data) {
     return encoder.getLayer()
-               .eval(NNResult.batchResultArray(Arrays.stream(data).map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+               .eval(NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
                .data;
   }
   
@@ -312,9 +314,9 @@ public class AutoencoderNetwork {
     private double endFitness = Double.NEGATIVE_INFINITY;
     private int maxIterations = Integer.MAX_VALUE;
   
-    public void run(Tensor... data) {
+    public void run(TensorList data) {
       SimpleLossNetwork trainingNetwork = getTrainingNetwork();
-      StochasticArrayTrainable trainable = new StochasticArrayTrainable(Arrays.stream(data).map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
+      StochasticArrayTrainable trainable = new StochasticArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
       L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
       IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());

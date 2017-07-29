@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
@@ -98,11 +97,11 @@ public class MaxSubsampleLayer extends NNLayer {
   public NNResult eval(final NNResult... inObj) {
   
     final NNResult in = inObj[0];
-    int itemCnt = in.data.length;
+    int itemCnt = in.data.length();
     
-    final int[] inputDims = in.data[0].getDims();
+    final int[] inputDims = in.data.get(0).getDimensions();
       final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxSubsampleLayer.CalcRegionsParameter(inputDims, this.kernelDims));
-    Tensor[] outputA = IntStream.range(0, in.data.length).mapToObj(dataIndex -> {
+    Tensor[] outputA = IntStream.range(0, in.data.length()).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         return (int) Math.ceil(inputDims[i] * 1.0 / this.kernelDims[i]);
       }).toArray();
@@ -110,9 +109,9 @@ public class MaxSubsampleLayer extends NNLayer {
       return output;
     }).toArray(i -> new Tensor[i]);
     int sum = Arrays.stream(outputA).mapToInt(x -> x.dim()).sum();
-    @SuppressWarnings("unchecked") final int[][] gradientMapA = new int[in.data.length][];
-    IntStream.range(0, in.data.length).forEach(dataIndex -> {
-      final Tensor input = in.data[dataIndex];
+    @SuppressWarnings("unchecked") final int[][] gradientMapA = new int[in.data.length()][];
+    IntStream.range(0, in.data.length()).forEach(dataIndex -> {
+      final Tensor input = in.data.get(dataIndex);
       final Tensor output = outputA[dataIndex];
       final IntToDoubleFunction keyExtractor = inputCoords -> input.get(inputCoords);
       int[] gradientMap = new int[input.dim()];
@@ -137,7 +136,7 @@ public class MaxSubsampleLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (in.isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, in.data.length).parallel().mapToObj(dataIndex -> {
+          Tensor[] passbackA = IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
             final Tensor backSignal = new Tensor(inputDims);
             int[] ints = gradientMapA[dataIndex];
             Tensor datum = data[dataIndex];

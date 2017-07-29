@@ -20,17 +20,11 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.activation.L1NormalizationLayer;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class SumInputsLayer extends NNLayer {
@@ -50,11 +44,11 @@ public class SumInputsLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    Tensor[] data = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
-      return IntStream.range(0, l.length)
-                 .parallel()
-                 .mapToObj(i->Tensor.add(l[i], r[i]))
-                 .toArray(i->new Tensor[i]);
+    TensorList data = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
+      return new TensorArray(IntStream.range(0, l.length())
+              .parallel()
+              .mapToObj(i->Tensor.add(l.get(i), r.get(i)))
+              .toArray(i->new Tensor[i]));
     }).get();
     return new NNResult(data) {
       @Override

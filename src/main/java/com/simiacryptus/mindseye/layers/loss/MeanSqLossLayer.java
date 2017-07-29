@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class MeanSqLossLayer extends NNLayer {
@@ -58,14 +57,14 @@ public class MeanSqLossLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     if(2 != inObj.length) throw new IllegalArgumentException();
-    if(inObj[0].data.length != inObj[1].data.length) throw new IllegalArgumentException();
-    assert Arrays.stream(inObj).flatMapToDouble(input->Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    Tensor rA[] = new Tensor[inObj[0].data.length];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex -> {
-      final Tensor a = inObj[0].data[dataIndex];
-      final Tensor b = inObj[1].data[dataIndex];
-      if(a.dim() != b.dim()) throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDims()), Arrays.toString(b.getDims())));
-      final Tensor r = new Tensor(a.getDims());
+    if(inObj[0].data.length() != inObj[1].data.length()) throw new IllegalArgumentException();
+    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    Tensor rA[] = new Tensor[inObj[0].data.length()];
+    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
+      final Tensor a = inObj[0].data.get(dataIndex);
+      final Tensor b = inObj[1].data.get(dataIndex);
+      if(a.dim() != b.dim()) throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
+      final Tensor r = new Tensor(a.getDimensions());
       double total = 0;
       for (int i = 0; i < a.dim(); i++) {
         final double x = a.getData()[i] - b.getData()[i];
@@ -81,8 +80,8 @@ public class MeanSqLossLayer extends NNLayer {
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length).parallel().mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(inObj[0].data[0].getDims());
+          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
+            final Tensor passback = new Tensor(inObj[0].data.get(0).getDimensions());
             final int adim = passback.dim();
             final double data0 = data[dataIndex].get(0);
             for (int i = 0; i < adim; i++) {

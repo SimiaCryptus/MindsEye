@@ -104,11 +104,11 @@ public class AvgSubsampleLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     final int kernelSize = new Tensor(this.kernelDims).dim();
-    final int[] inputDims = inObj[0].data[0].getDims();
-    int itemCnt = inObj[0].data.length;
+    final int[] inputDims = inObj[0].data.get(0).getDimensions();
+    int itemCnt = inObj[0].data.length();
     final Map<Coordinate, List<int[]>> coordMapA[] = new Map[itemCnt];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
+    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
+      final Tensor input = inObj[0].data.get(dataIndex);
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         if (!(0 == inputDims[i] % this.kernelDims[i])) {
           assert (false) : inputDims[i] + ":" + this.kernelDims[i];
@@ -116,7 +116,7 @@ public class AvgSubsampleLayer extends NNLayer {
         return inputDims[i] / this.kernelDims[i];
       }).toArray();
       final Tensor output = new Tensor(newDims);
-      final Map<Coordinate, List<int[]>> coordMap = getCoordMap(this.kernelDims, output.getDims());
+      final Map<Coordinate, List<int[]>> coordMap = getCoordMap(this.kernelDims, output.getDimensions());
       for (final Entry<Coordinate, List<int[]>> outputMapping : coordMap.entrySet()) {
         double sum = 0;
         for (final int[] inputCoord : outputMapping.getValue()) {
@@ -133,7 +133,7 @@ public class AvgSubsampleLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
+          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
             final Tensor backSignal = new Tensor(inputDims);
             for (final Entry<Coordinate, List<int[]>> outputMapping : coordMapA[dataIndex].entrySet()) {
               final double outputValue = data[dataIndex].get(outputMapping.getKey());
@@ -171,8 +171,8 @@ public class AvgSubsampleLayer extends NNLayer {
     
     public IndexMapKey(final Tensor kernel, final Tensor input, final Tensor output) {
       super();
-      this.kernel = kernel.getDims();
-      this.output = output.getDims();
+      this.kernel = kernel.getDimensions();
+      this.output = output.getDimensions();
     }
     
     @Override

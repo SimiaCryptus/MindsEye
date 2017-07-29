@@ -44,7 +44,7 @@ public class TransposedSynapseLayer extends MappedSynapseLayer {
   @Override
   public Tensor buildWeights() {
     Tensor weights = sibling.getWeights();
-    int[] dims = weights.getDims();
+    int[] dims = weights.getDimensions();
     assert (2 == dims.length);
     double[] data = weights.getData();
     return new Tensor(new int[]{dims[1], dims[0]}, data);

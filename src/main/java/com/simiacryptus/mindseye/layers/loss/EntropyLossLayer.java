@@ -55,12 +55,12 @@ public class EntropyLossLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    Tensor gradientA[] = new Tensor[inObj[0].data.length];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
-      final Tensor l = inObj[0].data[dataIndex];
-      final Tensor b = inObj[1].data[dataIndex];
+    Tensor gradientA[] = new Tensor[inObj[0].data.length()];
+    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
+      final Tensor l = inObj[0].data.get(dataIndex);
+      final Tensor b = inObj[1].data.get(dataIndex);
       assert (l.dim() == b.dim()) : l.dim() + " != " + b.dim();
-      final Tensor gradient = new Tensor(l.getDims());
+      final Tensor gradient = new Tensor(l.getDimensions());
       gradientA[dataIndex] = gradient;
       final double[] gradientData = gradient.getData();
       final double descriptiveNats;
@@ -79,9 +79,9 @@ public class EntropyLossLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length).mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(gradientA[dataIndex].getDims());
-            for (int i = 0; i < inObj[0].data[0].dim(); i++) {
+          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
+            final Tensor passback = new Tensor(gradientA[dataIndex].getDimensions());
+            for (int i = 0; i < inObj[0].data.get(0).dim(); i++) {
               passback.set(i, data[dataIndex].get(0) * gradientA[dataIndex].get(i));
             }
             return passback;

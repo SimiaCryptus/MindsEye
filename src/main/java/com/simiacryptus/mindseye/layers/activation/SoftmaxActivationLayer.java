@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -61,18 +60,18 @@ public class SoftmaxActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
+    int itemCnt = inObj[0].data.length();
     double[] sumA = new double[itemCnt];
     final Tensor expA[] = new Tensor[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
+      final Tensor input = inObj[0].data.get(dataIndex);
       assert (1 < input.dim()) : "input.dim() = " + input.dim();
       
       final Tensor exp;
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
       final double max = summaryStatistics.getMax();
       //final double min = summaryStatistics.getMin();
-      exp = inObj[0].data[dataIndex].map(x -> {
+      exp = inObj[0].data.get(dataIndex).map(x -> {
         return Double.isFinite(x) ? x : 0;
       }).map(x -> Math.exp(x - max));
       
@@ -91,7 +90,7 @@ public class SoftmaxActivationLayer extends NNLayer {
           Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
             final double[] delta = data[dataIndex].getData();
             final double[] expdata = expA[dataIndex].getData();
-            final Tensor passback = new Tensor(data[dataIndex].getDims());
+            final Tensor passback = new Tensor(data[dataIndex].getDimensions());
             final int dim = expdata.length;
             double dot = 0;
             for (int i = 0; i < expdata.length; i++) {

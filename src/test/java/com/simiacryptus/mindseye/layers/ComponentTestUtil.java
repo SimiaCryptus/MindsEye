@@ -59,7 +59,7 @@ public class ComponentTestUtil {
         public void accumulate(final DeltaSet buffer, final Tensor[] data) {
           Assert.assertEquals(1, data.length);
           IntStream.range(0, data.length).forEach(dataIndex -> {
-            Assert.assertArrayEquals(inputPrototype[inputIndex].getDims(), data[dataIndex].getDims());
+            Assert.assertArrayEquals(inputPrototype[inputIndex].getDimensions(), data[dataIndex].getDimensions());
             for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
               gradientBuffer.set(new int[]{i, j_}, data[dataIndex].getData()[i]);
             }
@@ -71,7 +71,7 @@ public class ComponentTestUtil {
           return true;
         }
       };
-      component.eval(copyInput).accumulate(new DeltaSet(), new Tensor[]{new Tensor(outputPrototype.getDims()).fill((k) -> k == j_ ? 1 : 0)});
+      component.eval(copyInput).accumulate(new DeltaSet(), new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)});
     }
     return new Tensor[]{ gradientBuffer };
   }
@@ -83,7 +83,7 @@ public class ComponentTestUtil {
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final DeltaSet buffer = new DeltaSet();
-      component.eval(inputPrototype).accumulate(buffer, new Tensor[]{new Tensor(outputPrototype.getDims()).fill((k) -> k == j_ ? 1 : 0)});
+      component.eval(inputPrototype).accumulate(buffer, new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)});
       final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.delta[i]);
@@ -94,14 +94,14 @@ public class ComponentTestUtil {
   
   public static Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    final Tensor baseOutput = component.eval(inputPrototype).data[0];
+    final Tensor baseOutput = component.eval(inputPrototype).data.get(0);
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
       final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, deltaFactor * 1);
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-      final Tensor evalProbe = component.eval(copyInput).data[0];
+      final Tensor evalProbe = component.eval(copyInput).data.get(0);
       final Tensor delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
       for (int j = 0; j < delta.dim(); j++) {
         measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
@@ -113,11 +113,11 @@ public class ComponentTestUtil {
   public static Tensor measureLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-    final Tensor baseOutput = component.eval(inputPrototype).data[0];
+    final Tensor baseOutput = component.eval(inputPrototype).data.get(0);
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += deltaFactor;
-      final Tensor evalProbe = copy.eval(inputPrototype).data[0];
+      final Tensor evalProbe = copy.eval(inputPrototype).data.get(0);
       final Tensor delta = evalProbe.minus(baseOutput).scale(1. / deltaFactor);
       for (int j = 0; j < delta.dim(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
@@ -163,7 +163,7 @@ public class ComponentTestUtil {
         log.debug(String.format("Error Comparing element %s in learning", i1));
         log.debug(String.format("Component: %s", component));
         log.debug(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
-        log.debug(String.format("Outputs: %s", component.eval(inputPrototype).data[0]));
+        log.debug(String.format("Outputs: %s", component.eval(inputPrototype).data.get(0)));
         log.debug(String.format("Measured Gradient: %s", measuredGradient));
         log.debug(String.format("Implemented Gradient: %s", implementedGradient));
         log.debug(String.format("%s", measuredGradient.minus(implementedGradient)));

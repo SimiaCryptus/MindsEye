@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.synapse;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
@@ -32,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
@@ -82,14 +78,14 @@ public class BiasLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    Tensor[] input;
+    TensorList input;
     if(0==inObj.length) {
-      input = new Tensor[]{};
+      input = new TensorArray();
     } else {
       input = inObj[0].data;
     }
-    Tensor[] outputA = Arrays.stream(input).parallel()
-                           .map(r -> new Tensor(r.getDims(), add(r.getData())))
+    Tensor[] outputA = input.stream().parallel()
+                           .map(r -> new Tensor(r.getDimensions(), add(r.getData())))
                            .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override

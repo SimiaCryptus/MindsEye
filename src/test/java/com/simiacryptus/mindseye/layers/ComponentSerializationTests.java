@@ -58,7 +58,7 @@ public class ComponentSerializationTests {
     Tensor input = new Tensor(2, 2).fill(() -> random.nextDouble());
     NNResult a = network.eval(input);
     NNResult b = copy.eval(input);
-    Assert.assertArrayEquals(a.data[0].getData(),b.data[0].getData(), 1e-8);
+    Assert.assertArrayEquals(a.data.get(0).getData(),b.data.get(0).getData(), 1e-8);
   
   
   }

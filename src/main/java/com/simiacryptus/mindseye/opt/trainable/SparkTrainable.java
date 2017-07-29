@@ -95,7 +95,7 @@ public class SparkTrainable implements Trainable {
       NNResult eval = network.eval(NNResult.batchResultArray(tensors));
       DeltaSet deltaSet = new DeltaSet();
       eval.accumulate(deltaSet);
-      double[] doubles = Arrays.stream(eval.data).mapToDouble(x -> x.getData()[0]).toArray();
+      double[] doubles = eval.data.stream().mapToDouble(x -> x.getData()[0]).toArray();
       return Arrays.asList(SparkTrainable.getResult(deltaSet, doubles)).iterator();
     }
   }

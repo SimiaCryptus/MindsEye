@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
@@ -54,10 +53,10 @@ public class BiasMetaLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
+    int itemCnt = inObj[0].data.length();
     Tensor[] tensors = IntStream.range(0, itemCnt)
                            .parallel()
-                           .mapToObj(dataIndex -> inObj[0].data[dataIndex].map((v,c)->v + inObj[1].data[0].get(c)))
+                           .mapToObj(dataIndex -> inObj[0].data.get(dataIndex).map((v,c)->v + inObj[1].data.get(0).get(c)))
                            .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override

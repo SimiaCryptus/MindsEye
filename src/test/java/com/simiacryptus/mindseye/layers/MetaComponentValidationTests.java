@@ -64,7 +64,7 @@ public class MetaComponentValidationTests {
             return true;
           }
         };
-        Tensor[] deltas = Arrays.stream(outputPrototype).map(x -> new Tensor(x.getDims())).toArray(i -> new Tensor[i]);
+        Tensor[] deltas = Arrays.stream(outputPrototype).map(x -> new Tensor(x.getDimensions())).toArray(i -> new Tensor[i]);
         deltas[outItem].set(outputCoord, 1);
         component.eval(copyInput).accumulate(new DeltaSet(), deltas);
       }
@@ -78,15 +78,15 @@ public class MetaComponentValidationTests {
                                                         .mapToObj(j -> new Tensor(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
                                                         .toArray(j -> new Tensor[j]))
                                      .toArray(i -> new Tensor[i][]);
-    final Tensor[] baseOutput = component.eval(inputPrototype).data;
+    final TensorList baseOutput = component.eval(inputPrototype).data;
     for (int inputItem = 0; inputItem < inputPrototype[inputIndex].length; inputItem++) {
       for (int inputCoord = 0; inputCoord < inputPrototype[inputIndex][inputItem].dim(); inputCoord++) {
         final Tensor[][] copyInput = Arrays.stream(inputPrototype)
                                          .map(a -> Arrays.stream(a).map(b -> b.copy()).toArray(ii -> new Tensor[ii])).toArray(ii -> new Tensor[ii][]);
         copyInput[inputIndex][inputItem].add(inputCoord, deltaFactor * 1);
-        final Tensor[] probeOutput = component.eval(copyInput).data;
-        for (int outputItem = 0; outputItem < probeOutput.length; outputItem++) {
-          double[] deltaData = probeOutput[outputItem].minus(baseOutput[outputItem]).scale(1. / deltaFactor).getData();
+        final TensorList probeOutput = component.eval(copyInput).data;
+        for (int outputItem = 0; outputItem < probeOutput.length(); outputItem++) {
+          double[] deltaData = probeOutput.get(outputItem).minus(baseOutput.get(outputItem)).scale(1. / deltaFactor).getData();
           for (int outputCoord = 0; outputCoord < deltaData.length; outputCoord++) {
             gradients[inputItem][outputItem].set(new int[]{inputCoord, outputCoord}, deltaData[outputCoord]);
           }
@@ -105,7 +105,7 @@ public class MetaComponentValidationTests {
         final int outputCoord = outCoord;
         final DeltaSet buffer = new DeltaSet();
         NNResult eval = component.eval(inputPrototype);
-        Tensor[] feedback = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(outputPrototype[0].getDims())).toArray(i -> new Tensor[i]);
+        Tensor[] feedback = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(outputPrototype[0].getDimensions())).toArray(i -> new Tensor[i]);
         feedback[outputItem].getData()[outputCoord] = 1;
         eval.accumulate(buffer, feedback);
         final DeltaBuffer delta = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
@@ -126,7 +126,7 @@ public class MetaComponentValidationTests {
       copy.state().get(layerNum)[stateIdx] += deltaFactor;
       NNResult eval = copy.eval(inputPrototype);
       for (int outputItem = 0; outputItem < outputPrototype.length; outputItem++) {
-        final Tensor delta = eval.data[outputItem].minus(baseEval.data[outputItem]).scale(1. / deltaFactor);
+        final Tensor delta = eval.data.get(outputItem).minus(baseEval.data.get(outputItem)).scale(1. / deltaFactor);
         for (int outputCoord = 0; outputCoord < delta.dim(); outputCoord++) {
           gradient[outputItem].set(new int[]{stateIdx, outputCoord}, delta.getData()[outputCoord]);
         }
@@ -201,7 +201,7 @@ public class MetaComponentValidationTests {
   public void testBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
+    final NNLayer component = new BiasLayer(outputPrototype.getDimensions()).setWeights(i -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
   @Test

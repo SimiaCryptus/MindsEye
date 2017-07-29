@@ -43,7 +43,7 @@ public class BasicComponentValidationTests {
   @Test
   public void testConstNNLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
-    final NNLayer component = new ConstNNLayer(new Tensor(outputPrototype.getDims()).map(i -> Util.R.get().nextGaussian()));
+    final NNLayer component = new ConstNNLayer(new Tensor(outputPrototype.getDimensions()).map(i -> Util.R.get().nextGaussian()));
     ComponentTestUtil.test(component, outputPrototype);
   }
   
@@ -51,7 +51,7 @@ public class BasicComponentValidationTests {
   public void testBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new BiasLayer(outputPrototype.getDims()).setWeights(i -> Util.R.get().nextGaussian());
+    final NNLayer component = new BiasLayer(outputPrototype.getDimensions()).setWeights(i -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -59,7 +59,7 @@ public class BasicComponentValidationTests {
   public void testImgBandBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2,2,3);
     final Tensor inputPrototype = new Tensor(2,2,3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new ImgBandBiasLayer(outputPrototype.getDims()[2]).setWeights(i -> Util.R.get().nextGaussian());
+    final NNLayer component = new ImgBandBiasLayer(outputPrototype.getDimensions()[2]).setWeights(i -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -67,7 +67,7 @@ public class BasicComponentValidationTests {
   public void testDenseSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new JavaDenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new JavaDenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDimensions()).setWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -75,7 +75,7 @@ public class BasicComponentValidationTests {
   public void testToeplitzSynapseLayer1() throws Throwable {
     final Tensor inputPrototype = new Tensor(3, 3).fill(() -> Util.R.get().nextGaussian());
     final Tensor outputPrototype = new Tensor(3, 3);
-    final NNLayer component = new ToeplitzSynapseLayer(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ToeplitzSynapseLayer(inputPrototype.getDimensions(), outputPrototype.getDimensions()).setWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -83,7 +83,7 @@ public class BasicComponentValidationTests {
   public void testToeplitzSynapseLayer2() throws Throwable {
     final Tensor inputPrototype = new Tensor(3, 3).fill(() -> Util.R.get().nextGaussian());
     final Tensor outputPrototype = new Tensor(3, 3, 2, 3);
-    final NNLayer component = new ToeplitzSynapseLayer(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new ToeplitzSynapseLayer(inputPrototype.getDimensions(), outputPrototype.getDimensions()).setWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -91,7 +91,7 @@ public class BasicComponentValidationTests {
   public void testDenseSynapseLayerJBLAS1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new DenseSynapseLayer(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new DenseSynapseLayer(inputPrototype.getDimensions(), outputPrototype.getDimensions()).setWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
@@ -99,7 +99,7 @@ public class BasicComponentValidationTests {
   public void testTransposedSynapseLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new TransposedSynapseLayer(new DenseSynapseLayer(inputPrototype.getDims(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian()));
+    final NNLayer component = new TransposedSynapseLayer(new DenseSynapseLayer(inputPrototype.getDimensions(), outputPrototype.getDimensions()).setWeights(() -> Util.R.get().nextGaussian()));
     ComponentTestUtil.test(component, inputPrototype, outputPrototype);
   }
   
@@ -107,7 +107,7 @@ public class BasicComponentValidationTests {
   public void testDenseSynapseLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
     final Tensor inputPrototype = new Tensor(3).fill(() -> Util.R.get().nextGaussian());
-    final NNLayer component = new JavaDenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDims()).setWeights(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new JavaDenseSynapseLayer(inputPrototype.dim(), outputPrototype.getDimensions()).setWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   

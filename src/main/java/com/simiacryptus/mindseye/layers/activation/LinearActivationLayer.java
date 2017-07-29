@@ -23,17 +23,12 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
-import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
-import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
 public class LinearActivationLayer extends NNLayer {
@@ -66,11 +61,11 @@ public class LinearActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
+    int itemCnt = inObj[0].data.length();
     final double scale = this.weights.get(0);
     final double bias = this.weights.get(1);
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
+      final Tensor input = inObj[0].data.get(dataIndex);
       return input.map(v->scale*v+bias);
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
@@ -113,8 +108,8 @@ public class LinearActivationLayer extends NNLayer {
       if (!isFrozen()) {
         IntStream.range(0, delta.length).forEach(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
-          final double[] inputData = this.inObj.data[dataIndex].getData();
-          final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDims());
+          final double[] inputData = this.inObj.data.get(dataIndex).getData();
+          final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             weightDelta.add(0, deltaData[i] * inputData[i]);
             weightDelta.add(1, deltaData[i]);
@@ -125,7 +120,7 @@ public class LinearActivationLayer extends NNLayer {
       if (this.inObj.isAlive()) {
         Tensor[] passbackA = IntStream.range(0, delta.length).mapToObj(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
-          final int[] dims = this.inObj.data[dataIndex].getDims();
+          final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i] * LinearActivationLayer.this.weights.getData()[0]);

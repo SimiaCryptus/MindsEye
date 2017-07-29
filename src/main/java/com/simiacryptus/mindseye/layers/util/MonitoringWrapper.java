@@ -93,7 +93,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     final NNResult result = this.getInner().eval(inObj);
     forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
-    totalItems += inObj[0].data.length;
+    totalItems += inObj[0].data.length();
     return new NNResult(result.data) {
       @Override
       public void accumulate(DeltaSet buffer, Tensor[] data) {

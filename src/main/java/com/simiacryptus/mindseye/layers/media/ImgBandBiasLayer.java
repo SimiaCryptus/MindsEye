@@ -94,13 +94,13 @@ public class ImgBandBiasLayer extends NNLayer {
   
   public NNResult eval(NNResult input) {
     final double[] bias = getBias();
-    assert Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-    Tensor[] outputA = Arrays.stream(input.data).parallel()
+    assert input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    Tensor[] outputA = input.data.stream().parallel()
                            .map(r -> {
-                             if(r.getDims().length != 3) throw new IllegalArgumentException(Arrays.toString(r.getDims()));
-                             if(r.getDims()[2] != bias.length) throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-                                 getName(), Arrays.toString(r.getDims()), bias.length));
-                             return new Tensor(r.getDims(), add(r.getData()));
+                             if(r.getDimensions().length != 3) throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
+                             if(r.getDimensions()[2] != bias.length) throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
+                                 getName(), Arrays.toString(r.getDimensions()), bias.length));
+                             return new Tensor(r.getDimensions(), add(r.getData()));
                            })
                            .toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));

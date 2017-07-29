@@ -48,7 +48,7 @@ public class CrossDifferenceLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert(1 == inObj.length);
-    return new NNResult(Arrays.stream(inObj[0].data).parallel().map(tensor->{
+    return new NNResult(inObj[0].data.stream().parallel().map(tensor->{
       int inputDim = tensor.dim();
       int outputDim = (inputDim * inputDim - inputDim) / 2;
       Tensor result = new Tensor(outputDim);

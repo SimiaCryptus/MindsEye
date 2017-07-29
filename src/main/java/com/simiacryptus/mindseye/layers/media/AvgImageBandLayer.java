@@ -19,27 +19,18 @@
 
 package com.simiacryptus.mindseye.layers.media;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class AvgImageBandLayer extends NNLayer {
@@ -72,13 +63,13 @@ public class AvgImageBandLayer extends NNLayer {
   
     assert(1 == inObj.length);
     final NNResult in = inObj[0];
-    int itemCnt = in.data.length;
-    final int[] inputDims = in.data[0].getDims();
+    int itemCnt = in.data.length();
+    final int[] inputDims = in.data.get(0).getDimensions();
     assert(3 == inputDims.length);
   
-    Tensor[] results = Arrays.stream(in.data).map(data -> {
+    Tensor[] results = in.data.stream().map(data -> {
       return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).mapToDouble(band -> {
-        int pixels = data.getDims()[0] * data.getDims()[1];
+        int pixels = data.getDimensions()[0] * data.getDimensions()[1];
         return data.coordStream().filter(e->e.coords[2]==band).mapToDouble(c -> data.get(c)).sum() / pixels;
       }).toArray());
     }).toArray(i -> new Tensor[i]);
@@ -87,9 +78,9 @@ public class AvgImageBandLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (in.isAlive()) {
-          in.accumulate(buffer, IntStream.range(0, in.data.length).parallel().mapToObj(dataIndex -> {
-            return new Tensor(in.data[dataIndex].getDims()).map((v, c)->{
-              int pixels = in.data[dataIndex].getDims()[0] * in.data[dataIndex].getDims()[1];
+          in.accumulate(buffer, IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
+            return new Tensor(in.data.get(dataIndex).getDimensions()).map((v, c)->{
+              int pixels = in.data.get(dataIndex).getDimensions()[0] * in.data.get(dataIndex).getDimensions()[1];
               return data[dataIndex].get(0,0,c.coords[2]) / pixels;
             });
           }).toArray(i -> new Tensor[i]));
@@ -120,8 +111,8 @@ public class AvgImageBandLayer extends NNLayer {
     
     public IndexMapKey(final Tensor kernel, final Tensor input, final Tensor output) {
       super();
-      this.kernel = kernel.getDims();
-      this.output = output.getDims();
+      this.kernel = kernel.getDimensions();
+      this.output = output.getDimensions();
     }
     
     @Override

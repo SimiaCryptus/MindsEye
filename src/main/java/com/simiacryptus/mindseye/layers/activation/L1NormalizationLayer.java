@@ -23,14 +23,12 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.reducers.ProductLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class L1NormalizationLayer extends NNLayer {
@@ -54,12 +52,12 @@ public class L1NormalizationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
+    int itemCnt = inObj[0].data.length();
     double[] sum_A = new double[itemCnt];
     final Tensor inputA[] = new Tensor[itemCnt];
     final boolean isZeroInputA[] = new boolean[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
+      final Tensor input = inObj[0].data.get(dataIndex);
       final double sum = input.sum();
       sum_A[dataIndex] = sum;
       final boolean isZeroInput = sum == 0.;
@@ -75,7 +73,7 @@ public class L1NormalizationLayer extends NNLayer {
           Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
             final double[] delta = Arrays.copyOf(data[dataIndex].getData(), data[dataIndex].getData().length);
             final double[] indata = inputA[dataIndex].getData();
-            final Tensor passback = new Tensor(data[dataIndex].getDims());
+            final Tensor passback = new Tensor(data[dataIndex].getDimensions());
             double dot = 0;
             for (int i = 0; i < indata.length; i++) {
               dot += delta[i] * indata[i];

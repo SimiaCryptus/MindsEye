@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.meta.AvgMetaLayer;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class ImgConcatLayer extends NNLayer {
   
@@ -54,13 +52,13 @@ public class ImgConcatLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
   
-    assert Arrays.stream(inObj).allMatch(x->x.data[0].getDims().length == 3) : "This component is for use with 3d image tensors only";
-    int numBatches = inObj[0].data.length;
-    assert Arrays.stream(inObj).allMatch(x->x.data.length == numBatches) : "All inputs must use same batch size";
-    int[] outputDims = Arrays.copyOf(inObj[0].data[0].getDims(), 3);
-    outputDims[2] = Arrays.stream(inObj).mapToInt(x->x.data[0].getDims()[2]).sum();
-    assert Arrays.stream(inObj).allMatch(x->x.data[0].getDims()[0] == outputDims[0]) : "Inputs must be same size";
-    assert Arrays.stream(inObj).allMatch(x->x.data[0].getDims()[1] == outputDims[1]) : "Inputs must be same size";
+    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions().length == 3) : "This component is for use with 3d image tensors only";
+    int numBatches = inObj[0].data.length();
+    assert Arrays.stream(inObj).allMatch(x-> x.data.length() == numBatches) : "All inputs must use same batch size";
+    int[] outputDims = Arrays.copyOf(inObj[0].data.get(0).getDimensions(), 3);
+    outputDims[2] = Arrays.stream(inObj).mapToInt(x->x.data.get(0).getDimensions()[2]).sum();
+    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
+    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
   
     List<Tensor> outputTensors = new ArrayList<>();
     for(int b=0;b<numBatches;b++) {
@@ -68,7 +66,7 @@ public class ImgConcatLayer extends NNLayer {
       int pos = 0;
       double[] outputTensorData = outputTensor.getData();
       for(int i=0;i<inObj.length;i++) {
-        double[] data = inObj[i].data[b].getData();
+        double[] data = inObj[i].data.get(b).getData();
         System.arraycopy(data, 0, outputTensorData, pos, data.length);
         pos += data.length;
       }
@@ -85,7 +83,7 @@ public class ImgConcatLayer extends NNLayer {
           Tensor[] outputTensors = new Tensor[inObj.length];
           int pos = 0;
           for(int i=0;i<inObj.length;i++) {
-            Tensor dest = new Tensor(inObj[i].data[0].getDims());
+            Tensor dest = new Tensor(inObj[i].data.get(0).getDimensions());
             System.arraycopy(tensor.getData(), pos, dest.getData(), 0, dest.size());
             pos += dest.size();
             outputTensors[i] = dest;

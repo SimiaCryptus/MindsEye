@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
 import com.simiacryptus.util.IntArray;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
@@ -69,20 +68,20 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
+    int itemCnt = inObj[0].data.length();
     Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
+      final Tensor input = inObj[0].data.get(dataIndex);
       final Tensor output = input.map(x -> 0);
-      final List<List<Coordinate>> cells = getCellMap_cached.apply(new IntArray(output.getDims()));
+      final List<List<Coordinate>> cells = getCellMap_cached.apply(new IntArray(output.getDimensions()));
       cells.forEach(cell->{
         output.set(cell.stream().max(Comparator.comparingDouble(c->input.get(c))).get(), 1);
       });
       return output;
     }).toArray(i -> new Tensor[i]);
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final double[] input = inObj[0].data[dataIndex].getData();
+      final double[] input = inObj[0].data.get(dataIndex).getData();
       final double[] maskT = mask[dataIndex].getData();
-      final Tensor output = new Tensor(inObj[0].data[dataIndex].getDims());
+      final Tensor output = new Tensor(inObj[0].data.get(dataIndex).getDimensions());
       double[] outputData = output.getData();
       for (int i = 0; i < outputData.length; i++) {
         outputData[i] = input[i] * maskT[i];
@@ -127,7 +126,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       if (this.inObj.isAlive()) {
         Tensor[] passbackA = IntStream.range(0, delta.length).mapToObj(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
-          final int[] dims = this.inObj.data[dataIndex].getDims();
+          final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
           double[] maskData = mask[dataIndex].getData();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {

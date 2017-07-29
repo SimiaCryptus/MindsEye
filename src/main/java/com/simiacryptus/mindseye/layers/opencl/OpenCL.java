@@ -28,7 +28,6 @@ public final class OpenCL {
   public static final ResourcePool<Device> devicePool = new ResourcePool<Device>(Integer.parseInt(System.getProperty("num_gpus","1"))) {
     @Override
     public Device create() {
-      //KernelManager.instance().getDefaultPreferences().
       return KernelManager.instance().bestDevice();
     }
   };

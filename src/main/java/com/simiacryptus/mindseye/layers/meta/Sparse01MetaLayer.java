@@ -23,14 +23,12 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.util.MonitoringSynapse;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("serial")
@@ -61,10 +59,10 @@ public class Sparse01MetaLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     NNResult input = inObj[0];
-    int itemCnt = input.data.length;
-    Tensor avgActivationArray = input.data[0].map((v, c) ->
+    int itemCnt = input.data.length();
+    Tensor avgActivationArray = input.data.get(0).map((v, c) ->
                                                       IntStream.range(0, itemCnt)
-                                                          .mapToDouble(dataIndex -> input.data[dataIndex].get(c))
+                                                          .mapToDouble(dataIndex -> input.data.get(dataIndex).get(c))
                                                           .average().getAsDouble());
     Tensor divergenceArray = avgActivationArray.map((avgActivation, c) -> {
       assert (Double.isFinite(avgActivation));
@@ -79,7 +77,7 @@ public class Sparse01MetaLayer extends NNLayer {
         if (input.isAlive()) {
           Tensor delta = data[0];
           Tensor feedback[] = new Tensor[itemCnt];
-          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDims()));
+          Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
           avgActivationArray.map((rho, inputCoord) -> {
             double d = delta.get(inputCoord);
             double log2 = (1 - sparsity) / (1 - rho);

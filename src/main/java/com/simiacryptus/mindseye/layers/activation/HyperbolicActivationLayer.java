@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class HyperbolicActivationLayer extends NNLayer {
@@ -80,9 +79,9 @@ public class HyperbolicActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
+    int itemCnt = inObj[0].data.length();
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
+      final Tensor input = inObj[0].data.get(dataIndex);
       return input.map(v -> {
         final int sign = v<0?negativeMode:1;
         final double a = Math.max(0, this.weights.get(v<0?1:0));
@@ -124,8 +123,8 @@ public class HyperbolicActivationLayer extends NNLayer {
       if (!isFrozen()) {
         IntStream.range(0, delta.length).forEach(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
-          final double[] inputData = this.inObj.data[dataIndex].getData();
-          final Tensor weightDelta = new Tensor(HyperbolicActivationLayer.this.weights.getDims());
+          final double[] inputData = this.inObj.data.get(dataIndex).getData();
+          final Tensor weightDelta = new Tensor(HyperbolicActivationLayer.this.weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             double d = deltaData[i];
             double x = inputData[i];
@@ -139,10 +138,10 @@ public class HyperbolicActivationLayer extends NNLayer {
       if (this.inObj.isAlive()) {
         Tensor[] passbackA = IntStream.range(0, delta.length).mapToObj(dataIndex -> {
           final double[] deltaData = delta[dataIndex].getData();
-          final int[] dims = this.inObj.data[dataIndex].getDims();
+          final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            double x = this.inObj.data[dataIndex].getData()[i];
+            double x = this.inObj.data.get(dataIndex).getData()[i];
             double d = deltaData[i];
             final int sign = x<0?negativeMode:1;
             double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x<0?1:0]);

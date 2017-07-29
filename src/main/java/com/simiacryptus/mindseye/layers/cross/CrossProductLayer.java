@@ -27,7 +27,6 @@ import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class CrossProductLayer extends NNLayer {
@@ -48,7 +47,7 @@ public class CrossProductLayer extends NNLayer {
   @Override
   public NNResult eval(final NNResult... inObj) {
     assert(1 == inObj.length);
-    return new NNResult(Arrays.stream(inObj[0].data).parallel().map(tensor->{
+    return new NNResult(inObj[0].data.stream().parallel().map(tensor->{
       int inputDim = tensor.dim();
       int outputDim = (inputDim * inputDim - inputDim) / 2;
       Tensor result = new Tensor(outputDim);
@@ -65,15 +64,15 @@ public class CrossProductLayer extends NNLayer {
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         final NNResult input = inObj[0];
         if (input.isAlive()) {
-          assert(inObj[0].data.length==data.length);
-          input.accumulate(buffer, IntStream.range(0, inObj[0].data.length).parallel().mapToObj(batchIndex->{
+          assert(inObj[0].data.length() ==data.length);
+          input.accumulate(buffer, IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(batchIndex->{
             Tensor tensor = data[batchIndex];
             int outputDim = tensor.dim();
             int inputDim = (1+(int)Math.sqrt(1+8 * outputDim))/2;
             Tensor passback = new Tensor(inputDim);
             double[] passbackData = passback.getData();
             double[] tensorData = tensor.getData();
-            double[] inputData = inObj[0].data[batchIndex].getData();
+            double[] inputData = inObj[0].data.get(batchIndex).getData();
             IntStream.range(0, inputDim).forEach(x->{
               IntStream.range(x+1, inputDim).forEach(y->{
                 passbackData[x] += tensorData[index(x,y,inputDim)] * inputData[y];

@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.ArrayList;
@@ -64,16 +62,16 @@ public class ImgReshapeLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
-    final Tensor[] batch = input.data;
-    final int[] inputDims = batch[0].getDims();
+    final TensorList batch = input.data;
+    final int[] inputDims = batch.get(0).getDimensions();
     assert(3 == inputDims.length);
     assert(expand || 0 == inputDims[0] % kernelSizeX);
     assert(expand || 0 == inputDims[1] % kernelSizeX);
     assert(!expand || 0 == inputDims[2] % (kernelSizeX*kernelSizeY));
-    assert Arrays.stream(input.data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    assert input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     Tensor outputDims;
     if(expand) {
       outputDims = new Tensor(inputDims[0] * kernelSizeX,
@@ -84,8 +82,8 @@ public class ImgReshapeLayer extends NNLayer {
                                      inputDims[1] / kernelSizeY,
                                      inputDims[2] * kernelSizeX * kernelSizeY);
     }
-    return new NNResult(IntStream.range(0, batch.length).parallel()
-                           .mapToObj(dataIndex -> expand?copyExpand(batch[dataIndex], outputDims.copy()):copyCondense(batch[dataIndex], outputDims.copy()))
+    return new NNResult(IntStream.range(0, batch.length()).parallel()
+                           .mapToObj(dataIndex -> expand?copyExpand(batch.get(dataIndex), outputDims.copy()):copyCondense(batch.get(dataIndex), outputDims.copy()))
                            .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final Tensor[] error) {
@@ -108,8 +106,8 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   public static Tensor copyCondense(Tensor inputData, Tensor outputData) {
-    int[] inDim = inputData.getDims();
-    int[] outDim = outputData.getDims();
+    int[] inDim = inputData.getDimensions();
+    int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] >= outDim[0];
@@ -135,8 +133,8 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   public static Tensor copyExpand(Tensor inputData, Tensor outputData) {
-    int[] inDim = inputData.getDims();
-    int[] outDim = outputData.getDims();
+    int[] inDim = inputData.getDimensions();
+    int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[0] <= outDim[0];

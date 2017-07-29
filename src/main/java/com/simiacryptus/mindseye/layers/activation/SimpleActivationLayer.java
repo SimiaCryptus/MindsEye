@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer {
@@ -54,12 +53,12 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length;
+    int itemCnt = inObj[0].data.length();
     assert(0 < itemCnt);
     Tensor inputGradientA[] = new Tensor[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data[dataIndex];
-      final Tensor output = new Tensor(inObj[0].data[dataIndex].getDims());
+      final Tensor input = inObj[0].data.get(dataIndex);
+      final Tensor output = new Tensor(inObj[0].data.get(dataIndex).getDimensions());
       final Tensor inputGradient = new Tensor(input.dim());
       inputGradientA[dataIndex] = inputGradient;
       final double[] results = new double[2];
@@ -75,7 +74,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         if (inObj[0].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(data[dataIndex].getDims());
+            final Tensor passback = new Tensor(data[dataIndex].getDimensions());
             final double[] gradientData = inputGradientA[dataIndex].getData();
             IntStream.range(0, passback.dim()).forEach(i -> {
               final double v = gradientData[i];

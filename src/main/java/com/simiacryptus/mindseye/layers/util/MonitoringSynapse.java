@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
@@ -69,9 +68,9 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     long start = System.nanoTime();
     double elapsed = (System.nanoTime() - start) / 1000000000.0;
     totalBatches++;
-    totalItems += input.data.length;
+    totalItems += input.data.length();
     forwardStatistics.clear();
-    Arrays.stream(input.data).parallel().forEach(t->{
+    input.data.stream().parallel().forEach(t->{
       forwardStatistics.add(t.getData());
     });
     return new NNResult(input.data) {

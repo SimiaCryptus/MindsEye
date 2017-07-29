@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class SumReducerLayer extends NNLayer {
@@ -56,10 +55,10 @@ public class SumReducerLayer extends NNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    return new NNResult(IntStream.range(0, inObj[0].data.length).mapToDouble(dataIndex -> {
+    return new NNResult(IntStream.range(0, inObj[0].data.length()).mapToDouble(dataIndex -> {
       double sum = 0;
       for (final NNResult element : inObj) {
-        final double[] input = element.data[dataIndex].getData();
+        final double[] input = element.data.get(dataIndex).getData();
         for (final double element2 : input) {
           sum += element2;
         }
@@ -70,10 +69,10 @@ public class SumReducerLayer extends NNLayer {
       public void accumulate(final DeltaSet buffer, final Tensor[] data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            in_l.accumulate(buffer, IntStream.range(0, in_l.data.length).mapToObj(dataIndex -> {
+            in_l.accumulate(buffer, IntStream.range(0, in_l.data.length()).mapToObj(dataIndex -> {
               final double delta = data[dataIndex].get(0);
-              final Tensor passback = new Tensor(in_l.data[dataIndex].getDims());
-              for (int i = 0; i < in_l.data[dataIndex].dim(); i++) {
+              final Tensor passback = new Tensor(in_l.data.get(dataIndex).getDimensions());
+              for (int i = 0; i < in_l.data.get(dataIndex).dim(); i++) {
                 passback.set(i, delta);
               }
               return passback;

@@ -26,14 +26,18 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 
 public abstract class NNResult {
-  
-  public final Tensor[] data;
-  
+
+  public final TensorList data;
+
   public NNResult(final Tensor... data) {
+    this(new TensorArray(data));
+  }
+
+  public NNResult(final TensorList data) {
     super();
     this.data = data;
   }
-  
+
   /**
    * @param input - An array of inputs, each one of which is a batch for a  given input
    * @return
@@ -63,9 +67,9 @@ public abstract class NNResult {
   }
   
   public final void accumulate(DeltaSet buffer, double value) {
-    Tensor[] defaultVector = IntStream.range(0, this.data.length).mapToObj(i -> {
-      assert (Arrays.equals(this.data[i].getDims(), new int[]{1}));
-      return new Tensor(this.data[i].getDims()).fill(() -> value);
+    Tensor[] defaultVector = IntStream.range(0, this.data.length()).mapToObj(i -> {
+      assert (Arrays.equals(this.data.get(i).getDimensions(), new int[]{1}));
+      return new Tensor(this.data.get(i).getDimensions()).fill(() -> value);
     }).toArray(i -> new Tensor[i]);
     accumulate(buffer, defaultVector);
   }

@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorArray;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.activation.DropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.GaussianNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxDropoutNoiseLayer;
@@ -43,6 +45,7 @@ import com.simiacryptus.util.ml.Tensor;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ConvAutoencoderNetwork implements MonitoredItem {
   
@@ -63,13 +66,13 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       return map;
     }
   
-    private final List<Tensor[]> representations = new ArrayList<>();
+    private final List<TensorList> representations = new ArrayList<>();
     private final List<int[]> dimensions = new ArrayList<>();
     private final List<ConvAutoencoderNetwork> layers = new ArrayList<>();
     
-    public RecursiveBuilder(Tensor[] data) {
+    public RecursiveBuilder(TensorList data) {
       representations.add(data);
-      dimensions.add(data[0].getDims());
+      dimensions.add(data.get(0).getDimensions());
     }
   
     public ConvAutoencoderNetwork growLayer(int... dims) {
@@ -80,12 +83,12 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       ConvAutoencoderNetwork newLayer = configure(newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
       dimensions.add(dims);
       layers.add(newLayer);
-      Tensor[] data = representations.get(representations.size() - 1);
-      ArrayList<Tensor> list = new ArrayList<>(Arrays.asList(data));
+      TensorList data = representations.get(representations.size() - 1);
+      ArrayList<Tensor> list = new ArrayList<>(data.stream().collect(Collectors.toList()));
       Collections.shuffle(list);
       if(pretrainingSize > 0) {
         Tensor[] pretrainingSet = list.subList(0, pretrainingSize).toArray(new Tensor[]{});
-        configure(newLayer.newTrainer()).setMaxIterations(maxIterations).setTimeoutMinutes(pretrainingMinutes).train(pretrainingSet);
+        configure(newLayer.newTrainer()).setMaxIterations(maxIterations).setTimeoutMinutes(pretrainingMinutes).train(new TensorArray(pretrainingSet));
       }
       configure(newLayer.newTrainer()).train(data);
       representations.add(newLayer.encode(data));
@@ -240,8 +243,8 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     this.decoder = new MonitoringWrapper(decoder).addTo(metrics,"decoder");
   }
   
-  public Tensor[] encode(Tensor[] data) {
-    return encoder.eval(NNResult.batchResultArray(Arrays.stream(data).map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+  public TensorList encode(TensorList data) {
+    return encoder.eval(NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
                .data;
   }
   
@@ -304,9 +307,9 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     private double endFitness = Double.NEGATIVE_INFINITY;
     private int maxIterations = Integer.MAX_VALUE;
   
-    public void train(Tensor... data) {
+    public void train(TensorList data) {
       SimpleLossNetwork trainingNetwork = getTrainingNetwork();
-      StochasticArrayTrainable trainable = new StochasticArrayTrainable(Arrays.stream(data).map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
+      StochasticArrayTrainable trainable = new StochasticArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
       L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
       IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());
