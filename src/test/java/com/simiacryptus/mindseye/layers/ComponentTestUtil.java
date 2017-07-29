@@ -34,7 +34,12 @@ import java.util.stream.IntStream;
 public class ComponentTestUtil {
   public static final double deltaFactor = 1e-6;
   private static final Logger log = LoggerFactory.getLogger(ComponentTestUtil.class);
-  
+  public static double tolerance;
+
+  public ComponentTestUtil() {
+    tolerance = 1e-4;
+  }
+
   public static Tensor[] getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor gradientBuffer = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
@@ -136,7 +141,7 @@ public class ComponentTestUtil {
     final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype)[0];
     for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
       try {
-        Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], 1e-4);
+        Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], tolerance);
       } catch (final Throwable e) {
         log.debug(String.format("Error Comparing element %s in feedback", i1));
         log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
@@ -153,7 +158,7 @@ public class ComponentTestUtil {
     final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
     for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
       try {
-        Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], 1e-4);
+        Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], tolerance);
       } catch (final Throwable e) {
         log.debug(String.format("Error Comparing element %s in learning", i1));
         log.debug(String.format("Component: %s", component));

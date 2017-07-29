@@ -24,15 +24,15 @@ import com.aparapi.device.Device;
 
 public final class GradientKernel extends Kernel {
 
-  double[] input;
-  int[] inputSize;
-  int[] kernelSize;
-  double[] output;
-  int[] outputSize;
-  double[] weights;
-  int weightSize;
-  int paralellism;
-  int[] kernelOffset;
+  public double[] input;
+  public int[] inputSize;
+  public int[] kernelSize;
+  public double[] output;
+  public int[] outputSize;
+  public double[] weights;
+  public int weightSize;
+  public int paralellism;
+  public int[] kernelOffset;
   
   public GradientKernel() {
   }

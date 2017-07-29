@@ -73,7 +73,18 @@ public class MediaComponentValidationTests {
     final NNLayer component = new ImgReshapeLayer(2, 2, false);
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
-  
+
+  @Test
+  public void testCuDNNConvolutionSynapseLayer1() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3, 3, 2);
+    final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer(3, 3, 4)
+            .addWeights(() -> Util.R.get().nextGaussian());
+    ComponentTestUtil.tolerance = 5e-1;
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    ComponentTestUtil.tolerance = 1e-4;
+  }
+
   @Test
   public void testConvolutionSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(3, 3, 2);
@@ -81,7 +92,7 @@ public class MediaComponentValidationTests {
     final NNLayer component = new ConvolutionLayer(3, 3, 4).addWeights(() -> Util.R.get().nextGaussian());
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
-  
+
   @Test
   public void testConvolutionSynapseLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 2, 1);

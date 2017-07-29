@@ -24,13 +24,13 @@ import com.aparapi.device.Device;
 
 public final class ConvolveKernel extends Kernel {
 
-  double[] input;
-  int[] inputSize;
-  int[] kernelSize;
-  double[] output;
-  int[] outputSize;
-  double[] weights;
-  int[] kernelOffset;
+  public double[] input;
+  public int[] inputSize;
+  public int[] kernelSize;
+  public double[] output;
+  public int[] outputSize;
+  public double[] weights;
+  public int[] kernelOffset;
   
   public ConvolveKernel() {
   }

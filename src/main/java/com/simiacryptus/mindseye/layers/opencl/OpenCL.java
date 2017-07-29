@@ -25,7 +25,7 @@ import com.simiacryptus.util.lang.ResourcePool;
 
 public final class OpenCL {
   
-  static final ResourcePool<Device> devicePool = new ResourcePool<Device>(Integer.parseInt(System.getProperty("num_gpus","1"))) {
+  public static final ResourcePool<Device> devicePool = new ResourcePool<Device>(Integer.parseInt(System.getProperty("num_gpus","1"))) {
     @Override
     public Device create() {
       //KernelManager.instance().getDefaultPreferences().
