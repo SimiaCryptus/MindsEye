@@ -77,31 +77,67 @@ public final class ConvolutionController {
     int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
-    double[] inputBuffer = null;
-    double[] outputBuffer = null;
-    for(int run=0;run<runs;run++) {
-      int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-        Tensor.recycle(inputBuffer);
-        inputBuffer = Tensor.obtain(inLength * currentNumItems);
+    OpenCL.devicePool.with(device -> {
+      try {
+        synchronized (backpropTask) {
+          assert(0 < weights.length);
+          assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == weights.length;
+          backpropTask.setExplicit(true);
+          backpropTask.weights = weights;
+          backpropTask.put(backpropTask.weights);
+          backpropTask.kernelSize = this.kernelSize;
+          backpropTask.put(backpropTask.kernelSize);
+          backpropTask.kernelOffset = new int[]{
+              simple?((this.kernelSize[1] - 1) / 2):0,
+              simple?((this.kernelSize[0] - 1) / 2):0
+          };
+          backpropTask.put(convolveTask.kernelOffset);
+          double[] inputBuffer = null;
+          double[] outputBuffer = null;
+          for(int run=0;run<runs;run++) {
+            int currentIndexOffset = run * inputsPerRun;
+            int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
+            if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+              Tensor.recycle(inputBuffer);
+              inputBuffer = Tensor.obtain(inLength * currentNumItems);
+            }
+            if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+              Tensor.recycle(outputBuffer);
+              outputBuffer = Tensor.obtain(outLength * currentNumItems);
+            }
+            for (int i = 0; i< currentNumItems; i++) {
+              assert outLength == output[currentIndexOffset+i].length;
+              System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
+            }
+            assert(0 < inputBuffer.length);
+            assert(0 < outputBuffer.length);
+            backpropTask.input = inputBuffer;
+            backpropTask.output = outputBuffer;
+            backpropTask.outputSize = this.outputSize;
+            backpropTask.inputSize = this.inputSize;
+            backpropTask.put(backpropTask.outputSize);
+            backpropTask.put(backpropTask.inputSize);
+            backpropTask.put(backpropTask.output);
+            backpropTask.exe(device);
+            backpropTask.get(backpropTask.input);
+            backpropTask.input = null;
+            backpropTask.output = null;
+            backpropTask.outputSize = null;
+            backpropTask.inputSize = null;
+            for (int i = 0; i< currentNumItems; i++) {
+              assert inLength == input[currentIndexOffset+i].length;
+              System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset+i], 0, inLength);
+            }
+          }
+          Tensor.recycle(inputBuffer);
+          Tensor.recycle(outputBuffer);
+          backpropTask.kernelSize = null;
+          backpropTask.weights = null;
+        }
+      } catch (Throwable e) {
+        throw new RuntimeException("Error with " + this,e);
       }
-      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-        Tensor.recycle(outputBuffer);
-        outputBuffer = Tensor.obtain(outLength * currentNumItems);
-      }
-      for (int i = 0; i< currentNumItems; i++) {
-        assert outLength == output[currentIndexOffset+i].length;
-        System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
-      }
-      backprop(inputBuffer,weights,outputBuffer);
-      for (int i = 0; i< currentNumItems; i++) {
-        assert inLength == input[currentIndexOffset+i].length;
-        System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset+i], 0, inLength);
-      }
-    }
-    Tensor.recycle(inputBuffer);
-    Tensor.recycle(outputBuffer);
+    });
 
   }
   
@@ -114,32 +150,67 @@ public final class ConvolutionController {
     assert(0 < inputsPerRun) : "Requested buffer is over max of " + MAX_BUFFER_SIZE;
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
-    double[] inputBuffer = null;
-    double[] outputBuffer = null;
-    for(int run=0;run<=runs;run++) {
-      int currentIndexOffset = run * inputsPerRun;
-      int currentNumItems = run < runs ? inputsPerRun : leftover;
-      if(0 == currentNumItems) continue;
-      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
-        Tensor.recycle(inputBuffer);
-        inputBuffer = Tensor.obtain(inLength * currentNumItems);
-      }
-      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
-        Tensor.recycle(outputBuffer);
-        outputBuffer = Tensor.obtain(outLength * currentNumItems);
-      }
-      for (int i = 0; i< currentNumItems; i++) {
-        assert inLength == input[currentIndexOffset+i].length;
-        System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
-      }
-      convolve(inputBuffer,weights,outputBuffer);
-      for (int i = 0; i< currentNumItems; i++) {
-        assert outLength == output[currentIndexOffset+i].length;
-        System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset+i], 0, outLength);
-      }
-    }
-    Tensor.recycle(inputBuffer);
-    Tensor.recycle(outputBuffer);
+    OpenCL.devicePool.with(device -> {
+      try {
+        synchronized (convolveTask) {
+          assert(null != weights);
+          assert(0 < weights.length);
+          convolveTask.setExplicit(true);
+          convolveTask.weights = weights;
+          convolveTask.put(convolveTask.weights);
+          convolveTask.kernelSize = this.kernelSize;
+          convolveTask.kernelOffset = new int[]{
+              simple?((this.kernelSize[1] - 1) / 2):0,
+              simple?((this.kernelSize[0] - 1) / 2):0
+          };
+          convolveTask.put(convolveTask.kernelOffset);
+          convolveTask.put(convolveTask.kernelSize);
+          double[] inputBuffer = null;
+          double[] outputBuffer = null;
+          for(int run=0;run<=runs;run++) {
+            int currentIndexOffset = run * inputsPerRun;
+            int currentNumItems = run < runs ? inputsPerRun : leftover;
+            if(0 == currentNumItems) continue;
+            if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+              Tensor.recycle(inputBuffer);
+              inputBuffer = Tensor.obtain(inLength * currentNumItems);
+            }
+            if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+              Tensor.recycle(outputBuffer);
+              outputBuffer = Tensor.obtain(outLength * currentNumItems);
+            }
+            for (int i = 0; i< currentNumItems; i++) {
+              assert inLength == input[currentIndexOffset+i].length;
+              System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
+            }
+            assert(0 < inputBuffer.length);
+            assert(0 < outputBuffer.length);
+            convolveTask.input = inputBuffer;
+            convolveTask.output = outputBuffer;
+            convolveTask.outputSize = this.outputSize;
+            convolveTask.inputSize = this.inputSize;
+            convolveTask.put(convolveTask.outputSize);
+            convolveTask.put(convolveTask.inputSize);
+            convolveTask.put(convolveTask.input);
+            convolveTask.exe(device);
+            convolveTask.get(convolveTask.output);
+            convolveTask.input = null;
+            convolveTask.output = null;
+            convolveTask.outputSize = null;
+            convolveTask.inputSize = null;
+            for (int i = 0; i< currentNumItems; i++) {
+              assert outLength == output[currentIndexOffset+i].length;
+              System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset+i], 0, outLength);
+            }
+          }
+          Tensor.recycle(inputBuffer);
+          Tensor.recycle(outputBuffer);
+          convolveTask.kernelSize = null;
+          convolveTask.weights = null;
+        }
+      } catch (Throwable e) {
+        throw new RuntimeException("Error with " + this,e);
+      }});
   }
   
   public void gradient(final double[][] input, final double[] weights, final double[][] output) {
@@ -182,86 +253,7 @@ public final class ConvolutionController {
     Tensor.recycle(inputBuffer);
     Tensor.recycle(outputBuffer);
   }
-  
-  private void backprop(final double[] input, final double[] weights, final double[] output) {
-    assert(0 < input.length);
-    assert(0 < weights.length);
-    assert(0 < output.length);
-    assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == weights.length;
-    OpenCL.devicePool.with(device -> {
-      try {
-        synchronized (backpropTask) {
-          backpropTask.input = input;
-          backpropTask.weights = weights;
-          backpropTask.output = output;
-          backpropTask.outputSize = this.outputSize;
-          backpropTask.inputSize = this.inputSize;
-          backpropTask.kernelSize = this.kernelSize;
-          backpropTask.kernelOffset = new int[]{
-              simple?((this.kernelSize[1] - 1) / 2):0,
-              simple?((this.kernelSize[0] - 1) / 2):0
-          };
-          backpropTask.setExplicit(true);
-          backpropTask.put(convolveTask.kernelOffset);
-          backpropTask.put(backpropTask.outputSize);
-          backpropTask.put(backpropTask.inputSize);
-          backpropTask.put(backpropTask.kernelSize);
-          backpropTask.put(backpropTask.weights);
-          backpropTask.put(backpropTask.output);
-          backpropTask.exe(device);
-          backpropTask.get(backpropTask.input);
-          backpropTask.input = null;
-          backpropTask.weights = null;
-          backpropTask.output = null;
-          backpropTask.outputSize = null;
-          backpropTask.inputSize = null;
-          backpropTask.kernelSize = null;
-        }
-      } catch (Throwable e) {
-        throw new RuntimeException("Error with " +this,e);
-      }
-    });
-  }
-  
-  private void convolve(final double[] input, final double[] weights, final double[] output) {
-    assert(0 < input.length);
-    assert(0 < weights.length);
-    assert(0 < output.length);
-    OpenCL.devicePool.with(device -> {
-      try {
-        synchronized (convolveTask) {
-          convolveTask.input = input;
-          convolveTask.weights = weights;
-          convolveTask.output = output;
-          convolveTask.outputSize = this.outputSize;
-          convolveTask.inputSize = this.inputSize;
-          convolveTask.kernelSize = this.kernelSize;
-          convolveTask.kernelOffset = new int[]{
-              simple?((this.kernelSize[1] - 1) / 2):0,
-              simple?((this.kernelSize[0] - 1) / 2):0
-          };
-          convolveTask.setExplicit(true);
-          convolveTask.put(convolveTask.kernelOffset);
-          convolveTask.put(convolveTask.outputSize);
-          convolveTask.put(convolveTask.inputSize);
-          convolveTask.put(convolveTask.kernelSize);
-          convolveTask.put(convolveTask.input);
-          convolveTask.put(convolveTask.weights);
-          convolveTask.exe(device);
-          convolveTask.get(convolveTask.output);
-          convolveTask.input = null;
-          convolveTask.weights = null;
-          convolveTask.output = null;
-          convolveTask.outputSize = null;
-          convolveTask.inputSize = null;
-          convolveTask.kernelSize = null;
-        }
-      } catch (Throwable e) {
-        throw new RuntimeException("Error with " +this,e);
-      }
-    });
-  }
-  
+
   private void gradient(final double[] input, final double[] weights, int weightSize, final double[] output) {
     assert(0 < input.length);
     assert(0 < weights.length);
