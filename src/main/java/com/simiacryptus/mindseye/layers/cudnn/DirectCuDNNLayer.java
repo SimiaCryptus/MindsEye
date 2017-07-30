@@ -5,6 +5,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.TensorArray;
 import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.util.ml.Tensor;
+import jcuda.Sizeof;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -21,6 +22,7 @@ public abstract class DirectCuDNNLayer extends NNLayer {
             this.ptr = ptr;
             this.length = length;
             this.dimensions = dimensions;
+            assert(ptr.size == length * Tensor.dim(dimensions) * Sizeof.DOUBLE);
         }
 
         private volatile TensorList _inner = null;
@@ -28,8 +30,8 @@ public abstract class DirectCuDNNLayer extends NNLayer {
             if(null == _inner) {
                 synchronized (this) {
                     if(null == _inner) {
-                        int outLength = Tensor.dim(dimensions);
-                        final double[] outputBuffer = Tensor.obtain(outLength * length);
+                        int itemLength = Tensor.dim(dimensions);
+                        final double[] outputBuffer = Tensor.obtain(itemLength * length);
                         assert(0 < outputBuffer.length);
                         Tensor[] output = IntStream.range(0, length)
                                 .mapToObj(dataIndex -> new Tensor(dimensions))
@@ -38,10 +40,10 @@ public abstract class DirectCuDNNLayer extends NNLayer {
                         assert(length == outputBuffers.length);
                         ptr.read(outputBuffer);
                         for (int i = 0; i< length; i++) {
-                          assert outLength == outputBuffers[0 +i].length;
-                          System.arraycopy(outputBuffer, i * outLength, outputBuffers[0 +i], 0, outLength);
+                          assert itemLength == outputBuffers[0 +i].length;
+                          System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 +i], 0, itemLength);
                         }
-                        assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+                        //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
                         Tensor.recycle(outputBuffer);
                         _inner = new TensorArray(output);
                     }
@@ -57,7 +59,7 @@ public abstract class DirectCuDNNLayer extends NNLayer {
 
         @Override
         public int length() {
-            return inner().length();
+            return length;
         }
 
         @Override

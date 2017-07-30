@@ -118,6 +118,16 @@ public class MediaComponentValidationTests {
   }
 
   @Test
+  public void testCuDNNDirectPoolingLayer1() throws Throwable {
+    final Tensor outputPrototype = new Tensor(2, 2, 2);
+    final Tensor inputPrototype = new Tensor(4, 4, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.DirectPoolingLayer();
+    ComponentTestUtil.tolerance = 5e-1;
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    ComponentTestUtil.tolerance = 1e-4;
+  }
+
+  @Test
   public void testCuDNNDirectActivationLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(3, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());

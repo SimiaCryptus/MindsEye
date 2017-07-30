@@ -44,6 +44,9 @@ import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 public class DirectActivationLayer extends DirectCuDNNLayer {
+  public static DirectActivationLayer fromJson(JsonObject json) {
+    return new DirectActivationLayer(json);
+  }
 
 
   public enum Mode {
@@ -79,7 +82,7 @@ public class DirectActivationLayer extends DirectCuDNNLayer {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
     final int[] inputSize = batch.get(0).getDimensions();
@@ -95,7 +98,7 @@ public class DirectActivationLayer extends DirectCuDNNLayer {
       CuDNN.CuDNNPtr beta = CuDNN.javaPtr(0.0);
 
       CuDNN.CuDNNPtr inputData = toDevice(batch);
-      CuDNN.CuDNNPtr outputData = CuDNN.alloc(Sizeof.DOUBLE * inputDims);
+      CuDNN.CuDNNPtr outputData = CuDNN.alloc(Sizeof.DOUBLE * inputDims * length);
       CuDNN.CuDNNResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_PROPAGATE_NAN, 0);
       CuDNN.devicePool.with(device -> {
         try {
@@ -113,10 +116,10 @@ public class DirectActivationLayer extends DirectCuDNNLayer {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
           assert (error.length() == batch.length());
-          assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           CuDNN.CuDNNPtr errorPtr = toDevice(error);
           if (input.isAlive()) {
-            CuDNN.CuDNNPtr passbackBuffer = CuDNN.alloc(inputDims * Sizeof.DOUBLE);
+            CuDNN.CuDNNPtr passbackBuffer = CuDNN.alloc(inputDims * Sizeof.DOUBLE * length);
             try {
               CuDNN.devicePool.with(device -> {
                 CuDNN.handle(cudnnActivationBackward(device.cudnnHandle, activationDesc.getPtr(),

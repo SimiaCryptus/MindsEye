@@ -106,7 +106,7 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
   
   @Override
   public NNResult eval(final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
     final int[] inputSize = batch.get(0).getDimensions();
@@ -159,14 +159,13 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
           assert (error.length() == batch.length());
-          assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           int length = error.length();
           CuDNN.CuDNNPtr errorPtr = toDevice(error);
           if (!isFrozen()) {
             CuDNN.CuDNNPtr filterBuffer = CuDNN.alloc(filterData.length * Sizeof.DOUBLE);
             try {
               CuDNN.devicePool.with(device -> {
-                assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
                 int algorithm = device.getBackwardFilterAlgorithm(
                         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
                 CuDNN.CuDNNPtr workSpace = device.allocateBackwardFilterWorkspace(

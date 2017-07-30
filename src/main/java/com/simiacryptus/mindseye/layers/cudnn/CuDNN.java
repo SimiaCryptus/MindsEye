@@ -10,10 +10,13 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.*;
+import static jcuda.jcudnn.JCudnn.cudnnSetPoolingNdDescriptor;
 import static jcuda.jcudnn.cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST;
+import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnStatus.CUDNN_STATUS_SUCCESS;
 import static jcuda.runtime.JCuda.cudaMalloc;
 import static jcuda.runtime.JCuda.cudaMemcpy;
+import static jcuda.runtime.JCuda.cudaMemset;
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyHostToDevice;
 
@@ -33,6 +36,15 @@ public class CuDNN {
 
     public static CuDNNPtr alloc(double[] output) {
         return alloc(Sizeof.DOUBLE * output.length);
+    }
+
+    public static CuDNNResource<cudnnPoolingDescriptor> createPoolingDescriptor(int mode, int poolDims, int[] windowSize, int[] padding, int[] stride) {
+        cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
+        cudnnCreatePoolingDescriptor(poolingDesc);
+        cudnnSetPoolingNdDescriptor(poolingDesc,
+                mode, CUDNN_PROPAGATE_NAN, poolDims, windowSize,
+                padding, stride);
+        return new CuDNNResource<cudnnPoolingDescriptor>(poolingDesc, JCudnn::cudnnDestroyPoolingDescriptor);
     }
 
     public static class CuDNNResource<T> {
@@ -77,6 +89,8 @@ public class CuDNN {
             this.size = size;
             try {
                 handle(cudaMalloc(this.getPtr(), size));
+                handle(cudaMemset(this.getPtr(), 0, size));
+
             } catch (Exception e) {
                 throw new RuntimeException("Error allocating " + size + " bytes", e);
             }

@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
@@ -45,6 +46,9 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 public class DirectImgBiasLayer extends DirectCuDNNLayer {
 
+  public static DirectImgBiasLayer fromJson(JsonObject json) {
+    return new DirectImgBiasLayer(json);
+  }
 
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
@@ -65,10 +69,11 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
 
   @Override
   public NNResult eval(final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
     final int[] inputSize = batch.get(0).getDimensions();
+    assert(inputSize[2] == bias.length);
     int[] outputSize = inputSize;
     int length = batch.length();
 
@@ -77,7 +82,7 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
       CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CuDNN.CuDNNResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], 1, 1);
+              CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
       CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0);
       CuDNN.CuDNNPtr beta = CuDNN.javaPtr(1.0);
 
@@ -99,7 +104,7 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
           assert (error.length() == batch.length());
-          assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           CuDNN.CuDNNPtr errorPtr = toDevice(error);
           if (!isFrozen()) {
             CuDNN.CuDNNPtr filterBuffer = CuDNN.alloc(DirectImgBiasLayer.this.bias.length * Sizeof.DOUBLE);
@@ -132,7 +137,7 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
   }
 
   public double[] add(final double[] input) {
-    assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
     assert(null != input);
     double[] bias = this.getBias();
     assert(null != bias);
