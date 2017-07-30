@@ -215,6 +215,13 @@ public class CuDNN {
         return new CuDNNResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
     }
 
+    public static CuDNNResource<cudnnActivationDescriptor> newActivationDescriptor(int mode, int reluNan, double reluCeil) {
+        cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
+        handle(cudnnCreateActivationDescriptor(desc));
+        handle(cudnnSetActivationDescriptor(desc, mode, reluNan, reluCeil));
+        return new CuDNNResource<>(desc, JCudnn::cudnnDestroyActivationDescriptor);
+    }
+
     public static CuDNNPtr alloc(long size) {
         return new CuDNNPtr(size);
     }

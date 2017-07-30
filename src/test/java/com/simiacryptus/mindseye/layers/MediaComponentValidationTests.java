@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.layers.cudnn.DirectActivationLayer;
 import com.simiacryptus.mindseye.layers.media.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.layers.activation.L1NormalizationLayer;
@@ -90,6 +91,37 @@ public class MediaComponentValidationTests {
     final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.DirectConvolutionLayer(3, 3, 4)
             .addWeights(() -> Util.R.get().nextGaussian());
+    ComponentTestUtil.tolerance = 5e-1;
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    ComponentTestUtil.tolerance = 1e-4;
+  }
+
+  @Test
+  public void testCuDNNDirectImgBiasLayer1() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3, 3, 2);
+    final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.DirectImgBiasLayer(2)
+            .addWeights(() -> Util.R.get().nextGaussian());
+    ComponentTestUtil.tolerance = 5e-1;
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    ComponentTestUtil.tolerance = 1e-4;
+  }
+
+  @Test
+  public void testCuDNNDirectActivationLayer1() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3, 3, 2);
+    final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.DirectActivationLayer(DirectActivationLayer.Mode.RELU);
+    ComponentTestUtil.tolerance = 5e-1;
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    ComponentTestUtil.tolerance = 1e-4;
+  }
+
+  @Test
+  public void testCuDNNDirectActivationLayer2() throws Throwable {
+    final Tensor outputPrototype = new Tensor(3, 3, 2);
+    final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
+    final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.DirectActivationLayer(DirectActivationLayer.Mode.SIGMOID);
     ComponentTestUtil.tolerance = 5e-1;
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
     ComponentTestUtil.tolerance = 1e-4;
