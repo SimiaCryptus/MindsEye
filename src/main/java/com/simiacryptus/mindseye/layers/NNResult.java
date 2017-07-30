@@ -71,11 +71,11 @@ public abstract class NNResult {
       assert (Arrays.equals(this.data.get(i).getDimensions(), new int[]{1}));
       return new Tensor(this.data.get(i).getDimensions()).fill(() -> value);
     }).toArray(i -> new Tensor[i]);
-    accumulate(buffer, defaultVector);
+    accumulate(buffer, new TensorArray(defaultVector));
   }
-  
-  public abstract void accumulate(DeltaSet buffer, final Tensor[] data);
-  
+
+  public abstract void accumulate(DeltaSet buffer, final TensorList data);
+
   public abstract boolean isAlive();
   
 }

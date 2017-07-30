@@ -46,7 +46,7 @@ public class ComponentTestUtil {
       final int j_ = j;
       final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
         @Override
-        public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+        public void accumulate(final DeltaSet buffer, final TensorList data) {
         }
         
         @Override
@@ -56,12 +56,12 @@ public class ComponentTestUtil {
       }).toArray(i -> new NNResult[i]);
       copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
         @Override
-        public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-          Assert.assertEquals(1, data.length);
-          IntStream.range(0, data.length).forEach(dataIndex -> {
-            Assert.assertArrayEquals(inputPrototype[inputIndex].getDimensions(), data[dataIndex].getDimensions());
+        public void accumulate(final DeltaSet buffer, final TensorList data) {
+          Assert.assertEquals(1, data.length());
+          IntStream.range(0, data.length()).forEach(dataIndex -> {
+            Assert.assertArrayEquals(inputPrototype[inputIndex].getDimensions(), data.get(dataIndex).getDimensions());
             for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
-              gradientBuffer.set(new int[]{i, j_}, data[dataIndex].getData()[i]);
+              gradientBuffer.set(new int[]{i, j_}, data.get(dataIndex).getData()[i]);
             }
           });
         }
@@ -71,7 +71,8 @@ public class ComponentTestUtil {
           return true;
         }
       };
-      component.eval(copyInput).accumulate(new DeltaSet(), new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)});
+      final Tensor[] data = new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
+      component.eval(copyInput).accumulate(new DeltaSet(), new TensorArray(data));
     }
     return new Tensor[]{ gradientBuffer };
   }
@@ -83,7 +84,8 @@ public class ComponentTestUtil {
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final DeltaSet buffer = new DeltaSet();
-      component.eval(inputPrototype).accumulate(buffer, new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)});
+      final Tensor[] data = new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
+      component.eval(inputPrototype).accumulate(buffer, new TensorArray(data));
       final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.delta[i]);

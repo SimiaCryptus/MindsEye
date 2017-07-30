@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
@@ -106,11 +103,11 @@ public class ImgBandBiasLayer extends NNLayer {
     assert Arrays.stream(outputA).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
+        assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (!isFrozen()) {
           DeltaBuffer deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
-          Arrays.stream(data).parallel().forEach(d -> {
+          data.stream().parallel().forEach(d -> {
             final double[] array = Tensor.obtain(bias.length);
             double[] signal = d.getData();
             int size = signal.length / bias.length;

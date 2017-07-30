@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,15 +65,15 @@ public class MaxMetaLayer extends NNLayer {
       return input.data.get(indicies[c.index]).getData()[c.index];
     })) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (input.isAlive()) {
-          Tensor delta = data[0];
+          Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
           input.data.get(0).coordStream().forEach((inputCoord) -> {
             feedback[indicies[inputCoord.index]].add(inputCoord, delta.get(inputCoord));
           });
-          input.accumulate(buffer, feedback);
+          input.accumulate(buffer, new TensorArray(feedback));
         }
       }
       

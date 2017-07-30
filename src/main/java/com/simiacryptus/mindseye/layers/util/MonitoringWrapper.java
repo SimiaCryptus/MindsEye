@@ -23,10 +23,10 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -96,7 +96,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     totalItems += inObj[0].data.length();
     return new NNResult(result.data) {
       @Override
-      public void accumulate(DeltaSet buffer, Tensor[] data) {
+      public void accumulate(DeltaSet buffer, TensorList data) {
         long start = System.nanoTime();
         result.accumulate(buffer, data);
         backwardPerf.add(((System.nanoTime() - start) / 1000000000.0));

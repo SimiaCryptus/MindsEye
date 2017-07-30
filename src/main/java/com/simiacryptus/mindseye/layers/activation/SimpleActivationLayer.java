@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,20 +69,20 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(data[dataIndex].getDimensions());
+            final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
             final double[] gradientData = inputGradientA[dataIndex].getData();
             IntStream.range(0, passback.dim()).forEach(i -> {
               final double v = gradientData[i];
               if (Double.isFinite(v)) {
-                passback.set(i, data[dataIndex].getData()[i] * v);
+                passback.set(i, data.get(dataIndex).getData()[i] * v);
               }
             });
             return passback;
           }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, passbackA);
+          inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }
       }
       

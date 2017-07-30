@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,12 +66,12 @@ public class L1NormalizationLayer extends NNLayer {
     
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-            final double[] delta = Arrays.copyOf(data[dataIndex].getData(), data[dataIndex].getData().length);
+            final double[] delta = Arrays.copyOf(data.get(dataIndex).getData(), data.get(dataIndex).getData().length);
             final double[] indata = inputA[dataIndex].getData();
-            final Tensor passback = new Tensor(data[dataIndex].getDimensions());
+            final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
             double dot = 0;
             for (int i = 0; i < indata.length; i++) {
               dot += delta[i] * indata[i];
@@ -85,7 +83,7 @@ public class L1NormalizationLayer extends NNLayer {
             }
             return passback;
           }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, passbackA);
+          inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }
       }
       

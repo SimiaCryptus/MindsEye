@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,10 +104,10 @@ public class GaussianNoiseLayer extends NNLayer {
     }
     
     @Override
-    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
+    public void accumulate(final DeltaSet buffer, final TensorList delta) {
       if (this.inObj.isAlive()) {
-        Tensor[] passbackA = IntStream.range(0, delta.length).mapToObj(dataIndex -> {
-          final double[] deltaData = delta[dataIndex].getData();
+        Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
           final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
@@ -117,7 +115,7 @@ public class GaussianNoiseLayer extends NNLayer {
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
-        this.inObj.accumulate(buffer, passbackA);
+        this.inObj.accumulate(buffer, new TensorArray(passbackA));
       }
     }
     

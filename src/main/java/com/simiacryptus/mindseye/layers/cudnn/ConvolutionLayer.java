@@ -46,7 +46,7 @@ public class ConvolutionLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("kernel", kernel.getJson());
+    json.add("filter", kernel.getJson());
     json.add("skip", skip.getJson());
     json.addProperty("simple", simple);
     return json;
@@ -57,7 +57,7 @@ public class ConvolutionLayer extends NNLayer {
   }
   protected ConvolutionLayer(JsonObject json) {
     super(json);
-    this.kernel = Tensor.fromJson(json.getAsJsonObject("kernel"));
+    this.kernel = Tensor.fromJson(json.getAsJsonObject("filter"));
     this.skip = Tensor.fromJson(json.getAsJsonObject("skip"));
     this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
@@ -141,11 +141,11 @@ public class ConvolutionLayer extends NNLayer {
   
     return new NNResult(output) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] error) {
-        assert Arrays.stream(error).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final TensorList error) {
+        assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
+          double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           final Tensor kernel = ConvolutionLayer.this.kernel;
           final Tensor weightGradient = new Tensor(kernel.getDimensions());
           gradient(inputSize, kernelSize, outputSize, simple, inputBuffers, weightGradient.getData(), outputBuffers);
@@ -154,10 +154,10 @@ public class ConvolutionLayer extends NNLayer {
         if (input.isAlive()) {
           Tensor[] inputBufferTensors = IntStream.range(0, data.length()).mapToObj(dataIndex -> new Tensor(inputSize)).toArray(i -> new Tensor[i]);
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
-          double[][] outputBuffers = Arrays.stream(error).map(x -> x.getData()).toArray(i -> new double[i][]);
+          double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           backprop(inputSize, kernelSize, outputSize, simple, inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
           assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          input.accumulate(buffer, inputBufferTensors);
+          input.accumulate(buffer, new TensorArray(inputBufferTensors));
         }
       }
       
@@ -337,8 +337,7 @@ public class ConvolutionLayer extends NNLayer {
         System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
         System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
       }
-      int parallelism = Math.min(16, inLength);
-      double[] buffer = Tensor.obtain(weights.length * parallelism);
+      double[] buffer = Tensor.obtain(weights.length);
       assert(0 < inputBuffer.length);
       assert(0 < buffer.length);
       assert(0 < outputBuffer.length);
@@ -366,7 +365,7 @@ public class ConvolutionLayer extends NNLayer {
   }
 
   private static void backprop(final int[] outputSize, double[] input, CuDNN.CuDNNPtr filterData, double[] output, CuDNN device, CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
-    int[] outputDims = device.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
+    int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     assert(4 == outputDims.length);
     assert(outputSize[0] == outputDims[3]);
     assert(outputSize[1] == outputDims[2]);
@@ -379,7 +378,7 @@ public class ConvolutionLayer extends NNLayer {
             inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
     CuDNN.CuDNNPtr alpha = device.javaPtr(1.0);
     CuDNN.CuDNNPtr beta = device.javaPtr(0.0);
-    CuDNN.CuDNNPtr inputData = device.alloc(input);
+    CuDNN.CuDNNPtr inputData = CuDNN.alloc(input);
     CuDNN.CuDNNPtr outputData = device.write(output);
     CuDNN.handle(cudnnConvolutionBackwardData(device.cudnnHandle, alpha.getPtr(),
             filterDescriptor.getPtr(), filterData.getPtr(),
@@ -392,7 +391,7 @@ public class ConvolutionLayer extends NNLayer {
   }
 
   private static void convolve(final int[] outputSize, double[] input, CuDNN.CuDNNPtr filterData, double[] output, CuDNN device, CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
-    int[] outputDims = device.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
+    int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     assert(4 == outputDims.length);
     assert(outputSize[0] == outputDims[3]);
     assert(outputSize[1] == outputDims[2]);
@@ -406,7 +405,7 @@ public class ConvolutionLayer extends NNLayer {
     CuDNN.CuDNNPtr alpha = device.javaPtr(1.0);
     CuDNN.CuDNNPtr beta = device.javaPtr(0.0);
     CuDNN.CuDNNPtr inputData = device.write(input);
-    CuDNN.CuDNNPtr outputData = device.alloc(output);
+    CuDNN.CuDNNPtr outputData = CuDNN.alloc(output);
     CuDNN.handle(cudnnConvolutionForward(device.cudnnHandle, alpha.getPtr(),
             inputDescriptor.getPtr(), inputData.getPtr(),
             filterDescriptor.getPtr(), filterData.getPtr(),
@@ -418,7 +417,7 @@ public class ConvolutionLayer extends NNLayer {
   }
 
   private static void gradient(final int[] outputSize, double[] input, double[] weights, double[] output, CuDNN device, CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
-    int[] outputDims = device.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
+    int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     assert(4 == outputDims.length);
     assert(outputSize[0] == outputDims[3]);
     assert(outputSize[1] == outputDims[2]);
@@ -432,7 +431,7 @@ public class ConvolutionLayer extends NNLayer {
     CuDNN.CuDNNPtr alpha = device.javaPtr(1.0);
     CuDNN.CuDNNPtr beta = device.javaPtr(0.0);
     CuDNN.CuDNNPtr inputData = device.write(input);
-    CuDNN.CuDNNPtr filterData = device.alloc(weights);
+    CuDNN.CuDNNPtr filterData = CuDNN.alloc(weights);
     CuDNN.CuDNNPtr outputData = device.write(output);
 
     CuDNN.handle(cudnnConvolutionBackwardFilter(device.cudnnHandle, alpha.getPtr(),

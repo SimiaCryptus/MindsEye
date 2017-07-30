@@ -203,11 +203,11 @@ public class AparapiTest {
                                  Range range, //
                                  @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
                                  //// from
-                                 //// kernel
-                                 @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from kernel
+                                 //// filter
+                                 @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
                                  // (actually char[])
                                  @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
-                                 // read) from kernel
+                                 // read) from filter
                                  // (actually char[])
                                  @OpenCL.Arg("_width") int _width, //
                                  @OpenCL.Arg("_height") int _height);

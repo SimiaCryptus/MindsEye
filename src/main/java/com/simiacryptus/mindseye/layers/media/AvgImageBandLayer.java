@@ -21,9 +21,7 @@ package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -76,14 +74,15 @@ public class AvgImageBandLayer extends NNLayer {
   
     return new NNResult(results) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (in.isAlive()) {
-          in.accumulate(buffer, IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
+          final Tensor[] data1 = IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
             return new Tensor(in.data.get(dataIndex).getDimensions()).map((v, c)->{
               int pixels = in.data.get(dataIndex).getDimensions()[0] * in.data.get(dataIndex).getDimensions()[1];
-              return data[dataIndex].get(0,0,c.coords[2]) / pixels;
+              return data.get(dataIndex).get(0,0,c.coords[2]) / pixels;
             });
-          }).toArray(i -> new Tensor[i]));
+          }).toArray(i -> new Tensor[i]);
+          in.accumulate(buffer, new TensorArray(data1));
         }
       }
     

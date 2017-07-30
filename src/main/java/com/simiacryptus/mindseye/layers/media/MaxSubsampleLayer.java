@@ -21,9 +21,7 @@ package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.lang.Tuple2;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
@@ -134,18 +132,18 @@ public class MaxSubsampleLayer extends NNLayer {
     });
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (in.isAlive()) {
           Tensor[] passbackA = IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
             final Tensor backSignal = new Tensor(inputDims);
             int[] ints = gradientMapA[dataIndex];
-            Tensor datum = data[dataIndex];
+            Tensor datum = data.get(dataIndex);
             for(int i=0;i<datum.dim();i++){
               backSignal.add(ints[i], datum.get(i));
             }
             return backSignal;
           }).toArray(i -> new Tensor[i]);
-          in.accumulate(buffer, passbackA);
+          in.accumulate(buffer, new TensorArray(passbackA));
         }
       }
       

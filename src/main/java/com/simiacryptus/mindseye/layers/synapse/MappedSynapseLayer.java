@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.synapse;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -193,20 +190,20 @@ public abstract class MappedSynapseLayer extends NNLayer {
       this.result = result;
     }
     
-    private Tensor[] backprop(final Tensor[] delta, final DeltaSet buffer) {
+    private Tensor[] backprop(final TensorList delta, final DeltaSet buffer) {
       double[] expandedWeights = getExpandedWeights();
       Tensor[] passbackA = IntStream.range(0, result.data.length()).parallel().mapToObj(dataIndex -> {
-        final double[] deltaData = delta[dataIndex].getData();
+        final double[] deltaData = delta.get(dataIndex).getData();
         final Tensor passback = new Tensor(this.result.data.get(dataIndex).getDimensions());
         DenseSynapseLayer.multiplyT(expandedWeights, deltaData, passback.getData());
         return passback;
       }).toArray(i -> new Tensor[i]);
-      this.result.accumulate(buffer, passbackA);
+      this.result.accumulate(buffer, new TensorArray(passbackA));
       return passbackA;
     }
     
     @Override
-    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
+    public void accumulate(final DeltaSet buffer, final TensorList delta) {
       if (!isFrozen()) {
         learn(delta, buffer);
       }
@@ -220,8 +217,8 @@ public abstract class MappedSynapseLayer extends NNLayer {
       return this.result.isAlive() || !isFrozen();
     }
     
-    private void learn(final Tensor[] delta, final DeltaSet buffer) {
-      final double[] deltaData0 = delta[0].getData();
+    private void learn(final TensorList delta, final DeltaSet buffer) {
+      final double[] deltaData0 = delta.get(0).getData();
       final double[] inputData0 = this.result.data.get(0).getData();
       DeltaBuffer deltaBuffer = buffer.get(MappedSynapseLayer.this, getWeights());
       
@@ -230,7 +227,7 @@ public abstract class MappedSynapseLayer extends NNLayer {
         Tensor buffer1 = new Tensor(MappedSynapseLayer.this.getWeights().getDimensions());
         final Tensor buffer2 = new Tensor(inputData0.length, deltaData0.length);
         IntStream.range(0, result.data.length()).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
-          final double[] deltaData = delta[dataIndex].getData();
+          final double[] deltaData = delta.get(dataIndex).getData();
           final double[] inputData = this.result.data.get(dataIndex).getData();
           assert (deltaData0.length == deltaData.length);
           assert (inputData0.length == inputData.length);

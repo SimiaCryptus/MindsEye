@@ -23,13 +23,12 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.util.MonitoringWrapper;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.UUID;
 
 @SuppressWarnings("serial")
 public final class WeightExtractor extends NNLayer {
@@ -73,9 +72,9 @@ public final class WeightExtractor extends NNLayer {
       }
       
       @Override
-      public void accumulate(DeltaSet buffer, Tensor[] data) {
-        assert (data.length == 1);
-        buffer.get(WeightExtractor.this, array).accumulate(data[0].getData());
+      public void accumulate(DeltaSet buffer, TensorList data) {
+        assert (data.length() == 1);
+        buffer.get(WeightExtractor.this, array).accumulate(data.get(0).getData());
       }
     };
   }

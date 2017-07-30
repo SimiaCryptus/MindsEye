@@ -23,10 +23,10 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.*;
 
@@ -75,9 +75,9 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     });
     return new NNResult(input.data) {
       @Override
-      public void accumulate(DeltaSet buffer, Tensor[] data) {
+      public void accumulate(DeltaSet buffer, TensorList data) {
         backpropStatistics.clear();
-        Arrays.stream(data).parallel().forEach(t->{
+        data.stream().parallel().forEach(t->{
           backpropStatistics.add(t.getData());
         });
         input.accumulate(buffer, data);

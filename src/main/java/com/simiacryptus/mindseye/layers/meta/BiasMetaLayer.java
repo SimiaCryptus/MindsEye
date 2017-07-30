@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,15 +58,15 @@ public class BiasMetaLayer extends NNLayer {
                            .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, Arrays.stream(data).map(t -> t.mapParallel((v,c) -> v)).toArray(i -> new Tensor[i]));
+          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel((v,c) -> v)).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
           Tensor passback = tensors[0].mapParallel((v, c) -> {
-            return IntStream.range(0, itemCnt).mapToDouble(i -> data[i].get(c)).sum();
+            return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
           });
-          inObj[1].accumulate(buffer, new Tensor[]{passback});
+          inObj[1].accumulate(buffer, new TensorArray(passback));
         }
       }
       

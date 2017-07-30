@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,12 +72,12 @@ public class ImgConcatLayer extends NNLayer {
     }
     return new NNResult(outputTensors.toArray(new Tensor[]{})) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        assert(numBatches == data.length);
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
+        assert(numBatches == data.length());
   
         List<Tensor[]> splitBatches = new ArrayList<>();
         for(int b=0;b<numBatches;b++) {
-          Tensor tensor = data[b];
+          Tensor tensor = data.get(b);
           Tensor[] outputTensors = new Tensor[inObj.length];
           int pos = 0;
           for(int i=0;i<inObj.length;i++) {
@@ -102,7 +100,7 @@ public class ImgConcatLayer extends NNLayer {
         }
   
         for(int i=0;i<inObj.length;i++) {
-          inObj[i].accumulate(buffer, splitData[i]);
+          inObj[i].accumulate(buffer, new TensorArray(splitData[i]));
         }
       }
       

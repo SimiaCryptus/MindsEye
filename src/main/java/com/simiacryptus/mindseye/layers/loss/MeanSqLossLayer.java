@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.loss;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,23 +75,24 @@ public class MeanSqLossLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
+        assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
             final Tensor passback = new Tensor(inObj[0].data.get(0).getDimensions());
             final int adim = passback.dim();
-            final double data0 = data[dataIndex].get(0);
+            final double data0 = data.get(dataIndex).get(0);
             for (int i = 0; i < adim; i++) {
               passback.set(i, data0 * rA[dataIndex].get(i) * 2 / adim);
             }
             return passback;
           }).toArray(i -> new Tensor[i]);
           if (inObj[0].isAlive()) {
-            inObj[0].accumulate(buffer, passbackA);
+            inObj[0].accumulate(buffer, new TensorArray(passbackA));
           }
           if (inObj[1].isAlive()) {
-            inObj[1].accumulate(buffer, Arrays.stream(passbackA).map(x -> x.scale(-1)).toArray(i -> new Tensor[i]));
+            final Tensor[] data1 = Arrays.stream(passbackA).map(x -> x.scale(-1)).toArray(i -> new Tensor[i]);
+            inObj[1].accumulate(buffer, new TensorArray(data1));
           }
         }
       }

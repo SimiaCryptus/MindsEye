@@ -86,15 +86,16 @@ public class ImgReshapeLayer extends NNLayer {
                            .mapToObj(dataIndex -> expand?copyExpand(batch.get(dataIndex), outputDims.copy()):copyCondense(batch.get(dataIndex), outputDims.copy()))
                            .toArray(i -> new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] error) {
-        assert Arrays.stream(error).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final TensorList error) {
+        assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (input.isAlive()) {
-          input.accumulate(buffer, IntStream.range(0, error.length).parallel()
+          final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
              .mapToObj(dataIndex -> {
                Tensor passback = new Tensor(inputDims);
-               Tensor err = error[dataIndex];
+               Tensor err = error.get(dataIndex);
                return expand ? copyCondense(err, passback) : copyExpand(err, passback);
-             }).toArray(i -> new Tensor[i]));
+             }).toArray(i -> new Tensor[i]);
+          input.accumulate(buffer, new TensorArray(data1));
         }
       }
       

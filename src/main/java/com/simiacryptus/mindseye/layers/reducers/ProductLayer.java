@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,18 +67,18 @@ public class ProductLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
             Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
-              final double delta = data[dataIndex].get(0);
+              final double delta = data.get(dataIndex).get(0);
               final Tensor passback = new Tensor(in_l.data.get(dataIndex).getDimensions());
               for (int i = 0; i < in_l.data.get(dataIndex).dim(); i++) {
                 passback.set(i, delta * sum_A[dataIndex] / in_l.data.get(dataIndex).getData()[i]);
               }
               return passback;
             }).toArray(i -> new Tensor[i]);
-            in_l.accumulate(buffer, passbackA);
+            in_l.accumulate(buffer, new TensorArray(passbackA));
           }
         }
       }

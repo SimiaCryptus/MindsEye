@@ -52,8 +52,8 @@ public class SumInputsLayer extends NNLayer {
     }).get();
     return new NNResult(data) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
+        assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
             input.accumulate(buffer, data);

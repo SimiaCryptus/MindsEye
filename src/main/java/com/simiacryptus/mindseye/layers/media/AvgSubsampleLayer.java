@@ -23,9 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -131,19 +129,19 @@ public class AvgSubsampleLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
             final Tensor backSignal = new Tensor(inputDims);
             for (final Entry<Coordinate, List<int[]>> outputMapping : coordMapA[dataIndex].entrySet()) {
-              final double outputValue = data[dataIndex].get(outputMapping.getKey());
+              final double outputValue = data.get(dataIndex).get(outputMapping.getKey());
               for (final int[] inputCoord : outputMapping.getValue()) {
                 backSignal.add(inputCoord, outputValue / kernelSize);
               }
             }
             return backSignal;
           }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, passbackA);
+          inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }
       }
       

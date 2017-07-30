@@ -57,17 +57,18 @@ public class ProductInputsLayer extends NNLayer {
     }).get();
     return new NNResult(result) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
-        assert Arrays.stream(delta).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final TensorList delta) {
+        assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            input.accumulate(buffer, IntStream.range(0, input.data.length()).parallel().mapToObj(i -> {
-              return delta[Math.min(i,delta.length)].map((v, c)->{
+            final Tensor[] data1 = IntStream.range(0, input.data.length()).parallel().mapToObj(i -> {
+              return delta.get(Math.min(i, delta.length())).map((v, c)->{
                 double v1 = input.data.get(i).get(c);
                 double r = v * result.get(Math.min(i, result.length())).get(c) / v1;
                 return Double.isFinite(r)?r:0.0;
               });
-            }).toArray(i->new Tensor[i]));
+            }).toArray(i->new Tensor[i]);
+            input.accumulate(buffer, new TensorArray(data1));
           }
         }
       }

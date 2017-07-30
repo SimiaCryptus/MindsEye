@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.cross;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
@@ -61,12 +59,12 @@ public class CrossProductLayer extends NNLayer {
       return result;
     }).toArray(i->new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         final NNResult input = inObj[0];
         if (input.isAlive()) {
-          assert(inObj[0].data.length() ==data.length);
-          input.accumulate(buffer, IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(batchIndex->{
-            Tensor tensor = data[batchIndex];
+          assert(inObj[0].data.length() == data.length());
+          final Tensor[] data1 = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(batchIndex->{
+            Tensor tensor = data.get(batchIndex);
             int outputDim = tensor.dim();
             int inputDim = (1+(int)Math.sqrt(1+8 * outputDim))/2;
             Tensor passback = new Tensor(inputDim);
@@ -80,7 +78,8 @@ public class CrossProductLayer extends NNLayer {
               });
             });
             return passback;
-          }).toArray(i->new Tensor[i]));
+          }).toArray(i->new Tensor[i]);
+          input.accumulate(buffer, new TensorArray(data1));
         }
       }
       

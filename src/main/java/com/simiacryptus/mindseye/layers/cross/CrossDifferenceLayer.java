@@ -20,14 +20,11 @@
 package com.simiacryptus.mindseye.layers.cross;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class CrossDifferenceLayer extends NNLayer {
@@ -62,10 +59,10 @@ public class CrossDifferenceLayer extends NNLayer {
       return result;
     }).toArray(i->new Tensor[i])) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         final NNResult input = inObj[0];
         if (input.isAlive()) {
-          input.accumulate(buffer, Arrays.stream(data).parallel().map(tensor->{
+          input.accumulate(buffer, new TensorArray(data.stream().parallel().map(tensor->{
             int outputDim = tensor.dim();
             int inputDim = (1+(int)Math.sqrt(1+8 * outputDim))/2;
             Tensor passback = new Tensor(inputDim);
@@ -78,7 +75,7 @@ public class CrossDifferenceLayer extends NNLayer {
               });
             });
             return passback;
-          }).toArray(i->new Tensor[i]));
+          }).toArray(i->new Tensor[i])));
         }
       }
       

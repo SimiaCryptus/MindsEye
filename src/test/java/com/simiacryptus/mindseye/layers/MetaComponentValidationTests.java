@@ -50,9 +50,9 @@ public class MetaComponentValidationTests {
         final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNLayer.ConstNNResult(x)).toArray(i -> new NNResult[i]);
         copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
           @Override
-          public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-            IntStream.range(0, data.length).forEach(inputItem -> {
-              double[] dataItem = data[inputItem].getData();
+          public void accumulate(final DeltaSet buffer, final TensorList data) {
+            IntStream.range(0, data.length()).forEach(inputItem -> {
+              double[] dataItem = data.get(inputItem).getData();
               for (int inputCoord = 0; inputCoord < dataItem.length; inputCoord++) {
                 gradients[inputItem][outputItem].set(new int[]{inputCoord, outputCoord}, dataItem[inputCoord]);
               }
@@ -66,7 +66,7 @@ public class MetaComponentValidationTests {
         };
         Tensor[] deltas = Arrays.stream(outputPrototype).map(x -> new Tensor(x.getDimensions())).toArray(i -> new Tensor[i]);
         deltas[outItem].set(outputCoord, 1);
-        component.eval(copyInput).accumulate(new DeltaSet(), deltas);
+        component.eval(copyInput).accumulate(new DeltaSet(), new TensorArray(deltas));
       }
     }
     return gradients;
@@ -107,7 +107,7 @@ public class MetaComponentValidationTests {
         NNResult eval = component.eval(inputPrototype);
         Tensor[] feedback = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(outputPrototype[0].getDimensions())).toArray(i -> new Tensor[i]);
         feedback[outputItem].getData()[outputCoord] = 1;
-        eval.accumulate(buffer, feedback);
+        eval.accumulate(buffer, new TensorArray(feedback));
         final DeltaBuffer delta = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
         for (int stateIdx = 0; stateIdx < stateLen; stateIdx++) {
           gradient[outputItem].set(new int[]{stateIdx, outputCoord}, delta.delta[stateIdx]);

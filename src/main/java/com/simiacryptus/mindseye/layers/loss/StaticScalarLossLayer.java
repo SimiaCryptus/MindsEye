@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.loss;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,15 +66,15 @@ public class StaticScalarLossLayer extends NNLayer {
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
-        assert Arrays.stream(data).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
+        assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (inObj[0].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
             final Tensor a = inObj[0].data.get(dataIndex);
-            final double deriv = data[dataIndex].get(0) * ((a.get(0) - getTarget())<0?-1:1);
+            final double deriv = data.get(dataIndex).get(0) * ((a.get(0) - getTarget())<0?-1:1);
             return new Tensor(new int[]{1}, new double[]{deriv});
           }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, passbackA);
+          inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }
       }
       

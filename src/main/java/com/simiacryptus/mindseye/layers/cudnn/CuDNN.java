@@ -31,7 +31,7 @@ public class CuDNN {
         cudnnCreate(cudnnHandle);
     }
 
-    public CuDNNPtr alloc(double[] output) {
+    public static CuDNNPtr alloc(double[] output) {
         return alloc(Sizeof.DOUBLE * output.length);
     }
 
@@ -100,7 +100,7 @@ public class CuDNN {
         }
 
         public CuDNNPtr read(double[] data) {
-            if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException();
+            if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException(this.size +" != " + data.length * Sizeof.DOUBLE);
             handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
             return this;
         }
@@ -112,7 +112,7 @@ public class CuDNN {
         }
     }
 
-    protected int[] getOutputDims(cudnnTensorDescriptor srcTensorDesc, cudnnFilterDescriptor filterDesc, cudnnConvolutionDescriptor convDesc) {
+    protected static int[] getOutputDims(cudnnTensorDescriptor srcTensorDesc, cudnnFilterDescriptor filterDesc, cudnnConvolutionDescriptor convDesc) {
         int[] tensorOuputDims = new int[4];
         handle(cudnnGetConvolutionNdForwardOutputDim(convDesc, srcTensorDesc, filterDesc, tensorOuputDims.length, tensorOuputDims));
         return tensorOuputDims;
@@ -191,7 +191,7 @@ public class CuDNN {
         return new CuDNNResource<>(convDesc, JCudnn::cudnnDestroyConvolutionDescriptor);
     }
 
-    private int[] getStride(int[] array) {
+    private static int[] getStride(int[] array) {
         return IntStream.range(0, array.length).map(i->IntStream.range(i+1, array.length).map(ii-> array[ii]).reduce((a, b)->a*b).orElse(1)).toArray();
     }
 
@@ -202,7 +202,7 @@ public class CuDNN {
         return new CuDNNResource<>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor);
     }
 
-    public CuDNNResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int[] dimensions) {
+    public static CuDNNResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int[] dimensions) {
         cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
         handle(cudnnCreateFilterDescriptor(filterDesc));
         handle(cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions));

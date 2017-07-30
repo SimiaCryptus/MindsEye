@@ -50,7 +50,7 @@ public class ComponentPerformanceTests {
       iterations++;
       NNResult eval = component.eval(inputPrototype);
       DeltaSet deltaSet = new DeltaSet();
-      eval.accumulate(deltaSet, new Tensor[]{outputPrototype});
+        eval.accumulate(deltaSet, new TensorArray(outputPrototype));
     }
     log.info(String.format("Iterations completed: %s", iterations));
     return iterations;

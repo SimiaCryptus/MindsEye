@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
@@ -169,7 +168,7 @@ public abstract class NNLayer implements Serializable {
     }
     
     @Override
-    public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+    public void accumulate(final DeltaSet buffer, final TensorList data) {
       // Do Nothing
     }
     

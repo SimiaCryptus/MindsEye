@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.IntArray;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
@@ -122,10 +120,10 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     }
     
     @Override
-    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
+    public void accumulate(final DeltaSet buffer, final TensorList delta) {
       if (this.inObj.isAlive()) {
-        Tensor[] passbackA = IntStream.range(0, delta.length).mapToObj(dataIndex -> {
-          final double[] deltaData = delta[dataIndex].getData();
+        Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
           final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
           double[] maskData = mask[dataIndex].getData();
           final Tensor passback = new Tensor(dims);
@@ -134,7 +132,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
-        this.inObj.accumulate(buffer, passbackA);
+        this.inObj.accumulate(buffer, new TensorArray(passbackA));
       }
     }
     

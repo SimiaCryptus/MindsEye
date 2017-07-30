@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -117,11 +115,11 @@ public class ReLuActivationLayer extends NNLayer {
     }
     
     @Override
-    public void accumulate(final DeltaSet buffer, final Tensor[] delta) {
+    public void accumulate(final DeltaSet buffer, final TensorList delta) {
       
       if (!isFrozen()) {
-        IntStream.range(0, delta.length).parallel().forEach(dataIndex -> {
-          final double[] deltaData = delta[dataIndex].getData();
+        IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
           final double[] inputData = this.inObj.data.get(dataIndex).getData();
           final Tensor weightDelta = new Tensor(ReLuActivationLayer.this.weights.getDimensions());
           double[] weightDeltaData = weightDelta.getData();
@@ -133,8 +131,8 @@ public class ReLuActivationLayer extends NNLayer {
       }
       if (this.inObj.isAlive()) {
         double v = ReLuActivationLayer.this.weights.getData()[0];
-        Tensor[] passbackA = IntStream.range(0, delta.length).parallel().mapToObj(dataIndex -> {
-          final double[] deltaData = delta[dataIndex].getData();
+        Tensor[] passbackA = IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
+          final double[] deltaData = delta.get(dataIndex).getData();
           final double[] inputData = this.inObj.data.get(dataIndex).getData();
           final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
@@ -143,7 +141,7 @@ public class ReLuActivationLayer extends NNLayer {
           }
           return passback;
         }).toArray(i -> new Tensor[i]);
-        this.inObj.accumulate(buffer, passbackA);
+        this.inObj.accumulate(buffer, new TensorArray(passbackA));
       }
     }
     

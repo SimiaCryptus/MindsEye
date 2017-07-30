@@ -89,10 +89,10 @@ public class BiasLayer extends NNLayer {
                            .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (!isFrozen()) {
           DeltaBuffer deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
-          Arrays.stream(data).parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
+          data.stream().parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
         }
         if (0 < inObj.length && inObj[0].isAlive()) {
           inObj[0].accumulate(buffer, data);

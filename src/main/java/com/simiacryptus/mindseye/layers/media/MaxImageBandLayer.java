@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -81,16 +79,17 @@ public class MaxImageBandLayer extends NNLayer {
 
     return new NNResult(results) {
       @Override
-      public void accumulate(final DeltaSet buffer, final Tensor[] data) {
+      public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (in.isAlive()) {
-          in.accumulate(buffer, IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
+          final Tensor[] data1 = IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
             Tensor passback = new Tensor(in.data.get(dataIndex).getDimensions());
             IntStream.range(0, inputDims[2]).forEach(b -> {
               int[] maxCoord = maxCoords[dataIndex][b].coords;
-              passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data[dataIndex].get(0,0,b));
+              passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0,0,b));
             });
             return passback;
-          }).toArray(i -> new Tensor[i]));
+          }).toArray(i -> new Tensor[i]);
+          in.accumulate(buffer, new TensorArray(data1));
         }
       }
       
