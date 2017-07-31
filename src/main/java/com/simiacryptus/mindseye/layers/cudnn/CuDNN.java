@@ -90,9 +90,14 @@ public class CuDNN {
             try {
                 handle(cudaMalloc(this.getPtr(), size));
                 handle(cudaMemset(this.getPtr(), 0, size));
-
             } catch (Exception e) {
-                throw new RuntimeException("Error allocating " + size + " bytes", e);
+                try {
+                    System.gc(); // Force any dead objects to be finalized
+                    handle(cudaMalloc(this.getPtr(), size));
+                    handle(cudaMemset(this.getPtr(), 0, size));
+                } catch (Exception e2) {
+                    throw new RuntimeException("Error allocating " + size + " bytes", e2);
+                }
             }
         }
 
