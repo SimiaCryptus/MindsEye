@@ -16,17 +16,21 @@ Welcome! This is MindsEye, a neural network library written in Java 8 and Scala.
 
 * You want fine-grained control over the optimization process - We have a highly customizable, modular optimization engine that runs many popular algorithms.
 
+* You want to create custom layer components and integrate them with more standard components.
+
 ## Features
 
-* Supports SGD, L-BFGS, OWL-QN, and other optimization algorithms
+* Supports SGD, Conjugate Gradient, L-BFGS, OWL-QN, and other optimization algorithms
 
-* Wide variety of components, including nested DAGs
+* Wide variety of components including both pure-Java and native implementations, with built-in JSON serialization
 
-* Convolution layers are GPU accelerated using Aparapi/OpenCL
+* Networks can be constructed as arbitrary nested directed acyclic graphs.
 
-* Leverage server clusters with Apache Spark
+* GPU-accellerated components provided by Nvidia's CuDNN toolkit
 
-* Transparent, hackable model with JSON serialization
+* Alternate GPU-accelerated convolution layers using OpenCL via Aparapi
+
+* Leverage server clusters for data-parallel training with Apache Spark
 
 ## Blog Articles
 
