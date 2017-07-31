@@ -41,8 +41,11 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     double nu = Double.POSITIVE_INFINITY;
     final LineSearchPoint startPoint = cursor.step(0, monitor);
     final double startLineDeriv = startPoint.derivative; // theta'(0)
-    if(0<=startPoint.derivative) return cursor.step(0, monitor).point;
     final double startValue = startPoint.point.value; // theta(0)
+    if(0<=startPoint.derivative) {
+      monitor.log(String.format("th(0)=%s;dx=%s (ERROR: Starting derivative negative)", startValue, startLineDeriv));
+      return cursor.step(0, monitor).point;
+    }
     monitor.log(String.format("th(0)=%s;dx=%s", startValue, startLineDeriv));
     LineSearchPoint lastStep = null;
     int stepBias = 0;

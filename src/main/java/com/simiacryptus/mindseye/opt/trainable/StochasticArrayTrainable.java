@@ -67,7 +67,7 @@ public class StochasticArrayTrainable implements Trainable {
       assert (result.data.stream().allMatch(x -> x.dim() == 1));
       double meanValue = result.data.stream().mapToDouble(x -> x.getData()[0]).sum();
       return new PointSample(deltaSet, stateSet, meanValue / trainingSize);
-    }).reduce((a,b)->new PointSample(a.weights, a.delta.add(b.delta),a.value + b.value)).get();
+    }).reduce((a,b)->new PointSample(a.delta.add(b.delta), a.weights,a.value + b.value)).get();
   }
   
   @Override

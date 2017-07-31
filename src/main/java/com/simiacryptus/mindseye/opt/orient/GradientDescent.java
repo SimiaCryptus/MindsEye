@@ -32,7 +32,8 @@ public class GradientDescent implements OrientationStrategy {
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     DeltaSet direction = measurement.delta.scale(-1);
     double magnitude = direction.getMagnitude();
-    if(Math.abs(magnitude) < 1e-20) monitor.log(String.format("Zero gradient: %s", magnitude));
+    if(Math.abs(magnitude) < 1e-10) monitor.log(String.format("Zero gradient: %s", magnitude));
+    else if(Math.abs(magnitude) < 1e-5) monitor.log(String.format("Low gradient: %s", magnitude));
     return new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
   }
   

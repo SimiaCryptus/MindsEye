@@ -63,7 +63,7 @@ public class ArrayTrainable implements Trainable {
       assert (result.data.stream().allMatch(x -> x.dim() == 1));
       double meanValue = result.data.stream().mapToDouble(x -> x.getData()[0]).average().getAsDouble();
       return new PointSample(deltaSet, stateSet, meanValue);
-    }).reduce((a,b)->new PointSample(a.weights, a.delta.add(b.delta),a.value + b.value)).get();
+    }).reduce((a,b)->new PointSample(a.delta.add(b.delta),a.weights, a.value + b.value)).get();
   }
   
   @Override
