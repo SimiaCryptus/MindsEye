@@ -27,23 +27,42 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Sum inputs layer.
+ */
 public class SumInputsLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json sum inputs layer.
+   *
+   * @param json the json
+   * @return the sum inputs layer
+   */
   public static SumInputsLayer fromJson(JsonObject json) {
     return new SumInputsLayer(json);
   }
+
+  /**
+   * Instantiates a new Sum inputs layer.
+   *
+   * @param id the id
+   */
   protected SumInputsLayer(JsonObject id) {
     super(id);
   }
 
+  /**
+   * Instantiates a new Sum inputs layer.
+   */
   public SumInputsLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     TensorList data = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
       return new TensorArray(IntStream.range(0, l.length())
               .parallel()

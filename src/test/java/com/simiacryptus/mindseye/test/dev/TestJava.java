@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.stream.IntStream;
 
+/**
+ * The type Test java.
+ */
 public class TestJava {
   
   private static final Logger log = LoggerFactory.getLogger(TestJava.class);
@@ -40,6 +43,11 @@ public class TestJava {
     log.debug(String.format("Tested %s in %.05fs", label, duration));
   }
   
+  /**
+   * Test tight stream loop.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testTightStreamLoop() throws Exception {
     {

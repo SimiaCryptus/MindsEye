@@ -29,14 +29,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Product layer.
+ */
 public class ProductLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json product layer.
+   *
+   * @param json the json
+   * @return the product layer
+   */
   public static ProductLayer fromJson(JsonObject json) {
     return new ProductLayer(json);
   }
+
+  /**
+   * Instantiates a new Product layer.
+   *
+   * @param id the id
+   */
   protected ProductLayer(JsonObject id) {
     super(id);
   }
@@ -48,11 +64,14 @@ public class ProductLayer extends NNLayer {
    */
   private static final long serialVersionUID = -5171545060770814729L;
   
+  /**
+   * Instantiates a new Product layer.
+   */
   public ProductLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     double[] sum_A = new double[inObj[0].data.length()];
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
       double sum = 1;

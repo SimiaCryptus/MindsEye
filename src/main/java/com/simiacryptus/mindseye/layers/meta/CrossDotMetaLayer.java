@@ -28,15 +28,31 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The type Cross dot meta layer.
+ */
 @SuppressWarnings("serial")
 public class CrossDotMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json cross dot meta layer.
+   *
+   * @param json the json
+   * @return the cross dot meta layer
+   */
   public static CrossDotMetaLayer fromJson(JsonObject json) {
     return new CrossDotMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Cross dot meta layer.
+   *
+   * @param id the id
+   */
   protected CrossDotMetaLayer(JsonObject id) {
     super(id);
   }
@@ -44,11 +60,14 @@ public class CrossDotMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);
   
+  /**
+   * Instantiates a new Cross dot meta layer.
+   */
   public CrossDotMetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length();
     int dim = input.data.get(0).dim();

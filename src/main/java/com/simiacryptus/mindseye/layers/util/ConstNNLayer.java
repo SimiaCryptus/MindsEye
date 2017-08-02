@@ -29,6 +29,9 @@ import com.simiacryptus.util.ml.Tensor;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The type Const nn layer.
+ */
 public class ConstNNLayer extends NNLayer {
   
   @Override
@@ -38,16 +41,36 @@ public class ConstNNLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json const nn layer.
+   *
+   * @param json the json
+   * @return the const nn layer
+   */
   public static ConstNNLayer fromJson(JsonObject json) {
     return new ConstNNLayer(json);
   }
+
+  /**
+   * Instantiates a new Const nn layer.
+   *
+   * @param json the json
+   */
   protected ConstNNLayer(JsonObject json) {
     super(json);
     this.tensor = Tensor.fromJson(json.getAsJsonObject("value"));
   }
   
+  /**
+   * The Tensor.
+   */
   Tensor tensor;
   
+  /**
+   * Instantiates a new Const nn layer.
+   *
+   * @param tensor the tensor
+   */
   public ConstNNLayer(Tensor tensor) {
     super();
     this.tensor = tensor;
@@ -55,7 +78,7 @@ public class ConstNNLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(NNResult... array) {
+  public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
     return new NNResult(tensor) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {

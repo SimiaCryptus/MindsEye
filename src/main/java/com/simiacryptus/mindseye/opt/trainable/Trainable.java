@@ -21,25 +21,71 @@ package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.layers.DeltaSet;
 
+/**
+ * The interface Trainable.
+ */
 public interface Trainable {
+  /**
+   * Measure trainable . point sample.
+   *
+   * @return the trainable . point sample
+   */
   Trainable.PointSample measure();
   
+  /**
+   * Reset to full.
+   */
   default void resetToFull() {}
   
+  /**
+   * Reset sampling boolean.
+   *
+   * @return the boolean
+   */
   default boolean resetSampling() {
     return false;
   }
   
-  class PointSample {
+  /**
+   * The type Point sample.
+   */
+  public final class PointSample {
+    /**
+     * The Delta.
+     */
     public final DeltaSet delta;
+    /**
+     * The Weights.
+     */
     public final DeltaSet weights;
+    /**
+     * The Value.
+     */
     public final double value;
+    /**
+     * The Rate.
+     */
     public double rate;
   
+    /**
+     * Instantiates a new Point sample.
+     *
+     * @param delta   the delta
+     * @param weights the weights
+     * @param value   the value
+     */
     public PointSample(DeltaSet delta, DeltaSet weights, double value) {
       this(delta,weights,value, Double.NaN);
     }
-    
+  
+    /**
+     * Instantiates a new Point sample.
+     *
+     * @param delta   the delta
+     * @param weights the weights
+     * @param value   the value
+     * @param rate    the rate
+     */
     public PointSample(DeltaSet delta, DeltaSet weights, double value, double rate) {
       this.delta = delta;
       this.weights = weights;
@@ -55,10 +101,21 @@ public interface Trainable {
       return sb.toString();
     }
   
+    /**
+     * Gets rate.
+     *
+     * @return the rate
+     */
     public double getRate() {
       return rate;
     }
   
+    /**
+     * Sets rate.
+     *
+     * @param rate the rate
+     * @return the rate
+     */
     public PointSample setRate(double rate) {
       this.rate = rate;
       return this;

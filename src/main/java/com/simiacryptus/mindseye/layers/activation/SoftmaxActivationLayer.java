@@ -31,14 +31,30 @@ import java.util.List;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
+/**
+ * The type Softmax activation layer.
+ */
 public class SoftmaxActivationLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json softmax activation layer.
+   *
+   * @param json the json
+   * @return the softmax activation layer
+   */
   public static SoftmaxActivationLayer fromJson(JsonObject json) {
     return new SoftmaxActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Softmax activation layer.
+   *
+   * @param id the id
+   */
   protected SoftmaxActivationLayer(JsonObject id) {
     super(id);
   }
@@ -51,13 +67,19 @@ public class SoftmaxActivationLayer extends NNLayer {
    */
   private static final long serialVersionUID = 2373420906380031927L;
   
+  /**
+   * The Max input.
+   */
   double maxInput = 50;
   
+  /**
+   * Instantiates a new Softmax activation layer.
+   */
   public SoftmaxActivationLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     double[] sumA = new double[itemCnt];
     final Tensor expA[] = new Tensor[itemCnt];

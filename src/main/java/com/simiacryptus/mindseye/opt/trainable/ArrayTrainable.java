@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.opt.trainable;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.ml.Tensor;
@@ -30,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * The type Array trainable.
+ */
 public class ArrayTrainable implements Trainable {
   
   private final Tensor[][] trainingData;
@@ -37,9 +39,23 @@ public class ArrayTrainable implements Trainable {
   private final int batchSize;
   private boolean parallel = false;
   
+  /**
+   * Instantiates a new Array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   */
   public ArrayTrainable(Tensor[][] trainingData, NNLayer network) {
     this(trainingData, network, trainingData.length);
   }
+  
+  /**
+   * Instantiates a new Array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param batchSize    the batch size
+   */
   public ArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
     this.trainingData = trainingData;
     this.network = network;
@@ -53,7 +69,7 @@ public class ArrayTrainable implements Trainable {
     if(isParallel()) stream = stream.parallel();
     return stream.map(trainingData->{
       NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
-      NNResult result = network.eval(input);
+      NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, input);
       DeltaSet deltaSet = new DeltaSet();
       result.accumulate(deltaSet);
       DeltaSet stateSet = new DeltaSet();
@@ -61,8 +77,8 @@ public class ArrayTrainable implements Trainable {
         stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
       });
       assert (result.data.stream().allMatch(x -> x.dim() == 1));
-      double meanValue = result.data.stream().mapToDouble(x -> x.getData()[0]).average().getAsDouble();
-      return new PointSample(deltaSet, stateSet, meanValue);
+      double sum = result.data.stream().mapToDouble(x -> x.getData()[0]).sum();
+      return new PointSample(deltaSet.scale(1.0/trainingData.size()), stateSet, sum / trainingData.size());
     }).reduce((a,b)->new PointSample(a.delta.add(b.delta),a.weights, a.value + b.value)).get();
   }
   
@@ -70,14 +86,30 @@ public class ArrayTrainable implements Trainable {
   public void resetToFull() {
   }
   
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
   public int getBatchSize() {
     return batchSize;
   }
   
+  /**
+   * Is parallel boolean.
+   *
+   * @return the boolean
+   */
   public boolean isParallel() {
     return parallel;
   }
   
+  /**
+   * Sets parallel.
+   *
+   * @param parallel the parallel
+   * @return the parallel
+   */
   public ArrayTrainable setParallel(boolean parallel) {
     this.parallel = parallel;
     return this;

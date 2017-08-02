@@ -34,15 +34,29 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+/**
+ * The type Owl qn.
+ */
 public class OwlQn implements OrientationStrategy {
+  /**
+   * The Inner.
+   */
   public final OrientationStrategy inner;
   private double factor_L1 = 0.0001;
   private double zeroTol = 1e-20;
   
+  /**
+   * Instantiates a new Owl qn.
+   */
   public OwlQn() {
     this(new LBFGS());
   }
   
+  /**
+   * Instantiates a new Owl qn.
+   *
+   * @param inner the inner
+   */
   protected OwlQn(OrientationStrategy inner) {
     this.inner = inner;
   }
@@ -95,6 +109,12 @@ public class OwlQn implements OrientationStrategy {
     inner.reset();
   }
   
+  /**
+   * Sign int.
+   *
+   * @param weight the weight
+   * @return the int
+   */
   protected int sign(double weight) {
     if (weight > zeroTol) {
       return 1;
@@ -105,6 +125,12 @@ public class OwlQn implements OrientationStrategy {
     return 0;
   }
   
+  /**
+   * Gets layers.
+   *
+   * @param layers the layers
+   * @return the layers
+   */
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
     return layers.stream()
                .filter(layer -> {
@@ -115,19 +141,41 @@ public class OwlQn implements OrientationStrategy {
                .collect(Collectors.toList());
   }
   
+  /**
+   * Gets factor l 1.
+   *
+   * @return the factor l 1
+   */
   public double getFactor_L1() {
     return factor_L1;
   }
   
+  /**
+   * Sets factor l 1.
+   *
+   * @param factor_L1 the factor l 1
+   * @return the factor l 1
+   */
   public OwlQn setFactor_L1(double factor_L1) {
     this.factor_L1 = factor_L1;
     return this;
   }
   
+  /**
+   * Gets zero tol.
+   *
+   * @return the zero tol
+   */
   public double getZeroTol() {
     return zeroTol;
   }
   
+  /**
+   * Sets zero tol.
+   *
+   * @param zeroTol the zero tol
+   * @return the zero tol
+   */
   public OwlQn setZeroTol(double zeroTol) {
     this.zeroTol = zeroTol;
     return this;

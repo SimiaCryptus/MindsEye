@@ -32,13 +32,21 @@ import com.simiacryptus.util.ArrayUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.simiacryptus.util.ArrayUtil.add;
 import static com.simiacryptus.util.ArrayUtil.dot;
 
+/**
+ * The type Lbfgs.
+ */
 public class LBFGS implements OrientationStrategy {
   
+  /**
+   * The History.
+   */
   public final ArrayList<PointSample> history = new ArrayList<>();
   private int minHistory = 3;
   private int maxHistory = 10;
@@ -54,6 +62,12 @@ public class LBFGS implements OrientationStrategy {
     history.clear();
   }
   
+  /**
+   * Add to history.
+   *
+   * @param measurement the measurement
+   * @param monitor     the monitor
+   */
   public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
     if (!measurement.delta.vector().stream().flatMapToDouble(y->Arrays.stream(y.delta)).allMatch(d -> Double.isFinite(d))) {
       monitor.log("Corrupt measurement");
@@ -111,7 +125,21 @@ public class LBFGS implements OrientationStrategy {
       double mag = Math.sqrt(ArrayUtil.dot(lbfgs,lbfgs));
       double magGrad = Math.sqrt(ArrayUtil.dot(gradient,gradient));
       double dot = ArrayUtil.dot(lbfgs, gradient) / (mag * magGrad);
-      monitor.log(String.format("LBFGS Orientation magnitude: %s, gradient %s, dot %s", mag, magGrad, dot));
+  
+      Map<String, String> anglesPerLayer = IntStream.range(0, deltaVector.size()).mapToObj(x -> x)
+                                             .collect(Collectors.toMap((Integer i) -> {
+                                               return deltaVector.get(i).layer.getName();
+                                             }, (Integer i) -> {
+                                               double[] lbfgsVector = descent.get(i).delta;
+                                               double[] gradientVector = gradient.get(i);
+                                               double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
+                                               double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
+                                               double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
+                                               return String.format("%.3f/%.3e", dotP, lbfgsMagnitude / gradientMagnitude);
+                                             }));
+  
+  
+      monitor.log(String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s", mag, magGrad, dot, anglesPerLayer));
     }
     if (accept(deltaVector, descent)) {
       history.remove(0);
@@ -142,19 +170,41 @@ public class LBFGS implements OrientationStrategy {
     return vector.stream().map(x -> x.delta).collect(Collectors.toList());
   }
   
+  /**
+   * Gets min history.
+   *
+   * @return the min history
+   */
   public int getMinHistory() {
     return minHistory;
   }
   
+  /**
+   * Sets min history.
+   *
+   * @param minHistory the min history
+   * @return the min history
+   */
   public LBFGS setMinHistory(int minHistory) {
     this.minHistory = minHistory;
     return this;
   }
   
+  /**
+   * Gets max history.
+   *
+   * @return the max history
+   */
   public int getMaxHistory() {
     return maxHistory;
   }
   
+  /**
+   * Sets max history.
+   *
+   * @param maxHistory the max history
+   * @return the max history
+   */
   public LBFGS setMaxHistory(int maxHistory) {
     this.maxHistory = maxHistory;
     return this;

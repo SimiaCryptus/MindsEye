@@ -37,6 +37,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Std dev meta layer.
+ */
 @SuppressWarnings("serial")
 public class StdDevMetaLayer extends DAGNetwork {
   
@@ -45,6 +48,9 @@ public class StdDevMetaLayer extends DAGNetwork {
   private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);
   private final DAGNode head;
   
+  /**
+   * Instantiates a new Std dev meta layer.
+   */
   public StdDevMetaLayer() {
     super(1);
     this.head = add(new NthPowerActivationLayer().setPower(0.5),

@@ -17,24 +17,56 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.opencl;
+package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.aparapi.Kernel;
 import com.aparapi.device.Device;
 
+/**
+ * The type Convolve kernel.
+ */
 public final class ConvolveKernel extends Kernel {
 
+  /**
+   * The Input.
+   */
   public double[] input;
+  /**
+   * The Input size.
+   */
   public int[] inputSize;
+  /**
+   * The Kernel size.
+   */
   public int[] kernelSize;
+  /**
+   * The Output.
+   */
   public double[] output;
+  /**
+   * The Output size.
+   */
   public int[] outputSize;
+  /**
+   * The Weights.
+   */
   public double[] weights;
+  /**
+   * The Kernel offset.
+   */
   public int[] kernelOffset;
   
+  /**
+   * Instantiates a new Convolve kernel.
+   */
   public ConvolveKernel() {
   }
   
+  /**
+   * Exe.
+   *
+   * @param device the device
+   */
   public void exe(final Device device) {
     //assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     //assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;

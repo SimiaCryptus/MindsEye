@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Offset meta layer.
+ */
 @SuppressWarnings("serial")
 public class OffsetMetaLayer extends NNLayer {
   
@@ -36,9 +39,22 @@ public class OffsetMetaLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json offset meta layer.
+   *
+   * @param json the json
+   * @return the offset meta layer
+   */
   public static OffsetMetaLayer fromJson(JsonObject json) {
     return new OffsetMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Offset meta layer.
+   *
+   * @param id the id
+   */
   protected OffsetMetaLayer(JsonObject id) {
     super(id);
   }
@@ -46,11 +62,14 @@ public class OffsetMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(OffsetMetaLayer.class);
   
+  /**
+   * Instantiates a new Offset meta layer.
+   */
   public OffsetMetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     double scale = inObj[1].data.get(0).getData()[0];
     Tensor[] tensors = IntStream.range(0, itemCnt)

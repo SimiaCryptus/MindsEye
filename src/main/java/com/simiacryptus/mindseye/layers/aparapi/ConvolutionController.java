@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.opencl;
+package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
+/**
+ * The type Convolution controller.
+ */
 public final class ConvolutionController {
   
   private static final BackpropKernel backpropTask = new BackpropKernel();
@@ -40,10 +43,22 @@ public final class ConvolutionController {
   private final int[] outputSize;
   private final boolean simple;
   
+  /**
+   * Get output dims int [ ].
+   *
+   * @return the int [ ]
+   */
   public int[] getOutputDims() {
     return outputSize;
   }
   
+  /**
+   * Instantiates a new Convolution controller.
+   *
+   * @param inputSize  the input size
+   * @param kernelSize the kernel size
+   * @param simple     the simple
+   */
   public ConvolutionController(final int[] inputSize, final int[] kernelSize, boolean simple) {
     this.inputSize = inputSize;
     this.kernelSize = kernelSize;
@@ -67,8 +82,18 @@ public final class ConvolutionController {
     assert this.inputSize.length == 3;
   }
   
+  /**
+   * The constant MAX_BUFFER_SIZE.
+   */
   public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
   
+  /**
+   * Backprop.
+   *
+   * @param input   the input
+   * @param weights the weights
+   * @param output  the output
+   */
   public void backprop(final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
@@ -141,6 +166,13 @@ public final class ConvolutionController {
 
   }
   
+  /**
+   * Convolve.
+   *
+   * @param input   the input
+   * @param weights the weights
+   * @param output  the output
+   */
   public void convolve(final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
@@ -213,6 +245,13 @@ public final class ConvolutionController {
       }});
   }
   
+  /**
+   * Gradient.
+   *
+   * @param input   the input
+   * @param weights the weights
+   * @param output  the output
+   */
   public void gradient(final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);

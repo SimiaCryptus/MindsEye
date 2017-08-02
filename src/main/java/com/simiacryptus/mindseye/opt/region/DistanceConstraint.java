@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+/**
+ * The type Distance constraint.
+ */
 public class DistanceConstraint implements TrustRegion {
   
   private double max = Double.POSITIVE_INFINITY;
@@ -32,14 +35,31 @@ public class DistanceConstraint implements TrustRegion {
     return distance>max?ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)):point;
   }
   
+  /**
+   * Length double.
+   *
+   * @param weights the weights
+   * @return the double
+   */
   public double length(double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
+  /**
+   * Gets max.
+   *
+   * @return the max
+   */
   public double getMax() {
     return max;
   }
   
+  /**
+   * Sets max.
+   *
+   * @param max the max
+   * @return the max
+   */
   public DistanceConstraint setMax(double max) {
     this.max = max;
     return this;

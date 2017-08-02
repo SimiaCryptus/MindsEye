@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
 
+/**
+ * The type Max const layer.
+ */
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   
@@ -30,15 +33,30 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
     return json;
   }
   
+  /**
+   * From json max const layer.
+   *
+   * @param json the json
+   * @return the max const layer
+   */
   public static MaxConstLayer fromJson(JsonObject json) {
     MaxConstLayer obj = new MaxConstLayer(json);
     obj.value = json.get("value").getAsDouble();
     return obj;
   }
+
+  /**
+   * Instantiates a new Max const layer.
+   *
+   * @param id the id
+   */
   protected MaxConstLayer(JsonObject id) {
     super(id);
   }
   
+  /**
+   * Instantiates a new Max const layer.
+   */
   public MaxConstLayer() {
     super();
   }
@@ -55,10 +73,21 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
     results[1] = d;
   }
   
+  /**
+   * Gets value.
+   *
+   * @return the value
+   */
   public double getValue() {
     return this.value;
   }
   
+  /**
+   * Sets value.
+   *
+   * @param value the value
+   * @return the value
+   */
   public MaxConstLayer setValue(final double value) {
     this.value = value;
     return this;

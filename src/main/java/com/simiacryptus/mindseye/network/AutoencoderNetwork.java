@@ -47,31 +47,63 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * The type Autoencoder network.
+ */
 public class AutoencoderNetwork {
   
+  /**
+   * The type Recursive builder.
+   */
   public static class RecursiveBuilder {
     
     private final List<TensorList> representations = new ArrayList<>();
     private final List<int[]> dimensions = new ArrayList<>();
     private final List<AutoencoderNetwork> layers = new ArrayList<>();
-    
+  
+    /**
+     * Instantiates a new Recursive builder.
+     *
+     * @param data the data
+     */
     public RecursiveBuilder(TensorList data) {
       representations.add(data);
       dimensions.add(data.get(0).getDimensions());
     }
   
+    /**
+     * Training mode.
+     */
     public void trainingMode() {
       layers.forEach(x->x.trainingMode());
     }
   
+    /**
+     * Run mode.
+     */
     public void runMode() {
       layers.forEach(x->x.runMode());
     }
   
+    /**
+     * Grow layer autoencoder network.
+     *
+     * @param dims the dims
+     * @return the autoencoder network
+     */
     public AutoencoderNetwork growLayer(int... dims) {
       return growLayer(layers.isEmpty()?100:0, 1, 10, dims);
     }
   
+    /**
+     * Grow layer autoencoder network.
+     *
+     * @param pretrainingSize    the pretraining size
+     * @param pretrainingMinutes the pretraining minutes
+     * @param pretrainIterations the pretrain iterations
+     * @param dims               the dims
+     * @return the autoencoder network
+     */
     public AutoencoderNetwork growLayer(int pretrainingSize, int pretrainingMinutes, int pretrainIterations, int[] dims) {
       trainingMode();
       AutoencoderNetwork newLayer = configure(newLayer(dimensions.get(dimensions.size() - 1), dims)).build();
@@ -95,6 +127,9 @@ public class AutoencoderNetwork {
       return newLayer;
     }
   
+    /**
+     * Tune.
+     */
     public void tune() {
       configure(new AutoencoderNetwork.TrainingParameters() {
         @Override
@@ -125,22 +160,44 @@ public class AutoencoderNetwork {
         }
       }).run(representations.get(0));
     }
-    
+  
+    /**
+     * Configure autoencoder network . training parameters.
+     *
+     * @param trainingParameters the training parameters
+     * @return the autoencoder network . training parameters
+     */
     protected AutoencoderNetwork.TrainingParameters configure(AutoencoderNetwork.TrainingParameters trainingParameters) {
       return trainingParameters;
     }
-    
+  
+    /**
+     * Configure autoencoder network . builder.
+     *
+     * @param builder the builder
+     * @return the autoencoder network . builder
+     */
     protected AutoencoderNetwork.Builder configure(AutoencoderNetwork.Builder builder) {
       return builder;
     }
-    
+  
+    /**
+     * Echo nn layer.
+     *
+     * @return the nn layer
+     */
     public NNLayer echo() {
       PipelineNetwork network = new PipelineNetwork();
       network.add(getEncoder());
       network.add(getDecoder());
       return network;
     }
-    
+  
+    /**
+     * Gets encoder.
+     *
+     * @return the encoder
+     */
     public NNLayer getEncoder() {
       PipelineNetwork network = new PipelineNetwork();
       for (int i = 0; i < layers.size(); i++) {
@@ -148,7 +205,12 @@ public class AutoencoderNetwork {
       }
       return network;
     }
-    
+  
+    /**
+     * Gets decoder.
+     *
+     * @return the decoder
+     */
     public NNLayer getDecoder() {
       PipelineNetwork network = new PipelineNetwork();
       for (int i = layers.size() - 1; i >= 0; i--) {
@@ -156,12 +218,22 @@ public class AutoencoderNetwork {
       }
       return network;
     }
-    
+  
+    /**
+     * Gets layers.
+     *
+     * @return the layers
+     */
     public List<AutoencoderNetwork> getLayers() {
       return Collections.unmodifiableList(layers);
     }
   }
   
+  /**
+   * Train autoencoder network . training parameters.
+   *
+   * @return the autoencoder network . training parameters
+   */
   public AutoencoderNetwork.TrainingParameters train() {
     return new AutoencoderNetwork.TrainingParameters() {
       @Override
@@ -191,6 +263,13 @@ public class AutoencoderNetwork {
     };
   }
   
+  /**
+   * New layer autoencoder network . builder.
+   *
+   * @param outerSize the outer size
+   * @param innerSize the inner size
+   * @return the autoencoder network . builder
+   */
   public static AutoencoderNetwork.Builder newLayer(int[] outerSize, int[] innerSize) {
     return new AutoencoderNetwork.Builder(outerSize, innerSize);
   }
@@ -210,6 +289,11 @@ public class AutoencoderNetwork {
   private final AutoencoderNetwork.Builder networkParameters;
   private final VariableLayer decoderSynapsePlaceholder;
   
+  /**
+   * Instantiates a new Autoencoder network.
+   *
+   * @param networkParameters the network parameters
+   */
   protected AutoencoderNetwork(AutoencoderNetwork.Builder networkParameters) {
     this.networkParameters = networkParameters;
     this.outerSize = networkParameters.getOuterSize();
@@ -239,70 +323,145 @@ public class AutoencoderNetwork {
     this.decoder.add(decoderActivation);
   }
   
+  /**
+   * Encode tensor list.
+   *
+   * @param data the data
+   * @return the tensor list
+   */
   public TensorList encode(TensorList data) {
     return encoder.getLayer()
-               .eval(NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+               .eval(new NNLayer.NNExecutionContext() {}, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
                .data;
   }
   
+  /**
+   * Training mode.
+   */
   public void trainingMode() {
     this.inputNoise.setValue(networkParameters.getNoise());
     this.encodedNoise.setValue(networkParameters.getDropout());
   }
   
+  /**
+   * Run mode.
+   */
   public void runMode() {
     this.inputNoise.setValue(0.0);
     this.encodedNoise.setValue(0.0);
   }
   
+  /**
+   * Get outer size int [ ].
+   *
+   * @return the int [ ]
+   */
   public int[] getOuterSize() {
     return outerSize;
   }
   
+  /**
+   * Get inner size int [ ].
+   *
+   * @return the int [ ]
+   */
   public int[] getInnerSize() {
     return innerSize;
   }
   
+  /**
+   * Gets input noise.
+   *
+   * @return the input noise
+   */
   public GaussianNoiseLayer getInputNoise() {
     return inputNoise;
   }
   
+  /**
+   * Gets encoder bias.
+   *
+   * @return the encoder bias
+   */
   public BiasLayer getEncoderBias() {
     return encoderBias;
   }
   
+  /**
+   * Gets encoder synapse.
+   *
+   * @return the encoder synapse
+   */
   public DenseSynapseLayer getEncoderSynapse() {
     return encoderSynapse;
   }
   
+  /**
+   * Gets encoder activation.
+   *
+   * @return the encoder activation
+   */
   public NNLayer getEncoderActivation() {
     return encoderActivation;
   }
   
+  /**
+   * Gets encoded noise.
+   *
+   * @return the encoded noise
+   */
   public DropoutNoiseLayer getEncodedNoise() {
     return encodedNoise;
   }
   
+  /**
+   * Gets decoder synapse.
+   *
+   * @return the decoder synapse
+   */
   public NNLayer getDecoderSynapse() {
     return decoderSynapse;
   }
   
+  /**
+   * Gets decoder bias.
+   *
+   * @return the decoder bias
+   */
   public BiasLayer getDecoderBias() {
     return decoderBias;
   }
   
+  /**
+   * Gets decoder activation.
+   *
+   * @return the decoder activation
+   */
   public NNLayer getDecoderActivation() {
     return decoderActivation;
   }
   
+  /**
+   * Gets encoder.
+   *
+   * @return the encoder
+   */
   public NNLayer getEncoder() {
     return encoder;
   }
   
+  /**
+   * Gets decoder.
+   *
+   * @return the decoder
+   */
   public NNLayer getDecoder() {
     return decoder;
   }
   
+  /**
+   * The type Training parameters.
+   */
   public static abstract class TrainingParameters {
     private int sampleSize = Integer.MAX_VALUE;
     private double l1normalization = 0.0;
@@ -314,6 +473,11 @@ public class AutoencoderNetwork {
     private double endFitness = Double.NEGATIVE_INFINITY;
     private int maxIterations = Integer.MAX_VALUE;
   
+    /**
+     * Run.
+     *
+     * @param data the data
+     */
     public void run(TensorList data) {
       SimpleLossNetwork trainingNetwork = getTrainingNetwork();
       StochasticArrayTrainable trainable = new StochasticArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
@@ -328,93 +492,206 @@ public class AutoencoderNetwork {
       trainer.setMaxIterations(maxIterations);
       trainer.run();
     }
-    
+  
+    /**
+     * Wrap training monitor.
+     *
+     * @param monitor the monitor
+     * @return the training monitor
+     */
     protected abstract TrainingMonitor wrap(TrainingMonitor monitor);
-    
+  
+    /**
+     * Gets training network.
+     *
+     * @return the training network
+     */
     public abstract SimpleLossNetwork getTrainingNetwork();
-    
+  
+    /**
+     * Gets sample size.
+     *
+     * @return the sample size
+     */
     public int getSampleSize() {
       return sampleSize;
     }
-    
+  
+    /**
+     * Gets l 1 normalization.
+     *
+     * @return the l 1 normalization
+     */
     public double getL1normalization() {
       return l1normalization;
     }
-    
+  
+    /**
+     * Gets l 2 normalization.
+     *
+     * @return the l 2 normalization
+     */
     public double getL2normalization() {
       return l2normalization;
     }
-    
+  
+    /**
+     * Gets orient.
+     *
+     * @return the orient
+     */
     public OrientationStrategy getOrient() {
       return orient;
     }
-    
+  
+    /**
+     * Gets step.
+     *
+     * @return the step
+     */
     public LineSearchStrategy getStep() {
       return step;
     }
-    
+  
+    /**
+     * Gets monitor.
+     *
+     * @return the monitor
+     */
     public TrainingMonitor getMonitor() {
       return monitor;
     }
-    
+  
+    /**
+     * Gets timeout minutes.
+     *
+     * @return the timeout minutes
+     */
     public int getTimeoutMinutes() {
       return timeoutMinutes;
     }
-    
+  
+    /**
+     * Gets end fitness.
+     *
+     * @return the end fitness
+     */
     public double getEndFitness() {
       return endFitness;
     }
-    
+  
+    /**
+     * Sets sample size.
+     *
+     * @param sampleSize the sample size
+     * @return the sample size
+     */
     public AutoencoderNetwork.TrainingParameters setSampleSize(int sampleSize) {
       this.sampleSize = sampleSize;
       return this;
     }
-    
+  
+    /**
+     * Sets l 1 normalization.
+     *
+     * @param l1normalization the l 1 normalization
+     * @return the l 1 normalization
+     */
     public AutoencoderNetwork.TrainingParameters setL1normalization(double l1normalization) {
       this.l1normalization = l1normalization;
       return this;
     }
-    
+  
+    /**
+     * Sets l 2 normalization.
+     *
+     * @param l2normalization the l 2 normalization
+     * @return the l 2 normalization
+     */
     public AutoencoderNetwork.TrainingParameters setL2normalization(double l2normalization) {
       this.l2normalization = l2normalization;
       return this;
     }
-    
+  
+    /**
+     * Sets orient.
+     *
+     * @param orient the orient
+     * @return the orient
+     */
     public AutoencoderNetwork.TrainingParameters setOrient(OrientationStrategy orient) {
       this.orient = orient;
       return this;
     }
-    
+  
+    /**
+     * Sets step.
+     *
+     * @param step the step
+     * @return the step
+     */
     public AutoencoderNetwork.TrainingParameters setStep(LineSearchStrategy step) {
       this.step = step;
       return this;
     }
-    
+  
+    /**
+     * Sets monitor.
+     *
+     * @param monitor the monitor
+     * @return the monitor
+     */
     public AutoencoderNetwork.TrainingParameters setMonitor(TrainingMonitor monitor) {
       this.monitor = monitor;
       return this;
     }
-    
+  
+    /**
+     * Sets timeout minutes.
+     *
+     * @param timeoutMinutes the timeout minutes
+     * @return the timeout minutes
+     */
     public AutoencoderNetwork.TrainingParameters setTimeoutMinutes(int timeoutMinutes) {
       this.timeoutMinutes = timeoutMinutes;
       return this;
     }
-    
+  
+    /**
+     * Sets end fitness.
+     *
+     * @param endFitness the end fitness
+     * @return the end fitness
+     */
     public AutoencoderNetwork.TrainingParameters setEndFitness(double endFitness) {
       this.endFitness = endFitness;
       return this;
     }
   
+    /**
+     * Sets max iterations.
+     *
+     * @param maxIterations the max iterations
+     * @return the max iterations
+     */
     public AutoencoderNetwork.TrainingParameters setMaxIterations(int maxIterations) {
       this.maxIterations = maxIterations;
       return this;
     }
   
+    /**
+     * Gets max iterations.
+     *
+     * @return the max iterations
+     */
     public int getMaxIterations() {
       return maxIterations;
     }
   }
   
+  /**
+   * The type Builder.
+   */
   public static class Builder {
     
     private final int[] outerSize;
@@ -429,60 +706,130 @@ public class AutoencoderNetwork {
       this.outerSize = outerSize;
       this.innerSize = innerSize;
     }
-    
+  
+    /**
+     * Get outer size int [ ].
+     *
+     * @return the int [ ]
+     */
     public int[] getOuterSize() {
       return outerSize;
     }
-    
+  
+    /**
+     * Get inner size int [ ].
+     *
+     * @return the int [ ]
+     */
     public int[] getInnerSize() {
       return innerSize;
     }
-    
+  
+    /**
+     * Gets noise.
+     *
+     * @return the noise
+     */
     public double getNoise() {
       return noise;
     }
-    
+  
+    /**
+     * Gets init radius.
+     *
+     * @return the init radius
+     */
     public double getInitRadius() {
       return initRadius;
     }
-    
+  
+    /**
+     * Gets init stiffness.
+     *
+     * @return the init stiffness
+     */
     public int getInitStiffness() {
       return initStiffness;
     }
-    
+  
+    /**
+     * Gets init peak.
+     *
+     * @return the init peak
+     */
     public double getInitPeak() {
       return initPeak;
     }
-    
+  
+    /**
+     * Gets dropout.
+     *
+     * @return the dropout
+     */
     public double getDropout() {
       return dropout;
     }
-    
+  
+    /**
+     * Sets noise.
+     *
+     * @param noise the noise
+     * @return the noise
+     */
     public AutoencoderNetwork.Builder setNoise(double noise) {
       this.noise = noise;
       return this;
     }
-    
+  
+    /**
+     * Sets init radius.
+     *
+     * @param initRadius the init radius
+     * @return the init radius
+     */
     public AutoencoderNetwork.Builder setInitRadius(double initRadius) {
       this.initRadius = initRadius;
       return this;
     }
-    
+  
+    /**
+     * Sets init stiffness.
+     *
+     * @param initStiffness the init stiffness
+     * @return the init stiffness
+     */
     public AutoencoderNetwork.Builder setInitStiffness(int initStiffness) {
       this.initStiffness = initStiffness;
       return this;
     }
-    
+  
+    /**
+     * Sets init peak.
+     *
+     * @param initPeak the init peak
+     * @return the init peak
+     */
     public AutoencoderNetwork.Builder setInitPeak(double initPeak) {
       this.initPeak = initPeak;
       return this;
     }
-    
+  
+    /**
+     * Sets dropout.
+     *
+     * @param dropout the dropout
+     * @return the dropout
+     */
     public AutoencoderNetwork.Builder setDropout(double dropout) {
       this.dropout = dropout;
       return this;
     }
-    
+  
+    /**
+     * Build autoencoder network.
+     *
+     * @return the autoencoder network
+     */
     public AutoencoderNetwork build() {
       return new AutoencoderNetwork(AutoencoderNetwork.Builder.this);
     }

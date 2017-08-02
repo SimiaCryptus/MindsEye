@@ -28,11 +28,22 @@ import com.simiacryptus.mindseye.layers.synapse.ToeplitzSynapseLayer;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+/**
+ * The type L 12 normalizer.
+ */
 public abstract class L12Normalizer implements Trainable {
+  /**
+   * The Inner.
+   */
   public final Trainable inner;
   
   private final boolean hideAdj = false;
   
+  /**
+   * Instantiates a new L 12 normalizer.
+   *
+   * @param inner the inner
+   */
   public L12Normalizer(Trainable inner) {
     this.inner = inner;
   }
@@ -60,8 +71,20 @@ public abstract class L12Normalizer implements Trainable {
                               innerMeasure.value + (hideAdj?0:valueAdj));
   }
   
+  /**
+   * Gets l 1.
+   *
+   * @param layer the layer
+   * @return the l 1
+   */
   protected abstract double getL1(NNLayer layer);
   
+  /**
+   * Gets l 2.
+   *
+   * @param layer the layer
+   * @return the l 2
+   */
   protected abstract double getL2(NNLayer layer);
   
   @Override
@@ -74,6 +97,12 @@ public abstract class L12Normalizer implements Trainable {
     return inner.resetSampling();
   }
   
+  /**
+   * Gets layers.
+   *
+   * @param layers the layers
+   * @return the layers
+   */
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
     return layers.stream()
                .filter(layer -> {

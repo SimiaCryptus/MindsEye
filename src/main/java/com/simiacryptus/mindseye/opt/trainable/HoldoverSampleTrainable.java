@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.ScalarStatistics;
@@ -31,12 +32,34 @@ import java.util.Comparator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * The type Holdover sample trainable.
+ */
 public class HoldoverSampleTrainable implements Trainable {
   
+  /**
+   * Sqrt holdover sample trainable.
+   *
+   * @param trainingData    the training data
+   * @param network         the network
+   * @param trainingSize    the training size
+   * @param initialIncrease the initial increase
+   * @return the holdover sample trainable
+   */
   public static HoldoverSampleTrainable Sqrt(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double initialIncrease) {
     return Pow(trainingData, network, trainingSize, initialIncrease, -0.5);
   }
   
+  /**
+   * Pow holdover sample trainable.
+   *
+   * @param trainingData        the training data
+   * @param network             the network
+   * @param initialTrainingSize the initial training size
+   * @param initialIncrease     the initial increase
+   * @param powerRelation       the power relation
+   * @return the holdover sample trainable
+   */
   public static HoldoverSampleTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int initialTrainingSize, double initialIncrease, double powerRelation) {
     return new HoldoverSampleTrainable(trainingData, network, initialTrainingSize,initialIncrease/Math.pow(initialTrainingSize, powerRelation)).setIncreasePower(powerRelation);
   }
@@ -54,6 +77,14 @@ public class HoldoverSampleTrainable implements Trainable {
   private double increasePower = 0;
   private double holdoverFraction = 0.1;
   
+  /**
+   * Instantiates a new Holdover sample trainable.
+   *
+   * @param trainingData       the training data
+   * @param network            the network
+   * @param trainingSize       the training size
+   * @param increaseMultiplier the increase multiplier
+   */
   public HoldoverSampleTrainable(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double increaseMultiplier) {
     this.trainingData = trainingData;
     this.network = network;
@@ -65,7 +96,7 @@ public class HoldoverSampleTrainable implements Trainable {
   @Override
   public Trainable.PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
-    NNResult result = network.eval(input);
+    NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
@@ -95,10 +126,21 @@ public class HoldoverSampleTrainable implements Trainable {
     return true;
   }
   
+  /**
+   * Gets training size.
+   *
+   * @return the training size
+   */
   public double getTrainingSize() {
     return this.trainingSize;
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public HoldoverSampleTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
@@ -126,60 +168,132 @@ public class HoldoverSampleTrainable implements Trainable {
     ).toArray(i -> new Tensor[i][]);
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public HoldoverSampleTrainable setTrainingSize(double trainingSize) {
     this.trainingSize = trainingSize;
     return this;
   }
   
+  /**
+   * Gets training size max.
+   *
+   * @return the training size max
+   */
   public int getTrainingSizeMax() {
     return trainingSizeMax;
   }
   
+  /**
+   * Sets training size max.
+   *
+   * @param trainingSizeMax the training size max
+   * @return the training size max
+   */
   public HoldoverSampleTrainable setTrainingSizeMax(int trainingSizeMax) {
     this.trainingSizeMax = trainingSizeMax;
     return this;
   }
   
+  /**
+   * Gets training size min.
+   *
+   * @return the training size min
+   */
   public int getTrainingSizeMin() {
     return trainingSizeMin;
   }
   
+  /**
+   * Sets training size min.
+   *
+   * @param trainingSizeMin the training size min
+   * @return the training size min
+   */
   public HoldoverSampleTrainable setTrainingSizeMin(int trainingSizeMin) {
     this.trainingSizeMin = trainingSizeMin;
     return this;
   }
   
+  /**
+   * Is shuffled boolean.
+   *
+   * @return the boolean
+   */
   public boolean isShuffled() {
     return shuffled;
   }
   
+  /**
+   * Sets shuffled.
+   *
+   * @param shuffled the shuffled
+   * @return the shuffled
+   */
   public HoldoverSampleTrainable setShuffled(boolean shuffled) {
     this.shuffled = shuffled;
     return this;
   }
   
+  /**
+   * Gets increase multiplier.
+   *
+   * @return the increase multiplier
+   */
   public double getIncreaseMultiplier() {
     return increaseMultiplier;
   }
   
+  /**
+   * Sets increase multiplier.
+   *
+   * @param increaseMultiplier the increase multiplier
+   * @return the increase multiplier
+   */
   public HoldoverSampleTrainable setIncreaseMultiplier(double increaseMultiplier) {
     this.increaseMultiplier = increaseMultiplier;
     return this;
   }
   
+  /**
+   * Gets increase power.
+   *
+   * @return the increase power
+   */
   public double getIncreasePower() {
     return increasePower;
   }
   
+  /**
+   * Sets increase power.
+   *
+   * @param increasePower the increase power
+   * @return the increase power
+   */
   public HoldoverSampleTrainable setIncreasePower(double increasePower) {
     this.increasePower = increasePower;
     return this;
   }
   
+  /**
+   * Gets holdover fraction.
+   *
+   * @return the holdover fraction
+   */
   public double getHoldoverFraction() {
     return holdoverFraction;
   }
   
+  /**
+   * Sets holdover fraction.
+   *
+   * @param holdoverFraction the holdover fraction
+   * @return the holdover fraction
+   */
   public HoldoverSampleTrainable setHoldoverFraction(double holdoverFraction) {
     this.holdoverFraction = holdoverFraction;
     return this;

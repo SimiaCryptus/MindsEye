@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Linear activation layer.
+ */
 public class LinearActivationLayer extends NNLayer {
   
   
@@ -38,9 +41,21 @@ public class LinearActivationLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json linear activation layer.
+   *
+   * @param json the json
+   * @return the linear activation layer
+   */
   public static LinearActivationLayer fromJson(JsonObject json) {
     return new LinearActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Linear activation layer.
+   *
+   * @param json the json
+   */
   protected LinearActivationLayer(JsonObject json) {
     super(json);
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
@@ -50,6 +65,9 @@ public class LinearActivationLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
   private final Tensor weights;
   
+  /**
+   * Instantiates a new Linear activation layer.
+   */
   public LinearActivationLayer() {
     super();
     this.weights = new Tensor(2);
@@ -58,7 +76,7 @@ public class LinearActivationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     final double scale = this.weights.get(0);
     final double bias = this.weights.get(1);
@@ -74,19 +92,41 @@ public class LinearActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
   
+  /**
+   * Gets bias.
+   *
+   * @return the bias
+   */
   public double getBias() {
     return this.weights.get(1);
   }
   
+  /**
+   * Sets bias.
+   *
+   * @param bias the bias
+   * @return the bias
+   */
   public LinearActivationLayer setBias(double bias) {
     this.weights.set(1, bias);
     return this;
   }
   
+  /**
+   * Gets scale.
+   *
+   * @return the scale
+   */
   public double getScale() {
     return this.weights.get(0);
   }
   
+  /**
+   * Sets scale.
+   *
+   * @param scale the scale
+   * @return the scale
+   */
   public LinearActivationLayer setScale(double scale) {
     this.weights.set(0, scale);
     return this;

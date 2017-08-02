@@ -23,20 +23,39 @@ import com.google.gson.JsonObject;
 
 import java.util.UUID;
 
+/**
+ * The type Log activation layer.
+ */
 public final class LogActivationLayer extends SimpleActivationLayer<LogActivationLayer> {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json log activation layer.
+   *
+   * @param json the json
+   * @return the log activation layer
+   */
   public static LogActivationLayer fromJson(JsonObject json) {
     return new LogActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Log activation layer.
+   *
+   * @param id the id
+   */
   protected LogActivationLayer(JsonObject id) {
     super(id);
   }
   
   private static final long serialVersionUID = -5520500379591109767L;
   
+  /**
+   * Instantiates a new Log activation layer.
+   */
   public LogActivationLayer() {
   }
   

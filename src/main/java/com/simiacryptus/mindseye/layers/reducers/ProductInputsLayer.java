@@ -28,23 +28,42 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * The type Product inputs layer.
+ */
 public class ProductInputsLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json product inputs layer.
+   *
+   * @param json the json
+   * @return the product inputs layer
+   */
   public static ProductInputsLayer fromJson(JsonObject json) {
     return new ProductInputsLayer(json);
   }
+
+  /**
+   * Instantiates a new Product inputs layer.
+   *
+   * @param id the id
+   */
   protected ProductInputsLayer(JsonObject id) {
     super(id);
   }
 
+  /**
+   * Instantiates a new Product inputs layer.
+   */
   public ProductInputsLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert inObj.length > 1;
     for(int i=1;i<inObj.length;i++) {
       if(!Arrays.equals(inObj[0].data.get(0).getDimensions(), inObj[i].data.get(0).getDimensions()))

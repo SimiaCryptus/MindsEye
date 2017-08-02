@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Hyperbolic activation layer.
+ */
 public class HyperbolicActivationLayer extends NNLayer {
   
   
@@ -39,9 +42,21 @@ public class HyperbolicActivationLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json hyperbolic activation layer.
+   *
+   * @param json the json
+   * @return the hyperbolic activation layer
+   */
   public static HyperbolicActivationLayer fromJson(JsonObject json) {
     return new HyperbolicActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Hyperbolic activation layer.
+   *
+   * @param json the json
+   */
   protected HyperbolicActivationLayer(JsonObject json) {
     super(json);
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
@@ -53,21 +68,39 @@ public class HyperbolicActivationLayer extends NNLayer {
   private final Tensor weights;
   private int negativeMode = 1;
   
+  /**
+   * Sets mode even.
+   *
+   * @return the mode even
+   */
   public HyperbolicActivationLayer setModeEven() {
     negativeMode = 1;
     return this;
   }
   
+  /**
+   * Sets mode odd.
+   *
+   * @return the mode odd
+   */
   public HyperbolicActivationLayer setModeOdd() {
     negativeMode = -1;
     return this;
   }
   
+  /**
+   * Sets mode asymetric.
+   *
+   * @return the mode asymetric
+   */
   public HyperbolicActivationLayer setModeAsymetric() {
     negativeMode = 0;
     return this;
   }
   
+  /**
+   * Instantiates a new Hyperbolic activation layer.
+   */
   public HyperbolicActivationLayer() {
     super();
     this.weights = new Tensor(2);
@@ -76,7 +109,7 @@ public class HyperbolicActivationLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data.get(dataIndex);
@@ -94,13 +127,30 @@ public class HyperbolicActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
   
+  /**
+   * Gets scale r.
+   *
+   * @return the scale r
+   */
   public double getScaleR() {
     return 1/this.weights.get(0);
   }
+
+  /**
+   * Gets scale l.
+   *
+   * @return the scale l
+   */
   public double getScaleL() {
     return 1/this.weights.get(1);
   }
   
+  /**
+   * Sets scale.
+   *
+   * @param scale the scale
+   * @return the scale
+   */
   public HyperbolicActivationLayer setScale(double scale) {
     this.weights.set(0, 1/scale);
     this.weights.set(1, 1/scale);

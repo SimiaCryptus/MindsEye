@@ -19,31 +19,52 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.UUID;
 
+/**
+ * The type Lazy result.
+ */
 abstract class LazyResult implements DAGNode {
   
+  /**
+   * The Key.
+   */
   public final UUID key;
   
+  /**
+   * Instantiates a new Lazy result.
+   */
   public LazyResult() {
     this(UUID.randomUUID());
   }
   
+  /**
+   * Instantiates a new Lazy result.
+   *
+   * @param key the key
+   */
   protected LazyResult(final UUID key) {
     super();
     this.key = key;
   }
   
-  protected abstract NNResult eval(EvaluationContext t);
+  /**
+   * Eval nn result.
+   *
+   * @param t         the t
+   * @param nncontext the nncontext
+   * @return the nn result
+   */
+  protected abstract NNResult eval(EvaluationContext t, NNLayer.NNExecutionContext nncontext);
   
   @Override
-  public NNResult get(final EvaluationContext t) {
+  public NNResult get(NNLayer.NNExecutionContext nncontext, final EvaluationContext t) {
     return t.cache.computeIfAbsent(this.key, k -> {
       try {
-        return eval(t);
+        return eval(t, nncontext);
       } catch (Throwable e) {
         throw new RuntimeException("Error with layer " + getLayer(), e);
       }

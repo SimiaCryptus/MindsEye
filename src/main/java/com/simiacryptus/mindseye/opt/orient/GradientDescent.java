@@ -26,6 +26,9 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
+/**
+ * The type Gradient descent.
+ */
 public class GradientDescent implements OrientationStrategy {
   
   @Override

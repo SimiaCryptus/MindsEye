@@ -17,14 +17,20 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.opencl;
+package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.aparapi.device.Device;
 import com.aparapi.internal.kernel.KernelManager;
 import com.simiacryptus.util.lang.ResourcePool;
 
+/**
+ * The type Open cl.
+ */
 public final class OpenCL {
   
+  /**
+   * The constant devicePool.
+   */
   public static final ResourcePool<Device> devicePool = new ResourcePool<Device>(Integer.parseInt(System.getProperty("num_gpus","1"))) {
     @Override
     public Device create() {

@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Avg meta layer.
+ */
 @SuppressWarnings("serial")
 public class AvgMetaLayer extends NNLayer {
   
@@ -38,9 +41,22 @@ public class AvgMetaLayer extends NNLayer {
     json.add("lastResult", lastResult.getJson());
     return json;
   }
+
+  /**
+   * From json avg meta layer.
+   *
+   * @param json the json
+   * @return the avg meta layer
+   */
   public static AvgMetaLayer fromJson(JsonObject json) {
     return new AvgMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Avg meta layer.
+   *
+   * @param id the id
+   */
   protected AvgMetaLayer(JsonObject id) {
     super(id);
     lastResult = Tensor.fromJson(id.getAsJsonObject("lastResult"));
@@ -49,13 +65,19 @@ public class AvgMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgMetaLayer.class);
   
+  /**
+   * Instantiates a new Avg meta layer.
+   */
   public AvgMetaLayer() {
   }
   
+  /**
+   * The Last result.
+   */
   public Tensor lastResult;
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length();
     Tensor result = input.data.get(0).mapParallel((v, c) ->

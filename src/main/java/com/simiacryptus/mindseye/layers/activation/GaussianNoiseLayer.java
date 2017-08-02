@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
 
+/**
+ * The type Gaussian noise layer.
+ */
 public class GaussianNoiseLayer extends NNLayer {
   
   
@@ -39,14 +42,29 @@ public class GaussianNoiseLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json gaussian noise layer.
+   *
+   * @param json the json
+   * @return the gaussian noise layer
+   */
   public static GaussianNoiseLayer fromJson(JsonObject json) {
     return new GaussianNoiseLayer(json);
   }
+
+  /**
+   * Instantiates a new Gaussian noise layer.
+   *
+   * @param json the json
+   */
   protected GaussianNoiseLayer(JsonObject json) {
     super(json);
     this.value = json.get("value").getAsDouble();
   }
   
+  /**
+   * The constant random.
+   */
   public static final ThreadLocal<Random> random = new ThreadLocal<Random>() {
     @Override
     protected Random initialValue() {
@@ -58,22 +76,36 @@ public class GaussianNoiseLayer extends NNLayer {
   private double value;
   private long seed = random.get().nextLong();
   
+  /**
+   * Instantiates a new Gaussian noise layer.
+   */
   public GaussianNoiseLayer() {
     super();
     this.setValue(1.0);
   }
   
+  /**
+   * Gets value.
+   *
+   * @return the value
+   */
   public double getValue() {
     return value;
   }
   
+  /**
+   * Sets value.
+   *
+   * @param value the value
+   * @return the value
+   */
   public GaussianNoiseLayer setValue(double value) {
     this.value = value;
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     Random random = new Random(seed);
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
@@ -91,6 +123,9 @@ public class GaussianNoiseLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Shuffle.
+   */
   public void shuffle() {
     seed = random.get().nextLong();
   }

@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
 
+/**
+ * The type Dropout noise layer.
+ */
 public class DropoutNoiseLayer extends NNLayer {
   
   
@@ -39,14 +42,29 @@ public class DropoutNoiseLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json dropout noise layer.
+   *
+   * @param json the json
+   * @return the dropout noise layer
+   */
   public static DropoutNoiseLayer fromJson(JsonObject json) {
     return new DropoutNoiseLayer(json);
   }
+
+  /**
+   * Instantiates a new Dropout noise layer.
+   *
+   * @param json the json
+   */
   protected DropoutNoiseLayer(JsonObject json) {
     super(json);
     this.value = json.get("value").getAsDouble();
   }
   
+  /**
+   * The constant random.
+   */
   public static final ThreadLocal<Random> random = new ThreadLocal<Random>() {
     @Override
     protected Random initialValue() {
@@ -56,33 +74,58 @@ public class DropoutNoiseLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DropoutNoiseLayer.class);
   
+  /**
+   * The Seed.
+   */
   long seed = random.get().nextLong();
   private double value;
   
+  /**
+   * Instantiates a new Dropout noise layer.
+   *
+   * @param value the value
+   */
   public DropoutNoiseLayer(double value) {
     super();
     this.setValue(value);
   }
   
+  /**
+   * Instantiates a new Dropout noise layer.
+   */
   public DropoutNoiseLayer() {
     this(0.5);
   }
   
+  /**
+   * Gets value.
+   *
+   * @return the value
+   */
   public double getValue() {
     return value;
   }
   
+  /**
+   * Sets value.
+   *
+   * @param value the value
+   * @return the value
+   */
   public DropoutNoiseLayer setValue(double value) {
     this.value = value;
     return this;
   }
   
+  /**
+   * Shuffle.
+   */
   public void shuffle() {
     seed = random.get().nextLong();
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     Random random = new Random(seed);
     Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {

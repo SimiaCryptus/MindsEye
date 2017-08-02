@@ -24,20 +24,39 @@ import com.simiacryptus.mindseye.layers.meta.CrossDotMetaLayer;
 
 import java.util.UUID;
 
+/**
+ * The type Sq activation layer.
+ */
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json sq activation layer.
+   *
+   * @param json the json
+   * @return the sq activation layer
+   */
   public static SqActivationLayer fromJson(JsonObject json) {
     return new SqActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Sq activation layer.
+   *
+   * @param id the id
+   */
   protected SqActivationLayer(JsonObject id) {
     super(id);
   }
   
   private static final long serialVersionUID = -5520500379591109767L;
   
+  /**
+   * Instantiates a new Sq activation layer.
+   */
   public SqActivationLayer() {
   }
   

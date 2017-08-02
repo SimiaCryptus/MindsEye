@@ -36,14 +36,30 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
     return regionPolicies.getOrDefault(layer, defaultRegionPolicy);
   }
   
+  /**
+   * Gets region policies.
+   *
+   * @return the region policies
+   */
   public Map<NNLayer, TrustRegion> getRegionPolicies() {
     return regionPolicies;
   }
   
+  /**
+   * Gets default region policy.
+   *
+   * @return the default region policy
+   */
   public TrustRegion getDefaultRegionPolicy() {
     return defaultRegionPolicy;
   }
   
+  /**
+   * Sets default region policy.
+   *
+   * @param defaultRegionPolicy the default region policy
+   * @return the default region policy
+   */
   public TrustRegionStrategy setDefaultRegionPolicy(TrustRegion defaultRegionPolicy) {
     this.defaultRegionPolicy = defaultRegionPolicy;
     return this;

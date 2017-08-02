@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Sum meta layer.
+ */
 @SuppressWarnings("serial")
 public class SumMetaLayer extends NNLayer {
   
@@ -40,9 +43,22 @@ public class SumMetaLayer extends NNLayer {
     json.add("lastResult", lastResult.getJson());
     return json;
   }
+
+  /**
+   * From json sum meta layer.
+   *
+   * @param json the json
+   * @return the sum meta layer
+   */
   public static SumMetaLayer fromJson(JsonObject json) {
     return new SumMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Sum meta layer.
+   *
+   * @param id the id
+   */
   protected SumMetaLayer(JsonObject id) {
     super(id);
     lastResult = Tensor.fromJson(id.getAsJsonObject("lastResult"));
@@ -51,11 +67,14 @@ public class SumMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumMetaLayer.class);
   
+  /**
+   * Instantiates a new Sum meta layer.
+   */
   public SumMetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length();
     if(1<itemCnt) lastResult = input.data.get(0).mapParallel((v, c) ->

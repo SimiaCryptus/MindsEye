@@ -21,7 +21,15 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 
+/**
+ * The type Supervised network.
+ */
 public abstract class SupervisedNetwork extends DAGNetwork {
+  /**
+   * Instantiates a new Supervised network.
+   *
+   * @param inputs the inputs
+   */
   public SupervisedNetwork(int inputs) {
     super(inputs);
   }

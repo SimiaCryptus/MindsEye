@@ -36,13 +36,31 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * The type Layer rate diagnostic trainer.
+ */
 public class LayerRateDiagnosticTrainer {
   
   
+  /**
+   * The type Layer stats.
+   */
   public static class LayerStats {
+    /**
+     * The Rate.
+     */
     public final double rate;
+    /**
+     * The Delta.
+     */
     public final double delta;
   
+    /**
+     * Instantiates a new Layer stats.
+     *
+     * @param rate  the rate
+     * @param delta the delta
+     */
     public LayerStats(double rate, double delta) {
       this.rate = rate;
       this.delta = delta;
@@ -69,6 +87,11 @@ public class LayerRateDiagnosticTrainer {
   private boolean strict = false;
   private final Map<NNLayer,LayerStats> layerRates = new HashMap<>();
   
+  /**
+   * Instantiates a new Layer rate diagnostic trainer.
+   *
+   * @param subject the subject
+   */
   public LayerRateDiagnosticTrainer(Trainable subject) {
     this.subject = subject;
     timeout = Duration.of(5, ChronoUnit.MINUTES);
@@ -76,15 +99,31 @@ public class LayerRateDiagnosticTrainer {
     this.setOrientation(new GradientDescent());
   }
   
+  /**
+   * Gets max iterations.
+   *
+   * @return the max iterations
+   */
   public int getMaxIterations() {
     return maxIterations;
   }
   
+  /**
+   * Sets max iterations.
+   *
+   * @param maxIterations the max iterations
+   * @return the max iterations
+   */
   public LayerRateDiagnosticTrainer setMaxIterations(int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
   
+  /**
+   * Run map.
+   *
+   * @return the map
+   */
   public Map<NNLayer, LayerStats> run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
@@ -160,6 +199,11 @@ public class LayerRateDiagnosticTrainer {
     return getLayerRates();
   }
   
+  /**
+   * Gets line search strategy.
+   *
+   * @return the line search strategy
+   */
   protected LineSearchStrategy getLineSearchStrategy() {
     return new QuadraticSearch();
   }
@@ -171,6 +215,11 @@ public class LayerRateDiagnosticTrainer {
     return maskedDelta;
   }
   
+  /**
+   * Measure point sample.
+   *
+   * @return the point sample
+   */
   public PointSample measure() {
     PointSample currentPoint;
     int retries = 0;
@@ -183,78 +232,174 @@ public class LayerRateDiagnosticTrainer {
     return currentPoint;
   }
   
+  /**
+   * Gets timeout.
+   *
+   * @return the timeout
+   */
   public Duration getTimeout() {
     return timeout;
   }
   
+  /**
+   * Sets timeout.
+   *
+   * @param timeout the timeout
+   * @return the timeout
+   */
   public LayerRateDiagnosticTrainer setTimeout(Duration timeout) {
     this.timeout = timeout;
     return this;
   }
   
+  /**
+   * Sets timeout.
+   *
+   * @param number the number
+   * @param units  the units
+   * @return the timeout
+   */
   public LayerRateDiagnosticTrainer setTimeout(int number, TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
+  /**
+   * Sets timeout.
+   *
+   * @param number the number
+   * @param units  the units
+   * @return the timeout
+   */
   public LayerRateDiagnosticTrainer setTimeout(int number, TemporalUnit units) {
     this.timeout = Duration.of(number, units);
     return this;
   }
   
+  /**
+   * Gets terminate threshold.
+   *
+   * @return the terminate threshold
+   */
   public double getTerminateThreshold() {
     return terminateThreshold;
   }
   
+  /**
+   * Sets terminate threshold.
+   *
+   * @param terminateThreshold the terminate threshold
+   * @return the terminate threshold
+   */
   public LayerRateDiagnosticTrainer setTerminateThreshold(double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
   
+  /**
+   * Gets monitor.
+   *
+   * @return the monitor
+   */
   public TrainingMonitor getMonitor() {
     return monitor;
   }
   
+  /**
+   * Sets monitor.
+   *
+   * @param monitor the monitor
+   * @return the monitor
+   */
   public LayerRateDiagnosticTrainer setMonitor(TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
   }
   
+  /**
+   * Gets current iteration.
+   *
+   * @return the current iteration
+   */
   public AtomicInteger getCurrentIteration() {
     return currentIteration;
   }
   
+  /**
+   * Sets current iteration.
+   *
+   * @param currentIteration the current iteration
+   * @return the current iteration
+   */
   public LayerRateDiagnosticTrainer setCurrentIteration(AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
   }
   
+  /**
+   * Gets iterations per sample.
+   *
+   * @return the iterations per sample
+   */
   public int getIterationsPerSample() {
     return iterationsPerSample;
   }
   
+  /**
+   * Sets iterations per sample.
+   *
+   * @param iterationsPerSample the iterations per sample
+   * @return the iterations per sample
+   */
   public LayerRateDiagnosticTrainer setIterationsPerSample(int iterationsPerSample) {
     this.iterationsPerSample = iterationsPerSample;
     return this;
   }
   
+  /**
+   * Is strict boolean.
+   *
+   * @return the boolean
+   */
   public boolean isStrict() {
     return strict;
   }
   
+  /**
+   * Sets strict.
+   *
+   * @param strict the strict
+   * @return the strict
+   */
   public LayerRateDiagnosticTrainer setStrict(boolean strict) {
     this.strict = strict;
     return this;
   }
   
+  /**
+   * Gets orientation.
+   *
+   * @return the orientation
+   */
   public OrientationStrategy getOrientation() {
     return orientation;
   }
   
+  /**
+   * Sets orientation.
+   *
+   * @param orientation the orientation
+   * @return the orientation
+   */
   public LayerRateDiagnosticTrainer setOrientation(OrientationStrategy orientation) {
     this.orientation = orientation;
     return this;
   }
   
+  /**
+   * Gets layer rates.
+   *
+   * @return the layer rates
+   */
   public Map<NNLayer, LayerStats> getLayerRates() {
     return layerRates;
   }

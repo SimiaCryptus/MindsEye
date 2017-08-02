@@ -27,6 +27,7 @@ import com.simiacryptus.util.ml.Tensor;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +42,9 @@ import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
+/**
+ * The type Convolution layer.
+ */
 public class ConvolutionLayer extends NNLayer {
   
   
@@ -52,9 +56,21 @@ public class ConvolutionLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json convolution layer.
+   *
+   * @param json the json
+   * @return the convolution layer
+   */
   public static ConvolutionLayer fromJson(JsonObject json) {
     return new ConvolutionLayer(json);
   }
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param json the json
+   */
   protected ConvolutionLayer(JsonObject json) {
     super(json);
     this.kernel = Tensor.fromJson(json.getAsJsonObject("filter"));
@@ -63,14 +79,33 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   
+  /**
+   * The Kernel.
+   */
   public final Tensor kernel;
+  /**
+   * The Skip.
+   */
   public final Tensor skip;
+  /**
+   * The Simple.
+   */
   public final boolean simple;
   
+  /**
+   * Instantiates a new Convolution layer.
+   */
   protected ConvolutionLayer() {
     this((Tensor)null, (Tensor)null, true);
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param kernel the kernel
+   * @param skip   the skip
+   * @param simple the simple
+   */
   protected ConvolutionLayer(Tensor kernel, Tensor skip, boolean simple) {
     super();
     this.simple = simple;
@@ -82,32 +117,71 @@ public class ConvolutionLayer extends NNLayer {
     this.kernel = kernel;
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width       the width
+   * @param height      the height
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   */
   public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width  the width
+   * @param height the height
+   * @param bands  the bands
+   * @param simple the simple
+   */
   public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
     this(new Tensor(width,height,bands), new Tensor(new int[]{1,1}), simple);
     assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
     assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width  the width
+   * @param height the height
+   * @param bands  the bands
+   */
   public ConvolutionLayer(final int width, int height, final int bands) {
     this(width, height, bands, true);
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width       the width
+   * @param height      the height
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   * @param simple      the simple
+   */
   public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
     this(width, height, inputBands * outputBands, simple);
   }
   
+  /**
+   * Add weights convolution layer.
+   *
+   * @param f the f
+   * @return the convolution layer
+   */
   public ConvolutionLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.kernel.getData());
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+    JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
@@ -137,12 +211,13 @@ public class ConvolutionLayer extends NNLayer {
     } catch (Throwable e) {
       throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
     }
-    assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   
     return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
-        assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+        //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
@@ -156,7 +231,7 @@ public class ConvolutionLayer extends NNLayer {
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           backprop(inputSize, kernelSize, outputSize, simple, inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
-          assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          //assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           input.accumulate(buffer, new TensorArray(inputBufferTensors));
         }
       }
@@ -168,6 +243,12 @@ public class ConvolutionLayer extends NNLayer {
     };
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     this.kernel.coordStream().parallel().forEach(c -> {
       this.kernel.set(c, f.applyAsDouble(c));
@@ -175,6 +256,12 @@ public class ConvolutionLayer extends NNLayer {
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public ConvolutionLayer setWeights(final DoubleSupplier f) {
     this.kernel.coordStream().parallel().forEach(c -> {
       this.kernel.set(c, f.getAsDouble());
@@ -186,9 +273,23 @@ public class ConvolutionLayer extends NNLayer {
   public List<double[]> state() {
     return Arrays.asList(this.kernel.getData());
   }
-
+  
+  /**
+   * The constant MAX_BUFFER_SIZE.
+   */
   public static int MAX_BUFFER_SIZE = 64 * 1024 * 1024;
-
+  
+  /**
+   * Backprop.
+   *
+   * @param inputSize  the input size
+   * @param kernelSize the kernel size
+   * @param outputSize the output size
+   * @param simple     the simple
+   * @param input      the input
+   * @param weights    the weights
+   * @param output     the output
+   */
   public static void backprop(final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
@@ -245,7 +346,18 @@ public class ConvolutionLayer extends NNLayer {
     Tensor.recycle(inputBuffer);
     Tensor.recycle(outputBuffer);
   }
-
+  
+  /**
+   * Convolve.
+   *
+   * @param inputSize  the input size
+   * @param kernelSize the kernel size
+   * @param outputSize the output size
+   * @param simple     the simple
+   * @param input      the input
+   * @param weights    the weights
+   * @param output     the output
+   */
   public static void convolve(final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
@@ -303,7 +415,18 @@ public class ConvolutionLayer extends NNLayer {
     Tensor.recycle(inputBuffer);
     Tensor.recycle(outputBuffer);
   }
-
+  
+  /**
+   * Gradient.
+   *
+   * @param inputSize  the input size
+   * @param kernelSize the kernel size
+   * @param outputSize the output size
+   * @param simple     the simple
+   * @param input      the input
+   * @param weights    the weights
+   * @param output     the output
+   */
   public static void gradient(final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);

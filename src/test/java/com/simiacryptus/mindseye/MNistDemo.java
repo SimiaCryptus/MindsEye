@@ -52,17 +52,29 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+/**
+ * The type M nist demo.
+ */
 public class MNistDemo {
-
+  
+  /**
+   * The type Logic.
+   */
   public static class Logic {
   
+    /**
+     * Validate.
+     *
+     * @param log     the log
+     * @param network the network
+     */
     public void validate(NotebookOutput log, PipelineNetwork network) {
       log.p("If we test our model against the entire validation dataset, we get this accuracy:");
       log.code(()->{
         try {
           return MNIST.validationDataStream().mapToDouble(labeledObject->{
             int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-            double[] predictionSignal = network.eval(labeledObject.data).data.get(0).getData();
+            double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {}, labeledObject.data).data.get(0).getData();
             int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             return predictionList[0]==actualCategory?1:0;
           }).average().getAsDouble() * 100;
@@ -78,7 +90,7 @@ public class MNistDemo {
           MNIST.validationDataStream().map(labeledObject->{
             try {
               int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-              double[] predictionSignal = network.eval(labeledObject.data).data.get(0).getData();
+              double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {},labeledObject.data).data.get(0).getData();
               int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
               if(predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
               LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
@@ -98,6 +110,13 @@ public class MNistDemo {
       });
     }
   
+    /**
+     * Train.
+     *
+     * @param log          the log
+     * @param network      the network
+     * @param trainingData the training data
+     */
     public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData) {
       log.p("Training a model involves a few different components. First, our model is combined with a loss function. " +
                 "Then we take that model and combine it with our training data to define a trainable object. " +
@@ -113,6 +132,12 @@ public class MNistDemo {
       });
     }
   
+    /**
+     * Get training data tensor [ ] [ ].
+     *
+     * @param log the log
+     * @return the tensor [ ] [ ]
+     */
     public Tensor[][] getTrainingData(NotebookOutput log) {
       log.p("We use the standard MNIST dataset, made available by a helper function. " +
                 "In order to use data, we convert it into data tensors; helper functions are defined to " +
@@ -131,6 +156,12 @@ public class MNistDemo {
       });
     }
   
+    /**
+     * Build model pipeline network.
+     *
+     * @param log the log
+     * @return the pipeline network
+     */
     public PipelineNetwork buildModel(NotebookOutput log) {
       log.p("This is a very simple model that performs basic logistic regression. " +
                 "It is expected to be trainable to about 91% accuracy on MNIST.");
@@ -145,6 +176,11 @@ public class MNistDemo {
     }
   }
   
+  /**
+   * Basic.
+   *
+   * @throws IOException the io exception
+   */
   @Test
   @Category(TestCategories.Report.class)
   public void basic() throws IOException {
@@ -158,6 +194,11 @@ public class MNistDemo {
     }
   }
   
+  /**
+   * Bells and whistles.
+   *
+   * @throws IOException the io exception
+   */
   @Test
   @Category(TestCategories.Report.class)
   public void bellsAndWhistles() throws IOException {

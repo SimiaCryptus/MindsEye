@@ -26,9 +26,21 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
  * Created by Andrew Charneski on 5/9/2017.
  */
 public class LineSearchPoint {
+  /**
+   * The Point.
+   */
   public final PointSample point;
+  /**
+   * The Derivative.
+   */
   public final double derivative;
   
+  /**
+   * Instantiates a new Line search point.
+   *
+   * @param point      the point
+   * @param derivative the derivative
+   */
   public LineSearchPoint(PointSample point, double derivative) {
     this.point = point;
     this.derivative = derivative;

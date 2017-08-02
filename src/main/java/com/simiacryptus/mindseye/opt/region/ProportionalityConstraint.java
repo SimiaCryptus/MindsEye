@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+/**
+ * The type Proportionality constraint.
+ */
 public class ProportionalityConstraint implements TrustRegion {
   @Override
   public double[] project(double[] weights, double[] point) {

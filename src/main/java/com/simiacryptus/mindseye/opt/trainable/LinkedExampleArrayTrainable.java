@@ -22,13 +22,15 @@ package com.simiacryptus.mindseye.opt.trainable;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * The type Linked example array trainable.
+ */
 public class LinkedExampleArrayTrainable implements Trainable {
   
   private final Tensor[][][] trainingData;
@@ -37,6 +39,13 @@ public class LinkedExampleArrayTrainable implements Trainable {
   private int trainingSize = Integer.MAX_VALUE;
   private Tensor[][] sampledData;
   
+  /**
+   * Instantiates a new Linked example array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   */
   public LinkedExampleArrayTrainable(Tensor[][][] trainingData, NNLayer network, int trainingSize) {
     this.trainingData = trainingData;
     this.network = network;
@@ -47,7 +56,7 @@ public class LinkedExampleArrayTrainable implements Trainable {
   @Override
   public PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
-    NNResult result = network.eval(input);
+    NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
@@ -70,10 +79,21 @@ public class LinkedExampleArrayTrainable implements Trainable {
     return true;
   }
   
+  /**
+   * Gets training size.
+   *
+   * @return the training size
+   */
   public int getTrainingSize() {
     return this.trainingSize;
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public LinkedExampleArrayTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();

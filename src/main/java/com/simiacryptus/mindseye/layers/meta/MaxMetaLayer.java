@@ -30,6 +30,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Max meta layer.
+ */
 @SuppressWarnings("serial")
 public class MaxMetaLayer extends NNLayer {
   
@@ -37,9 +40,22 @@ public class MaxMetaLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json max meta layer.
+   *
+   * @param json the json
+   * @return the max meta layer
+   */
   public static MaxMetaLayer fromJson(JsonObject json) {
     return new MaxMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Max meta layer.
+   *
+   * @param id the id
+   */
   protected MaxMetaLayer(JsonObject id) {
     super(id);
   }
@@ -47,11 +63,14 @@ public class MaxMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxMetaLayer.class);
   
+  /**
+   * Instantiates a new Max meta layer.
+   */
   public MaxMetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length();
     int vectorSize = input.data.get(0).dim();

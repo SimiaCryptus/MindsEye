@@ -17,10 +17,14 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.DirectCuDNNLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -28,6 +32,7 @@ import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,10 +42,13 @@ import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
-import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
-public class DirectConvolutionLayer extends DirectCuDNNLayer {
+/**
+ * The type Convolution layer.
+ */
+public class ConvolutionLayer extends DirectCuDNNLayer {
 
 
   public JsonObject getJson() {
@@ -50,27 +58,58 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
     json.addProperty("simple", simple);
     return json;
   }
-
-  public static DirectConvolutionLayer fromJson(JsonObject json) {
-    return new DirectConvolutionLayer(json);
+  
+  /**
+   * From json convolution layer.
+   *
+   * @param json the json
+   * @return the convolution layer
+   */
+  public static ConvolutionLayer fromJson(JsonObject json) {
+    return new ConvolutionLayer(json);
   }
-  protected DirectConvolutionLayer(JsonObject json) {
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param json the json
+   */
+  protected ConvolutionLayer(JsonObject json) {
     super(json);
     this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
     this.skip = Tensor.fromJson(json.getAsJsonObject("skip"));
     this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
-
-
+  
+  
+  /**
+   * The Filter.
+   */
   public final Tensor filter;
+  /**
+   * The Skip.
+   */
   public final Tensor skip;
+  /**
+   * The Simple.
+   */
   public final boolean simple;
-
-  protected DirectConvolutionLayer() {
+  
+  /**
+   * Instantiates a new Convolution layer.
+   */
+  protected ConvolutionLayer() {
     this((Tensor)null, (Tensor)null, true);
   }
-
-  protected DirectConvolutionLayer(Tensor filter, Tensor skip, boolean simple) {
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param filter the filter
+   * @param skip   the skip
+   * @param simple the simple
+   */
+  protected ConvolutionLayer(Tensor filter, Tensor skip, boolean simple) {
     super();
     this.simple = simple;
     this.skip = skip;
@@ -80,33 +119,73 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
     if(filter.getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.filter = filter;
   }
-
-  public DirectConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width       the width
+   * @param height      the height
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   */
+  public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
-
-  public DirectConvolutionLayer(final int width, int height, final int bands, boolean simple) {
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width  the width
+   * @param height the height
+   * @param bands  the bands
+   * @param simple the simple
+   */
+  public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
     this(new Tensor(width,height,bands), new Tensor(new int[]{1,1}), simple);
     assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
     assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
   }
-
-  public DirectConvolutionLayer(final int width, int height, final int bands) {
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width  the width
+   * @param height the height
+   * @param bands  the bands
+   */
+  public ConvolutionLayer(final int width, int height, final int bands) {
     this(width, height, bands, true);
   }
-
-  public DirectConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width       the width
+   * @param height      the height
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   * @param simple      the simple
+   */
+  public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
     this(width, height, inputBands * outputBands, simple);
   }
   
-  public DirectConvolutionLayer addWeights(final DoubleSupplier f) {
+  /**
+   * Add weights convolution layer.
+   *
+   * @param f the f
+   * @return the convolution layer
+   */
+  public ConvolutionLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.filter.getData());
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(filter.getData()).allMatch(v->Double.isFinite(v));
+    JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
     final int[] inputSize = batch.get(0).getDimensions();
@@ -117,25 +196,27 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
     try {
 
       CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
-              CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       CuDNN.CuDNNResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
+              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
       CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
               simple ?((kernelSize[1] - 1) / 2):0, simple ?((kernelSize[0] - 1) / 2):0,
               1, 1,
               CUDNN_CONVOLUTION);
-      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0);
-      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(0.0);
+      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0f);
+      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(0.0f);
 
-      final double[] filterData = this.filter.getData();
+      final float[] filterData = this.filter.getDataAsFloats();
+      //assert isNontrivial(filterData);
       CuDNN.CuDNNPtr filterPtr = CuDNN.write(filterData);
       assert(0 < filterData.length);
-      CuDNN.CuDNNPtr inputData = toDevice(batch);
+      //assert isNontrivial(batch.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).toArray());
+      CuDNN.CuDNNPtr inputData = toDeviceAsFloat(batch);
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
 
-      CuDNN.CuDNNPtr outputBuffer = CuDNN.alloc(Tensor.dim(outputSize) * length * Sizeof.DOUBLE);
+      CuDNN.CuDNNPtr outputBuffer = CuDNN.alloc(Tensor.dim(outputSize) * length * Sizeof.FLOAT);
       CuDNN.devicePool.with(device -> {
         try {
           assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
@@ -153,17 +234,20 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
           throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
         }
       });
-      TensorList output = fromDevice(outputBuffer, length, outputSize);
+      TensorList output = fromDeviceFloat(outputBuffer, length, outputSize);
+      //assert output.stream().allMatch(tensor -> Arrays.stream(tensor.getData()).allMatch(Double::isFinite));
 
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
+          JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
           assert (error.length() == batch.length());
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).anyMatch(x->0!=x);
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           int length = error.length();
-          CuDNN.CuDNNPtr errorPtr = toDevice(error);
+          CuDNN.CuDNNPtr errorPtr = toDeviceAsFloat(error);
           if (!isFrozen()) {
-            CuDNN.CuDNNPtr filterBuffer = CuDNN.alloc(filterData.length * Sizeof.DOUBLE);
+            CuDNN.CuDNNPtr filterBuffer = CuDNN.alloc(filterData.length * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 int algorithm = device.getBackwardFilterAlgorithm(
@@ -180,11 +264,13 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
             } catch (Throwable e) {
               throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
             }
-            final Tensor weightGradient = fromDevice(filterBuffer, DirectConvolutionLayer.this.filter.getDimensions());
-            buffer.get(DirectConvolutionLayer.this, DirectConvolutionLayer.this.filter).accumulate(weightGradient.getData());
+            final Tensor weightGradient = fromDeviceFloat(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
+            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
+            //assert Arrays.stream(weightGradient.getData()).anyMatch(x->0!=x);
+            buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
           }
           if (input.isAlive()) {
-            CuDNN.CuDNNPtr inputBuffer = CuDNN.alloc(batch.get(0).dim() * length * Sizeof.DOUBLE);
+            CuDNN.CuDNNPtr inputBuffer = CuDNN.alloc(batch.get(0).dim() * length * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 int algorithm = device.getBackwardDataAlgorithm(
@@ -200,7 +286,8 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
             } catch (Throwable e) {
               throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
             }
-            TensorList inputBufferTensors = fromDevice(inputBuffer, length, inputSize);
+            TensorList inputBufferTensors = fromDeviceFloat(inputBuffer, length, inputSize);
+            //assert inputBufferTensors.stream().allMatch(tensor -> Arrays.stream(tensor.getData()).allMatch(Double::isFinite));
             input.accumulate(buffer, inputBufferTensors);
           }
         }
@@ -214,7 +301,14 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
       throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
     }
   }
-
+  
+  /**
+   * Get output size int [ ].
+   *
+   * @param inputSize  the input size
+   * @param kernelSize the kernel size
+   * @return the int [ ]
+   */
   protected int[] getOutputSize(int[] inputSize, int[] kernelSize) {
     return IntStream.range(0, kernelSize.length).map(i -> {
       int x;
@@ -231,8 +325,17 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
       return x;
     }).toArray();
   }
-
-
+  
+  
+  /**
+   * Verify output dims boolean.
+   *
+   * @param inputDescriptor       the input descriptor
+   * @param filterDescriptor      the filter descriptor
+   * @param convolutionDescriptor the convolution descriptor
+   * @param outputSize            the output size
+   * @return the boolean
+   */
   protected boolean verifyOutputDims(CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     if(4 != outputDims.length) return false;
@@ -241,15 +344,27 @@ public class DirectConvolutionLayer extends DirectCuDNNLayer {
     if(outputSize[2] != outputDims[1]) return false;
     return true;
   }
-
-  public DirectConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+  
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
+  public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     this.filter.coordStream().parallel().forEach(c -> {
       this.filter.set(c, f.applyAsDouble(c));
     });
     return this;
   }
   
-  public DirectConvolutionLayer setWeights(final DoubleSupplier f) {
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
+  public ConvolutionLayer setWeights(final DoubleSupplier f) {
     this.filter.coordStream().parallel().forEach(c -> {
       this.filter.set(c, f.getAsDouble());
     });

@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
+/**
+ * The type Armijo wolfe search.
+ */
 public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   private double minAlpha = 1e-15;
@@ -114,6 +117,9 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     }
   }
   
+  /**
+   * Loosen metaparameters.
+   */
   public void loosenMetaparameters() {
     c1 *= 0.2;
     c2 = Math.pow(c2,c2<1?1.5:(1/1.5));
@@ -124,82 +130,181 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     return Double.isFinite(alpha) && (0 <= alpha);
   }
   
+  /**
+   * Gets alpha growth.
+   *
+   * @return the alpha growth
+   */
   public double getAlphaGrowth() {
     return alphaGrowth;
   }
   
+  /**
+   * Sets alpha growth.
+   *
+   * @param alphaGrowth the alpha growth
+   * @return the alpha growth
+   */
   public ArmijoWolfeSearch setAlphaGrowth(double alphaGrowth) {
     this.alphaGrowth = alphaGrowth;
     return this;
   }
   
+  /**
+   * Gets c 1.
+   *
+   * @return the c 1
+   */
   public double getC1() {
     return c1;
   }
   
+  /**
+   * Sets c 1.
+   *
+   * @param c1 the c 1
+   * @return the c 1
+   */
   public ArmijoWolfeSearch setC1(double c1) {
     this.c1 = c1;
     return this;
   }
   
+  /**
+   * Gets c 2.
+   *
+   * @return the c 2
+   */
   public double getC2() {
     return c2;
   }
   
+  /**
+   * Sets c 2.
+   *
+   * @param c2 the c 2
+   * @return the c 2
+   */
   public ArmijoWolfeSearch setC2(double c2) {
     this.c2 = c2;
     return this;
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public ArmijoWolfeSearch setAlpha(double alpha) {
     this.alpha = alpha;
     return this;
   }
   
+  /**
+   * Gets min alpha.
+   *
+   * @return the min alpha
+   */
   public double getMinAlpha() {
     return minAlpha;
   }
   
+  /**
+   * Sets min alpha.
+   *
+   * @param minAlpha the min alpha
+   * @return the min alpha
+   */
   public ArmijoWolfeSearch setMinAlpha(double minAlpha) {
     this.minAlpha = minAlpha;
     return this;
   }
   
+  /**
+   * Gets max alpha.
+   *
+   * @return the max alpha
+   */
   public double getMaxAlpha() {
     return maxAlpha;
   }
   
+  /**
+   * Sets max alpha.
+   *
+   * @param maxAlpha the max alpha
+   * @return the max alpha
+   */
   public ArmijoWolfeSearch setMaxAlpha(double maxAlpha) {
     this.maxAlpha = maxAlpha;
     return this;
   }
   
+  /**
+   * Is strong wolfe boolean.
+   *
+   * @return the boolean
+   */
   public boolean isStrongWolfe() {
     return strongWolfe;
   }
   
+  /**
+   * Sets strong wolfe.
+   *
+   * @param strongWolfe the strong wolfe
+   * @return the strong wolfe
+   */
   public ArmijoWolfeSearch setStrongWolfe(boolean strongWolfe) {
     this.strongWolfe = strongWolfe;
     return this;
   }
   
+  /**
+   * Gets absolute tolerance.
+   *
+   * @return the absolute tolerance
+   */
   public double getAbsoluteTolerance() {
     return absoluteTolerance;
   }
   
+  /**
+   * Sets absolute tolerance.
+   *
+   * @param absoluteTolerance the absolute tolerance
+   * @return the absolute tolerance
+   */
   public ArmijoWolfeSearch setAbsoluteTolerance(double absoluteTolerance) {
     this.absoluteTolerance = absoluteTolerance;
     return this;
   }
   
+  /**
+   * Gets relative tolerance.
+   *
+   * @return the relative tolerance
+   */
   public double getRelativeTolerance() {
     return relativeTolerance;
   }
   
+  /**
+   * Sets relative tolerance.
+   *
+   * @param relativeTolerance the relative tolerance
+   * @return the relative tolerance
+   */
   public ArmijoWolfeSearch setRelativeTolerance(double relativeTolerance) {
     this.relativeTolerance = relativeTolerance;
     return this;

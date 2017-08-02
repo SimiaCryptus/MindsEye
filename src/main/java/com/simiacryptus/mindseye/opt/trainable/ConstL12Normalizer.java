@@ -30,6 +30,11 @@ public class ConstL12Normalizer extends L12Normalizer {
   private double factor_L1 = 0.0;
   private double factor_L2 = 0.0;
   
+  /**
+   * Instantiates a new Const l 12 normalizer.
+   *
+   * @param inner the inner
+   */
   public ConstL12Normalizer(Trainable inner) {
     super(inner);
   }
@@ -51,19 +56,41 @@ public class ConstL12Normalizer extends L12Normalizer {
     return factor_L2;
   }
   
+  /**
+   * Gets factor l 1.
+   *
+   * @return the factor l 1
+   */
   public double getFactor_L1() {
     return factor_L1;
   }
   
+  /**
+   * Sets factor l 1.
+   *
+   * @param factor_L1 the factor l 1
+   * @return the factor l 1
+   */
   public ConstL12Normalizer setFactor_L1(double factor_L1) {
     this.factor_L1 = factor_L1;
     return this;
   }
   
+  /**
+   * Gets factor l 2.
+   *
+   * @return the factor l 2
+   */
   public double getFactor_L2() {
     return factor_L2;
   }
   
+  /**
+   * Sets factor l 2.
+   *
+   * @param factor_L2 the factor l 2
+   * @return the factor l 2
+   */
   public ConstL12Normalizer setFactor_L2(double factor_L2) {
     this.factor_L2 = factor_L2;
     return this;

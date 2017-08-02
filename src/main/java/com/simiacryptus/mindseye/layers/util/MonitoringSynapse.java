@@ -30,6 +30,9 @@ import com.simiacryptus.util.ScalarStatistics;
 
 import java.util.*;
 
+/**
+ * The type Monitoring synapse.
+ */
 @SuppressWarnings("serial")
 public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
@@ -39,6 +42,13 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     json.addProperty("totalItems",totalItems);
     return json;
   }
+
+  /**
+   * From json monitoring synapse.
+   *
+   * @param json the json
+   * @return the monitoring synapse
+   */
   public static MonitoringSynapse fromJson(JsonObject json) {
     MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
@@ -47,6 +57,12 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     obj.forwardStatistics.readJson(json.getAsJsonObject("forwardStatistics"));
     return obj;
   }
+
+  /**
+   * Instantiates a new Monitoring synapse.
+   *
+   * @param id the id
+   */
   protected MonitoringSynapse(JsonObject id) {
     super(id);
   }
@@ -56,13 +72,16 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   private final ScalarStatistics backpropStatistics = new ScalarStatistics();
   private final ScalarStatistics forwardStatistics = new ScalarStatistics();
   
+  /**
+   * Instantiates a new Monitoring synapse.
+   */
   public MonitoringSynapse() {
     super();
   }
   
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert(1==inObj.length);
     NNResult input = inObj[0];
     long start = System.nanoTime();
@@ -105,10 +124,23 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     return map;
   }
   
+  /**
+   * Add to monitoring synapse.
+   *
+   * @param obj the obj
+   * @return the monitoring synapse
+   */
   public MonitoringSynapse addTo(MonitoredObject obj) {
     return addTo(obj, getName());
   }
   
+  /**
+   * Add to monitoring synapse.
+   *
+   * @param obj  the obj
+   * @param name the name
+   * @return the monitoring synapse
+   */
   public MonitoringSynapse addTo(MonitoredObject obj, String name) {
     setName(name);
     obj.addObj(getName(),this);

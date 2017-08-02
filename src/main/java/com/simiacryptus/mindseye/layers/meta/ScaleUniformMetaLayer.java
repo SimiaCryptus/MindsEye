@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Scale uniform meta layer.
+ */
 @SuppressWarnings("serial")
 public class ScaleUniformMetaLayer extends NNLayer {
   
@@ -36,9 +39,22 @@ public class ScaleUniformMetaLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json scale uniform meta layer.
+   *
+   * @param json the json
+   * @return the scale uniform meta layer
+   */
   public static ScaleUniformMetaLayer fromJson(JsonObject json) {
     return new ScaleUniformMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Scale uniform meta layer.
+   *
+   * @param id the id
+   */
   protected ScaleUniformMetaLayer(JsonObject id) {
     super(id);
   }
@@ -46,11 +62,14 @@ public class ScaleUniformMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ScaleUniformMetaLayer.class);
   
+  /**
+   * Instantiates a new Scale uniform meta layer.
+   */
   public ScaleUniformMetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     double scale = inObj[1].data.get(0).getData()[0];
     Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].data.get(dataIndex).map((v, c) -> v * scale)).toArray(i -> new Tensor[i]);

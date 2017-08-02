@@ -29,14 +29,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The type Img concat layer.
+ */
 public class ImgConcatLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json img concat layer.
+   *
+   * @param json the json
+   * @return the img concat layer
+   */
   public static ImgConcatLayer fromJson(JsonObject json) {
     return new ImgConcatLayer(json);
   }
+
+  /**
+   * Instantiates a new Img concat layer.
+   *
+   * @param id the id
+   */
   protected ImgConcatLayer(JsonObject id) {
     super(id);
   }
@@ -44,11 +60,14 @@ public class ImgConcatLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);
   
+  /**
+   * Instantiates a new Img concat layer.
+   */
   public ImgConcatLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
   
     assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions().length == 3) : "This component is for use with 3d image tensors only";
     int numBatches = inObj[0].data.length();

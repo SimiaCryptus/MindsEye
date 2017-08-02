@@ -29,14 +29,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Sum reducer layer.
+ */
 public class SumReducerLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json sum reducer layer.
+   *
+   * @param json the json
+   * @return the sum reducer layer
+   */
   public static SumReducerLayer fromJson(JsonObject json) {
     return new SumReducerLayer(json);
   }
+
+  /**
+   * Instantiates a new Sum reducer layer.
+   *
+   * @param id the id
+   */
   protected SumReducerLayer(JsonObject id) {
     super(id);
   }
@@ -48,11 +64,14 @@ public class SumReducerLayer extends NNLayer {
    */
   private static final long serialVersionUID = -5171545060770814729L;
   
+  /**
+   * Instantiates a new Sum reducer layer.
+   */
   public SumReducerLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     return new NNResult(IntStream.range(0, inObj[0].data.length()).mapToDouble(dataIndex -> {
       double sum = 0;
       for (final NNResult element : inObj) {

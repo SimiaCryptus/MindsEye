@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Scale meta layer.
+ */
 @SuppressWarnings("serial")
 public class ScaleMetaLayer extends NNLayer {
   
@@ -36,9 +39,22 @@ public class ScaleMetaLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json scale meta layer.
+   *
+   * @param json the json
+   * @return the scale meta layer
+   */
   public static ScaleMetaLayer fromJson(JsonObject json) {
     return new ScaleMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Scale meta layer.
+   *
+   * @param id the id
+   */
   protected ScaleMetaLayer(JsonObject id) {
     super(id);
   }
@@ -46,11 +62,14 @@ public class ScaleMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ScaleMetaLayer.class);
   
+  /**
+   * Instantiates a new Scale meta layer.
+   */
   public ScaleMetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].data.get(dataIndex).map((v,c)->v * inObj[1].data.get(0).get(c))).toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {

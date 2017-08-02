@@ -21,11 +21,29 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.lang.NotImplementedException;
 
+/**
+ * The interface Trust region.
+ */
 public interface TrustRegion {
+  /**
+   * Project double [ ].
+   *
+   * @param state the state
+   * @param point the point
+   * @return the double [ ]
+   */
   @Deprecated
   default double[] project(double[] state, double[] point) {
     throw new NotImplementedException();
   }
+  
+  /**
+   * Project double [ ].
+   *
+   * @param history the history
+   * @param point   the point
+   * @return the double [ ]
+   */
   default double[] project(double[][] history, double[] point) {
     return project(history[0],point);
   }

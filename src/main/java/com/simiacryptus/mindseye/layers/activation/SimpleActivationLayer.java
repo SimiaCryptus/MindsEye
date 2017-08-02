@@ -29,8 +29,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Simple activation layer.
+ *
+ * @param <T> the type parameter
+ */
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer {
   
+  /**
+   * Instantiates a new Simple activation layer.
+   *
+   * @param id the id
+   */
   protected SimpleActivationLayer(JsonObject id) {
     super(id);
   }
@@ -42,15 +52,24 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
    */
   private static final long serialVersionUID = -5439874559292833041L;
   
+  /**
+   * Instantiates a new Simple activation layer.
+   */
   public SimpleActivationLayer() {
     super();
     setFrozen(true);
   }
   
+  /**
+   * Eval.
+   *
+   * @param x       the x
+   * @param results the results
+   */
   protected abstract void eval(final double x, double[] results);
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     assert(0 < itemCnt);
     Tensor inputGradientA[] = new Tensor[itemCnt];

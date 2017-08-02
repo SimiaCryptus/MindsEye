@@ -29,14 +29,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Static scalar loss layer.
+ */
 public class StaticScalarLossLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json static scalar loss layer.
+   *
+   * @param json the json
+   * @return the static scalar loss layer
+   */
   public static StaticScalarLossLayer fromJson(JsonObject json) {
     return new StaticScalarLossLayer(json);
   }
+
+  /**
+   * Instantiates a new Static scalar loss layer.
+   *
+   * @param id the id
+   */
   protected StaticScalarLossLayer(JsonObject id) {
     super(id);
   }
@@ -51,11 +67,14 @@ public class StaticScalarLossLayer extends NNLayer {
   
   private double target = 0.0;
   
+  /**
+   * Instantiates a new Static scalar loss layer.
+   */
   public StaticScalarLossLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     if(1 != inObj.length) throw new IllegalArgumentException();
     if(inObj[0].data.length() != 1) throw new IllegalArgumentException();
     assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -91,10 +110,21 @@ public class StaticScalarLossLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Gets target.
+   *
+   * @return the target
+   */
   public double getTarget() {
     return target;
   }
   
+  /**
+   * Sets target.
+   *
+   * @param target the target
+   * @return the target
+   */
   public StaticScalarLossLayer setTarget(double target) {
     this.target = target;
     return this;

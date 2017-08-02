@@ -28,18 +28,44 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Simple line search cursor.
+ */
 public class SimpleLineSearchCursor implements LineSearchCursor {
+  /**
+   * The Origin.
+   */
   public final PointSample origin;
+  /**
+   * The Direction.
+   */
   public final DeltaSet direction;
+  /**
+   * The Subject.
+   */
   public final Trainable subject;
   private String type = "";
   
+  /**
+   * Instantiates a new Simple line search cursor.
+   *
+   * @param subject   the subject
+   * @param origin    the origin
+   * @param direction the direction
+   */
   public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSet direction) {
     this.origin = origin;
     this.direction = direction;
     this.subject = subject;
   }
   
+  /**
+   * Dot double.
+   *
+   * @param a the a
+   * @param b the b
+   * @return the double
+   */
   protected static double dot(List<DeltaBuffer> a, List<DeltaBuffer> b) {
     if (a.size() != b.size()) throw new IllegalArgumentException(String.format("%s != %s", a.size(), b.size()));
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
@@ -52,12 +78,19 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   
   @Override
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
+    if(!Double.isFinite(alpha)) throw new IllegalArgumentException();
     origin.weights.vector().stream().forEach(d -> d.overwrite());
     direction.vector().stream().forEach(d -> d.write(alpha));
     PointSample sample = subject.measure().setRate(alpha);
     return new LineSearchPoint(sample, dot(direction.vector(), sample.delta.vector()));
   }
   
+  /**
+   * Sets direction type.
+   *
+   * @param type the type
+   * @return the direction type
+   */
   public SimpleLineSearchCursor setDirectionType(String type) {
     this.type = type;
     return this;

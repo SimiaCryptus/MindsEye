@@ -22,24 +22,40 @@ package com.simiacryptus.mindseye.layers.util;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.util.ScalarStatistics;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * The type Nn layer wrapper.
+ */
 public abstract class NNLayerWrapper extends NNLayer {
+  /**
+   * The Inner.
+   */
   protected NNLayer inner;
   
+  /**
+   * Instantiates a new Nn layer wrapper.
+   *
+   * @param json the json
+   */
   public NNLayerWrapper(JsonObject json) {
     super(json);
     this.inner = fromJson(json.getAsJsonObject("inner"));
   }
   
+  /**
+   * Instantiates a new Nn layer wrapper.
+   *
+   * @param inner the inner
+   */
   public NNLayerWrapper(NNLayer inner) {
     this.inner = inner;
   }
   
+  /**
+   * Instantiates a new Nn layer wrapper.
+   */
   protected NNLayerWrapper() {
     this.inner = null;
   }
@@ -50,10 +66,15 @@ public abstract class NNLayerWrapper extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... array) {
-    return inner.eval(array);
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... array) {
+    return inner.eval(nncontext, array);
   }
   
+  /**
+   * Gets inner.
+   *
+   * @return the inner
+   */
   public final NNLayer getInner() {
     return this.inner;
   }

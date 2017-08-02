@@ -32,6 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The type Monitoring wrapper.
+ */
 @SuppressWarnings("serial")
 public final class MonitoringWrapper extends NNLayerWrapper implements MonitoredItem {
   
@@ -44,9 +47,22 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     json.addProperty("totalItems",totalItems);
     return json;
   }
+
+  /**
+   * From json monitoring wrapper.
+   *
+   * @param json the json
+   * @return the monitoring wrapper
+   */
   public static MonitoringWrapper fromJson(JsonObject json) {
     return new MonitoringWrapper(json);
   }
+
+  /**
+   * Instantiates a new Monitoring wrapper.
+   *
+   * @param json the json
+   */
   protected MonitoringWrapper(JsonObject json) {
     super(json);
     if(json.has("forwardPerf")) this.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
@@ -60,6 +76,11 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   private int totalBatches = 0;
   private int totalItems = 0;
   
+  /**
+   * Instantiates a new Monitoring wrapper.
+   *
+   * @param inner the inner
+   */
   public MonitoringWrapper(final NNLayer inner) {
     super(inner);
   }
@@ -88,9 +109,9 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     long start = System.nanoTime();
-    final NNResult result = this.getInner().eval(inObj);
+    final NNResult result = this.getInner().eval(nncontext, inObj);
     forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
     totalItems += inObj[0].data.length();
@@ -109,10 +130,23 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     };
   }
   
+  /**
+   * Add to monitoring wrapper.
+   *
+   * @param obj the obj
+   * @return the monitoring wrapper
+   */
   public MonitoringWrapper addTo(MonitoredObject obj) {
     return addTo(obj, getInner().getName());
   }
   
+  /**
+   * Add to monitoring wrapper.
+   *
+   * @param obj  the obj
+   * @param name the name
+   * @return the monitoring wrapper
+   */
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
     setName(name);
     obj.addObj(getName(),this);

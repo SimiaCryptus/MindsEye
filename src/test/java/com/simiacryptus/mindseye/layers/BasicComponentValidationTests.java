@@ -36,10 +36,18 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The type Basic component validation tests.
+ */
 public class BasicComponentValidationTests {
   
   private static final Logger log = LoggerFactory.getLogger(BasicComponentValidationTests.class);
   
+  /**
+   * Test const nn layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testConstNNLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -47,6 +55,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype);
   }
   
+  /**
+   * Test bias layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -55,6 +68,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test img band bias layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testImgBandBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2,2,3);
@@ -63,6 +81,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test dense synapse layer 1.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testDenseSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -71,6 +94,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test toeplitz synapse layer 1.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testToeplitzSynapseLayer1() throws Throwable {
     final Tensor inputPrototype = new Tensor(3, 3).fill(() -> Util.R.get().nextGaussian());
@@ -79,6 +107,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test toeplitz synapse layer 2.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testToeplitzSynapseLayer2() throws Throwable {
     final Tensor inputPrototype = new Tensor(3, 3).fill(() -> Util.R.get().nextGaussian());
@@ -87,6 +120,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test dense synapse layer jblas 1.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testDenseSynapseLayerJBLAS1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -95,6 +133,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test transposed synapse layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testTransposedSynapseLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -103,6 +146,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, inputPrototype, outputPrototype);
   }
   
+  /**
+   * Test dense synapse layer 2.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testDenseSynapseLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -111,6 +159,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test entropy loss layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testEntropyLossLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -127,6 +180,11 @@ public class BasicComponentValidationTests {
     }
   }
   
+  /**
+   * Test product layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testProductLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -136,6 +194,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test re lu.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testReLu() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -144,6 +207,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test linear.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testLinear() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -152,6 +220,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test hyperbolic activation layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testHyperbolicActivationLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(10);
@@ -165,6 +238,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test sigmoid layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSigmoidLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -173,6 +251,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test sigmoid layer 2.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSigmoidLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -181,6 +264,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test softmax layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSoftmaxLayer() throws Throwable {
     final Tensor inputPrototype = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
@@ -189,6 +277,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test sq activation layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSqActivationLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -197,6 +290,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test log activation layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testLogActivationLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -205,6 +303,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test sq loss layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSqLossLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -214,6 +317,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test static scalar loss layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testStaticScalarLossLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -222,6 +330,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1);
   }
   
+  /**
+   * Test cross product layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testCrossProductLayer() throws Throwable {
     Assert.assertEquals(0, CrossProductLayer.index(0,1, 4));
@@ -233,6 +346,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1);
   }
   
+  /**
+   * Test cross difference layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testCrossDifferenceLayer() throws Throwable {
     Assert.assertEquals(0, CrossDifferenceLayer.index(0,1, 4));
@@ -244,6 +362,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1);
   }
   
+  /**
+   * Test sum layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSumLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -253,6 +376,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test product inputs layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testProductInputsLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -262,6 +390,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test sum reducer layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSumReducerLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -271,6 +404,11 @@ public class BasicComponentValidationTests {
     ComponentTestUtil.test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test avg reducer layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testAvgReducerLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);

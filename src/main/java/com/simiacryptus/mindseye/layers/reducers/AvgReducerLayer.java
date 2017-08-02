@@ -29,14 +29,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Avg reducer layer.
+ */
 public class AvgReducerLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json avg reducer layer.
+   *
+   * @param json the json
+   * @return the avg reducer layer
+   */
   public static AvgReducerLayer fromJson(JsonObject json) {
     return new AvgReducerLayer(json);
   }
+
+  /**
+   * Instantiates a new Avg reducer layer.
+   *
+   * @param id the id
+   */
   protected AvgReducerLayer(JsonObject id) {
     super(id);
   }
@@ -44,11 +60,14 @@ public class AvgReducerLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
   
+  /**
+   * Instantiates a new Avg reducer layer.
+   */
   public AvgReducerLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     return new NNResult(IntStream.range(0, inObj[0].data.length()).mapToDouble(dataIndex -> {
       double sum = 0;
       for (final NNResult element : inObj) {

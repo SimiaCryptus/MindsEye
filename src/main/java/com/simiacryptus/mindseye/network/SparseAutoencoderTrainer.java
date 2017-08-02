@@ -26,16 +26,46 @@ import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
 
+/**
+ * The type Sparse autoencoder trainer.
+ */
 public class SparseAutoencoderTrainer extends SupervisedNetwork {
   
+  /**
+   * The Encoder.
+   */
   public final DAGNode encoder;
+  /**
+   * The Decoder.
+   */
   public final DAGNode decoder;
+  /**
+   * The Loss.
+   */
   public final DAGNode loss;
+  /**
+   * The Sparsity.
+   */
   public final DAGNode sparsity;
+  /**
+   * The Sum sparsity layer.
+   */
   public final DAGNode sumSparsityLayer;
+  /**
+   * The Sum fitness layer.
+   */
   public final DAGNode sumFitnessLayer;
+  /**
+   * The Sparsity throttle layer.
+   */
   public final DAGNode sparsityThrottleLayer;
   
+  /**
+   * Instantiates a new Sparse autoencoder trainer.
+   *
+   * @param encoder the encoder
+   * @param decoder the decoder
+   */
   public SparseAutoencoderTrainer(final NNLayer encoder, final NNLayer decoder) {
     super(1);
     this.encoder = add(encoder, getInput(0));

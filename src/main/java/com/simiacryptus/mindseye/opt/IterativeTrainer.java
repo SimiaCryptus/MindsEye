@@ -38,6 +38,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * The type Iterative trainer.
+ */
 public class IterativeTrainer {
   
   
@@ -52,21 +55,42 @@ public class IterativeTrainer {
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
   
+  /**
+   * Instantiates a new Iterative trainer.
+   *
+   * @param subject the subject
+   */
   public IterativeTrainer(Trainable subject) {
     this.subject = subject;
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = Double.NEGATIVE_INFINITY;
   }
   
+  /**
+   * Gets max iterations.
+   *
+   * @return the max iterations
+   */
   public int getMaxIterations() {
     return maxIterations;
   }
   
+  /**
+   * Sets max iterations.
+   *
+   * @param maxIterations the max iterations
+   * @return the max iterations
+   */
   public IterativeTrainer setMaxIterations(int maxIterations) {
     this.maxIterations = maxIterations;
     return this;
   }
   
+  /**
+   * Run double.
+   *
+   * @return the double
+   */
   public double run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample currentPoint = measure();
@@ -110,6 +134,11 @@ public class IterativeTrainer {
     return null == currentPoint ? Double.NaN : currentPoint.value;
   }
   
+  /**
+   * Measure point sample.
+   *
+   * @return the point sample
+   */
   public PointSample measure() {
     PointSample currentPoint;
     int retries = 0;
@@ -122,73 +151,164 @@ public class IterativeTrainer {
     return currentPoint;
   }
   
+  /**
+   * Gets timeout.
+   *
+   * @return the timeout
+   */
   public Duration getTimeout() {
     return timeout;
   }
   
+  /**
+   * Sets timeout.
+   *
+   * @param timeout the timeout
+   * @return the timeout
+   */
   public IterativeTrainer setTimeout(Duration timeout) {
     this.timeout = timeout;
     return this;
   }
   
+  /**
+   * Sets timeout.
+   *
+   * @param number the number
+   * @param units  the units
+   * @return the timeout
+   */
   public IterativeTrainer setTimeout(int number, TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
   
+  /**
+   * Sets timeout.
+   *
+   * @param number the number
+   * @param units  the units
+   * @return the timeout
+   */
   public IterativeTrainer setTimeout(int number, TemporalUnit units) {
     this.timeout = Duration.of(number, units);
     return this;
   }
   
+  /**
+   * Gets terminate threshold.
+   *
+   * @return the terminate threshold
+   */
   public double getTerminateThreshold() {
     return terminateThreshold;
   }
   
+  /**
+   * Sets terminate threshold.
+   *
+   * @param terminateThreshold the terminate threshold
+   * @return the terminate threshold
+   */
   public IterativeTrainer setTerminateThreshold(double terminateThreshold) {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
   
+  /**
+   * Gets orientation.
+   *
+   * @return the orientation
+   */
   public OrientationStrategy getOrientation() {
     return orientation;
   }
   
+  /**
+   * Sets orientation.
+   *
+   * @param orientation the orientation
+   * @return the orientation
+   */
   public IterativeTrainer setOrientation(OrientationStrategy orientation) {
     this.orientation = orientation;
     return this;
   }
   
+  /**
+   * Gets monitor.
+   *
+   * @return the monitor
+   */
   public TrainingMonitor getMonitor() {
     return monitor;
   }
   
+  /**
+   * Sets monitor.
+   *
+   * @param monitor the monitor
+   * @return the monitor
+   */
   public IterativeTrainer setMonitor(TrainingMonitor monitor) {
     this.monitor = monitor;
     return this;
   }
   
+  /**
+   * Gets current iteration.
+   *
+   * @return the current iteration
+   */
   public AtomicInteger getCurrentIteration() {
     return currentIteration;
   }
   
+  /**
+   * Sets current iteration.
+   *
+   * @param currentIteration the current iteration
+   * @return the current iteration
+   */
   public IterativeTrainer setCurrentIteration(AtomicInteger currentIteration) {
     this.currentIteration = currentIteration;
     return this;
   }
   
+  /**
+   * Gets line search factory.
+   *
+   * @return the line search factory
+   */
   public Function<String,LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
   
+  /**
+   * Sets line search factory.
+   *
+   * @param lineSearchFactory the line search factory
+   * @return the line search factory
+   */
   public IterativeTrainer setLineSearchFactory(Function<String,LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }
   
+  /**
+   * Gets iterations per sample.
+   *
+   * @return the iterations per sample
+   */
   public int getIterationsPerSample() {
     return iterationsPerSample;
   }
   
+  /**
+   * Sets iterations per sample.
+   *
+   * @param iterationsPerSample the iterations per sample
+   * @return the iterations per sample
+   */
   public IterativeTrainer setIterationsPerSample(int iterationsPerSample) {
     this.iterationsPerSample = iterationsPerSample;
     return this;

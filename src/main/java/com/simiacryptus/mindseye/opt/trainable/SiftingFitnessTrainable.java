@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.ScalarStatistics;
@@ -31,12 +32,31 @@ import java.util.Comparator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * The type Sifting fitness trainable.
+ */
 public class SiftingFitnessTrainable implements Trainable {
   
+  /**
+   * Sqrt sifting fitness trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   * @return the sifting fitness trainable
+   */
   public static SiftingFitnessTrainable Sqrt(Tensor[][] trainingData, DAGNetwork network, int trainingSize) {
     return Pow(trainingData, network, trainingSize);
   }
   
+  /**
+   * Pow sifting fitness trainable.
+   *
+   * @param trainingData        the training data
+   * @param network             the network
+   * @param initialTrainingSize the initial training size
+   * @return the sifting fitness trainable
+   */
   public static SiftingFitnessTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int initialTrainingSize) {
     return new SiftingFitnessTrainable(trainingData, network, initialTrainingSize);
   }
@@ -50,6 +70,13 @@ public class SiftingFitnessTrainable implements Trainable {
   private boolean shuffled = false;
   private double holdoverFraction = 0.1;
   
+  /**
+   * Instantiates a new Sifting fitness trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   */
   public SiftingFitnessTrainable(Tensor[][] trainingData, DAGNetwork network, int trainingSize) {
     this.trainingData = trainingData;
     this.network = network;
@@ -60,7 +87,7 @@ public class SiftingFitnessTrainable implements Trainable {
   @Override
   public PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
-    NNResult result = network.eval(input);
+    NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
@@ -90,10 +117,21 @@ public class SiftingFitnessTrainable implements Trainable {
     return true;
   }
   
+  /**
+   * Gets training size.
+   *
+   * @return the training size
+   */
   public double getTrainingSize() {
     return this.trainingSize;
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public SiftingFitnessTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
@@ -120,25 +158,53 @@ public class SiftingFitnessTrainable implements Trainable {
     ).toArray(i -> new Tensor[i][]);
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public SiftingFitnessTrainable setTrainingSize(double trainingSize) {
     this.trainingSize = trainingSize;
     return this;
   }
   
   
+  /**
+   * Is shuffled boolean.
+   *
+   * @return the boolean
+   */
   public boolean isShuffled() {
     return shuffled;
   }
   
+  /**
+   * Sets shuffled.
+   *
+   * @param shuffled the shuffled
+   * @return the shuffled
+   */
   public SiftingFitnessTrainable setShuffled(boolean shuffled) {
     this.shuffled = shuffled;
     return this;
   }
   
+  /**
+   * Gets holdover fraction.
+   *
+   * @return the holdover fraction
+   */
   public double getHoldoverFraction() {
     return holdoverFraction;
   }
   
+  /**
+   * Sets holdover fraction.
+   *
+   * @param holdoverFraction the holdover fraction
+   * @return the holdover fraction
+   */
   public SiftingFitnessTrainable setHoldoverFraction(double holdoverFraction) {
     this.holdoverFraction = holdoverFraction;
     return this;

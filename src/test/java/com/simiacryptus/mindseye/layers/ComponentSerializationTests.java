@@ -39,10 +39,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
+/**
+ * The type Component serialization tests.
+ */
 public class ComponentSerializationTests {
   
   private static final Logger log = LoggerFactory.getLogger(ComponentSerializationTests.class);
   
+  /**
+   * Test pipeline.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testPipeline() throws Throwable {
   
@@ -56,8 +64,8 @@ public class ComponentSerializationTests {
     NNLayer copy = NNLayer.fromJson(json);
   
     Tensor input = new Tensor(2, 2).fill(() -> random.nextDouble());
-    NNResult a = network.eval(input);
-    NNResult b = copy.eval(input);
+    NNResult a = network.eval(new NNLayer.NNExecutionContext() {}, input);
+    NNResult b = copy.eval(new NNLayer.NNExecutionContext() {}, input);
     Assert.assertArrayEquals(a.data.get(0).getData(),b.data.get(0).getData(), 1e-8);
   
   

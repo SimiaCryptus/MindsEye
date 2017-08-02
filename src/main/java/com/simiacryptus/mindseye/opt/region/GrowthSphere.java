@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+/**
+ * The type Growth sphere.
+ */
 public class GrowthSphere implements TrustRegion {
   private double growthFactor = 1.5;
   private double minRadius = 1;
@@ -35,36 +38,81 @@ public class GrowthSphere implements TrustRegion {
     return ArrayUtil.multiply(point, frontier / pointMag);
   }
   
+  /**
+   * Length double.
+   *
+   * @param weights the weights
+   * @return the double
+   */
   public double length(double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
+  /**
+   * Gets radius.
+   *
+   * @param stateMagnitude the state magnitude
+   * @return the radius
+   */
   public double getRadius(double stateMagnitude) {
     return Math.max(minRadius, stateMagnitude * growthFactor);
   }
   
+  /**
+   * Gets growth factor.
+   *
+   * @return the growth factor
+   */
   public double getGrowthFactor() {
     return growthFactor;
   }
   
+  /**
+   * Sets growth factor.
+   *
+   * @param growthFactor the growth factor
+   * @return the growth factor
+   */
   public GrowthSphere setGrowthFactor(double growthFactor) {
     this.growthFactor = growthFactor;
     return this;
   }
   
+  /**
+   * Gets min radius.
+   *
+   * @return the min radius
+   */
   public double getMinRadius() {
     return minRadius;
   }
   
+  /**
+   * Sets min radius.
+   *
+   * @param minRadius the min radius
+   * @return the min radius
+   */
   public GrowthSphere setMinRadius(double minRadius) {
     this.minRadius = minRadius;
     return this;
   }
   
+  /**
+   * Is allow shrink boolean.
+   *
+   * @return the boolean
+   */
   public boolean isAllowShrink() {
     return allowShrink;
   }
   
+  /**
+   * Sets allow shrink.
+   *
+   * @param allowShrink the allow shrink
+   * @return the allow shrink
+   */
   public GrowthSphere setAllowShrink(boolean allowShrink) {
     this.allowShrink = allowShrink;
     return this;

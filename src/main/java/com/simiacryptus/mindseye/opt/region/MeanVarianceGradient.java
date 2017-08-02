@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+/**
+ * The type Mean variance gradient.
+ */
 public class MeanVarianceGradient implements TrustRegion {
   
   private double max = Double.POSITIVE_INFINITY;
@@ -36,14 +39,31 @@ public class MeanVarianceGradient implements TrustRegion {
     });
   }
   
+  /**
+   * Length double.
+   *
+   * @param weights the weights
+   * @return the double
+   */
   public double length(double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
   
+  /**
+   * Gets max.
+   *
+   * @return the max
+   */
   public double getMax() {
     return max;
   }
   
+  /**
+   * Sets max.
+   *
+   * @param max the max
+   * @return the max
+   */
   public MeanVarianceGradient setMax(double max) {
     this.max = max;
     return this;

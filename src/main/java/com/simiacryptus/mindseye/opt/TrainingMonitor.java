@@ -19,13 +19,29 @@
 
 package com.simiacryptus.mindseye.opt;
 
+/**
+ * The type Training monitor.
+ */
 public class TrainingMonitor {
+  /**
+   * Log.
+   *
+   * @param msg the msg
+   */
   public void log(String msg) {
   }
   
+  /**
+   * On step complete.
+   *
+   * @param currentPoint the current point
+   */
   public void onStepComplete(Step currentPoint) {
   }
   
+  /**
+   * Clear.
+   */
   public void clear() {
   }
 }

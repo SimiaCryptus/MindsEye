@@ -23,19 +23,38 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 
+/**
+ * The type Toeplitz synapse layer.
+ */
 public class ToeplitzSynapseLayer extends MappedSynapseLayer {
   
   private final int radius;
   
+  /**
+   * Instantiates a new Toeplitz synapse layer.
+   */
   protected ToeplitzSynapseLayer() {
     super();
     this.radius = 0;
   }
   
+  /**
+   * Instantiates a new Toeplitz synapse layer.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   */
   public ToeplitzSynapseLayer(final int[] inputDims, final int[] outputDims) {
     this(inputDims, outputDims, Integer.MAX_VALUE);
   }
   
+  /**
+   * Instantiates a new Toeplitz synapse layer.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   * @param radius     the radius
+   */
   public ToeplitzSynapseLayer(final int[] inputDims, final int[] outputDims, int radius) {
     super(inputDims, outputDims);
     this.radius = radius;

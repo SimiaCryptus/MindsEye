@@ -24,6 +24,9 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 
 import java.util.List;
 
+/**
+ * The type Variable layer.
+ */
 public class VariableLayer extends NNLayerWrapper {
   
   public JsonObject getJson() {
@@ -31,13 +34,31 @@ public class VariableLayer extends NNLayerWrapper {
     json.add("inner", getInner().getJson());
     return json;
   }
+
+  /**
+   * From json variable layer.
+   *
+   * @param json the json
+   * @return the variable layer
+   */
   public static VariableLayer fromJson(JsonObject json) {
     return new VariableLayer(json);
   }
+
+  /**
+   * Instantiates a new Variable layer.
+   *
+   * @param json the json
+   */
   protected VariableLayer(JsonObject json) {
     super(json);
   }
   
+  /**
+   * Instantiates a new Variable layer.
+   *
+   * @param inner the inner
+   */
   public VariableLayer(final NNLayer inner) {
     super();
     setInner(inner);
@@ -48,6 +69,11 @@ public class VariableLayer extends NNLayerWrapper {
     return super.getChildren();
   }
 
+  /**
+   * Sets inner.
+   *
+   * @param inner the inner
+   */
   public final void setInner(final NNLayer inner) {
     this.inner = inner;
   }

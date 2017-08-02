@@ -32,11 +32,26 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
+/**
+ * The type Meta component validation tests.
+ */
 public class MetaComponentValidationTests {
+  /**
+   * The constant deltaFactor.
+   */
   public static final double deltaFactor = 1e-6;
   
   private static final Logger log = LoggerFactory.getLogger(MetaComponentValidationTests.class);
   
+  /**
+   * Get feedback gradient tensor [ ] [ ].
+   *
+   * @param component       the component
+   * @param inputIndex      the input index
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @return the tensor [ ] [ ]
+   */
   public static Tensor[][] getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
     final Tensor[][] gradients = IntStream.range(0, inputPrototype[inputIndex].length)
                                      .mapToObj(i -> IntStream.range(0, outputPrototype.length)
@@ -66,25 +81,34 @@ public class MetaComponentValidationTests {
         };
         Tensor[] deltas = Arrays.stream(outputPrototype).map(x -> new Tensor(x.getDimensions())).toArray(i -> new Tensor[i]);
         deltas[outItem].set(outputCoord, 1);
-        component.eval(copyInput).accumulate(new DeltaSet(), new TensorArray(deltas));
+        component.eval(new NNLayer.NNExecutionContext() {}, copyInput).accumulate(new DeltaSet(), new TensorArray(deltas));
       }
     }
     return gradients;
   }
   
+  /**
+   * Measure feedback gradient tensor [ ] [ ].
+   *
+   * @param component       the component
+   * @param inputIndex      the input index
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @return the tensor [ ] [ ]
+   */
   public static Tensor[][] measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
     final Tensor[][] gradients = IntStream.range(0, inputPrototype[inputIndex].length)
                                      .mapToObj(i -> IntStream.range(0, outputPrototype.length)
                                                         .mapToObj(j -> new Tensor(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
                                                         .toArray(j -> new Tensor[j]))
                                      .toArray(i -> new Tensor[i][]);
-    final TensorList baseOutput = component.eval(inputPrototype).data;
+    final TensorList baseOutput = component.eval(new NNLayer.NNExecutionContext() {}, inputPrototype).data;
     for (int inputItem = 0; inputItem < inputPrototype[inputIndex].length; inputItem++) {
       for (int inputCoord = 0; inputCoord < inputPrototype[inputIndex][inputItem].dim(); inputCoord++) {
         final Tensor[][] copyInput = Arrays.stream(inputPrototype)
                                          .map(a -> Arrays.stream(a).map(b -> b.copy()).toArray(ii -> new Tensor[ii])).toArray(ii -> new Tensor[ii][]);
         copyInput[inputIndex][inputItem].add(inputCoord, deltaFactor * 1);
-        final TensorList probeOutput = component.eval(copyInput).data;
+        final TensorList probeOutput = component.eval(new NNLayer.NNExecutionContext() {}, copyInput).data;
         for (int outputItem = 0; outputItem < probeOutput.length(); outputItem++) {
           double[] deltaData = probeOutput.get(outputItem).minus(baseOutput.get(outputItem)).scale(1. / deltaFactor).getData();
           for (int outputCoord = 0; outputCoord < deltaData.length; outputCoord++) {
@@ -104,7 +128,7 @@ public class MetaComponentValidationTests {
       for (int outCoord = 0; outCoord < outputPrototype[outputItem].dim(); outCoord++) {
         final int outputCoord = outCoord;
         final DeltaSet buffer = new DeltaSet();
-        NNResult eval = component.eval(inputPrototype);
+        NNResult eval = component.eval(new NNLayer.NNExecutionContext() {}, inputPrototype);
         Tensor[] feedback = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(outputPrototype[0].getDimensions())).toArray(i -> new Tensor[i]);
         feedback[outputItem].getData()[outputCoord] = 1;
         eval.accumulate(buffer, new TensorArray(feedback));
@@ -117,14 +141,23 @@ public class MetaComponentValidationTests {
     return gradient;
   }
   
+  /**
+   * Measure learning gradient tensor [ ].
+   *
+   * @param component       the component
+   * @param layerNum        the layer num
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @return the tensor [ ]
+   */
   public static Tensor[] measureLearningGradient(final NNLayer component, final int layerNum, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final Tensor[] gradient = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(stateLen, outputPrototype[0].dim())).toArray(i -> new Tensor[i]);
-    NNResult baseEval = component.eval(inputPrototype);
+    NNResult baseEval = component.eval(new NNLayer.NNExecutionContext() {}, inputPrototype);
     for (int stateIdx = 0; stateIdx < stateLen; stateIdx++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[stateIdx] += deltaFactor;
-      NNResult eval = copy.eval(inputPrototype);
+      NNResult eval = copy.eval(new NNLayer.NNExecutionContext() {}, inputPrototype);
       for (int outputItem = 0; outputItem < outputPrototype.length; outputItem++) {
         final Tensor delta = eval.data.get(outputItem).minus(baseEval.data.get(outputItem)).scale(1. / deltaFactor);
         for (int outputCoord = 0; outputCoord < delta.dim(); outputCoord++) {
@@ -135,18 +168,50 @@ public class MetaComponentValidationTests {
     return gradient;
   }
   
+  /**
+   * Test.
+   *
+   * @param component       the component
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @throws Throwable the throwable
+   */
   public static void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
     test(5, component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test.
+   *
+   * @param n               the n
+   * @param component       the component
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @throws Throwable the throwable
+   */
   public static void test(int n, final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
     test(component, replicate(outputPrototype, n), Arrays.stream(inputPrototype).map(x -> replicate(x, n)).toArray(i -> new Tensor[i][]));
   }
   
+  /**
+   * Replicate tensor [ ].
+   *
+   * @param outputPrototype the output prototype
+   * @param n               the n
+   * @return the tensor [ ]
+   */
   public static Tensor[] replicate(final Tensor outputPrototype, int n) {
     return IntStream.range(0, n).mapToObj(i -> outputPrototype.copy()).toArray(i -> new Tensor[i]);
   }
   
+  /**
+   * Test.
+   *
+   * @param component       the component
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @throws Throwable the throwable
+   */
   public static void test(final NNLayer component, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
     for (int i = 0; i < inputPrototype.length; i++) {
       testFeedback(component, i, outputPrototype, inputPrototype);
@@ -157,6 +222,15 @@ public class MetaComponentValidationTests {
     }
   }
   
+  /**
+   * Test feedback.
+   *
+   * @param component       the component
+   * @param i               the
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @throws Throwable the throwable
+   */
   public static void testFeedback(final NNLayer component, final int i, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
     final Tensor[][] measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
     final Tensor[][] implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
@@ -178,6 +252,15 @@ public class MetaComponentValidationTests {
     }
   }
   
+  /**
+   * Test learning.
+   *
+   * @param component       the component
+   * @param i               the
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @throws Throwable the throwable
+   */
   public static void testLearning(final NNLayer component, final int i, final Tensor[] outputPrototype, final Tensor[]... inputPrototype) throws Throwable {
     final Tensor[] measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
     final Tensor[] implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
@@ -197,6 +280,11 @@ public class MetaComponentValidationTests {
     }
   }
   
+  /**
+   * Test bias layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -204,6 +292,12 @@ public class MetaComponentValidationTests {
     final NNLayer component = new BiasLayer(outputPrototype.getDimensions()).setWeights(i -> Util.R.get().nextGaussian());
     test(component, outputPrototype, inputPrototype);
   }
+  
+  /**
+   * Test offset meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testOffsetMetaLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -213,6 +307,11 @@ public class MetaComponentValidationTests {
     test(component, outputPrototype, inputPrototype, inputPrototype2);
   }
   
+  /**
+   * Test scale uniform meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testScaleUniformMetaLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -222,6 +321,11 @@ public class MetaComponentValidationTests {
     test(component, outputPrototype, inputPrototype, inputPrototype2);
   }
   
+  /**
+   * Test sparse 01 meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSparse01MetaLayer() throws Throwable {
     final NNLayer component = new Sparse01MetaLayer();
@@ -231,6 +335,11 @@ public class MetaComponentValidationTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test cross dot meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testCrossDotMetaLayer() throws Throwable {
     final NNLayer component = new CrossDotMetaLayer();
@@ -240,6 +349,11 @@ public class MetaComponentValidationTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test avg meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testAvgMetaLayer() throws Throwable {
     final NNLayer component = new AvgMetaLayer();
@@ -249,6 +363,11 @@ public class MetaComponentValidationTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test sum meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSumMetaLayer() throws Throwable {
     final NNLayer component = new SumMetaLayer();
@@ -259,6 +378,11 @@ public class MetaComponentValidationTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test max meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testMaxMetaLayer() throws Throwable {
     final NNLayer component = new MaxMetaLayer();
@@ -269,6 +393,11 @@ public class MetaComponentValidationTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test scale meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testScaleMetaLayer() throws Throwable {
     final NNLayer component = new ScaleMetaLayer();
@@ -279,7 +408,12 @@ public class MetaComponentValidationTests {
     Tensor[] outputPrototype = replicate(new Tensor(3), 5);
     test(component, outputPrototype, inputPrototype);
   }
-
+  
+  /**
+   * Test bias meta layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testBiasMetaLayer() throws Throwable {
     final NNLayer component = new BiasMetaLayer();

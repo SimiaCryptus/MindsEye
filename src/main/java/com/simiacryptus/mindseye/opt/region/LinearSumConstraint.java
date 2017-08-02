@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+/**
+ * The type Linear sum constraint.
+ */
 public class LinearSumConstraint implements TrustRegion {
   private boolean permitDecrease = true;
   
@@ -39,14 +42,31 @@ public class LinearSumConstraint implements TrustRegion {
     return returnValue;
   }
   
+  /**
+   * Sign int.
+   *
+   * @param weight the weight
+   * @return the int
+   */
   public int sign(double weight) {
     return (weight > 0)?1:-1;
   }
   
+  /**
+   * Is permit decrease boolean.
+   *
+   * @return the boolean
+   */
   public boolean isPermitDecrease() {
     return permitDecrease;
   }
   
+  /**
+   * Sets permit decrease.
+   *
+   * @param permitDecrease the permit decrease
+   * @return the permit decrease
+   */
   public LinearSumConstraint setPermitDecrease(boolean permitDecrease) {
     this.permitDecrease = permitDecrease;
     return this;

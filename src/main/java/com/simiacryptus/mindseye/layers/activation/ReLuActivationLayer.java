@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
+/**
+ * The type Re lu activation layer.
+ */
 public class ReLuActivationLayer extends NNLayer {
   
   
@@ -40,9 +43,21 @@ public class ReLuActivationLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json re lu activation layer.
+   *
+   * @param json the json
+   * @return the re lu activation layer
+   */
   public static ReLuActivationLayer fromJson(JsonObject json) {
     return new ReLuActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Re lu activation layer.
+   *
+   * @param json the json
+   */
   protected ReLuActivationLayer(JsonObject json) {
     super(json);
     this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
@@ -57,19 +72,28 @@ public class ReLuActivationLayer extends NNLayer {
   private static final long serialVersionUID = -2105152439043901220L;
   private final Tensor weights;
   
+  /**
+   * Instantiates a new Re lu activation layer.
+   */
   public ReLuActivationLayer() {
     super();
     this.weights = new Tensor(1);
     this.weights.set(0, 1.);
   }
   
+  /**
+   * Add weights re lu activation layer.
+   *
+   * @param f the f
+   * @return the re lu activation layer
+   */
   public ReLuActivationLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.weights.getData());
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     int itemCnt = inObj[0].data.length();
     Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
@@ -87,15 +111,32 @@ public class ReLuActivationLayer extends NNLayer {
   }
   
   
+  /**
+   * Gets mobility.
+   *
+   * @return the mobility
+   */
   protected double getMobility() {
     return 1;
   }
   
+  /**
+   * Sets weight.
+   *
+   * @param data the data
+   * @return the weight
+   */
   public ReLuActivationLayer setWeight(final double data) {
     this.weights.set(0, data);
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public ReLuActivationLayer setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;

@@ -36,6 +36,9 @@ import java.util.function.ToDoubleBiFunction;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
+/**
+ * The type Dense synapse layer.
+ */
 public class DenseSynapseLayer extends NNLayer {
   
   
@@ -47,9 +50,21 @@ public class DenseSynapseLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json dense synapse layer.
+   *
+   * @param json the json
+   * @return the dense synapse layer
+   */
   public static DenseSynapseLayer fromJson(JsonObject json) {
     return new DenseSynapseLayer(json);
   }
+  
+  /**
+   * Instantiates a new Dense synapse layer.
+   *
+   * @param json the json
+   */
   protected DenseSynapseLayer(JsonObject json) {
     super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
@@ -60,10 +75,22 @@ public class DenseSynapseLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
+  /**
+   * The Output dims.
+   */
   public final int[] outputDims;
+  /**
+   * The Input dims.
+   */
   public final int[] inputDims;
+  /**
+   * The Weights.
+   */
   public final Tensor weights;
   
+  /**
+   * Instantiates a new Dense synapse layer.
+   */
   protected DenseSynapseLayer() {
     super();
     this.outputDims = null;
@@ -71,6 +98,12 @@ public class DenseSynapseLayer extends NNLayer {
     this.inputDims = null;
   }
   
+  /**
+   * Instantiates a new Dense synapse layer.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   */
   public DenseSynapseLayer(final int[] inputDims, final int[] outputDims) {
     final int inputs = Tensor.dim(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
@@ -85,6 +118,13 @@ public class DenseSynapseLayer extends NNLayer {
     });
   }
   
+  /**
+   * Cross multiply.
+   *
+   * @param rows   the rows
+   * @param cols   the cols
+   * @param matrix the matrix
+   */
   public static void crossMultiply(final double[] rows, final double[] cols, double[] matrix) {
     int i = 0;
     for (final double c : cols) {
@@ -94,6 +134,13 @@ public class DenseSynapseLayer extends NNLayer {
     }
   }
   
+  /**
+   * Multiply.
+   *
+   * @param matrix the matrix
+   * @param in     the in
+   * @param out    the out
+   */
   public static void multiply(final double[] matrix, final double[] in, double[] out) {
     DoubleMatrix matrixObj = new DoubleMatrix(out.length, in.length, matrix);
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
@@ -112,14 +159,27 @@ public class DenseSynapseLayer extends NNLayer {
 ////    double[] r = at.transpose().mmul(matrix).transpose().data;
 //    for (int o = 0; o < out.length; o++) out[o] = r[o];
 //  }
-
-
+  
+  
+  /**
+   * Multiply t.
+   *
+   * @param matrix the matrix
+   * @param in     the in
+   * @param out    the out
+   */
   public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
     DoubleMatrix matrixObj = transpose(new DoubleMatrix(in.length, out.length, matrix));
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
     Tensor.recycle(matrixObj.data);
   }
-
+  
+  /**
+   * Transpose double matrix.
+   *
+   * @param doubleMatrix the double matrix
+   * @return the double matrix
+   */
   public static DoubleMatrix transpose(DoubleMatrix doubleMatrix) {
     DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, Tensor.obtain(doubleMatrix.length));
     for(int i = 0; i < doubleMatrix.rows; ++i) {
@@ -131,7 +191,7 @@ public class DenseSynapseLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data.get(dataIndex);
       return multiply2(this.getWeights().getData(), input.getData());
@@ -145,11 +205,23 @@ public class DenseSynapseLayer extends NNLayer {
     return output;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param data the data
+   * @return the weights
+   */
   public DenseSynapseLayer setWeights(final double[] data) {
     this.weights.set(data);
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public DenseSynapseLayer setWeights(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
     new Tensor(inputDims).coordStream().parallel().forEach(in -> {
       new Tensor(outputDims).coordStream().parallel().forEach(out -> {
@@ -159,6 +231,12 @@ public class DenseSynapseLayer extends NNLayer {
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public DenseSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     weights.coordStream().parallel().forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
@@ -171,15 +249,33 @@ public class DenseSynapseLayer extends NNLayer {
     return Arrays.asList(this.getWeights().getData());
   }
   
+  /**
+   * Gets weights.
+   *
+   * @return the weights
+   */
   public Tensor getWeights() {
     return weights;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public DenseSynapseLayer setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;
   }
   
+  /**
+   * Init spacial.
+   *
+   * @param radius    the radius
+   * @param stiffness the stiffness
+   * @param peak      the peak
+   */
   public void initSpacial(double radius, double stiffness, double peak) {
     setWeights((Coordinate in, Coordinate out) -> {
       double[] doubleCoords = IntStream.range(0, in.coords.length).mapToDouble(d -> {

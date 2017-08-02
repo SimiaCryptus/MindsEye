@@ -23,7 +23,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.util.NNLayerWrapper;
@@ -68,6 +67,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return json;
   }
   
+  /**
+   * Instantiates a new Dag network.
+   *
+   * @param json the json
+   */
   protected DAGNetwork(JsonObject json) {
     super(json);
     inputHandles = new ArrayList<>();
@@ -116,11 +120,30 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
   
+  /**
+   * The Input nodes.
+   */
   public final LinkedHashMap<UUID, InputNode> inputNodes;
+  /**
+   * The Input handles.
+   */
   public final List<UUID> inputHandles;
+  /**
+   * The Layers by id.
+   */
   protected final LinkedHashMap<UUID, NNLayer> layersById = new LinkedHashMap<>();
+  /**
+   * The Nodes by id.
+   */
   protected final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
   
+  /**
+   * Gets by name.
+   *
+   * @param <T>  the type parameter
+   * @param name the name
+   * @return the by name
+   */
   public <T extends NNLayer> T getByName(String name) {
     if(null == name) return null;
     AtomicReference<NNLayer> result = new AtomicReference<>();
@@ -130,6 +153,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return (T) result.get();
   }
   
+  /**
+   * Visit.
+   *
+   * @param visitor the visitor
+   */
   public void visit(Consumer<NNLayer> visitor) {
     layersById.values().forEach(layer->{
       if(layer instanceof DAGNetwork) {
@@ -142,6 +170,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     });
   }
   
+  /**
+   * Attach.
+   *
+   * @param obj the obj
+   */
   public void attach(MonitoredObject obj) {
     visit(layer->{
       if(layer instanceof MonitoredItem) {
@@ -150,6 +183,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     });
   }
   
+  /**
+   * Instantiates a new Dag network.
+   *
+   * @param inputs the inputs
+   */
   public DAGNetwork(int inputs) {
     inputHandles = new ArrayList<>();
     inputNodes = new LinkedHashMap<>();
@@ -160,6 +198,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     }
   }
   
+  /**
+   * Gets nodes.
+   *
+   * @return the nodes
+   */
   public List<DAGNode> getNodes() {
     return Stream.concat(
         nodesById.values().stream(),
@@ -167,10 +210,22 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     ).collect(Collectors.toList());
   }
   
+  /**
+   * Single exe ctx evaluation context.
+   *
+   * @param input the input
+   * @return the evaluation context
+   */
   public final EvaluationContext singleExeCtx(final Tensor... input) {
     return buildExeCtx(NNResult.singleResultArray(input));
   }
   
+  /**
+   * Build exe ctx evaluation context.
+   *
+   * @param inputs the inputs
+   * @return the evaluation context
+   */
   public EvaluationContext buildExeCtx(final NNResult... inputs) {
     assert (inputs.length == inputHandles.size());
     final EvaluationContext evaluationContext = new EvaluationContext();
@@ -180,10 +235,22 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return evaluationContext;
   }
   
+  /**
+   * Batch exe context evaluation context.
+   *
+   * @param batchData the batch data
+   * @return the evaluation context
+   */
   protected EvaluationContext batchExeContext(final Tensor[][] batchData) {
     return this.buildExeCtx(NNResult.batchResultArray(batchData));
   }
   
+  /**
+   * Get nn layer.
+   *
+   * @param i the
+   * @return the nn layer
+   */
   public NNLayer get(final int i) {
     return this.layersById.get(i);
   }
@@ -202,12 +269,23 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return this.layersById.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
   }
   
+  /**
+   * Gets input.
+   *
+   * @return the input
+   */
   public List<DAGNode> getInput() {
     ArrayList<DAGNode> list = new ArrayList<>();
     for (UUID key : inputHandles) list.add(inputNodes.get(key));
     return list;
   }
   
+  /**
+   * Gets layer.
+   *
+   * @param head the head
+   * @return the layer
+   */
   public NNLayer getLayer(final DAGNode head) {
     if (head instanceof InnerNode)
       return DAGNetwork.this.layersById.get(((InnerNode) head).id);
@@ -220,16 +298,21 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
   }
   
+  /**
+   * Gets head.
+   *
+   * @return the head
+   */
   public abstract DAGNode getHead();
   
   @Override
-  public NNResult get(EvaluationContext buildExeCtx) {
-    return getHead().get(buildExeCtx);
+  public NNResult get(NNExecutionContext nncontext, EvaluationContext buildExeCtx) {
+    return getHead().get(nncontext, buildExeCtx);
   }
   
   @Override
-  public NNResult eval(final NNResult... input) {
-    return getHead().get(buildExeCtx(input));
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... input) {
+    return getHead().get(nncontext, buildExeCtx(input));
   }
   
   @Override
@@ -243,6 +326,13 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return this;
   }
   
+  /**
+   * Add dag node.
+   *
+   * @param nextHead the next head
+   * @param head     the head
+   * @return the dag node
+   */
   public DAGNode add(final NNLayer nextHead, final DAGNode... head) {
     assert null != getInput();
     final InnerNode node = new InnerNode(this, nextHead, head);
@@ -251,6 +341,12 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return node;
   }
   
+  /**
+   * Gets input.
+   *
+   * @param index the index
+   * @return the input
+   */
   public DAGNode getInput(int index) {
     DAGNode input = inputNodes.get(inputHandles.get(index));
     assert null != input;

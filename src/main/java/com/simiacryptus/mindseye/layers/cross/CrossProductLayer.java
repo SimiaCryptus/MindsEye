@@ -27,23 +27,42 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Cross product layer.
+ */
 public class CrossProductLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json cross product layer.
+   *
+   * @param json the json
+   * @return the cross product layer
+   */
   public static CrossProductLayer fromJson(JsonObject json) {
     return new CrossProductLayer(json);
   }
+
+  /**
+   * Instantiates a new Cross product layer.
+   *
+   * @param id the id
+   */
   protected CrossProductLayer(JsonObject id) {
     super(id);
   }
 
+  /**
+   * Instantiates a new Cross product layer.
+   */
   public CrossProductLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert(1 == inObj.length);
     return new NNResult(inObj[0].data.stream().parallel().map(tensor->{
       int inputDim = tensor.dim();
@@ -99,6 +118,14 @@ public class CrossProductLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Index int.
+   *
+   * @param x   the x
+   * @param y   the y
+   * @param max the max
+   * @return the int
+   */
   public static int index(int x, int y, int max) {
     return (max *(max -1)/2) - (max - x)*((max - x)-1)/2 + y - x - 1;
   }

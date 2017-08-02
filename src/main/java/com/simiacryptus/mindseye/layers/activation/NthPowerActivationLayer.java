@@ -23,6 +23,9 @@ import com.google.gson.JsonObject;
 
 import java.util.UUID;
 
+/**
+ * The type Nth power activation layer.
+ */
 public final class NthPowerActivationLayer extends SimpleActivationLayer<NthPowerActivationLayer> {
   
   private double power = 1.0;
@@ -32,14 +35,30 @@ public final class NthPowerActivationLayer extends SimpleActivationLayer<NthPowe
     json.addProperty("power", power);
     return json;
   }
+
+  /**
+   * From json nth power activation layer.
+   *
+   * @param json the json
+   * @return the nth power activation layer
+   */
   public static NthPowerActivationLayer fromJson(JsonObject json) {
     return new NthPowerActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Nth power activation layer.
+   *
+   * @param id the id
+   */
   protected NthPowerActivationLayer(JsonObject id) {
     super(id);
     power = id.get("power").getAsDouble();
   }
   
+  /**
+   * Instantiates a new Nth power activation layer.
+   */
   public NthPowerActivationLayer() {
   }
   
@@ -56,10 +75,21 @@ public final class NthPowerActivationLayer extends SimpleActivationLayer<NthPowe
     results[1] = d;
   }
   
+  /**
+   * Gets power.
+   *
+   * @return the power
+   */
   public double getPower() {
     return power;
   }
   
+  /**
+   * Sets power.
+   *
+   * @param power the power
+   * @return the power
+   */
   public NthPowerActivationLayer setPower(double power) {
     this.power = power;
     return this;

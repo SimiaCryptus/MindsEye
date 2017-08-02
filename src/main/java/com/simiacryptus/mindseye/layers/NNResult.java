@@ -25,32 +25,58 @@ import com.simiacryptus.util.ml.Tensor;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
+/**
+ * The type Nn result.
+ */
 public abstract class NNResult {
-
+  
+  /**
+   * The Data.
+   */
   public final TensorList data;
-
+  
+  /**
+   * Instantiates a new Nn result.
+   *
+   * @param data the data
+   */
   public NNResult(final Tensor... data) {
     this(new TensorArray(data));
   }
-
+  
+  /**
+   * Instantiates a new Nn result.
+   *
+   * @param data the data
+   */
   public NNResult(final TensorList data) {
     super();
     this.data = data;
   }
-
+  
   /**
+   * Single result array nn result [ ].
+   *
    * @param input - An array of inputs, each one of which is a batch for a  given input
-   * @return
+   * @return nn result [ ]
    */
   public static NNResult[] singleResultArray(Tensor[][] input) {
     return Arrays.stream(input).map((Tensor[] x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
   }
   
+  /**
+   * Single result array nn result [ ].
+   *
+   * @param input the input
+   * @return the nn result [ ]
+   */
   public static NNResult[] singleResultArray(Tensor[] input) {
     return Arrays.stream(input).map((Tensor x) -> new ConstNNResult(x)).toArray(i -> new NNResult[i]);
   }
   
   /**
+   * Batch result array nn result [ ].
+   *
    * @param batchData - a list examples, ie each sub-array is a single example
    * @return - Returns a result array for NNLayer evaluation
    */
@@ -62,10 +88,21 @@ public abstract class NNResult {
     }).toArray(x -> new NNResult[x]);
   }
   
+  /**
+   * Accumulate.
+   *
+   * @param buffer the buffer
+   */
   public final void accumulate(DeltaSet buffer) {
     accumulate(buffer, 1.0);
   }
   
+  /**
+   * Accumulate.
+   *
+   * @param buffer the buffer
+   * @param value  the value
+   */
   public final void accumulate(DeltaSet buffer, double value) {
     Tensor[] defaultVector = IntStream.range(0, this.data.length()).mapToObj(i -> {
       assert (Arrays.equals(this.data.get(i).getDimensions(), new int[]{1}));
@@ -73,9 +110,20 @@ public abstract class NNResult {
     }).toArray(i -> new Tensor[i]);
     accumulate(buffer, new TensorArray(defaultVector));
   }
-
+  
+  /**
+   * Accumulate.
+   *
+   * @param buffer the buffer
+   * @param data   the data
+   */
   public abstract void accumulate(DeltaSet buffer, final TensorList data);
-
+  
+  /**
+   * Is alive boolean.
+   *
+   * @return the boolean
+   */
   public abstract boolean isAlive();
   
 }

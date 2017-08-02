@@ -31,6 +31,9 @@ import com.simiacryptus.util.ml.Tensor;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * The type Pipeline network.
+ */
 public class PipelineNetwork extends DAGNetwork {
   
   public JsonObject getJson() {
@@ -43,9 +46,21 @@ public class PipelineNetwork extends DAGNetwork {
     return json;
   }
   
+  /**
+   * From json pipeline network.
+   *
+   * @param json the json
+   * @return the pipeline network
+   */
   public static PipelineNetwork fromJson(JsonObject json) {
     return new PipelineNetwork(json);
   }
+  
+  /**
+   * Instantiates a new Pipeline network.
+   *
+   * @param json the json
+   */
   protected PipelineNetwork(JsonObject json) {
     super(json);
     UUID head = UUID.fromString(json.get("head").getAsString());
@@ -60,11 +75,19 @@ public class PipelineNetwork extends DAGNetwork {
   private DAGNode head;
   private List<NNLayer> layers;
   
+  /**
+   * Instantiates a new Pipeline network.
+   */
   public PipelineNetwork() {
     this(1);
     head = getInput().get(0);
   }
   
+  /**
+   * Instantiates a new Pipeline network.
+   *
+   * @param inputs the inputs
+   */
   public PipelineNetwork(int inputs) {
     super(inputs);
     head = 0==inputs?null:getInput().get(0);
@@ -83,12 +106,24 @@ public class PipelineNetwork extends DAGNetwork {
     return node;
   }
   
+  /**
+   * Const value dag node.
+   *
+   * @param tensor the tensor
+   * @return the dag node
+   */
   public DAGNode constValue(Tensor tensor) {
     DAGNode constNode = super.add(new ConstNNLayer(tensor));;
     getLayers().add(constNode.getLayer());
     return constNode;
   }
   
+  /**
+   * Add dag node.
+   *
+   * @param nextHead the next head
+   * @return the dag node
+   */
   public DAGNode add(NNLayer nextHead) {
     DAGNode head = getHead();
     if (null == head) return add(nextHead, getInput(0));
@@ -103,6 +138,11 @@ public class PipelineNetwork extends DAGNetwork {
     this.head = imageRMS;
   }
   
+  /**
+   * Gets layers.
+   *
+   * @return the layers
+   */
   public List<NNLayer> getLayers() {
     if(null == layers) {
       synchronized(this) {
@@ -114,6 +154,12 @@ public class PipelineNetwork extends DAGNetwork {
     return layers;
   }
   
+  /**
+   * Sets layers.
+   *
+   * @param layers the layers
+   * @return the layers
+   */
   public PipelineNetwork setLayers(List<NNLayer> layers) {
     this.layers = layers;
     return this;

@@ -31,6 +31,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Avg image band layer.
+ */
 public class AvgImageBandLayer extends NNLayer {
   
   public JsonObject getJson() {
@@ -38,10 +41,23 @@ public class AvgImageBandLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json avg image band layer.
+   *
+   * @param json the json
+   * @return the avg image band layer
+   */
   public static AvgImageBandLayer fromJson(JsonObject json) {
     JsonArray jsonArray = json.getAsJsonArray("inner");
     return new AvgImageBandLayer(json, JsonUtil.getIntArray(jsonArray));
   }
+
+  /**
+   * Instantiates a new Avg image band layer.
+   *
+   * @param id         the id
+   * @param kernelDims the kernel dims
+   */
   protected AvgImageBandLayer(JsonObject id, int... kernelDims) {
     super(id);
   }
@@ -50,6 +66,9 @@ public class AvgImageBandLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgImageBandLayer.class);
   
+  /**
+   * Instantiates a new Avg image band layer.
+   */
   public AvgImageBandLayer() {
     super();
   }
@@ -57,7 +76,7 @@ public class AvgImageBandLayer extends NNLayer {
   
   @SuppressWarnings("unchecked")
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
   
     assert(1 == inObj.length);
     final NNResult in = inObj[0];
@@ -98,16 +117,38 @@ public class AvgImageBandLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * The type Index map key.
+   */
   public static final class IndexMapKey {
+    /**
+     * The Kernel.
+     */
     int[] kernel;
+    /**
+     * The Output.
+     */
     int[] output;
-    
+
+    /**
+     * Instantiates a new Index map key.
+     *
+     * @param kernel the kernel
+     * @param output the output
+     */
     public IndexMapKey(final int[] kernel, final int[] output) {
       super();
       this.kernel = kernel;
       this.output = output;
     }
-    
+
+    /**
+     * Instantiates a new Index map key.
+     *
+     * @param kernel the kernel
+     * @param input  the input
+     * @param output the output
+     */
     public IndexMapKey(final Tensor kernel, final Tensor input, final Tensor output) {
       super();
       this.kernel = kernel.getDimensions();

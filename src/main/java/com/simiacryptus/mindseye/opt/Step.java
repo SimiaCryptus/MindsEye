@@ -25,10 +25,25 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable;
  * Created by Andrew Charneski on 7/2/2017.
  */
 public class Step {
+  /**
+   * The Point.
+   */
   public final Trainable.PointSample point;
+  /**
+   * The Time.
+   */
   public final long time = System.currentTimeMillis();
+  /**
+   * The Iteration.
+   */
   public final long iteration;
   
+  /**
+   * Instantiates a new Step.
+   *
+   * @param point     the point
+   * @param iteration the iteration
+   */
   Step(Trainable.PointSample point, long iteration) {
     this.point = point;
     this.iteration = iteration;

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
-import com.simiacryptus.mindseye.layers.opencl.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
 
 import java.util.ArrayList;
@@ -34,10 +34,21 @@ import java.util.function.DoubleSupplier;
  */
 public class InceptionLayer extends DAGNetwork {
   
+  /**
+   * The Kernels.
+   */
   public final int[][][] kernels;
   private final DAGNode head;
+  /**
+   * The Convolution layers.
+   */
   List<ConvolutionLayer> convolutionLayers = new ArrayList<>();
   
+  /**
+   * Instantiates a new Inception layer.
+   *
+   * @param kernels the kernels
+   */
   public InceptionLayer(int[][][] kernels) {
     super(1);
     this.kernels = kernels;
@@ -55,6 +66,12 @@ public class InceptionLayer extends DAGNetwork {
     this.head = add(new ImgConcatLayer(), pipelines.toArray(new DAGNode[]{}));
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public InceptionLayer setWeights(final DoubleSupplier f) {
     convolutionLayers.forEach(x->x.setWeights(f));
     return this;

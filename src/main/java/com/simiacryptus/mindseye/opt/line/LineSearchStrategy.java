@@ -28,5 +28,12 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
  */
 public interface LineSearchStrategy {
   
+  /**
+   * Step point sample.
+   *
+   * @param cursor  the cursor
+   * @param monitor the monitor
+   * @return the point sample
+   */
   PointSample step(LineSearchCursor cursor, TrainingMonitor monitor);
 }

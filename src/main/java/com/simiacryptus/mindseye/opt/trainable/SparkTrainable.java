@@ -34,26 +34,56 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * The type Spark trainable.
+ */
 public class SparkTrainable implements Trainable {
   
   private static class ReducableResult implements Serializable {
+    /**
+     * The Deltas.
+     */
     public final Map<String, double[]> deltas;
+    /**
+     * The Sum.
+     */
     public final double sum;
+    /**
+     * The Count.
+     */
     public final int count;
-    
+  
+    /**
+     * Instantiates a new Reducable result.
+     *
+     * @param deltas the deltas
+     * @param sum    the sum
+     * @param count  the count
+     */
     public ReducableResult(Map<String, double[]> deltas, double sum, int count) {
       this.deltas = deltas;
       this.sum = sum;
       this.count = count;
     }
-    
+  
+    /**
+     * Accumulate.
+     *
+     * @param source the source
+     */
     public void accumulate(DeltaSet source) {
       Map<String, NNLayer> idIndex = source.map.entrySet().stream().collect(Collectors.toMap(
           e -> e.getKey().id.toString(), e -> e.getKey()
       ));
       deltas.forEach((k,v)->source.get(idIndex.get(k), (double[])null).accumulate(v));
     }
-    
+  
+    /**
+     * Add spark trainable . reducable result.
+     *
+     * @param right the right
+     * @return the spark trainable . reducable result
+     */
     public SparkTrainable.ReducableResult add(SparkTrainable.ReducableResult right) {
       HashMap<String, double[]> map = new HashMap<>();
       Set<String> keys = Stream.concat(deltas.keySet().stream(), right.deltas.keySet().stream()).collect(Collectors.toSet());
@@ -76,13 +106,21 @@ public class SparkTrainable implements Trainable {
       }
       return new SparkTrainable.ReducableResult(map, sum+right.sum, count+right.count);
     }
-    
+  
+    /**
+     * Mean value double.
+     *
+     * @return the double
+     */
     public double meanValue() {
       return sum / count;
     }
   }
   
   private static class PartitionTask implements FlatMapFunction<Iterator<Tensor[]>, SparkTrainable.ReducableResult> {
+    /**
+     * The Network.
+     */
     final DAGNetwork network;
     
     private PartitionTask(DAGNetwork network) {
@@ -92,7 +130,7 @@ public class SparkTrainable implements Trainable {
     @Override
     public Iterator<SparkTrainable.ReducableResult> call(Iterator<Tensor[]> partition) throws Exception {
       Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
-      NNResult eval = network.eval(NNResult.batchResultArray(tensors));
+      NNResult eval = network.eval(new NNLayer.NNExecutionContext() {}, NNResult.batchResultArray(tensors));
       DeltaSet deltaSet = new DeltaSet();
       eval.accumulate(deltaSet);
       double[] doubles = eval.data.stream().mapToDouble(x -> x.getData()[0]).toArray();
@@ -109,7 +147,7 @@ public class SparkTrainable implements Trainable {
   private DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
     DeltaSet deltaSet = new DeltaSet();
     Tensor[] prototype = dataRDD.take(1).get(0);
-    NNResult result = network.eval(NNResult.batchResultArray(new Tensor[][]{prototype}));
+    NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, NNResult.batchResultArray(new Tensor[][]{prototype}));
     result.accumulate(deltaSet, 0);
     reduce.accumulate(deltaSet);
     return deltaSet;
@@ -118,6 +156,12 @@ public class SparkTrainable implements Trainable {
   private final JavaRDD<Tensor[]> dataRDD;
   private final DAGNetwork network;
   
+  /**
+   * Instantiates a new Spark trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   */
   public SparkTrainable(RDD<Tensor[]> trainingData, DAGNetwork network) {
     this.dataRDD = trainingData.toJavaRDD();
     this.network = network;

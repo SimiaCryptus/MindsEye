@@ -22,15 +22,26 @@ package com.simiacryptus.mindseye.layers.synapse;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
 
+/**
+ * The type Transposed synapse layer.
+ */
 public class TransposedSynapseLayer extends MappedSynapseLayer {
   
   private final DenseSynapseLayer sibling;
   
+  /**
+   * Instantiates a new Transposed synapse layer.
+   */
   protected TransposedSynapseLayer() {
     super();
     sibling = null;
   }
   
+  /**
+   * Instantiates a new Transposed synapse layer.
+   *
+   * @param sibling the sibling
+   */
   public TransposedSynapseLayer(final DenseSynapseLayer sibling) {
     super(sibling.outputDims, sibling.inputDims);
     this.sibling = sibling;

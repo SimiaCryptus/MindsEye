@@ -38,17 +38,32 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The type Component performance tests.
+ */
 public class ComponentPerformanceTests {
+  /**
+   * The constant deltaFactor.
+   */
   public static final double deltaFactor = 1e-6;
   
   private static final Logger log = LoggerFactory.getLogger(ComponentPerformanceTests.class);
   
+  /**
+   * Test int.
+   *
+   * @param component       the component
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   * @return the int
+   * @throws Throwable the throwable
+   */
   public static int test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
     long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60);
     int iterations = 0;
     while (timeout > System.currentTimeMillis()) {
       iterations++;
-      NNResult eval = component.eval(inputPrototype);
+      NNResult eval = component.eval(new NNLayer.NNExecutionContext() {}, inputPrototype);
       DeltaSet deltaSet = new DeltaSet();
         eval.accumulate(deltaSet, new TensorArray(outputPrototype));
     }
@@ -56,6 +71,11 @@ public class ComponentPerformanceTests {
     return iterations;
   }
   
+  /**
+   * Test bias layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testBiasLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -64,6 +84,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test dense synapse layer 1.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testDenseSynapseLayer1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -72,6 +97,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test toeplitz synapse layer 1.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testToeplitzSynapseLayer1() throws Throwable {
     final Tensor inputPrototype = new Tensor(3, 3).fill(() -> Util.R.get().nextGaussian());
@@ -80,6 +110,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test toeplitz synapse layer 2.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testToeplitzSynapseLayer2() throws Throwable {
     final Tensor inputPrototype = new Tensor(3, 3).fill(() -> Util.R.get().nextGaussian());
@@ -88,6 +123,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test dense synapse layer jblas 1.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testDenseSynapseLayerJBLAS1() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -96,6 +136,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test dense synapse layer 2.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testDenseSynapseLayer2() throws Throwable {
     final Tensor outputPrototype = new Tensor(2);
@@ -104,6 +149,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test max subsample layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testMaxSubsampleLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
@@ -112,6 +162,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test max image band layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testMaxImageBandLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
@@ -120,6 +175,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test avg image band layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testAvgImageBandLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1, 1, 1);
@@ -128,6 +188,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test product layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testProductLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -137,6 +202,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test sigmoid layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSigmoidLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -145,6 +215,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test softmax layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSoftmaxLayer() throws Throwable {
     final Tensor inputPrototype = new Tensor(2).fill(() -> Util.R.get().nextGaussian());
@@ -153,6 +228,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test sq activation layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSqActivationLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(3);
@@ -161,6 +241,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test sq loss layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSqLossLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -170,6 +255,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test sum layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSumLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);
@@ -179,6 +269,11 @@ public class ComponentPerformanceTests {
     test(component, outputPrototype, inputPrototype1, inputPrototype2);
   }
   
+  /**
+   * Test sum reducer layer.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testSumReducerLayer() throws Throwable {
     final Tensor outputPrototype = new Tensor(1);

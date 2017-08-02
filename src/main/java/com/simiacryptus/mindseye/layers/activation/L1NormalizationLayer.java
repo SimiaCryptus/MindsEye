@@ -29,14 +29,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type L 1 normalization layer.
+ */
 public class L1NormalizationLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json l 1 normalization layer.
+   *
+   * @param json the json
+   * @return the l 1 normalization layer
+   */
   public static L1NormalizationLayer fromJson(JsonObject json) {
     return new L1NormalizationLayer(json);
   }
+
+  /**
+   * Instantiates a new L 1 normalization layer.
+   *
+   * @param id the id
+   */
   protected L1NormalizationLayer(JsonObject id) {
     super(id);
   }
@@ -45,11 +61,14 @@ public class L1NormalizationLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
   private static final long serialVersionUID = -8028442822064680557L;
   
+  /**
+   * Instantiates a new L 1 normalization layer.
+   */
   public L1NormalizationLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     double[] sum_A = new double[itemCnt];
     final Tensor inputA[] = new Tensor[itemCnt];

@@ -34,6 +34,9 @@ import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
+/**
+ * The type Java dense synapse layer.
+ */
 public class JavaDenseSynapseLayer extends NNLayer {
   
   public JsonObject getJson() {
@@ -43,9 +46,21 @@ public class JavaDenseSynapseLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json java dense synapse layer.
+   *
+   * @param json the json
+   * @return the java dense synapse layer
+   */
   public static JavaDenseSynapseLayer fromJson(JsonObject json) {
     return new JavaDenseSynapseLayer(json);
   }
+  
+  /**
+   * Instantiates a new Java dense synapse layer.
+   *
+   * @param json the json
+   */
   protected JavaDenseSynapseLayer(JsonObject json) {
     super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
@@ -58,15 +73,27 @@ public class JavaDenseSynapseLayer extends NNLayer {
    *
    */
   private static final long serialVersionUID = 3538627887600182889L;
+  /**
+   * The Output dims.
+   */
   public final int[] outputDims;
   private final Tensor weights;
   
+  /**
+   * Instantiates a new Java dense synapse layer.
+   */
   protected JavaDenseSynapseLayer() {
     super();
     this.outputDims = null;
     this.weights = null;
   }
   
+  /**
+   * Instantiates a new Java dense synapse layer.
+   *
+   * @param inputs     the inputs
+   * @param outputDims the output dims
+   */
   public JavaDenseSynapseLayer(final int inputs, final int[] outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
     this.weights = new Tensor(inputs, Tensor.dim(outputDims));
@@ -85,6 +112,13 @@ public class JavaDenseSynapseLayer extends NNLayer {
     return weightDelta;
   }
   
+  /**
+   * Cross multiply.
+   *
+   * @param rows   the rows
+   * @param cols   the cols
+   * @param matrix the matrix
+   */
   public static void crossMultiply(final double[] rows, final double[] cols, double[] matrix) {
     int i = 0;
     for (final double c : cols) {
@@ -94,6 +128,13 @@ public class JavaDenseSynapseLayer extends NNLayer {
     }
   }
   
+  /**
+   * Multiply.
+   *
+   * @param matrix the matrix
+   * @param in     the in
+   * @param out    the out
+   */
   public static void multiply(final double[] matrix, final double[] in, double[] out) {
     for (int o = 0; o < out.length; o++) {
       double sum = 0;
@@ -104,6 +145,13 @@ public class JavaDenseSynapseLayer extends NNLayer {
     }
   }
   
+  /**
+   * Multiply t.
+   *
+   * @param matrix the matrix
+   * @param in     the in
+   * @param out    the out
+   */
   public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
     for (int o = 0; o < out.length; o++) {
       double sum = 0;
@@ -114,13 +162,19 @@ public class JavaDenseSynapseLayer extends NNLayer {
     }
   }
   
+  /**
+   * Add weights java dense synapse layer.
+   *
+   * @param f the f
+   * @return the java dense synapse layer
+   */
   public JavaDenseSynapseLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.getWeights().getData());
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data.get(dataIndex);
       return multiply2(this.getWeights().getData(), input.getData());
@@ -128,6 +182,11 @@ public class JavaDenseSynapseLayer extends NNLayer {
     return new Result(outputA, inObj[0]);
   }
   
+  /**
+   * Gets mobility.
+   *
+   * @return the mobility
+   */
   protected double getMobility() {
     return 1;
   }
@@ -138,11 +197,23 @@ public class JavaDenseSynapseLayer extends NNLayer {
     return output;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param data the data
+   * @return the weights
+   */
   public JavaDenseSynapseLayer setWeights(final double[] data) {
     this.weights.set(data);
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public JavaDenseSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     weights.coordStream().parallel().forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
@@ -155,10 +226,21 @@ public class JavaDenseSynapseLayer extends NNLayer {
     return Arrays.asList(this.getWeights().getData());
   }
   
+  /**
+   * Gets weights.
+   *
+   * @return the weights
+   */
   public Tensor getWeights() {
     return weights;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public JavaDenseSynapseLayer setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;

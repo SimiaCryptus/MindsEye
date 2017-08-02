@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Sparse 01 meta layer.
+ */
 @SuppressWarnings("serial")
 public class Sparse01MetaLayer extends NNLayer {
   
@@ -37,11 +40,24 @@ public class Sparse01MetaLayer extends NNLayer {
     json.addProperty("sparsity",sparsity);
     return json;
   }
+
+  /**
+   * From json sparse 01 meta layer.
+   *
+   * @param json the json
+   * @return the sparse 01 meta layer
+   */
   public static Sparse01MetaLayer fromJson(JsonObject json) {
     Sparse01MetaLayer obj = new Sparse01MetaLayer(json);
     obj.sparsity = json.get("sparsity").getAsInt();
     return obj;
   }
+
+  /**
+   * Instantiates a new Sparse 01 meta layer.
+   *
+   * @param id the id
+   */
   protected Sparse01MetaLayer(JsonObject id) {
     super(id);
   }
@@ -49,13 +65,19 @@ public class Sparse01MetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(Sparse01MetaLayer.class);
   
+  /**
+   * The Sparsity.
+   */
   double sparsity = 0.05;
   
+  /**
+   * Instantiates a new Sparse 01 meta layer.
+   */
   public Sparse01MetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.data.length();
     Tensor avgActivationArray = input.data.get(0).map((v, c) ->

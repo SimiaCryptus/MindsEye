@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Bias meta layer.
+ */
 @SuppressWarnings("serial")
 public class BiasMetaLayer extends NNLayer {
   
@@ -36,9 +39,22 @@ public class BiasMetaLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json bias meta layer.
+   *
+   * @param json the json
+   * @return the bias meta layer
+   */
   public static BiasMetaLayer fromJson(JsonObject json) {
     return new BiasMetaLayer(json);
   }
+
+  /**
+   * Instantiates a new Bias meta layer.
+   *
+   * @param id the id
+   */
   protected BiasMetaLayer(JsonObject id) {
     super(id);
   }
@@ -46,11 +62,14 @@ public class BiasMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasMetaLayer.class);
   
+  /**
+   * Instantiates a new Bias meta layer.
+   */
   public BiasMetaLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     Tensor[] tensors = IntStream.range(0, itemCnt)
                            .parallel()

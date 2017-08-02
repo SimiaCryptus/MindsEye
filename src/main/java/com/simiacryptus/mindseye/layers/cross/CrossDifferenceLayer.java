@@ -27,23 +27,42 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Cross difference layer.
+ */
 public class CrossDifferenceLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json cross difference layer.
+   *
+   * @param json the json
+   * @return the cross difference layer
+   */
   public static CrossDifferenceLayer fromJson(JsonObject json) {
     return new CrossDifferenceLayer(json);
   }
+
+  /**
+   * Instantiates a new Cross difference layer.
+   *
+   * @param id the id
+   */
   protected CrossDifferenceLayer(JsonObject id) {
     super(id);
   }
 
+  /**
+   * Instantiates a new Cross difference layer.
+   */
   public CrossDifferenceLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert(1 == inObj.length);
     return new NNResult(inObj[0].data.stream().parallel().map(tensor->{
       int inputDim = tensor.dim();
@@ -95,6 +114,14 @@ public class CrossDifferenceLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Index int.
+   *
+   * @param x   the x
+   * @param y   the y
+   * @param max the max
+   * @return the int
+   */
   public static int index(int x, int y, int max) {
     return (max *(max -1)/2) - (max - x)*((max - x)-1)/2 + y - x - 1;
   }

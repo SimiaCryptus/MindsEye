@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
+/**
+ * The type Quadratic search.
+ */
 public class QuadraticSearch implements LineSearchStrategy {
   
   private double absoluteTolerance = 1e-8;
@@ -29,14 +32,15 @@ public class QuadraticSearch implements LineSearchStrategy {
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
-    
+
     double leftX = 0;
     LineSearchPoint leftPoint = cursor.step(leftX, monitor);
-    monitor.log(String.format("F(%s) = %s", leftX, leftPoint));
-  
+    monitor.log(String.format("F(%s) = %s; F' = %s", leftX, leftPoint, leftPoint.derivative));
+    if(0 == leftPoint.derivative) return leftPoint.point;
+
     double rightX = Math.abs(leftPoint.point.value * 1e-4 / leftPoint.derivative);
     LineSearchPoint rightPoint = cursor.step(rightX, monitor);
-    monitor.log(String.format("F(%s) = %s", rightX, rightPoint));
+    monitor.log(String.format("F(%s) = %s, F' = %s", rightX, rightPoint, rightPoint.derivative));
   
   
     double lastX = rightX;
@@ -102,25 +106,54 @@ public class QuadraticSearch implements LineSearchStrategy {
   
   }
   
+  /**
+   * Is same boolean.
+   *
+   * @param a the a
+   * @param b the b
+   * @return the boolean
+   */
   protected boolean isSame(double a, double b) {
     double diff = Math.abs(a - b);
     double scale = Math.max(Math.abs(a), Math.abs(b));
     return diff < absoluteTolerance || diff < (scale * relativeTolerance);
   }
   
+  /**
+   * Gets absolute tolerance.
+   *
+   * @return the absolute tolerance
+   */
   public double getAbsoluteTolerance() {
     return absoluteTolerance;
   }
   
+  /**
+   * Sets absolute tolerance.
+   *
+   * @param absoluteTolerance the absolute tolerance
+   * @return the absolute tolerance
+   */
   public QuadraticSearch setAbsoluteTolerance(double absoluteTolerance) {
     this.absoluteTolerance = absoluteTolerance;
     return this;
   }
   
+  /**
+   * Gets relative tolerance.
+   *
+   * @return the relative tolerance
+   */
   public double getRelativeTolerance() {
     return relativeTolerance;
   }
   
+  /**
+   * Sets relative tolerance.
+   *
+   * @param relativeTolerance the relative tolerance
+   * @return the relative tolerance
+   */
   public QuadraticSearch setRelativeTolerance(double relativeTolerance) {
     this.relativeTolerance = relativeTolerance;
     return this;

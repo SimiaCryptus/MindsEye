@@ -21,17 +21,19 @@ package com.simiacryptus.mindseye.opt.trainable;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
+/**
+ * The type Stochastic array trainable.
+ */
 public class StochasticArrayTrainable implements Trainable {
   
   private final Tensor[][] trainingData;
@@ -40,11 +42,26 @@ public class StochasticArrayTrainable implements Trainable {
   private int trainingSize = Integer.MAX_VALUE;
   private int batchSize = Integer.MAX_VALUE;
   private Tensor[][] sampledData;
-
+  
+  /**
+   * Instantiates a new Stochastic array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
   }
-
+  
+  /**
+   * Instantiates a new Stochastic array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   * @param batchSize    the batch size
+   */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, int batchSize) {
     this.trainingData = trainingData;
     this.network = network;
@@ -55,21 +72,38 @@ public class StochasticArrayTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    return Lists.partition(Arrays.asList(sampledData), batchSize).stream().map(trainingData->{
-      NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
-      NNResult result = network.eval(input);
-      DeltaSet deltaSet = new DeltaSet();
-      result.accumulate(deltaSet);
-      DeltaSet stateSet = new DeltaSet();
-      deltaSet.map.forEach((layer, layerDelta) -> {
-        stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
-      });
-      assert (result.data.stream().allMatch(x -> x.dim() == 1));
-      double meanValue = result.data.stream().mapToDouble(x -> x.getData()[0]).sum();
-      return new PointSample(deltaSet, stateSet, meanValue / trainingSize);
+    return Lists.partition(Arrays.asList(sampledData), batchSize).stream().parallel().map(trainingData->{
+      PointSample pointSample = evalSubsample(trainingData);
+      System.gc();
+      return pointSample;
     }).reduce((a,b)->new PointSample(a.delta.add(b.delta), a.weights,a.value + b.value)).get();
   }
   
+  /**
+   * Eval subsample point sample.
+   *
+   * @param trainingData the training data
+   * @return the point sample
+   */
+  protected PointSample evalSubsample(List<Tensor[]> trainingData) {
+    NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
+    return CuDNN.gpuContexts.with(nncontext->{
+      NNResult result = network.eval(nncontext, input);
+      DeltaSet deltaSet = new DeltaSet();
+      result.accumulate(deltaSet);
+      assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.delta).allMatch(Double::isFinite)));
+      DeltaSet stateBackup = new DeltaSet();
+      deltaSet.map.forEach((layer, layerDelta) -> {
+        stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
+      });
+      assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.delta).allMatch(Double::isFinite)));
+      assert (result.data.stream().allMatch(x -> x.dim() == 1));
+      assert (result.data.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
+      double meanValue = result.data.stream().mapToDouble(x -> x.getData()[0]).sum();
+      return new PointSample(deltaSet.scale(1.0/trainingSize), stateBackup, meanValue / trainingSize);
+    });
+  }
+
   @Override
   public void resetToFull() {
     sampledData = trainingData;
@@ -81,10 +115,21 @@ public class StochasticArrayTrainable implements Trainable {
     return true;
   }
   
+  /**
+   * Gets training size.
+   *
+   * @return the training size
+   */
   public int getTrainingSize() {
     return this.trainingSize;
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public StochasticArrayTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
@@ -106,11 +151,21 @@ public class StochasticArrayTrainable implements Trainable {
                            .limit(getTrainingSize()) //
                            .toArray(i -> new Tensor[i][]);
   }
-
+  
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
   public int getBatchSize() {
     return batchSize;
   }
-
+  
+  /**
+   * Sets batch size.
+   *
+   * @param batchSize the batch size
+   */
   public void setBatchSize(int batchSize) {
     this.batchSize = batchSize;
   }

@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * The type Weight extractor.
+ */
 @SuppressWarnings("serial")
 public final class WeightExtractor extends NNLayer {
   
@@ -39,30 +42,54 @@ public final class WeightExtractor extends NNLayer {
     json.addProperty("index",index);
     return json;
   }
+
+  /**
+   * From json weight extractor.
+   *
+   * @param json the json
+   * @return the weight extractor
+   */
   public static WeightExtractor fromJson(JsonObject json) {
     WeightExtractor obj = new WeightExtractor(json,
                                                  json.get("index").getAsInt(),
                                                  NNLayer.fromJson(json.getAsJsonObject("inner")));
     return obj;
   }
+
+  /**
+   * Instantiates a new Weight extractor.
+   *
+   * @param id    the id
+   * @param index the index
+   * @param inner the inner
+   */
   protected WeightExtractor(JsonObject id, final int index, NNLayer inner) {
     super(id);
     this.inner = inner;
     this.index = index;
   }
   
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(WeightExtractor.class);
 
   private final NNLayer inner;
   private final int index;
 
+  /**
+   * Instantiates a new Weight extractor.
+   *
+   * @param index the index
+   * @param inner the inner
+   */
   public WeightExtractor(final int index, final NNLayer inner) {
     this.inner = inner;
     this.index = index;
   }
 
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     Tensor array = new Tensor(inner.state().get(index));
     return new NNResult(array) {
       

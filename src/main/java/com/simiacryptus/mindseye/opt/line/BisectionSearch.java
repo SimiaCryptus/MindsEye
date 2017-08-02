@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
+/**
+ * The type Bisection search.
+ */
 public class BisectionSearch implements LineSearchStrategy {
   
   private double zeroTol = 1e-20;
@@ -110,19 +113,41 @@ public class BisectionSearch implements LineSearchStrategy {
     }
   }
   
+  /**
+   * Gets zero tol.
+   *
+   * @return the zero tol
+   */
   public double getZeroTol() {
     return zeroTol;
   }
   
+  /**
+   * Sets zero tol.
+   *
+   * @param zeroTol the zero tol
+   * @return the zero tol
+   */
   public BisectionSearch setZeroTol(double zeroTol) {
     this.zeroTol = zeroTol;
     return this;
   }
   
+  /**
+   * Gets current rate.
+   *
+   * @return the current rate
+   */
   public double getCurrentRate() {
     return currentRate;
   }
   
+  /**
+   * Sets current rate.
+   *
+   * @param currentRate the current rate
+   * @return the current rate
+   */
   public BisectionSearch setCurrentRate(double currentRate) {
     this.currentRate = currentRate;
     return this;

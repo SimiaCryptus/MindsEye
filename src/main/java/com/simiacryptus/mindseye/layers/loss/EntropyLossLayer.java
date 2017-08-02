@@ -29,14 +29,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Entropy loss layer.
+ */
 public class EntropyLossLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json entropy loss layer.
+   *
+   * @param json the json
+   * @return the entropy loss layer
+   */
   public static EntropyLossLayer fromJson(JsonObject json) {
     return new EntropyLossLayer(json);
   }
+
+  /**
+   * Instantiates a new Entropy loss layer.
+   *
+   * @param id the id
+   */
   protected EntropyLossLayer(JsonObject id) {
     super(id);
   }
@@ -48,11 +64,14 @@ public class EntropyLossLayer extends NNLayer {
    */
   private static final long serialVersionUID = -6257785994031662519L;
   
+  /**
+   * Instantiates a new Entropy loss layer.
+   */
   public EntropyLossLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     Tensor gradientA[] = new Tensor[inObj[0].data.length()];
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
       final Tensor l = inObj[0].data.get(dataIndex);

@@ -19,10 +19,18 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
+/**
+ * The type Compound region.
+ */
 public class CompoundRegion implements TrustRegion {
   
   private final TrustRegion[] inner;
   
+  /**
+   * Instantiates a new Compound region.
+   *
+   * @param inner the inner
+   */
   public CompoundRegion(TrustRegion... inner) {
     this.inner = inner;
   }

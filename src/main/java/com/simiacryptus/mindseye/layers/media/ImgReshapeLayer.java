@@ -28,6 +28,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Img reshape layer.
+ */
 public class ImgReshapeLayer extends NNLayer {
   
   
@@ -43,9 +46,21 @@ public class ImgReshapeLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json img reshape layer.
+   *
+   * @param json the json
+   * @return the img reshape layer
+   */
   public static ImgReshapeLayer fromJson(JsonObject json) {
     return new ImgReshapeLayer(json);
   }
+
+  /**
+   * Instantiates a new Img reshape layer.
+   *
+   * @param json the json
+   */
   protected ImgReshapeLayer(JsonObject json) {
     super(json);
     this.kernelSizeX = json.getAsJsonPrimitive("kernelSizeX").getAsInt();
@@ -53,6 +68,13 @@ public class ImgReshapeLayer extends NNLayer {
     this.expand = json.getAsJsonPrimitive("expand").getAsBoolean();
   }
   
+  /**
+   * Instantiates a new Img reshape layer.
+   *
+   * @param kernelSizeX the kernel size x
+   * @param kernelSizeY the kernel size y
+   * @param expand      the expand
+   */
   public ImgReshapeLayer(int kernelSizeX, int kernelSizeY, boolean expand) {
     super();
     this.kernelSizeX = kernelSizeX;
@@ -61,7 +83,7 @@ public class ImgReshapeLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
@@ -106,6 +128,13 @@ public class ImgReshapeLayer extends NNLayer {
     };
   }
   
+  /**
+   * Copy condense tensor.
+   *
+   * @param inputData  the input data
+   * @param outputData the output data
+   * @return the tensor
+   */
   public static Tensor copyCondense(Tensor inputData, Tensor outputData) {
     int[] inDim = inputData.getDimensions();
     int[] outDim = outputData.getDimensions();
@@ -133,6 +162,13 @@ public class ImgReshapeLayer extends NNLayer {
     return outputData;
   }
   
+  /**
+   * Copy expand tensor.
+   *
+   * @param inputData  the input data
+   * @param outputData the output data
+   * @return the tensor
+   */
   public static Tensor copyExpand(Tensor inputData, Tensor outputData) {
     int[] inDim = inputData.getDimensions();
     int[] outDim = outputData.getDimensions();

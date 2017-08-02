@@ -32,6 +32,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Max image band layer.
+ */
 public class MaxImageBandLayer extends NNLayer {
   
   public JsonObject getJson() {
@@ -39,10 +42,23 @@ public class MaxImageBandLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json max image band layer.
+   *
+   * @param json the json
+   * @return the max image band layer
+   */
   public static MaxImageBandLayer fromJson(JsonObject json) {
     return new MaxImageBandLayer(json,
                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
+
+  /**
+   * Instantiates a new Max image band layer.
+   *
+   * @param id         the id
+   * @param kernelDims the kernel dims
+   */
   protected MaxImageBandLayer(JsonObject id, int... kernelDims) {
     super(id);
   }
@@ -51,12 +67,15 @@ public class MaxImageBandLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
   
+  /**
+   * Instantiates a new Max image band layer.
+   */
   public MaxImageBandLayer() {
     super();
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
   
     assert(1 == inObj.length);
     final NNResult in = inObj[0];
@@ -105,10 +124,25 @@ public class MaxImageBandLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * The type Calc regions parameter.
+   */
   public static class CalcRegionsParameter {
+    /**
+     * The Input dims.
+     */
     public int[] inputDims;
+    /**
+     * The Kernel dims.
+     */
     public int[] kernelDims;
-    
+
+    /**
+     * Instantiates a new Calc regions parameter.
+     *
+     * @param inputDims  the input dims
+     * @param kernelDims the kernel dims
+     */
     public CalcRegionsParameter(final int[] inputDims, final int[] kernelDims) {
       this.inputDims = inputDims;
       this.kernelDims = kernelDims;

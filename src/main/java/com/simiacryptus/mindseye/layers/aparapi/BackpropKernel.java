@@ -17,66 +17,105 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.opencl;
+package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.aparapi.Kernel;
 import com.aparapi.device.Device;
 
-public final class GradientKernel extends Kernel {
+/**
+ * The type Backprop kernel.
+ */
+public final class BackpropKernel extends Kernel {
 
+  /**
+   * The Input.
+   */
   public double[] input;
+  /**
+   * The Input size.
+   */
   public int[] inputSize;
+  /**
+   * The Kernel size.
+   */
   public int[] kernelSize;
+  /**
+   * The Output.
+   */
   public double[] output;
+  /**
+   * The Output size.
+   */
   public int[] outputSize;
+  /**
+   * The Weights.
+   */
   public double[] weights;
-  public int weightSize;
-  public int paralellism;
+  /**
+   * The Kernel offset.
+   */
   public int[] kernelOffset;
   
-  public GradientKernel() {
+  /**
+   * Instantiates a new Backprop kernel.
+   */
+  public BackpropKernel() {
   }
   
+  /**
+   * Exe.
+   *
+   * @param device the device
+   */
   public void exe(final Device device) {
     //assert this.outputSize[0] * this.outputSize[1] * this.outputSize[2] == this.output.length;
     //assert this.inputSize[0] * this.inputSize[1] * this.inputSize[2] == this.input.length;
-    assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weightSize;
-    execute(device.createRange2D(weightSize, paralellism));
+    assert this.kernelSize[0] * this.kernelSize[1] * this.kernelSize[2] == this.weights.length;
+    execute(device.createRange(this.input.length));
   }
   
   @Override
   public void run() {
-    final int k = getGlobalId(0);
-    final int threadNumber = getGlobalId(1);
-    final int ks0 = this.kernelSize[0];
-    final int ks1 = ks0 * this.kernelSize[1];
-    final int k2 = k / ks1;
-    final int k1 = k % ks1 / ks0;
-    final int k0 = k % ks0;
+    final int i = getGlobalId();
+    this.input[i] = run(i);
+  }
   
-    double accum = 0.;
-    for (int i = threadNumber; i < this.input.length; i+=paralellism) {
-      if (0. != this.input[i]) {
-        final int is0 = this.inputSize[0];
-        final int is1 = is0 * this.inputSize[1];
-        final int is2 = is1 * this.inputSize[2];
-        final int batch = i / is2;
-        final int i2 = i % is2 / is1;
-        final int i1 = i % is1 / is0;
-        final int i0 = i % is0;
-  
+  /**
+   * Run double.
+   *
+   * @param i the
+   * @return the double
+   */
+  public final double run(final int i) {
+    final int is0 = this.inputSize[0];
+    final int is1 = is0 * this.inputSize[1];
+    final int is2 = is1 * this.inputSize[2];
+    final int batch = i / is2;
+    final int i2 = i % is2 / is1;
+    final int i1 = i % is1 / is0;
+    final int i0 = i % is0;
+    
+    double accum = 0;
+    for (int k = 0; k < this.weights.length; k++) {
+      if (0. != this.weights[k]) {
+        final int ks0 = this.kernelSize[0];
+        final int ks1 = ks0 * this.kernelSize[1];
+        final int ks2 = ks1 * this.kernelSize[2];
+        final int k2 = k % ks2 / ks1;
+        final int k1 = k % ks1 / ks0;
+        final int k0 = k % ks0;
+        
         final int o2 = k2 - i2 * this.outputSize[2];
         if(o2 >= 0 && o2 < this.outputSize[2]) {
           final int o1 = i1 + k1 - kernelOffset[1];
           final int o0 = i0 + k0 - kernelOffset[0];
           if(o0 < this.outputSize[0] && o1 < this.outputSize[1] && o0 >= 0 && o1 >= 0) {
             final int o = o0 + this.outputSize[0] * (o1 + this.outputSize[1] * (o2 + this.outputSize[2] * batch));
-            accum += this.input[i] * this.output[o];
+            accum += this.output[o] * this.weights[k];
           }
         }
       }
     }
-    this.weights[k + weightSize * threadNumber] = accum;
+    return accum;
   }
-  
 }

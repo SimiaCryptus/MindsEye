@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.opencl;
+package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.aparapi.Kernel;
 import com.aparapi.Kernel.EXECUTION_MODE;
@@ -35,16 +35,33 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * The type Aparapi test.
+ */
 public class AparapiTest {
   
   
+  /**
+   * The constant random.
+   */
   public static final Random random = new Random();
+  /**
+   * The Log.
+   */
   static final Logger log = LoggerFactory.getLogger(AparapiTest.class);
   
+  /**
+   * Instantiates a new Aparapi test.
+   */
   public AparapiTest() {
     super();
   }
   
+  /**
+   * Main.
+   *
+   * @param _args the args
+   */
   public static void main(final String[] _args) {
     System.out.println("com.amd.aparapi.sample.info.Main");
     final List<OpenCLPlatform> platforms = new OpenCLPlatform().getOpenCLPlatforms();
@@ -159,6 +176,9 @@ public class AparapiTest {
     
   }
   
+  /**
+   * Test 1.
+   */
   @Test
   @Ignore
   public void test1() {
@@ -178,6 +198,11 @@ public class AparapiTest {
     testKernel.dispose();
   }
   
+  /**
+   * Test 2.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void test2() throws Exception {
     float inA[] = new float[1024];
@@ -197,8 +222,22 @@ public class AparapiTest {
     kernel.execute(range);
   }
   
+  /**
+   * The interface Convolution.
+   */
   @Resource("com/amd/aparapi/sample/convolution/convolution.cl")
   interface Convolution extends com.aparapi.opencl.OpenCL<AparapiTest.Convolution> {
+    /**
+     * Apply convolution aparapi test . convolution.
+     *
+     * @param range          the range
+     * @param _convMatrix3x3 the conv matrix 3 x 3
+     * @param _imageIn       the image in
+     * @param _imageOut      the image out
+     * @param _width         the width
+     * @param _height        the height
+     * @return the aparapi test . convolution
+     */
     AparapiTest.Convolution applyConvolution(//
                                  Range range, //
                                  @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
@@ -213,9 +252,18 @@ public class AparapiTest {
                                  @OpenCL.Arg("_height") int _height);
   }
   
+  /**
+   * The type Test kernel.
+   */
   public static class TestKernel extends Kernel {
-    
+  
+    /**
+     * The Input.
+     */
     public final int[] input = new int[10240];
+    /**
+     * The Results.
+     */
     public final int[] results = new int[10240];
     
     @Override

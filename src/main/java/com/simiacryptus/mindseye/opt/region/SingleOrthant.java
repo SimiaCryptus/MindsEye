@@ -34,14 +34,30 @@ public class SingleOrthant implements TrustRegion {
     return returnValue;
   }
   
+  /**
+   * Gets zero tol.
+   *
+   * @return the zero tol
+   */
   public double getZeroTol() {
     return zeroTol;
   }
   
+  /**
+   * Sets zero tol.
+   *
+   * @param zeroTol the zero tol
+   */
   public void setZeroTol(double zeroTol) {
     zeroTol = zeroTol;
   }
   
+  /**
+   * Sign int.
+   *
+   * @param weight the weight
+   * @return the int
+   */
   public int sign(double weight) {
     if (weight > zeroTol) {
       return 1;

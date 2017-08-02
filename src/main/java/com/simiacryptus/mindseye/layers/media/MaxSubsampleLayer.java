@@ -35,6 +35,9 @@ import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * The type Max subsample layer.
+ */
 public class MaxSubsampleLayer extends NNLayer {
   
   public JsonObject getJson() {
@@ -43,10 +46,23 @@ public class MaxSubsampleLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json max subsample layer.
+   *
+   * @param json the json
+   * @return the max subsample layer
+   */
   public static MaxSubsampleLayer fromJson(JsonObject json) {
     return new MaxSubsampleLayer(json,
                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
+  
+  /**
+   * Instantiates a new Max subsample layer.
+   *
+   * @param id         the id
+   * @param kernelDims the kernel dims
+   */
   protected MaxSubsampleLayer(JsonObject id, int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
@@ -58,10 +74,18 @@ public class MaxSubsampleLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
   private int[] kernelDims;
   
+  /**
+   * Instantiates a new Max subsample layer.
+   */
   protected MaxSubsampleLayer() {
     super();
   }
   
+  /**
+   * Instantiates a new Max subsample layer.
+   *
+   * @param kernelDims the kernel dims
+   */
   public MaxSubsampleLayer(final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
@@ -92,7 +116,7 @@ public class MaxSubsampleLayer extends NNLayer {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
   
     final NNResult in = inObj[0];
     int itemCnt = in.data.length();
@@ -159,10 +183,25 @@ public class MaxSubsampleLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * The type Calc regions parameter.
+   */
   public static class CalcRegionsParameter {
+    /**
+     * The Input dims.
+     */
     public int[] inputDims;
+    /**
+     * The Kernel dims.
+     */
     public int[] kernelDims;
-    
+  
+    /**
+     * Instantiates a new Calc regions parameter.
+     *
+     * @param inputDims  the input dims
+     * @param kernelDims the kernel dims
+     */
     public CalcRegionsParameter(final int[] inputDims, final int[] kernelDims) {
       this.inputDims = inputDims;
       this.kernelDims = kernelDims;

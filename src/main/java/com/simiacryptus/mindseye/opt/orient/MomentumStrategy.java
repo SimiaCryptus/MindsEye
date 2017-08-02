@@ -28,15 +28,29 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import com.simiacryptus.util.ArrayUtil;
 
+/**
+ * The type Momentum strategy.
+ */
 public class MomentumStrategy implements OrientationStrategy {
   
+  /**
+   * The Inner.
+   */
   public final OrientationStrategy inner;
   private double carryOver = 0.1;
   
+  /**
+   * Instantiates a new Momentum strategy.
+   *
+   * @param inner the inner
+   */
   public MomentumStrategy(OrientationStrategy inner) {
     this.inner = inner;
   }
-
+  
+  /**
+   * The Prev delta.
+   */
   DeltaSet prevDelta = new DeltaSet();
   
   @Override
@@ -57,10 +71,21 @@ public class MomentumStrategy implements OrientationStrategy {
     inner.reset();
   }
   
+  /**
+   * Gets carry over.
+   *
+   * @return the carry over
+   */
   public double getCarryOver() {
     return carryOver;
   }
   
+  /**
+   * Sets carry over.
+   *
+   * @param carryOver the carry over
+   * @return the carry over
+   */
   public MomentumStrategy setCarryOver(double carryOver) {
     this.carryOver = carryOver;
     return this;

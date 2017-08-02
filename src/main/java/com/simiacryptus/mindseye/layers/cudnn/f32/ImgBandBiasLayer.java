@@ -17,37 +17,42 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
-import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.DirectCuDNNLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Sizeof;
-import jcuda.jcudnn.cudnnConvolutionDescriptor;
-import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
+import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
-import static jcuda.jcudnn.JCudnn.*;
-import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
-import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
+import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
+import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardBias;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
-public class DirectImgBiasLayer extends DirectCuDNNLayer {
-
-  public static DirectImgBiasLayer fromJson(JsonObject json) {
-    return new DirectImgBiasLayer(json);
+/**
+ * The type Img band bias layer.
+ */
+public class ImgBandBiasLayer extends DirectCuDNNLayer {
+  
+  /**
+   * From json img band bias layer.
+   *
+   * @param json the json
+   * @return the img band bias layer
+   */
+  public static ImgBandBiasLayer fromJson(JsonObject json) {
+    return new ImgBandBiasLayer(json);
   }
 
   public JsonObject getJson() {
@@ -55,21 +60,35 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
     json.add("bias", JsonUtil.getJson(getBias()));
     return json;
   }
-
-  protected DirectImgBiasLayer(JsonObject json) {
+  
+  /**
+   * Instantiates a new Img band bias layer.
+   *
+   * @param json the json
+   */
+  protected ImgBandBiasLayer(JsonObject json) {
     super(json);
     this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
 
   private final double[] bias;
-
-  public DirectImgBiasLayer(int bands) {
+  
+  /**
+   * Instantiates a new Img band bias layer.
+   *
+   * @param bands the bands
+   */
+  public ImgBandBiasLayer(int bands) {
     this.bias = new double[bands];
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
 
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
     final int[] inputSize = batch.get(0).getDimensions();
@@ -80,15 +99,15 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
     try {
 
       CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CuDNN.CuDNNResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0);
-      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(1.0);
+              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
+      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0f);
+      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(1.0f);
 
       assert(0 < this.bias.length);
-      CuDNN.CuDNNPtr filterPtr = CuDNN.write(this.bias);
-      CuDNN.CuDNNPtr inputData = toDevice(batch);
+      CuDNN.CuDNNPtr filterPtr = CuDNN.write(Tensor.toFloats(this.bias));
+      CuDNN.CuDNNPtr inputData = toDeviceAsFloat(batch);
       CuDNN.devicePool.with(device -> {
         try {
           CuDNN.handle(cudnnAddTensor(device.cudnnHandle, alpha.getPtr(),
@@ -99,15 +118,16 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
           throw new RuntimeException("Error with " + Arrays.toString(inputSize),e);
         }
       });
-      TensorList output = fromDevice(inputData, length, outputSize);
+      TensorList output = fromDeviceFloat(inputData, length, outputSize);
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
+          JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
           assert (error.length() == batch.length());
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          CuDNN.CuDNNPtr errorPtr = toDevice(error);
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
+          CuDNN.CuDNNPtr errorPtr = toDeviceAsFloat(error);
           if (!isFrozen()) {
-            CuDNN.CuDNNPtr filterBuffer = CuDNN.alloc(DirectImgBiasLayer.this.bias.length * Sizeof.DOUBLE);
+            CuDNN.CuDNNPtr filterBuffer = CuDNN.alloc(ImgBandBiasLayer.this.bias.length * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 CuDNN.handle(cudnnConvolutionBackwardBias(device.cudnnHandle, alpha.getPtr(),
@@ -118,8 +138,11 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
             } catch (Throwable e) {
               throw new RuntimeException("Error with " + Arrays.toString(inputSize),e);
             }
-            final Tensor weightGradient = fromDevice(filterBuffer, new int[]{1,1,inputSize[2]});
-            buffer.get(DirectImgBiasLayer.this, DirectImgBiasLayer.this.bias).accumulate(weightGradient.getData());
+            final Tensor weightGradient = fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
+            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
+            DeltaBuffer deltaBuffer = buffer.get(ImgBandBiasLayer.this, ImgBandBiasLayer.this.bias);
+            deltaBuffer.accumulate(weightGradient.getData());
+            //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
           }
           if (input.isAlive()) {
             input.accumulate(buffer, error);
@@ -135,11 +158,19 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
       throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
     }
   }
-
+  
+  /**
+   * Add double [ ].
+   *
+   * @param input the input
+   * @return the double [ ]
+   */
   public double[] add(final double[] input) {
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
     assert(null != input);
     double[] bias = this.getBias();
+    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
     assert(null != bias);
     if(input.length % bias.length != 0) throw new IllegalArgumentException();
     final double[] array = new double[input.length];
@@ -147,30 +178,53 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
     for (int i = 0; i < array.length; i++) {
       array[i] = input[i] + bias[i/size];
     }
-    assert Arrays.stream(array).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(array).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     return array;
   }
-
-  public DirectImgBiasLayer addWeights(final DoubleSupplier f) {
+  
+  /**
+   * Add weights img band bias layer.
+   *
+   * @param f the f
+   * @return the img band bias layer
+   */
+  public ImgBandBiasLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.getBias());
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     return this;
   }
-
+  
+  /**
+   * Set nn layer.
+   *
+   * @param ds the ds
+   * @return the nn layer
+   */
   public NNLayer set(final double[] ds) {
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
+    //assert Arrays.stream(ds).allMatch(Double::isFinite);
     double[] bias = this.getBias();
     for (int i = 0; i < ds.length; i++) {
       bias[i] = ds[i];
     }
-    assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     return this;
   }
-
-  public DirectImgBiasLayer setWeights(final IntToDoubleFunction f) {
+  
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
+  public ImgBandBiasLayer setWeights(final IntToDoubleFunction f) {
     double[] bias = this.getBias();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);
     }
-    assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
     return this;
   }
 
@@ -178,11 +232,14 @@ public class DirectImgBiasLayer extends DirectCuDNNLayer {
   public List<double[]> state() {
     return Arrays.asList(this.getBias());
   }
-
+  
+  /**
+   * Get bias double [ ].
+   *
+   * @return the double [ ]
+   */
   public double[] getBias() {
-    if(!Arrays.stream(bias).allMatch(v->Double.isFinite(v))) {
-      throw new RuntimeException(Arrays.toString(bias));
-    }
+    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     return bias;
   }
 }

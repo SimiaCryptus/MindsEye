@@ -22,12 +22,27 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Simple loss network.
+ */
 public class SimpleLossNetwork extends SupervisedNetwork {
   
   
+  /**
+   * The Student node.
+   */
   public final DAGNode studentNode;
+  /**
+   * The Loss node.
+   */
   public final DAGNode lossNode;
   
+  /**
+   * Instantiates a new Simple loss network.
+   *
+   * @param student the student
+   * @param loss    the loss
+   */
   public SimpleLossNetwork(final NNLayer student, final NNLayer loss) {
     super(2);
     studentNode = add(student, getInput(0));

@@ -19,20 +19,36 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.UUID;
 
+/**
+ * The type Input node.
+ */
 final class InputNode extends LazyResult {
+  /**
+   * The Handle.
+   */
   public final UUID handle;
   private final DAGNetwork dagNetwork;
   
+  /**
+   * Instantiates a new Input node.
+   *
+   * @param dagNetwork the dag network
+   */
   InputNode(DAGNetwork dagNetwork) {
     this(dagNetwork, null);
   }
   
+  /**
+   * Instantiates a new Input node.
+   *
+   * @param dagNetwork the dag network
+   * @param handle     the handle
+   */
   public InputNode(DAGNetwork dagNetwork, final UUID handle) {
     super(handle);
     this.dagNetwork = dagNetwork;
@@ -40,7 +56,7 @@ final class InputNode extends LazyResult {
   }
   
   @Override
-  protected NNResult eval(final EvaluationContext t) {
+  protected NNResult eval(final EvaluationContext t, NNLayer.NNExecutionContext nncontext) {
     return t.cache.get(this.handle);
   }
   
@@ -54,6 +70,12 @@ final class InputNode extends LazyResult {
     return null;
   }
   
+  /**
+   * Add dag node.
+   *
+   * @param nextHead the next head
+   * @return the dag node
+   */
   public DAGNode add(NNLayer nextHead) {
     return dagNetwork.add(nextHead, InputNode.this);
   }

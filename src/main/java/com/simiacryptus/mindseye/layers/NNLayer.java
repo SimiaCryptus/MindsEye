@@ -38,10 +38,30 @@ import java.util.UUID;
  */
 public abstract class NNLayer implements Serializable {
   
+  /**
+   * The interface Nn execution context.
+   */
+  public interface NNExecutionContext {
+    /**
+     * Gets cuda device id.
+     *
+     * @return the cuda device id
+     */
+    default int getCudaDeviceId() { return 0; }
+  }
+  
+  /**
+   * The Id.
+   */
   public final UUID id;
   private boolean frozen = false;
   private String name;
   
+  /**
+   * Instantiates a new Nn layer.
+   *
+   * @param json the json
+   */
   protected NNLayer(JsonObject json) {
     if(!getClass().getCanonicalName().equals(json.get("class").getAsString())) throw new IllegalArgumentException();
     this.id = UUID.fromString(json.get("id").getAsString());
@@ -49,6 +69,9 @@ public abstract class NNLayer implements Serializable {
     if(json.has("name")) setName(json.get("name").getAsString());
   }
   
+  /**
+   * Instantiates a new Nn layer.
+   */
   protected NNLayer() {
     this.id = Util.uuid();
     this.name = getClass().getSimpleName() + "/" + id;
@@ -71,34 +94,82 @@ public abstract class NNLayer implements Serializable {
     return true;
   }
   
-  public final NNResult eval(final Tensor... array) {
-    return eval(NNResult.singleResultArray(array));
+  /**
+   * Eval nn result.
+   *
+   * @param nncontext the nncontext
+   * @param array     the array
+   * @return the nn result
+   */
+  public final NNResult eval(NNExecutionContext nncontext, final Tensor... array) {
+    return eval(nncontext, NNResult.singleResultArray(array));
   }
   
-  public final NNResult eval(final Tensor[][] array) {
-    return eval(NNResult.singleResultArray(array));
+  /**
+   * Eval nn result.
+   *
+   * @param nncontext the nncontext
+   * @param array     the array
+   * @return the nn result
+   */
+  public final NNResult eval(NNExecutionContext nncontext, final Tensor[][] array) {
+    return eval(nncontext, NNResult.singleResultArray(array));
   }
   
-  public abstract NNResult eval(NNResult... array);
+  /**
+   * Eval nn result.
+   *
+   * @param nncontext the nncontext
+   * @param array     the array
+   * @return the nn result
+   */
+  public abstract NNResult eval(NNExecutionContext nncontext, NNResult... array);
   
+  /**
+   * Freeze nn layer.
+   *
+   * @return the nn layer
+   */
   public NNLayer freeze() {
     return setFrozen(true);
   }
   
+  /**
+   * Gets child.
+   *
+   * @param id the id
+   * @return the child
+   */
   public NNLayer getChild(final UUID id) {
     if (this.id.equals(id))
       return this;
     return null;
   }
   
+  /**
+   * Gets children.
+   *
+   * @return the children
+   */
   public List<NNLayer> getChildren() {
     return Arrays.asList(this);
   }
   
+  /**
+   * Gets id.
+   *
+   * @return the id
+   */
   public final UUID getId() {
     return this.id;
   }
   
+  /**
+   * From json nn layer.
+   *
+   * @param inner the inner
+   * @return the nn layer
+   */
   public static NNLayer fromJson(JsonObject inner) {
     String className = inner.get("class").getAsString();
     try {
@@ -112,11 +183,27 @@ public abstract class NNLayer implements Serializable {
     }
   }
   
+  /**
+   * Gets json string.
+   *
+   * @return the json string
+   */
   public String getJsonString() {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
   
+  /**
+   * Gets json.
+   *
+   * @return the json
+   */
   public abstract JsonObject getJson();
+  
+  /**
+   * Gets json stub.
+   *
+   * @return the json stub
+   */
   public JsonObject getJsonStub() {
     final JsonObject json = new JsonObject();
     json.addProperty("class", getClass().getCanonicalName());
@@ -134,20 +221,41 @@ public abstract class NNLayer implements Serializable {
     return result;
   }
   
+  /**
+   * Is frozen boolean.
+   *
+   * @return the boolean
+   */
   public boolean isFrozen() {
     return this.frozen;
   }
   
+  /**
+   * Sets frozen.
+   *
+   * @param frozen the frozen
+   * @return the frozen
+   */
   public NNLayer setFrozen(final boolean frozen) {
     this.frozen = frozen;
     return self();
   }
   
+  /**
+   * Self nn layer.
+   *
+   * @return the nn layer
+   */
   @SuppressWarnings("unchecked")
   protected final NNLayer self() {
     return this;
   }
   
+  /**
+   * State list.
+   *
+   * @return the list
+   */
   public abstract List<double[]> state();
   
   @Override
@@ -155,17 +263,36 @@ public abstract class NNLayer implements Serializable {
     return getName();
   }
   
+  /**
+   * Gets name.
+   *
+   * @return the name
+   */
   public String getName() {
     return name;
   }
   
+  /**
+   * Sets name.
+   *
+   * @param name the name
+   * @return the name
+   */
   public NNLayer setName(String name) {
     this.name = name;
     return this;
   }
   
+  /**
+   * The type Const nn result.
+   */
   public static final class ConstNNResult extends NNResult {
-    
+  
+    /**
+     * Instantiates a new Const nn result.
+     *
+     * @param data the data
+     */
     public ConstNNResult(final Tensor... data) {
       super(data);
     }

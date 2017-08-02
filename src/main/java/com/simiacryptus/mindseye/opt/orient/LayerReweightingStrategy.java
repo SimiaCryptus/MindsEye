@@ -32,12 +32,23 @@ import java.util.HashMap;
 
 import static com.simiacryptus.util.ArrayUtil.*;
 
+/**
+ * The type Layer reweighting strategy.
+ */
 public abstract class LayerReweightingStrategy implements OrientationStrategy {
   
+  /**
+   * The type Hash map layer reweighting strategy.
+   */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
   
     private final HashMap<NNLayer, Double> map = new HashMap<>();
   
+    /**
+     * Instantiates a new Hash map layer reweighting strategy.
+     *
+     * @param inner the inner
+     */
     public HashMapLayerReweightingStrategy(OrientationStrategy inner) {
       super(inner);
     }
@@ -47,6 +58,11 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
       return getMap().get(layer);
     }
   
+    /**
+     * Gets map.
+     *
+     * @return the map
+     */
     public HashMap<NNLayer, Double> getMap() {
       return map;
     }
@@ -58,8 +74,16 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
   }
   
   
+  /**
+   * The Inner.
+   */
   public final OrientationStrategy inner;
   
+  /**
+   * Instantiates a new Layer reweighting strategy.
+   *
+   * @param inner the inner
+   */
   public LayerReweightingStrategy(OrientationStrategy inner) {
     this.inner = inner;
   }
@@ -82,6 +106,12 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
     return orient;
   }
   
+  /**
+   * Gets region policy.
+   *
+   * @param layer the layer
+   * @return the region policy
+   */
   public abstract Double getRegionPolicy(NNLayer layer);
   
 }

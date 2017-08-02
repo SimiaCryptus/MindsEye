@@ -25,8 +25,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * The type Evaluation context.
+ */
 public class EvaluationContext {
   
+  /**
+   * The Cache.
+   */
   public final Map<UUID, NNResult> cache = new HashMap<>();
   
 }

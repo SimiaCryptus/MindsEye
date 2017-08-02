@@ -23,20 +23,39 @@ import com.google.gson.JsonObject;
 
 import java.util.UUID;
 
+/**
+ * The type Abs activation layer.
+ */
 public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivationLayer> {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json abs activation layer.
+   *
+   * @param json the json
+   * @return the abs activation layer
+   */
   public static AbsActivationLayer fromJson(JsonObject json) {
     return new AbsActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Abs activation layer.
+   *
+   * @param id the id
+   */
   protected AbsActivationLayer(JsonObject id) {
     super(id);
   }
   
   private static final long serialVersionUID = -5520500379591109767L;
   
+  /**
+   * Instantiates a new Abs activation layer.
+   */
   public AbsActivationLayer() {
   }
   

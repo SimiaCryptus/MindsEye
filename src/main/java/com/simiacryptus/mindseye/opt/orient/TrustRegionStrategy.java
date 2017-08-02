@@ -36,16 +36,30 @@ import java.util.List;
 import java.util.stream.IntStream;
 import static com.simiacryptus.util.ArrayUtil.*;
 
+/**
+ * The type Trust region strategy.
+ */
 public abstract class TrustRegionStrategy implements OrientationStrategy {
   
   
+  /**
+   * The Inner.
+   */
   public final OrientationStrategy inner;
   private int maxHistory = 10;
   
+  /**
+   * Instantiates a new Trust region strategy.
+   */
   public TrustRegionStrategy() {
     this(new LBFGS());
   }
   
+  /**
+   * Instantiates a new Trust region strategy.
+   *
+   * @param inner the inner
+   */
   protected TrustRegionStrategy(OrientationStrategy inner) {
     this.inner = inner;
   }
@@ -112,17 +126,41 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
     };
   }
   
+  /**
+   * Gets region policy.
+   *
+   * @param layer the layer
+   * @return the region policy
+   */
   public abstract TrustRegion getRegionPolicy(NNLayer layer);
   
+  /**
+   * Dot double.
+   *
+   * @param a the a
+   * @param b the b
+   * @return the double
+   */
   public static double dot(List<DeltaBuffer> a, List<DeltaBuffer> b) {
     assert (a.size() == b.size());
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
   
+  /**
+   * Gets max history.
+   *
+   * @return the max history
+   */
   public int getMaxHistory() {
     return maxHistory;
   }
   
+  /**
+   * Sets max history.
+   *
+   * @param maxHistory the max history
+   * @return the max history
+   */
   public TrustRegionStrategy setMaxHistory(int maxHistory) {
     this.maxHistory = maxHistory;
     return this;

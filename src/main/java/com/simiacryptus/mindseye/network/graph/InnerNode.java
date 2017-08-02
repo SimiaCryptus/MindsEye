@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.Util;
@@ -27,14 +26,33 @@ import com.simiacryptus.util.Util;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * The type Inner node.
+ */
 public final class InnerNode extends LazyResult {
+  /**
+   * The Layer.
+   */
   public final NNLayer layer;
+  /**
+   * The Created by.
+   */
   @SuppressWarnings("unused")
   public final String[] createdBy = Util.currentStack();
+  /**
+   * The Id.
+   */
   public final UUID id;
   private final DAGNetwork dagNetwork;
   private final DAGNode[] inputNodes;
   
+  /**
+   * Instantiates a new Inner node.
+   *
+   * @param dagNetwork the dag network
+   * @param id         the id
+   * @param inputNodes the input nodes
+   */
   @SafeVarargs
   InnerNode(DAGNetwork dagNetwork, final NNLayer id, final DAGNode... inputNodes) {
     this.dagNetwork = dagNetwork;
@@ -51,14 +69,14 @@ public final class InnerNode extends LazyResult {
   }
   
   @Override
-  protected NNResult eval(final EvaluationContext ctx) {
+  protected NNResult eval(final EvaluationContext ctx, NNLayer.NNExecutionContext nncontext) {
     if (1 == this.inputNodes.length) {
-      final NNResult in = this.inputNodes[0].get(ctx);
-      final NNResult output = dagNetwork.layersById.get(this.id).eval(in);
+      final NNResult in = this.inputNodes[0].get(nncontext, ctx);
+      final NNResult output = dagNetwork.layersById.get(this.id).eval(nncontext, in);
       return output;
     } else {
-      final NNResult[] in = Arrays.stream(this.inputNodes).map(x -> x.get(ctx)).toArray(i -> new NNResult[i]);
-      final NNResult output = dagNetwork.layersById.get(this.id).eval(in);
+      final NNResult[] in = Arrays.stream(this.inputNodes).map(x -> x.get(nncontext, ctx)).toArray(i -> new NNResult[i]);
+      final NNResult output = dagNetwork.layersById.get(this.id).eval(nncontext, in);
       return output;
     }
   }
@@ -73,6 +91,12 @@ public final class InnerNode extends LazyResult {
     return layer;
   }
   
+  /**
+   * Add dag node.
+   *
+   * @param nextHead the next head
+   * @return the dag node
+   */
   public DAGNode add(NNLayer nextHead) {
     return dagNetwork.add(nextHead, InnerNode.this);
   }

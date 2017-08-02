@@ -24,14 +24,30 @@ import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 
 import java.util.UUID;
 
+/**
+ * The type Sigmoid activation layer.
+ */
 public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json sigmoid activation layer.
+   *
+   * @param json the json
+   * @return the sigmoid activation layer
+   */
   public static SigmoidActivationLayer fromJson(JsonObject json) {
     return new SigmoidActivationLayer(json);
   }
+
+  /**
+   * Instantiates a new Sigmoid activation layer.
+   *
+   * @param id the id
+   */
   protected SigmoidActivationLayer(JsonObject id) {
     super(id);
   }
@@ -47,6 +63,9 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   
   private boolean balanced = true;
   
+  /**
+   * Instantiates a new Sigmoid activation layer.
+   */
   public SigmoidActivationLayer() {
   }
   
@@ -79,10 +98,21 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     return Math.exp(x);
   }
   
+  /**
+   * Is balanced boolean.
+   *
+   * @return the boolean
+   */
   public boolean isBalanced() {
     return this.balanced;
   }
   
+  /**
+   * Sets balanced.
+   *
+   * @param balanced the balanced
+   * @return the balanced
+   */
   public SigmoidActivationLayer setBalanced(final boolean balanced) {
     this.balanced = balanced;
     return this;

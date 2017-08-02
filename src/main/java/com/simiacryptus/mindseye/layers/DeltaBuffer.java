@@ -27,16 +27,35 @@ import java.util.UUID;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
+/**
+ * The type Delta buffer.
+ */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class DeltaBuffer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DeltaBuffer.class);
   
+  /**
+   * The Delta.
+   */
   public final double[] delta;
+  /**
+   * The Layer.
+   */
   public final NNLayer layer;
+  /**
+   * The Target.
+   */
   public final double[] target;
   
+  /**
+   * Instantiates a new Delta buffer.
+   *
+   * @param values the values
+   * @param array  the array
+   * @param layer  the layer
+   */
   public DeltaBuffer(final double[] values, final double[] array, final NNLayer layer) {
     if(null == values) throw new IllegalArgumentException();
     if(null == array) throw new IllegalArgumentException();
@@ -45,6 +64,12 @@ public class DeltaBuffer {
     this.delta = array;
   }
   
+  /**
+   * Instantiates a new Delta buffer.
+   *
+   * @param values the values
+   * @param layer  the layer
+   */
   public DeltaBuffer(final double[] values, final NNLayer layer) {
     if(null == values) throw new IllegalArgumentException();
     this.target = values;
@@ -53,7 +78,14 @@ public class DeltaBuffer {
     Arrays.setAll(this.delta, i -> 0);
   }
   
+  /**
+   * Accumulate delta buffer.
+   *
+   * @param data the data
+   * @return the delta buffer
+   */
   public DeltaBuffer accumulate(final double[] data) {
+    assert Arrays.stream(data).allMatch(Double::isFinite);
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       this.delta[i] = this.delta[i] + data[i];
@@ -61,34 +93,77 @@ public class DeltaBuffer {
     return this;
   }
   
+  /**
+   * Copy delta double [ ].
+   *
+   * @return the double [ ]
+   */
   public double[] copyDelta() {
     return null == delta ? null : Arrays.copyOf(delta, delta.length);
   }
   
+  /**
+   * Copy target double [ ].
+   *
+   * @return the double [ ]
+   */
   public double[] copyTarget() {
     return null == target ? null : Arrays.copyOf(target, target.length);
   }
   
+  /**
+   * Gets id.
+   *
+   * @return the id
+   */
   public UUID getId() {
     return this.layer.getId();
   }
   
+  /**
+   * Gets vector.
+   *
+   * @param fraction the fraction
+   * @return the vector
+   */
   public DeltaBuffer getVector(final double fraction) {
     return this;
   }
   
+  /**
+   * Is frozen boolean.
+   *
+   * @return the boolean
+   */
   public boolean isFrozen() {
     return false;
   }
   
+  /**
+   * Length int.
+   *
+   * @return the int
+   */
   public int length() {
     return this.target.length;
   }
   
+  /**
+   * Map delta buffer.
+   *
+   * @param mapper the mapper
+   * @return the delta buffer
+   */
   public DeltaBuffer map(final DoubleUnaryOperator mapper) {
     return new DeltaBuffer(this.target, Arrays.stream(this.delta).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
   }
   
+  /**
+   * Scale delta buffer.
+   *
+   * @param f the f
+   * @return the delta buffer
+   */
   public DeltaBuffer scale(final double f) {
     return map(x -> x * f);
   }
@@ -104,6 +179,11 @@ public class DeltaBuffer {
     return builder.toString();
   }
   
+  /**
+   * Write.
+   *
+   * @param factor the factor
+   */
   public synchronized final void write(final double factor) {
     double[] calcVector = this.delta;
     if (null == calcVector)
@@ -118,6 +198,9 @@ public class DeltaBuffer {
     }
   }
   
+  /**
+   * Overwrite.
+   */
   public synchronized final void overwrite() {
     final int dim = length();
     for (int i = 0; i < dim; i++) {
@@ -125,20 +208,41 @@ public class DeltaBuffer {
     }
   }
   
+  /**
+   * Dot double.
+   *
+   * @param right the right
+   * @return the double
+   */
   public double dot(DeltaBuffer right) {
     assert (this.target == right.target);
     assert (this.delta.length == right.delta.length);
     return IntStream.range(0, this.delta.length).mapToDouble(i -> delta[i] * right.delta[i]).sum();
   }
   
+  /**
+   * Sum double.
+   *
+   * @return the double
+   */
   public double sum() {
     return Arrays.stream(this.delta).sum();
   }
   
+  /**
+   * Sum sq double.
+   *
+   * @return the double
+   */
   public double sumSq() {
     return Arrays.stream(this.delta).map(x -> x * x).sum();
   }
   
+  /**
+   * Copy delta buffer.
+   *
+   * @return the delta buffer
+   */
   public DeltaBuffer copy() {
     return new DeltaBuffer(target, copyDelta(), layer);
   }

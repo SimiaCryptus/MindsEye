@@ -29,7 +29,18 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
  */
 public interface OrientationStrategy {
   
+  /**
+   * Orient line search cursor.
+   *
+   * @param subject     the subject
+   * @param measurement the measurement
+   * @param monitor     the monitor
+   * @return the line search cursor
+   */
   LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor);
   
+  /**
+   * Reset.
+   */
   void reset();
 }

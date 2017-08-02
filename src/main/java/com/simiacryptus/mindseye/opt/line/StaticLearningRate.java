@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
+/**
+ * The type Static learning rate.
+ */
 public class StaticLearningRate implements LineSearchStrategy {
   
   private double rate = 1e-4;
@@ -52,19 +55,41 @@ public class StaticLearningRate implements LineSearchStrategy {
     }
   }
   
+  /**
+   * Gets rate.
+   *
+   * @return the rate
+   */
   public double getRate() {
     return rate;
   }
   
+  /**
+   * Sets rate.
+   *
+   * @param rate the rate
+   * @return the rate
+   */
   public StaticLearningRate setRate(double rate) {
     this.rate = rate;
     return this;
   }
   
+  /**
+   * Gets minimum rate.
+   *
+   * @return the minimum rate
+   */
   public double getMinimumRate() {
     return minimumRate;
   }
   
+  /**
+   * Sets minimum rate.
+   *
+   * @param minimumRate the minimum rate
+   * @return the minimum rate
+   */
   public StaticLearningRate setMinimumRate(double minimumRate) {
     this.minimumRate = minimumRate;
     return this;

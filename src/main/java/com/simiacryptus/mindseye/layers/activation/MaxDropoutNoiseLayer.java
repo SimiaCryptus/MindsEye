@@ -34,6 +34,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * The type Max dropout noise layer.
+ */
 public class MaxDropoutNoiseLayer extends NNLayer {
   
   public JsonObject getJson() {
@@ -42,9 +45,21 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json max dropout noise layer.
+   *
+   * @param json the json
+   * @return the max dropout noise layer
+   */
   public static MaxDropoutNoiseLayer fromJson(JsonObject json) {
     return new MaxDropoutNoiseLayer(json);
   }
+
+  /**
+   * Instantiates a new Max dropout noise layer.
+   *
+   * @param json the json
+   */
   protected MaxDropoutNoiseLayer(JsonObject json) {
     super(json);
     this.kernelSize = JsonUtil.getIntArray(json.getAsJsonArray("kernelSize"));
@@ -55,17 +70,25 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   private static final long serialVersionUID = -2105152439043901220L;
   private final int[] kernelSize;
   
+  /**
+   * Instantiates a new Max dropout noise layer.
+   */
   public MaxDropoutNoiseLayer() {
     this(2,2);
   }
   
+  /**
+   * Instantiates a new Max dropout noise layer.
+   *
+   * @param dims the dims
+   */
   public MaxDropoutNoiseLayer(int... dims) {
     super();
     this.kernelSize = dims;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].data.length();
     Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data.get(dataIndex);

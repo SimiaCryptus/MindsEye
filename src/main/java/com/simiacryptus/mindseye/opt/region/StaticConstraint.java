@@ -21,6 +21,9 @@ package com.simiacryptus.mindseye.opt.region;
 
 import com.simiacryptus.util.ArrayUtil;
 
+/**
+ * The type Static constraint.
+ */
 public class StaticConstraint implements TrustRegion {
   @Override
   public double[] project(double[] weights, double[] point) {

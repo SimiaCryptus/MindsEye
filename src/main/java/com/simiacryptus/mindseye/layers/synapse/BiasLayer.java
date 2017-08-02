@@ -32,6 +32,9 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
+/**
+ * The type Bias layer.
+ */
 public class BiasLayer extends NNLayer {
   
   public JsonObject getJson() {
@@ -40,9 +43,21 @@ public class BiasLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json bias layer.
+   *
+   * @param json the json
+   * @return the bias layer
+   */
   public static BiasLayer fromJson(JsonObject json) {
     return new BiasLayer(json);
   }
+
+  /**
+   * Instantiates a new Bias layer.
+   *
+   * @param json the json
+   */
   protected BiasLayer(JsonObject json) {
     super(json);
     this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
@@ -52,17 +67,34 @@ public class BiasLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
   
   
+  /**
+   * The Bias.
+   */
   public final double[] bias;
   
+  /**
+   * Instantiates a new Bias layer.
+   */
   protected BiasLayer() {
     super();
     this.bias = null;
   }
   
+  /**
+   * Instantiates a new Bias layer.
+   *
+   * @param outputDims the output dims
+   */
   public BiasLayer(final int... outputDims) {
     this.bias = new double[Tensor.dim(outputDims)];
   }
   
+  /**
+   * Add double [ ].
+   *
+   * @param input the input
+   * @return the double [ ]
+   */
   public double[] add(final double[] input) {
     final double[] array = Tensor.obtain(input.length);
     for (int i = 0; i < array.length; i++) {
@@ -71,13 +103,19 @@ public class BiasLayer extends NNLayer {
     return array;
   }
   
+  /**
+   * Add weights bias layer.
+   *
+   * @param f the f
+   * @return the bias layer
+   */
   public BiasLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.bias);
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     TensorList input;
     if(0==inObj.length) {
       input = new TensorArray();
@@ -107,6 +145,12 @@ public class BiasLayer extends NNLayer {
   }
   
   
+  /**
+   * Set nn layer.
+   *
+   * @param ds the ds
+   * @return the nn layer
+   */
   public NNLayer set(final double[] ds) {
     for (int i = 0; i < ds.length; i++) {
       this.bias[i] = ds[i];
@@ -114,6 +158,12 @@ public class BiasLayer extends NNLayer {
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public BiasLayer setWeights(final IntToDoubleFunction f) {
     for (int i = 0; i < this.bias.length; i++) {
       this.bias[i] = f.applyAsDouble(i);

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.opencl;
+package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
@@ -31,6 +31,9 @@ import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
+/**
+ * The type Convolution layer.
+ */
 public class ConvolutionLayer extends NNLayer {
   
   
@@ -42,9 +45,21 @@ public class ConvolutionLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json convolution layer.
+   *
+   * @param json the json
+   * @return the convolution layer
+   */
   public static ConvolutionLayer fromJson(JsonObject json) {
     return new ConvolutionLayer(json);
   }
+  
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param json the json
+   */
   protected ConvolutionLayer(JsonObject json) {
     super(json);
     this.kernel = Tensor.fromJson(json.getAsJsonObject("filter"));
@@ -53,14 +68,33 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   
+  /**
+   * The Kernel.
+   */
   public final Tensor kernel;
+  /**
+   * The Skip.
+   */
   public final Tensor skip;
+  /**
+   * The Simple.
+   */
   public final boolean simple;
   
+  /**
+   * Instantiates a new Convolution layer.
+   */
   protected ConvolutionLayer() {
     this((Tensor)null, (Tensor)null, true);
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param kernel the kernel
+   * @param skip   the skip
+   * @param simple the simple
+   */
   protected ConvolutionLayer(Tensor kernel, Tensor skip, boolean simple) {
     super();
     this.simple = simple;
@@ -72,31 +106,69 @@ public class ConvolutionLayer extends NNLayer {
     this.kernel = kernel;
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width       the width
+   * @param height      the height
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   */
   public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width  the width
+   * @param height the height
+   * @param bands  the bands
+   * @param simple the simple
+   */
   public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
     this(new Tensor(width,height,bands), new Tensor(new int[]{1,1}), simple);
     assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
     assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width  the width
+   * @param height the height
+   * @param bands  the bands
+   */
   public ConvolutionLayer(final int width, int height, final int bands) {
     this(width, height, bands, true);
   }
   
+  /**
+   * Instantiates a new Convolution layer.
+   *
+   * @param width       the width
+   * @param height      the height
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   * @param simple      the simple
+   */
   public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
     this(width, height, inputBands * outputBands, simple);
   }
   
+  /**
+   * Add weights convolution layer.
+   *
+   * @param f the f
+   * @return the convolution layer
+   */
   public ConvolutionLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.kernel.getData());
     return this;
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
@@ -145,6 +217,12 @@ public class ConvolutionLayer extends NNLayer {
     };
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     this.kernel.coordStream().parallel().forEach(c -> {
       this.kernel.set(c, f.applyAsDouble(c));
@@ -152,6 +230,12 @@ public class ConvolutionLayer extends NNLayer {
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public ConvolutionLayer setWeights(final DoubleSupplier f) {
     this.kernel.coordStream().parallel().forEach(c -> {
       this.kernel.set(c, f.getAsDouble());

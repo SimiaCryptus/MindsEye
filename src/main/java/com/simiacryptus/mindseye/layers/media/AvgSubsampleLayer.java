@@ -38,6 +38,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * The type Avg subsample layer.
+ */
 public class AvgSubsampleLayer extends NNLayer {
   
   public JsonObject getJson() {
@@ -46,16 +49,32 @@ public class AvgSubsampleLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * From json avg subsample layer.
+   *
+   * @param json the json
+   * @return the avg subsample layer
+   */
   public static AvgSubsampleLayer fromJson(JsonObject json) {
     return new AvgSubsampleLayer(json,
                                     JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
+
+  /**
+   * Instantiates a new Avg subsample layer.
+   *
+   * @param id         the id
+   * @param kernelDims the kernel dims
+   */
   protected AvgSubsampleLayer(JsonObject id, int... kernelDims) {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
   
   
+  /**
+   * The constant indexMapCache.
+   */
   public static final LoadingCache<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
                                                                                                   .build(new CacheLoader<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
                                                                                                     @Override
@@ -81,10 +100,18 @@ public class AvgSubsampleLayer extends NNLayer {
   private static final long serialVersionUID = 7441695931197085499L;
   private int[] kernelDims;
   
+  /**
+   * Instantiates a new Avg subsample layer.
+   */
   protected AvgSubsampleLayer() {
     super();
   }
   
+  /**
+   * Instantiates a new Avg subsample layer.
+   *
+   * @param kernelDims the kernel dims
+   */
   public AvgSubsampleLayer(final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
@@ -100,7 +127,7 @@ public class AvgSubsampleLayer extends NNLayer {
   
   @SuppressWarnings("unchecked")
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     final int kernelSize = new Tensor(this.kernelDims).dim();
     final int[] inputDims = inObj[0].data.get(0).getDimensions();
     int itemCnt = inObj[0].data.length();
@@ -157,16 +184,38 @@ public class AvgSubsampleLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * The type Index map key.
+   */
   public static final class IndexMapKey {
+    /**
+     * The Kernel.
+     */
     int[] kernel;
+    /**
+     * The Output.
+     */
     int[] output;
-    
+
+    /**
+     * Instantiates a new Index map key.
+     *
+     * @param kernel the kernel
+     * @param output the output
+     */
     public IndexMapKey(final int[] kernel, final int[] output) {
       super();
       this.kernel = kernel;
       this.output = output;
     }
-    
+
+    /**
+     * Instantiates a new Index map key.
+     *
+     * @param kernel the kernel
+     * @param input  the input
+     * @param output the output
+     */
     public IndexMapKey(final Tensor kernel, final Tensor input, final Tensor output) {
       super();
       this.kernel = kernel.getDimensions();

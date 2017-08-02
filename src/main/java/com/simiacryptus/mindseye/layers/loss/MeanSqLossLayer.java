@@ -29,14 +29,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Mean sq loss layer.
+ */
 public class MeanSqLossLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
+
+  /**
+   * From json mean sq loss layer.
+   *
+   * @param json the json
+   * @return the mean sq loss layer
+   */
   public static MeanSqLossLayer fromJson(JsonObject json) {
     return new MeanSqLossLayer(json);
   }
+
+  /**
+   * Instantiates a new Mean sq loss layer.
+   *
+   * @param id the id
+   */
   protected MeanSqLossLayer(JsonObject id) {
     super(id);
   }
@@ -49,11 +65,14 @@ public class MeanSqLossLayer extends NNLayer {
    */
   private static final long serialVersionUID = 7589211270512485408L;
   
+  /**
+   * Instantiates a new Mean sq loss layer.
+   */
   public MeanSqLossLayer() {
   }
   
   @Override
-  public NNResult eval(final NNResult... inObj) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     if(2 != inObj.length) throw new IllegalArgumentException();
     if(inObj[0].data.length() != inObj[1].data.length()) throw new IllegalArgumentException();
     assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));

@@ -33,6 +33,9 @@ import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
+/**
+ * The type Mapped synapse layer.
+ */
 public abstract class MappedSynapseLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MappedSynapseLayer.class);
@@ -48,6 +51,11 @@ public abstract class MappedSynapseLayer extends NNLayer {
     return json;
   }
   
+  /**
+   * Instantiates a new Mapped synapse layer.
+   *
+   * @param json the json
+   */
   protected MappedSynapseLayer(JsonObject json) {
     super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
@@ -60,13 +68,31 @@ public abstract class MappedSynapseLayer extends NNLayer {
   
   
   private static final long serialVersionUID = 3538627887600182889L;
+  /**
+   * The Output dims.
+   */
   public final int[] outputDims;
+  /**
+   * The Input dims.
+   */
   public final int[] inputDims;
+  /**
+   * The Output size.
+   */
   protected final int outputSize;
+  /**
+   * The Input size.
+   */
   protected final int inputSize;
+  /**
+   * The Mapping matrix.
+   */
   protected final int[] mappingMatrix;
   private volatile Tensor weights;
   
+  /**
+   * Instantiates a new Mapped synapse layer.
+   */
   public MappedSynapseLayer() {
     super();
     this.outputDims = null;
@@ -77,6 +103,12 @@ public abstract class MappedSynapseLayer extends NNLayer {
     this.mappingMatrix = null;
   }
   
+  /**
+   * Instantiates a new Mapped synapse layer.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   */
   public MappedSynapseLayer(final int[] inputDims, final int[] outputDims) {
     super();
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
@@ -86,6 +118,13 @@ public abstract class MappedSynapseLayer extends NNLayer {
     this.mappingMatrix = new int[this.inputSize * this.outputSize];
   }
   
+  /**
+   * Concat int [ ].
+   *
+   * @param a the a
+   * @param b the b
+   * @return the int [ ]
+   */
   public static int[] concat(int[] a, int[] b) {
     int[] c = new int[a.length + b.length];
     for (int i = 0; i < a.length; i++) c[i] = a[i];
@@ -93,10 +132,17 @@ public abstract class MappedSynapseLayer extends NNLayer {
     return c;
   }
   
+  /**
+   * Gets mapped index.
+   *
+   * @param inputCoord  the input coord
+   * @param outputCoord the output coord
+   * @return the mapped index
+   */
   protected abstract int getMappedIndex(Coordinate inputCoord, Coordinate outputCoord);
   
   @Override
-  public NNResult eval(final NNResult... input) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... input) {
     double[] expandedWeights = getExpandedWeights();
     Tensor[] outputA = IntStream.range(0, input[0].data.length()).parallel().mapToObj(dataIndex -> {
       final Tensor inputTensor = input[0].data.get(dataIndex);
@@ -105,6 +151,11 @@ public abstract class MappedSynapseLayer extends NNLayer {
     return new Result(outputA, input[0]);
   }
   
+  /**
+   * Get expanded weights double [ ].
+   *
+   * @return the double [ ]
+   */
   protected double[] getExpandedWeights() {
     double[] matrix = new double[mappingMatrix.length];
     double[] data = getWeights().getData();
@@ -115,6 +166,11 @@ public abstract class MappedSynapseLayer extends NNLayer {
     return matrix;
   }
   
+  /**
+   * As new synapse layer dense synapse layer.
+   *
+   * @return the dense synapse layer
+   */
   public DenseSynapseLayer asNewSynapseLayer() {
     DenseSynapseLayer returnValue = new DenseSynapseLayer(this.inputDims, this.outputDims);
     returnValue.setWeights(this.getExpandedWeights());
@@ -137,11 +193,23 @@ public abstract class MappedSynapseLayer extends NNLayer {
     return output;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param data the data
+   * @return the weights
+   */
   public MappedSynapseLayer setWeights(final double[] data) {
     this.getWeights().set(data);
     return this;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public MappedSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     getWeights().coordStream().parallel().forEach(c -> {
       getWeights().set(c, f.applyAsDouble(c));
@@ -154,6 +222,11 @@ public abstract class MappedSynapseLayer extends NNLayer {
     return Arrays.asList(getWeights().getData());
   }
   
+  /**
+   * Gets weights.
+   *
+   * @return the weights
+   */
   public Tensor getWeights() {
     if (null == this.weights) {
       synchronized (this) {
@@ -175,11 +248,22 @@ public abstract class MappedSynapseLayer extends NNLayer {
     return weights;
   }
   
+  /**
+   * Sets weights.
+   *
+   * @param f the f
+   * @return the weights
+   */
   public MappedSynapseLayer setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.getWeights().getData(), i -> f.getAsDouble());
     return this;
   }
   
+  /**
+   * Build weights tensor.
+   *
+   * @return the tensor
+   */
   protected abstract Tensor buildWeights();
   
   private final class Result extends NNResult {
