@@ -69,6 +69,10 @@ public class PipelineNetwork extends DAGNetwork {
     json.get("layerList").getAsJsonArray().forEach(element->{
       getLayers().add(getChild(UUID.fromString(element.getAsString())));
     });
+    int inputIndex = inputHandles.indexOf(head);
+    if(null == this.head && 0<=inputIndex) {
+      this.head = getInput(inputIndex);
+    }
     if(null == this.head) throw new IllegalArgumentException();
   }
   
@@ -95,9 +99,9 @@ public class PipelineNetwork extends DAGNetwork {
   
   @SafeVarargs
   @Override
-  public final DAGNode add(final NNLayer nextHead, final DAGNode... head) {
+  public final DAGNode add(String label, final NNLayer nextHead, final DAGNode... head) {
     if(null == nextHead) throw new IllegalArgumentException();
-    DAGNode node = super.add(nextHead, head);
+    DAGNode node = super.add(label, nextHead, head);
     assert Arrays.stream(head).allMatch(x -> x != null);
     assert null != getInput();
     setHead(node);
