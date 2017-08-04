@@ -89,6 +89,14 @@ public class PipelineNetwork extends DAGNetwork {
   
   /**
    * Instantiates a new Pipeline network.
+   */
+  public PipelineNetwork(NNLayer... layers) {
+    this();
+    for(NNLayer l : layers) add(l);
+  }
+  
+  /**
+   * Instantiates a new Pipeline network.
    *
    * @param inputs the inputs
    */

@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.mindseye.layers.cudnn.DirectCuDNNLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
@@ -54,8 +56,9 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.add("filter", filter.getJson());
-    json.add("skip", skip.getJson());
     json.addProperty("simple", simple);
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
     return json;
   }
   
@@ -77,8 +80,9 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
   protected ConvolutionLayer(JsonObject json) {
     super(json);
     this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
-    this.skip = Tensor.fromJson(json.getAsJsonObject("skip"));
-    this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
+    this.simple = json.get("simple").getAsBoolean();
+    this.strideX = json.get("strideX").getAsInt();
+    this.strideY = json.get("strideY").getAsInt();
   }
   
   
@@ -87,13 +91,11 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
    */
   public final Tensor filter;
   /**
-   * The Skip.
-   */
-  public final Tensor skip;
-  /**
    * The Simple.
    */
   public final boolean simple;
+  int strideX = 1;
+  int strideY = 1;
   
   /**
    * Instantiates a new Convolution layer.
@@ -112,7 +114,6 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
   protected ConvolutionLayer(Tensor filter, Tensor skip, boolean simple) {
     super();
     this.simple = simple;
-    this.skip = skip;
     if(filter.getDimensions().length != 3) throw new IllegalArgumentException();
     if(filter.getDimensions()[0] <= 0) throw new IllegalArgumentException();
     if(filter.getDimensions()[1] <= 0) throw new IllegalArgumentException();
@@ -195,35 +196,34 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
 
     try {
 
-      CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
+      CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-      CuDNN.CuDNNResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
+      CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
-      CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-              simple ?((kernelSize[1] - 1) / 2):0, simple ?((kernelSize[0] - 1) / 2):0,
-              1, 1,
-              CUDNN_CONVOLUTION);
-      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0f);
-      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(0.0f);
+      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
+          simple ?((kernelSize[1] - 1) / 2):0, simple ?((kernelSize[0] - 1) / 2):0,
+          strideX, strideY, CUDNN_CONVOLUTION);
+      CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
+      CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 0.0f);
 
       final float[] filterData = this.filter.getDataAsFloats();
       //assert isNontrivial(filterData);
-      CuDNN.CuDNNPtr filterPtr = CuDNN.write(filterData);
+      CudaPtr filterPtr = CuDNN.write(nncontext.getCudaDeviceId(), filterData);
       assert(0 < filterData.length);
       //assert isNontrivial(batch.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).toArray());
-      CuDNN.CuDNNPtr inputData = toDeviceAsFloat(batch);
+      CudaPtr inputData = toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
 
-      CuDNN.CuDNNPtr outputBuffer = CuDNN.alloc(Tensor.dim(outputSize) * length * Sizeof.FLOAT);
+      CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), Tensor.dim(outputSize) * length * Sizeof.FLOAT);
       CuDNN.devicePool.with(device -> {
         try {
           assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
           int algorithm = device.getForwardAlgorithm(
                   inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-          CuDNN.CuDNNPtr workSpace = device.allocateForwardWorkspace(
-                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
+          CudaPtr workSpace = device.allocateForwardWorkspace(nncontext.getCudaDeviceId(),
+            inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
           CuDNN.handle(cudnnConvolutionForward(device.cudnnHandle, alpha.getPtr(),
                   inputDescriptor.getPtr(), inputData.getPtr(),
                   filterDescriptor.getPtr(), filterPtr.getPtr(),
@@ -245,15 +245,15 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).anyMatch(x->0!=x);
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           int length = error.length();
-          CuDNN.CuDNNPtr errorPtr = toDeviceAsFloat(error);
+          CudaPtr errorPtr = toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
           if (!isFrozen()) {
-            CuDNN.CuDNNPtr filterBuffer = CuDNN.alloc(filterData.length * Sizeof.FLOAT);
+            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), filterData.length * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 int algorithm = device.getBackwardFilterAlgorithm(
                         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-                CuDNN.CuDNNPtr workSpace = device.allocateBackwardFilterWorkspace(
-                        inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
+                CudaPtr workSpace = device.allocateBackwardFilterWorkspace(nncontext.getCudaDeviceId(),
+                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
                 CuDNN.handle(cudnnConvolutionBackwardFilter(device.cudnnHandle, alpha.getPtr(),
                         inputDescriptor.getPtr(), inputData.getPtr(),
                         outputDescriptor.getPtr(), errorPtr.getPtr(),
@@ -270,13 +270,13 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
             buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
           }
           if (input.isAlive()) {
-            CuDNN.CuDNNPtr inputBuffer = CuDNN.alloc(batch.get(0).dim() * length * Sizeof.FLOAT);
+            CudaPtr inputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), batch.get(0).dim() * length * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 int algorithm = device.getBackwardDataAlgorithm(
                         inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-                CuDNN.CuDNNPtr workSpace = device.allocateBackwardDataWorkspace(
-                        inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
+                CudaPtr workSpace = device.allocateBackwardDataWorkspace(nncontext.getCudaDeviceId(),
+                  inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
                 CuDNN.handle(cudnnConvolutionBackwardData(device.cudnnHandle, alpha.getPtr(),
                         filterDescriptor.getPtr(), filterPtr.getPtr(),
                         outputDescriptor.getPtr(), errorPtr.getPtr(),
@@ -336,7 +336,7 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
    * @param outputSize            the output size
    * @return the boolean
    */
-  protected boolean verifyOutputDims(CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
+  protected boolean verifyOutputDims(CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     if(4 != outputDims.length) return false;
     if(outputSize[0] != outputDims[3]) return false;

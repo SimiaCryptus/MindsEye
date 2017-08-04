@@ -241,7 +241,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    * @return the evaluation context
    */
   public EvaluationContext buildExeCtx(final NNResult... inputs) {
-    assert (inputs.length == inputHandles.size());
+    assert (inputs.length == inputHandles.size()) : inputs.length +" != "+ inputHandles.size();
     final EvaluationContext evaluationContext = new EvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
       evaluationContext.cache.put(this.inputHandles.get(i), inputs[i]);

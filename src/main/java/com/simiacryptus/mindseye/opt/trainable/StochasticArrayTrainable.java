@@ -74,7 +74,6 @@ public class StochasticArrayTrainable implements Trainable {
   public PointSample measure() {
     return Lists.partition(Arrays.asList(sampledData), batchSize).stream().parallel().map(trainingData->{
       PointSample pointSample = evalSubsample(trainingData);
-      System.gc();
       return pointSample;
     }).reduce((a,b)->new PointSample(a.delta.add(b.delta), a.weights,a.value + b.value)).get();
   }

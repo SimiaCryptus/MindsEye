@@ -23,8 +23,9 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.DirectCuDNNLayer;
+import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnActivationDescriptor;
@@ -41,7 +42,6 @@ import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_SIGMOID;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
-import jcuda.runtime.JCuda;
 
 /**
  * The type Activation layer.
@@ -132,14 +132,14 @@ public class ActivationLayer extends DirectCuDNNLayer {
 
     try {
 
-      CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0f);
-      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(0.0f);
+      CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
+      CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 0.0f);
 
-      CuDNN.CuDNNPtr inputData = toDeviceAsFloat(batch);
-      CuDNN.CuDNNPtr outputData = CuDNN.alloc(Sizeof.FLOAT * inputDims * length);
-      CuDNN.CuDNNResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_PROPAGATE_NAN, 0);
+      CudaPtr inputData = toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
+      CudaPtr outputData = CuDNN.alloc(nncontext.getCudaDeviceId(), Sizeof.FLOAT * inputDims * length);
+      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_PROPAGATE_NAN, 0);
       CuDNN.devicePool.with(device -> {
         try {
           CuDNN.handle(cudnnActivationForward(device.cudnnHandle, activationDesc.getPtr(),
@@ -159,9 +159,9 @@ public class ActivationLayer extends DirectCuDNNLayer {
           //assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
-          CuDNN.CuDNNPtr errorPtr = toDeviceAsFloat(error);
+          CudaPtr errorPtr = toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
           if (input.isAlive()) {
-            CuDNN.CuDNNPtr passbackBuffer = CuDNN.alloc(inputDims * Sizeof.FLOAT * length);
+            CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), inputDims * Sizeof.FLOAT * length);
             try {
               CuDNN.devicePool.with(device -> {
                 CuDNN.handle(cudnnActivationBackward(device.cudnnHandle, activationDesc.getPtr(),

@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.mindseye.layers.cudnn.DirectCuDNNLayer;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Sizeof;
@@ -129,14 +131,14 @@ public class ActivationLayer extends DirectCuDNNLayer {
 
     try {
 
-      CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0);
-      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(0.0);
+      CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0);
+      CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 0.0);
 
-      CuDNN.CuDNNPtr inputData = toDeviceAsDouble(batch);
-      CuDNN.CuDNNPtr outputData = CuDNN.alloc(Sizeof.DOUBLE * inputDims * length);
-      CuDNN.CuDNNResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_PROPAGATE_NAN, 0);
+      CudaPtr inputData = toDeviceAsDouble(nncontext.getCudaDeviceId(), batch);
+      CudaPtr outputData = CuDNN.alloc(nncontext.getCudaDeviceId(), Sizeof.DOUBLE * inputDims * length);
+      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_PROPAGATE_NAN, 0);
       CuDNN.devicePool.with(device -> {
         try {
           CuDNN.handle(cudnnActivationForward(device.cudnnHandle, activationDesc.getPtr(),
@@ -156,9 +158,9 @@ public class ActivationLayer extends DirectCuDNNLayer {
           //assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
-          CuDNN.CuDNNPtr errorPtr = toDeviceAsDouble(error);
+          CudaPtr errorPtr = toDeviceAsDouble(nncontext.getCudaDeviceId(), error);
           if (input.isAlive()) {
-            CuDNN.CuDNNPtr passbackBuffer = CuDNN.alloc(inputDims * Sizeof.DOUBLE * length);
+            CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), inputDims * Sizeof.DOUBLE * length);
             try {
               CuDNN.devicePool.with(device -> {
                 CuDNN.handle(cudnnActivationBackward(device.cudnnHandle, activationDesc.getPtr(),

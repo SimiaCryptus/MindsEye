@@ -23,8 +23,9 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.DirectCuDNNLayer;
+import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnPoolingDescriptor;
@@ -56,6 +57,13 @@ public class PoolingLayer extends DirectCuDNNLayer {
 
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
+    json.addProperty("mode",mode);
+    json.addProperty("windowX",windowX);
+    json.addProperty("windowY",windowY);
+    json.addProperty("paddingX",paddingX);
+    json.addProperty("paddingY",paddingY);
+    json.addProperty("strideX",strideX);
+    json.addProperty("strideY",strideY);
     return json;
   }
 
@@ -66,6 +74,13 @@ public class PoolingLayer extends DirectCuDNNLayer {
    */
   protected PoolingLayer(JsonObject json) {
     super(json);
+    mode = json.get("mode").getAsInt();
+    windowX = json.get("windowX").getAsInt();
+    windowY = json.get("windowY").getAsInt();
+    paddingX = json.get("paddingX").getAsInt();
+    paddingY = json.get("paddingY").getAsInt();
+    strideX = json.get("strideX").getAsInt();
+    strideY = json.get("strideY").getAsInt();
   }
 
   /**
@@ -75,29 +90,20 @@ public class PoolingLayer extends DirectCuDNNLayer {
     super();
   }
 
-  /**
-   * The Pool dims.
-   */
-  final int poolDims = 2;
-  /**
-   * The Window size.
-   */
-  final int windowSize[] = { 2, 2 };
-  /**
-   * The Padding.
-   */
-  final int padding[] = { 0, 0 };
-  /**
-   * The Stride.
-   */
-  final int stride[] = { 2, 2 };
-  /**
-   * The Mode.
-   */
-  final int mode = CUDNN_POOLING_MAX;
+  private int mode = CUDNN_POOLING_MAX;
+  private int windowX = 2;
+  private int windowY = 2;
+  private int paddingX = 0;
+  private int paddingY = 0;
+  private int strideX = 2;
+  private int strideY = 2;
 
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+    final int poolDims = 2;
+    final int windowSize[] = {windowX, windowY};
+    final int padding[] = {paddingX, paddingY};
+    final int stride[] = {strideX, strideY};
     try {
       JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
@@ -106,19 +112,19 @@ public class PoolingLayer extends DirectCuDNNLayer {
       final int[] inputSize = batch.get(0).getDimensions();
       int length = batch.length();
       int inputDims = Tensor.dim(inputSize);
-      CuDNN.CuDNNResource<cudnnPoolingDescriptor> poolingDesc = CuDNN.createPoolingDescriptor(
+      CudaResource<cudnnPoolingDescriptor> poolingDesc = CuDNN.createPoolingDescriptor(
               mode, poolDims, windowSize, padding, stride);
-      CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       int[] outputSize = new int[4];
       CuDNN.handle(cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputDescriptor.getPtr(), 4, outputSize));
       assert(inputSize[2] == outputSize[1]);
-      CuDNN.CuDNNResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
+      CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-      CuDNN.CuDNNPtr alpha = CuDNN.javaPtr(1.0f);
-      CuDNN.CuDNNPtr beta = CuDNN.javaPtr(0.0f);
-      CuDNN.CuDNNPtr inputData = toDeviceAsFloat(batch);
-      CuDNN.CuDNNPtr outputData = CuDNN.alloc(Sizeof.FLOAT * Tensor.dim(outputSize));
+      CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
+      CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 0.0f);
+      CudaPtr inputData = toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
+      CudaPtr outputData = CuDNN.alloc(nncontext.getCudaDeviceId(), Sizeof.FLOAT * Tensor.dim(outputSize));
       CuDNN.devicePool.with(device -> {
         CuDNN.handle(cudnnPoolingForward(device.cudnnHandle, poolingDesc.getPtr(),
                 alpha.getPtr(),
@@ -133,9 +139,9 @@ public class PoolingLayer extends DirectCuDNNLayer {
           JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          CuDNN.CuDNNPtr errorPtr = toDeviceAsFloat(error);
+          CudaPtr errorPtr = toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
           if (input.isAlive()) {
-            CuDNN.CuDNNPtr passbackBuffer = CuDNN.alloc(inputDims * Sizeof.FLOAT * length);
+            CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), inputDims * Sizeof.FLOAT * length);
             CuDNN.devicePool.with(device -> {
               CuDNN.handle(cudnnPoolingBackward(device.cudnnHandle, poolingDesc.getPtr(),
                       alpha.getPtr(),
@@ -164,5 +170,60 @@ public class PoolingLayer extends DirectCuDNNLayer {
   public List<double[]> state() {
     return Arrays.asList();
   }
-
+  
+  public int getMode() {
+    return mode;
+  }
+  
+  public void setMode(int mode) {
+    this.mode = mode;
+  }
+  
+  public int getWindowX() {
+    return windowX;
+  }
+  
+  public void setWindowX(int windowX) {
+    this.windowX = windowX;
+  }
+  
+  public int getWindowY() {
+    return windowY;
+  }
+  
+  public void setWindowY(int windowY) {
+    this.windowY = windowY;
+  }
+  
+  public int getPaddingX() {
+    return paddingX;
+  }
+  
+  public void setPaddingX(int paddingX) {
+    this.paddingX = paddingX;
+  }
+  
+  public int getPaddingY() {
+    return paddingY;
+  }
+  
+  public void setPaddingY(int paddingY) {
+    this.paddingY = paddingY;
+  }
+  
+  public int getStrideX() {
+    return strideX;
+  }
+  
+  public void setStrideX(int strideX) {
+    this.strideX = strideX;
+  }
+  
+  public int getStrideY() {
+    return strideY;
+  }
+  
+  public void setStrideY(int strideY) {
+    this.strideY = strideY;
+  }
 }

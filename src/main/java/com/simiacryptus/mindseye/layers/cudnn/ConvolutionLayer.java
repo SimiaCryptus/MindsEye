@@ -207,7 +207,7 @@ public class ConvolutionLayer extends NNLayer {
     try {
       double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
-      convolve(inputSize, kernelSize, outputSize, simple, inputBuffers, this.kernel.getData(), outputBuffers);
+      convolve(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, this.kernel.getData(), outputBuffers);
     } catch (Throwable e) {
       throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
     }
@@ -223,14 +223,14 @@ public class ConvolutionLayer extends NNLayer {
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           final Tensor kernel = ConvolutionLayer.this.kernel;
           final Tensor weightGradient = new Tensor(kernel.getDimensions());
-          gradient(inputSize, kernelSize, outputSize, simple, inputBuffers, weightGradient.getData(), outputBuffers);
+          gradient(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, weightGradient.getData(), outputBuffers);
           buffer.get(ConvolutionLayer.this, kernel).accumulate(weightGradient.getData());
         }
         if (input.isAlive()) {
           Tensor[] inputBufferTensors = IntStream.range(0, data.length()).mapToObj(dataIndex -> new Tensor(inputSize)).toArray(i -> new Tensor[i]);
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          backprop(inputSize, kernelSize, outputSize, simple, inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
+          backprop(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
           //assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           input.accumulate(buffer, new TensorArray(inputBufferTensors));
         }
@@ -290,7 +290,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param weights    the weights
    * @param output     the output
    */
-  public static void backprop(final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
+  public static void backprop(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
     int inLength = input[0].length;
@@ -300,13 +300,13 @@ public class ConvolutionLayer extends NNLayer {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
+    CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
             CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-    CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
+    CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
             simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
             1, 1,
             CUDNN_CONVOLUTION);
-    CuDNN.CuDNNPtr filterData = CuDNN.write(weights);
+    CudaPtr filterData = CuDNN.write(deviceId, weights);
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
@@ -330,9 +330,9 @@ public class ConvolutionLayer extends NNLayer {
       double[] _outputBuffer = outputBuffer;
       CuDNN.devicePool.with(device -> {
         try {
-          CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+          CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
                   CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
-          backprop(outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
+          backprop(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
         } catch (Throwable e) {
           throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
         }
@@ -358,7 +358,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param weights    the weights
    * @param output     the output
    */
-  public static void convolve(final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
+  public static void convolve(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
     int inLength = input[0].length;
@@ -369,13 +369,13 @@ public class ConvolutionLayer extends NNLayer {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
+    CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
             CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-    CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
+    CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
             simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
             1, 1,
             CUDNN_CONVOLUTION);
-    CuDNN.CuDNNPtr filterData = CuDNN.write(weights);
+    CudaPtr filterData = CuDNN.write(deviceId, weights);
     for(int run=0;run<=runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < runs ? inputsPerRun : leftover;
@@ -399,9 +399,9 @@ public class ConvolutionLayer extends NNLayer {
       double[] _outputBuffer = outputBuffer;
       CuDNN.devicePool.with(device -> {
         try {
-          CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+          CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
                   CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
-          convolve(outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
+          convolve(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
         } catch (Throwable e) {
           throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
         }
@@ -427,7 +427,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param weights    the weights
    * @param output     the output
    */
-  public static void gradient(final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
+  public static void gradient(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
     int length = input.length;
     assert(length == output.length);
     int inLength = input[0].length;
@@ -437,9 +437,9 @@ public class ConvolutionLayer extends NNLayer {
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
-    CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
+    CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
             CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-    CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
+    CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
             simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
             1, 1,
             CUDNN_CONVOLUTION);
@@ -469,9 +469,9 @@ public class ConvolutionLayer extends NNLayer {
       CuDNN.devicePool.with(device -> {
         try {
           int items = currentNumItems;
-          CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+          CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
                   CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, items, inputSize[2], inputSize[1], inputSize[0]);
-          gradient(outputSize, _inputBuffer, buffer, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
+          gradient(deviceId, outputSize, _inputBuffer, buffer, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
         } catch (Throwable e) {
           throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
         }
@@ -487,22 +487,22 @@ public class ConvolutionLayer extends NNLayer {
     Tensor.recycle(outputBuffer);
   }
 
-  private static void backprop(final int[] outputSize, double[] input, CuDNN.CuDNNPtr filterData, double[] output, CuDNN device, CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
+  private static void backprop(int deviceId, final int[] outputSize, double[] input, CudaPtr filterData, double[] output, CuDNN device, CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     assert(4 == outputDims.length);
     assert(outputSize[0] == outputDims[3]);
     assert(outputSize[1] == outputDims[2]);
     assert(outputSize[2] == outputDims[1]);
-    CuDNN.CuDNNResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
+    CudaResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
             CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
     int algorithm = device.getBackwardDataAlgorithm(
             inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-    CuDNN.CuDNNPtr workSpace = device.allocateBackwardDataWorkspace(
-            inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-    CuDNN.CuDNNPtr alpha = device.javaPtr(1.0);
-    CuDNN.CuDNNPtr beta = device.javaPtr(0.0);
-    CuDNN.CuDNNPtr inputData = CuDNN.alloc(input);
-    CuDNN.CuDNNPtr outputData = device.write(output);
+    CudaPtr workSpace = device.allocateBackwardDataWorkspace(deviceId,
+      inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
+    CudaPtr alpha = device.javaPtr(deviceId, 1.0);
+    CudaPtr beta = device.javaPtr(deviceId, 0.0);
+    CudaPtr inputData = CuDNN.alloc(deviceId, input);
+    CudaPtr outputData = device.write(deviceId, output);
     CuDNN.handle(cudnnConvolutionBackwardData(device.cudnnHandle, alpha.getPtr(),
             filterDescriptor.getPtr(), filterData.getPtr(),
             outputDescriptor.getPtr(), outputData.getPtr(),
@@ -513,22 +513,22 @@ public class ConvolutionLayer extends NNLayer {
     outputData.finalize();
   }
 
-  private static void convolve(final int[] outputSize, double[] input, CuDNN.CuDNNPtr filterData, double[] output, CuDNN device, CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
+  private static void convolve(int deviceId, final int[] outputSize, double[] input, CudaPtr filterData, double[] output, CuDNN device, CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     assert(4 == outputDims.length);
     assert(outputSize[0] == outputDims[3]);
     assert(outputSize[1] == outputDims[2]);
     assert(outputSize[2] == outputDims[1]);
-    CuDNN.CuDNNResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
+    CudaResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
             CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
     int algorithm = device.getForwardAlgorithm(
             inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-    CuDNN.CuDNNPtr workSpace = device.allocateForwardWorkspace(
-            inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-    CuDNN.CuDNNPtr alpha = device.javaPtr(1.0);
-    CuDNN.CuDNNPtr beta = device.javaPtr(0.0);
-    CuDNN.CuDNNPtr inputData = device.write(input);
-    CuDNN.CuDNNPtr outputData = CuDNN.alloc(output);
+    CudaPtr workSpace = device.allocateForwardWorkspace(deviceId,
+      inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
+    CudaPtr alpha = device.javaPtr(deviceId, 1.0);
+    CudaPtr beta = device.javaPtr(deviceId, 0.0);
+    CudaPtr inputData = device.write(deviceId, input);
+    CudaPtr outputData = CuDNN.alloc(deviceId, output);
     CuDNN.handle(cudnnConvolutionForward(device.cudnnHandle, alpha.getPtr(),
             inputDescriptor.getPtr(), inputData.getPtr(),
             filterDescriptor.getPtr(), filterData.getPtr(),
@@ -539,23 +539,23 @@ public class ConvolutionLayer extends NNLayer {
     outputData.finalize();
   }
 
-  private static void gradient(final int[] outputSize, double[] input, double[] weights, double[] output, CuDNN device, CuDNN.CuDNNResource<cudnnTensorDescriptor> inputDescriptor, CuDNN.CuDNNResource<cudnnFilterDescriptor> filterDescriptor, CuDNN.CuDNNResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
+  private static void gradient(int deviceId, final int[] outputSize, double[] input, double[] weights, double[] output, CuDNN device, CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     assert(4 == outputDims.length);
     assert(outputSize[0] == outputDims[3]);
     assert(outputSize[1] == outputDims[2]);
     assert(outputSize[2] == outputDims[1]);
-    CuDNN.CuDNNResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
+    CudaResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
             CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
     int algorithm = device.getBackwardFilterAlgorithm(
             inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
-    CuDNN.CuDNNPtr workSpace = device.allocateBackwardFilterWorkspace(
-            inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-    CuDNN.CuDNNPtr alpha = device.javaPtr(1.0);
-    CuDNN.CuDNNPtr beta = device.javaPtr(0.0);
-    CuDNN.CuDNNPtr inputData = device.write(input);
-    CuDNN.CuDNNPtr filterData = CuDNN.alloc(weights);
-    CuDNN.CuDNNPtr outputData = device.write(output);
+    CudaPtr workSpace = device.allocateBackwardFilterWorkspace(deviceId,
+      inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
+    CudaPtr alpha = device.javaPtr(deviceId, 1.0);
+    CudaPtr beta = device.javaPtr(deviceId, 0.0);
+    CudaPtr inputData = device.write(deviceId, input);
+    CudaPtr filterData = CuDNN.alloc(deviceId, weights);
+    CudaPtr outputData = device.write(deviceId, output);
 
     CuDNN.handle(cudnnConvolutionBackwardFilter(device.cudnnHandle, alpha.getPtr(),
             inputDescriptor.getPtr(), inputData.getPtr(),
