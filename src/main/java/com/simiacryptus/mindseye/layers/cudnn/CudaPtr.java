@@ -46,6 +46,7 @@ public class CudaPtr extends CudaResource<Pointer> {
             return new AtomicLong(0);
         }
     });
+    private static final long MAX = 4 * 1024 * 1024 * 1024;
     
     /**
      * The Size.
@@ -67,6 +68,13 @@ public class CudaPtr extends CudaResource<Pointer> {
             devivceMemCtr = USED_MEMORY.get(deviceId);
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
+        }
+        
+        if(devivceMemCtr.get() + size > MAX) {
+            System.gc();
+            if(devivceMemCtr.get() + size > MAX) {
+                System.err.println(String.format("High device memory usage: %s on device %s", devivceMemCtr.get(), deviceId) );
+            }
         }
         try {
             CuDNN.handle(cudaMalloc(this.getPtr(), size));
