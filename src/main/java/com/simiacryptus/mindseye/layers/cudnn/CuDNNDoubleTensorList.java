@@ -107,4 +107,9 @@ public class CuDNNDoubleTensorList implements TensorList {
       public Stream<Tensor> stream() {
           return inner().stream();
       }
+  
+  @Override
+  public int[] getDimensions() {
+    return dimensions;
   }
+}

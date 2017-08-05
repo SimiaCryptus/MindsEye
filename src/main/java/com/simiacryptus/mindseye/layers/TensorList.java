@@ -48,4 +48,12 @@ public interface TensorList {
    * @return the stream
    */
   Stream<Tensor> stream();
+  
+  /**
+   * Length int.
+   *
+   * @return the int
+   */
+  int[] getDimensions();
+  
 }

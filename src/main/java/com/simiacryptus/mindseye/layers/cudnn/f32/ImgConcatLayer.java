@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.Util;
@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
+import java.util.stream.Collectors;
 
 import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
 import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardBias;
@@ -44,7 +45,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 /**
  * The type Img band bias layer.
  */
-public class ImgBandBiasLayer extends NNLayer {
+public class ImgConcatLayer extends NNLayer {
   
   /**
    * From json img band bias layer.
@@ -52,8 +53,8 @@ public class ImgBandBiasLayer extends NNLayer {
    * @param json the json
    * @return the img band bias layer
    */
-  public static ImgBandBiasLayer fromJson(JsonObject json) {
-    return new ImgBandBiasLayer(json);
+  public static ImgConcatLayer fromJson(JsonObject json) {
+    return new ImgConcatLayer(json);
   }
 
   public JsonObject getJson() {
@@ -67,7 +68,7 @@ public class ImgBandBiasLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgBandBiasLayer(JsonObject json) {
+  protected ImgConcatLayer(JsonObject json) {
     super(json);
     this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
@@ -80,7 +81,7 @@ public class ImgBandBiasLayer extends NNLayer {
    *
    * @param bands the bands
    */
-  public ImgBandBiasLayer(int bands) {
+  public ImgConcatLayer(int bands) {
     this.bias = new double[bands];
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
@@ -96,7 +97,10 @@ public class ImgBandBiasLayer extends NNLayer {
     assert(inputSize[2] == bias.length);
     int[] outputSize = inputSize;
     int length = batch.length();
-
+  
+    List<CudaPtr> inputPtrs = Arrays.stream(inObj).map(x -> CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), x.data)).collect(Collectors.toList());
+  
+  
     try {
 
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
@@ -128,7 +132,7 @@ public class ImgBandBiasLayer extends NNLayer {
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
           if (!isFrozen()) {
-            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), ImgBandBiasLayer.this.bias.length * 1l * Sizeof.FLOAT);
+            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), ImgConcatLayer.this.bias.length * 1l * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 CuDNN.handle(cudnnConvolutionBackwardBias(device.cudnnHandle, alpha.getPtr(),
@@ -141,10 +145,9 @@ public class ImgBandBiasLayer extends NNLayer {
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            DeltaBuffer deltaBuffer = buffer.get(ImgBandBiasLayer.this, ImgBandBiasLayer.this.bias);
+            DeltaBuffer deltaBuffer = buffer.get(ImgConcatLayer.this, ImgConcatLayer.this.bias);
             deltaBuffer.accumulate(weightGradient.getData());
             //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
-            filterBuffer.finalize();
           }
           if (input.isAlive()) {
             input.accumulate(buffer, error);
@@ -191,7 +194,7 @@ public class ImgBandBiasLayer extends NNLayer {
    * @param f the f
    * @return the img band bias layer
    */
-  public ImgBandBiasLayer addWeights(final DoubleSupplier f) {
+  public ImgConcatLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.getBias());
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     return this;
@@ -221,7 +224,7 @@ public class ImgBandBiasLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public ImgBandBiasLayer setWeights(final IntToDoubleFunction f) {
+  public ImgConcatLayer setWeights(final IntToDoubleFunction f) {
     double[] bias = this.getBias();
     for (int i = 0; i < bias.length; i++) {
       bias[i] = f.applyAsDouble(i);

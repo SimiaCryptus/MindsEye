@@ -93,7 +93,7 @@ public class CuDNN {
      * @return the cu dnn ptr
      */
     public static CudaPtr alloc(int deviceId, double[] output) {
-        return alloc(deviceId, Sizeof.DOUBLE * output.length);
+        return alloc(deviceId, Sizeof.DOUBLE  * 1l * output.length);
     }
 
     /**

@@ -21,12 +21,12 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.mindseye.layers.cudnn.DirectCuDNNLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -50,7 +50,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 /**
  * The type Convolution layer.
  */
-public class ConvolutionLayer extends DirectCuDNNLayer {
+public class ConvolutionLayer extends NNLayer {
 
 
   public JsonObject getJson() {
@@ -189,7 +189,7 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
     JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
-    final int[] inputSize = batch.get(0).getDimensions();
+    final int[] inputSize = batch.getDimensions();
     int[] kernelSize = this.filter.getDimensions();
     int[] outputSize = getOutputSize(inputSize, kernelSize);
     int length = batch.length();
@@ -213,10 +213,10 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
       CudaPtr filterPtr = CuDNN.write(nncontext.getCudaDeviceId(), filterData);
       assert(0 < filterData.length);
       //assert isNontrivial(batch.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).toArray());
-      CudaPtr inputData = toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
+      CudaPtr inputData = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
 
-      CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), Tensor.dim(outputSize) * length * Sizeof.FLOAT);
+      CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), Tensor.dim(outputSize) * 1l * length * Sizeof.FLOAT);
       CuDNN.devicePool.with(device -> {
         try {
           assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
@@ -234,7 +234,7 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
           throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
         }
       });
-      TensorList output = fromDeviceFloat(outputBuffer, length, outputSize);
+      TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize);
       //assert output.stream().allMatch(tensor -> Arrays.stream(tensor.getData()).allMatch(Double::isFinite));
 
       return new NNResult(output) {
@@ -245,9 +245,9 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).anyMatch(x->0!=x);
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           int length = error.length();
-          CudaPtr errorPtr = toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
+          CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
           if (!isFrozen()) {
-            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), filterData.length * Sizeof.FLOAT);
+            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), filterData.length * 1l * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 int algorithm = device.getBackwardFilterAlgorithm(
@@ -264,13 +264,14 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
             } catch (Throwable e) {
               throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
             }
-            final Tensor weightGradient = fromDeviceFloat(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
+            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
             //assert Arrays.stream(weightGradient.getData()).anyMatch(x->0!=x);
             buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
+            filterBuffer.finalize();
           }
           if (input.isAlive()) {
-            CudaPtr inputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), batch.get(0).dim() * length * Sizeof.FLOAT);
+            CudaPtr inputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), batch.get(0).dim() * 1l * length * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 int algorithm = device.getBackwardDataAlgorithm(
@@ -286,10 +287,12 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
             } catch (Throwable e) {
               throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
             }
-            TensorList inputBufferTensors = fromDeviceFloat(inputBuffer, length, inputSize);
+            TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize);
             //assert inputBufferTensors.stream().allMatch(tensor -> Arrays.stream(tensor.getData()).allMatch(Double::isFinite));
             input.accumulate(buffer, inputBufferTensors);
+            inputBuffer.finalize();
           }
+          outputBuffer.finalize();
         }
 
         @Override

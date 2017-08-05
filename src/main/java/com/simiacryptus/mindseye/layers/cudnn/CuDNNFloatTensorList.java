@@ -56,7 +56,7 @@ public class CuDNNFloatTensorList implements TensorList {
           this.ptr = ptr;
           this.length = length;
           this.dimensions = dimensions;
-          assert(ptr.size == length * Tensor.dim(dimensions) * Sizeof.FLOAT);
+          assert(ptr.size == length * 1l * Tensor.dim(dimensions) * Sizeof.FLOAT);
           //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       }
 
@@ -110,4 +110,9 @@ public class CuDNNFloatTensorList implements TensorList {
       public Stream<Tensor> stream() {
           return inner().stream();
       }
+  
+  @Override
+  public int[] getDimensions() {
+    return dimensions;
+  }
   }

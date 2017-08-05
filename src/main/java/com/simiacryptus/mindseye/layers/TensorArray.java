@@ -44,4 +44,9 @@ public class TensorArray implements TensorList {
   public int length() { return data.length; }
   @Override
   public Stream<Tensor> stream() { return Arrays.stream(data); }
+  
+  @Override
+  public int[] getDimensions() {
+    return data[0].getDimensions();
+  }
 }
