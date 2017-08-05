@@ -37,6 +37,7 @@ import java.util.List;
 
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
+import static jcuda.jcudnn.cudnnPoolingMode.CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING;
 import static jcuda.jcudnn.cudnnPoolingMode.CUDNN_POOLING_MAX;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -90,6 +91,16 @@ public class PoolingLayer extends DirectCuDNNLayer {
     super();
   }
 
+  public enum PoolingMode {
+    Max(CUDNN_POOLING_MAX),
+    Avg(CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+    final int id;
+  
+    PoolingMode(int id) {
+      this.id = id;
+    }
+  }
+  
   private int mode = CUDNN_POOLING_MAX;
   private int windowX = 2;
   private int windowY = 2;
@@ -175,55 +186,79 @@ public class PoolingLayer extends DirectCuDNNLayer {
     return mode;
   }
   
-  public void setMode(int mode) {
-    this.mode = mode;
+  public PoolingLayer setMode(PoolingMode mode) {
+    this.mode = mode.id;
+    return this;
   }
   
   public int getWindowX() {
     return windowX;
   }
   
-  public void setWindowX(int windowX) {
+  public PoolingLayer setWindowX(int windowX) {
     this.windowX = windowX;
+    return this;
   }
   
   public int getWindowY() {
     return windowY;
   }
   
-  public void setWindowY(int windowY) {
+  public PoolingLayer setWindowY(int windowY) {
     this.windowY = windowY;
+    return this;
+  }
+  
+  public PoolingLayer setWindowXY(int windowX, int windowY) {
+    this.windowY = windowY;
+    this.windowX = windowX;
+    return this;
   }
   
   public int getPaddingX() {
     return paddingX;
   }
   
-  public void setPaddingX(int paddingX) {
+  public PoolingLayer setPaddingX(int paddingX) {
     this.paddingX = paddingX;
+    return this;
+  }
+  
+  public PoolingLayer setPaddingXY(int paddingX, int paddingY) {
+    this.paddingX = paddingX;
+    this.paddingY = paddingY;
+    return this;
   }
   
   public int getPaddingY() {
     return paddingY;
   }
   
-  public void setPaddingY(int paddingY) {
+  public PoolingLayer setPaddingY(int paddingY) {
     this.paddingY = paddingY;
+    return this;
   }
   
   public int getStrideX() {
     return strideX;
   }
   
-  public void setStrideX(int strideX) {
+  public PoolingLayer setStrideX(int strideX) {
     this.strideX = strideX;
+    return this;
   }
   
   public int getStrideY() {
     return strideY;
   }
   
-  public void setStrideY(int strideY) {
+  public PoolingLayer setStrideY(int strideY) {
     this.strideY = strideY;
+    return this;
+  }
+  public PoolingLayer setStrideXY(int strideX, int strideY) {
+    this.strideX = strideX;
+    this.strideY = strideY;
+    return this;
   }
 }

@@ -57,6 +57,7 @@ public class ArrayTrainable implements Trainable {
    * @param batchSize    the batch size
    */
   public ArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
+    if(0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.network = network;
     this.batchSize = batchSize;
@@ -65,7 +66,10 @@ public class ArrayTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    Stream<List<Tensor[]>> stream = Lists.partition(Arrays.asList(trainingData), batchSize).stream();
+    List<List<Tensor[]>> collection = batchSize<trainingData.length?
+                                        Lists.partition(Arrays.asList(trainingData), batchSize)
+                                        :Arrays.asList(Arrays.asList(trainingData));
+    Stream<List<Tensor[]>> stream = collection.stream();
     if(isParallel()) stream = stream.parallel();
     return stream.map(trainingData->{
       NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));

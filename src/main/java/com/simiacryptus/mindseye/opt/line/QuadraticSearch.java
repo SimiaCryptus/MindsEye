@@ -61,7 +61,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       double b = rightPoint.derivative - a * rightX;
       double thisX = - b / a;
       boolean isBracketed = Math.signum(leftPoint.derivative) != Math.signum(rightPoint.derivative);
-      if(isBracketed && (leftX > thisX || rightX < thisX))
+      if(!Double.isFinite(thisX) || isBracketed && (leftX > thisX || rightX < thisX))
       {
         thisX = (rightX + leftX) / 2;
       }

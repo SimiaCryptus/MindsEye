@@ -216,6 +216,13 @@ public class DenseSynapseLayer extends NNLayer {
     return this;
   }
   
+  public DenseSynapseLayer setWeightsLog(final double value) {
+    this.weights.coordStream().parallel().forEach(c -> {
+      this.weights.set(c, (Math.random()-0.5)*Math.pow(10,value));
+    });
+    return this;
+  }
+  
   /**
    * Sets weights.
    *

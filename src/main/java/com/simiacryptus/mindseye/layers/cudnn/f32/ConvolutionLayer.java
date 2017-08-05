@@ -94,8 +94,8 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
    * The Simple.
    */
   public final boolean simple;
-  int strideX = 1;
-  int strideY = 1;
+  private int strideX = 1;
+  private int strideY = 1;
   
   /**
    * Instantiates a new Convolution layer.
@@ -315,9 +315,9 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
       if (i == kernelSize.length - 1) {
         x = kernelSize[i] / inputSize[i];
       } else if(simple) {
-        x = inputSize[i];
+        x = inputSize[i] / (i==0?strideX:strideY);
       } else {
-        x = 1 + inputSize[i] - kernelSize[i];
+        x = (1 + inputSize[i] - kernelSize[i]) / (i==0?strideX:strideY);
       }
       if (0 >= x) {
         assert false;
@@ -338,10 +338,18 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
    */
   protected boolean verifyOutputDims(CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
-    if(4 != outputDims.length) return false;
-    if(outputSize[0] != outputDims[3]) return false;
-    if(outputSize[1] != outputDims[2]) return false;
-    if(outputSize[2] != outputDims[1]) return false;
+    if(4 != outputDims.length) {
+      return false;
+    }
+    if(outputSize[0] != outputDims[3]) {
+      return false;
+    }
+    if(outputSize[1] != outputDims[2]) {
+      return false;
+    }
+    if(outputSize[2] != outputDims[1]) {
+      return false;
+    }
     return true;
   }
   
@@ -354,6 +362,13 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
   public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     this.filter.coordStream().parallel().forEach(c -> {
       this.filter.set(c, f.applyAsDouble(c));
+    });
+    return this;
+  }
+  
+  public ConvolutionLayer setWeightsLog(final double value) {
+    this.filter.coordStream().parallel().forEach(c -> {
+      this.filter.set(c, (Math.random()-0.5)*Math.pow(10,value));
     });
     return this;
   }
@@ -375,5 +390,28 @@ public class ConvolutionLayer extends DirectCuDNNLayer {
   public List<double[]> state() {
     return Arrays.asList(this.filter.getData());
   }
-
+  
+  public int getStrideX() {
+    return strideX;
+  }
+  
+  public ConvolutionLayer setStrideX(int strideX) {
+    this.strideX = strideX;
+    return this;
+  }
+  
+  public ConvolutionLayer setStrideXY(int strideX, int strideY) {
+    this.strideX = strideX;
+    this.strideY = strideY;
+    return this;
+  }
+  
+  public int getStrideY() {
+    return strideY;
+  }
+  
+  public ConvolutionLayer setStrideY(int strideY) {
+    this.strideY = strideY;
+    return this;
+  }
 }

@@ -92,7 +92,16 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork(NNLayer... layers) {
     this();
-    for(NNLayer l : layers) add(l);
+    addAll(layers);
+  }
+  
+  public DAGNode addAll(NNLayer... layers) {
+    return addAll(getHead(), layers);
+  }
+  
+  public DAGNode addAll(DAGNode node, NNLayer... layers) {
+    for(NNLayer l : layers) node = add(l, node);
+    return node;
   }
   
   /**
@@ -118,6 +127,18 @@ public class PipelineNetwork extends DAGNetwork {
     return node;
   }
   
+  @Override
+  public DAGNode add(NNLayer nextHead, DAGNode... head) {
+    if(null == nextHead) throw new IllegalArgumentException();
+    if(getLayers().stream().filter(l->l.getId().equals(nextHead.getId())).findAny().isPresent()) throw new IllegalArgumentException(nextHead.getName() + " already added");
+    DAGNode node = super.add(nextHead, head);
+    assert Arrays.stream(head).allMatch(x -> x != null);
+    assert null != getInput();
+    setHead(node);
+    getLayers().add(nextHead);
+    return node;
+  }
+  
   /**
    * Const value dag node.
    *
@@ -139,7 +160,7 @@ public class PipelineNetwork extends DAGNetwork {
   public DAGNode add(NNLayer nextHead) {
     DAGNode head = getHead();
     if (null == head) return add(nextHead, getInput(0));
-    return add(nextHead, head);
+    else return add(nextHead, head);
   }
   
   public DAGNode getHead() {

@@ -26,9 +26,7 @@ import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.runtime.JCuda;
 
-import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jcuda.runtime.JCuda.*;
@@ -40,13 +38,21 @@ import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyHostToDevice;
  */
 public class CudaPtr extends CudaResource<Pointer> {
     
-    public static final LoadingCache<Integer, AtomicLong> USED_MEMORY = CacheBuilder.newBuilder().build(new CacheLoader<Integer,AtomicLong>() {
+    public static class GpuStats {
+        public final AtomicLong usedMemory = new AtomicLong(0);
+        public final AtomicLong peakMemory = new AtomicLong(0);
+        public final AtomicLong memoryWrites = new AtomicLong(0);
+        public final AtomicLong memoryReads = new AtomicLong(0);
+    }
+    
+    
+    private static final long MAX = 4l * 1024 * 1024 * 1024;
+    public static final LoadingCache<Integer, GpuStats> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer,GpuStats>() {
         @Override
-        public AtomicLong load(Integer integer) throws Exception {
-            return new AtomicLong(0);
+        public GpuStats load(Integer integer) throws Exception {
+            return new GpuStats();
         }
     });
-    private static final long MAX = 4 * 1024 * 1024 * 1024;
     
     /**
      * The Size.
@@ -63,41 +69,43 @@ public class CudaPtr extends CudaResource<Pointer> {
         super(new Pointer(), JCuda::cudaFree);
         this.size = size;
         this.deviceId = deviceId;
-        AtomicLong devivceMemCtr;
-        try {
-            devivceMemCtr = USED_MEMORY.get(deviceId);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+        GpuStats metrics = getGpuStats(deviceId);
+        if(size < 0) {
+            throw new IllegalArgumentException("Allocated block is too large: " + size);
         }
-        
-        if(devivceMemCtr.get() + size > MAX) {
-            System.gc();
-            if(devivceMemCtr.get() + size > MAX) {
-                System.err.println(String.format("High device memory usage: %s on device %s", devivceMemCtr.get(), deviceId) );
-            }
+        if(size > MAX) {
+            throw new IllegalArgumentException("Allocated block is too large: " + size);
         }
         try {
             CuDNN.handle(cudaMalloc(this.getPtr(), size));
         } catch (Exception e) {
             try {
                 System.gc(); // Force any dead objects to be finalized
+                System.runFinalization();
                 CuDNN.handle(cudaMalloc(this.getPtr(), size));
             } catch (Exception e2) {
-                throw new RuntimeException(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, devivceMemCtr.get(), deviceId), e2);
+                throw new OutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId));
             }
         }
-        devivceMemCtr.addAndGet(size);
+        long finalMemory = metrics.usedMemory.addAndGet(size);
+        metrics.peakMemory.updateAndGet(l->Math.max(finalMemory,l));
         CuDNN.handle(cudaMemset(this.getPtr(), 0, size));
+    }
+    
+    private GpuStats getGpuStats(int deviceId) {
+        GpuStats devivceMemCtr;
+        try {
+            devivceMemCtr = METRICS.get(deviceId);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+        return devivceMemCtr;
     }
     
     @Override
     protected void free() {
         super.free();
-        try {
-            USED_MEMORY.get(deviceId).addAndGet(-size);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
     
     /**
@@ -121,6 +129,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     public CudaPtr write(float[] data) {
         if(this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
         CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
+        getGpuStats(deviceId).memoryWrites.addAndGet(size);
         return this;
     }
 
@@ -133,6 +142,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     public CudaPtr write(double[] data) {
         if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException();
         CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
+        getGpuStats(deviceId).memoryWrites.addAndGet(size);
         return this;
     }
 
@@ -145,6 +155,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     public CudaPtr read(double[] data) {
         if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException(this.size +" != " + data.length * Sizeof.DOUBLE);
         CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
+        getGpuStats(deviceId).memoryReads.addAndGet(size);
         return this;
     }
 
@@ -157,6 +168,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     public CudaPtr read(float[] data) {
         if(this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
         CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
+        getGpuStats(deviceId).memoryReads.addAndGet(size);
         return this;
     }
 }

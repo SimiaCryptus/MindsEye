@@ -24,19 +24,25 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.util.ml.WeakCachedSupplier;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The type Stochastic array trainable.
  */
 public class StochasticArrayTrainable implements Trainable {
   
-  private final Tensor[][] trainingData;
+  private static final int LOW_MEM_USE = 1 * 1024 * 1024 * 1024;
+  private final List<? extends Supplier<Tensor[]>> trainingData;
   private final NNLayer network;
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
@@ -63,6 +69,20 @@ public class StochasticArrayTrainable implements Trainable {
    * @param batchSize    the batch size
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, int batchSize) {
+    if(0 == trainingData.length) throw new IllegalArgumentException();
+    this.trainingData = Arrays.stream(trainingData).map(obj->new WeakCachedSupplier<Tensor[]>(()->obj)).collect(Collectors.toList());
+    this.network = network;
+    this.trainingSize = trainingSize;
+    this.batchSize = batchSize;
+    resetSampling();
+  }
+  
+  public StochasticArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize) {
+    this(trainingData, network, trainingSize, trainingSize);
+  }
+  
+  public StochasticArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize, int batchSize) {
+    if(0 == trainingData.size()) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.network = network;
     this.trainingSize = trainingSize;
@@ -72,10 +92,36 @@ public class StochasticArrayTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    return Lists.partition(Arrays.asList(sampledData), batchSize).stream().parallel().map(trainingData->{
-      PointSample pointSample = evalSubsample(trainingData);
-      return pointSample;
-    }).reduce((a,b)->new PointSample(a.delta.add(b.delta), a.weights,a.value + b.value)).get();
+    try {
+      List<List<Tensor[]>> partitions = Lists.partition(Arrays.asList(sampledData), batchSize);
+      PointSample result = partitions.stream().parallel().map(trainingData -> {
+        PointSample pointSample = evalSubsample(trainingData);
+        return pointSample;
+      }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+      Map<Integer, Long> peakMemory = CudaPtr.METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().peakMemory.getAndSet(0)));
+      if(partitions.size() < CuDNN.devicePool.size()) {
+        batchSize = batchSize / 2;
+      } else if(partitions.size() > 2 * CuDNN.devicePool.size()) {
+        double highestMemUse = peakMemory.values().stream().mapToDouble(x -> x).max().getAsDouble();
+        if(highestMemUse < LOW_MEM_USE) {
+          batchSize = batchSize * 2;
+        }
+      }
+      return result;
+    } catch (Throwable t) {
+      t.printStackTrace();
+      if(isOom(t) && batchSize > 1) {
+        batchSize = batchSize / 2;
+        System.gc();
+        return measure();
+      } else throw t;
+    }
+  }
+  
+  private static boolean isOom(Throwable t) {
+    if(t instanceof OutOfMemoryError) return true;
+    if(null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
+    return false;
   }
   
   /**
@@ -105,7 +151,9 @@ public class StochasticArrayTrainable implements Trainable {
 
   @Override
   public void resetToFull() {
-    sampledData = trainingData;
+    this.sampledData = trainingData.stream().parallel() //
+                         .map(obj -> obj.get())
+                         .toArray(i -> new Tensor[i][]);
   }
   
   @Override
@@ -142,12 +190,12 @@ public class StochasticArrayTrainable implements Trainable {
   }
   
   private void refreshSampledData() {
-    final Tensor[][] rawData = trainingData;
-    assert 0 < rawData.length;
+    assert 0 < trainingData.size();
     assert 0 < getTrainingSize();
-    this.sampledData = Arrays.stream(rawData).parallel() //
+    this.sampledData = trainingData.stream().parallel() //
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
                            .limit(getTrainingSize()) //
+                           .map(obj -> obj.get())
                            .toArray(i -> new Tensor[i][]);
   }
   
