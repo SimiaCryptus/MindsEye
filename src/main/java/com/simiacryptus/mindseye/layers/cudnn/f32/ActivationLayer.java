@@ -177,9 +177,7 @@ public class ActivationLayer extends NNLayer {
               throw new RuntimeException("Error with " + Arrays.toString(inputSize),e);
             }
             input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize));
-            passbackBuffer.finalize();
           }
-          outputData.finalize();
         }
 
         @Override

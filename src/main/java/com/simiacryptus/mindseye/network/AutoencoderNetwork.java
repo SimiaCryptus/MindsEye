@@ -256,8 +256,8 @@ public class AutoencoderNetwork {
       @Override
       public SimpleLossNetwork getTrainingNetwork() {
         PipelineNetwork student = new PipelineNetwork();
-        student.add(encoder);
-        student.add(decoder);
+        student.add((NNLayer) encoder);
+        student.add((NNLayer) decoder);
         return new SimpleLossNetwork(student, new MeanSqLossLayer());
       }
     };

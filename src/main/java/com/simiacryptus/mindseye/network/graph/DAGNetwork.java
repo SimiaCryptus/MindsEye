@@ -206,10 +206,22 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     inputHandles = new ArrayList<>();
     inputNodes = new LinkedHashMap<>();
     for (int i = 0; i < inputs; i++) {
-      UUID key = UUID.randomUUID();
-      inputHandles.add(key);
-      inputNodes.put(key, new InputNode(this, key));
+      addInput();
     }
+  }
+  
+  public DAGNetwork addInput() {
+    UUID key = UUID.randomUUID();
+    inputHandles.add(key);
+    inputNodes.put(key, new InputNode(this, key));
+    return this;
+  }
+  
+  public DAGNetwork removeLastInput() {
+    int index = inputHandles.size() - 1;
+    UUID key = inputHandles.remove(index);
+    inputNodes.remove(key);
+    return this;
   }
   
   /**
@@ -244,7 +256,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     assert (inputs.length == inputHandles.size()) : inputs.length +" != "+ inputHandles.size();
     final EvaluationContext evaluationContext = new EvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
-      evaluationContext.cache.put(this.inputHandles.get(i), inputs[i]);
+      evaluationContext.cache.put(this.inputHandles.get(i), new CountingNNResult(inputs[i]));
     }
     return evaluationContext;
   }

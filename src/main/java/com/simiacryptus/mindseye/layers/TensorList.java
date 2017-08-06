@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.util.ml.Tensor;
 
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -55,5 +56,14 @@ public interface TensorList {
    * @return the int
    */
   int[] getDimensions();
+  
+  default TensorList add(TensorList right) {
+    assert(length() == right.length());
+    return new TensorArray(
+      IntStream.range(0, length()).mapToObj(i->{
+        return get(i).add(right.get(i));
+      }).toArray(i->new Tensor[i])
+    );
+  }
   
 }

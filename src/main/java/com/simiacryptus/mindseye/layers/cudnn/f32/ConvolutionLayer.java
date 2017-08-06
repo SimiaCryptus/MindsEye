@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
+import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
@@ -35,6 +36,7 @@ import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.runtime.JCuda;
+import org.apache.commons.math.random.RandomGenerator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -290,9 +292,7 @@ public class ConvolutionLayer extends NNLayer {
             TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize);
             //assert inputBufferTensors.stream().allMatch(tensor -> Arrays.stream(tensor.getData()).allMatch(Double::isFinite));
             input.accumulate(buffer, inputBufferTensors);
-            inputBuffer.finalize();
           }
-          outputBuffer.finalize();
         }
 
         @Override
@@ -371,7 +371,11 @@ public class ConvolutionLayer extends NNLayer {
   
   public ConvolutionLayer setWeightsLog(final double value) {
     this.filter.coordStream().parallel().forEach(c -> {
-      this.filter.set(c, (Math.random()-0.5)*Math.pow(10,value));
+      double random = FastRandom.random();
+      assert Double.isFinite(random);
+      double v = (random - 0.5) * Math.pow(10, value);
+      assert Double.isFinite(v);
+      this.filter.set(c, v);
     });
     return this;
   }

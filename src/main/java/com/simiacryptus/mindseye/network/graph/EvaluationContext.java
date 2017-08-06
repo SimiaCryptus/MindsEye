@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.simiacryptus.mindseye.layers.NNResult;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -33,6 +31,6 @@ public class EvaluationContext {
   /**
    * The Cache.
    */
-  public final Map<UUID, NNResult> cache = new HashMap<>();
+  public final Map<UUID, CountingNNResult> cache = new HashMap<>();
   
 }

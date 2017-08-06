@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.synapse;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Coordinate;
@@ -218,7 +219,7 @@ public class DenseSynapseLayer extends NNLayer {
   
   public DenseSynapseLayer setWeightsLog(final double value) {
     this.weights.coordStream().parallel().forEach(c -> {
-      this.weights.set(c, (Math.random()-0.5)*Math.pow(10,value));
+      this.weights.set(c, (FastRandom.random()-0.5)*Math.pow(10,value));
     });
     return this;
   }

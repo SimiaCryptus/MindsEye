@@ -70,13 +70,14 @@ public final class InnerNode extends LazyResult {
   
   @Override
   protected NNResult eval(final EvaluationContext ctx, NNLayer.NNExecutionContext nncontext) {
+    NNLayer innerLayer = dagNetwork.layersById.get(this.id);
     if (1 == this.inputNodes.length) {
       final NNResult in = this.inputNodes[0].get(nncontext, ctx);
-      final NNResult output = dagNetwork.layersById.get(this.id).eval(nncontext, in);
+      final NNResult output = innerLayer.eval(nncontext, in);
       return output;
     } else {
       final NNResult[] in = Arrays.stream(this.inputNodes).map(x -> x.get(nncontext, ctx)).toArray(i -> new NNResult[i]);
-      final NNResult output = dagNetwork.layersById.get(this.id).eval(nncontext, in);
+      final NNResult output = innerLayer.eval(nncontext, in);
       return output;
     }
   }

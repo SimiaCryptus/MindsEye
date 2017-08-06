@@ -95,19 +95,19 @@ public class EntropyLossLayer extends NNLayer {
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
-        if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
+        NNResult a = inObj[0];
+        NNResult b = inObj[1];
+        if (b.isAlive()) {
+          throw new RuntimeException();
+        }
+        if (a.isAlive()) {
+          a.accumulate(buffer, new TensorArray(IntStream.range(0, a.data.length()).mapToObj(dataIndex -> {
             final Tensor passback = new Tensor(gradientA[dataIndex].getDimensions());
-            for (int i = 0; i < inObj[0].data.get(0).dim(); i++) {
+            for (int i = 0; i < a.data.get(0).dim(); i++) {
               passback.set(i, data.get(dataIndex).get(0) * gradientA[dataIndex].get(i));
             }
             return passback;
-          }).toArray(i -> new Tensor[i]);
-          if (inObj[0].isAlive()) {
-            inObj[0].accumulate(buffer, new TensorArray(passbackA));
-          }
-          if (inObj[1].isAlive())
-            throw new RuntimeException();
+          }).toArray(i -> new Tensor[i])));
         }
       }
       

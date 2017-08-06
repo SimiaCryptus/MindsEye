@@ -164,9 +164,7 @@ public class PoolingLayer extends NNLayer {
                       inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             });
             input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize));
-            passbackBuffer.finalize();
           }
-          outputData.finalize();
         }
 
         @Override
