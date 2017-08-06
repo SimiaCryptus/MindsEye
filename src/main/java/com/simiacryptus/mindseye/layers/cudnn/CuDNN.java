@@ -25,7 +25,13 @@ import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.*;
+import jcuda.runtime.JCuda;
+import jcuda.runtime.cudaDeviceProp;
 
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -52,14 +58,30 @@ public class CuDNN {
     /**
      * The constant gpuContexts.
      */
-    public static final StaticResourcePool<NNLayer.NNExecutionContext> gpuContexts = new StaticResourcePool<NNLayer.NNExecutionContext>(IntStream.range(0,deviceCount())
-            .mapToObj(i->new NNLayer.NNExecutionContext(){
-                @Override
-                public int getCudaDeviceId() {
-                    return i;
-                }
-            }).collect(Collectors.toList()));
-
+    public static final StaticResourcePool<NNLayer.NNExecutionContext> gpuContexts = new StaticResourcePool<NNLayer.NNExecutionContext>(loadGpuContexts());
+    
+    private static List<NNLayer.NNExecutionContext> loadGpuContexts() {
+        int deviceCount = deviceCount();
+        System.out.println(String.format("Found %s devices", deviceCount));
+        ArrayList<Integer> devices = new ArrayList<Integer>();
+        for(int device=0;device<deviceCount;device++) {
+            cudaDeviceProp deviceProp = new cudaDeviceProp();
+            cudaGetDeviceProperties(deviceProp, device);
+            String deviceName = new String(deviceProp.name, Charset.forName("ASCII"));
+            System.out.println(String.format("Device %s - %s", device, deviceName));
+            if(0 != device) continue;
+            devices.add(device);
+        }
+        System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
+        return devices.stream()
+                .map(i->new NNLayer.NNExecutionContext(){
+                    @Override
+                    public int getCudaDeviceId() {
+                        return i;
+                    }
+                }).collect(Collectors.toList());
+    }
+    
     /**
      * The Cudnn handle.
      */
@@ -73,7 +95,6 @@ public class CuDNN {
     public static int deviceCount() {
         int[] deviceCount = new int[1];
         handle(cudaGetDeviceCount(deviceCount));
-        System.out.println(String.format("Identified %s GPU devices", deviceCount[0]));
         return deviceCount[0];
     }
 
@@ -403,5 +424,20 @@ public class CuDNN {
     @Override
     public void finalize() throws Throwable {
         handle(cudnnDestroy(cudnnHandle));
+    }
+    
+    private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
+        @Override
+        protected Integer initialValue() {
+            return -1;
+        }
+    };
+    public static void setDevice(int cudaDeviceId) {
+        currentDevice.set(cudaDeviceId);
+        JCuda.cudaSetDevice(cudaDeviceId);
+    }
+    public static int getDevice() {
+        Integer integer = currentDevice.get();
+        return integer==null?0:integer;
     }
 }

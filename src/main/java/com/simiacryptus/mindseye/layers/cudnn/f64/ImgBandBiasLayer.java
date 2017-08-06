@@ -88,7 +88,7 @@ public class ImgBandBiasLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+    CuDNN.setDevice(nncontext.getCudaDeviceId());
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
     final int[] inputSize = batch.get(0).getDimensions();
@@ -122,7 +122,7 @@ public class ImgBandBiasLayer extends NNLayer {
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
-          JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+          CuDNN.setDevice(nncontext.getCudaDeviceId());
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           CudaPtr errorPtr = CudaPtr.toDeviceAsDouble(nncontext.getCudaDeviceId(), error);

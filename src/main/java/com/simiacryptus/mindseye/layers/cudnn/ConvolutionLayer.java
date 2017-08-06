@@ -180,7 +180,7 @@ public class ConvolutionLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+    CuDNN.setDevice(nncontext.getCudaDeviceId());
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
@@ -216,7 +216,7 @@ public class ConvolutionLayer extends NNLayer {
     return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
-        JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+        CuDNN.setDevice(nncontext.getCudaDeviceId());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);

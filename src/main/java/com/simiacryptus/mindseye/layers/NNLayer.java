@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 
@@ -47,7 +48,7 @@ public abstract class NNLayer implements Serializable {
      *
      * @return the cuda device id
      */
-    default int getCudaDeviceId() { return 0; }
+    default int getCudaDeviceId() { return CuDNN.getDevice(); }
   }
   
   /**

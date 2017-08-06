@@ -75,19 +75,23 @@ public class EntropyLossLayer extends NNLayer {
     Tensor gradientA[] = new Tensor[inObj[0].data.length()];
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
       final Tensor l = inObj[0].data.get(dataIndex);
-      final Tensor b = inObj[1].data.get(dataIndex);
-      assert (l.dim() == b.dim()) : l.dim() + " != " + b.dim();
+      final Tensor r = inObj[1].data.get(dataIndex);
+      assert (l.dim() == r.dim()) : l.dim() + " != " + r.dim();
       final Tensor gradient = new Tensor(l.getDimensions());
       gradientA[dataIndex] = gradient;
       final double[] gradientData = gradient.getData();
       final double descriptiveNats;
       double total = 0;
+      double[] ld = l.getData();
+      double[] rd = r.getData();
       for (int i = 0; i < l.dim(); i++) {
-        final double ad = Math.max(Math.min(l.getData()[i], 1.), 1e-12);
-        final double bd = b.getData()[i];
-        gradientData[i] = -bd / ad;
-        total += -bd * Math.log(ad);
+        final double lv = Math.max(Math.min(ld[i], 1.), 1e-12);
+        final double rv = rd[i];
+        assert(rv > 0);
+        gradientData[i] = -rv / lv;
+        total += -rv * Math.log(lv);
       }
+      assert(total >= 0);
       descriptiveNats = total;
       
       return new Tensor(new int[]{1}, new double[]{descriptiveNats});

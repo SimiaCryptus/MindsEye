@@ -117,7 +117,7 @@ public class PoolingLayer extends NNLayer {
     final int padding[] = {paddingX, paddingY};
     final int stride[] = {strideX, strideY};
     try {
-      JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+      CuDNN.setDevice(nncontext.getCudaDeviceId());
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
       final NNResult input = inObj[0];
       final TensorList batch = input.data;
@@ -148,7 +148,7 @@ public class PoolingLayer extends NNLayer {
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
-          JCuda.cudaSetDevice(nncontext.getCudaDeviceId());
+          CuDNN.setDevice(nncontext.getCudaDeviceId());
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);

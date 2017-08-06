@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public class StochasticArrayTrainable implements Trainable {
   
-  private static final int LOW_MEM_USE = 1 * 1024 * 1024 * 1024;
+  private static final int LOW_MEM_USE = 4 * 1024 * 1024 * 1024;
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private final NNLayer network;
   private long hash = Util.R.get().nextLong();

@@ -57,7 +57,7 @@ public class CountingNNResult extends NNResult {
     passbackBuffer.add(data);
     if(passbackBuffer.size() >= getCount()) {
       //System.err.println(String.format("Pass Count -> %s, Buffer -> %s", this.count, passbackBuffer.size()));
-      TensorList reduced = passbackBuffer.stream().reduce(TensorList::add).get();
+      TensorList reduced = passbackBuffer.stream().parallel().reduce(TensorList::add).get();
       inner.accumulate(buffer, reduced);
       passbackBuffer.clear();
     } else {

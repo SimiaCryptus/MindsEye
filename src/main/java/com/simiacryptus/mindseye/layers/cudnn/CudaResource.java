@@ -33,6 +33,8 @@ public class CudaResource<T> {
     private final T ptr;
     private final ToIntFunction<T> destructor;
     private boolean finalized = false;
+    //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
+    private final int device = CuDNN.getDevice();
 
     /**
      * Instantiates a new Cu dnn resource.

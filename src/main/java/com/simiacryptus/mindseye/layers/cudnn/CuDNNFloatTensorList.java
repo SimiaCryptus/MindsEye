@@ -22,11 +22,18 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.layers.TensorArray;
 import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.util.ml.Tensor;
+import jcuda.Pointer;
 import jcuda.Sizeof;
+import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
+import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
  * The type Cu dnn float tensor list.
@@ -44,7 +51,7 @@ public class CuDNNFloatTensorList implements TensorList {
    * The Dimensions.
    */
   public final int[] dimensions;
-
+  
   /**
    * Instantiates a new Cu dnn float tensor list.
    *
@@ -53,66 +60,88 @@ public class CuDNNFloatTensorList implements TensorList {
    * @param dimensions the dimensions
    */
   public CuDNNFloatTensorList(CudaPtr ptr, int length, int[] dimensions) {
-          this.ptr = ptr;
-          this.length = length;
-          this.dimensions = dimensions;
-          assert(ptr.size == length * 1l * Tensor.dim(dimensions) * Sizeof.FLOAT);
-          //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-      }
-
-      private volatile TensorList _inner = null;
-
+    this.ptr = ptr;
+    this.length = length;
+    this.dimensions = dimensions;
+    assert (ptr.size == length * 1l * Tensor.dim(dimensions) * Sizeof.FLOAT);
+    //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+  }
+  
+  private volatile TensorList _inner = null;
+  
   /**
    * Inner tensor list.
    *
    * @return the tensor list
    */
   public TensorList inner() {
-          if(null == _inner) {
-              synchronized (this) {
-                  if(null == _inner) {
-                      int itemLength = Tensor.dim(dimensions);
-                      final float[] buffer = new float[itemLength * length];
-                      assert(0 < buffer.length);
-
-                      //Arrays.stream(output).map(x -> x.getDataAsFloats()).toArray(i -> new float[i][]);
-                      ptr.read(buffer);
-                      //assert IntStream.range(0,buffer.length).mapToDouble(ii->buffer[ii]).allMatch(Double::isFinite);
-                      float[][] floats = IntStream.range(0, length)
-                              .mapToObj(dataIndex -> new float[itemLength])
-                              .toArray(i -> new float[i][]);
-                      for (int i = 0; i< length; i++) {
-                          assert itemLength == floats[0 +i].length;
-                          System.arraycopy(buffer, i * itemLength, floats[0 +i], 0, itemLength);
-                      }
-                      //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-                      Tensor[] output = Arrays.stream(floats).map(floats2->{
-                          return new Tensor(dimensions, floats2);
-                      }).toArray(i->new Tensor[i]);
-                      _inner = new TensorArray(output);
-                  }
-              }
+    if (null == _inner) {
+      synchronized (this) {
+        if (null == _inner) {
+          int itemLength = Tensor.dim(dimensions);
+          final float[] buffer = new float[itemLength * length];
+          assert (0 < buffer.length);
+          
+          //Arrays.stream(output).map(x -> x.getDataAsFloats()).toArray(i -> new float[i][]);
+          ptr.read(buffer);
+          //assert IntStream.range(0,buffer.length).mapToDouble(ii->buffer[ii]).allMatch(Double::isFinite);
+          float[][] floats = IntStream.range(0, length)
+                               .mapToObj(dataIndex -> new float[itemLength])
+                               .toArray(i -> new float[i][]);
+          for (int i = 0; i < length; i++) {
+            assert itemLength == floats[0 + i].length;
+            System.arraycopy(buffer, i * itemLength, floats[0 + i], 0, itemLength);
           }
-          return _inner;
+          //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          Tensor[] output = Arrays.stream(floats).map(floats2 -> {
+            return new Tensor(dimensions, floats2);
+          }).toArray(i -> new Tensor[i]);
+          _inner = new TensorArray(output);
+        }
       }
-
-      @Override
-      public Tensor get(int i) {
-          return inner().get(i);
-      }
-
-      @Override
-      public int length() {
-          return length;
-      }
-
-      @Override
-      public Stream<Tensor> stream() {
-          return inner().stream();
-      }
+    }
+    return _inner;
+  }
+  
+  @Override
+  public Tensor get(int i) {
+    return inner().get(i);
+  }
+  
+  @Override
+  public int length() {
+    return length;
+  }
+  
+  @Override
+  public Stream<Tensor> stream() {
+    return inner().stream();
+  }
   
   @Override
   public int[] getDimensions() {
     return dimensions;
   }
+  
+  @Override
+  public TensorList add(TensorList right) {
+    assert(length() == right.length());
+    if(right instanceof CuDNNFloatTensorList) {
+      CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
+      CuDNN.devicePool.with(handle->{
+        CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+        CuDNN.handle(cudnnAddTensor(handle.cudnnHandle,
+          Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
+          Pointer.to(new float[]{1.0f}), size.getPtr(), CuDNNFloatTensorList.this.ptr.getPtr()));
+        size.finalize();
+        nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+      });
+      return this;
+    }
+    return new TensorArray(
+                            IntStream.range(0, length()).mapToObj(i->{
+                              return get(i).add(right.get(i));
+                            }).toArray(i->new Tensor[i])
+    );
   }
+}

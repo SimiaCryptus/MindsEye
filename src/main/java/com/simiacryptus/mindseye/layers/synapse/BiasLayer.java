@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.synapse;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
@@ -144,6 +145,11 @@ public class BiasLayer extends NNLayer {
     };
   }
   
+  
+  public BiasLayer setWeightsLog(final double value) {
+    for(int i=0;i<this.bias.length;i++) this.bias[i] = (FastRandom.random()-0.5)*Math.pow(10,value);
+    return this;
+  }
   
   /**
    * Set nn layer.
