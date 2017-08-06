@@ -90,7 +90,7 @@ public class LBFGS implements OrientationStrategy {
       List<double[]> gradient = defaultValue.stream().map(x -> Arrays.copyOf(x.delta,x.delta.length)).collect(Collectors.toList());
       type = "LBFGS";
       List<double[]> p = descent.stream().map(x -> x.copyDelta()).collect(Collectors.toList());
-      assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
+      assert (p.stream().parallel().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
         List<double[]> si = minus((history.get(i + 1).weights.vector()), history.get(i).weights.vector());
@@ -103,18 +103,18 @@ public class LBFGS implements OrientationStrategy {
         }
         alphas[i] = dot(si, p) / denominator;
         p = ArrayUtil.minus(p, ArrayUtil.multiply(yi, alphas[i]));
-        assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
+        assert (p.stream().parallel().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       }
       List<double[]> sk1 = minus(history.get(history.size() - 1).weights.vector(), history.get(history.size() - 2).weights.vector());
       List<double[]> yk1 = minus(history.get(history.size() - 1).delta.vector(), history.get(history.size() - 2).delta.vector());
       p = ArrayUtil.multiply(p, dot(sk1, yk1) / dot(yk1, yk1));
-      assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
+      assert (p.stream().parallel().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       for (int i = 0; i < history.size() - 1; i++) {
         List<double[]> si = minus(history.get(i + 1).weights.vector(), history.get(i).weights.vector());
         List<double[]> yi = minus(history.get(i + 1).delta.vector(), history.get(i).delta.vector());
         double beta = dot(yi, p) / dot(si, yi);
         p = add(p, ArrayUtil.multiply(si, alphas[i] - beta));
-        assert (p.stream().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
+        assert (p.stream().parallel().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
       }
       List<double[]> _p = p;
       for (int i = 0; i < descent.size(); i++) {
