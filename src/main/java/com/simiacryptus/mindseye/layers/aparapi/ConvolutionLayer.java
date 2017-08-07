@@ -184,7 +184,7 @@ public class ConvolutionLayer extends NNLayer {
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolutionController.convolve(inputBuffers, this.kernel.getData(), outputBuffers);
     } catch (Throwable e) {
-      throw new RuntimeException("Error with image res " + Arrays.toString(inputDims),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputDims),e);
     }
     assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   

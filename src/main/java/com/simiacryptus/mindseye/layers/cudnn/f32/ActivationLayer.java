@@ -149,7 +149,7 @@ public class ActivationLayer extends NNLayer {
                   beta.getPtr(),
                   inputDescriptor.getPtr(), outputData.getPtr()));
         } catch (Throwable e) {
-          throw new RuntimeException("Error with " + Arrays.toString(inputSize),e);
+          throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
         }
       });
       TensorList output = CudaPtr.fromDeviceFloat(outputData, length, outputSize);
@@ -174,7 +174,7 @@ public class ActivationLayer extends NNLayer {
                         inputDescriptor.getPtr(), passbackBuffer.getPtr()));
               });
             } catch (Throwable e) {
-              throw new RuntimeException("Error with " + Arrays.toString(inputSize),e);
+              throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
             }
             input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize));
           }
@@ -186,7 +186,7 @@ public class ActivationLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
     }
   }
 

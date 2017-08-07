@@ -209,7 +209,7 @@ public class ConvolutionLayer extends NNLayer {
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolve(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, this.kernel.getData(), outputBuffers);
     } catch (Throwable e) {
-      throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
     }
     //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   
@@ -334,7 +334,7 @@ public class ConvolutionLayer extends NNLayer {
                   CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
           backprop(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
         } catch (Throwable e) {
-          throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
+          throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
         }
       });
       for (int i = 0; i< currentNumItems; i++) {
@@ -403,7 +403,7 @@ public class ConvolutionLayer extends NNLayer {
                   CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
           convolve(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
         } catch (Throwable e) {
-          throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
+          throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
         }
       });
       for (int i = 0; i< currentNumItems; i++) {
@@ -473,7 +473,7 @@ public class ConvolutionLayer extends NNLayer {
                   CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, items, inputSize[2], inputSize[1], inputSize[0]);
           gradient(deviceId, outputSize, _inputBuffer, buffer, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
         } catch (Throwable e) {
-          throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
+          throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
         }
       });
       IntStream.range(0, weights.length).forEach(weightIndex -> {

@@ -116,7 +116,7 @@ public class ImgBandBiasLayer extends NNLayer {
                   beta.getPtr(),
                   inputDescriptor.getPtr(), inputData.getPtr()));
         } catch (Throwable e) {
-          throw new RuntimeException("Error with " + Arrays.toString(inputSize),e);
+          throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
         }
       });
       TensorList output = CudaPtr.fromDeviceFloat(inputData, length, outputSize);
@@ -137,7 +137,7 @@ public class ImgBandBiasLayer extends NNLayer {
                         filterDescriptor.getPtr(), filterBuffer.getPtr()));
               });
             } catch (Throwable e) {
-              throw new RuntimeException("Error with " + Arrays.toString(inputSize),e);
+              throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
@@ -157,7 +157,7 @@ public class ImgBandBiasLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
     }
   }
   

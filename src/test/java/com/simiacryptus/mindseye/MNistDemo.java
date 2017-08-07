@@ -118,8 +118,8 @@ public class MNistDemo {
      * @param trainingData the training data
      */
     public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData) {
-      log.p("Training a model involves a few different components. First, our model is combined with a loss function. " +
-                "Then we take that model and combine it with our training data to define a trainable object. " +
+      log.p("Training a model involves a few different components. First, our model is combined map a loss function. " +
+                "Then we take that model and combine it map our training data to define a trainable object. " +
                 "Finally, we use a simple iterative scheme to refine the weights of our model. " +
                 "The final output is the last output value of the loss function when evaluating the last batch.");
       log.code(()->{
@@ -141,7 +141,7 @@ public class MNistDemo {
     public Tensor[][] getTrainingData(NotebookOutput log) {
       log.p("We use the standard MNIST dataset, made available by a helper function. " +
                 "In order to use data, we convert it into data tensors; helper functions are defined to " +
-                "work with images.");
+                "work map images.");
       return log.code(() -> {
         try {
           return MNIST.trainingDataStream().map(labeledObject -> {

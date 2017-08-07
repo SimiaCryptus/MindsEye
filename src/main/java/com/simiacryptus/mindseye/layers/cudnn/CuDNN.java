@@ -73,6 +73,10 @@ public class CuDNN {
             devices.add(device);
         }
         System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
+        for(int device : devices) {
+            CuDNN.handle(cudaSetDevice(device));
+            CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+        }
         return devices.stream()
                 .map(i->new NNLayer.NNExecutionContext(){
                     @Override

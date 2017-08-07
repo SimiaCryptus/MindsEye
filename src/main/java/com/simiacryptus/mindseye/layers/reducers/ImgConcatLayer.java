@@ -69,7 +69,7 @@ public class ImgConcatLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
   
-    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions().length == 3) : "This component is for use with 3d image tensors only";
+    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions().length == 3) : "This component is for use map 3d image tensors only";
     int numBatches = inObj[0].data.length();
     assert Arrays.stream(inObj).allMatch(x-> x.data.length() == numBatches) : "All inputs must use same batch size";
     int[] outputDims = Arrays.copyOf(inObj[0].data.get(0).getDimensions(), 3);

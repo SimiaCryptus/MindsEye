@@ -225,7 +225,7 @@ public class ConvolutionLayer extends NNLayer {
                   outputDescriptor.getPtr(), outputBuffer.getPtr()));
           workSpace.finalize();
         } catch (Throwable e) {
-          throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
+          throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
         }
       });
       TensorList output = CudaPtr.fromDeviceDouble(outputBuffer, length, outputSize);
@@ -254,7 +254,7 @@ public class ConvolutionLayer extends NNLayer {
                 workSpace.finalize();
               });
             } catch (Throwable e) {
-              throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
+              throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceDouble(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
             buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
@@ -274,7 +274,7 @@ public class ConvolutionLayer extends NNLayer {
                         inputDescriptor.getPtr(), inputBuffer.getPtr()));
               });
             } catch (Throwable e) {
-              throw new RuntimeException("Error with " + Arrays.toString(kernelSize),e);
+              throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
             }
             TensorList inputBufferTensors = CudaPtr.fromDeviceDouble(inputBuffer, length, inputSize);
             input.accumulate(buffer, inputBufferTensors);
@@ -287,7 +287,7 @@ public class ConvolutionLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error with image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
     }
   }
 

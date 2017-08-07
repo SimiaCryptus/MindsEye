@@ -82,7 +82,7 @@ public class CudaPtr extends CudaResource<Pointer> {
 //            CuDNN.CudaResource<cudnnTensorDescriptor> toFormat = CuDNN.newTensorDescriptor(
 //                    CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
 //            CuDNN.CudaPtr destPtr = CuDNN.alloc(Sizeof.DOUBLE * length * Tensor.dim(dimensions[2], dimensions[1], dimensions[0]));
-//            CuDNN.devicePool.with(cudnn->{
+//            CuDNN.devicePool.map(cudnn->{
 //                cudnnTransformTensor(cudnn, );
 //            });
 //            return destPtr;

@@ -124,7 +124,7 @@ public abstract class NNLayer implements Serializable {
    * @param array     the array
    * @return the nn result
    */
-  public abstract NNResult eval(NNExecutionContext nncontext, NNResult... array);
+  public abstract NNResult eval(NNExecutionContext nncontext, NNResult[] array);
   
   /**
    * Freeze nn layer.

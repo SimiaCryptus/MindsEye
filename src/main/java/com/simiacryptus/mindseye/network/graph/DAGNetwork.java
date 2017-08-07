@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph
- * with a single output. Supplied builder methods designed to build linear
+ * map a single output. Supplied builder methods designed to build linear
  * sequence of units acting on the current output node.
  *
  * @author Andrew Charneski
@@ -346,7 +346,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... input) {
+  public NNResult eval(NNExecutionContext nncontext, final NNResult[] input) {
     return getHead().get(nncontext, buildExeCtx(input));
   }
   

@@ -160,7 +160,7 @@ public final class ConvolutionController {
           backpropTask.weights = null;
         }
       } catch (Throwable e) {
-        throw new RuntimeException("Error with " + this,e);
+        throw new RuntimeException("Error map " + this,e);
       }
     });
 
@@ -241,7 +241,7 @@ public final class ConvolutionController {
           convolveTask.weights = null;
         }
       } catch (Throwable e) {
-        throw new RuntimeException("Error with " + this,e);
+        throw new RuntimeException("Error map " + this,e);
       }});
   }
   
@@ -329,7 +329,7 @@ public final class ConvolutionController {
           kernelTask.kernelSize = null;
         }
       } catch (Throwable e) {
-        throw new RuntimeException("Error with " +this,e);
+        throw new RuntimeException("Error map " +this,e);
       }
     });
   }

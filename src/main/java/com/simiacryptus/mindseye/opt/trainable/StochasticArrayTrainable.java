@@ -47,7 +47,8 @@ public class StochasticArrayTrainable implements Trainable {
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
   private int batchSize = Integer.MAX_VALUE;
-  private Tensor[][] sampledData;
+  private List<? extends Supplier<Tensor[]>> sampledData;
+  private boolean gcEachIteration = true;
   
   /**
    * Instantiates a new Stochastic array trainable.
@@ -93,29 +94,35 @@ public class StochasticArrayTrainable implements Trainable {
   @Override
   public PointSample measure() {
     try {
-      List<List<Tensor[]>> partitions = Lists.partition(Arrays.asList(sampledData), batchSize);
+      List<? extends List<? extends Supplier<Tensor[]>>> partitions = Lists.partition(sampledData, batchSize);
       PointSample result = partitions.stream().parallel().map(trainingData -> {
         PointSample pointSample = evalSubsample(trainingData);
         return pointSample;
       }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
       Map<Integer, Long> peakMemory = CudaPtr.METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().peakMemory.getAndSet(0)));
-      if(partitions.size() < CuDNN.devicePool.size()) {
+      if(partitions.size() < CuDNN.gpuContexts.size()) {
         batchSize = batchSize / 2;
-      } else if(partitions.size() > 2 * CuDNN.devicePool.size()) {
+      } else if(partitions.size() > 2 * CuDNN.gpuContexts.size()) {
         double highestMemUse = peakMemory.values().stream().mapToDouble(x -> x).max().getAsDouble();
         if(highestMemUse < LOW_MEM_USE) {
           batchSize = batchSize * 2;
         }
       }
+      if(gcEachIteration) cleanMemory();
       return result;
     } catch (Throwable t) {
       t.printStackTrace();
       if(isOom(t) && batchSize > 1) {
+        cleanMemory();
         batchSize = batchSize / 2;
-        System.gc();
         return measure();
       } else throw t;
     }
+  }
+  
+  public void cleanMemory() {
+    System.gc();
+    System.runFinalization();
   }
   
   private static boolean isOom(Throwable t) {
@@ -130,9 +137,9 @@ public class StochasticArrayTrainable implements Trainable {
    * @param trainingData the training data
    * @return the point sample
    */
-  protected PointSample evalSubsample(List<Tensor[]> trainingData) {
-    NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
-    return CuDNN.gpuContexts.with(nncontext->{
+  protected PointSample evalSubsample(List<? extends Supplier<Tensor[]>> trainingData) {
+    NNResult[] input = NNResult.batchResultArray(trainingData.stream().parallel().map(x->x.get()).toArray(i->new Tensor[i][]));
+    return CuDNN.gpuContexts.map(nncontext->{
       NNResult result = network.eval(nncontext, input);
       DeltaSet deltaSet = new DeltaSet();
       result.accumulate(deltaSet);
@@ -151,9 +158,7 @@ public class StochasticArrayTrainable implements Trainable {
 
   @Override
   public void resetToFull() {
-    this.sampledData = trainingData.stream().parallel() //
-                         .map(obj -> obj.get())
-                         .toArray(i -> new Tensor[i][]);
+    this.sampledData = trainingData.stream().collect(Collectors.toList());
   }
   
   @Override
@@ -195,8 +200,7 @@ public class StochasticArrayTrainable implements Trainable {
     this.sampledData = trainingData.stream().parallel() //
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
                            .limit(getTrainingSize()) //
-                           .map(obj -> obj.get())
-                           .toArray(i -> new Tensor[i][]);
+                           .collect(Collectors.toList());
   }
   
   /**
@@ -215,5 +219,13 @@ public class StochasticArrayTrainable implements Trainable {
    */
   public void setBatchSize(int batchSize) {
     this.batchSize = batchSize;
+  }
+  
+  public boolean isGcEachIteration() {
+    return gcEachIteration;
+  }
+  
+  public void setGcEachIteration(boolean gcEachIteration) {
+    this.gcEachIteration = gcEachIteration;
   }
 }
