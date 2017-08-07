@@ -111,7 +111,6 @@ public class StochasticArrayTrainable implements Trainable {
       if(gcEachIteration) cleanMemory();
       return result;
     } catch (Throwable t) {
-      t.printStackTrace();
       if(isOom(t) && batchSize > 1) {
         cleanMemory();
         batchSize = batchSize / 2;
@@ -121,6 +120,7 @@ public class StochasticArrayTrainable implements Trainable {
   }
   
   public void cleanMemory() {
+    Tensor.clear();
     System.gc();
     System.runFinalization();
   }
