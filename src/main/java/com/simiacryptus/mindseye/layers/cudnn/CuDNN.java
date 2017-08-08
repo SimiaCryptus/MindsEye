@@ -353,13 +353,23 @@ public class CuDNN {
      * @param width        the width
      * @return the cu dnn resource
      */
-    public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(int dataType, int tensorLayout, int batchCount, int channels, int height, int width) {
+    public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(int dataType, int tensorLayout,
+                                                                          int batchCount, int channels, int height, int width) {
         cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
         handle(cudnnCreateTensorDescriptor(desc));
         handle(cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width));
         return new CudaResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
     }
-
+    
+    public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(int dataType,
+                                                                          int batchCount, int channels, int height, int width,
+                                                                          int nStride, int cStride, int hStride, int wStride) {
+        cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
+        handle(cudnnCreateTensorDescriptor(desc));
+        handle(cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride));
+        return new CudaResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
+    }
+    
     /**
      * New activation descriptor cu dnn resource.
      *

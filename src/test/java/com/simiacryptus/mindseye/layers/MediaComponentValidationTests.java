@@ -123,13 +123,27 @@ public class MediaComponentValidationTests {
     final Tensor outputPrototype = new Tensor(3, 3, 2);
     final Tensor inputPrototype = new Tensor(3, 3, 2).fill(() -> Util.R.get().nextGaussian());
     final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer(3, 3, 4)
-            .addWeights(() -> Util.R.get().nextGaussian());
+                                .addWeights(() -> Util.R.get().nextGaussian());
     double prev = ComponentTestUtil.tolerance;
     ComponentTestUtil.tolerance = 1e-4;
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
     ComponentTestUtil.tolerance = prev;
   }
-
+  
+  @Test
+  public void testCuDNNImgConcatLayer() throws Throwable {
+    final Tensor outputPrototype = new Tensor(2, 3, 2);
+    final Tensor[] inputPrototype = new Tensor[]{
+      new Tensor(2, 3, 1).fill(() -> Util.R.get().nextGaussian()),
+      new Tensor(2, 3, 1).fill(() -> Util.R.get().nextGaussian())
+    };
+    final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.f32.ImgConcatLayer();
+    double prev = ComponentTestUtil.tolerance;
+    ComponentTestUtil.tolerance = 1e-1;
+    ComponentTestUtil.test(component, outputPrototype, inputPrototype);
+    ComponentTestUtil.tolerance = prev;
+  }
+  
   /**
    * Test cu dnn direct convolution synapse layer 1.
    *

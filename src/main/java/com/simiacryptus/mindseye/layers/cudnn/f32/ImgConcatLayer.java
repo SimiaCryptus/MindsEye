@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
+import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.runtime.JCuda;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 
 import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
 import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardBias;
+import static jcuda.jcudnn.JCudnn.cudnnTransformTensor;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -59,7 +61,6 @@ public class ImgConcatLayer extends NNLayer {
 
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getBias()));
     return json;
   }
   
@@ -70,19 +71,14 @@ public class ImgConcatLayer extends NNLayer {
    */
   protected ImgConcatLayer(JsonObject json) {
     super(json);
-    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
-
-  private final double[] bias;
   
   /**
    * Instantiates a new Img band bias layer.
    *
-   * @param bands the bands
    */
-  public ImgConcatLayer(int bands) {
-    this.bias = new double[bands];
+  public ImgConcatLayer() {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
 
@@ -90,161 +86,74 @@ public class ImgConcatLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    assert 3 == inObj[0].data.getDimensions().length;
+    int[] dimOut = Arrays.copyOf(inObj[0].data.getDimensions(), 3);
+    int length = inObj[0].data.length();
+    assert Arrays.stream(inObj).allMatch(x->3 == x.data.getDimensions().length && x.data.getDimensions()[0]==dimOut[0] && x.data.getDimensions()[1]==dimOut[1] && x.data.length()==length);
+    dimOut[2] = Arrays.stream(inObj).mapToInt(x->x.data.getDimensions()[2]).sum();
     CuDNN.setDevice(nncontext.getCudaDeviceId());
-    final NNResult input = inObj[0];
-    final TensorList batch = input.data;
-    final int[] inputSize = batch.getDimensions();
-    assert(inputSize[2] == bias.length);
-    int[] outputSize = inputSize;
-    int length = batch.length();
-  
-    List<CudaPtr> inputPtrs = Arrays.stream(inObj).map(x -> CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), x.data)).collect(Collectors.toList());
-  
-  
-    try {
-
-      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-      CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
-      CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
-
-      assert(0 < this.bias.length);
-      CudaPtr filterPtr = CuDNN.write(nncontext.getCudaDeviceId(), Tensor.toFloats(this.bias));
-      CudaPtr inputData = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
-      CuDNN.devicePool.with(device -> {
-        try {
-          CuDNN.handle(cudnnAddTensor(device.cudnnHandle, alpha.getPtr(),
-                  filterDescriptor.getPtr(), filterPtr.getPtr(),
-                  beta.getPtr(),
-                  inputDescriptor.getPtr(), inputData.getPtr()));
-        } catch (Throwable e) {
-          throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
-        }
-      });
-      TensorList output = CudaPtr.fromDeviceFloat(inputData, length, outputSize);
-      return new NNResult(output) {
-        @Override
-        public void accumulate(final DeltaSet buffer, final TensorList error) {
-          CuDNN.setDevice(nncontext.getCudaDeviceId());
-          assert (error.length() == batch.length());
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
-          if (!isFrozen()) {
-            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), ImgConcatLayer.this.bias.length * 1l * Sizeof.FLOAT);
-            try {
-              CuDNN.devicePool.with(device -> {
-                CuDNN.handle(cudnnConvolutionBackwardBias(device.cudnnHandle, alpha.getPtr(),
-                        inputDescriptor.getPtr(), errorPtr.getPtr(),
-                        beta.getPtr(),
-                        filterDescriptor.getPtr(), filterBuffer.getPtr()));
-              });
-            } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
-            }
-            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
-            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            DeltaBuffer deltaBuffer = buffer.get(ImgConcatLayer.this, ImgConcatLayer.this.bias);
-            deltaBuffer.accumulate(weightGradient.getData());
-            //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
-          }
+    CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), length * dimOut[2] * dimOut[1] * dimOut[0] * Sizeof.FLOAT);
+    CuDNN.devicePool.with(device -> {
+      int bandOffset = 0;
+      for(int i=0;i<inObj.length;i++) {
+        TensorList data = inObj[i].data;
+        int[] dimensions = data.getDimensions();
+        CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+          CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+          dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
+        CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
+          CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+          dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
+        CudaPtr cudaPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), data);
+        cudnnTransformTensor(device.cudnnHandle,
+          Pointer.to(new float[]{1.0f}), inputDescriptor.getPtr(), cudaPtr.getPtr(),
+          Pointer.to(new float[]{1.0f}), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * Sizeof.FLOAT)
+          );
+        bandOffset += dimensions[2];
+      }
+    });
+    return new NNResult(CudaPtr.fromDeviceFloat(outputBuffer, length, dimOut)) {
+      @Override
+      public void accumulate(final DeltaSet buffer, final TensorList error) {
+        CuDNN.setDevice(nncontext.getCudaDeviceId());
+        assert (error.length() == inObj[0].data.length());
+        //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
+        CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
+        int bandOffset = 0;
+        for(int i=0;i<inObj.length;i++) {
+          NNResult input = inObj[i];
+          int[] dimensions = input.data.getDimensions();
+          CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), length * dimensions[2] * dimensions[1] * dimensions[0] * Sizeof.FLOAT);
+          int _bandOffset = bandOffset;
+          CuDNN.devicePool.with(device -> {
+            CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+              CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+              dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
+            CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
+              CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+              dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
+            cudnnTransformTensor(device.cudnnHandle,
+              Pointer.to(new float[]{1.0f}), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * Sizeof.FLOAT),
+              Pointer.to(new float[]{1.0f}), inputDescriptor.getPtr(), passbackBuffer.getPtr()
+            );
+          });
           if (input.isAlive()) {
-            input.accumulate(buffer, error);
+            input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, dimensions));
           }
+          bandOffset += dimensions[2];
         }
+      }
 
-        @Override
-        public boolean isAlive() {
-          return input.isAlive() || !isFrozen();
-        }
-      };
-    } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
-    }
+      @Override
+      public boolean isAlive() {
+        return Arrays.stream(inObj).anyMatch(x->x.isAlive()) || !isFrozen();
+      }
+    };
   }
   
-  /**
-   * Add double [ ].
-   *
-   * @param input the input
-   * @return the double [ ]
-   */
-  public double[] add(final double[] input) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
-    assert(null != input);
-    double[] bias = this.getBias();
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    assert(null != bias);
-    if(input.length % bias.length != 0) throw new IllegalArgumentException();
-    final double[] array = new double[input.length];
-    int size = input.length / bias.length;
-    for (int i = 0; i < array.length; i++) {
-      array[i] = input[i] + bias[i/size];
-    }
-    //assert Arrays.stream(array).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return array;
-  }
-  
-  /**
-   * Add weights img band bias layer.
-   *
-   * @param f the f
-   * @return the img band bias layer
-   */
-  public ImgConcatLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.getBias());
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return this;
-  }
-  
-  /**
-   * Set nn layer.
-   *
-   * @param ds the ds
-   * @return the nn layer
-   */
-  public NNLayer set(final double[] ds) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(ds).allMatch(Double::isFinite);
-    double[] bias = this.getBias();
-    for (int i = 0; i < ds.length; i++) {
-      bias[i] = ds[i];
-    }
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return this;
-  }
-  
-  /**
-   * Sets weights.
-   *
-   * @param f the f
-   * @return the weights
-   */
-  public ImgConcatLayer setWeights(final IntToDoubleFunction f) {
-    double[] bias = this.getBias();
-    for (int i = 0; i < bias.length; i++) {
-      bias[i] = f.applyAsDouble(i);
-    }
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    return this;
-  }
-
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.getBias());
+    return Arrays.asList();
   }
   
-  /**
-   * Get bias double [ ].
-   *
-   * @return the double [ ]
-   */
-  public double[] getBias() {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return bias;
-  }
 }

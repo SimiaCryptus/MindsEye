@@ -91,9 +91,9 @@ public class SoftmaxActivationLayer extends NNLayer {
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
       final double max = summaryStatistics.getMax();
       //final double min = summaryStatistics.getMin();
-      exp = inObj[0].data.get(dataIndex).map(x -> {
+      exp = inObj[0].data.get(dataIndex).map(x -> Math.exp(x - max)).map(x -> {
         return Double.isFinite(x) ? x : 0;
-      }).map(x -> Math.exp(x - max));
+      });
       assert Arrays.stream(exp.getData()).allMatch(Double::isFinite);
       assert Arrays.stream(exp.getData()).allMatch(v->v>=0);
       double sum = exp.sum();
