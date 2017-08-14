@@ -74,7 +74,8 @@ public class MNistDemo {
         try {
           return MNIST.validationDataStream().mapToDouble(labeledObject->{
             int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-            double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {}, labeledObject.data).data.get(0).getData();
+            double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {
+            }, labeledObject.data).getData().get(0).getData();
             int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             return predictionList[0]==actualCategory?1:0;
           }).average().getAsDouble() * 100;
@@ -90,7 +91,8 @@ public class MNistDemo {
           MNIST.validationDataStream().map(labeledObject->{
             try {
               int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-              double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {},labeledObject.data).data.get(0).getData();
+              double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {
+              }, labeledObject.data).getData().get(0).getData();
               int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
               if(predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
               LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();

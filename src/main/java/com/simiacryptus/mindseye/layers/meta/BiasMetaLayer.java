@@ -70,10 +70,10 @@ public class BiasMetaLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length();
+    int itemCnt = inObj[0].getData().length();
     Tensor[] tensors = IntStream.range(0, itemCnt)
                            .parallel()
-                           .mapToObj(dataIndex -> inObj[0].data.get(dataIndex).map((v,c)->v + inObj[1].data.get(0).get(c)))
+                           .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c)->v + inObj[1].getData().get(0).get(c)))
                            .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override

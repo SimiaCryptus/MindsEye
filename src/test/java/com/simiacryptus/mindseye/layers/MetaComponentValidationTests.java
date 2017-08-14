@@ -102,13 +102,15 @@ public class MetaComponentValidationTests {
                                                         .mapToObj(j -> new Tensor(inputPrototype[inputIndex][i].dim(), outputPrototype[j].dim()))
                                                         .toArray(j -> new Tensor[j]))
                                      .toArray(i -> new Tensor[i][]);
-    final TensorList baseOutput = component.eval(new NNLayer.NNExecutionContext() {}, inputPrototype).data;
+    final TensorList baseOutput = component.eval(new NNLayer.NNExecutionContext() {
+    }, inputPrototype).getData();
     for (int inputItem = 0; inputItem < inputPrototype[inputIndex].length; inputItem++) {
       for (int inputCoord = 0; inputCoord < inputPrototype[inputIndex][inputItem].dim(); inputCoord++) {
         final Tensor[][] copyInput = Arrays.stream(inputPrototype)
                                          .map(a -> Arrays.stream(a).map(b -> b.copy()).toArray(ii -> new Tensor[ii])).toArray(ii -> new Tensor[ii][]);
         copyInput[inputIndex][inputItem].add(inputCoord, deltaFactor * 1);
-        final TensorList probeOutput = component.eval(new NNLayer.NNExecutionContext() {}, copyInput).data;
+        final TensorList probeOutput = component.eval(new NNLayer.NNExecutionContext() {
+        }, copyInput).getData();
         for (int outputItem = 0; outputItem < probeOutput.length(); outputItem++) {
           double[] deltaData = probeOutput.get(outputItem).minus(baseOutput.get(outputItem)).scale(1. / deltaFactor).getData();
           for (int outputCoord = 0; outputCoord < deltaData.length; outputCoord++) {
@@ -159,7 +161,7 @@ public class MetaComponentValidationTests {
       copy.state().get(layerNum)[stateIdx] += deltaFactor;
       NNResult eval = copy.eval(new NNLayer.NNExecutionContext() {}, inputPrototype);
       for (int outputItem = 0; outputItem < outputPrototype.length; outputItem++) {
-        final Tensor delta = eval.data.get(outputItem).minus(baseEval.data.get(outputItem)).scale(1. / deltaFactor);
+        final Tensor delta = eval.getData().get(outputItem).minus(baseEval.getData().get(outputItem)).scale(1. / deltaFactor);
         for (int outputCoord = 0; outputCoord < delta.dim(); outputCoord++) {
           gradient[outputItem].set(new int[]{stateIdx, outputCoord}, delta.getData()[outputCoord]);
         }

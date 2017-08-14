@@ -129,11 +129,11 @@ public class AvgSubsampleLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     final int kernelSize = new Tensor(this.kernelDims).dim();
-    final int[] inputDims = inObj[0].data.get(0).getDimensions();
-    int itemCnt = inObj[0].data.length();
+    final int[] inputDims = inObj[0].getData().get(0).getDimensions();
+    int itemCnt = inObj[0].getData().length();
     final Map<Coordinate, List<int[]>> coordMapA[] = new Map[itemCnt];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data.get(dataIndex);
+    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+      final Tensor input = inObj[0].getData().get(dataIndex);
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         if (!(0 == inputDims[i] % this.kernelDims[i])) {
           assert (false) : inputDims[i] + ":" + this.kernelDims[i];
@@ -158,7 +158,7 @@ public class AvgSubsampleLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
+          Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
             final Tensor backSignal = new Tensor(inputDims);
             for (final Entry<Coordinate, List<int[]>> outputMapping : coordMapA[dataIndex].entrySet()) {
               final double outputValue = data.get(dataIndex).get(outputMapping.getKey());

@@ -27,8 +27,6 @@ import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
@@ -38,8 +36,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.DoubleSupplier;
-import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
@@ -126,7 +122,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     CuDNN.setDevice(nncontext.getCudaDeviceId());
     final NNResult input = inObj[0];
-    final TensorList batch = input.data;
+    final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
     assert(inputSize[2] == bias.length);
     int[] outputSize = inputSize;

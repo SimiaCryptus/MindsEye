@@ -103,15 +103,15 @@ public class HoldoverSampleTrainable implements Trainable {
     deltaSet.map.forEach((layer, layerDelta) -> {
       stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
-    assert (result.data.stream().allMatch(x -> x.dim() == 1));
+    assert (result.getData().stream().allMatch(x -> x.dim() == 1));
     // holdoverData
-    holdoverData = IntStream.range(0, result.data.length()).mapToObj(x->x)
-                           .sorted(Comparator.comparingDouble(x -> -Arrays.stream(result.data.get((int) x).getData()).sum()))
+    holdoverData = IntStream.range(0, result.getData().length()).mapToObj(x->x)
+                           .sorted(Comparator.comparingDouble(x -> -Arrays.stream(result.getData().get((int) x).getData()).sum()))
                            .map(i->sampledData[i])
                            .limit((long) (sampledData.length * holdoverFraction))
                            .toArray(i -> new Tensor[i][]);
     ScalarStatistics statistics = new ScalarStatistics();
-    result.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
+    result.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
     return new Trainable.PointSample(deltaSet, stateSet, statistics.getMean());
   }
   

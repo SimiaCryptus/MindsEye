@@ -79,20 +79,20 @@ public class MaxImageBandLayer extends NNLayer {
   
     assert(1 == inObj.length);
     final NNResult in = inObj[0];
-    int itemCnt = in.data.length();
-    final int[] inputDims = in.data.get(0).getDimensions();
+    int itemCnt = in.getData().length();
+    final int[] inputDims = in.getData().get(0).getDimensions();
     assert(3 == inputDims.length);
   
-    Coordinate[][] maxCoords = in.data.stream().map(data -> {
+    Coordinate[][] maxCoords = in.getData().stream().map(data -> {
       return IntStream.range(0, inputDims[2]).mapToObj(band -> {
         return data.coordStream().filter(e->e.coords[2]==band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
     }).toArray(i -> new Coordinate[i][]);
   
-    Tensor[] results = IntStream.range(0, in.data.length()).mapToObj(dataIndex -> {
+    Tensor[] results = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         int[] maxCoord = maxCoords[dataIndex][band].coords;
-        return in.data.get(dataIndex).get(maxCoord[0], maxCoord[1], band);
+        return in.getData().get(dataIndex).get(maxCoord[0], maxCoord[1], band);
       }).toArray());
     }).toArray(i -> new Tensor[i]);
 
@@ -100,8 +100,8 @@ public class MaxImageBandLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (in.isAlive()) {
-          final Tensor[] data1 = IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
-            Tensor passback = new Tensor(in.data.get(dataIndex).getDimensions());
+          final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
+            Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
             IntStream.range(0, inputDims[2]).forEach(b -> {
               int[] maxCoord = maxCoords[dataIndex][b].coords;
               passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0,0,b));

@@ -22,28 +22,17 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNNFloatTensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
-import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.DoubleSupplier;
-import java.util.function.IntToDoubleFunction;
-import java.util.stream.Collectors;
 
-import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
-import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardBias;
 import static jcuda.jcudnn.JCudnn.cudnnTransformTensor;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
-import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
  * The type Img band bias layer.
@@ -85,17 +74,17 @@ public class ImgConcatLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    assert 3 == inObj[0].data.getDimensions().length;
-    int[] dimOut = Arrays.copyOf(inObj[0].data.getDimensions(), 3);
-    int length = inObj[0].data.length();
-    assert Arrays.stream(inObj).allMatch(x->3 == x.data.getDimensions().length && x.data.getDimensions()[0]==dimOut[0] && x.data.getDimensions()[1]==dimOut[1] && x.data.length()==length);
-    dimOut[2] = Arrays.stream(inObj).mapToInt(x->x.data.getDimensions()[2]).sum();
+    assert 3 == inObj[0].getData().getDimensions().length;
+    int[] dimOut = Arrays.copyOf(inObj[0].getData().getDimensions(), 3);
+    int length = inObj[0].getData().length();
+    assert Arrays.stream(inObj).allMatch(x->3 == x.getData().getDimensions().length && x.getData().getDimensions()[0]==dimOut[0] && x.getData().getDimensions()[1]==dimOut[1] && x.getData().length()==length);
+    dimOut[2] = Arrays.stream(inObj).mapToInt(x-> x.getData().getDimensions()[2]).sum();
     CuDNN.setDevice(nncontext.getCudaDeviceId());
     CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), length * dimOut[2] * dimOut[1] * dimOut[0] * Sizeof.FLOAT);
     CuDNN.devicePool.with(device -> {
       int bandOffset = 0;
       for(int i=0;i<inObj.length;i++) {
-        TensorList data = inObj[i].data;
+        TensorList data = inObj[i].getData();
         int[] dimensions = data.getDimensions();
         CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
           CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
@@ -118,13 +107,13 @@ public class ImgConcatLayer extends NNLayer {
       public void accumulate(final DeltaSet buffer, final TensorList error) {
         outputBuffer.finalize();
         CuDNN.setDevice(nncontext.getCudaDeviceId());
-        assert (error.length() == inObj[0].data.length());
+        assert (error.length() == inObj[0].getData().length());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
         CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
         int bandOffset = 0;
         for(int i=0;i<inObj.length;i++) {
           NNResult input = inObj[i];
-          int[] dimensions = input.data.getDimensions();
+          int[] dimensions = input.getData().getDimensions();
           if (input.isAlive()) {
             int _bandOffset = bandOffset;
             CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), length * dimensions[2] * dimensions[1] * dimensions[0] * Sizeof.FLOAT);

@@ -27,7 +27,6 @@ import com.simiacryptus.util.ml.Tensor;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
-import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.List;
@@ -184,7 +183,7 @@ public class ConvolutionLayer extends NNLayer {
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
-    final TensorList batch = input.data;
+    final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();
     int[] kernelSize = this.kernel.getDimensions();
     int[] outputSize = IntStream.range(0, kernelSize.length).map(i -> {
@@ -227,7 +226,7 @@ public class ConvolutionLayer extends NNLayer {
           buffer.get(ConvolutionLayer.this, kernel).accumulate(weightGradient.getData());
         }
         if (input.isAlive()) {
-          Tensor[] inputBufferTensors = IntStream.range(0, data.length()).mapToObj(dataIndex -> new Tensor(inputSize)).toArray(i -> new Tensor[i]);
+          Tensor[] inputBufferTensors = IntStream.range(0, getData().length()).mapToObj(dataIndex -> new Tensor(inputSize)).toArray(i -> new Tensor[i]);
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           backprop(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);

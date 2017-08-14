@@ -70,11 +70,11 @@ public class OffsetMetaLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length();
-    double scale = inObj[1].data.get(0).getData()[0];
+    int itemCnt = inObj[0].getData().length();
+    double scale = inObj[1].getData().get(0).getData()[0];
     Tensor[] tensors = IntStream.range(0, itemCnt)
                            .parallel()
-                           .mapToObj(dataIndex -> inObj[0].data.get(dataIndex).map((v, c) -> v + scale))
+                           .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c) -> v + scale))
                            .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override

@@ -17,10 +17,11 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.simiacryptus.mindseye.layers.TensorArray;
 import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Sizeof;
 

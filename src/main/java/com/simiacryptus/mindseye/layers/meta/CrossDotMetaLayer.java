@@ -69,15 +69,15 @@ public class CrossDotMetaLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
-    int itemCnt = input.data.length();
-    int dim = input.data.get(0).dim();
+    int itemCnt = input.getData().length();
+    int dim = input.getData().get(0).dim();
     Tensor results = new Tensor(dim, dim);
     for (int i = 0; i < dim; i++) {
       for (int j = 0; j < dim; j++) {
         if (i == j) continue;
         double v = 0;
         for (int k = 0; k < itemCnt; k++) {
-          double[] kk = input.data.get(k).getData();
+          double[] kk = input.getData().get(k).getData();
           v += kk[i] * kk[j];
         }
         results.set(new int[]{i, j}, v);
@@ -96,7 +96,7 @@ public class CrossDotMetaLayer extends NNLayer {
               if (i == j) continue;
               double v = delta.get(i, j);
               for (int k = 0; k < itemCnt; k++) {
-                double[] kk = input.data.get(k).getData();
+                double[] kk = input.getData().get(k).getData();
                 feedback[k].add(i, v * kk[j]);
                 feedback[k].add(j, v * kk[i]);
               }

@@ -331,8 +331,9 @@ public class AutoencoderNetwork {
    */
   public TensorList encode(TensorList data) {
     return encoder.getLayer()
-               .eval(new NNLayer.NNExecutionContext() {}, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
-               .data;
+             .eval(new NNLayer.NNExecutionContext() {
+             }, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+             .getData();
   }
   
   /**

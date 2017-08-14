@@ -31,7 +31,6 @@ import com.simiacryptus.util.ml.Tensor;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnActivationDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
-import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.List;
@@ -123,7 +122,7 @@ public class ActivationLayer extends NNLayer {
     CuDNN.setDevice(nncontext.getCudaDeviceId());
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
-    final TensorList batch = input.data;
+    final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();
     int[] outputSize = inputSize;
     int length = batch.length();

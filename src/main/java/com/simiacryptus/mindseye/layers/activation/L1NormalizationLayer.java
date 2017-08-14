@@ -69,12 +69,12 @@ public class L1NormalizationLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length();
+    int itemCnt = inObj[0].getData().length();
     double[] sum_A = new double[itemCnt];
     final Tensor inputA[] = new Tensor[itemCnt];
     final boolean isZeroInputA[] = new boolean[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data.get(dataIndex);
+      final Tensor input = inObj[0].getData().get(dataIndex);
       final double sum = input.sum();
       sum_A[dataIndex] = sum;
       final boolean isZeroInput = sum == 0.;

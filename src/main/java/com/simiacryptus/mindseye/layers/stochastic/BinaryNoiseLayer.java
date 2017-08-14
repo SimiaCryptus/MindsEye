@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.stochastic;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.CachedSupplier;
 import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Stream;
 
 /**
  * The type Dropout noise layer.
@@ -133,11 +131,11 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     final NNResult input = inObj[0];
-    int[] dimensions = input.data.getDimensions();
-    int length = input.data.length();
+    int[] dimensions = input.getData().getDimensions();
+    int length = input.getData().length();
     if(length != lastLength || !Arrays.equals(dimensions, lastDim)) this.mask = null;
     Random random = new Random(seed);
-    if(null == this.mask) this.mask = new TensorArray(input.data.stream().map(x -> x.map(v -> (random.nextDouble() < getValue()) ? 0 : 1)).toArray(i -> new Tensor[i]));
+    if(null == this.mask) this.mask = new TensorArray(input.getData().stream().map(x -> x.map(v -> (random.nextDouble() < getValue()) ? 0 : 1)).toArray(i -> new Tensor[i]));
     this.lastLength = length;
     this.lastDim = dimensions;
     return new NNResult(mask) {

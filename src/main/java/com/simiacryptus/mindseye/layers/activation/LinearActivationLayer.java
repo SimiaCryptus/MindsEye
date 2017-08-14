@@ -77,11 +77,11 @@ public class LinearActivationLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length();
+    int itemCnt = inObj[0].getData().length();
     final double scale = this.weights.get(0);
     final double bias = this.weights.get(1);
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data.get(dataIndex);
+      final Tensor input = inObj[0].getData().get(dataIndex);
       return input.map(v->scale*v+bias);
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
@@ -146,7 +146,7 @@ public class LinearActivationLayer extends NNLayer {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = this.inObj.data.get(dataIndex).getData();
+          final double[] inputData = this.inObj.getData().get(dataIndex).getData();
           final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
             weightDelta.add(0, deltaData[i] * inputData[i]);
@@ -158,7 +158,7 @@ public class LinearActivationLayer extends NNLayer {
       if (this.inObj.isAlive()) {
         Tensor[] passbackA = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final int[] dims = this.inObj.data.get(dataIndex).getDimensions();
+          final int[] dims = this.inObj.getData().get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
             passback.set(i, deltaData[i] * LinearActivationLayer.this.weights.getData()[0]);

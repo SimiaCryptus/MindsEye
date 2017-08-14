@@ -72,11 +72,11 @@ public class ProductLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    double[] sum_A = new double[inObj[0].data.length()];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
+    double[] sum_A = new double[inObj[0].getData().length()];
+    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       double sum = 1;
       for (final NNResult element : inObj) {
-        final double[] input = element.data.get(dataIndex).getData();
+        final double[] input = element.getData().get(dataIndex).getData();
         for (final double element2 : input) {
           sum *= element2;
         }
@@ -89,11 +89,11 @@ public class ProductLayer extends NNLayer {
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
           if (in_l.isAlive()) {
-            Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).mapToObj(dataIndex -> {
+            Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
               final double delta = data.get(dataIndex).get(0);
-              final Tensor passback = new Tensor(in_l.data.get(dataIndex).getDimensions());
-              for (int i = 0; i < in_l.data.get(dataIndex).dim(); i++) {
-                passback.set(i, delta * sum_A[dataIndex] / in_l.data.get(dataIndex).getData()[i]);
+              final Tensor passback = new Tensor(in_l.getData().get(dataIndex).getDimensions());
+              for (int i = 0; i < in_l.getData().get(dataIndex).dim(); i++) {
+                passback.set(i, delta * sum_A[dataIndex] / in_l.getData().get(dataIndex).getData()[i]);
               }
               return passback;
             }).toArray(i -> new Tensor[i]);

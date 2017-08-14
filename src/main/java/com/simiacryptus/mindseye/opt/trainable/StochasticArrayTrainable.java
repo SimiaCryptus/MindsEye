@@ -147,9 +147,9 @@ public class StochasticArrayTrainable implements Trainable {
         stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
       });
       assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-      assert (result.data.stream().allMatch(x -> x.dim() == 1));
-      assert (result.data.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-      double meanValue = result.data.stream().mapToDouble(x -> x.getData()[0]).sum();
+      assert (result.getData().stream().allMatch(x -> x.dim() == 1));
+      assert (result.getData().stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
+      double meanValue = result.getData().stream().mapToDouble(x -> x.getData()[0]).sum();
       return new PointSample(deltaSet.scale(1.0/trainingSize), stateBackup, meanValue / trainingSize);
     });
   }

@@ -117,12 +117,12 @@ public class BiasLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     TensorList input;
     if(0==inObj.length) {
       input = new TensorArray();
     } else {
-      input = inObj[0].data;
+      input = inObj[0].getData();
     }
     Tensor[] outputA = input.stream().parallel()
                            .map(r -> new Tensor(r.getDimensions(), add(r.getData())))

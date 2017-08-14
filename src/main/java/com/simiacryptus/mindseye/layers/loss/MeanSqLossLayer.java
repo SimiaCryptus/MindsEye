@@ -74,12 +74,12 @@ public class MeanSqLossLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     if(2 != inObj.length) throw new IllegalArgumentException();
-    if(inObj[0].data.length() != inObj[1].data.length()) throw new IllegalArgumentException();
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    Tensor rA[] = new Tensor[inObj[0].data.length()];
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
-      final Tensor a = inObj[0].data.get(dataIndex);
-      final Tensor b = inObj[1].data.get(dataIndex);
+    if(inObj[0].getData().length() != inObj[1].getData().length()) throw new IllegalArgumentException();
+    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    Tensor rA[] = new Tensor[inObj[0].getData().length()];
+    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
+      final Tensor a = inObj[0].getData().get(dataIndex);
+      final Tensor b = inObj[1].getData().get(dataIndex);
       if(a.dim() != b.dim()) throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       final Tensor r = new Tensor(a.getDimensions());
       double total = 0;
@@ -97,8 +97,8 @@ public class MeanSqLossLayer extends NNLayer {
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(inObj[0].data.get(0).getDimensions());
+          Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
+            final Tensor passback = new Tensor(inObj[0].getData().get(0).getDimensions());
             final int adim = passback.dim();
             final double data0 = data.get(dataIndex).get(0);
             for (int i = 0; i < adim; i++) {

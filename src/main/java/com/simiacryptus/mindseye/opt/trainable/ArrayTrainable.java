@@ -81,8 +81,8 @@ public class ArrayTrainable implements Trainable {
       deltaSet.map.forEach((layer, layerDelta) -> {
         stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
       });
-      assert (result.data.stream().allMatch(x -> x.dim() == 1));
-      double sum = result.data.stream().mapToDouble(x -> x.getData()[0]).sum();
+      assert (result.getData().stream().allMatch(x -> x.dim() == 1));
+      double sum = result.getData().stream().mapToDouble(x -> x.getData()[0]).sum();
       return new PointSample(deltaSet.scale(1.0/trainingData.size()), stateSet, sum / trainingData.size());
     }).reduce((a,b)->new PointSample(a.delta.add(b.delta),a.weights, a.value + b.value)).get();
   }

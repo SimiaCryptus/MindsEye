@@ -328,8 +328,9 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
    * @return the tensor list
    */
   public TensorList encode(TensorList data) {
-    return encoder.eval(new NNLayer.NNExecutionContext() {}, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
-               .data;
+    return encoder.eval(new NNLayer.NNExecutionContext() {
+    }, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
+             .getData();
   }
   
   /**

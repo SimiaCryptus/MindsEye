@@ -22,16 +22,13 @@ package com.simiacryptus.mindseye.network.graph;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNNFloatTensorList;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.simiacryptus.mindseye.layers.cudnn.f32.CuDNNFloatTensorList;
 
 public class CountingNNResult extends NNResult {
   private int count = 0;
   
   protected CountingNNResult(NNResult inner) {
-    super(inner.data);
+    super(inner.getData());
     this.inner = inner;
   }
 

@@ -144,8 +144,8 @@ public abstract class MappedSynapseLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... input) {
     double[] expandedWeights = getExpandedWeights();
-    Tensor[] outputA = IntStream.range(0, input[0].data.length()).parallel().mapToObj(dataIndex -> {
-      final Tensor inputTensor = input[0].data.get(dataIndex);
+    Tensor[] outputA = IntStream.range(0, input[0].getData().length()).parallel().mapToObj(dataIndex -> {
+      final Tensor inputTensor = input[0].getData().get(dataIndex);
       return multiply2(expandedWeights, inputTensor.getData());
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, input[0]);
@@ -276,9 +276,9 @@ public abstract class MappedSynapseLayer extends NNLayer {
     
     private Tensor[] backprop(final TensorList delta, final DeltaSet buffer) {
       double[] expandedWeights = getExpandedWeights();
-      Tensor[] passbackA = IntStream.range(0, result.data.length()).parallel().mapToObj(dataIndex -> {
+      Tensor[] passbackA = IntStream.range(0, result.getData().length()).parallel().mapToObj(dataIndex -> {
         final double[] deltaData = delta.get(dataIndex).getData();
-        final Tensor passback = new Tensor(this.result.data.get(dataIndex).getDimensions());
+        final Tensor passback = new Tensor(this.result.getData().get(dataIndex).getDimensions());
         DenseSynapseLayer.multiplyT(expandedWeights, deltaData, passback.getData());
         return passback;
       }).toArray(i -> new Tensor[i]);
@@ -303,16 +303,16 @@ public abstract class MappedSynapseLayer extends NNLayer {
     
     private void learn(final TensorList delta, final DeltaSet buffer) {
       final double[] deltaData0 = delta.get(0).getData();
-      final double[] inputData0 = this.result.data.get(0).getData();
+      final double[] inputData0 = this.result.getData().get(0).getData();
       DeltaBuffer deltaBuffer = buffer.get(MappedSynapseLayer.this, getWeights());
       
       int threads = 4;
       IntStream.range(0, threads).parallel().forEach(thread -> {
         Tensor buffer1 = new Tensor(MappedSynapseLayer.this.getWeights().getDimensions());
         final Tensor buffer2 = new Tensor(inputData0.length, deltaData0.length);
-        IntStream.range(0, result.data.length()).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
+        IntStream.range(0, result.getData().length()).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = this.result.data.get(dataIndex).getData();
+          final double[] inputData = this.result.getData().get(dataIndex).getData();
           assert (deltaData0.length == deltaData.length);
           assert (inputData0.length == inputData.length);
           DenseSynapseLayer.crossMultiply(deltaData, inputData, buffer2.getData());

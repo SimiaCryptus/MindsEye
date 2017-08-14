@@ -121,7 +121,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     long passbacks = Arrays.stream(inObj).filter(x -> x.isAlive()).count();
-    NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.data) {
+    NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.getData()) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
         long start = System.nanoTime();
@@ -138,8 +138,8 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     final NNResult result = this.getInner().eval(nncontext, wrappedInput);
     forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
-    totalItems += inObj[0].data.length();
-    return new NNResult(result.data) {
+    totalItems += inObj[0].getData().length();
+    return new NNResult(result.getData()) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
         long start = System.nanoTime();

@@ -79,10 +79,10 @@ public class AvgMetaLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
-    int itemCnt = input.data.length();
-    Tensor result = input.data.get(0).mapParallel((v, c) ->
+    int itemCnt = input.getData().length();
+    Tensor result = input.getData().get(0).mapParallel((v, c) ->
                                                   IntStream.range(0, itemCnt)
-                                                      .mapToDouble(dataIndex -> input.data.get(dataIndex).get(c))
+                                                      .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                                                       .average().orElse(0.0));
     lastResult = result;
     return new NNResult(result) {

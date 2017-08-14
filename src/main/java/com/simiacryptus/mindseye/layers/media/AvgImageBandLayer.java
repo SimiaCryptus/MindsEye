@@ -80,11 +80,11 @@ public class AvgImageBandLayer extends NNLayer {
   
     assert(1 == inObj.length);
     final NNResult in = inObj[0];
-    int itemCnt = in.data.length();
-    final int[] inputDims = in.data.get(0).getDimensions();
+    int itemCnt = in.getData().length();
+    final int[] inputDims = in.getData().get(0).getDimensions();
     assert(3 == inputDims.length);
   
-    Tensor[] results = in.data.stream().map(data -> {
+    Tensor[] results = in.getData().stream().map(data -> {
       return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         int pixels = data.getDimensions()[0] * data.getDimensions()[1];
         return data.coordStream().filter(e->e.coords[2]==band).mapToDouble(c -> data.get(c)).sum() / pixels;
@@ -95,9 +95,9 @@ public class AvgImageBandLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (in.isAlive()) {
-          final Tensor[] data1 = IntStream.range(0, in.data.length()).parallel().mapToObj(dataIndex -> {
-            return new Tensor(in.data.get(dataIndex).getDimensions()).map((v, c)->{
-              int pixels = in.data.get(dataIndex).getDimensions()[0] * in.data.get(dataIndex).getDimensions()[1];
+          final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
+            return new Tensor(in.getData().get(dataIndex).getDimensions()).map((v, c)->{
+              int pixels = in.getData().get(dataIndex).getDimensions()[0] * in.getData().get(dataIndex).getDimensions()[1];
               return data.get(dataIndex).get(0,0,c.coords[2]) / pixels;
             });
           }).toArray(i -> new Tensor[i]);

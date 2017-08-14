@@ -70,12 +70,12 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].data.length();
+    int itemCnt = inObj[0].getData().length();
     assert(0 < itemCnt);
     Tensor inputGradientA[] = new Tensor[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data.get(dataIndex);
-      final Tensor output = new Tensor(inObj[0].data.get(dataIndex).getDimensions());
+      final Tensor input = inObj[0].getData().get(dataIndex);
+      final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
       final Tensor inputGradient = new Tensor(input.dim());
       inputGradientA[dataIndex] = inputGradient;
       final double[] results = new double[2];

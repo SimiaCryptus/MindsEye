@@ -175,8 +175,8 @@ public class JavaDenseSynapseLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data.get(dataIndex);
+    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
+      final Tensor input = inObj[0].getData().get(dataIndex);
       return multiply2(this.getWeights().getData(), input.getData());
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
@@ -255,10 +255,10 @@ public class JavaDenseSynapseLayer extends NNLayer {
     }
     
     private Tensor[] backprop(final TensorList delta, final DeltaSet buffer) {
-      Tensor[] passbackA = IntStream.range(0, inObj.data.length()).parallel().mapToObj(dataIndex -> {
+      Tensor[] passbackA = IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
         final double[] deltaData = delta.get(dataIndex).getData();
         final Tensor r = JavaDenseSynapseLayer.this.getWeights();
-        final Tensor passback = new Tensor(this.inObj.data.get(dataIndex).getDimensions());
+        final Tensor passback = new Tensor(this.inObj.getData().get(dataIndex).getDimensions());
         multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
       }).toArray(i -> new Tensor[i]);
@@ -282,9 +282,9 @@ public class JavaDenseSynapseLayer extends NNLayer {
     }
     
     private void learn(final TensorList delta, final DeltaSet buffer) {
-      IntStream.range(0, inObj.data.length()).parallel().forEach(dataIndex -> {
+      IntStream.range(0, inObj.getData().length()).parallel().forEach(dataIndex -> {
         final double[] deltaData = delta.get(dataIndex).getData();
-        final double[] inputData = this.inObj.data.get(dataIndex).getData();
+        final double[] inputData = this.inObj.getData().get(dataIndex).getData();
         final Tensor weightDelta = multiply(deltaData, inputData);
         buffer.get(JavaDenseSynapseLayer.this, JavaDenseSynapseLayer.this.getWeights()).accumulate(weightDelta.getData());
       });

@@ -79,13 +79,13 @@ public class ImgCropLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
-    final TensorList batch = input.data;
+    final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
     assert(3 == inputDims.length);
-    assert input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    assert input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     Tensor outputDims = new Tensor(inputDims[0] - sizeX,
                                     inputDims[1] - sizeY,
                                     inputDims[2]);

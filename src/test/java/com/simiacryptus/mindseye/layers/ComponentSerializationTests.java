@@ -21,16 +21,8 @@ package com.simiacryptus.mindseye.layers;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.activation.*;
-import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.reducers.ProductLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
 import com.simiacryptus.mindseye.layers.synapse.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import org.junit.Assert;
 import org.junit.Test;
@@ -66,7 +58,7 @@ public class ComponentSerializationTests {
     Tensor input = new Tensor(2, 2).fill(() -> random.nextDouble());
     NNResult a = network.eval(new NNLayer.NNExecutionContext() {}, input);
     NNResult b = copy.eval(new NNLayer.NNExecutionContext() {}, input);
-    Assert.assertArrayEquals(a.data.get(0).getData(),b.data.get(0).getData(), 1e-8);
+    Assert.assertArrayEquals(a.getData().get(0).getData(), b.getData().get(0).getData(), 1e-8);
   
   
   }

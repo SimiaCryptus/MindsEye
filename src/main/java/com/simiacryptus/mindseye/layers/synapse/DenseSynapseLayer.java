@@ -193,9 +193,9 @@ public class DenseSynapseLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].data.get(dataIndex);
+    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
+      final Tensor input = inObj[0].getData().get(dataIndex);
       return multiply2(this.getWeights().getData(), input.getData());
     }).toArray(i -> new Tensor[i]);
     return new Result(outputA, inObj[0]);
@@ -307,10 +307,10 @@ public class DenseSynapseLayer extends NNLayer {
     }
     
     private void backprop(final TensorList delta, final DeltaSet buffer) {
-      Tensor[] passbackA = IntStream.range(0, inObj.data.length()).parallel().mapToObj(dataIndex -> {
+      Tensor[] passbackA = IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
         final double[] deltaData = delta.get(dataIndex).getData();
         final Tensor r = DenseSynapseLayer.this.getWeights();
-        final Tensor passback = new Tensor(this.inObj.data.get(dataIndex).getDimensions());
+        final Tensor passback = new Tensor(this.inObj.getData().get(dataIndex).getDimensions());
         multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
       }).toArray(i -> new Tensor[i]);
@@ -346,9 +346,9 @@ public class DenseSynapseLayer extends NNLayer {
       int threads = 4;
       IntStream.range(0, threads).parallel().forEach(thread -> {
         final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
-        IntStream.range(0, inObj.data.length()).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
+        IntStream.range(0, inObj.getData().length()).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = this.inObj.data.get(dataIndex).getData();
+          final double[] inputData = this.inObj.getData().get(dataIndex).getData();
           crossMultiply(deltaData, inputData, weightDelta.getData());
           deltaBuffer.accumulate(weightDelta.getData());
         });

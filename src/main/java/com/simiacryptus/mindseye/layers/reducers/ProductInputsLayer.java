@@ -66,10 +66,10 @@ public class ProductInputsLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert inObj.length > 1;
     for(int i=1;i<inObj.length;i++) {
-      if(Tensor.dim(inObj[0].data.get(0).getDimensions()) != Tensor.dim(inObj[i].data.get(0).getDimensions()))
-        throw new RuntimeException(Arrays.toString(inObj[0].data.get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].data.get(0).getDimensions()));
+      if(Tensor.dim(inObj[0].getData().get(0).getDimensions()) != Tensor.dim(inObj[i].getData().get(0).getDimensions()))
+        throw new RuntimeException(Arrays.toString(inObj[0].getData().get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].getData().get(0).getDimensions()));
     }
-    TensorList result = Arrays.stream(inObj).parallel().map(x -> x.data).reduce((l, r) -> {
+    TensorList result = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       Stream<Tensor> tensorStream = IntStream.range(0, Math.max(l.length(), r.length())).parallel()
               .mapToObj(i -> {
                 Tensor left = l.get(Math.min(i, l.length() - 1));
@@ -84,9 +84,9 @@ public class ProductInputsLayer extends NNLayer {
         assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            final Tensor[] data1 = IntStream.range(0, input.data.length()).parallel().mapToObj(i -> {
+            final Tensor[] data1 = IntStream.range(0, input.getData().length()).parallel().mapToObj(i -> {
               return delta.get(Math.min(i, delta.length())).map((v, c)->{
-                double v1 = input.data.get(i).get(c);
+                double v1 = input.getData().get(i).get(c);
                 double r = v * result.get(Math.min(i, result.length())).get(c) / v1;
                 return Double.isFinite(r)?r:0.0;
               });

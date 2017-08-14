@@ -69,13 +69,13 @@ public class ImgConcatLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
   
-    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions().length == 3) : "This component is for use map 3d image tensors only";
-    int numBatches = inObj[0].data.length();
-    assert Arrays.stream(inObj).allMatch(x-> x.data.length() == numBatches) : "All inputs must use same batch size";
-    int[] outputDims = Arrays.copyOf(inObj[0].data.get(0).getDimensions(), 3);
-    outputDims[2] = Arrays.stream(inObj).mapToInt(x->x.data.get(0).getDimensions()[2]).sum();
-    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
-    assert Arrays.stream(inObj).allMatch(x->x.data.get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
+    assert Arrays.stream(inObj).allMatch(x-> x.getData().get(0).getDimensions().length == 3) : "This component is for use map 3d image tensors only";
+    int numBatches = inObj[0].getData().length();
+    assert Arrays.stream(inObj).allMatch(x-> x.getData().length() == numBatches) : "All inputs must use same batch size";
+    int[] outputDims = Arrays.copyOf(inObj[0].getData().get(0).getDimensions(), 3);
+    outputDims[2] = Arrays.stream(inObj).mapToInt(x-> x.getData().get(0).getDimensions()[2]).sum();
+    assert Arrays.stream(inObj).allMatch(x-> x.getData().get(0).getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
+    assert Arrays.stream(inObj).allMatch(x-> x.getData().get(0).getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
   
     List<Tensor> outputTensors = new ArrayList<>();
     for(int b=0;b<numBatches;b++) {
@@ -83,7 +83,7 @@ public class ImgConcatLayer extends NNLayer {
       int pos = 0;
       double[] outputTensorData = outputTensor.getData();
       for(int i=0;i<inObj.length;i++) {
-        double[] data = inObj[i].data.get(b).getData();
+        double[] data = inObj[i].getData().get(b).getData();
         System.arraycopy(data, 0, outputTensorData, pos, data.length);
         pos += data.length;
       }
@@ -100,7 +100,7 @@ public class ImgConcatLayer extends NNLayer {
           Tensor[] outputTensors = new Tensor[inObj.length];
           int pos = 0;
           for(int i=0;i<inObj.length;i++) {
-            Tensor dest = new Tensor(inObj[i].data.get(0).getDimensions());
+            Tensor dest = new Tensor(inObj[i].getData().get(0).getDimensions());
             System.arraycopy(tensor.getData(), pos, dest.getData(), 0, dest.size());
             pos += dest.size();
             outputTensors[i] = dest;

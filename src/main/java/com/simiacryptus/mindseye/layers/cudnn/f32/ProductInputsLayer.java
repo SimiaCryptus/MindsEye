@@ -32,13 +32,9 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import static jcuda.jcudnn.JCudnn.cudnnDestroyOpTensorDescriptor;
-import static jcuda.jcudnn.JCudnn.cudnnGetOpTensorDescriptor;
 import static jcuda.jcudnn.JCudnn.cudnnOpTensor;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
-import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -81,16 +77,16 @@ public class ProductInputsLayer extends NNLayer {
     CuDNN.setDevice(nncontext.getCudaDeviceId());
     assert inObj.length > 1;
     assert inObj.length < 3;
-    int[] dimensions = inObj[0].data.getDimensions();
-    int length = inObj[0].data.length();
+    int[] dimensions = inObj[0].getData().getDimensions();
+    int length = inObj[0].getData().length();
     for(int i=1;i<inObj.length;i++) {
-      if(Tensor.dim(dimensions) != Tensor.dim(inObj[i].data.getDimensions()))
-        throw new RuntimeException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].data.getDimensions()));
+      if(Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions()))
+        throw new RuntimeException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
     }
     final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(CUDNN_OP_TENSOR_MUL, CUDNN_DATA_FLOAT);
     CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
       CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-    TensorList result = Arrays.stream(inObj).map(x -> x.data).reduce((l, r) -> {
+    TensorList result = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
       CudaPtr lPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), l);
       CudaPtr rPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), r);
       assert lPtr.size == rPtr.size;
@@ -113,7 +109,7 @@ public class ProductInputsLayer extends NNLayer {
           final NNResult input = inObj[index];
           if (input.isAlive()) {
             int _index = index;
-            input.accumulate(buffer, IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].data).reduce((l, r) -> {
+            input.accumulate(buffer, IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
               CudaPtr lPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), l);
               CudaPtr rPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), r);
               assert lPtr.size == rPtr.size;

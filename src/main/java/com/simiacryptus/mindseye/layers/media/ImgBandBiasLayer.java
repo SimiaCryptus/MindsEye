@@ -132,8 +132,8 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   public NNResult eval(NNResult input) {
     final double[] bias = getBias();
-    assert input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-    Tensor[] outputA = input.data.stream().parallel()
+    assert input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    Tensor[] outputA = input.getData().stream().parallel()
                            .map(r -> {
                              if(r.getDimensions().length != 3) throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
                              if(r.getDimensions()[2] != bias.length) throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",

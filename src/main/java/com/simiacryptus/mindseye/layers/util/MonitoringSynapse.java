@@ -87,12 +87,12 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     long start = System.nanoTime();
     double elapsed = (System.nanoTime() - start) / 1000000000.0;
     totalBatches++;
-    totalItems += input.data.length();
+    totalItems += input.getData().length();
     forwardStatistics.clear();
-    input.data.stream().parallel().forEach(t->{
+    input.getData().stream().parallel().forEach(t->{
       forwardStatistics.add(t.getData());
     });
-    return new NNResult(input.data) {
+    return new NNResult(input.getData()) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
         backpropStatistics.clear();

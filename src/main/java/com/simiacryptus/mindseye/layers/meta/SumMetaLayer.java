@@ -76,10 +76,10 @@ public class SumMetaLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
-    int itemCnt = input.data.length();
-    if(1<itemCnt) lastResult = input.data.get(0).mapParallel((v, c) ->
+    int itemCnt = input.getData().length();
+    if(1<itemCnt) lastResult = input.getData().get(0).mapParallel((v, c) ->
                                                       IntStream.range(0, itemCnt)
-                                                          .mapToDouble(dataIndex -> input.data.get(dataIndex).get(c))
+                                                          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                                                           .sum());
     return new NNResult(lastResult) {
       @Override

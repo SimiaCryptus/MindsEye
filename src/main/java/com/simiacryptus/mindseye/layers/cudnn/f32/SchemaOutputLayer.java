@@ -134,7 +134,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     CuDNN.setDevice(nncontext.getCudaDeviceId());
     final NNResult input = inObj[0];
-    final TensorList batch = input.data;
+    final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
     int[] kernelSize = this.filter.getDimensions();
     int[] outputSize = getOutputSize(inputSize, kernelSize);

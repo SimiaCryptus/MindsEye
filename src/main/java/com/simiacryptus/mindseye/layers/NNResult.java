@@ -20,9 +20,12 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.layers.NNLayer.ConstNNResult;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -30,10 +33,7 @@ import java.util.stream.IntStream;
  */
 public abstract class NNResult {
   
-  /**
-   * The Data.
-   */
-  public final TensorList data;
+  protected final TensorList data;
   
   /**
    * Instantiates a new Nn result.
@@ -104,9 +104,9 @@ public abstract class NNResult {
    * @param value  the value
    */
   public final void accumulate(DeltaSet buffer, double value) {
-    Tensor[] defaultVector = IntStream.range(0, this.data.length()).mapToObj(i -> {
-      assert (Arrays.equals(this.data.get(i).getDimensions(), new int[]{1}));
-      return new Tensor(this.data.get(i).getDimensions()).fill(() -> value);
+    Tensor[] defaultVector = IntStream.range(0, this.getData().length()).mapToObj(i -> {
+      assert (Arrays.equals(this.getData().get(i).getDimensions(), new int[]{1}));
+      return new Tensor(this.getData().get(i).getDimensions()).fill(() -> value);
     }).toArray(i -> new Tensor[i]);
     accumulate(buffer, new TensorArray(defaultVector));
   }
@@ -126,4 +126,15 @@ public abstract class NNResult {
    */
   public abstract boolean isAlive();
   
+  /**
+   * The Data.
+   */
+  public TensorList getData() {
+    return data;
+  }
+  
+  private final Map<Integer, CudaPtr> stateCache = new HashMap<>();
+  public CudaPtr getGpuFloats(int device) {
+    return stateCache.computeIfAbsent(device, i->CudaPtr.toDeviceAsFloat(device, data));
+  }
 }
