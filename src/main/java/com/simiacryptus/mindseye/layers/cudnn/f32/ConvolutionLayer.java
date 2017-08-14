@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
@@ -31,15 +28,13 @@ import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Coordinate;
 import com.simiacryptus.util.ml.Tensor;
+import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
-import jcuda.runtime.JCuda;
-import org.apache.commons.math.random.RandomGenerator;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
@@ -54,6 +49,80 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class ConvolutionLayer extends NNLayer {
 
+  private Map<Integer, GPUDataMirror> stateCache = new HashMap<>();
+  
+  public static class CudnnFloatDelta extends DeltaBuffer {
+    public CudnnFloatDelta(double[] values, NNLayer layer) {
+      super(values, null, layer);
+    }
+    
+    CudaPtr buffer;
+ 
+    public void accumulate(CudaResource<cudnnTensorDescriptor> size, CudaPtr data) {
+      if(null != buffer) {
+        CuDNN.devicePool.with(handle->{
+          CuDNN.handle(cudnnAddTensor(handle.cudnnHandle,
+            Pointer.to(new float[]{1.0f}), size.getPtr(), data.getPtr(),
+            Pointer.to(new float[]{1.0f}), size.getPtr(), buffer.getPtr()));
+        });
+        data.finalize();
+      } else {
+        buffer = data;
+      }
+    }
+    
+    @Override
+    public double[] getDelta() {
+      if(null == delta) {
+        float[] data = new float[length()];
+        buffer.read(data);
+        this.delta = Tensor.toDoubles(data);
+      }
+      return super.getDelta();
+    }
+  }
+  
+  public static class GPUDataMirror {
+    private long fingerprint;
+    private int[] indicies;
+    private volatile CudaPtr ptr;
+  
+    public GPUDataMirror(int length) {
+      this.indicies = IntStream.range(0, 3).map(i -> new Random().nextInt(length)).distinct().limit(3).toArray();
+    }
+  
+    public CudaPtr upload(int device, float[] data) {
+      long inputHash = hashFunction(data);
+      if(null != ptr && inputHash == fingerprint) return ptr;
+      this.fingerprint = inputHash;
+      return ptr = CuDNN.write(device, data);
+    }
+  
+    public CudaPtr upload(int device, double[] data) {
+      long inputHash = hashFunction(data);
+      if(null != ptr && inputHash == fingerprint) return ptr;
+      this.fingerprint = inputHash;
+      return ptr = CuDNN.write(device, data);
+    }
+  
+    public CudaPtr uploadAsFloats(int device, double[] data) {
+      long inputHash = hashFunction(data);
+      if(null != ptr && inputHash == fingerprint) return ptr;
+      this.fingerprint = inputHash;
+      return ptr = CuDNN.write(device, Tensor.toFloats(data));
+    }
+  
+    public long hashFunction(float[] data) {
+      return IntStream.of(indicies).mapToObj(i->data[i])
+               .mapToInt(Float::floatToIntBits)
+               .reduce((a,b)->a^b).getAsInt();
+    }
+    public long hashFunction(double[] data) {
+      return IntStream.of(indicies).mapToDouble(i->data[i])
+               .mapToLong(Double::doubleToLongBits)
+               .reduce((a,b)->a^b).getAsLong();
+    }
+  }
 
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
@@ -186,14 +255,11 @@ public class ConvolutionLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(filter.getData()).allMatch(v->Double.isFinite(v));
     CuDNN.setDevice(nncontext.getCudaDeviceId());
     final NNResult input = inObj[0];
     final TensorList batch = input.data;
     final int[] inputSize = batch.getDimensions();
     int[] kernelSize = this.filter.getDimensions();
-    int[] outputSize = getOutputSize(inputSize, kernelSize);
     int length = batch.length();
 
     try {
@@ -201,27 +267,23 @@ public class ConvolutionLayer extends NNLayer {
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-      CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
+              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, kernelSize[2] / inputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
           simple ?((kernelSize[1] - 1) / 2):0, simple ?((kernelSize[0] - 1) / 2):0,
           strideX, strideY, CUDNN_CONVOLUTION);
+      int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
+      int[] outputSize = new int[]{outputDims[3], outputDims[2], outputDims[1]};
+      CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
+              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
       CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
       CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 0.0f);
 
-      final float[] filterData = this.filter.getDataAsFloats();
-      //assert isNontrivial(filterData);
-      CudaPtr filterPtr = CuDNN.write(nncontext.getCudaDeviceId(), filterData);
-      assert(0 < filterData.length);
-      //assert isNontrivial(batch.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).toArray());
+      CudaPtr filterPtr = stateCache.computeIfAbsent(nncontext.getCudaDeviceId(),i->new GPUDataMirror(filter.dim()))
+                            .uploadAsFloats(nncontext.getCudaDeviceId(), filter.getData());
       CudaPtr inputData = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
-      assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
-
       CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), Tensor.dim(outputSize) * 1l * length * Sizeof.FLOAT);
       CuDNN.devicePool.with(device -> {
         try {
-          assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
           int algorithm = device.getForwardAlgorithm(
                   inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
           CudaPtr workSpace = device.allocateForwardWorkspace(nncontext.getCudaDeviceId(),
@@ -237,7 +299,6 @@ public class ConvolutionLayer extends NNLayer {
         }
       });
       TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize);
-      //assert output.stream().allMatch(tensor -> Arrays.stream(tensor.getData()).allMatch(Double::isFinite));
 
       return new NNResult(output) {
         @Override
@@ -245,12 +306,10 @@ public class ConvolutionLayer extends NNLayer {
           outputBuffer.finalize();
           CuDNN.setDevice(nncontext.getCudaDeviceId());
           assert (error.length() == batch.length());
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).anyMatch(x->0!=x);
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           int length = error.length();
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
           if (!isFrozen()) {
-            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), filterData.length * 1l * Sizeof.FLOAT);
+            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), filter.dim() * 1l * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 int algorithm = device.getBackwardFilterAlgorithm(
@@ -267,11 +326,8 @@ public class ConvolutionLayer extends NNLayer {
             } catch (Throwable e) {
               throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
             }
-            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
-            //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            //assert Arrays.stream(weightGradient.getData()).anyMatch(x->0!=x);
-            buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
-            filterBuffer.finalize();
+            buffer.get(ConvolutionLayer.this, ()->new CudnnFloatDelta(filter.getData(),ConvolutionLayer.this))
+              .accumulate(CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, kernelSize[2], kernelSize[1], kernelSize[0]), filterBuffer);
           }
           if (input.isAlive()) {
             CudaPtr inputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), Tensor.dim(batch.getDimensions()) * 1l * length * Sizeof.FLOAT);
@@ -292,11 +348,9 @@ public class ConvolutionLayer extends NNLayer {
               throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
             }
             TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize);
-            //assert inputBufferTensors.stream().allMatch(tensor -> Arrays.stream(tensor.getData()).allMatch(Double::isFinite));
             input.accumulate(buffer, inputBufferTensors);
             inputBuffer.finalize();
           }
-          filterPtr.finalize();
         }
 
         @Override
@@ -307,57 +361,6 @@ public class ConvolutionLayer extends NNLayer {
     } catch (Throwable e) {
       throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
     }
-  }
-  
-  /**
-   * Get output size int [ ].
-   *
-   * @param inputSize  the input size
-   * @param kernelSize the kernel size
-   * @return the int [ ]
-   */
-  protected int[] getOutputSize(int[] inputSize, int[] kernelSize) {
-    return IntStream.range(0, kernelSize.length).map(i -> {
-      int x;
-      if (i == kernelSize.length - 1) {
-        x = kernelSize[i] / inputSize[i];
-      } else if(simple) {
-        x = inputSize[i] / (i==0?strideX:strideY);
-      } else {
-        x = (1 + inputSize[i] - kernelSize[i]) / (i==0?strideX:strideY);
-      }
-      if (0 >= x) {
-        assert false;
-      }
-      return x;
-    }).toArray();
-  }
-  
-  
-  /**
-   * Verify output dims boolean.
-   *
-   * @param inputDescriptor       the input descriptor
-   * @param filterDescriptor      the filter descriptor
-   * @param convolutionDescriptor the convolution descriptor
-   * @param outputSize            the output size
-   * @return the boolean
-   */
-  protected boolean verifyOutputDims(CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
-    int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
-    if(4 != outputDims.length) {
-      return false;
-    }
-    if(outputSize[0] != outputDims[3]) {
-      return false;
-    }
-    if(outputSize[1] != outputDims[2]) {
-      return false;
-    }
-    if(outputSize[2] != outputDims[1]) {
-      return false;
-    }
-    return true;
   }
   
   /**

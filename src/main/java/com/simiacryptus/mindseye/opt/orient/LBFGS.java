@@ -66,9 +66,9 @@ public class LBFGS implements OrientationStrategy {
    * @param monitor     the monitor
    */
   public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
-    if (!measurement.delta.vector().stream().flatMapToDouble(y->Arrays.stream(y.delta)).allMatch(d -> Double.isFinite(d))) {
+    if (!measurement.delta.vector().stream().flatMapToDouble(y->Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
       monitor.log("Corrupt measurement");
-    } else if (!measurement.weights.vector().stream().flatMapToDouble(y->Arrays.stream(y.delta)).allMatch(d -> Double.isFinite(d))) {
+    } else if (!measurement.weights.vector().stream().flatMapToDouble(y->Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
       monitor.log("Corrupt measurement");
     } else if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) {
       history.add(measurement);
@@ -85,7 +85,7 @@ public class LBFGS implements OrientationStrategy {
     String type = "GD";
     List<DeltaBuffer> descent = defaultValue;
     if (history.size() > minHistory) {
-      List<double[]> gradient = defaultValue.stream().map(x -> Arrays.copyOf(x.delta,x.delta.length)).collect(Collectors.toList());
+      List<double[]> gradient = defaultValue.stream().map(x -> Arrays.copyOf(x.getDelta(), x.getDelta().length)).collect(Collectors.toList());
       type = "LBFGS";
       List<double[]> p = descent.stream().map(x -> x.copyDelta()).collect(Collectors.toList());
       assert (p.stream().parallel().allMatch(y -> Arrays.stream(y).allMatch(d -> Double.isFinite(d))));
@@ -117,9 +117,9 @@ public class LBFGS implements OrientationStrategy {
       List<double[]> _p = p;
       for (int i = 0; i < descent.size(); i++) {
         int _i = i;
-        Arrays.setAll(descent.get(i).delta, j -> _p.get(_i)[j]);
+        Arrays.setAll(descent.get(i).getDelta(), j -> _p.get(_i)[j]);
       }
-      List<double[]> lbfgs = descent.stream().map(x -> x.delta).collect(Collectors.toList());
+      List<double[]> lbfgs = descent.stream().map(x -> x.getDelta()).collect(Collectors.toList());
       double mag = Math.sqrt(ArrayUtil.dot(lbfgs,lbfgs));
       double magGrad = Math.sqrt(ArrayUtil.dot(gradient,gradient));
       double dot = ArrayUtil.dot(lbfgs, gradient) / (mag * magGrad);
@@ -128,7 +128,7 @@ public class LBFGS implements OrientationStrategy {
                                              .collect(Collectors.toMap((Integer i) -> {
                                                return deltaVector.get(i).layer.getName();
                                              }, (Integer i) -> {
-                                               double[] lbfgsVector = descent.get(i).delta;
+                                               double[] lbfgsVector = descent.get(i).getDelta();
                                                double[] gradientVector = gradient.get(i);
                                                double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
                                                double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
@@ -171,7 +171,7 @@ public class LBFGS implements OrientationStrategy {
   }
   
   private List<double[]> cvt(List<DeltaBuffer> vector) {
-    return vector.stream().map(x -> x.delta).collect(Collectors.toList());
+    return vector.stream().map(x -> x.getDelta()).collect(Collectors.toList());
   }
   
   /**

@@ -129,7 +129,7 @@ public class CuDNNFloatTensorList implements TensorList {
     if(right instanceof CuDNNFloatTensorList) {
       CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
       CuDNN.devicePool.with(handle->{
-        CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+        CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
         CuDNN.handle(cudnnAddTensor(handle.cudnnHandle,
           Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
           Pointer.to(new float[]{1.0f}), size.getPtr(), CuDNNFloatTensorList.this.ptr.getPtr()));
@@ -151,7 +151,7 @@ public class CuDNNFloatTensorList implements TensorList {
     if(right instanceof CuDNNFloatTensorList) {
       CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
       CuDNN.devicePool.with(handle->{
-        CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+        CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
         CuDNN.handle(cudnnAddTensor(handle.cudnnHandle,
           Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
           Pointer.to(new float[]{1.0f}), size.getPtr(), CuDNNFloatTensorList.this.ptr.getPtr()));

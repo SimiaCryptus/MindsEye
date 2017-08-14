@@ -95,10 +95,11 @@ public class StochasticArrayTrainable implements Trainable {
   public PointSample measure() {
     try {
       List<? extends List<? extends Supplier<Tensor[]>>> partitions = Lists.partition(sampledData, batchSize);
-      PointSample result = partitions.stream().parallel().map(trainingData -> {
-        PointSample pointSample = evalSubsample(trainingData);
-        return pointSample;
-      }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+      PointSample result = partitions.stream().parallel()
+        .map(this::buildTrainingData)
+        .map(this::evalSubsample)
+        .reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value))
+        .get();
       Map<Integer, Long> peakMemory = CudaPtr.METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().peakMemory.getAndSet(0)));
       if(partitions.size() < CuDNN.gpuContexts.size()) {
         batchSize = batchSize / 2;
@@ -131,31 +132,28 @@ public class StochasticArrayTrainable implements Trainable {
     return false;
   }
   
-  /**
-   * Eval subsample point sample.
-   *
-   * @param trainingData the training data
-   * @return the point sample
-   */
-  protected PointSample evalSubsample(List<? extends Supplier<Tensor[]>> trainingData) {
-    NNResult[] input = NNResult.batchResultArray(trainingData.stream().parallel().map(x->x.get()).toArray(i->new Tensor[i][]));
+  private NNResult[] buildTrainingData(List<? extends Supplier<Tensor[]>> trainingData) {
+    return NNResult.batchResultArray(trainingData.stream().parallel().map(x->x.get()).toArray(i->new Tensor[i][]));
+  }
+  
+  private PointSample evalSubsample(NNResult[] input) {
     return CuDNN.gpuContexts.map(nncontext->{
       NNResult result = network.eval(nncontext, input);
       DeltaSet deltaSet = new DeltaSet();
       result.accumulate(deltaSet);
-      assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.delta).allMatch(Double::isFinite)));
+      assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
       DeltaSet stateBackup = new DeltaSet();
       deltaSet.map.forEach((layer, layerDelta) -> {
         stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
       });
-      assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.delta).allMatch(Double::isFinite)));
+      assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
       assert (result.data.stream().allMatch(x -> x.dim() == 1));
       assert (result.data.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
       double meanValue = result.data.stream().mapToDouble(x -> x.getData()[0]).sum();
       return new PointSample(deltaSet.scale(1.0/trainingSize), stateBackup, meanValue / trainingSize);
     });
   }
-
+  
   @Override
   public void resetToFull() {
     this.sampledData = trainingData.stream().collect(Collectors.toList());

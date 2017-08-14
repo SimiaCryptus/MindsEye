@@ -211,7 +211,7 @@ public class LayerRateDiagnosticTrainer {
   private DeltaSet filterDirection(DeltaSet direction, NNLayer layer) {
     DeltaSet maskedDelta = new DeltaSet();
     direction.map.forEach((layer2,delta)->maskedDelta.get(layer2,delta.target));
-    maskedDelta.get(layer,layer.state().get(0)).accumulate(direction.get(layer,(double[])null).delta);
+    maskedDelta.get(layer,layer.state().get(0)).accumulate(direction.get(layer, (double[]) null).getDelta());
     return maskedDelta;
   }
   

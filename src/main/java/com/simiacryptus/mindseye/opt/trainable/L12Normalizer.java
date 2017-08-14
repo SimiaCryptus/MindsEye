@@ -55,7 +55,7 @@ public abstract class L12Normalizer implements Trainable {
     double valueAdj = 0;
     for (NNLayer layer : getLayers(innerMeasure.delta.map.keySet())) {
       double[] weights = innerMeasure.delta.map.get(layer).target;
-      double[] gradientAdj = normalizationVector.get(layer, weights).delta;
+      double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
       double factor_L1 = getL1(layer);
       double factor_L2 = getL2(layer);
       for (int i = 0; i < gradientAdj.length; i++) {

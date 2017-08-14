@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +61,7 @@ public class DeltaSet {
    */
   public static DeltaSet fromList(List<DeltaBuffer> descent) {
     DeltaSet deltaSet = new DeltaSet();
-    descent.forEach(buffer -> deltaSet.get(buffer.layer, buffer.target).accumulate(buffer.delta));
+    descent.forEach(buffer -> deltaSet.get(buffer.layer, buffer.target).accumulate(buffer.getDelta()));
     return deltaSet;
   }
   
@@ -72,7 +73,11 @@ public class DeltaSet {
    * @return the delta buffer
    */
   public DeltaBuffer get(final NNLayer layer, final double[] ptr) {
-    return this.map.computeIfAbsent(layer, l -> new DeltaBuffer(ptr, layer));
+    return get(layer, () -> new DeltaBuffer(ptr, layer));
+  }
+  
+  public <T extends DeltaBuffer> T get(final NNLayer layer, Supplier<T> factory) {
+    return (T) this.map.computeIfAbsent(layer, l->factory.get());
   }
   
   /**
@@ -167,8 +172,8 @@ public class DeltaSet {
     DeltaSet returnValue = new DeltaSet();
     map.forEach((layer, buffer) -> {
       returnValue.get(layer, buffer.target)
-          .accumulate(buffer.delta)
-          .accumulate(right.get(layer, buffer.target).delta);
+          .accumulate(buffer.getDelta())
+          .accumulate(right.get(layer, buffer.target).getDelta());
     });
     return returnValue;
   }

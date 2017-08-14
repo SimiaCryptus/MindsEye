@@ -60,7 +60,7 @@ public class MomentumStrategy implements OrientationStrategy {
     DeltaSet newDelta = new DeltaSet();
     direction.map.forEach((layer, delta)->{
       DeltaBuffer prevBuffer = prevDelta.get(layer, delta.target);
-      newDelta.get(layer, delta.target).accumulate(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.delta, carryOver), delta.delta));
+      newDelta.get(layer, delta.target).accumulate(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));
     });
     prevDelta = newDelta;
     return new SimpleLineSearchCursor(subject, measurement, newDelta);

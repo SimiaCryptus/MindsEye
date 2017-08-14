@@ -96,7 +96,7 @@ public class SoftmaxActivationLayer extends NNLayer {
       });
       assert Arrays.stream(exp.getData()).allMatch(Double::isFinite);
       assert Arrays.stream(exp.getData()).allMatch(v->v>=0);
-      assert exp.sum() > 0;
+      //assert exp.sum() > 0;
       double sum = 0<exp.sum()?exp.sum():1;
       assert(Double.isFinite(sum));
       expA[dataIndex] = exp;

@@ -90,13 +90,13 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
         // Adjust new point and associated tangent
         DeltaSet currentDirection = direction.copy();
         direction.map.forEach((layer, buffer) -> {
-          if (null == buffer.delta) return;
+          if (null == buffer.getDelta()) return;
           DeltaBuffer deltaBuffer = currentDirection.get(layer, buffer.target);
-          double[] delta = multiply(deltaBuffer.delta, alpha);
+          double[] delta = multiply(deltaBuffer.getDelta(), alpha);
           double[] projected = add(deltaBuffer.target, delta);
           TrustRegion region = getRegionPolicy(layer);
           if(null != region) {
-            double[][] historyData = history.stream().map(x -> x.weights.map.get(layer).delta).toArray(i -> new double[i][]);
+            double[][] historyData = history.stream().map(x -> x.weights.map.get(layer).getDelta()).toArray(i -> new double[i][]);
             double[] adjusted = region.project(historyData, projected);
             if(adjusted != projected) {
               double[] correction = subtract(adjusted, projected);
@@ -109,13 +109,13 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
                   assert(ArrayUtil.dot(tangent, tangent) <= ArrayUtil.dot(delta, delta));
                   for (int i = 0; i < tangent.length; i++) {
                     projected[i] = adjusted[i];
-                    deltaBuffer.delta[i] = tangent[i];
+                    deltaBuffer.getDelta()[i] = tangent[i];
                   }
                 }
               }
             }
           }
-          for (int i = 0; i < buffer.delta.length; i++) {
+          for (int i = 0; i < buffer.getDelta().length; i++) {
             buffer.target[i] = projected[i];
           }
         });

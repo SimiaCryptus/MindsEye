@@ -68,9 +68,9 @@ public class OwlQn implements OrientationStrategy {
     DeltaSet orthant = new DeltaSet();
     for (NNLayer layer : getLayers(gradient.direction.map.keySet())) {
       double[] weights = gradient.direction.map.get(layer).target;
-      double[] delta = gradient.direction.map.get(layer).delta;
-      double[] searchDir = searchDirection.get(layer, weights).delta;
-      double[] suborthant = orthant.get(layer, weights).delta;
+      double[] delta = gradient.direction.map.get(layer).getDelta();
+      double[] searchDir = searchDirection.get(layer, weights).getDelta();
+      double[] suborthant = orthant.get(layer, weights).getDelta();
       for (int i = 0; i < searchDir.length; i++) {
         int positionSign = sign(weights[i]);
         int directionSign = sign(delta[i]);
@@ -86,11 +86,11 @@ public class OwlQn implements OrientationStrategy {
         origin.weights.vector().stream().forEach(d -> d.overwrite());
         DeltaSet currentDirection = direction.copy();
         direction.map.forEach((layer, buffer) -> {
-          if (null == buffer.delta) return;
-          double[] currentDelta = currentDirection.get(layer, buffer.target).delta;
-          for (int i = 0; i < buffer.delta.length; i++) {
+          if (null == buffer.getDelta()) return;
+          double[] currentDelta = currentDirection.get(layer, buffer.target).getDelta();
+          for (int i = 0; i < buffer.getDelta().length; i++) {
             double prevValue = buffer.target[i];
-            double newValue = prevValue + buffer.delta[i] * alpha;
+            double newValue = prevValue + buffer.getDelta()[i] * alpha;
             if (sign(prevValue) != 0 && sign(prevValue) != sign(newValue)) {
               currentDelta[i] = 0;
               buffer.target[i] = 0;

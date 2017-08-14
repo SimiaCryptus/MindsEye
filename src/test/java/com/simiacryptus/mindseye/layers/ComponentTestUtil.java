@@ -106,7 +106,7 @@ public class ComponentTestUtil {
       component.eval(new NNLayer.NNExecutionContext() {},inputPrototype).accumulate(buffer, new TensorArray(data));
       final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
-        gradient.set(new int[]{i, j_}, deltaFlushBuffer.delta[i]);
+        gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
       }
     }
     return gradient;

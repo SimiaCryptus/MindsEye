@@ -139,7 +139,7 @@ public class SparkTrainable implements Trainable {
   }
   private static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
     Map<String, double[]> deltas = delta.map.entrySet().stream().collect(Collectors.toMap(
-        e -> e.getKey().id.toString(), e -> e.getValue().delta
+        e -> e.getKey().id.toString(), e -> e.getValue().getDelta()
     ));
     return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum(), values.length);
   }
