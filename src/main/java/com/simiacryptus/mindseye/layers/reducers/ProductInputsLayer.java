@@ -66,12 +66,16 @@ public class ProductInputsLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert inObj.length > 1;
     for(int i=1;i<inObj.length;i++) {
-      if(!Arrays.equals(inObj[0].data.get(0).getDimensions(), inObj[i].data.get(0).getDimensions()))
+      if(Tensor.dim(inObj[0].data.get(0).getDimensions()) != Tensor.dim(inObj[i].data.get(0).getDimensions()))
         throw new RuntimeException(Arrays.toString(inObj[0].data.get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].data.get(0).getDimensions()));
     }
     TensorList result = Arrays.stream(inObj).parallel().map(x -> x.data).reduce((l, r) -> {
       Stream<Tensor> tensorStream = IntStream.range(0, Math.max(l.length(), r.length())).parallel()
-              .mapToObj(i -> Tensor.product(l.get(Math.min(i, l.length() - 1)), r.get(Math.min(i, r.length() - 1))));
+              .mapToObj(i -> {
+                Tensor left = l.get(Math.min(i, l.length() - 1));
+                Tensor right = r.get(Math.min(i, r.length() - 1));
+                return Tensor.product(left, right);
+              });
       return new TensorArray(tensorStream.toArray(i->new Tensor[i]));
     }).get();
     return new NNResult(result) {

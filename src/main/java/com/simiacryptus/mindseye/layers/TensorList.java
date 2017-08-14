@@ -60,9 +60,22 @@ public interface TensorList {
   default TensorList add(TensorList right) {
     assert(length() == right.length());
     return new TensorArray(
-      IntStream.range(0, length()).mapToObj(i->{
-        return get(i).add(right.get(i));
-      }).toArray(i->new Tensor[i])
+                            IntStream.range(0, length()).mapToObj(i->{
+                              return get(i).add(right.get(i));
+                            }).toArray(i->new Tensor[i])
+    );
+  }
+  
+  default void accum(TensorList right) {
+    assert(length() == right.length());
+    IntStream.range(0, length()).forEach(i->{
+      get(i).accum(right.get(i));
+    });
+  }
+  
+  default TensorList copy() {
+    return new TensorArray(
+      IntStream.range(0, length()).mapToObj(i-> get(i).copy()).toArray(i->new Tensor[i])
     );
   }
   

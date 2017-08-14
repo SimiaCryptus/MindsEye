@@ -19,9 +19,12 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.Util;
@@ -30,12 +33,14 @@ import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
-import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
+import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
 import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardBias;
@@ -45,7 +50,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 /**
  * The type Img band bias layer.
  */
-public class ImgBandBiasLayer extends NNLayer {
+public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
   
   /**
    * From json img band bias layer.
@@ -53,13 +58,21 @@ public class ImgBandBiasLayer extends NNLayer {
    * @param json the json
    * @return the img band bias layer
    */
-  public static ImgBandBiasLayer fromJson(JsonObject json) {
-    return new ImgBandBiasLayer(json);
+  public static SchemaBiasLayer fromJson(JsonObject json) {
+    return new SchemaBiasLayer(json);
   }
 
   public JsonObject getJson() {
+    readFeatures();
     JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getBias()));
+    JsonArray jsonSelected = new JsonArray();
+    for(String s : selected) jsonSelected.add(new JsonPrimitive(s));
+    json.add("selected", jsonSelected);
+    JsonObject jsonObject = new JsonObject();
+    for(Map.Entry<String, Double> e : features.entrySet()) {
+      jsonObject.add(e.getKey(), new JsonPrimitive(e.getValue()));
+    }
+    json.add("features", jsonObject);
     return json;
   }
   
@@ -68,24 +81,45 @@ public class ImgBandBiasLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ImgBandBiasLayer(JsonObject json) {
+  protected SchemaBiasLayer(JsonObject json) {
     super(json);
-    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
+    JsonObject featuresJson = json.getAsJsonObject("features");
+    for(Map.Entry<String, JsonElement> e : featuresJson.entrySet()) {
+      features.put(e.getKey(), e.getValue().getAsDouble());
+    }
+    JsonArray selectedJson = json.getAsJsonArray("selected");
+    setSchema(IntStream.range(0,selectedJson.size()).mapToObj(i->selectedJson.get(i).getAsString()).toArray(i->new String[i]));
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
 
-  private final double[] bias;
+  private double[] bias;
+  private String[] selected = new String[]{};
+  private Map<String,Double> features = new HashMap<>();
   
   /**
    * Instantiates a new Img band bias layer.
    *
-   * @param bands the bands
    */
-  public ImgBandBiasLayer(int bands) {
-    this.bias = new double[bands];
+  public SchemaBiasLayer() {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
-
+  
+  @Override
+  public void setSchema(String... labels) {
+    if(null == labels) throw new RuntimeException();
+    readFeatures();
+    selected = labels;
+    bias = IntStream.range(0,labels.length).mapToDouble(i->features.getOrDefault(labels[i],0.0)).toArray();
+  }
+  
+  private void readFeatures() {
+    if(null != bias && selected.length>0) {
+      for(int i=0;i<selected.length;i++) {
+        features.put(selected[i], bias[i]);
+      }
+    }
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
@@ -130,7 +164,7 @@ public class ImgBandBiasLayer extends NNLayer {
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
           if (!isFrozen()) {
-            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), ImgBandBiasLayer.this.bias.length * 1l * Sizeof.FLOAT);
+            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), SchemaBiasLayer.this.bias.length * 1l * Sizeof.FLOAT);
             try {
               CuDNN.devicePool.with(device -> {
                 CuDNN.handle(cudnnConvolutionBackwardBias(device.cudnnHandle,
@@ -144,7 +178,7 @@ public class ImgBandBiasLayer extends NNLayer {
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            DeltaBuffer deltaBuffer = buffer.get(ImgBandBiasLayer.this, ImgBandBiasLayer.this.bias);
+            DeltaBuffer deltaBuffer = buffer.get(SchemaBiasLayer.this, SchemaBiasLayer.this.bias);
             deltaBuffer.accumulate(weightGradient.getData());
             //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
             filterBuffer.finalize();
@@ -164,75 +198,6 @@ public class ImgBandBiasLayer extends NNLayer {
     }
   }
   
-  /**
-   * Add double [ ].
-   *
-   * @param input the input
-   * @return the double [ ]
-   */
-  public double[] add(final double[] input) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
-    assert(null != input);
-    double[] bias = this.getBias();
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    assert(null != bias);
-    if(input.length % bias.length != 0) throw new IllegalArgumentException();
-    final double[] array = new double[input.length];
-    int size = input.length / bias.length;
-    for (int i = 0; i < array.length; i++) {
-      array[i] = input[i] + bias[i/size];
-    }
-    //assert Arrays.stream(array).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return array;
-  }
-  
-  /**
-   * Add weights img band bias layer.
-   *
-   * @param f the f
-   * @return the img band bias layer
-   */
-  public ImgBandBiasLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.getBias());
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return this;
-  }
-  
-  /**
-   * Set nn layer.
-   *
-   * @param ds the ds
-   * @return the nn layer
-   */
-  public NNLayer set(final double[] ds) {
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    //assert Arrays.stream(ds).allMatch(Double::isFinite);
-    double[] bias = this.getBias();
-    for (int i = 0; i < ds.length; i++) {
-      bias[i] = ds[i];
-    }
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
-    return this;
-  }
-  
-  /**
-   * Sets weights.
-   *
-   * @param f the f
-   * @return the weights
-   */
-  public ImgBandBiasLayer setWeights(final IntToDoubleFunction f) {
-    double[] bias = this.getBias();
-    for (int i = 0; i < bias.length; i++) {
-      bias[i] = f.applyAsDouble(i);
-    }
-    //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    return this;
-  }
-
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.getBias());

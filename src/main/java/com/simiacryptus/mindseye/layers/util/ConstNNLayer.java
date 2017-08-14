@@ -37,7 +37,7 @@ public class ConstNNLayer extends NNLayer {
   @Override
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("value", tensor.getJson());
+    json.add("value", data.getJson());
     return json;
   }
   
@@ -58,33 +58,30 @@ public class ConstNNLayer extends NNLayer {
    */
   protected ConstNNLayer(JsonObject json) {
     super(json);
-    this.tensor = Tensor.fromJson(json.getAsJsonObject("value"));
+    this.data = Tensor.fromJson(json.getAsJsonObject("value"));
   }
   
-  /**
-   * The Tensor.
-   */
-  Tensor tensor;
+  private Tensor data;
   
   /**
    * Instantiates a new Const nn layer.
    *
-   * @param tensor the tensor
+   * @param data the data
    */
-  public ConstNNLayer(Tensor tensor) {
+  public ConstNNLayer(Tensor data) {
     super();
-    this.tensor = tensor;
+    this.data = data;
     setFrozen(true);
   }
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
-    return new NNResult(tensor) {
+    return new NNResult(data) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
         if(!isFrozen()) {
           data.stream().forEach(datum->{
-            buffer.get(ConstNNLayer.this, tensor).accumulate(datum.getData());
+            buffer.get(ConstNNLayer.this, ConstNNLayer.this.data).accumulate(datum.getData());
           });
         }
       }
@@ -99,6 +96,17 @@ public class ConstNNLayer extends NNLayer {
   
   @Override
   public List<double[]> state() {
-    return Arrays.asList(tensor.getData());
+    return Arrays.asList(data.getData());
+  }
+  
+  /**
+   * The Tensor.
+   */
+  public Tensor getData() {
+    return data;
+  }
+  
+  public void setData(Tensor data) {
+    this.data = data;
   }
 }

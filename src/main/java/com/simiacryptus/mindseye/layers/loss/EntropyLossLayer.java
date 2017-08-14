@@ -105,7 +105,7 @@ public class EntropyLossLayer extends NNLayer {
           throw new RuntimeException();
         }
         if (a.isAlive()) {
-          a.accumulate(buffer, new TensorArray(IntStream.range(0, a.data.length()).mapToObj(dataIndex -> {
+          a.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
             final Tensor passback = new Tensor(gradientA[dataIndex].getDimensions());
             for (int i = 0; i < a.data.get(0).dim(); i++) {
               passback.set(i, data.get(dataIndex).get(0) * gradientA[dataIndex].get(i));

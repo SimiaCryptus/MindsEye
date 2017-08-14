@@ -193,6 +193,7 @@ public class DenseSynapseLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+    assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     Tensor[] outputA = IntStream.range(0, inObj[0].data.length()).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].data.get(dataIndex);
       return multiply2(this.getWeights().getData(), input.getData());
@@ -325,6 +326,7 @@ public class DenseSynapseLayer extends NNLayer {
     
     @Override
     public void accumulate(final DeltaSet buffer, final TensorList delta) {
+      assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (!isFrozen()) {
         learn(delta, buffer);
       }

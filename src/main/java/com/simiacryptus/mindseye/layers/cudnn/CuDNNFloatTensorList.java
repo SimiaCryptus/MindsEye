@@ -144,4 +144,29 @@ public class CuDNNFloatTensorList implements TensorList {
                             }).toArray(i->new Tensor[i])
     );
   }
+  
+  @Override
+  public void accum(TensorList right) {
+    assert(length() == right.length());
+    if(right instanceof CuDNNFloatTensorList) {
+      CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
+      CuDNN.devicePool.with(handle->{
+        CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+        CuDNN.handle(cudnnAddTensor(handle.cudnnHandle,
+          Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
+          Pointer.to(new float[]{1.0f}), size.getPtr(), CuDNNFloatTensorList.this.ptr.getPtr()));
+        size.finalize();
+        nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+      });
+    } else {
+      IntStream.range(0, length()).forEach(i->{
+        get(i).accum(right.get(i));
+      });
+    }
+  }
+  
+  @Override
+  public TensorList copy() {
+    return new CuDNNFloatTensorList(ptr.copy(), length, dimensions);
+  }
 }

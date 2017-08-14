@@ -35,7 +35,7 @@ public class ComponentTestUtil {
   /**
    * The constant deltaFactor.
    */
-  public static final double deltaFactor = 1e-6;
+  public static final double deltaFactor = 1e-4;
   private static final Logger log = LoggerFactory.getLogger(ComponentTestUtil.class);
   /**
    * The constant tolerance.

@@ -29,10 +29,7 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 import com.simiacryptus.util.ArrayUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -75,6 +72,7 @@ public class LBFGS implements OrientationStrategy {
       monitor.log("Corrupt measurement");
     } else if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) {
       history.add(measurement);
+      Collections.sort(history, Comparator.comparing(x->-x.value));
       while(history.size() > maxHistory) history.remove(0);
     }
   }
@@ -134,8 +132,14 @@ public class LBFGS implements OrientationStrategy {
                                                double[] gradientVector = gradient.get(i);
                                                double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
                                                double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
-                                               double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
-                                               return String.format("%.3f/%.3e", dotP, lbfgsMagnitude / gradientMagnitude);
+                                               assert Double.isFinite(lbfgsMagnitude);
+                                               assert Double.isFinite(gradientMagnitude);
+                                               if(gradientMagnitude == 0.0) {
+                                                 return String.format("%.3e", lbfgsMagnitude);
+                                               } else {
+                                                 double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
+                                                 return String.format("%.3f/%.3e", dotP, lbfgsMagnitude / gradientMagnitude);
+                                               }
                                              }));
   
   

@@ -72,7 +72,7 @@ A few central types form the basis for this entire library:
 
 The [Tensor](https://github.com/SimiaCryptus/utilities/blob/master/java-util/src/main/java/com/simiacryptus/util/ml/Tensor.java) class provides facilities for efficiently using multidimensional arrays. It has a fairly simple API of get and set methods, as well as a variety of optimizations for index access, memory management, etc. These arrays are allocated as a single object, and they use a dense rectangular layout - this means all bounds are uniform (dimension 1 always has the same range, as does dimension 2, etc) and all values are stored in memory (no compression of sparseness)
 
-Many components assume a specific "image tensor schema", which includes the following four dimensions: 
+Many components assume a specific "image data schema", which includes the following four dimensions: 
 
 1. **Spacial dimension: X** - The first dimension, organizing rows of pixels into a spatial structure
 
@@ -104,7 +104,7 @@ There is a large and ever-changing library of components available, organized ro
 
 * [Loss](https://github.com/SimiaCryptus/MindsEye/tree/master/src/main/java/com/simiacryptus/mindseye/layers/loss) - Various types of loss functions for comparing actual and desired outputs
 
-* [Media](https://github.com/SimiaCryptus/MindsEye/tree/master/src/main/java/com/simiacryptus/mindseye/layers/media) - Components that assume the 4d image tensor schema, including convolutional network components.
+* [Media](https://github.com/SimiaCryptus/MindsEye/tree/master/src/main/java/com/simiacryptus/mindseye/layers/media) - Components that assume the 4d image data schema, including convolutional network components.
 
 * [Meta](https://github.com/SimiaCryptus/MindsEye/tree/master/src/main/java/com/simiacryptus/mindseye/layers/meta) - Components that operate across batch examples, breaking the usual rule where each given element in a batch is treated independently.
 
@@ -152,7 +152,7 @@ Several other networks act primarily as components themselves, intended for use 
 
 ### Inception Layer
 
-The "[Inception](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/network/InceptionLayer.java)" layer was introduced by the GoogLeNet paper. In its general form, it is a set of parallel pipelines which process an input image using a given series of kernels in each pipeline. At the end of each pipeline is then several image tensors, all with the same spatial dimensions but an arbitrary number of bands. A single output image tensor is then formed by concatenating all the bands together.
+The "[Inception](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/network/InceptionLayer.java)" layer was introduced by the GoogLeNet paper. In its general form, it is a set of parallel pipelines which process an input image using a given series of kernels in each pipeline. At the end of each pipeline is then several image tensors, all with the same spatial dimensions but an arbitrary number of bands. A single output image data is then formed by concatenating all the bands together.
 
 # Optimization
 

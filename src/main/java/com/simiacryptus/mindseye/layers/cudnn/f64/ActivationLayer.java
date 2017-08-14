@@ -39,7 +39,7 @@ import java.util.List;
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnActivationMode.*;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
-import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_PROPAGATE_NAN;
+import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
@@ -138,7 +138,7 @@ public class ActivationLayer extends NNLayer {
 
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(nncontext.getCudaDeviceId(), batch);
       CudaPtr outputData = CuDNN.alloc(nncontext.getCudaDeviceId(), Sizeof.DOUBLE * 1l * inputDims * length);
-      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_PROPAGATE_NAN, 0);
+      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
       CuDNN.devicePool.with(device -> {
         try {
           CuDNN.handle(cudnnActivationForward(device.cudnnHandle, activationDesc.getPtr(),

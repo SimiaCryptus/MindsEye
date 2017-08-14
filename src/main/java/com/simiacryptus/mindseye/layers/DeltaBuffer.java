@@ -75,7 +75,7 @@ public class DeltaBuffer {
     this.target = values;
     this.layer = layer;
     this.delta = new double[values.length];
-    Arrays.setAll(this.delta, i -> 0);
+    Arrays.fill(this.delta, 0);
   }
   
   /**
@@ -87,9 +87,11 @@ public class DeltaBuffer {
   public DeltaBuffer accumulate(final double[] data) {
     assert Arrays.stream(data).allMatch(Double::isFinite);
     final int dim = length();
-    for (int i = 0; i < dim; i++) {
-      this.delta[i] = this.delta[i] + data[i];
-    }
+    Arrays.parallelSetAll(this.delta,i->this.delta[i] + data[i]);
+//    for (int i = 0; i < dim; i++) {
+//      this.delta[i] = this.delta[i] + data[i];
+//    }
+    assert Arrays.stream(delta).allMatch(Double::isFinite);
     return this;
   }
   
@@ -185,6 +187,7 @@ public class DeltaBuffer {
    * @param factor the factor
    */
   public synchronized final void write(final double factor) {
+    assert Arrays.stream(target).allMatch(Double::isFinite);
     double[] calcVector = this.delta;
     if (null == calcVector)
       return;
@@ -196,6 +199,7 @@ public class DeltaBuffer {
     for (int i = 0; i < dim; i++) {
       this.target[i] = this.target[i] + calcVector[i];
     }
+    assert Arrays.stream(target).allMatch(Double::isFinite);
   }
   
   /**

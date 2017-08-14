@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.activation;
+package com.simiacryptus.mindseye.layers.stochastic;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 /**
  * The type Dropout noise layer.
  */
-public class DropoutNoiseLayer extends NNLayer {
+public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   
   
   public JsonObject getJson() {
@@ -120,6 +120,7 @@ public class DropoutNoiseLayer extends NNLayer {
   /**
    * Shuffle.
    */
+  @Override
   public void shuffle() {
     seed = random.get().nextLong();
   }

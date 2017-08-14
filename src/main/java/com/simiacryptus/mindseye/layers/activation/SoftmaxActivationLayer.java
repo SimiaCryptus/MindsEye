@@ -96,14 +96,14 @@ public class SoftmaxActivationLayer extends NNLayer {
       });
       assert Arrays.stream(exp.getData()).allMatch(Double::isFinite);
       assert Arrays.stream(exp.getData()).allMatch(v->v>=0);
-      double sum = exp.sum();
-      assert(sum > 0);
+      assert exp.sum() > 0;
+      double sum = 0<exp.sum()?exp.sum():1;
       assert(Double.isFinite(sum));
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
       return exp.map(x -> x / sum);
     }).toArray(i -> new Tensor[i]);
-    
+    assert Arrays.stream(outputA).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
@@ -125,6 +125,7 @@ public class SoftmaxActivationLayer extends NNLayer {
             }
             return passback;
           }).toArray(i -> new Tensor[i]);
+          assert Arrays.stream(passbackA).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }
       }

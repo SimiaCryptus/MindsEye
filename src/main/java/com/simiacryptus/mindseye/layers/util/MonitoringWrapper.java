@@ -28,6 +28,7 @@ import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,10 +68,12 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     super(json);
     if(json.has("forwardPerf")) this.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
     if(json.has("backwardPerf")) this.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
+    if(json.has("passbackPerformance")) this.passbackPerf.readJson(json.getAsJsonObject("passbackPerformance"));
     this.totalBatches = json.get("totalBatches").getAsInt();
     this.totalItems = json.get("totalItems").getAsInt();
   }
   
+  private final ScalarStatistics passbackPerf = new ScalarStatistics();
   private final ScalarStatistics forwardPerf = new ScalarStatistics();
   private final ScalarStatistics backwardPerf = new ScalarStatistics();
   private int totalBatches = 0;
@@ -91,9 +94,16 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     map.put("totalItems", totalItems);
     map.put("forwardPerformance", forwardPerf.getMetrics());
     map.put("backwardPerformance", backwardPerf.getMetrics());
+    map.put("passbackPerformance", passbackPerf.getMetrics());
     double batchesPerItem = totalBatches * 1.0 / totalItems;
     map.put("avgMsPerItem", 1000 * batchesPerItem * forwardPerf.getMean());
-    map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * backwardPerf.getMean());
+    map.put("medianMsPerItem", 1000 * batchesPerItem * forwardPerf.getPercentile(0.5));
+    double passbackMean = passbackPerf.getMean();
+    double backpropMean = backwardPerf.getMean();
+    double passbackMedian = passbackPerf.getPercentile(0.5);
+    double backpropMedian = backwardPerf.getPercentile(0.5);
+    map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMean)?(backpropMean - passbackMean):backpropMean));
+    map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMedian)?(backpropMedian - passbackMedian):backpropMedian));
     List<double[]> state = state();
     HashMap<String, Object> weightStats = new HashMap<>();
     map.put("weights", weightStats);
@@ -110,8 +120,22 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+    long passbacks = Arrays.stream(inObj).filter(x -> x.isAlive()).count();
+    NNResult[] wrappedInput = Arrays.stream(inObj).map(result -> new NNResult(result.data) {
+      @Override
+      public void accumulate(DeltaSet buffer, TensorList data) {
+        long start = System.nanoTime();
+        result.accumulate(buffer, data);
+        passbackPerf.add((passbacks * (System.nanoTime() - start) / 1000000000.0));
+      }
+    
+      @Override
+      public boolean isAlive() {
+        return result.isAlive();
+      }
+    }).toArray(i -> new NNResult[i]);
     long start = System.nanoTime();
-    final NNResult result = this.getInner().eval(nncontext, inObj);
+    final NNResult result = this.getInner().eval(nncontext, wrappedInput);
     forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
     totalItems += inObj[0].data.length();

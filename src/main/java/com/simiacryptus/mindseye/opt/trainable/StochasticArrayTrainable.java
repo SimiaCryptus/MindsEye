@@ -199,6 +199,7 @@ public class StochasticArrayTrainable implements Trainable {
     assert 0 < getTrainingSize();
     this.sampledData = trainingData.stream().parallel() //
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+                           .filter(x->x.get()!=null)
                            .limit(getTrainingSize()) //
                            .collect(Collectors.toList());
   }

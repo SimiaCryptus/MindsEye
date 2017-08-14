@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.ml.Tensor;
+import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnActivationDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -41,7 +42,7 @@ import static jcuda.jcudnn.JCudnn.cudnnActivationForward;
 import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_RELU;
 import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_SIGMOID;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
-import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_PROPAGATE_NAN;
+import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
@@ -135,18 +136,16 @@ public class ActivationLayer extends NNLayer {
 
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
-      CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 0.0f);
 
       CudaPtr inputData = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), batch);
       CudaPtr outputData = CuDNN.alloc(nncontext.getCudaDeviceId(), Sizeof.FLOAT * 1l * inputDims * length);
-      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_PROPAGATE_NAN, 0);
+      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
       CuDNN.devicePool.with(device -> {
         try {
           CuDNN.handle(cudnnActivationForward(device.cudnnHandle, activationDesc.getPtr(),
-                  alpha.getPtr(),
+                  Pointer.to(new float[]{1.0f}),
                   inputDescriptor.getPtr(), inputData.getPtr(),
-                  beta.getPtr(),
+            Pointer.to(new float[]{0.0f}),
                   inputDescriptor.getPtr(), outputData.getPtr()));
         } catch (Throwable e) {
           throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
@@ -166,18 +165,20 @@ public class ActivationLayer extends NNLayer {
             try {
               CuDNN.devicePool.with(device -> {
                 CuDNN.handle(cudnnActivationBackward(device.cudnnHandle, activationDesc.getPtr(),
-                        alpha.getPtr(),
+                        Pointer.to(new float[]{1.0f}),
                         inputDescriptor.getPtr(), outputData.getPtr(),
                         inputDescriptor.getPtr(), errorPtr.getPtr(),
                         inputDescriptor.getPtr(), inputData.getPtr(),
-                        beta.getPtr(),
+                        Pointer.to(new float[]{0.0f}),
                         inputDescriptor.getPtr(), passbackBuffer.getPtr()));
               });
             } catch (Throwable e) {
               throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
             }
             input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize));
+            passbackBuffer.finalize();
           }
+          outputData.finalize();
         }
 
         @Override

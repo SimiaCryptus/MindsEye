@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorArray;
 import com.simiacryptus.mindseye.layers.TensorList;
-import com.simiacryptus.mindseye.layers.activation.DropoutNoiseLayer;
+import com.simiacryptus.mindseye.layers.stochastic.DropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.GaussianNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;

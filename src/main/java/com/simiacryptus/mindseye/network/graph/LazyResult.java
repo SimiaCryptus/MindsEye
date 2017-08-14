@@ -66,7 +66,7 @@ abstract class LazyResult implements DAGNode {
       try {
         return new CountingNNResult(eval(t, nncontext));
       } catch (Throwable e) {
-        throw new RuntimeException("Error map layer " + getLayer(), e);
+        throw new RuntimeException("Error evaluating layer " + getLayer(), e);
       }
     }).increment();
   }

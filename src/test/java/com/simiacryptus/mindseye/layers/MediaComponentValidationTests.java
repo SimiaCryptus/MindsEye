@@ -132,14 +132,14 @@ public class MediaComponentValidationTests {
   
   @Test
   public void testCuDNNImgConcatLayer() throws Throwable {
-    final Tensor outputPrototype = new Tensor(2, 3, 2);
+    final Tensor outputPrototype = new Tensor(2, 3, 4);
     final Tensor[] inputPrototype = new Tensor[]{
-      new Tensor(2, 3, 1).fill(() -> Util.R.get().nextGaussian()),
-      new Tensor(2, 3, 1).fill(() -> Util.R.get().nextGaussian())
+      new Tensor(2, 3, 2).fill(() -> Util.R.get().nextGaussian()),
+      new Tensor(2, 3, 2).fill(() -> Util.R.get().nextGaussian())
     };
     final NNLayer component = new com.simiacryptus.mindseye.layers.cudnn.f32.ImgConcatLayer();
     double prev = ComponentTestUtil.tolerance;
-    ComponentTestUtil.tolerance = 1e-1;
+    ComponentTestUtil.tolerance = 1e-2;
     ComponentTestUtil.test(component, outputPrototype, inputPrototype);
     ComponentTestUtil.tolerance = prev;
   }

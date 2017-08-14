@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jcuda.runtime.JCuda.*;
+import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToDevice;
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
 import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyHostToDevice;
 
@@ -276,8 +277,14 @@ public class CudaPtr extends CudaResource<Pointer> {
         this.size = size;
         this.deviceId = deviceId;
     }
-
-    /**
+  
+  public CudaPtr copy() {
+    CudaPtr copy = new CudaPtr(size, deviceId);
+    CuDNN.handle(cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyDeviceToDevice));
+    return copy;
+  }
+  
+  /**
      * Write cu dnn ptr.
      *
      * @param data the data

@@ -30,7 +30,6 @@ import jcuda.runtime.cudaDeviceProp;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,7 +37,7 @@ import java.util.stream.IntStream;
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.JCudnn.cudnnSetPoolingNdDescriptor;
 import static jcuda.jcudnn.cudnnConvolutionFwdPreference.CUDNN_CONVOLUTION_FWD_PREFER_FASTEST;
-import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_PROPAGATE_NAN;
+import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnStatus.CUDNN_STATUS_SUCCESS;
 import static jcuda.runtime.JCuda.*;
 
@@ -135,7 +134,7 @@ public class CuDNN {
         cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
         cudnnCreatePoolingDescriptor(poolingDesc);
         cudnnSetPoolingNdDescriptor(poolingDesc,
-                mode, CUDNN_PROPAGATE_NAN, poolDims, windowSize,
+                mode, CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
                 padding, stride);
         return new CudaResource<cudnnPoolingDescriptor>(poolingDesc, JCudnn::cudnnDestroyPoolingDescriptor);
     }
@@ -453,5 +452,13 @@ public class CuDNN {
     public static int getDevice() {
         Integer integer = currentDevice.get();
         return integer==null?0:integer;
+    }
+    
+    public static CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(int opType, int dataType) {
+        cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
+        cudnnCreateOpTensorDescriptor(opDesc);
+        CuDNN.handle(cudnnSetOpTensorDescriptor(opDesc, opType, dataType, CUDNN_NOT_PROPAGATE_NAN));
+        return new CudaResource<>(opDesc, JCudnn::cudnnDestroyOpTensorDescriptor);
+    
     }
 }
