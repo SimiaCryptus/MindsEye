@@ -102,7 +102,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
   }
   
   @Override
-  public void setSchema(String... labels) {
+  public SchemaOutputLayer setSchema(String... labels) {
     if(null == labels) throw new RuntimeException();
     readFeatures();
     selected = labels;
@@ -115,6 +115,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
         filter.set(new int[]{0,0,i*inputBands+j},feature[j]);
       }
     }
+    return this;
   }
   
   private void readFeatures() {

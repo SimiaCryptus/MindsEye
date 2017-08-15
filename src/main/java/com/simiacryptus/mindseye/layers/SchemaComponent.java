@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaOutputLayer;
+
 public interface SchemaComponent {
-  void setSchema(String... labels);
+  SchemaOutputLayer setSchema(String... labels);
 }

@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 
 /**
  * The type Stochastic array trainable.
+ *
+ * TODO: Redesign this package. This class is absorbing too many features.
  */
 public class StochasticArrayTrainable implements Trainable {
   
@@ -47,8 +49,9 @@ public class StochasticArrayTrainable implements Trainable {
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
   private int batchSize = Integer.MAX_VALUE;
-  private List<? extends Supplier<Tensor[]>> sampledData;
   private boolean gcEachIteration = true;
+  private List<NNResult[]> trainingNNResultArrays;
+  private List<? extends Supplier<Tensor[]>> sampledData;
   
   /**
    * Instantiates a new Stochastic array trainable.
@@ -94,16 +97,14 @@ public class StochasticArrayTrainable implements Trainable {
   @Override
   public PointSample measure() {
     try {
-      List<? extends List<? extends Supplier<Tensor[]>>> partitions = Lists.partition(sampledData, batchSize);
-      PointSample result = partitions.stream().parallel()
-        .map(this::buildTrainingData)
+      PointSample result = trainingNNResultArrays.stream()
         .map(this::evalSubsample)
         .reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value))
         .get();
       Map<Integer, Long> peakMemory = CudaPtr.METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().peakMemory.getAndSet(0)));
-      if(partitions.size() < CuDNN.gpuContexts.size()) {
+      if(trainingNNResultArrays.size() < CuDNN.gpuContexts.size()) {
         batchSize = batchSize / 2;
-      } else if(partitions.size() > 2 * CuDNN.gpuContexts.size()) {
+      } else if(trainingNNResultArrays.size() > 2 * CuDNN.gpuContexts.size()) {
         double highestMemUse = peakMemory.values().stream().mapToDouble(x -> x).max().getAsDouble();
         if(highestMemUse < LOW_MEM_USE) {
           batchSize = batchSize * 2;
@@ -113,10 +114,11 @@ public class StochasticArrayTrainable implements Trainable {
       return result;
     } catch (Throwable t) {
       if(isOom(t) && batchSize > 1) {
-        cleanMemory();
         batchSize = batchSize / 2;
+        regenerateNNResultInputs();
+        cleanMemory();
         return measure();
-      } else throw t;
+      } else throw new RuntimeException("Failed executing " + this,t);
     }
   }
   
@@ -130,10 +132,6 @@ public class StochasticArrayTrainable implements Trainable {
     if(t instanceof OutOfMemoryError) return true;
     if(null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
     return false;
-  }
-  
-  private NNResult[] buildTrainingData(List<? extends Supplier<Tensor[]>> trainingData) {
-    return NNResult.batchResultArray(trainingData.stream().parallel().map(x->x.get()).toArray(i->new Tensor[i][]));
   }
   
   private PointSample evalSubsample(NNResult[] input) {
@@ -156,7 +154,7 @@ public class StochasticArrayTrainable implements Trainable {
   
   @Override
   public void resetToFull() {
-    this.sampledData = trainingData.stream().collect(Collectors.toList());
+    this.setSampledData(trainingData.stream().collect(Collectors.toList()));
   }
   
   @Override
@@ -195,11 +193,11 @@ public class StochasticArrayTrainable implements Trainable {
   private void refreshSampledData() {
     assert 0 < trainingData.size();
     assert 0 < getTrainingSize();
-    this.sampledData = trainingData.stream().parallel() //
+    this.setSampledData(trainingData.stream().parallel() //
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
                            .filter(x->x.get()!=null)
                            .limit(getTrainingSize()) //
-                           .collect(Collectors.toList());
+                           .collect(Collectors.toList()));
   }
   
   /**
@@ -226,5 +224,17 @@ public class StochasticArrayTrainable implements Trainable {
   
   public void setGcEachIteration(boolean gcEachIteration) {
     this.gcEachIteration = gcEachIteration;
+  }
+  
+  protected void setSampledData(List<? extends Supplier<Tensor[]>> sampledData) {
+    this.sampledData = sampledData;
+    regenerateNNResultInputs();
+  
+  }
+  
+  private void regenerateNNResultInputs() {
+    this.trainingNNResultArrays = Lists.partition(this.sampledData, batchSize).stream().parallel()
+                                                .map(xx -> NNResult.batchResultArray(xx.stream().parallel().map(x->x.get()).toArray(i->new Tensor[i][])))
+                                                .collect(Collectors.toList());
   }
 }
