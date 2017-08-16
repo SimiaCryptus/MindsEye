@@ -197,7 +197,8 @@ public class DeltaBuffer {
    * @return the double
    */
   public double dot(DeltaBuffer right) {
-    assert (this.target == right.target);
+    if (this.layer != right.layer) throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
+    if (this.target != right.target) throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
     assert (this.getDelta().length == right.getDelta().length);
     return IntStream.range(0, this.getDelta().length).mapToDouble(i -> getDelta()[i] * right.getDelta()[i]).sum();
   }

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.meta;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
@@ -38,7 +39,7 @@ public class AvgMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("lastResult", lastResult.getJson());
+    json.add("lastResult", null==lastResult?null:lastResult.getJson());
     return json;
   }
 
@@ -59,7 +60,11 @@ public class AvgMetaLayer extends NNLayer {
    */
   protected AvgMetaLayer(JsonObject id) {
     super(id);
-    lastResult = Tensor.fromJson(id.getAsJsonObject("lastResult"));
+    if(!id.isJsonNull() && id.has("lastResult")) {
+      JsonElement lastResult = id.get("lastResult");
+      if(null != lastResult && !lastResult.isJsonNull())
+        this.lastResult = Tensor.fromJson(lastResult.getAsJsonObject());
+    }
   }
   
   @SuppressWarnings("unused")

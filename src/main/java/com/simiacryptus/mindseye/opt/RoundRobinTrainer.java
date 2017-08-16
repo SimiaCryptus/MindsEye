@@ -46,8 +46,8 @@ public class RoundRobinTrainer {
   private final Trainable subject;
   private Duration timeout;
   private double terminateThreshold;
-  private List<OrientationStrategy> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
-  private Function<String, LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
+  private List<? extends OrientationStrategy> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
+  private Function<String, ? extends LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
   private Map<String,LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
@@ -97,7 +97,7 @@ public class RoundRobinTrainer {
       if(currentIteration.get() > maxIterations) break;
       currentPoint = measure();
       subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
-        for(OrientationStrategy orientation : orientations) {
+        orientationLoop: for(OrientationStrategy orientation : orientations) {
           if(currentIteration.incrementAndGet() > maxIterations) break;
           LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
           String directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
@@ -113,13 +113,7 @@ public class RoundRobinTrainer {
           currentPoint = lineSearchStrategy.step(direction, monitor);
           monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
           if(previous.value == currentPoint.value) {
-            if(subject.resetSampling()) {
-              monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
-              break subiterationLoop;
-            } else {
-              monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
-              break mainLoop;
-            }
+            monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
           } else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
           }
@@ -214,7 +208,7 @@ public class RoundRobinTrainer {
    *
    * @return the orientations
    */
-  public List<OrientationStrategy> getOrientations() {
+  public List<? extends OrientationStrategy> getOrientations() {
     return orientations;
   }
   
@@ -274,7 +268,7 @@ public class RoundRobinTrainer {
    *
    * @return the line search factory
    */
-  public Function<String, LineSearchStrategy> getLineSearchFactory() {
+  public Function<String, ? extends LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
   
@@ -295,7 +289,7 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(Function<String, LineSearchStrategy> lineSearchFactory) {
+  public RoundRobinTrainer setLineSearchFactory(Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }

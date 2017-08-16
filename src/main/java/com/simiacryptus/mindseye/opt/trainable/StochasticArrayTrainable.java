@@ -229,7 +229,6 @@ public class StochasticArrayTrainable implements Trainable {
   protected void setSampledData(List<? extends Supplier<Tensor[]>> sampledData) {
     this.sampledData = sampledData;
     regenerateNNResultInputs();
-  
   }
   
   private void regenerateNNResultInputs() {

@@ -47,7 +47,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class ConvolutionLayer extends NNLayer {
 
-  private Map<Integer, GPUDataMirror> stateCache = new HashMap<>();
+  private transient Map<Integer, GPUDataMirror> stateCache = new HashMap<>();
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
@@ -202,7 +202,7 @@ public class ConvolutionLayer extends NNLayer {
       CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0f);
       CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 0.0f);
 
-      CudaPtr filterPtr = stateCache.computeIfAbsent(nncontext.getCudaDeviceId(),i->new GPUDataMirror(filter.dim()))
+      CudaPtr filterPtr = getStateCache().computeIfAbsent(nncontext.getCudaDeviceId(), i->new GPUDataMirror(filter.dim()))
                             .uploadAsFloats(nncontext.getCudaDeviceId(), filter.getData());
       CudaPtr inputData = inObj[0].getGpuFloats(nncontext.getCudaDeviceId());
       CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), Tensor.dim(outputSize) * 1l * length * Sizeof.FLOAT);
@@ -351,5 +351,10 @@ public class ConvolutionLayer extends NNLayer {
   public ConvolutionLayer setStrideY(int strideY) {
     this.strideY = strideY;
     return this;
+  }
+  
+  protected Map<Integer, GPUDataMirror> getStateCache() {
+    if(stateCache == null) stateCache = new HashMap<>();
+    return stateCache;
   }
 }

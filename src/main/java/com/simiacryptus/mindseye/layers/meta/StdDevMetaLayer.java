@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -43,6 +44,14 @@ import java.util.stream.IntStream;
 @SuppressWarnings("serial")
 public class StdDevMetaLayer extends DAGNetwork {
   
+  public static NNLayer fromJson(JsonObject inner) {
+    return new StdDevMetaLayer(inner);
+  }
+
+  protected StdDevMetaLayer(JsonObject json) {
+    super(json);
+    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
+  }
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);

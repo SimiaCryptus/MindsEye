@@ -36,6 +36,7 @@ public class PipelineNetwork extends DAGNetwork {
   public JsonObject getJson() {
     JsonObject json = super.getJson();
     json.addProperty("head", head.getId().toString());
+    assert null != PipelineNetwork.fromJson(json) : "Smoke test deserialization";
     return json;
   }
   
@@ -56,9 +57,11 @@ public class PipelineNetwork extends DAGNetwork {
    */
   protected PipelineNetwork(JsonObject json) {
     super(json);
-    UUID head = UUID.fromString(json.get("head").getAsString());
-    this.head = nodesById.get(head);
-    int inputIndex = inputHandles.indexOf(head);
+    UUID headId = UUID.fromString(json.get("head").getAsString());
+    assert(null != headId);
+    this.head = nodesById.get(headId);
+    if(null == this.head) head = getInput().get(0);
+    int inputIndex = inputHandles.indexOf(headId);
     if(null == this.head && 0<=inputIndex) {
       this.head = getInput(inputIndex);
     }
@@ -117,8 +120,9 @@ public class PipelineNetwork extends DAGNetwork {
   public DAGNode add(NNLayer nextHead, DAGNode... head) {
     if(null == nextHead && head.length==1) return head[0];
     if(null == nextHead) throw new IllegalArgumentException();
-    DAGNode node = super.add(nextHead, head);
     assert Arrays.stream(head).allMatch(x -> x != null);
+    assert Arrays.stream(head).allMatch(x -> layersById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
+    DAGNode node = super.add(nextHead, head);
     assert null != getInput();
     setHead(node);
     return node;
@@ -142,12 +146,11 @@ public class PipelineNetwork extends DAGNetwork {
    * @return the dag node
    */
   public DAGNode add(NNLayer nextHead) {
-    DAGNode head = getHead();
-    if (null == head) return add(nextHead, getInput(0));
-    else return add(nextHead, head);
+    return add(nextHead, getHead());
   }
   
   public DAGNode getHead() {
+    if(null == this.head) head = getInput().get(0);
     return this.head;
   }
   

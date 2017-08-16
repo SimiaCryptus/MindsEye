@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.meta.WeightExtractor;
 import com.simiacryptus.mindseye.layers.util.NNLayerWrapper;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
@@ -54,21 +55,27 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     JsonArray inputs = new JsonArray();
     json.add("inputs", inputs);
     inputHandles.forEach(uuid->inputs.add(new JsonPrimitive(uuid.toString())));
+    JsonObject layerMap = new JsonObject();
     JsonObject nodeMap = new JsonObject();
     JsonObject links = new JsonObject();
+    nodesById.forEach((nodeId, node) -> {
+      JsonArray linkArray = new JsonArray();
+      Arrays.stream(node.getInputs()).forEach(input->linkArray.add(new JsonPrimitive(input.getId().toString())));
+      NNLayer layer = node.getLayer();
+      nodeMap.addProperty(nodeId.toString(), layer.id.toString());
+      layerMap.add(layer.id.toString(), layer.getJson());
+  
+      links.add(nodeId.toString(),linkArray);
+    });
+    json.add("nodes", nodeMap);
+    json.add("layers", layerMap);
+    json.add("links", links);
     JsonObject labels = new JsonObject();
     this.labels.forEach((k,v)->{
       labels.add(k.toString(),new JsonPrimitive(v.toString()));
     });
-    nodesById.forEach((k, v) -> {
-      JsonArray linkArray = new JsonArray();
-      Arrays.stream(v.getInputs()).forEach(input->linkArray.add(new JsonPrimitive(input.getId().toString())));
-      nodeMap.add(k.toString(),v.getLayer().getJson());
-      links.add(k.toString(),linkArray);
-    });
-    json.add("nodes", nodeMap);
-    json.add("links", links);
     json.add("labels", labels);
+    json.addProperty("head", getHead().getId().toString());
     return json;
   }
   
@@ -87,16 +94,23 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
       inputNodes.put(key, new InputNode(this, key));
     }
     JsonObject jsonNodes = json.getAsJsonObject("nodes");
+    JsonObject jsonLayers = json.getAsJsonObject("layers");
     JsonObject jsonLinks = json.getAsJsonObject("links");
     JsonObject jsonLabels = json.getAsJsonObject("labels");
-    Map<UUID, NNLayer> deserializedNodes = new HashMap<>();
-    for(Entry<String, JsonElement> e : jsonNodes.entrySet()) {
-      deserializedNodes.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject()));
+    Map<UUID, NNLayer> source_layersByNodeId = new HashMap<>();
+    Map<UUID, NNLayer> source_layersByLayerId = new HashMap<>();
+    for(Entry<String, JsonElement> e : jsonLayers.entrySet()) {
+      source_layersByLayerId.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject()));
     }
-    Map<UUID, List<UUID>> deserializedLinks = new HashMap<>();
+    for(Entry<String, JsonElement> e : jsonNodes.entrySet()) {
+      UUID nodeId = UUID.fromString(e.getKey());
+      NNLayer layer = source_layersByLayerId.get(UUID.fromString(e.getValue().getAsString()));
+      source_layersByNodeId.put(nodeId, layer);
+    }
     for(Entry<String, JsonElement> e : jsonLabels.entrySet()) {
       this.labels.put(e.getKey(), UUID.fromString(e.getValue().getAsString()));
     }
+    Map<UUID, List<UUID>> deserializedLinks = new HashMap<>();
     for(Entry<String, JsonElement> e : jsonLinks.entrySet()) {
       ArrayList<UUID> linkList = new ArrayList<>();
       for(JsonElement linkItem : e.getValue().getAsJsonArray()) {
@@ -104,18 +118,37 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
       }
       deserializedLinks.put(UUID.fromString(e.getKey()), linkList);
     }
-    int maxLoops = 100;
-    while(deserializedNodes.size() > layersById.size()) {
-      if(maxLoops--<0) throw new RuntimeException();
-      for(Entry<UUID, NNLayer> e : deserializedNodes.entrySet()) {
-        if(layersById.containsKey(e.getKey())) continue;
-        List<UUID> links = deserializedLinks.get(e.getKey());
-        DAGNode[] inputs = links.stream().map(id -> getNode(id)).toArray(i -> new DAGNode[i]);
-        if(Arrays.stream(inputs).allMatch(x->null!=x)) {
-          add(e.getValue(),inputs);
-        }
+    for(UUID key : this.labels.values()) {
+      addAll(deserializedLinks, source_layersByNodeId, key);
+    }
+    UUID head = UUID.fromString(json.getAsJsonPrimitive("head").getAsString());
+    addAll(deserializedLinks, source_layersByNodeId, head);
+    for(NNLayer layer : source_layersByNodeId.values()) {
+      if(layer instanceof WeightExtractor) {
+        WeightExtractor weightExtractor = (WeightExtractor) layer;
+        weightExtractor.setInner(source_layersByLayerId.get(weightExtractor.getInnerId()));
       }
     }
+  }
+  
+  private void addAll(Map<UUID, List<UUID>> deserializedLinks, Map<UUID, NNLayer> deserializedNodes, UUID key) {
+    if(layersById.containsKey(key)) return;
+    if(inputNodes.containsKey(key)) return;
+    NNLayer layer = deserializedNodes.get(key);
+    if(layer == null) {
+      throw new RuntimeException(String.format("%s is linked to but not defined", key));
+    }
+    List<UUID> links = deserializedLinks.get(key);
+    if(null != links) for(UUID link : links) {
+      addAll(deserializedLinks, deserializedNodes, link);
+    }
+    add(layer, getDependencies(deserializedLinks, key));
+  }
+  
+  private DAGNode[] getDependencies(Map<UUID, List<UUID>> deserializedLinks, UUID e) {
+    List<UUID> links = deserializedLinks.get(e);
+    if(null == links) return new DAGNode[]{};
+    return links.stream().map(id -> getNode(id)).toArray(i -> new DAGNode[i]);
   }
   
   private DAGNode getNode(UUID id) {

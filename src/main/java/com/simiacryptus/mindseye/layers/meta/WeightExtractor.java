@@ -28,7 +28,9 @@ import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The type Weight extractor.
@@ -38,7 +40,7 @@ public final class WeightExtractor extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("inner",inner.getJson());
+    json.addProperty("innerId", getInner().getId().toString());
     json.addProperty("index",index);
     return json;
   }
@@ -50,31 +52,23 @@ public final class WeightExtractor extends NNLayer {
    * @return the weight extractor
    */
   public static WeightExtractor fromJson(JsonObject json) {
-    WeightExtractor obj = new WeightExtractor(json,
-                                                 json.get("index").getAsInt(),
-                                                 NNLayer.fromJson(json.getAsJsonObject("inner")));
-    return obj;
+    return new WeightExtractor(json);
   }
 
-  /**
-   * Instantiates a new Weight extractor.
-   *
-   * @param id    the id
-   * @param index the index
-   * @param inner the inner
-   */
-  protected WeightExtractor(JsonObject id, final int index, NNLayer inner) {
-    super(id);
-    this.inner = inner;
-    this.index = index;
+  protected WeightExtractor(JsonObject json) {
+    super(json);
+    this.setInner(null);
+    this.index = json.get("index").getAsInt();
+    this.innerId = UUID.fromString(json.getAsJsonPrimitive("innerId").getAsString());
   }
   
   /**
    * The Log.
    */
   static final Logger log = LoggerFactory.getLogger(WeightExtractor.class);
-
-  private final NNLayer inner;
+  
+  private NNLayer inner;
+  private UUID innerId;
   private final int index;
 
   /**
@@ -84,30 +78,44 @@ public final class WeightExtractor extends NNLayer {
    * @param inner the inner
    */
   public WeightExtractor(final int index, final NNLayer inner) {
-    this.inner = inner;
+    this.setInner(inner);
     this.index = index;
+    this.innerId = inner.id;
   }
 
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    Tensor array = new Tensor(inner.state().get(index));
-    return new NNResult(array) {
+    double[] doubles = getInner().state().get(index);
+    return new NNResult(new Tensor(doubles)) {
       
       @Override
       public boolean isAlive() {
-        return true;
+        return !isFrozen() && !inner.isFrozen();
       }
       
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
         assert (data.length() == 1);
-        buffer.get(WeightExtractor.this, array).accumulate(data.get(0).getData());
+        if(!isFrozen() && !inner.isFrozen()) buffer.get(inner, doubles).accumulate(data.get(0).getData());
       }
     };
   }
 
   @Override
   public List<double[]> state() {
-    return this.inner.state();
+    return new ArrayList<>();
+  }
+  
+  public UUID getInnerId() {
+    return innerId;
+  }
+  
+  public NNLayer getInner() {
+    return inner;
+  }
+  
+  public void setInner(NNLayer inner) {
+    this.inner = inner;
+    this.innerId = inner.id;
   }
 }
