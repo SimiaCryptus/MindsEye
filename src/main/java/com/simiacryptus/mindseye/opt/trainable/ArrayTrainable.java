@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
@@ -74,9 +74,9 @@ public class ArrayTrainable implements Trainable {
     if(isParallel()) stream = stream.parallel();
     return stream.map(trainingData->{
       NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
-      NNResult result = CuDNN.gpuContexts.map(ctx->network.eval(ctx, input));
+      NNResult result = CudaExecutionContext.gpuContexts.map(ctx->network.eval(ctx, input));
       DeltaSet deltaSet = new DeltaSet();
-      CuDNN.gpuContexts.foreach(ctx->result.accumulate(deltaSet));
+      CudaExecutionContext.gpuContexts.foreach(ctx->result.accumulate(deltaSet));
       DeltaSet stateSet = new DeltaSet();
       deltaSet.map.forEach((layer, layerDelta) -> {
         stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);

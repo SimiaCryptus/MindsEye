@@ -43,12 +43,6 @@ public abstract class NNLayer implements Serializable {
    * The interface Nn execution context.
    */
   public interface NNExecutionContext {
-    /**
-     * Gets cuda device id.
-     *
-     * @return the cuda device id
-     */
-    default int getCudaDeviceId() { return CuDNN.getDevice(); }
   }
   
   /**

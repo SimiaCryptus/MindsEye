@@ -37,13 +37,11 @@ public class CudnnFloatDeltaBuffer extends DeltaBuffer {
   
   CudaPtr buffer;
 
-  public void accumulate(CudaResource<cudnnTensorDescriptor> size, CudaPtr data) {
+  public void accumulate(CudaResource<cudnnTensorDescriptor> size, CudaPtr data, CuDNN cudnn) {
     if(null != buffer) {
-      CuDNN.devicePool.with(handle->{
-        CuDNN.handle(cudnnAddTensor(handle.cudnnHandle,
-          Pointer.to(new float[]{1.0f}), size.getPtr(), data.getPtr(),
-          Pointer.to(new float[]{1.0f}), size.getPtr(), buffer.getPtr()));
-      });
+      CuDNN.handle(cudnnAddTensor(cudnn.cudnnHandle,
+        Pointer.to(new float[]{1.0f}), size.getPtr(), data.getPtr(),
+        Pointer.to(new float[]{1.0f}), size.getPtr(), buffer.getPtr()));
       data.finalize();
     } else {
       buffer = data;

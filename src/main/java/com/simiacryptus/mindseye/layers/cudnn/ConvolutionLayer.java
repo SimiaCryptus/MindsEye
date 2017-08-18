@@ -179,7 +179,7 @@ public class ConvolutionLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    CuDNN.setDevice(nncontext.getCudaDeviceId());
+    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
@@ -206,7 +206,7 @@ public class ConvolutionLayer extends NNLayer {
     try {
       double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
-      convolve(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, this.kernel.getData(), outputBuffers);
+      convolve(((CudaExecutionContext) nncontext).getDeviceNumber(), inputSize, kernelSize, outputSize, simple, inputBuffers, this.kernel.getData(), outputBuffers, (CudaExecutionContext) nncontext);
     } catch (Throwable e) {
       throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
     }
@@ -215,21 +215,21 @@ public class ConvolutionLayer extends NNLayer {
     return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
-        CuDNN.setDevice(nncontext.getCudaDeviceId());
+        CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           final Tensor kernel = ConvolutionLayer.this.kernel;
           final Tensor weightGradient = new Tensor(kernel.getDimensions());
-          gradient(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, weightGradient.getData(), outputBuffers);
+          gradient(((CudaExecutionContext) nncontext).getDeviceNumber(), inputSize, kernelSize, outputSize, simple, inputBuffers, weightGradient.getData(), outputBuffers, (CudaExecutionContext) nncontext);
           buffer.get(ConvolutionLayer.this, kernel).accumulate(weightGradient.getData());
         }
         if (input.isAlive()) {
           Tensor[] inputBufferTensors = IntStream.range(0, getData().length()).mapToObj(dataIndex -> new Tensor(inputSize)).toArray(i -> new Tensor[i]);
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          backprop(nncontext.getCudaDeviceId(), inputSize, kernelSize, outputSize, simple, inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
+          backprop(((CudaExecutionContext) nncontext).getDeviceNumber(), inputSize, kernelSize, outputSize, simple, inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers, (CudaExecutionContext) nncontext);
           //assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           input.accumulate(buffer, new TensorArray(inputBufferTensors));
         }
@@ -280,16 +280,16 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Backprop.
-   *
-   * @param inputSize  the input size
+   *  @param inputSize  the input size
    * @param kernelSize the kernel size
    * @param outputSize the output size
    * @param simple     the simple
    * @param input      the input
    * @param weights    the weights
    * @param output     the output
+   * @param cudnn
    */
-  public static void backprop(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
+  public static void backprop(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
     assert(length == output.length);
     int inLength = input[0].length;
@@ -327,15 +327,13 @@ public class ConvolutionLayer extends NNLayer {
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length;
       double[] _inputBuffer = inputBuffer;
       double[] _outputBuffer = outputBuffer;
-      CuDNN.devicePool.with(device -> {
-        try {
-          CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                  CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
-          backprop(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
-        } catch (Throwable e) {
-          throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
-        }
-      });
+      try {
+        CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+                CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
+        backprop(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
+      } catch (Throwable e) {
+        throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
+      }
       for (int i = 0; i< currentNumItems; i++) {
         assert inLength == input[currentIndexOffset+i].length;
         System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset+i], 0, inLength);
@@ -348,16 +346,16 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Convolve.
-   *
-   * @param inputSize  the input size
+   *  @param inputSize  the input size
    * @param kernelSize the kernel size
    * @param outputSize the output size
    * @param simple     the simple
    * @param input      the input
    * @param weights    the weights
    * @param output     the output
+   * @param cudnn
    */
-  public static void convolve(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
+  public static void convolve(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
     assert(length == output.length);
     int inLength = input[0].length;
@@ -396,15 +394,13 @@ public class ConvolutionLayer extends NNLayer {
       assert(0 < outputBuffer.length);
       double[] _inputBuffer = inputBuffer;
       double[] _outputBuffer = outputBuffer;
-      CuDNN.devicePool.with(device -> {
-        try {
-          CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                  CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
-          convolve(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
-        } catch (Throwable e) {
-          throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
-        }
-      });
+      try {
+        CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+                CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
+        convolve(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
+      } catch (Throwable e) {
+        throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
+      }
       for (int i = 0; i< currentNumItems; i++) {
         assert outLength == output[currentIndexOffset+i].length;
         System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset+i], 0, outLength);
@@ -417,16 +413,16 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Gradient.
-   *
-   * @param inputSize  the input size
+   *  @param inputSize  the input size
    * @param kernelSize the kernel size
    * @param outputSize the output size
    * @param simple     the simple
    * @param input      the input
    * @param weights    the weights
    * @param output     the output
+   * @param cudnn
    */
-  public static void gradient(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output) {
+  public static void gradient(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
     assert(length == output.length);
     int inLength = input[0].length;
@@ -465,16 +461,14 @@ public class ConvolutionLayer extends NNLayer {
       assert(0 < outputBuffer.length);
       double[] _inputBuffer = inputBuffer;
       double[] _outputBuffer = outputBuffer;
-      CuDNN.devicePool.with(device -> {
-        try {
-          int items = currentNumItems;
-          CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                  CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, items, inputSize[2], inputSize[1], inputSize[0]);
-          gradient(deviceId, outputSize, _inputBuffer, buffer, _outputBuffer, device, inputDescriptor, filterDescriptor, convolutionDescriptor);
-        } catch (Throwable e) {
-          throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
-        }
-      });
+      try {
+        int items = currentNumItems;
+        CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+                CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, items, inputSize[2], inputSize[1], inputSize[0]);
+        gradient(deviceId, outputSize, _inputBuffer, buffer, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
+      } catch (Throwable e) {
+        throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
+      }
       IntStream.range(0, weights.length).forEach(weightIndex -> {
         for (int i = weightIndex; i < buffer.length; i += weights.length) {
           weights[weightIndex] += buffer[i];

@@ -19,19 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.util.lang.ResourcePool;
 import com.simiacryptus.util.lang.StaticResourcePool;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
-import jcuda.runtime.cudaDeviceProp;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.*;
@@ -45,51 +39,13 @@ import static jcuda.runtime.JCuda.*;
  * The type Cu dnn.
  */
 public class CuDNN {
-    /**
-     * The constant devicePool.
-     */
-    public static final ResourcePool<CuDNN> devicePool = new ResourcePool<CuDNN>(1) {
-        @Override
-        public CuDNN create() {
-            return new CuDNN();
-        }
-    };
-    /**
-     * The constant gpuContexts.
-     */
-    public static final StaticResourcePool<NNLayer.NNExecutionContext> gpuContexts = new StaticResourcePool<NNLayer.NNExecutionContext>(loadGpuContexts());
-    
-    private static List<NNLayer.NNExecutionContext> loadGpuContexts() {
-        int deviceCount = deviceCount();
-        System.out.println(String.format("Found %s devices", deviceCount));
-        ArrayList<Integer> devices = new ArrayList<Integer>();
-        for(int device=0;device<deviceCount;device++) {
-            cudaDeviceProp deviceProp = new cudaDeviceProp();
-            cudaGetDeviceProperties(deviceProp, device);
-            String deviceName = new String(deviceProp.name, Charset.forName("ASCII"));
-            System.out.println(String.format("Device %s - %s", device, deviceName));
-            if(0 != device) continue;
-            devices.add(device);
-        }
-        System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
-        for(int device : devices) {
-            CuDNN.handle(cudaSetDevice(device));
-            CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleYield));
-        }
-        return devices.stream()
-                .map(i->new NNLayer.NNExecutionContext(){
-                    @Override
-                    public int getCudaDeviceId() {
-                        return i;
-                    }
-                }).collect(Collectors.toList());
-    }
     
     /**
      * The Cudnn handle.
      */
     public final cudnnHandle cudnnHandle;
-
+    private final int deviceNumber;
+    
     /**
      * Device count int.
      *
@@ -103,8 +59,11 @@ public class CuDNN {
 
     /**
      * Instantiates a new Cu dnn.
+     * @param deviceNumber
      */
-    protected CuDNN() {
+    protected CuDNN(int deviceNumber) {
+        this.deviceNumber = deviceNumber;
+        CuDNN.setDevice(deviceNumber);
         this.cudnnHandle = new cudnnHandle();
         cudnnCreate(cudnnHandle);
         //cudaSetDevice();
@@ -460,5 +419,9 @@ public class CuDNN {
         CuDNN.handle(cudnnSetOpTensorDescriptor(opDesc, opType, dataType, CUDNN_NOT_PROPAGATE_NAN));
         return new CudaResource<>(opDesc, JCudnn::cudnnDestroyOpTensorDescriptor);
     
+    }
+    
+    public int getDeviceNumber() {
+        return deviceNumber;
     }
 }

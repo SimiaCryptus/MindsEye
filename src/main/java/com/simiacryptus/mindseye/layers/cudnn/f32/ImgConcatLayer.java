@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import jcuda.Pointer;
@@ -79,57 +80,53 @@ public class ImgConcatLayer extends NNLayer {
     int length = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x->3 == x.getData().getDimensions().length && x.getData().getDimensions()[0]==dimOut[0] && x.getData().getDimensions()[1]==dimOut[1] && x.getData().length()==length);
     dimOut[2] = Arrays.stream(inObj).mapToInt(x-> x.getData().getDimensions()[2]).sum();
-    CuDNN.setDevice(nncontext.getCudaDeviceId());
-    CudaPtr outputBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), length * dimOut[2] * dimOut[1] * dimOut[0] * Sizeof.FLOAT);
-    CuDNN.devicePool.with(device -> {
-      int bandOffset = 0;
-      for(int i=0;i<inObj.length;i++) {
-        TensorList data = inObj[i].getData();
-        int[] dimensions = data.getDimensions();
-        CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-          CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
-          dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
-        CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
-          CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
-          dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
-        CudaPtr cudaPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), data);
-        cudnnTransformTensor(device.cudnnHandle,
-          Pointer.to(new float[]{1.0f}), inputDescriptor.getPtr(), cudaPtr.getPtr(),
-          Pointer.to(new float[]{0.0f}), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * Sizeof.FLOAT)
-          );
-        bandOffset += dimensions[2];
-      }
-    });
-    TensorList outputData = CudaPtr.fromDeviceFloat(outputBuffer, length, dimOut);
+    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), length * dimOut[2] * dimOut[1] * dimOut[0] * Sizeof.FLOAT);
+    int bandOffset = 0;
+    for(int i=0;i<inObj.length;i++) {
+      TensorList data = inObj[i].getData();
+      int[] dimensions = data.getDimensions();
+      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+        CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+        dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
+      CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
+        CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+        dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
+      CudaPtr cudaPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), data);
+      cudnnTransformTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle,
+        Pointer.to(new float[]{1.0f}), inputDescriptor.getPtr(), cudaPtr.getPtr(),
+        Pointer.to(new float[]{0.0f}), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * Sizeof.FLOAT)
+        );
+      bandOffset += dimensions[2];
+    }
+    TensorList outputData = CudaPtr.fromDeviceFloat(outputBuffer, length, dimOut, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
     //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new NNResult(outputData) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
         outputBuffer.finalize();
-        CuDNN.setDevice(nncontext.getCudaDeviceId());
+        CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
         assert (error.length() == inObj[0].getData().length());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-        CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), error);
+        CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
         int bandOffset = 0;
         for(int i=0;i<inObj.length;i++) {
           NNResult input = inObj[i];
           int[] dimensions = input.getData().getDimensions();
           if (input.isAlive()) {
             int _bandOffset = bandOffset;
-            CudaPtr passbackBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), length * dimensions[2] * dimensions[1] * dimensions[0] * Sizeof.FLOAT);
-            CuDNN.devicePool.with(device -> {
-              CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
-                dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
-              CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
-                CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
-                dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
-              cudnnTransformTensor(device.cudnnHandle,
-                Pointer.to(new float[]{1.0f}), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * Sizeof.FLOAT),
-                Pointer.to(new float[]{0.0f}), inputDescriptor.getPtr(), passbackBuffer.getPtr()
-              );
-            });
-            TensorList passbackTensorList = CudaPtr.fromDeviceFloat(passbackBuffer, length, dimensions);
+            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), length * dimensions[2] * dimensions[1] * dimensions[0] * Sizeof.FLOAT);
+            CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+              CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+              dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
+            CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
+              CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+              dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
+            cudnnTransformTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle,
+              Pointer.to(new float[]{1.0f}), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * Sizeof.FLOAT),
+              Pointer.to(new float[]{0.0f}), inputDescriptor.getPtr(), passbackBuffer.getPtr()
+            );
+            TensorList passbackTensorList = CudaPtr.fromDeviceFloat(passbackBuffer, length, dimensions, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
             //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             input.accumulate(buffer, passbackTensorList);
             passbackBuffer.finalize();

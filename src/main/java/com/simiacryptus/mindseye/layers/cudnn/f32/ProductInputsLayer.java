@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.ml.Tensor;
@@ -74,7 +75,7 @@ public class ProductInputsLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    CuDNN.setDevice(nncontext.getCudaDeviceId());
+    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
     assert inObj.length > 1;
     assert inObj.length < 3;
     int[] dimensions = inObj[0].getData().getDimensions();
@@ -87,40 +88,36 @@ public class ProductInputsLayer extends NNLayer {
     CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
       CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
     TensorList result = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
-      CudaPtr lPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), l);
-      CudaPtr rPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), r);
+      CudaPtr lPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), l);
+      CudaPtr rPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), r);
       assert lPtr.size == rPtr.size;
-      CudaPtr outputPtr = CuDNN.alloc(nncontext.getCudaDeviceId(), lPtr.size);
-      CuDNN.devicePool.with(device -> {
-        CuDNN.handle(cudnnOpTensor(device.cudnnHandle, opDescriptor.getPtr(),
-          Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
-          Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
-          Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-      });
-      return CudaPtr.fromDeviceFloat(outputPtr, length, dimensions);
+      CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
+      CuDNN.handle(cudnnOpTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, opDescriptor.getPtr(),
+        Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
+        Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
+        Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+      return CudaPtr.fromDeviceFloat(outputPtr, length, dimensions, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
     }).get();
     
     return new NNResult(result) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList delta) {
-        CuDNN.setDevice(nncontext.getCudaDeviceId());
+        CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
         assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for(int index=0;index<inObj.length;index++) {
           final NNResult input = inObj[index];
           if (input.isAlive()) {
             int _index = index;
             input.accumulate(buffer, IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
-              CudaPtr lPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), l);
-              CudaPtr rPtr = CudaPtr.toDeviceAsFloat(nncontext.getCudaDeviceId(), r);
+              CudaPtr lPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), l);
+              CudaPtr rPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), r);
               assert lPtr.size == rPtr.size;
-              CudaPtr outputPtr = CuDNN.alloc(nncontext.getCudaDeviceId(), lPtr.size);
-              CuDNN.devicePool.with(device -> {
-                CuDNN.handle(cudnnOpTensor(device.cudnnHandle, opDescriptor.getPtr(),
-                  Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                  Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                  Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              });
-              return CudaPtr.fromDeviceFloat(outputPtr, length, dimensions);
+              CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
+              CuDNN.handle(cudnnOpTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, opDescriptor.getPtr(),
+                Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+              return CudaPtr.fromDeviceFloat(outputPtr, length, dimensions, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
             }).get());
           }
         }

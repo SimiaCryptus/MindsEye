@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
@@ -61,7 +61,7 @@ public class StochasticArrayTrainable implements Trainable {
    * @param trainingSize the training size
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
-    this(trainingData, network, trainingSize, trainingSize);
+    this(trainingData, network, trainingSize, trainingSize / CudaExecutionContext.gpuContexts.size());
   }
   
   /**
@@ -97,14 +97,14 @@ public class StochasticArrayTrainable implements Trainable {
   @Override
   public PointSample measure() {
     try {
-      PointSample result = trainingNNResultArrays.stream()
+      PointSample result = trainingNNResultArrays.stream().parallel()
         .map(this::evalSubsample)
         .reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value))
         .get();
       Map<Integer, Long> peakMemory = CudaPtr.METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().peakMemory.getAndSet(0)));
-      if(trainingNNResultArrays.size() < CuDNN.gpuContexts.size()) {
+      if(trainingNNResultArrays.size() < CudaExecutionContext.gpuContexts.size()) {
         batchSize = batchSize / 2;
-      } else if(trainingNNResultArrays.size() > 2 * CuDNN.gpuContexts.size()) {
+      } else if(trainingNNResultArrays.size() > 2 * CudaExecutionContext.gpuContexts.size()) {
         double highestMemUse = peakMemory.values().stream().mapToDouble(x -> x).max().getAsDouble();
         if(highestMemUse < LOW_MEM_USE) {
           batchSize = batchSize * 2;
@@ -137,7 +137,7 @@ public class StochasticArrayTrainable implements Trainable {
   }
   
   private PointSample evalSubsample(NNResult[] input) {
-    return CuDNN.gpuContexts.map(nncontext->{
+    return CudaExecutionContext.gpuContexts.map(nncontext->{
       NNResult result = network.eval(nncontext, input);
       DeltaSet deltaSet = new DeltaSet();
       result.accumulate(deltaSet);

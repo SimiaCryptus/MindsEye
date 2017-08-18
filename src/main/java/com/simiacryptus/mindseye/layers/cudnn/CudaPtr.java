@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.layers.cudnn.f64.CuDNNDoubleTensorList;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
+import jcuda.jcudnn.cudnnHandle;
 import jcuda.runtime.JCuda;
 
 import java.util.concurrent.ExecutionException;
@@ -61,10 +62,11 @@ public class CudaPtr extends CudaResource<Pointer> {
    * @param ptr        the ptr
    * @param length     the length
    * @param dimensions the dimensions
+   * @param cudnnHandle
    * @return the tensor list
    */
-  public static TensorList fromDeviceFloat(CudaPtr ptr, int length, int[] dimensions) {
-        return new CuDNNFloatTensorList(ptr, length, dimensions);
+  public static TensorList fromDeviceFloat(CudaPtr ptr, int length, int[] dimensions, cudnnHandle cudnnHandle) {
+        return new CuDNNFloatTensorList(ptr, length, dimensions, cudnnHandle);
     }
   
   /**

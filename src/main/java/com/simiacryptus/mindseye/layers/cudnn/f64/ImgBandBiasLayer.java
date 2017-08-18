@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f64;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.Util;
@@ -87,7 +88,7 @@ public class ImgBandBiasLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    CuDNN.setDevice(nncontext.getCudaDeviceId());
+    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();
@@ -101,39 +102,35 @@ public class ImgBandBiasLayer extends NNLayer {
               CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-      CudaPtr alpha = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0);
-      CudaPtr beta = CuDNN.javaPtr(nncontext.getCudaDeviceId(), 1.0);
+      CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+      CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
 
       assert(0 < this.bias.length);
-      CudaPtr filterPtr = CuDNN.write(nncontext.getCudaDeviceId(), this.bias);
-      CudaPtr inputData = CudaPtr.toDeviceAsDouble(nncontext.getCudaDeviceId(), batch);
-      CuDNN.devicePool.with(device -> {
-        try {
-          CuDNN.handle(cudnnAddTensor(device.cudnnHandle, alpha.getPtr(),
-                  filterDescriptor.getPtr(), filterPtr.getPtr(),
-                  beta.getPtr(),
-                  inputDescriptor.getPtr(), inputData.getPtr()));
-        } catch (Throwable e) {
-          throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
-        }
-      });
+      CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), this.bias);
+      CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
+      try {
+        CuDNN.handle(cudnnAddTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+                filterDescriptor.getPtr(), filterPtr.getPtr(),
+                beta.getPtr(),
+                inputDescriptor.getPtr(), inputData.getPtr()));
+      } catch (Throwable e) {
+        throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
+      }
       TensorList output = CudaPtr.fromDeviceDouble(inputData, length, outputSize);
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
-          CuDNN.setDevice(nncontext.getCudaDeviceId());
+          CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          CudaPtr errorPtr = CudaPtr.toDeviceAsDouble(nncontext.getCudaDeviceId(), error);
+          CudaPtr errorPtr = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
           if (!isFrozen()) {
-            CudaPtr filterBuffer = CuDNN.alloc(nncontext.getCudaDeviceId(), ImgBandBiasLayer.this.bias.length * 1l * Sizeof.DOUBLE);
+            CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), ImgBandBiasLayer.this.bias.length * 1l * Sizeof.DOUBLE);
             try {
-              CuDNN.devicePool.with(device -> {
-                CuDNN.handle(cudnnConvolutionBackwardBias(device.cudnnHandle, alpha.getPtr(),
-                        inputDescriptor.getPtr(), errorPtr.getPtr(),
-                        beta.getPtr(),
-                        filterDescriptor.getPtr(), filterBuffer.getPtr()));
-              });
+              CuDNN.handle(cudnnConvolutionBackwardBias(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+                      inputDescriptor.getPtr(), errorPtr.getPtr(),
+                      beta.getPtr(),
+                      filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (Throwable e) {
               throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
             }
