@@ -97,6 +97,7 @@ public class RoundRobinTrainer {
       if(currentIteration.get() > maxIterations) break;
       currentPoint = measure();
       subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
+        PointSample previousOrientations = currentPoint;
         orientationLoop: for(OrientationStrategy orientation : orientations) {
           if(currentIteration.incrementAndGet() > maxIterations) break;
           LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
@@ -113,9 +114,18 @@ public class RoundRobinTrainer {
           currentPoint = lineSearchStrategy.step(direction, monitor);
           monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
           if(previous.value == currentPoint.value) {
-            monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
+            monitor.log(String.format("Iteration %s failed, ignoring. Error: %s", currentIteration.get(), currentPoint.value));
           } else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+          }
+        }
+        if(previousOrientations.value <= currentPoint.value) {
+          if(subject.resetSampling()) {
+            monitor.log(String.format("MacroIteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
+            break subiterationLoop;
+          } else {
+            monitor.log(String.format("MacroIteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
+            break mainLoop;
           }
         }
       }

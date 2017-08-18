@@ -110,6 +110,8 @@ public class StochasticArrayTrainable implements Trainable {
           batchSize = batchSize * 2;
         }
       }
+      // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
+      // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if(gcEachIteration) cleanMemory();
       return result;
     } catch (Throwable t) {

@@ -56,6 +56,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       rightPoint = cursor.step(rightX, monitor);
       monitor.log(String.format("F(%s) = %s", rightX, rightPoint));
     }
+    int loops = 0;
     while(true) {
       double a = (rightPoint.derivative - leftPoint.derivative) / (rightX - leftX);
       double b = rightPoint.derivative - a * rightX;
@@ -73,9 +74,10 @@ public class QuadraticSearch implements LineSearchStrategy {
         thisX = (rightX + leftX) / 2;
       }
       LineSearchPoint thisPoint = cursor.step(thisX, monitor);
+      if(loops++<100) return filter(cursor, thisPoint.point, monitor);
       monitor.log(String.format("F(%s) = %s", thisX, thisPoint));
       if(isSame(leftX, rightX)) {
-        return thisPoint.point;
+        return filter(cursor, thisPoint.point, monitor);
       }
       boolean test;
       if(!isBracketed) {
@@ -84,7 +86,7 @@ public class QuadraticSearch implements LineSearchStrategy {
         test = thisPoint.derivative < 0;
       }
       if(test) {
-        if(thisPoint.point.value > leftPoint.point.value) return leftPoint.point;
+        if(thisPoint.point.value > leftPoint.point.value) return filter(cursor, leftPoint.point, monitor);
         if(!isBracketed && leftPoint.point.value < rightPoint.point.value) {
           rightX = leftX;
           rightPoint = leftPoint;
@@ -93,7 +95,7 @@ public class QuadraticSearch implements LineSearchStrategy {
         leftX = thisX;
         monitor.log(String.format("Left bracket at %s", thisX));
       } else {
-        if(thisPoint.point.value > rightPoint.point.value) return rightPoint.point;
+        if(thisPoint.point.value > rightPoint.point.value) return filter(cursor, rightPoint.point, monitor);
         if(!isBracketed && rightPoint.point.value < leftPoint.point.value) {
           leftX = rightX;
           leftPoint = rightPoint;
@@ -103,7 +105,14 @@ public class QuadraticSearch implements LineSearchStrategy {
         monitor.log(String.format("Right bracket at %s", thisX));
       }
     }
+    
   
+  }
+  
+  private double stepSize = 1.0;
+  private PointSample filter(LineSearchCursor cursor, PointSample point, TrainingMonitor monitor) {
+    if(stepSize == 1.0) return point;
+    return cursor.step(point.rate * stepSize, monitor).point;
   }
   
   /**
@@ -157,5 +166,13 @@ public class QuadraticSearch implements LineSearchStrategy {
   public QuadraticSearch setRelativeTolerance(double relativeTolerance) {
     this.relativeTolerance = relativeTolerance;
     return this;
+  }
+  
+  public double getStepSize() {
+    return stepSize;
+  }
+  
+  public void setStepSize(double stepSize) {
+    this.stepSize = stepSize;
   }
 }

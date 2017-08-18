@@ -105,7 +105,7 @@ public abstract class NNResult {
    */
   public final void accumulate(DeltaSet buffer, double value) {
     Tensor[] defaultVector = IntStream.range(0, this.getData().length()).mapToObj(i -> {
-      assert (Arrays.equals(this.getData().get(i).getDimensions(), new int[]{1}));
+      assert (Arrays.equals(this.getData().get(i).getDimensions(), new int[]{1})) : Arrays.toString(this.getData().get(i).getDimensions());
       return new Tensor(this.getData().get(i).getDimensions()).fill(() -> value);
     }).toArray(i -> new Tensor[i]);
     accumulate(buffer, new TensorArray(defaultVector));
