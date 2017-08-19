@@ -84,7 +84,7 @@ public class ImgReshapeLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    //assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
@@ -93,7 +93,7 @@ public class ImgReshapeLayer extends NNLayer {
     assert(expand || 0 == inputDims[0] % kernelSizeX);
     assert(expand || 0 == inputDims[1] % kernelSizeX);
     assert(!expand || 0 == inputDims[2] % (kernelSizeX*kernelSizeY));
-    assert input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    //assert input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     Tensor outputDims;
     if(expand) {
       outputDims = new Tensor(inputDims[0] * kernelSizeX,
@@ -109,7 +109,7 @@ public class ImgReshapeLayer extends NNLayer {
                            .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
-        assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
              .mapToObj(dataIndex -> {

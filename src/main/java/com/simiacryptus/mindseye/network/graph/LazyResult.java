@@ -61,7 +61,7 @@ abstract class LazyResult implements DAGNode {
   protected abstract NNResult eval(EvaluationContext t, NNLayer.NNExecutionContext nncontext);
   
   @Override
-  public CountingNNResult get(NNLayer.NNExecutionContext nncontext, final EvaluationContext t) {
+  public synchronized CountingNNResult get(NNLayer.NNExecutionContext nncontext, final EvaluationContext t) {
     return t.cache.computeIfAbsent(this.key, k -> {
       try {
         return new CountingNNResult(eval(t, nncontext));

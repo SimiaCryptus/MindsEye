@@ -19,17 +19,25 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.ml.WeakCachedSupplier;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -93,7 +101,18 @@ public class StochasticArrayTrainable implements Trainable {
   
   Map<String, Double> deviceWeight = new HashMap<>();
   Map<String, Integer> deviceBatchSizes = new HashMap<>();
- 
+
+  LoadingCache<CuDNN, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
+    @Override
+    public ExecutorService load(CuDNN gpu) throws Exception {
+      return Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r);
+        thread.setName(gpu.toString());
+        return thread;
+      });
+    }
+  });
+  
   @Override
   public PointSample measure() {
     if(isStale(lastWeights)) {
@@ -101,56 +120,54 @@ public class StochasticArrayTrainable implements Trainable {
       return lastPtr;
     }
     List<CudaExecutionContext> devices = CudaExecutionContext.gpuContexts.getAll();
-    Map<CudaExecutionContext, List<Tensor[]>> tasks = new HashMap<>();
     double weightSum = devices.stream().mapToDouble(d -> deviceWeight.getOrDefault(d.toString(), 1.0)).sum();
+    List<Future<PointSample>> results = new ArrayList<>();
     int start = 0;
     for(int i=0;i<devices.size();i++) {
       CudaExecutionContext dev = devices.get(i);
       int sampleSize = (int) ((trainingNNResultArrays.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0));
       int end = start + sampleSize;
-      tasks.put(dev, trainingNNResultArrays.subList(start, end));
+      List<Tensor[]> subList = trainingNNResultArrays.subList(start, end);
+      try {
+        results.add(gpuDriverThreads.get(dev).submit(()->evalDevice(dev, subList)));
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e);
+      }
       start = end;
     }
-    List<PointSample> results = new ArrayList<>();
-    List<Thread> threads = new ArrayList<>();
-    for(Map.Entry<CudaExecutionContext, List<Tensor[]>> e : tasks.entrySet()) {
-      Thread thread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          List<Tensor[]> data = e.getValue();
-          CudaExecutionContext gpu = e.getKey();
-          Integer batchSize = deviceBatchSizes.getOrDefault(gpu.toString(), data.size());
-          try {
-            results.add(evaluate(data, gpu, batchSize));
-          } catch (Throwable t) {
-            if(isOom(t) && batchSize > 1) {
-              batchSize = batchSize / 2;
-              deviceBatchSizes.put(gpu.toString(), batchSize);
-              cleanMemory();
-              results.add(evaluate(data, gpu, batchSize)); // Second Chance
-            } else {
-              RuntimeException runtimeException = new RuntimeException("Failed executing " + this, t);
-              runtimeException.printStackTrace(System.err);
-              throw runtimeException;
-            }
-          }
-        }
-      });
-      thread.start();
-      threads.add(thread);
-    }
-    try {
-      for(Thread thread : threads) thread.join();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-    PointSample result = results.stream().reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+    PointSample result = results.stream().map(x -> {
+      try {
+        return x.get();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e);
+      }
+    }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
     // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
     // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
     if(gcEachIteration) cleanMemory();
     this.lastWeights = result.weights.copy();
     this.lastPtr = result;
     return result;
+  }
+  
+  private PointSample evalDevice(CudaExecutionContext gpu, List<Tensor[]> data) {
+    Integer batchSize = deviceBatchSizes.getOrDefault(gpu.toString(), data.size());
+    try {
+      return evaluate(data, gpu, batchSize);
+    } catch (Throwable t) {
+      if(isOom(t) && batchSize > 1) {
+        batchSize = batchSize / 2;
+        deviceBatchSizes.put(gpu.toString(), batchSize);
+        cleanMemory();
+        return evalDevice(gpu, data);
+      } else {
+        RuntimeException runtimeException = new RuntimeException("Failed executing " + this, t);
+        runtimeException.printStackTrace(System.err);
+        throw runtimeException;
+      }
+    }
   }
   
   private boolean isStale(DeltaSet weights) {

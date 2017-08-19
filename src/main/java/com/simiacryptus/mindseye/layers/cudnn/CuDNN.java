@@ -128,9 +128,13 @@ public class CuDNN {
     }
   
   public static String getDeviceName(int device) {
+    return new String(getDeviceProperties(device).name, Charset.forName("ASCII")).trim();
+  }
+  
+  public static cudaDeviceProp getDeviceProperties(int device) {
     cudaDeviceProp deviceProp = new cudaDeviceProp();
     cudaGetDeviceProperties(deviceProp, device);
-    return new String(deviceProp.name, Charset.forName("ASCII"));
+    return deviceProp;
   }
   
   /**
