@@ -117,7 +117,7 @@ public class ActivationLayer extends NNLayer {
 
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    ((CudaExecutionContext) nncontext).initThread();
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
@@ -152,7 +152,7 @@ public class ActivationLayer extends NNLayer {
         public void accumulate(final DeltaSet buffer, final TensorList error) {
           //assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+          ((CudaExecutionContext) nncontext).initThread();
           CudaPtr errorPtr = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
           if (input.isAlive()) {
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.DOUBLE * length);

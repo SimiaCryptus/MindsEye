@@ -120,5 +120,15 @@ public interface Trainable {
       this.rate = rate;
       return this;
     }
+  
+  
+    public PointSample copyDelta() {
+      return new PointSample(delta.copy(), weights, value, rate);
+    }
+  
+    public PointSample copyFull() {
+      return new PointSample(delta.copy(), weights.copy(), value, rate);
+    }
+  
   }
 }

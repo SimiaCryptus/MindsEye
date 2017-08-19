@@ -92,7 +92,7 @@ public class BandPoolingLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     try {
-      CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+      ((CudaExecutionContext) nncontext).initThread();
       //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
       final NNResult input = inObj[0];
       final TensorList batch = input.getData();
@@ -133,7 +133,7 @@ public class BandPoolingLayer extends NNLayer {
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
-          CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+          ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);

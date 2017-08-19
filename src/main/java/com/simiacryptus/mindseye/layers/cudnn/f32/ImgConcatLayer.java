@@ -80,7 +80,7 @@ public class ImgConcatLayer extends NNLayer {
     int length = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x->3 == x.getData().getDimensions().length && x.getData().getDimensions()[0]==dimOut[0] && x.getData().getDimensions()[1]==dimOut[1] && x.getData().length()==length);
     dimOut[2] = Arrays.stream(inObj).mapToInt(x-> x.getData().getDimensions()[2]).sum();
-    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    ((CudaExecutionContext) nncontext).initThread();
     CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), length * dimOut[2] * dimOut[1] * dimOut[0] * Sizeof.FLOAT);
     int bandOffset = 0;
     for(int i=0;i<inObj.length;i++) {
@@ -105,7 +105,7 @@ public class ImgConcatLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
         outputBuffer.finalize();
-        CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+        ((CudaExecutionContext) nncontext).initThread();
         assert (error.length() == inObj[0].getData().length());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
         CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);

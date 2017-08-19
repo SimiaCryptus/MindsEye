@@ -181,7 +181,7 @@ public class ConvolutionLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    ((CudaExecutionContext) nncontext).initThread();
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();
@@ -200,7 +200,7 @@ public class ConvolutionLayer extends NNLayer {
       CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
               simple ?((kernelSize[1] - 1) / 2):0, simple ?((kernelSize[0] - 1) / 2):0,
               strideX, strideY,
-              CUDNN_CONVOLUTION);
+              CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
 
@@ -231,7 +231,7 @@ public class ConvolutionLayer extends NNLayer {
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
-          CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+          ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           int length = error.length();

@@ -77,7 +77,7 @@ public class LBFGS implements OrientationStrategy {
     }
   }
   
-  private SimpleLineSearchCursor _orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+  protected SimpleLineSearchCursor _orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     List<DeltaBuffer> deltaVector = measurement.delta.vector();
     List<DeltaBuffer> defaultValue = deltaVector.stream().map(x -> x.scale(-1)).collect(Collectors.toList());
     

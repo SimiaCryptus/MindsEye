@@ -38,7 +38,7 @@ public class ArrayTrainable implements Trainable {
   private final Tensor[][] trainingData;
   private final NNLayer network;
   private final int batchSize;
-  private boolean parallel = false;
+  private boolean parallel = true;
   
   /**
    * Instantiates a new Array trainable.
@@ -76,7 +76,7 @@ public class ArrayTrainable implements Trainable {
       NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
       NNResult result = CudaExecutionContext.gpuContexts.map(ctx->network.eval(ctx, input));
       DeltaSet deltaSet = new DeltaSet();
-      CudaExecutionContext.gpuContexts.foreach(ctx->result.accumulate(deltaSet));
+      CudaExecutionContext.gpuContexts.apply(ctx->result.accumulate(deltaSet));
       DeltaSet stateSet = new DeltaSet();
       deltaSet.map.forEach((layer, layerDelta) -> {
         stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);

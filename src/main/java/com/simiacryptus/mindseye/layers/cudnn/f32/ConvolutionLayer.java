@@ -40,6 +40,7 @@ import java.util.function.ToDoubleFunction;
 
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -181,7 +182,7 @@ public class ConvolutionLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    ((CudaExecutionContext) nncontext).initThread();
     final TensorList input = inObj[0].getData();
     final int[] inputSize = input.getDimensions();
     int[] kernelSize = this.filter.getDimensions();
@@ -195,7 +196,7 @@ public class ConvolutionLayer extends NNLayer {
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, kernelSize[2] / inputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
           simple ?((kernelSize[1] - 1) / 2):0, simple ?((kernelSize[0] - 1) / 2):0,
-          strideX, strideY, CUDNN_CONVOLUTION);
+          strideX, strideY, CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
       int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
       int[] outputSize = new int[]{outputDims[3], outputDims[2], outputDims[1]};
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
@@ -221,13 +222,13 @@ public class ConvolutionLayer extends NNLayer {
       } catch (Throwable e) {
         throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
       }
-      TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
+      TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
 
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
           outputBuffer.finalize();
-          CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+          ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == input.length());
           int length = error.length();
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);

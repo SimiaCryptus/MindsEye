@@ -64,7 +64,6 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
       NNLayer layer = node.getLayer();
       nodeMap.addProperty(nodeId.toString(), layer.id.toString());
       layerMap.add(layer.id.toString(), layer.getJson());
-  
       links.add(nodeId.toString(),linkArray);
     });
     json.add("nodes", nodeMap);

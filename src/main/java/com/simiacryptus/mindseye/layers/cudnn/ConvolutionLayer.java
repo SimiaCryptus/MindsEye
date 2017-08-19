@@ -179,7 +179,7 @@ public class ConvolutionLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    ((CudaExecutionContext) nncontext).initThread();
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     
     final NNResult input = inObj[0];
@@ -215,7 +215,7 @@ public class ConvolutionLayer extends NNLayer {
     return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
-        CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+        ((CudaExecutionContext) nncontext).initThread();
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
@@ -304,7 +304,7 @@ public class ConvolutionLayer extends NNLayer {
     CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
             simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
             1, 1,
-            CUDNN_CONVOLUTION);
+            CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
     CudaPtr filterData = CuDNN.write(deviceId, weights);
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
@@ -371,7 +371,7 @@ public class ConvolutionLayer extends NNLayer {
     CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
             simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
             1, 1,
-            CUDNN_CONVOLUTION);
+            CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
     CudaPtr filterData = CuDNN.write(deviceId, weights);
     for(int run=0;run<=runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
@@ -437,7 +437,7 @@ public class ConvolutionLayer extends NNLayer {
     CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
             simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
             1, 1,
-            CUDNN_CONVOLUTION);
+            CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
     for(int run=0;run<runs;run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;

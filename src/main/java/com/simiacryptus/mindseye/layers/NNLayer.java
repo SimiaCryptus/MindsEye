@@ -58,7 +58,7 @@ public abstract class NNLayer implements Serializable {
    * @param json the json
    */
   protected NNLayer(JsonObject json) {
-    if(!getClass().getCanonicalName().equals(json.get("class").getAsString())) throw new IllegalArgumentException();
+    if(!getClass().getCanonicalName().equals(json.get("class").getAsString())) throw new IllegalArgumentException(getClass().getCanonicalName() +" != " + json.get("class").getAsString());
     this.id = UUID.fromString(json.get("id").getAsString());
     if(json.has("isFrozen")) setFrozen(json.get("isFrozen").getAsBoolean());
     if(json.has("name")) setName(json.get("name").getAsString());

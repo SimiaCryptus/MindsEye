@@ -20,19 +20,16 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.google.common.collect.Lists;
+import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.ml.WeakCachedSupplier;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -48,10 +45,12 @@ public class StochasticArrayTrainable implements Trainable {
   private final NNLayer network;
   private long hash = Util.R.get().nextLong();
   private int trainingSize = Integer.MAX_VALUE;
-  private int batchSize = Integer.MAX_VALUE;
   private boolean gcEachIteration = true;
-  private List<NNResult[]> trainingNNResultArrays;
+  private List<Tensor[]> trainingNNResultArrays;
   private List<? extends Supplier<Tensor[]>> sampledData;
+  private PointSample lastPtr;
+  private DeltaSet lastWeights;
+  private boolean verbose = true;
   
   /**
    * Instantiates a new Stochastic array trainable.
@@ -77,7 +76,6 @@ public class StochasticArrayTrainable implements Trainable {
     this.trainingData = Arrays.stream(trainingData).map(obj->new WeakCachedSupplier<Tensor[]>(()->obj)).collect(Collectors.toList());
     this.network = network;
     this.trainingSize = trainingSize;
-    this.batchSize = batchSize;
     resetSampling();
   }
   
@@ -90,38 +88,94 @@ public class StochasticArrayTrainable implements Trainable {
     this.trainingData = trainingData;
     this.network = network;
     this.trainingSize = trainingSize;
-    this.batchSize = batchSize;
     resetSampling();
   }
   
+  Map<String, Double> deviceWeight = new HashMap<>();
+  Map<String, Integer> deviceBatchSizes = new HashMap<>();
+ 
   @Override
   public PointSample measure() {
-    try {
-      PointSample result = trainingNNResultArrays.stream().parallel()
-        .map(this::evalSubsample)
-        .reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value))
-        .get();
-      Map<Integer, Long> peakMemory = CudaPtr.METRICS.asMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().peakMemory.getAndSet(0)));
-      if(trainingNNResultArrays.size() < CudaExecutionContext.gpuContexts.size()) {
-        batchSize = batchSize / 2;
-      } else if(trainingNNResultArrays.size() > 2 * CudaExecutionContext.gpuContexts.size()) {
-        double highestMemUse = peakMemory.values().stream().mapToDouble(x -> x).max().getAsDouble();
-        if(highestMemUse < LOW_MEM_USE) {
-          batchSize = batchSize * 2;
-        }
-      }
-      // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
-      // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
-      if(gcEachIteration) cleanMemory();
-      return result;
-    } catch (Throwable t) {
-      if(isOom(t) && batchSize > 1) {
-        batchSize = batchSize / 2;
-        regenerateNNResultInputs();
-        cleanMemory();
-        return measure();
-      } else throw new RuntimeException("Failed executing " + this,t);
+    if(isStale(lastWeights)) {
+      if(verbose) System.out.println(String.format("Returning cached value"));
+      return lastPtr;
     }
+    List<CudaExecutionContext> devices = CudaExecutionContext.gpuContexts.getAll();
+    Map<CudaExecutionContext, List<Tensor[]>> tasks = new HashMap<>();
+    double weightSum = devices.stream().mapToDouble(d -> deviceWeight.getOrDefault(d.toString(), 1.0)).sum();
+    int start = 0;
+    for(int i=0;i<devices.size();i++) {
+      CudaExecutionContext dev = devices.get(i);
+      int sampleSize = (int) ((trainingNNResultArrays.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0));
+      int end = start + sampleSize;
+      tasks.put(dev, trainingNNResultArrays.subList(start, end));
+      start = end;
+    }
+    List<PointSample> results = new ArrayList<>();
+    List<Thread> threads = new ArrayList<>();
+    for(Map.Entry<CudaExecutionContext, List<Tensor[]>> e : tasks.entrySet()) {
+      Thread thread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          List<Tensor[]> data = e.getValue();
+          CudaExecutionContext gpu = e.getKey();
+          Integer batchSize = deviceBatchSizes.getOrDefault(gpu.toString(), data.size());
+          try {
+            results.add(evaluate(data, gpu, batchSize));
+          } catch (Throwable t) {
+            if(isOom(t) && batchSize > 1) {
+              batchSize = batchSize / 2;
+              deviceBatchSizes.put(gpu.toString(), batchSize);
+              cleanMemory();
+              results.add(evaluate(data, gpu, batchSize)); // Second Chance
+            } else {
+              RuntimeException runtimeException = new RuntimeException("Failed executing " + this, t);
+              runtimeException.printStackTrace(System.err);
+              throw runtimeException;
+            }
+          }
+        }
+      });
+      thread.start();
+      threads.add(thread);
+    }
+    try {
+      for(Thread thread : threads) thread.join();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    PointSample result = results.stream().reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+    // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
+    // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
+    if(gcEachIteration) cleanMemory();
+    this.lastWeights = result.weights.copy();
+    this.lastPtr = result;
+    return result;
+  }
+  
+  private boolean isStale(DeltaSet weights) {
+    if(null == weights) return false;
+    List<DeltaBuffer> av = weights.vector();
+    for(int i=0;i<av.size();i++) {
+      DeltaBuffer ai = av.get(i);
+      double[] aa = ai.getDelta();
+      double[] bb = ai.target;
+      if(aa[0] != bb[0]) return false;
+      if(aa[aa.length/2-1] != bb[aa.length/2-1]) return false;
+      if(aa[aa.length-1] != bb[aa.length-1]) return false;
+    }
+    return true;
+  }
+  
+  private PointSample evaluate(List<Tensor[]> data, CudaExecutionContext gpu, int batchSize ) {
+    long startNanos = System.nanoTime();
+    PointSample deviceResult = Lists.partition(data, batchSize).stream().map(list -> {
+      return eval(NNResult.batchResultArray(list.stream().toArray(i -> new Tensor[i][])), gpu);
+    }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+    double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
+    if(verbose) System.out.println(String.format("Device %s completed %s items in %s sec", gpu, data.size(), time));
+    deviceWeight.put(gpu.toString(), data.size() / time);
+    return deviceResult;
   }
   
   public void cleanMemory() {
@@ -136,22 +190,20 @@ public class StochasticArrayTrainable implements Trainable {
     return false;
   }
   
-  private PointSample evalSubsample(NNResult[] input) {
-    return CudaExecutionContext.gpuContexts.map(nncontext->{
-      NNResult result = network.eval(nncontext, input);
-      DeltaSet deltaSet = new DeltaSet();
-      result.accumulate(deltaSet);
-      assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-      DeltaSet stateBackup = new DeltaSet();
-      deltaSet.map.forEach((layer, layerDelta) -> {
-        stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
-      });
-      assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-      assert (result.getData().stream().allMatch(x -> x.dim() == 1));
-      assert (result.getData().stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-      double meanValue = result.getData().stream().mapToDouble(x -> x.getData()[0]).sum();
-      return new PointSample(deltaSet.scale(1.0/trainingSize), stateBackup, meanValue / trainingSize);
+  private PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
+    NNResult result = network.eval(nncontext, input);
+    DeltaSet deltaSet = new DeltaSet();
+    result.accumulate(deltaSet);
+    assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    DeltaSet stateBackup = new DeltaSet();
+    deltaSet.map.forEach((layer, layerDelta) -> {
+      stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
+    assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert (result.getData().stream().allMatch(x -> x.dim() == 1));
+    assert (result.getData().stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
+    double meanValue = result.getData().stream().mapToDouble(x -> x.getData()[0]).sum();
+    return new PointSample(deltaSet.scale(1.0/trainingSize), stateBackup, meanValue / trainingSize);
   }
   
   @Override
@@ -193,6 +245,8 @@ public class StochasticArrayTrainable implements Trainable {
   }
   
   private void refreshSampledData() {
+    lastPtr = null;
+    lastWeights = null;
     assert 0 < trainingData.size();
     assert 0 < getTrainingSize();
     this.setSampledData(trainingData.stream().parallel() //
@@ -200,24 +254,6 @@ public class StochasticArrayTrainable implements Trainable {
                            .filter(x->x.get()!=null)
                            .limit(getTrainingSize()) //
                            .collect(Collectors.toList()));
-  }
-  
-  /**
-   * Gets batch size.
-   *
-   * @return the batch size
-   */
-  public int getBatchSize() {
-    return batchSize;
-  }
-  
-  /**
-   * Sets batch size.
-   *
-   * @param batchSize the batch size
-   */
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
   }
   
   public boolean isGcEachIteration() {
@@ -230,12 +266,11 @@ public class StochasticArrayTrainable implements Trainable {
   
   protected void setSampledData(List<? extends Supplier<Tensor[]>> sampledData) {
     this.sampledData = sampledData;
-    regenerateNNResultInputs();
+    //Lists.partition(, batchSize)
+    //.map(xx -> NNResult.batchResultArray(xx.stream().parallel().map(x->x.get()).toArray(i->new Tensor[i][])))
+    this.trainingNNResultArrays = this.sampledData.stream().parallel()
+                                    .map(x->x.get())
+                                    .collect(Collectors.toList());
   }
   
-  private void regenerateNNResultInputs() {
-    this.trainingNNResultArrays = Lists.partition(this.sampledData, batchSize).stream().parallel()
-                                                .map(xx -> NNResult.batchResultArray(xx.stream().parallel().map(x->x.get()).toArray(i->new Tensor[i][])))
-                                                .collect(Collectors.toList());
-  }
 }

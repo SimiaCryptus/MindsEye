@@ -64,9 +64,10 @@ public class SumInputsLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     TensorList data = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
+      assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length())
               .parallel()
-              .mapToObj(i->Tensor.add(l.get(i), r.get(i)))
+              .mapToObj(i->Tensor.add(l.get(i>=l.length()?0:i), r.get(i>=r.length()?0:i)))
               .toArray(i->new Tensor[i]));
     }).get();
     return new NNResult(data) {
@@ -75,7 +76,11 @@ public class SumInputsLayer extends NNLayer {
         assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            input.accumulate(buffer, data);
+            if(1 < data.length() && input.getData().length() == 1) {
+              input.accumulate(buffer, new TensorArray(data.stream().reduce((a,b)->a.add(b)).get()));
+            } else {
+              input.accumulate(buffer, data);
+            }
           }
         }
       }

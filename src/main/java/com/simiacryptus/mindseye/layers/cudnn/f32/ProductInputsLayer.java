@@ -75,7 +75,7 @@ public class ProductInputsLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    ((CudaExecutionContext) nncontext).initThread();
     assert inObj.length > 1;
     assert inObj.length < 3;
     int[] dimensions = inObj[0].getData().getDimensions();
@@ -102,7 +102,7 @@ public class ProductInputsLayer extends NNLayer {
     return new NNResult(result) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList delta) {
-        CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+        ((CudaExecutionContext) nncontext).initThread();
         assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         for(int index=0;index<inObj.length;index++) {
           final NNResult input = inObj[index];

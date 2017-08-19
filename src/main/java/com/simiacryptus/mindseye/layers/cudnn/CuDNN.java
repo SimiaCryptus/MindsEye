@@ -25,7 +25,9 @@ import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
+import jcuda.runtime.cudaDeviceProp;
 
+import java.nio.charset.Charset;
 import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.*;
@@ -45,8 +47,9 @@ public class CuDNN {
      */
     public final cudnnHandle cudnnHandle;
     private final int deviceNumber;
-    
-    /**
+    private final String deviceName;
+  
+  /**
      * Device count int.
      *
      * @return the int
@@ -63,8 +66,9 @@ public class CuDNN {
      */
     protected CuDNN(int deviceNumber) {
         this.deviceNumber = deviceNumber;
-        CuDNN.setDevice(deviceNumber);
         this.cudnnHandle = new cudnnHandle();
+        initThread();
+        this.deviceName = getDeviceName(deviceNumber);
         cudnnCreate(cudnnHandle);
         //cudaSetDevice();
     }
@@ -122,8 +126,14 @@ public class CuDNN {
             throw new RuntimeException("returnCode = " + cudnnStatus.stringFor(returnCode));
         }
     }
-
-    /**
+  
+  public static String getDeviceName(int device) {
+    cudaDeviceProp deviceProp = new cudaDeviceProp();
+    cudaGetDeviceProperties(deviceProp, device);
+    return new String(deviceProp.name, Charset.forName("ASCII"));
+  }
+  
+  /**
      * Allocate forward workspace cu dnn ptr.
      *
      * @param srcTensorDesc the src tensor desc
@@ -141,8 +151,15 @@ public class CuDNN {
         long workspaceSize = sizeInBytesArray[0];
         return alloc(deviceId, 0<workspaceSize?workspaceSize:0);
     }
-
-    /**
+    
+    public void initThread() {
+      setDevice(getDeviceNumber());
+      //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+      //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync));
+    }
+  
+  
+  /**
      * Allocate backward filter workspace cu dnn ptr.
      *
      * @param srcTensorDesc the src tensor desc
@@ -241,7 +258,7 @@ public class CuDNN {
      * @param mode         the mode
      * @return the cu dnn resource
      */
-    public static CudaResource<cudnnConvolutionDescriptor> newConvolutionDescriptor(int paddingX, int paddingY, int strideHeight, int strideWidth, int mode) {
+    public static CudaResource<cudnnConvolutionDescriptor> newConvolutionDescriptor(int paddingX, int paddingY, int strideHeight, int strideWidth, int mode, int dataType) {
         cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
         handle(cudnnCreateConvolutionDescriptor(convDesc));
         handle(cudnnSetConvolution2dDescriptor(
@@ -252,7 +269,8 @@ public class CuDNN {
             strideWidth, // horizontal filter stride
             1, // upscale the input in x-direction
             1, // upscale the input in y-direction
-            mode
+            mode,
+            dataType
         ));
         return new CudaResource<>(convDesc, JCudnn::cudnnDestroyConvolutionDescriptor);
     }
@@ -404,9 +422,10 @@ public class CuDNN {
             return -1;
         }
     };
+    
     public static void setDevice(int cudaDeviceId) {
+        CuDNN.handle(cudaSetDevice(cudaDeviceId));
         currentDevice.set(cudaDeviceId);
-        JCuda.cudaSetDevice(cudaDeviceId);
     }
     public static int getDevice() {
         Integer integer = currentDevice.get();
@@ -424,4 +443,9 @@ public class CuDNN {
     public int getDeviceNumber() {
         return deviceNumber;
     }
+  
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}" + Long.toHexString(System.identityHashCode(this));
+  }
 }

@@ -66,7 +66,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param b the b
    * @return the double
    */
-  protected static double dot(List<DeltaBuffer> a, List<DeltaBuffer> b) {
+  public static double dot(List<DeltaBuffer> a, List<DeltaBuffer> b) {
     if (a.size() != b.size()) throw new IllegalArgumentException(String.format("%s != %s", a.size(), b.size()));
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }

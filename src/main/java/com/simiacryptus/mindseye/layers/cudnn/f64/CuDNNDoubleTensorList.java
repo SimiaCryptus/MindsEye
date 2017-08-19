@@ -59,6 +59,7 @@ public class CuDNNDoubleTensorList implements TensorList {
           this.dimensions = dimensions;
           assert(ptr.size == length * Tensor.dim(dimensions) * Sizeof.DOUBLE);
           //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       }
 
       private volatile TensorList _inner = null;

@@ -36,7 +36,7 @@ public class PipelineNetwork extends DAGNetwork {
   public JsonObject getJson() {
     JsonObject json = super.getJson();
     json.addProperty("head", head.getId().toString());
-    assert null != PipelineNetwork.fromJson(json) : "Smoke test deserialization";
+    assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
     return json;
   }
   

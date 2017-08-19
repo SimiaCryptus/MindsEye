@@ -196,6 +196,15 @@ public class CudaPtr extends CudaResource<Pointer> {
     }
   }
   
+  private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci","true"));
+  private static Object getPciBusLock() {
+    return lockPci ? pciBusLock : new Object();
+  }
+  
+  private static void setPciBusLock(Object pciBusLock) {
+    CudaPtr.pciBusLock = pciBusLock;
+  }
+  
   public static class GpuStats {
         public final AtomicLong usedMemory = new AtomicLong(0);
         public final AtomicLong peakMemory = new AtomicLong(0);
@@ -288,6 +297,8 @@ public class CudaPtr extends CudaResource<Pointer> {
     return copy;
   }
   
+  private static Object pciBusLock = new Object();
+  
   /**
      * Write cu dnn ptr.
      *
@@ -295,10 +306,12 @@ public class CudaPtr extends CudaResource<Pointer> {
      * @return the cu dnn ptr
      */
     public CudaPtr write(float[] data) {
-        if(this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
-        CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
-        getGpuStats(deviceId).memoryWrites.addAndGet(size);
-        return this;
+        synchronized (getPciBusLock()) {
+          if(this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
+          CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
+          getGpuStats(deviceId).memoryWrites.addAndGet(size);
+          return this;
+        }
     }
 
     /**
@@ -308,10 +321,12 @@ public class CudaPtr extends CudaResource<Pointer> {
      * @return the cu dnn ptr
      */
     public CudaPtr write(double[] data) {
+      synchronized (getPciBusLock()) {
         if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException();
         CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
         getGpuStats(deviceId).memoryWrites.addAndGet(size);
         return this;
+      }
     }
 
     /**
@@ -321,10 +336,12 @@ public class CudaPtr extends CudaResource<Pointer> {
      * @return the cu dnn ptr
      */
     public CudaPtr read(double[] data) {
+      synchronized (getPciBusLock()) {
         if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException(this.size +" != " + data.length * Sizeof.DOUBLE);
         CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
         getGpuStats(deviceId).memoryReads.addAndGet(size);
         return this;
+      }
     }
 
     /**
@@ -334,9 +351,11 @@ public class CudaPtr extends CudaResource<Pointer> {
      * @return the cu dnn ptr
      */
     public CudaPtr read(float[] data) {
+      synchronized (getPciBusLock()) {
         if(this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
         CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
         getGpuStats(deviceId).memoryReads.addAndGet(size);
         return this;
+      }
     }
 }

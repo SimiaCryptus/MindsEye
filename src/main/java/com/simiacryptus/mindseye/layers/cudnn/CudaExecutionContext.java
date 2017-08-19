@@ -21,10 +21,9 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.util.lang.StaticResourcePool;
-import jcuda.runtime.cudaDeviceProp;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,19 +42,17 @@ public class CudaExecutionContext extends CuDNN implements NNLayer.NNExecutionCo
   static List<CudaExecutionContext> loadGpuContexts() {
       int deviceCount = CuDNN.deviceCount();
       System.out.println(String.format("Found %s devices", deviceCount));
-      ArrayList<Integer> devices = new ArrayList<Integer>();
+      List<Integer> devices = new ArrayList<Integer>();
       for(int device=0;device<deviceCount;device++) {
-          cudaDeviceProp deviceProp = new cudaDeviceProp();
-          cudaGetDeviceProperties(deviceProp, device);
-          String deviceName = new String(deviceProp.name, Charset.forName("ASCII"));
-          System.out.println(String.format("Device %s - %s", device, deviceName));
+        System.out.println(String.format("Device %s - %s", device, getDeviceName(device)));
           devices.add(device);
       }
-      System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
-      for(int device : devices) {
-          CuDNN.handle(cudaSetDevice(device));
-          CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleYield));
+      if(System.getProperties().containsKey("gpus")) {
+        devices = Arrays.stream(System.getProperty("gpus").split(","))
+                    .map(Integer::parseInt).collect(Collectors.toList());
+        
       }
+      System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
       return devices.stream()
               .map(i->new CudaExecutionContext(i)).collect(Collectors.toList());
   }

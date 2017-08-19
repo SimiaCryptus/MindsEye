@@ -43,6 +43,7 @@ import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -134,7 +135,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+    ((CudaExecutionContext) nncontext).initThread();
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
@@ -151,7 +152,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
       CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-          0, 0,1, 1, CUDNN_CONVOLUTION);
+          0, 0,1, 1, CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
       final Pointer betaPtr = Pointer.to(new float[]{0.0f});
       final Pointer alphaPtr = Pointer.to(new float[]{1.0f});
 
@@ -183,7 +184,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
           outputBuffer.finalize();
-          CuDNN.setDevice(((CudaExecutionContext) nncontext).getDeviceNumber());
+          ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());
           int length = error.length();
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
