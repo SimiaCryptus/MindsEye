@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -51,7 +50,7 @@ public class GpuTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    if(isStale(lastWeights)) {
+    if(null != lastWeights && !lastWeights.isDifferent()) {
       if(isVerbose()) System.out.println(String.format("Returning cached value"));
       return lastPtr;
     }
@@ -65,20 +64,6 @@ public class GpuTrainable implements Trainable {
     this.lastWeights = result.weights.copy();
     this.lastPtr = result;
     return result;
-  }
-  
-  protected boolean isStale(DeltaSet weights) {
-    if(null == weights) return false;
-    List<DeltaBuffer> av = weights.vector();
-    for(int i=0;i<av.size();i++) {
-      DeltaBuffer ai = av.get(i);
-      double[] aa = ai.getDelta();
-      double[] bb = ai.target;
-      if(aa[0] != bb[0]) return false;
-      if(aa[aa.length/2-1] != bb[aa.length/2-1]) return false;
-      if(aa[aa.length-1] != bb[aa.length-1]) return false;
-    }
-    return true;
   }
   
   protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {

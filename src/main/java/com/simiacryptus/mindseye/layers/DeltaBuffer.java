@@ -236,4 +236,17 @@ public class DeltaBuffer {
   public double[] getDelta() {
     return delta;
   }
+  
+  public boolean areEqual() {
+    return areEqual(getDelta(), target);
+  }
+  
+  public static boolean areEqual(double[] l, double[] r) {
+    assert(r.length == l.length);
+    for(int i=0;i<r.length;i++) {
+      if(r[i] != l[i]) return false;
+    }
+    return true;
+  }
+  
 }

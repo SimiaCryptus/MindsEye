@@ -130,5 +130,8 @@ public interface Trainable {
       return new PointSample(delta.copy(), weights.copy(), value, rate);
     }
   
+    public void reset() {
+      weights.vector().stream().forEach(d -> d.overwrite());
+    }
   }
 }

@@ -97,7 +97,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   
   @Override
   public void reset() {
-    origin.weights.vector().stream().forEach(d -> d.overwrite());
+    origin.reset();
   }
   
   /**

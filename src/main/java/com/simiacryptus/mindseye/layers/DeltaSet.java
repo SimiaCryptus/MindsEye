@@ -195,4 +195,8 @@ public class DeltaSet {
     write(1);
     return this;
   }
+  
+  public boolean isDifferent() {
+    return vector().stream().parallel().anyMatch(x-> ! x.areEqual());
+  }
 }
