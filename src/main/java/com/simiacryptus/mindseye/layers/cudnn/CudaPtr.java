@@ -255,7 +255,7 @@ public class CudaPtr extends CudaResource<Pointer> {
                 System.err.println(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
                   size, freedMemory, metrics.usedMemory.get()+size, e.getMessage()));
             } catch (Exception e2) {
-                throw new OutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId));
+                throw new DeviceOutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId), e2);
             }
         }
         long finalMemory = metrics.usedMemory.addAndGet(size);

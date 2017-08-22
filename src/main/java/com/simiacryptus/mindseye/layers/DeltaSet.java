@@ -186,4 +186,13 @@ public class DeltaSet {
   public DeltaSet copy() {
     return map(x -> x.copy());
   }
+  
+  public DeltaSet write(double alpha) {
+    vector().stream().forEach(d -> d.write(alpha));
+    return this;
+  }
+  public DeltaSet write() {
+    write(1);
+    return this;
+  }
 }

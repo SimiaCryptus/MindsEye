@@ -32,7 +32,7 @@ public class CudaResource<T> {
 
     private final T ptr;
     private final ToIntFunction<T> destructor;
-    private boolean finalized = false;
+    private volatile boolean finalized = false;
     //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
     private final int device = CuDNN.getDevice();
 
@@ -58,14 +58,14 @@ public class CudaResource<T> {
 
     @Override
     public synchronized void finalize() {
-        if(!this.finalized) {
-            if(null != this.destructor) free();
-            this.finalized = true;
-        }
         try {
+            if(!this.finalized) {
+                if(null != this.destructor) free();
+                this.finalized = true;
+            }
             super.finalize();
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            new RuntimeException("Error freeing resource " + this, e).printStackTrace(System.err);
         }
     }
     

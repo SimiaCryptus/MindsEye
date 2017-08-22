@@ -17,14 +17,12 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.ArrayList;
@@ -57,6 +55,7 @@ public final class GpuController {
   
   public static boolean isOom(Throwable t) {
     if(t instanceof OutOfMemoryError) return true;
+    if(t instanceof DeviceOutOfMemoryError) return true;
     if(null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
     return false;
   }
@@ -92,7 +91,13 @@ public final class GpuController {
   private <T> T evaluate(CudaExecutionContext gpu, List<Tensor[]> data, BiFunction<List<Tensor[]>, CudaExecutionContext, T> function, BinaryOperator<T> reducer) {
     Integer batchSize = deviceBatchSizes.getOrDefault(gpu.toString(), data.size());
     try {
-      return evaluate(data, gpu, batchSize, function, reducer);
+      long startNanos = System.nanoTime();
+      List<List<Tensor[]>> batches = Lists.partition(data, batchSize);
+      T deviceResult = batches.stream().map(x-> function.apply(x, gpu)).reduce(reducer).get();
+      double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
+      if(verbose) System.out.println(String.format("Device %s completed %s items in %s sec", gpu, data.size(), time));
+      deviceWeight.put(gpu.toString(), data.size() / time);
+      return deviceResult;
     } catch (Throwable t) {
       if(GpuController.isOom(t) && batchSize > 1) {
         batchSize = batchSize / 2;
@@ -105,16 +110,6 @@ public final class GpuController {
         throw runtimeException;
       }
     }
-  }
-  
-  private <T> T evaluate(List<Tensor[]> data, CudaExecutionContext gpu, int batchSize, BiFunction<List<Tensor[]>, CudaExecutionContext, T> function, BinaryOperator<T> reducer) {
-    long startNanos = System.nanoTime();
-    List<List<Tensor[]>> batches = Lists.partition(data, batchSize);
-    T deviceResult = batches.stream().map(x->function.apply(x,gpu)).reduce(reducer).get();
-    double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
-    if(verbose) System.out.println(String.format("Device %s completed %s items in %s sec", gpu, data.size(), time));
-    deviceWeight.put(gpu.toString(), data.size() / time);
-    return deviceResult;
   }
   
   public void cleanMemory() {

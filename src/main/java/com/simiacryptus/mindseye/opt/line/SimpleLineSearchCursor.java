@@ -79,10 +79,25 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   @Override
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     if(!Double.isFinite(alpha)) throw new IllegalArgumentException();
-    origin.weights.vector().stream().forEach(d -> d.overwrite());
-    direction.vector().stream().forEach(d -> d.write(alpha));
+    reset();
+    position(alpha).vector().stream().forEach(d -> d.write(alpha));
     PointSample sample = subject.measure().setRate(alpha);
     return new LineSearchPoint(sample, dot(direction.vector(), sample.delta.vector()));
+  }
+  
+  @Override
+  public PointSample measure(double t, TrainingMonitor monitor) {
+    return subject.measure().setRate(t);
+  }
+  
+  @Override
+  public DeltaSet position(double alpha) {
+    return direction.scale(alpha);
+  }
+  
+  @Override
+  public void reset() {
+    origin.weights.vector().stream().forEach(d -> d.overwrite());
   }
   
   /**

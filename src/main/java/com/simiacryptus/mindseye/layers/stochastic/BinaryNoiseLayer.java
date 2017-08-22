@@ -118,6 +118,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    */
   public BinaryNoiseLayer setValue(double value) {
     this.value = value;
+    shuffle();
     return this;
   }
   

@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.opt.*;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
-import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
@@ -72,31 +71,42 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
   private final List<PointSample> history = new LinkedList<>();
   
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    history.add(0,measurement);
+  public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
+    history.add(0,origin);
     while(history.size() > maxHistory) history.remove(history.size()-1);
-    LineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    DeltaSet direction = ((SimpleLineSearchCursor) orient).direction;
+    LineSearchCursor cursor = inner.orient(subject, origin, monitor);
     return new LineSearchCursor() {
       @Override
       public String getDirectionType() {
-        return orient.getDirectionType() + "+Trust";
+        return cursor.getDirectionType() + "+Trust";
       }
   
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
+        DeltaSet currentDirection = position(alpha).write();
+        PointSample measurement = measure(alpha, monitor);
+        return new LineSearchPoint(measurement, dot(currentDirection.vector(), measurement.delta.vector()));
+      }
+  
+      public PointSample measure(double alpha, TrainingMonitor monitor) {
+        return cursor.measure(alpha, monitor);
+      }
+
+      @Override
+      public DeltaSet position(double alpha) {
         // Restore to orginal position
-        measurement.weights.vector().stream().forEach(d -> d.overwrite());
+        cursor.reset();
+        DeltaSet innerVector = cursor.position(alpha).add(origin.weights.scale(-1));
         // Adjust new point and associated tangent
-        DeltaSet currentDirection = direction.copy();
-        direction.map.forEach((layer, buffer) -> {
+        DeltaSet currentDirection = innerVector.copy();
+        innerVector.map.forEach((layer, buffer) -> {
           if (null == buffer.getDelta()) return;
           DeltaBuffer deltaBuffer = currentDirection.get(layer, buffer.target);
-          double[] delta = multiply(deltaBuffer.getDelta(), alpha);
+          double[] delta = deltaBuffer.getDelta();
           double[] projected = add(deltaBuffer.target, delta);
           TrustRegion region = getRegionPolicy(layer);
           if(null != region) {
-            double[][] historyData = history.stream().map(x -> x.weights.map.get(layer).getDelta()).toArray(i -> new double[i][]);
+            double[][] historyData = history.stream().map((PointSample x) -> x.weights.map.get(layer).getDelta()).toArray(i -> new double[i][]);
             double[] adjusted = region.project(historyData, projected);
             if(adjusted != projected) {
               double[] correction = subtract(adjusted, projected);
@@ -109,7 +119,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
                   assert(ArrayUtil.dot(tangent, tangent) <= ArrayUtil.dot(delta, delta));
                   for (int i = 0; i < tangent.length; i++) {
                     projected[i] = adjusted[i];
-                    deltaBuffer.getDelta()[i] = tangent[i];
+                    delta[i] = tangent[i];
                   }
                 }
               }
@@ -119,9 +129,12 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
             buffer.target[i] = projected[i];
           }
         });
-        // Execute measurement and return
-        PointSample measurement = subject.measure().setRate(alpha);
-        return new LineSearchPoint(measurement, dot(currentDirection.vector(), measurement.delta.vector()));
+        return currentDirection;
+      }
+  
+      @Override
+      public void reset() {
+        cursor.reset();
       }
     };
   }

@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.*;

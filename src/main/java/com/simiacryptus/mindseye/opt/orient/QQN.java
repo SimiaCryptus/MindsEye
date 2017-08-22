@@ -27,19 +27,16 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
-import com.simiacryptus.util.ArrayUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.simiacryptus.util.ArrayUtil.add;
 import static com.simiacryptus.util.ArrayUtil.dot;
 
 /**
- * Curved-path enhancement to L-BFGS
+ * Quadratic Quasi-Newton strategy
  */
-public class CLBFGS extends LBFGS {
+public class QQN extends LBFGS {
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
@@ -53,24 +50,40 @@ public class CLBFGS extends LBFGS {
   
         @Override
         public String getDirectionType() {
-          return "CLBFGS";
+          return "QQN";
         }
   
         @Override
         public LineSearchPoint step(double t, TrainingMonitor monitor) {
           if(!Double.isFinite(t)) throw new IllegalArgumentException();
-          origin.weights.vector().stream().forEach(d -> d.overwrite());
-          gd.vector().stream().forEach(d -> d.write(t-t*t));
-          lbfgs.direction.vector().stream().forEach(d -> d.write(t*t));
+          position(t).write();
+          PointSample sample = measure(t, monitor);
           List<DeltaBuffer> tangent = gd.scale(1-2*t).add(lbfgs.direction.scale(2*t)).vector();
+          return new LineSearchPoint(sample, SimpleLineSearchCursor.dot(tangent, sample.delta.vector()));
+        }
+  
+        @Override
+        public DeltaSet position(double t) {
+          if(!Double.isFinite(t)) throw new IllegalArgumentException();
+          return gd.scale(t-t*t).add(lbfgs.direction.scale(t*t));
+        }
+  
+        @Override
+        public PointSample measure(double t, TrainingMonitor monitor) {
           PointSample sample = subject.measure().setRate(t);
           addToHistory(sample, monitor);
-          return new LineSearchPoint(sample, SimpleLineSearchCursor.dot(tangent, sample.delta.vector()));
+          return sample;
+        }
+        
+        @Override
+        public void reset() {
+          lbfgs.reset();
         }
       };
     } else {
       return lbfgs;
     }
   }
+  
   
 }

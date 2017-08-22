@@ -135,8 +135,8 @@ public class StochasticArrayTrainable extends GpuTrainable {
     assert 0 < trainingData.size();
     assert 0 < getTrainingSize();
     this.setSampledData(trainingData.stream().parallel() //
+                           .filter(x->x!=null && x.get()!=null)
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
-                           .filter(x->x.get()!=null)
                            .limit(getTrainingSize()) //
                            .collect(Collectors.toList()));
   }

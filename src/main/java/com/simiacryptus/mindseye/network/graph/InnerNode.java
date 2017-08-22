@@ -30,10 +30,7 @@ import java.util.UUID;
  * The type Inner node.
  */
 public final class InnerNode extends LazyResult {
-  /**
-   * The Layer.
-   */
-  public final NNLayer layer;
+  private NNLayer layer;
   /**
    * The Created by.
    */
@@ -58,7 +55,7 @@ public final class InnerNode extends LazyResult {
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
     this.id = id.getId();
-    this.layer = id;
+    this.setLayer(id);
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     this.inputNodes = inputNodes;
   }
@@ -87,6 +84,9 @@ public final class InnerNode extends LazyResult {
     return this.id;
   }
   
+  /**
+   * The Layer.
+   */
   @Override
   public NNLayer getLayer() {
     return layer;
@@ -100,5 +100,9 @@ public final class InnerNode extends LazyResult {
    */
   public DAGNode add(NNLayer nextHead) {
     return dagNetwork.add(nextHead, InnerNode.this);
+  }
+  
+  public void setLayer(NNLayer layer) {
+    this.layer = layer;
   }
 }

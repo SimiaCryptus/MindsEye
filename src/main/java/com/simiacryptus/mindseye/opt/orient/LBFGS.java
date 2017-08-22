@@ -144,6 +144,8 @@ public class LBFGS implements OrientationStrategy {
   
   
       monitor.log(String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s", mag, magGrad, dot, anglesPerLayer));
+    } else {
+      monitor.log(String.format("LBFGS History: %s points", history.size()));
     }
     if (accept(deltaVector, descent)) {
       history.remove(0);
@@ -152,11 +154,10 @@ public class LBFGS implements OrientationStrategy {
     }
     return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(descent))
     {
-      @Override
-      public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-        LineSearchPoint step = super.step(alpha, monitor);
-        addToHistory(step.point, monitor);
-        return step;
+      public PointSample measure(double t, TrainingMonitor monitor) {
+        PointSample measure = super.measure(t, monitor);
+        addToHistory(measure, monitor);
+        return measure;
       }
     }
     .setDirectionType(type);
