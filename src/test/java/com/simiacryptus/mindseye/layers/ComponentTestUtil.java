@@ -35,7 +35,7 @@ public class ComponentTestUtil {
   /**
    * The constant deltaFactor.
    */
-  public static final double deltaFactor = 1e-4;
+  public static final double deltaFactor = 1e-1;
   private static final Logger log = LoggerFactory.getLogger(ComponentTestUtil.class);
   /**
    * The constant tolerance.
@@ -104,7 +104,7 @@ public class ComponentTestUtil {
       final DeltaSet buffer = new DeltaSet();
       final Tensor[] data = new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
       component.eval(new NNLayer.NNExecutionContext() {},inputPrototype).accumulate(buffer, new TensorArray(data));
-      final DeltaBuffer deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
+      final Delta deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
       }

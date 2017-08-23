@@ -73,7 +73,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     int itemCnt = inObj[0].getData().length();
     assert(0 < itemCnt);
     Tensor inputGradientA[] = new Tensor[itemCnt];
-    Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+    Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = new Tensor(inObj[0].getData().get(dataIndex).getDimensions());
       final Tensor inputGradient = new Tensor(input.dim());
@@ -90,7 +90,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+          Tensor[] passbackA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
             final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
             final double[] gradientData = inputGradientA[dataIndex].getData();
             IntStream.range(0, passback.dim()).forEach(i -> {

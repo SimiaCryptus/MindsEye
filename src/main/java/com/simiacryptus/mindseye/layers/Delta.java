@@ -31,10 +31,10 @@ import java.util.stream.IntStream;
  * The type Delta buffer.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class DeltaBuffer {
+public class Delta {
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(DeltaBuffer.class);
+  private static final Logger log = LoggerFactory.getLogger(Delta.class);
   
   protected double[] delta;
   /**
@@ -53,7 +53,7 @@ public class DeltaBuffer {
    * @param delta  the array
    * @param layer  the layer
    */
-  public DeltaBuffer(final double[] target, final double[] delta, final NNLayer layer) {
+  public Delta(final double[] target, final double[] delta, final NNLayer layer) {
     if(null == target) throw new IllegalArgumentException();
     //if(null == array) throw new IllegalArgumentException();
     this.target = target;
@@ -67,7 +67,7 @@ public class DeltaBuffer {
    * @param values the values
    * @param layer  the layer
    */
-  public DeltaBuffer(final double[] values, final NNLayer layer) {
+  public Delta(final double[] values, final NNLayer layer) {
     if(null == values) throw new IllegalArgumentException();
     this.target = values;
     this.layer = layer;
@@ -81,7 +81,7 @@ public class DeltaBuffer {
    * @param data the data
    * @return the delta buffer
    */
-  public DeltaBuffer accumulate(final double[] data) {
+  public Delta accumulate(final double[] data) {
     assert Arrays.stream(data).allMatch(Double::isFinite);
     final int dim = length();
     Arrays.parallelSetAll(this.getDelta(), i-> this.getDelta()[i] + data[i]);
@@ -134,8 +134,8 @@ public class DeltaBuffer {
    * @param mapper the mapper
    * @return the delta buffer
    */
-  public DeltaBuffer map(final DoubleUnaryOperator mapper) {
-    return new DeltaBuffer(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
+  public Delta map(final DoubleUnaryOperator mapper) {
+    return new Delta(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
   }
   
   /**
@@ -144,7 +144,7 @@ public class DeltaBuffer {
    * @param f the f
    * @return the delta buffer
    */
-  public DeltaBuffer scale(final double f) {
+  public Delta scale(final double f) {
     return map(x -> x * f);
   }
   
@@ -196,7 +196,7 @@ public class DeltaBuffer {
    * @param right the right
    * @return the double
    */
-  public double dot(DeltaBuffer right) {
+  public double dot(Delta right) {
     if (this.layer != right.layer) throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
     if (this.target != right.target) throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
     assert (this.getDelta().length == right.getDelta().length);
@@ -226,8 +226,8 @@ public class DeltaBuffer {
    *
    * @return the delta buffer
    */
-  public DeltaBuffer copy() {
-    return new DeltaBuffer(target, copyDelta(), layer);
+  public Delta copy() {
+    return new Delta(target, copyDelta(), layer);
   }
   
   /**

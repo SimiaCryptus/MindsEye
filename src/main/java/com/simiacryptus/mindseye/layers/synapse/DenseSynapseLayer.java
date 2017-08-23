@@ -341,7 +341,7 @@ public class DenseSynapseLayer extends NNLayer {
     }
     
     private void learn(final TensorList delta, final DeltaSet buffer) {
-      DeltaBuffer deltaBuffer = buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.getWeights());
+      Delta deltaBuffer = buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.getWeights());
       
       int threads = 4;
       IntStream.range(0, threads).parallel().forEach(thread -> {

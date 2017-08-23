@@ -134,7 +134,7 @@ public class MetaComponentValidationTests {
         Tensor[] feedback = IntStream.range(0, outputPrototype.length).mapToObj(i -> new Tensor(outputPrototype[0].getDimensions())).toArray(i -> new Tensor[i]);
         feedback[outputItem].getData()[outputCoord] = 1;
         eval.accumulate(buffer, new TensorArray(feedback));
-        final DeltaBuffer delta = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
+        final Delta delta = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
         for (int stateIdx = 0; stateIdx < stateLen; stateIdx++) {
           gradient[outputItem].set(new int[]{stateIdx, outputCoord}, delta.getDelta()[stateIdx]);
         }

@@ -19,11 +19,10 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
-import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
@@ -78,12 +77,12 @@ public class LBFGS implements OrientationStrategy {
   }
   
   protected SimpleLineSearchCursor _orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    List<DeltaBuffer> deltaVector = measurement.delta.vector();
-    List<DeltaBuffer> defaultValue = deltaVector.stream().map(x -> x.scale(-1)).collect(Collectors.toList());
+    List<Delta> deltaVector = measurement.delta.vector();
+    List<Delta> defaultValue = deltaVector.stream().map(x -> x.scale(-1)).collect(Collectors.toList());
     
     // See also https://papers.nips.cc/paper/5333-large-scale-l-bfgs-using-mapreduce (Large-scale L-BFGS using MapReduce)
     String type = "GD";
-    List<DeltaBuffer> descent = defaultValue;
+    List<Delta> descent = defaultValue;
     if (history.size() > minHistory) {
       List<double[]> gradient = defaultValue.stream().map(x -> Arrays.copyOf(x.getDelta(), x.getDelta().length)).collect(Collectors.toList());
       type = "LBFGS";
@@ -163,15 +162,15 @@ public class LBFGS implements OrientationStrategy {
     .setDirectionType(type);
   }
   
-  private boolean accept(List<DeltaBuffer> gradient, List<DeltaBuffer> direction) {
+  private boolean accept(List<Delta> gradient, List<Delta> direction) {
     return dot(cvt(gradient), cvt(direction)) > 0;
   }
   
-  private List<double[]> minus(List<DeltaBuffer> a, List<DeltaBuffer> b) {
+  private List<double[]> minus(List<Delta> a, List<Delta> b) {
     return ArrayUtil.minus(cvt(a), cvt(b));
   }
   
-  private List<double[]> cvt(List<DeltaBuffer> vector) {
+  private List<double[]> cvt(List<Delta> vector) {
     return vector.stream().map(x -> x.getDelta()).collect(Collectors.toList());
   }
   

@@ -61,7 +61,11 @@ public class CountingNNResult extends NNResult {
         passbackBuffer = data.copy();
       }
     } else {
-      passbackBuffer.accum(data);
+      if(passbackBuffer.length() == 0) {
+        passbackBuffer = data;
+      } else {
+        passbackBuffer.accum(data);
+      }
     }
     if(++queued == getCount()) {
       //System.err.println(String.format("Pass Count -> %s, Buffer -> %s", this.count, passbackBuffer.size()));
@@ -80,7 +84,6 @@ public class CountingNNResult extends NNResult {
   
   @Override
   protected void finalize() throws Throwable {
-    assert(0 == queued);
     super.finalize();
   }
 }

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -58,7 +58,7 @@ public class QQN extends LBFGS {
           if(!Double.isFinite(t)) throw new IllegalArgumentException();
           position(t).write();
           PointSample sample = measure(t, monitor);
-          List<DeltaBuffer> tangent = gd.scale(1-2*t).add(lbfgs.direction.scale(2*t)).vector();
+          List<Delta> tangent = gd.scale(1-2*t).add(lbfgs.direction.scale(2*t)).vector();
           return new LineSearchPoint(sample, SimpleLineSearchCursor.dot(tangent, sample.delta.vector()));
         }
   

@@ -172,7 +172,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            DeltaBuffer deltaBuffer = buffer.get(SchemaBiasLayer.this, SchemaBiasLayer.this.bias);
+            Delta deltaBuffer = buffer.get(SchemaBiasLayer.this, SchemaBiasLayer.this.bias);
             deltaBuffer.accumulate(weightGradient.getData());
             //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
             filterBuffer.finalize();

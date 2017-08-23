@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -30,8 +30,8 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
 
-public class CudnnFloatDeltaBuffer extends DeltaBuffer {
-  public CudnnFloatDeltaBuffer(double[] values, NNLayer layer) {
+public class CudnnFloatDelta extends Delta {
+  public CudnnFloatDelta(double[] values, NNLayer layer) {
     super(values, null, layer);
   }
   

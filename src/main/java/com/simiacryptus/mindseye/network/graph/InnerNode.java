@@ -52,9 +52,14 @@ public final class InnerNode extends LazyResult {
    */
   @SafeVarargs
   InnerNode(DAGNetwork dagNetwork, final NNLayer id, final DAGNode... inputNodes) {
+    this(dagNetwork, id, UUID.randomUUID(), inputNodes);
+  }
+  
+  @SafeVarargs
+  InnerNode(DAGNetwork dagNetwork, final NNLayer id, UUID nodeId, final DAGNode... inputNodes) {
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
-    this.id = id.getId();
+    this.id = nodeId;
     this.setLayer(id);
     this.inputNodes = inputNodes;
   }
@@ -103,6 +108,8 @@ public final class InnerNode extends LazyResult {
   }
   
   public void setLayer(NNLayer layer) {
+    this.dagNetwork.layersById.put(layer.getId(), layer);
     this.layer = layer;
+    this.dagNetwork.assertConsistent();
   }
 }

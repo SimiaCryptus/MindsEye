@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.opt.*;
@@ -101,7 +101,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
         DeltaSet currentDirection = innerVector.copy();
         innerVector.map.forEach((layer, buffer) -> {
           if (null == buffer.getDelta()) return;
-          DeltaBuffer deltaBuffer = currentDirection.get(layer, buffer.target);
+          Delta deltaBuffer = currentDirection.get(layer, buffer.target);
           double[] delta = deltaBuffer.getDelta();
           double[] projected = add(deltaBuffer.target, delta);
           TrustRegion region = getRegionPolicy(layer);
@@ -154,7 +154,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
    * @param b the b
    * @return the double
    */
-  public static double dot(List<DeltaBuffer> a, List<DeltaBuffer> b) {
+  public static double dot(List<Delta> a, List<Delta> b) {
     assert (a.size() == b.size());
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }

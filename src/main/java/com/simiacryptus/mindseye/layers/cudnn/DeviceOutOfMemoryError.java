@@ -23,4 +23,7 @@ public final class DeviceOutOfMemoryError extends RuntimeException {
   public DeviceOutOfMemoryError(String msg, Exception cause) {
     super(msg, cause);
   }
+  public DeviceOutOfMemoryError(String message) {
+    super(message);
+  }
 }

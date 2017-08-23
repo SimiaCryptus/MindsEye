@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
@@ -66,7 +66,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param b the b
    * @return the double
    */
-  public static double dot(List<DeltaBuffer> a, List<DeltaBuffer> b) {
+  public static double dot(List<Delta> a, List<Delta> b) {
     if (a.size() != b.size()) throw new IllegalArgumentException(String.format("%s != %s", a.size(), b.size()));
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }

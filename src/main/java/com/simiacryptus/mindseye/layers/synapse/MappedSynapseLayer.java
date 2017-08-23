@@ -304,7 +304,7 @@ public abstract class MappedSynapseLayer extends NNLayer {
     private void learn(final TensorList delta, final DeltaSet buffer) {
       final double[] deltaData0 = delta.get(0).getData();
       final double[] inputData0 = this.result.getData().get(0).getData();
-      DeltaBuffer deltaBuffer = buffer.get(MappedSynapseLayer.this, getWeights());
+      Delta deltaBuffer = buffer.get(MappedSynapseLayer.this, getWeights());
       
       int threads = 4;
       IntStream.range(0, threads).parallel().forEach(thread -> {

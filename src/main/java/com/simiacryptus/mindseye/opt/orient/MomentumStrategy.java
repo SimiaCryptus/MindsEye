@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -59,7 +59,7 @@ public class MomentumStrategy implements OrientationStrategy {
     DeltaSet direction = ((SimpleLineSearchCursor) orient).direction;
     DeltaSet newDelta = new DeltaSet();
     direction.map.forEach((layer, delta)->{
-      DeltaBuffer prevBuffer = prevDelta.get(layer, delta.target);
+      Delta prevBuffer = prevDelta.get(layer, delta.target);
       newDelta.get(layer, delta.target).accumulate(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));
     });
     prevDelta = newDelta;

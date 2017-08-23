@@ -39,6 +39,8 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public final class MonitoringWrapper extends NNLayerWrapper implements MonitoredItem {
   
+  private boolean verbose = false;
+  
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     //json.add("forwardPerf",forwardPerf.getJson());
@@ -90,11 +92,14 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   
   public Map<String, Object> getMetrics() {
     HashMap<String, Object> map = new HashMap<>();
+    map.put("class", inner.getClass().getName());
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
-    map.put("forwardPerformance", forwardPerf.getMetrics());
-    map.put("backwardPerformance", backwardPerf.getMetrics());
-    map.put("passbackPerformance", passbackPerf.getMetrics());
+    if(verbose) {
+      map.put("forwardPerformance", forwardPerf.getMetrics());
+      map.put("backwardPerformance", backwardPerf.getMetrics());
+      map.put("passbackPerformance", passbackPerf.getMetrics());
+    }
     double batchesPerItem = totalBatches * 1.0 / totalItems;
     map.put("avgMsPerItem", 1000 * batchesPerItem * forwardPerf.getMean());
     map.put("medianMsPerItem", 1000 * batchesPerItem * forwardPerf.getPercentile(0.5));
@@ -105,16 +110,18 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMean)?(backpropMean - passbackMean):backpropMean));
     map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMedian)?(backpropMedian - passbackMedian):backpropMedian));
     List<double[]> state = state();
-    HashMap<String, Object> weightStats = new HashMap<>();
-    map.put("weights", weightStats);
-    weightStats.put("buffers", state.size());
     ScalarStatistics statistics = new ScalarStatistics();
     for(double[] s : state) {
       for(double v : s) {
         statistics.add(v);
       }
     }
-    weightStats.putAll(statistics.getMetrics());
+    if(statistics.getCount() > 0) {
+      HashMap<String, Object> weightStats = new HashMap<>();
+      weightStats.put("buffers", state.size());
+      weightStats.putAll(statistics.getMetrics());
+      map.put("weights", weightStats);
+    }
     return map;
   }
   

@@ -40,7 +40,6 @@ import java.util.function.ToDoubleFunction;
 
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
-import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -248,7 +247,7 @@ public class ConvolutionLayer extends NNLayer {
             } catch (Throwable e) {
               throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
             }
-            buffer.get(ConvolutionLayer.this, ()->new CudnnFloatDeltaBuffer(filter.getData(),ConvolutionLayer.this))
+            buffer.get(ConvolutionLayer.this, ()->new CudnnFloatDelta(filter.getData(),ConvolutionLayer.this))
               .accumulate(CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, kernelSize[2], kernelSize[1], kernelSize[0]), filterBuffer, (CudaExecutionContext) nncontext);
           }
           if (inObj[0].isAlive()) {

@@ -67,6 +67,8 @@ public interface TensorList {
   }
   
   default void accum(TensorList right) {
+    if(right.length() == 0) return;
+    if(this.length() == 0) throw new RuntimeException();
     assert(length() == right.length());
     IntStream.range(0, length()).forEach(i->{
       get(i).accum(right.get(i));

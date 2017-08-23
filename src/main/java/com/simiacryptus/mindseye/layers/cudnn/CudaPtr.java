@@ -238,10 +238,10 @@ public class CudaPtr extends CudaResource<Pointer> {
         this.deviceId = deviceId;
         GpuStats metrics = getGpuStats(deviceId);
         if(size < 0) {
-            throw new IllegalArgumentException("Allocated block is too large: " + size);
+            throw new DeviceOutOfMemoryError("Allocated block is too large: " + size);
         }
         if(size > MAX) {
-            throw new IllegalArgumentException("Allocated block is too large: " + size);
+            throw new DeviceOutOfMemoryError("Allocated block is too large: " + size);
         }
         try {
             CuDNN.handle(cudaMalloc(this.getPtr(), size));

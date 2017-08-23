@@ -105,7 +105,8 @@ public final class GpuController {
         cleanMemory();
         return evaluate(gpu, data, function, reducer);
       } else {
-        RuntimeException runtimeException = new RuntimeException("Failed executing " + this, t);
+        RuntimeException runtimeException = new RuntimeException(String.format("Failed executing %s items", batchSize), t);
+        runtimeException.fillInStackTrace();
         runtimeException.printStackTrace(System.err);
         throw runtimeException;
       }

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.layers.DeltaBuffer;
+import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.opt.line.*;
@@ -146,8 +146,8 @@ public class LayerRateDiagnosticTrainer {
           Map<NNLayer,Double> steps = new HashMap<>();
           double overallStepEstimate = d1.getMagnitude() / d2.getMagnitude();
           for(NNLayer layer : layers) {
-            DeltaBuffer a = d2.get(layer, (double[]) null);
-            DeltaBuffer b = d1.get(layer, (double[]) null);
+            Delta a = d2.get(layer, (double[]) null);
+            Delta b = d1.get(layer, (double[]) null);
             double bmag = Math.sqrt(b.sumSq());
             double amag = Math.sqrt(a.sumSq());
             double dot = a.dot(b) / (amag * bmag);

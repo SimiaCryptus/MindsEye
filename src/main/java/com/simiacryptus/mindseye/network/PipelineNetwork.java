@@ -34,6 +34,7 @@ import java.util.*;
 public class PipelineNetwork extends DAGNetwork {
   
   public JsonObject getJson() {
+    assertConsistent();
     JsonObject json = super.getJson();
     json.addProperty("head", head.getId().toString());
     assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
@@ -107,10 +108,10 @@ public class PipelineNetwork extends DAGNetwork {
   
   @SafeVarargs
   @Override
-  public final DAGNode add(String label, final NNLayer nextHead, final DAGNode... head) {
-    if(null == nextHead) throw new IllegalArgumentException();
-    DAGNode node = super.add(label, nextHead, head);
-    assert Arrays.stream(head).allMatch(x -> x != null);
+  public final DAGNode add(String label, final NNLayer layer, final DAGNode... head) {
+    if(null == layer) throw new IllegalArgumentException();
+    DAGNode node = super.add(label, layer, head);
+    //assert Arrays.stream(head).allMatch(x -> x != null);
     assert null != getInput();
     setHead(node);
     return node;
@@ -120,7 +121,7 @@ public class PipelineNetwork extends DAGNetwork {
   public DAGNode add(NNLayer nextHead, DAGNode... head) {
     if(null == nextHead && head.length==1) return head[0];
     if(null == nextHead) throw new IllegalArgumentException();
-    assert Arrays.stream(head).allMatch(x -> x == null || layersById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
+    assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
     DAGNode node = super.add(nextHead, head);
     assert null != getInput();
     setHead(node);

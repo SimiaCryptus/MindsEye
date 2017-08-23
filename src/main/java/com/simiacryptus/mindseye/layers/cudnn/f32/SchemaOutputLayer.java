@@ -139,6 +139,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
+    assert(inputBands == inputSize[2]);
     int[] kernelSize = this.filter.getDimensions();
     int[] outputSize = getOutputSize(inputSize, kernelSize);
     int length = batch.length();
@@ -253,10 +254,8 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
       int x;
       if (i == kernelSize.length - 1) {
         x = kernelSize[i] / inputSize[i];
-      } else if(false) {
-        x = inputSize[i] / (i==0? 1 : 1);
       } else {
-        x = (1 + inputSize[i] - kernelSize[i]) / (i==0? 1 : 1);
+        x = inputSize[i];
       }
       if (0 >= x) {
         assert false;

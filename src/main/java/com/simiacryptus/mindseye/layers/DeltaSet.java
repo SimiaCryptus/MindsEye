@@ -36,7 +36,7 @@ public class DeltaSet {
   /**
    * The Map.
    */
-  public final ConcurrentHashMap<NNLayer, DeltaBuffer> map = new ConcurrentHashMap<>();
+  public final ConcurrentHashMap<NNLayer, Delta> map = new ConcurrentHashMap<>();
   
   /**
    * Instantiates a new Delta set.
@@ -49,7 +49,7 @@ public class DeltaSet {
    *
    * @param collect the collect
    */
-  public DeltaSet(final Map<NNLayer, DeltaBuffer> collect) {
+  public DeltaSet(final Map<NNLayer, Delta> collect) {
     this.map.putAll(collect);
   }
   
@@ -59,7 +59,7 @@ public class DeltaSet {
    * @param descent the descent
    * @return the delta set
    */
-  public static DeltaSet fromList(List<DeltaBuffer> descent) {
+  public static DeltaSet fromList(List<Delta> descent) {
     DeltaSet deltaSet = new DeltaSet();
     descent.forEach(buffer -> deltaSet.get(buffer.layer, buffer.target).accumulate(buffer.getDelta()));
     return deltaSet;
@@ -72,11 +72,11 @@ public class DeltaSet {
    * @param ptr   the ptr
    * @return the delta buffer
    */
-  public DeltaBuffer get(final NNLayer layer, final double[] ptr) {
-    return get(layer, () -> new DeltaBuffer(ptr, layer));
+  public Delta get(final NNLayer layer, final double[] ptr) {
+    return get(layer, () -> new Delta(ptr, layer));
   }
   
-  public <T extends DeltaBuffer> T get(final NNLayer layer, Supplier<T> factory) {
+  public <T extends Delta> T get(final NNLayer layer, Supplier<T> factory) {
     return (T) this.map.computeIfAbsent(layer, l->factory.get());
   }
   
@@ -87,7 +87,7 @@ public class DeltaSet {
    * @param ptr   the ptr
    * @return the delta buffer
    */
-  public DeltaBuffer get(final NNLayer layer, final Tensor ptr) {
+  public Delta get(final NNLayer layer, final Tensor ptr) {
     return get(layer, ptr.getData());
   }
   
@@ -97,7 +97,7 @@ public class DeltaSet {
    * @param mapper the mapper
    * @return the delta set
    */
-  public DeltaSet map(final Function<DeltaBuffer, DeltaBuffer> mapper) {
+  public DeltaSet map(final Function<Delta, Delta> mapper) {
     return new DeltaSet(this.map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue()))));
   }
   
@@ -116,7 +116,7 @@ public class DeltaSet {
    *
    * @return the list
    */
-  public List<DeltaBuffer> vector() {
+  public List<Delta> vector() {
     return this.map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId())).collect(Collectors.toList());
   }
   
@@ -136,11 +136,11 @@ public class DeltaSet {
    */
   public double getMagnitude() {
     double sumSq = map.entrySet().stream().mapToDouble(entry -> {
-      DeltaBuffer value = entry.getValue();
+      Delta value = entry.getValue();
       return value.sumSq();
     }).sum();
     double sumCnt = map.entrySet().stream().mapToDouble(entry -> {
-      DeltaBuffer value = entry.getValue();
+      Delta value = entry.getValue();
       return value.length();
     }).sum();
     return Math.sqrt(sumSq / sumCnt);
