@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.network.graph.DAGNode;
 import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.network.graph.DAGNode;
 
 /**
  * The type Simple loss network.

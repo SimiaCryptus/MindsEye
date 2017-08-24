@@ -137,6 +137,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     }
   }
   
+  /**
+   * Assert consistent boolean.
+   *
+   * @return the boolean
+   */
   protected boolean assertConsistent() {
     assert null != getInput();
     for(Entry<String, UUID> e : labels.entrySet()) {
@@ -267,6 +272,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     }
   }
   
+  /**
+   * Add input dag network.
+   *
+   * @return the dag network
+   */
   public DAGNetwork addInput() {
     UUID key = UUID.randomUUID();
     inputHandles.add(key);
@@ -274,6 +284,11 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return this;
   }
   
+  /**
+   * Remove last input dag network.
+   *
+   * @return the dag network
+   */
   public DAGNetwork removeLastInput() {
     int index = inputHandles.size() - 1;
     UUID key = inputHandles.remove(index);
@@ -367,8 +382,9 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
   /**
    * Gets a labeled node
-   * @param key
-   * @return
+   *
+   * @param key the key
+   * @return by label
    */
   public DAGNode getByLabel(String key) {
     return nodesById.get(labels.get(key));
@@ -409,10 +425,9 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   /**
    * Add dag node.
    *
-   *
-   * @param label
+   * @param label the label
    * @param layer the next head
-   * @param head     the head
+   * @param head  the head
    * @return the dag node
    */
   public DAGNode add(String label, final NNLayer layer, final DAGNode... head) {

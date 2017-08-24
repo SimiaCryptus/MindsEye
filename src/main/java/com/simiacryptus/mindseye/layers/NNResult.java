@@ -33,6 +33,9 @@ import java.util.stream.IntStream;
  */
 public abstract class NNResult {
   
+  /**
+   * The Data.
+   */
   protected final TensorList data;
   
   /**
@@ -128,12 +131,21 @@ public abstract class NNResult {
   
   /**
    * The Data.
+   *
+   * @return the data
    */
   public TensorList getData() {
     return data;
   }
   
   private final Map<Integer, CudaPtr> stateCache = new HashMap<>();
+  
+  /**
+   * Gets gpu floats.
+   *
+   * @param device the device
+   * @return the gpu floats
+   */
   public CudaPtr getGpuFloats(int device) {
     return stateCache.computeIfAbsent(device, i->CudaPtr.toDeviceAsFloat(device, data));
   }

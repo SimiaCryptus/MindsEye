@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -77,9 +80,21 @@ public class BandPoolingLayer extends NNLayer {
     super();
   }
 
+  /**
+   * The enum Pooling mode.
+   */
   public enum PoolingMode {
+    /**
+     * Max pooling mode.
+     */
     Max(CUDNN_POOLING_MAX),
+    /**
+     * Avg pooling mode.
+     */
     Avg(CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+    /**
+     * The Id.
+     */
     final int id;
   
     PoolingMode(int id) {
@@ -168,10 +183,21 @@ public class BandPoolingLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Gets mode.
+   *
+   * @return the mode
+   */
   public int getMode() {
     return mode;
   }
   
+  /**
+   * Sets mode.
+   *
+   * @param mode the mode
+   * @return the mode
+   */
   public BandPoolingLayer setMode(PoolingMode mode) {
     this.mode = mode.id;
     return this;

@@ -42,7 +42,7 @@ public class AvgMetaLayer extends NNLayer {
     json.add("lastResult", null==lastResult?null:lastResult.getJson());
     return json;
   }
-
+  
   /**
    * From json avg meta layer.
    *
@@ -52,7 +52,7 @@ public class AvgMetaLayer extends NNLayer {
   public static AvgMetaLayer fromJson(JsonObject json) {
     return new AvgMetaLayer(json);
   }
-
+  
   /**
    * Instantiates a new Avg meta layer.
    *

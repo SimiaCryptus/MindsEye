@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The type Dropout noise layer.
@@ -124,6 +122,9 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     return this;
   }
   
+  /**
+   * The Mask list.
+   */
   List<Tensor> maskList = new ArrayList<>();
   /**
    * Shuffle.

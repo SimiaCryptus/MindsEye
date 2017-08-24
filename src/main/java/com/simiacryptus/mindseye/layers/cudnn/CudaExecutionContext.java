@@ -27,8 +27,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static jcuda.runtime.JCuda.*;
-
 /**
  * CUDA GPU-aware execution context.
  */
@@ -39,6 +37,11 @@ public class CudaExecutionContext extends CuDNN implements NNLayer.NNExecutionCo
    */
   public static StaticResourcePool<CudaExecutionContext> gpuContexts = new StaticResourcePool<CudaExecutionContext>(loadGpuContexts());
   
+  /**
+   * Load gpu contexts list.
+   *
+   * @return the list
+   */
   static List<CudaExecutionContext> loadGpuContexts() {
       int deviceCount = CuDNN.deviceCount();
       System.out.println(String.format("Found %s devices", deviceCount));
@@ -57,6 +60,11 @@ public class CudaExecutionContext extends CuDNN implements NNLayer.NNExecutionCo
               .map(i->new CudaExecutionContext(i)).collect(Collectors.toList());
   }
   
+  /**
+   * Instantiates a new Cuda execution context.
+   *
+   * @param deviceNumber the device number
+   */
   public CudaExecutionContext(int deviceNumber) {
     super(deviceNumber);
   }

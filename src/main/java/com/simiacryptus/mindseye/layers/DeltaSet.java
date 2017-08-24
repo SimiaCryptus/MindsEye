@@ -76,6 +76,14 @@ public class DeltaSet {
     return get(layer, () -> new Delta(ptr, layer));
   }
   
+  /**
+   * Get t.
+   *
+   * @param <T>     the type parameter
+   * @param layer   the layer
+   * @param factory the factory
+   * @return the t
+   */
   public <T extends Delta> T get(final NNLayer layer, Supplier<T> factory) {
     return (T) this.map.computeIfAbsent(layer, l->factory.get());
   }
@@ -187,15 +195,32 @@ public class DeltaSet {
     return map(x -> x.copy());
   }
   
+  /**
+   * Write delta set.
+   *
+   * @param alpha the alpha
+   * @return the delta set
+   */
   public DeltaSet write(double alpha) {
     vector().stream().forEach(d -> d.write(alpha));
     return this;
   }
+
+  /**
+   * Write delta set.
+   *
+   * @return the delta set
+   */
   public DeltaSet write() {
     write(1);
     return this;
   }
   
+  /**
+   * Is different boolean.
+   *
+   * @return the boolean
+   */
   public boolean isDifferent() {
     return vector().stream().parallel().anyMatch(x-> ! x.areEqual());
   }

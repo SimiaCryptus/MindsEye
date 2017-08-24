@@ -21,8 +21,6 @@ package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
 
-import java.util.UUID;
-
 /**
  * The type Abs activation layer.
  */

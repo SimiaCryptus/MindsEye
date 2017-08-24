@@ -52,10 +52,12 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
     monitor.log(String.format("th(0)=%s;dx=%s", startValue, startLineDeriv));
     LineSearchPoint lastStep = null;
     int stepBias = 0;
+    double bestAlpha = 0;
+    double bestValue = startPoint.point.value;
     while (true) {
       if (!isAlphaValid()) {
         monitor.log(String.format("INVALID ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
-        return cursor.step(0, monitor).point;
+        return cursor.step(bestAlpha, monitor).point;
       }
       double lastValue = (null == lastStep)?Double.POSITIVE_INFINITY:lastStep.point.value;
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
@@ -63,29 +65,33 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
         monitor.log(String.format("mu >= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
-        return cursor.step(0, monitor).point;
+        return cursor.step(bestAlpha, monitor).point;
       }
   
       if ((nu - mu) < nu * relativeTolerance) {
         monitor.log(String.format("mu /= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
         if(null != lastStep && lastValue < startValue) return lastStep.point;
-        return cursor.step(0, monitor).point;
+        return cursor.step(bestAlpha, monitor).point;
       }
       if (Math.abs(alpha) < minAlpha) {
         alpha = 1;
         monitor.log(String.format("MIN ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         if(null != lastStep && lastValue < startValue) return lastStep.point;
-        return cursor.step(0, monitor).point;
+        return cursor.step(bestAlpha, monitor).point;
       }
       if (Math.abs(alpha) > maxAlpha) {
         alpha = 1;
         monitor.log(String.format("MAX ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         if(null != lastStep && lastValue < startValue) return lastStep.point;
-        return cursor.step(0, monitor).point;
+        return cursor.step(bestAlpha, monitor).point;
       }
       lastStep = cursor.step(alpha, monitor);
       lastValue = lastStep.point.value;
+      if(bestValue > lastValue) {
+        bestAlpha = alpha;
+        bestValue = lastValue;
+      }
       if(!Double.isFinite(lastValue)) lastValue = Double.POSITIVE_INFINITY;
       if (lastValue > startValue + alpha * c1 * startLineDeriv) {
         // Value did not decrease (enough) - It is gauranteed to decrease given an infitefimal rate; the rate must be less than this; this is a new ceiling

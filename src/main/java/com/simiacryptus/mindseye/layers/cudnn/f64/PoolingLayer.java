@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.ml.Tensor;
@@ -33,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static jcuda.jcudnn.JCudnn.*;
-import static jcuda.jcudnn.JCudnn.cudnnGetPoolingNdForwardOutputDim;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnPoolingMode.CUDNN_POOLING_MAX;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
@@ -42,7 +45,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  * The type Pooling layer.
  */
 public class PoolingLayer extends NNLayer {
-
+  
   /**
    * From json pooling layer.
    *
@@ -64,7 +67,7 @@ public class PoolingLayer extends NNLayer {
     json.addProperty("strideY",strideY);
     return json;
   }
-
+  
   /**
    * Instantiates a new Pooling layer.
    *
@@ -80,7 +83,7 @@ public class PoolingLayer extends NNLayer {
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
   }
-
+  
   /**
    * Instantiates a new Pooling layer.
    */
@@ -165,58 +168,128 @@ public class PoolingLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Gets mode.
+   *
+   * @return the mode
+   */
   public int getMode() {
     return mode;
   }
   
+  /**
+   * Sets mode.
+   *
+   * @param mode the mode
+   */
   public void setMode(int mode) {
     this.mode = mode;
   }
   
+  /**
+   * Gets window x.
+   *
+   * @return the window x
+   */
   public int getWindowX() {
     return windowX;
   }
   
+  /**
+   * Sets window x.
+   *
+   * @param windowX the window x
+   */
   public void setWindowX(int windowX) {
     this.windowX = windowX;
   }
   
+  /**
+   * Gets window y.
+   *
+   * @return the window y
+   */
   public int getWindowY() {
     return windowY;
   }
   
+  /**
+   * Sets window y.
+   *
+   * @param windowY the window y
+   */
   public void setWindowY(int windowY) {
     this.windowY = windowY;
   }
   
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
   public int getPaddingX() {
     return paddingX;
   }
   
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   */
   public void setPaddingX(int paddingX) {
     this.paddingX = paddingX;
   }
   
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
   public int getPaddingY() {
     return paddingY;
   }
   
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   */
   public void setPaddingY(int paddingY) {
     this.paddingY = paddingY;
   }
   
+  /**
+   * Gets stride x.
+   *
+   * @return the stride x
+   */
   public int getStrideX() {
     return strideX;
   }
   
+  /**
+   * Sets stride x.
+   *
+   * @param strideX the stride x
+   */
   public void setStrideX(int strideX) {
     this.strideX = strideX;
   }
   
+  /**
+   * Gets stride y.
+   *
+   * @return the stride y
+   */
   public int getStrideY() {
     return strideY;
   }
   
+  /**
+   * Sets stride y.
+   *
+   * @param strideY the stride y
+   */
   public void setStrideY(int strideY) {
     this.strideY = strideY;
   }

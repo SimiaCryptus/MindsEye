@@ -19,6 +19,12 @@
 
 package com.simiacryptus.mindseye.layers.stochastic;
 
+/**
+ * The interface Stochastic component.
+ */
 public interface StochasticComponent {
+  /**
+   * Shuffle.
+   */
   void shuffle();
 }

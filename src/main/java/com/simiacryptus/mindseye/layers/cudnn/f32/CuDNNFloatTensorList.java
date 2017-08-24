@@ -22,13 +22,11 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.layers.TensorArray;
 import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
-import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
@@ -60,9 +58,10 @@ public class CuDNNFloatTensorList implements TensorList {
   /**
    * Instantiates a new Cu dnn float tensor list.
    *
-   * @param ptr        the ptr
-   * @param length     the length
-   * @param dimensions the dimensions
+   * @param ptr         the ptr
+   * @param length      the length
+   * @param dimensions  the dimensions
+   * @param cudnnHandle the cudnn handle
    */
   public CuDNNFloatTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
     this.ptr = ptr;

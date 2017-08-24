@@ -57,6 +57,12 @@ public interface TensorList {
    */
   int[] getDimensions();
   
+  /**
+   * Add tensor list.
+   *
+   * @param right the right
+   * @return the tensor list
+   */
   default TensorList add(TensorList right) {
     assert(length() == right.length());
     return new TensorArray(
@@ -66,6 +72,11 @@ public interface TensorList {
     );
   }
   
+  /**
+   * Accum.
+   *
+   * @param right the right
+   */
   default void accum(TensorList right) {
     if(right.length() == 0) return;
     if(this.length() == 0) throw new RuntimeException();
@@ -75,6 +86,11 @@ public interface TensorList {
     });
   }
   
+  /**
+   * Copy tensor list.
+   *
+   * @return the tensor list
+   */
   default TensorList copy() {
     return new TensorArray(
       IntStream.range(0, length()).mapToObj(i-> get(i).copy()).toArray(i->new Tensor[i])

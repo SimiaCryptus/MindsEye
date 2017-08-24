@@ -19,10 +19,25 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+/**
+ * The type Device out of memory error.
+ */
 public final class DeviceOutOfMemoryError extends RuntimeException {
+  /**
+   * Instantiates a new Device out of memory error.
+   *
+   * @param msg   the msg
+   * @param cause the cause
+   */
   public DeviceOutOfMemoryError(String msg, Exception cause) {
     super(msg, cause);
   }
+
+  /**
+   * Instantiates a new Device out of memory error.
+   *
+   * @param message the message
+   */
   public DeviceOutOfMemoryError(String message) {
     super(message);
   }

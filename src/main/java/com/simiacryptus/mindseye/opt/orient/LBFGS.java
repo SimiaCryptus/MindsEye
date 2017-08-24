@@ -69,13 +69,21 @@ public class LBFGS implements OrientationStrategy {
       monitor.log("Corrupt measurement");
     } else if (!measurement.weights.vector().stream().flatMapToDouble(y->Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
       monitor.log("Corrupt measurement");
-    } else if(history.isEmpty() || measurement.value != history.get(history.size()-1).value) {
+    } else if(history.isEmpty() || !history.stream().filter(x->x.value==measurement.value).findAny().isPresent()) {
       history.add(measurement);
       Collections.sort(history, Comparator.comparing(x->-x.value));
       while(history.size() > maxHistory) history.remove(0);
     }
   }
   
+  /**
+   * Orient simple line search cursor.
+   *
+   * @param subject     the subject
+   * @param measurement the measurement
+   * @param monitor     the monitor
+   * @return the simple line search cursor
+   */
   protected SimpleLineSearchCursor _orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     List<Delta> deltaVector = measurement.delta.vector();
     List<Delta> defaultValue = deltaVector.stream().map(x -> x.scale(-1)).collect(Collectors.toList());

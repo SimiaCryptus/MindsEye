@@ -30,13 +30,32 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
 
+/**
+ * The type Cudnn float delta.
+ */
 public class CudnnFloatDelta extends Delta {
+  /**
+   * Instantiates a new Cudnn float delta.
+   *
+   * @param values the values
+   * @param layer  the layer
+   */
   public CudnnFloatDelta(double[] values, NNLayer layer) {
     super(values, null, layer);
   }
   
+  /**
+   * The Buffer.
+   */
   CudaPtr buffer;
 
+  /**
+   * Accumulate.
+   *
+   * @param size  the size
+   * @param data  the data
+   * @param cudnn the cudnn
+   */
   public void accumulate(CudaResource<cudnnTensorDescriptor> size, CudaPtr data, CuDNN cudnn) {
     if(null != buffer) {
       CuDNN.handle(cudnnAddTensor(cudnn.cudnnHandle,

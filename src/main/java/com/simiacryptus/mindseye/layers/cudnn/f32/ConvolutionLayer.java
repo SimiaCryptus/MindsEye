@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -34,7 +37,10 @@ import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 
@@ -295,6 +301,12 @@ public class ConvolutionLayer extends NNLayer {
     return this;
   }
   
+  /**
+   * Sets weights log.
+   *
+   * @param value the value
+   * @return the weights log
+   */
   public ConvolutionLayer setWeightsLog(final double value) {
     this.filter.coordStream().parallel().forEach(c -> {
       double random = FastRandom.random();
@@ -324,30 +336,64 @@ public class ConvolutionLayer extends NNLayer {
     return Arrays.asList(this.filter.getData());
   }
   
+  /**
+   * Gets stride x.
+   *
+   * @return the stride x
+   */
   public int getStrideX() {
     return strideX;
   }
   
+  /**
+   * Sets stride x.
+   *
+   * @param strideX the stride x
+   * @return the stride x
+   */
   public ConvolutionLayer setStrideX(int strideX) {
     this.strideX = strideX;
     return this;
   }
   
+  /**
+   * Sets stride xy.
+   *
+   * @param strideX the stride x
+   * @param strideY the stride y
+   * @return the stride xy
+   */
   public ConvolutionLayer setStrideXY(int strideX, int strideY) {
     this.strideX = strideX;
     this.strideY = strideY;
     return this;
   }
   
+  /**
+   * Gets stride y.
+   *
+   * @return the stride y
+   */
   public int getStrideY() {
     return strideY;
   }
   
+  /**
+   * Sets stride y.
+   *
+   * @param strideY the stride y
+   * @return the stride y
+   */
   public ConvolutionLayer setStrideY(int strideY) {
     this.strideY = strideY;
     return this;
   }
   
+  /**
+   * Gets state cache.
+   *
+   * @return the state cache
+   */
   protected Map<Integer, GPUDataMirror> getStateCache() {
     if(stateCache == null) stateCache = new HashMap<>();
     return stateCache;

@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -66,7 +69,6 @@ public class ImgConcatLayer extends NNLayer {
   
   /**
    * Instantiates a new Img band bias layer.
-   *
    */
   public ImgConcatLayer() {
   }

@@ -39,7 +39,7 @@ public class ScaleUniformMetaLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json scale uniform meta layer.
    *
@@ -49,7 +49,7 @@ public class ScaleUniformMetaLayer extends NNLayer {
   public static ScaleUniformMetaLayer fromJson(JsonObject json) {
     return new ScaleUniformMetaLayer(json);
   }
-
+  
   /**
    * Instantiates a new Scale uniform meta layer.
    *

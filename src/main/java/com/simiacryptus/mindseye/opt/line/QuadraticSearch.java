@@ -168,10 +168,20 @@ public class QuadraticSearch implements LineSearchStrategy {
     return this;
   }
   
+  /**
+   * Gets step size.
+   *
+   * @return the step size
+   */
   public double getStepSize() {
     return stepSize;
   }
   
+  /**
+   * Sets step size.
+   *
+   * @param stepSize the step size
+   */
   public void setStepSize(double stepSize) {
     this.stepSize = stepSize;
   }

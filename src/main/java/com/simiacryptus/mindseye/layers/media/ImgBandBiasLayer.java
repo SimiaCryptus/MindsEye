@@ -52,7 +52,7 @@ public class ImgBandBiasLayer extends NNLayer {
   public static ImgBandBiasLayer fromJson(JsonObject json) {
     return new ImgBandBiasLayer(json);
   }
-
+  
   /**
    * Instantiates a new Img band bias layer.
    *

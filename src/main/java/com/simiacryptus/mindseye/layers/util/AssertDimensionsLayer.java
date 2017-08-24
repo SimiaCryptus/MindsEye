@@ -90,6 +90,7 @@ public class AssertDimensionsLayer extends NNLayer {
   /**
    * Instantiates a new Variable layer.
    *
+   * @param dims the dims
    */
   public AssertDimensionsLayer(final int... dims) {
     super();

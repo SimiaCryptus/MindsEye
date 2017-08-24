@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
 /**
@@ -35,24 +33,24 @@ public class CudaResource<T> {
     private volatile boolean finalized = false;
     //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
     private final int device = CuDNN.getDevice();
-
-    /**
-     * Instantiates a new Cu dnn resource.
-     *
-     * @param obj        the obj
-     * @param destructor the destructor
-     */
-    protected CudaResource(T obj, ToIntFunction<T> destructor) {
+  
+  /**
+   * Instantiates a new Cu dnn resource.
+   *
+   * @param obj        the obj
+   * @param destructor the destructor
+   */
+  protected CudaResource(T obj, ToIntFunction<T> destructor) {
         this.ptr = obj;
         this.destructor = destructor;
     }
-
-    /**
-     * Is finalized boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isFinalized() {
+  
+  /**
+   * Is finalized boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isFinalized() {
         return finalized;
     }
 
@@ -68,17 +66,20 @@ public class CudaResource<T> {
             new RuntimeException("Error freeing resource " + this, e).printStackTrace(System.err);
         }
     }
-    
-    protected void free() {
+  
+  /**
+   * Free.
+   */
+  protected void free() {
         CuDNN.handle(this.destructor.applyAsInt(ptr));
     }
-    
-    /**
-     * Gets ptr.
-     *
-     * @return the ptr
-     */
-    public T getPtr() {
+  
+  /**
+   * Gets ptr.
+   *
+   * @return the ptr
+   */
+  public T getPtr() {
         if(isFinalized()) return null;
         return ptr;
     }

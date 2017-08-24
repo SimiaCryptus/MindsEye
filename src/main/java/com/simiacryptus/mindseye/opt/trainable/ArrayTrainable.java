@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.util.ml.Tensor;

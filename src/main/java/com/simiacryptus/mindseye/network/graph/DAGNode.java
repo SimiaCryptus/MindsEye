@@ -19,12 +19,10 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.UUID;
 
 /**

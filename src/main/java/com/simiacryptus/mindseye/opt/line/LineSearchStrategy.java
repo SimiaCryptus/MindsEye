@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 /**

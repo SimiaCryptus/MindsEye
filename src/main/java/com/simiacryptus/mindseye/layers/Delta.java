@@ -36,6 +36,9 @@ public class Delta {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(Delta.class);
   
+  /**
+   * The Delta.
+   */
   protected double[] delta;
   /**
    * The Layer.
@@ -232,15 +235,29 @@ public class Delta {
   
   /**
    * The Delta.
+   *
+   * @return the double [ ]
    */
   public double[] getDelta() {
     return delta;
   }
   
+  /**
+   * Are equal boolean.
+   *
+   * @return the boolean
+   */
   public boolean areEqual() {
     return areEqual(getDelta(), target);
   }
   
+  /**
+   * Are equal boolean.
+   *
+   * @param l the l
+   * @param r the r
+   * @return the boolean
+   */
   public static boolean areEqual(double[] l, double[] r) {
     assert(r.length == l.length);
     for(int i=0;i<r.length;i++) {

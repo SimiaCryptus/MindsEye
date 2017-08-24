@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 

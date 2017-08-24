@@ -20,15 +20,10 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;

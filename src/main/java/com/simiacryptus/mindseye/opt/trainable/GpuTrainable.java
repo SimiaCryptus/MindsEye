@@ -26,23 +26,56 @@ import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.ml.Tensor;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * The type Gpu trainable.
+ */
 public class GpuTrainable implements Trainable {
+  /**
+   * The Network.
+   */
   protected final NNLayer network;
+  /**
+   * The Training size.
+   */
   protected int trainingSize = Integer.MAX_VALUE;
+  /**
+   * The Gc each iteration.
+   */
   protected boolean gcEachIteration = true;
+  /**
+   * The Sampled data.
+   */
   protected List<Tensor[]> sampledData;
+  /**
+   * The Last ptr.
+   */
   protected PointSample lastPtr;
+  /**
+   * The Last weights.
+   */
   protected DeltaSet lastWeights;
   private boolean verbose = true;
   
+  /**
+   * Instantiates a new Gpu trainable.
+   *
+   * @param network the network
+   */
   public GpuTrainable(NNLayer network) {
     this.network = network;
   }
   
+  /**
+   * Instantiates a new Gpu trainable.
+   *
+   * @param network the network
+   * @param data    the data
+   */
   public GpuTrainable(NNLayer network, List<? extends Supplier<Tensor[]>> data) {
     this.network = network;
     this.setSampledData(data);
@@ -66,6 +99,13 @@ public class GpuTrainable implements Trainable {
     return result;
   }
   
+  /**
+   * Eval point sample.
+   *
+   * @param input     the input
+   * @param nncontext the nncontext
+   * @return the point sample
+   */
   protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
     NNResult result = network.eval(nncontext, input);
     DeltaSet deltaSet = new DeltaSet();
@@ -82,24 +122,49 @@ public class GpuTrainable implements Trainable {
     return new PointSample(deltaSet.scale(1.0/trainingSize), stateBackup, meanValue / trainingSize);
   }
   
+  /**
+   * Is gc each iteration boolean.
+   *
+   * @return the boolean
+   */
   public boolean isGcEachIteration() {
     return gcEachIteration;
   }
   
+  /**
+   * Sets gc each iteration.
+   *
+   * @param gcEachIteration the gc each iteration
+   */
   public void setGcEachIteration(boolean gcEachIteration) {
     this.gcEachIteration = gcEachIteration;
   }
   
+  /**
+   * Sets sampled data.
+   *
+   * @param sampledData the sampled data
+   */
   protected void setSampledData(List<? extends Supplier<Tensor[]>> sampledData) {
     this.sampledData = sampledData.stream().parallel()
                          .map(x->x.get())
                          .collect(Collectors.toList());
   }
   
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerbose() {
     return verbose;
   }
   
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }

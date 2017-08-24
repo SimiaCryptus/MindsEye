@@ -30,7 +30,7 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 import java.util.HashMap;
 
-import static com.simiacryptus.util.ArrayUtil.*;
+import static com.simiacryptus.util.ArrayUtil.multiply;
 
 /**
  * The type Layer reweighting strategy.

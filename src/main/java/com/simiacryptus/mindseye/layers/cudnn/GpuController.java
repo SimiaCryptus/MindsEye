@@ -36,13 +36,32 @@ import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 
+/**
+ * The type Gpu controller.
+ */
 public final class GpuController {
   
+  /**
+   * The constant INSTANCE.
+   */
   public static final GpuController INSTANCE = new GpuController();
   
+  /**
+   * The Verbose.
+   */
   protected boolean verbose = true;
+  /**
+   * The Device weight.
+   */
   Map<String, Double> deviceWeight = new HashMap<>();
-  Map<String, Integer> deviceBatchSizes = new HashMap<>();LoadingCache<CuDNN, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
+  /**
+   * The Device batch sizes.
+   */
+  Map<String, Integer> deviceBatchSizes = new HashMap<>();
+  /**
+   * The Gpu driver threads.
+   */
+  LoadingCache<CuDNN, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
     @Override
     public ExecutorService load(CuDNN gpu) throws Exception {
       return Executors.newSingleThreadExecutor(r -> {
@@ -53,6 +72,12 @@ public final class GpuController {
     }
   });
   
+  /**
+   * Is oom boolean.
+   *
+   * @param t the t
+   * @return the boolean
+   */
   public static boolean isOom(Throwable t) {
     if(t instanceof OutOfMemoryError) return true;
     if(t instanceof DeviceOutOfMemoryError) return true;
@@ -60,6 +85,15 @@ public final class GpuController {
     return false;
   }
   
+  /**
+   * Distribute t.
+   *
+   * @param <T>         the type parameter
+   * @param sampledData the sampled data
+   * @param function    the function
+   * @param reducer     the reducer
+   * @return the t
+   */
   public <T> T distribute(List<Tensor[]> sampledData, BiFunction<List<Tensor[]>, CudaExecutionContext, T> function, BinaryOperator<T> reducer) {
     List<CudaExecutionContext> devices = CudaExecutionContext.gpuContexts.getAll();
     double weightSum = devices.stream().mapToDouble(d -> deviceWeight.getOrDefault(d.toString(), 1.0)).sum();
@@ -113,6 +147,9 @@ public final class GpuController {
     }
   }
   
+  /**
+   * Clean memory.
+   */
   public void cleanMemory() {
     Tensor.clear();
     System.gc();

@@ -20,13 +20,14 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.util.ConstNNLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.util.ml.Tensor;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * The type Pipeline network.
@@ -81,16 +82,31 @@ public class PipelineNetwork extends DAGNetwork {
   
   /**
    * Instantiates a new Pipeline network.
+   *
+   * @param layers the layers
    */
   public PipelineNetwork(NNLayer... layers) {
     this();
     addAll(layers);
   }
   
+  /**
+   * Add all dag node.
+   *
+   * @param layers the layers
+   * @return the dag node
+   */
   public DAGNode addAll(NNLayer... layers) {
     return addAll(getHead(), layers);
   }
   
+  /**
+   * Add all dag node.
+   *
+   * @param node   the node
+   * @param layers the layers
+   * @return the dag node
+   */
   public DAGNode addAll(DAGNode node, NNLayer... layers) {
     for(NNLayer l : layers) node = add(l, node);
     return node;
@@ -154,6 +170,12 @@ public class PipelineNetwork extends DAGNetwork {
     return this.head;
   }
   
+  /**
+   * Sets head.
+   *
+   * @param obj the obj
+   * @return the head
+   */
   public PipelineNetwork setHead(final DAGNode obj) {
     this.head = obj;
     return this;

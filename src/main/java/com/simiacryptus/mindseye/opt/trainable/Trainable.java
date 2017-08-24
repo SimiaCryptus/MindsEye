@@ -122,14 +122,27 @@ public interface Trainable {
     }
   
   
+    /**
+     * Copy delta point sample.
+     *
+     * @return the point sample
+     */
     public PointSample copyDelta() {
       return new PointSample(delta.copy(), weights, value, rate);
     }
   
+    /**
+     * Copy full point sample.
+     *
+     * @return the point sample
+     */
     public PointSample copyFull() {
       return new PointSample(delta.copy(), weights.copy(), value, rate);
     }
   
+    /**
+     * Reset.
+     */
     public void reset() {
       weights.vector().stream().forEach(d -> d.overwrite());
     }

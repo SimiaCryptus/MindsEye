@@ -36,7 +36,8 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
-import static jcuda.jcudnn.JCudnn.*;
+import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
+import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardBias;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 

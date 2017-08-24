@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.ml.Tensor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;

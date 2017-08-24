@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -33,8 +36,10 @@ import jcuda.jcudnn.cudnnTensorDescriptor;
 import java.util.Arrays;
 import java.util.List;
 
-import static jcuda.jcudnn.JCudnn.*;
-import static jcuda.jcudnn.cudnnActivationMode.*;
+import static jcuda.jcudnn.JCudnn.cudnnActivationBackward;
+import static jcuda.jcudnn.JCudnn.cudnnActivationForward;
+import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_RELU;
+import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_SIGMOID;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;

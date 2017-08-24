@@ -43,7 +43,6 @@ import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
-import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -70,10 +69,21 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
     return json;
   }
   
+  /**
+   * From json schema output layer.
+   *
+   * @param json the json
+   * @return the schema output layer
+   */
   public static SchemaOutputLayer fromJson(JsonObject json) {
     return new SchemaOutputLayer(json);
   }
   
+  /**
+   * Instantiates a new Schema output layer.
+   *
+   * @param json the json
+   */
   protected SchemaOutputLayer(JsonObject json) {
     super(json);
     this.logWeightInit = json.getAsJsonPrimitive("logWeightInit").getAsDouble();
@@ -97,6 +107,12 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
   private String[] selected = new String[]{};
   private Map<String,double[]> features = new HashMap<>();
   
+  /**
+   * Instantiates a new Schema output layer.
+   *
+   * @param inputBands    the input bands
+   * @param logWeightInit the log weight init
+   */
   public SchemaOutputLayer(final int inputBands, final double logWeightInit) {
     super();
     this.inputBands = inputBands;

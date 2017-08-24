@@ -101,11 +101,18 @@ public class ConstNNLayer extends NNLayer {
   
   /**
    * The Tensor.
+   *
+   * @return the data
    */
   public Tensor getData() {
     return data;
   }
   
+  /**
+   * Sets data.
+   *
+   * @param data the data
+   */
   public void setData(Tensor data) {
     this.data = data;
   }

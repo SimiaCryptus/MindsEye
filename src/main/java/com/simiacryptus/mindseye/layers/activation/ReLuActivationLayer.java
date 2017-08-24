@@ -52,7 +52,7 @@ public class ReLuActivationLayer extends NNLayer {
   public static ReLuActivationLayer fromJson(JsonObject json) {
     return new ReLuActivationLayer(json);
   }
-
+  
   /**
    * Instantiates a new Re lu activation layer.
    *

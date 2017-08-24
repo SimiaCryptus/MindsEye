@@ -34,9 +34,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
-import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardData;
-import static jcuda.jcudnn.JCudnn.cudnnConvolutionBackwardFilter;
-import static jcuda.jcudnn.JCudnn.cudnnConvolutionForward;
+import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnConvolutionMode.CUDNN_CONVOLUTION;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
@@ -280,14 +278,16 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Backprop.
-   *  @param inputSize  the input size
+   *
+   * @param deviceId   the device id
+   * @param inputSize  the input size
    * @param kernelSize the kernel size
    * @param outputSize the output size
    * @param simple     the simple
    * @param input      the input
    * @param weights    the weights
    * @param output     the output
-   * @param cudnn
+   * @param cudnn      the cudnn
    */
   public static void backprop(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
@@ -346,14 +346,16 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Convolve.
-   *  @param inputSize  the input size
+   *
+   * @param deviceId   the device id
+   * @param inputSize  the input size
    * @param kernelSize the kernel size
    * @param outputSize the output size
    * @param simple     the simple
    * @param input      the input
    * @param weights    the weights
    * @param output     the output
-   * @param cudnn
+   * @param cudnn      the cudnn
    */
   public static void convolve(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
@@ -413,14 +415,16 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Gradient.
-   *  @param inputSize  the input size
+   *
+   * @param deviceId   the device id
+   * @param inputSize  the input size
    * @param kernelSize the kernel size
    * @param outputSize the output size
    * @param simple     the simple
    * @param input      the input
    * @param weights    the weights
    * @param output     the output
-   * @param cudnn
+   * @param cudnn      the cudnn
    */
   public static void gradient(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;

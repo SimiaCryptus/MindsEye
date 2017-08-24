@@ -24,30 +24,64 @@ import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.f32.CuDNNFloatTensorList;
 
+/**
+ * The type Counting nn result.
+ */
 public class CountingNNResult extends NNResult {
   private int count = 0;
   
+  /**
+   * Instantiates a new Counting nn result.
+   *
+   * @param inner the inner
+   */
   protected CountingNNResult(NNResult inner) {
     super(inner.getData());
     this.inner = inner;
   }
 
+  /**
+   * Gets count.
+   *
+   * @return the count
+   */
   public int getCount() {
     return count;
   }
 
+  /**
+   * Increment counting nn result.
+   *
+   * @return the counting nn result
+   */
   public CountingNNResult increment() {
     add(1);
     return this;
   }
 
+  /**
+   * Add int.
+   *
+   * @param count the count
+   * @return the int
+   */
   public synchronized int add(int count) {
     this.count += count;
     //System.err.println("Count -> " + this.count);
     return this.count;
   }
+
+  /**
+   * The Inner.
+   */
   final NNResult inner;
+  /**
+   * The Passback buffer.
+   */
   TensorList passbackBuffer = null;
+  /**
+   * The Queued.
+   */
   int queued = 0;
   
   

@@ -20,23 +20,17 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.NthPowerActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SqActivationLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.IntStream;
 
 /**
  * The type Std dev meta layer.
@@ -44,10 +38,21 @@ import java.util.stream.IntStream;
 @SuppressWarnings("serial")
 public class StdDevMetaLayer extends DAGNetwork {
   
+  /**
+   * From json nn layer.
+   *
+   * @param inner the inner
+   * @return the nn layer
+   */
   public static NNLayer fromJson(JsonObject inner) {
     return new StdDevMetaLayer(inner);
   }
 
+  /**
+   * Instantiates a new Std dev meta layer.
+   *
+   * @param json the json
+   */
   protected StdDevMetaLayer(JsonObject json) {
     super(json);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));

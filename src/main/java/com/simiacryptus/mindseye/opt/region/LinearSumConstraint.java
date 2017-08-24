@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
-import com.simiacryptus.util.ArrayUtil;
-
 /**
  * The type Linear sum constraint.
  */

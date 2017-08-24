@@ -55,6 +55,14 @@ public final class InnerNode extends LazyResult {
     this(dagNetwork, id, UUID.randomUUID(), inputNodes);
   }
   
+  /**
+   * Instantiates a new Inner node.
+   *
+   * @param dagNetwork the dag network
+   * @param id         the id
+   * @param nodeId     the node id
+   * @param inputNodes the input nodes
+   */
   @SafeVarargs
   InnerNode(DAGNetwork dagNetwork, final NNLayer id, UUID nodeId, final DAGNode... inputNodes) {
     this.dagNetwork = dagNetwork;
@@ -107,6 +115,11 @@ public final class InnerNode extends LazyResult {
     return dagNetwork.add(nextHead, InnerNode.this);
   }
   
+  /**
+   * Sets layer.
+   *
+   * @param layer the layer
+   */
   public void setLayer(NNLayer layer) {
     this.dagNetwork.layersById.put(layer.getId(), layer);
     this.layer = layer;

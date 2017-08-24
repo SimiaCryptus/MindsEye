@@ -55,6 +55,11 @@ public final class WeightExtractor extends NNLayer {
     return new WeightExtractor(json);
   }
 
+  /**
+   * Instantiates a new Weight extractor.
+   *
+   * @param json the json
+   */
   protected WeightExtractor(JsonObject json) {
     super(json);
     this.setInner(null);
@@ -106,14 +111,29 @@ public final class WeightExtractor extends NNLayer {
     return new ArrayList<>();
   }
   
+  /**
+   * Gets inner id.
+   *
+   * @return the inner id
+   */
   public UUID getInnerId() {
     return innerId;
   }
   
+  /**
+   * Gets inner.
+   *
+   * @return the inner
+   */
   public NNLayer getInner() {
     return inner;
   }
   
+  /**
+   * Sets inner.
+   *
+   * @param inner the inner
+   */
   public void setInner(NNLayer inner) {
     this.inner = inner;
     this.innerId = inner.id;

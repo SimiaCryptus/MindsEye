@@ -25,13 +25,15 @@ import com.simiacryptus.util.Util;
 import com.simiacryptus.util.ml.Tensor;
 import com.simiacryptus.util.ml.WeakCachedSupplier;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * The type Stochastic array trainable.
- *
+ * <p>
  * TODO: Redesign this package. This class is absorbing too many features.
  */
 public class StochasticArrayTrainable extends GpuTrainable {
@@ -67,10 +69,25 @@ public class StochasticArrayTrainable extends GpuTrainable {
     resetSampling();
   }
   
+  /**
+   * Instantiates a new Stochastic array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   */
   public StochasticArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
   }
   
+  /**
+   * Instantiates a new Stochastic array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   * @param batchSize    the batch size
+   */
   public StochasticArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize, int batchSize) {
     super(network);
     if(0 == trainingData.size()) throw new IllegalArgumentException();
@@ -117,6 +134,9 @@ public class StochasticArrayTrainable extends GpuTrainable {
     refreshSampledData();
   }
   
+  /**
+   * Refresh sampled data.
+   */
   protected void refreshSampledData() {
     lastPtr = null;
     lastWeights = null;

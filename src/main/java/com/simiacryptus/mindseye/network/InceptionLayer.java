@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.reducers.ImgConcatLayer;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
+import com.simiacryptus.mindseye.network.graph.DAGNode;
 
 import java.util.ArrayList;
 import java.util.List;

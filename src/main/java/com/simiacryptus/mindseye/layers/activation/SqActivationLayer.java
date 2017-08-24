@@ -20,9 +20,6 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.meta.CrossDotMetaLayer;
-
-import java.util.UUID;
 
 /**
  * The type Sq activation layer.

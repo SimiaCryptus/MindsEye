@@ -21,7 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.Util;

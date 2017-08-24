@@ -95,7 +95,6 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
   
   /**
    * Instantiates a new Img band bias layer.
-   *
    */
   public SchemaBiasLayer() {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);

@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.ml.Tensor;
@@ -42,7 +46,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  * The type Pooling layer.
  */
 public class PoolingLayer extends NNLayer {
-
+  
   /**
    * From json pooling layer.
    *
@@ -64,7 +68,7 @@ public class PoolingLayer extends NNLayer {
     json.addProperty("strideY",strideY);
     return json;
   }
-
+  
   /**
    * Instantiates a new Pooling layer.
    *
@@ -80,17 +84,29 @@ public class PoolingLayer extends NNLayer {
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
   }
-
+  
   /**
    * Instantiates a new Pooling layer.
    */
   public PoolingLayer() {
     super();
   }
-
+  
+  /**
+   * The enum Pooling mode.
+   */
   public enum PoolingMode {
+    /**
+     * Max pooling mode.
+     */
     Max(CUDNN_POOLING_MAX),
+    /**
+     * Avg pooling mode.
+     */
     Avg(CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+    /**
+     * The Id.
+     */
     final int id;
   
     PoolingMode(int id) {
@@ -177,80 +193,179 @@ public class PoolingLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Gets mode.
+   *
+   * @return the mode
+   */
   public int getMode() {
     return mode;
   }
   
+  /**
+   * Sets mode.
+   *
+   * @param mode the mode
+   * @return the mode
+   */
   public PoolingLayer setMode(PoolingMode mode) {
     this.mode = mode.id;
     return this;
   }
   
+  /**
+   * Gets window x.
+   *
+   * @return the window x
+   */
   public int getWindowX() {
     return windowX;
   }
   
+  /**
+   * Sets window x.
+   *
+   * @param windowX the window x
+   * @return the window x
+   */
   public PoolingLayer setWindowX(int windowX) {
     this.windowX = windowX;
     return this;
   }
   
+  /**
+   * Gets window y.
+   *
+   * @return the window y
+   */
   public int getWindowY() {
     return windowY;
   }
   
+  /**
+   * Sets window y.
+   *
+   * @param windowY the window y
+   * @return the window y
+   */
   public PoolingLayer setWindowY(int windowY) {
     this.windowY = windowY;
     return this;
   }
   
+  /**
+   * Sets window xy.
+   *
+   * @param windowX the window x
+   * @param windowY the window y
+   * @return the window xy
+   */
   public PoolingLayer setWindowXY(int windowX, int windowY) {
     this.windowY = windowY;
     this.windowX = windowX;
     return this;
   }
   
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
   public int getPaddingX() {
     return paddingX;
   }
   
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   * @return the padding x
+   */
   public PoolingLayer setPaddingX(int paddingX) {
     this.paddingX = paddingX;
     return this;
   }
   
+  /**
+   * Sets padding xy.
+   *
+   * @param paddingX the padding x
+   * @param paddingY the padding y
+   * @return the padding xy
+   */
   public PoolingLayer setPaddingXY(int paddingX, int paddingY) {
     this.paddingX = paddingX;
     this.paddingY = paddingY;
     return this;
   }
   
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
   public int getPaddingY() {
     return paddingY;
   }
   
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   * @return the padding y
+   */
   public PoolingLayer setPaddingY(int paddingY) {
     this.paddingY = paddingY;
     return this;
   }
   
+  /**
+   * Gets stride x.
+   *
+   * @return the stride x
+   */
   public int getStrideX() {
     return strideX;
   }
   
+  /**
+   * Sets stride x.
+   *
+   * @param strideX the stride x
+   * @return the stride x
+   */
   public PoolingLayer setStrideX(int strideX) {
     this.strideX = strideX;
     return this;
   }
   
+  /**
+   * Gets stride y.
+   *
+   * @return the stride y
+   */
   public int getStrideY() {
     return strideY;
   }
   
+  /**
+   * Sets stride y.
+   *
+   * @param strideY the stride y
+   * @return the stride y
+   */
   public PoolingLayer setStrideY(int strideY) {
     this.strideY = strideY;
     return this;
   }
+  
+  /**
+   * Sets stride xy.
+   *
+   * @param strideX the stride x
+   * @param strideY the stride y
+   * @return the stride xy
+   */
   public PoolingLayer setStrideXY(int strideX, int strideY) {
     this.strideX = strideX;
     this.strideY = strideY;

@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -58,7 +61,7 @@ public class ConvolutionLayer extends NNLayer {
     json.addProperty("simple", simple);
     return json;
   }
-
+  
   /**
    * From json convolution layer.
    *
@@ -68,7 +71,7 @@ public class ConvolutionLayer extends NNLayer {
   public static ConvolutionLayer fromJson(JsonObject json) {
     return new ConvolutionLayer(json);
   }
-
+  
   /**
    * Instantiates a new Convolution layer.
    *
@@ -81,8 +84,8 @@ public class ConvolutionLayer extends NNLayer {
     this.strideY = json.get("strideY").getAsInt();
     this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
-
-
+  
+  
   /**
    * The Filter.
    */
@@ -91,7 +94,13 @@ public class ConvolutionLayer extends NNLayer {
    * The Simple.
    */
   public final boolean simple;
+  /**
+   * The Stride x.
+   */
   int strideX = 1;
+  /**
+   * The Stride y.
+   */
   int strideY = 1;
   
   /**
@@ -100,7 +109,7 @@ public class ConvolutionLayer extends NNLayer {
   protected ConvolutionLayer() {
     this((Tensor)null, true);
   }
-
+  
   /**
    * Instantiates a new Convolution layer.
    *
@@ -116,7 +125,7 @@ public class ConvolutionLayer extends NNLayer {
     if(filter.getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.filter = filter;
   }
-
+  
   /**
    * Instantiates a new Convolution layer.
    *
@@ -128,7 +137,7 @@ public class ConvolutionLayer extends NNLayer {
   public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
-
+  
   /**
    * Instantiates a new Convolution layer.
    *
@@ -142,7 +151,7 @@ public class ConvolutionLayer extends NNLayer {
     assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
     assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
   }
-
+  
   /**
    * Instantiates a new Convolution layer.
    *
@@ -153,7 +162,7 @@ public class ConvolutionLayer extends NNLayer {
   public ConvolutionLayer(final int width, int height, final int bands) {
     this(width, height, bands, true);
   }
-
+  
   /**
    * Instantiates a new Convolution layer.
    *
@@ -284,7 +293,7 @@ public class ConvolutionLayer extends NNLayer {
       throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
     }
   }
-
+  
   /**
    * Get output size int [ ].
    *
@@ -308,8 +317,8 @@ public class ConvolutionLayer extends NNLayer {
       return x;
     }).toArray();
   }
-
-
+  
+  
   /**
    * Verify output dims boolean.
    *
@@ -327,7 +336,7 @@ public class ConvolutionLayer extends NNLayer {
     if(outputSize[2] != outputDims[1]) return false;
     return true;
   }
-
+  
   /**
    * Sets weights.
    *

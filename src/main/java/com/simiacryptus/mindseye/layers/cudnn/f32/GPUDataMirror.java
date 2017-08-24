@@ -26,15 +26,30 @@ import com.simiacryptus.util.ml.Tensor;
 import java.util.Random;
 import java.util.stream.IntStream;
 
+/**
+ * The type Gpu data mirror.
+ */
 public class GPUDataMirror {
   private long fingerprint;
   private int[] indicies;
   private volatile CudaPtr ptr;
 
+  /**
+   * Instantiates a new Gpu data mirror.
+   *
+   * @param length the length
+   */
   public GPUDataMirror(int length) {
     this.indicies = IntStream.range(0, 3).map(i -> new Random().nextInt(length)).distinct().limit(3).toArray();
   }
 
+  /**
+   * Upload cuda ptr.
+   *
+   * @param device the device
+   * @param data   the data
+   * @return the cuda ptr
+   */
   public CudaPtr upload(int device, float[] data) {
     long inputHash = hashFunction(data);
     if(null != ptr && inputHash == fingerprint) return ptr;
@@ -42,6 +57,13 @@ public class GPUDataMirror {
     return ptr = CuDNN.write(device, data);
   }
 
+  /**
+   * Upload cuda ptr.
+   *
+   * @param device the device
+   * @param data   the data
+   * @return the cuda ptr
+   */
   public CudaPtr upload(int device, double[] data) {
     long inputHash = hashFunction(data);
     if(null != ptr && inputHash == fingerprint) return ptr;
@@ -49,6 +71,13 @@ public class GPUDataMirror {
     return ptr = CuDNN.write(device, data);
   }
 
+  /**
+   * Upload as floats cuda ptr.
+   *
+   * @param device the device
+   * @param data   the data
+   * @return the cuda ptr
+   */
   public CudaPtr uploadAsFloats(int device, double[] data) {
     long inputHash = hashFunction(data);
     if(null != ptr && inputHash == fingerprint) return ptr;
@@ -56,11 +85,24 @@ public class GPUDataMirror {
     return ptr = CuDNN.write(device, Tensor.toFloats(data));
   }
 
+  /**
+   * Hash function long.
+   *
+   * @param data the data
+   * @return the long
+   */
   public long hashFunction(float[] data) {
     return IntStream.of(indicies).mapToObj(i->data[i])
              .mapToInt(Float::floatToIntBits)
              .reduce((a,b)->a^b).getAsInt();
   }
+
+  /**
+   * Hash function long.
+   *
+   * @param data the data
+   * @return the long
+   */
   public long hashFunction(double[] data) {
     return IntStream.of(indicies).mapToDouble(i->data[i])
              .mapToLong(Double::doubleToLongBits)

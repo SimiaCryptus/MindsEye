@@ -148,6 +148,12 @@ public class BiasLayer extends NNLayer {
   }
   
   
+  /**
+   * Sets weights log.
+   *
+   * @param value the value
+   * @return the weights log
+   */
   public BiasLayer setWeightsLog(final double value) {
     for(int i=0;i<this.bias.length;i++) this.bias[i] = (FastRandom.random()-0.5)*Math.pow(10,value);
     return this;

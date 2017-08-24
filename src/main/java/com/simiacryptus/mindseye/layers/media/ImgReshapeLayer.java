@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.util.ml.Tensor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 

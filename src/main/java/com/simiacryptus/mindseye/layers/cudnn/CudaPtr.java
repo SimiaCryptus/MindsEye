@@ -35,9 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jcuda.runtime.JCuda.*;
-import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToDevice;
-import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
-import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyHostToDevice;
+import static jcuda.runtime.cudaMemcpyKind.*;
 
 /**
  * The type Cu dnn ptr.
@@ -59,10 +57,10 @@ public class CudaPtr extends CudaResource<Pointer> {
   /**
    * From device float tensor list.
    *
-   * @param ptr        the ptr
-   * @param length     the length
-   * @param dimensions the dimensions
-   * @param cudnnHandle
+   * @param ptr         the ptr
+   * @param length      the length
+   * @param dimensions  the dimensions
+   * @param cudnnHandle the cudnn handle
    * @return the tensor list
    */
   public static TensorList fromDeviceFloat(CudaPtr ptr, int length, int[] dimensions, cudnnHandle cudnnHandle) {
@@ -72,7 +70,8 @@ public class CudaPtr extends CudaResource<Pointer> {
   /**
    * To device as double cu dnn . cu dnn ptr.
    *
-   * @param data the data
+   * @param deviceId the device id
+   * @param data     the data
    * @return the cu dnn . cu dnn ptr
    */
   public static CudaPtr toDeviceAsDouble(int deviceId, TensorList data) {
@@ -110,7 +109,8 @@ public class CudaPtr extends CudaResource<Pointer> {
   /**
    * To device as float cu dnn . cu dnn ptr.
    *
-   * @param data the data
+   * @param deviceId the device id
+   * @param data     the data
    * @return the cu dnn . cu dnn ptr
    */
   public static CudaPtr toDeviceAsFloat(int deviceId, TensorList data) {
@@ -188,6 +188,11 @@ public class CudaPtr extends CudaResource<Pointer> {
         return weightGradient;
     }
   
+  /**
+   * Free.
+   *
+   * @param data the data
+   */
   public static void free(TensorList data) {
     if (data instanceof CuDNNFloatTensorList) {
       ((CuDNNFloatTensorList) data).ptr.finalize();
@@ -205,34 +210,53 @@ public class CudaPtr extends CudaResource<Pointer> {
     CudaPtr.pciBusLock = pciBusLock;
   }
   
+  /**
+   * The type Gpu stats.
+   */
   public static class GpuStats {
-        public final AtomicLong usedMemory = new AtomicLong(0);
-        public final AtomicLong peakMemory = new AtomicLong(0);
-        public final AtomicLong memoryWrites = new AtomicLong(0);
-        public final AtomicLong memoryReads = new AtomicLong(0);
+    /**
+     * The Used memory.
+     */
+    public final AtomicLong usedMemory = new AtomicLong(0);
+    /**
+     * The Peak memory.
+     */
+    public final AtomicLong peakMemory = new AtomicLong(0);
+    /**
+     * The Memory writes.
+     */
+    public final AtomicLong memoryWrites = new AtomicLong(0);
+    /**
+     * The Memory reads.
+     */
+    public final AtomicLong memoryReads = new AtomicLong(0);
     }
     
     
     private static final long MAX = 4l * 1024 * 1024 * 1024;
-    public static final LoadingCache<Integer, GpuStats> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer,GpuStats>() {
+  /**
+   * The constant METRICS.
+   */
+  public static final LoadingCache<Integer, GpuStats> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer,GpuStats>() {
         @Override
         public GpuStats load(Integer integer) throws Exception {
             return new GpuStats();
         }
     });
-    
-    /**
-     * The Size.
-     */
-    public final long size;
+  
+  /**
+   * The Size.
+   */
+  public final long size;
     private final int deviceId;
-
-    /**
-     * Instantiates a new Cu dnn ptr.
-     *
-     * @param size the size
-     */
-    protected CudaPtr(long size, int deviceId) {
+  
+  /**
+   * Instantiates a new Cu dnn ptr.
+   *
+   * @param size     the size
+   * @param deviceId the device id
+   */
+  protected CudaPtr(long size, int deviceId) {
         super(new Pointer(), JCuda::cudaFree);
         this.size = size;
         this.deviceId = deviceId;
@@ -278,19 +302,25 @@ public class CudaPtr extends CudaResource<Pointer> {
         super.free();
         getGpuStats(deviceId).usedMemory.addAndGet(-size);
     }
-    
-    /**
-     * Instantiates a new Cu dnn ptr.
-     *
-     * @param ptr  the ptr
-     * @param size the size
-     */
-    protected CudaPtr(Pointer ptr, long size, int deviceId) {
+  
+  /**
+   * Instantiates a new Cu dnn ptr.
+   *
+   * @param ptr      the ptr
+   * @param size     the size
+   * @param deviceId the device id
+   */
+  protected CudaPtr(Pointer ptr, long size, int deviceId) {
         super(ptr, x->0);
         this.size = size;
         this.deviceId = deviceId;
     }
   
+  /**
+   * Copy cuda ptr.
+   *
+   * @return the cuda ptr
+   */
   public CudaPtr copy() {
     CudaPtr copy = new CudaPtr(size, deviceId);
     CuDNN.handle(cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyDeviceToDevice));
@@ -300,12 +330,12 @@ public class CudaPtr extends CudaResource<Pointer> {
   private static Object pciBusLock = new Object();
   
   /**
-     * Write cu dnn ptr.
-     *
-     * @param data the data
-     * @return the cu dnn ptr
-     */
-    public CudaPtr write(float[] data) {
+   * Write cu dnn ptr.
+   *
+   * @param data the data
+   * @return the cu dnn ptr
+   */
+  public CudaPtr write(float[] data) {
         synchronized (getPciBusLock()) {
           if(this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
           CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
@@ -313,14 +343,14 @@ public class CudaPtr extends CudaResource<Pointer> {
           return this;
         }
     }
-
-    /**
-     * Write cu dnn ptr.
-     *
-     * @param data the data
-     * @return the cu dnn ptr
-     */
-    public CudaPtr write(double[] data) {
+  
+  /**
+   * Write cu dnn ptr.
+   *
+   * @param data the data
+   * @return the cu dnn ptr
+   */
+  public CudaPtr write(double[] data) {
       synchronized (getPciBusLock()) {
         if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException();
         CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
@@ -328,14 +358,14 @@ public class CudaPtr extends CudaResource<Pointer> {
         return this;
       }
     }
-
-    /**
-     * Read cu dnn ptr.
-     *
-     * @param data the data
-     * @return the cu dnn ptr
-     */
-    public CudaPtr read(double[] data) {
+  
+  /**
+   * Read cu dnn ptr.
+   *
+   * @param data the data
+   * @return the cu dnn ptr
+   */
+  public CudaPtr read(double[] data) {
       synchronized (getPciBusLock()) {
         if(this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException(this.size +" != " + data.length * Sizeof.DOUBLE);
         CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
@@ -343,14 +373,14 @@ public class CudaPtr extends CudaResource<Pointer> {
         return this;
       }
     }
-
-    /**
-     * Read cu dnn ptr.
-     *
-     * @param data the data
-     * @return the cu dnn ptr
-     */
-    public CudaPtr read(float[] data) {
+  
+  /**
+   * Read cu dnn ptr.
+   *
+   * @param data the data
+   * @return the cu dnn ptr
+   */
+  public CudaPtr read(float[] data) {
       synchronized (getPciBusLock()) {
         if(this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
         CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));

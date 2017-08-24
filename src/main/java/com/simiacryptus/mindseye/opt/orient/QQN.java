@@ -28,10 +28,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
-import java.util.*;
-
-import static com.simiacryptus.util.ArrayUtil.add;
-import static com.simiacryptus.util.ArrayUtil.dot;
+import java.util.List;
 
 /**
  * Quadratic Quasi-Newton strategy
