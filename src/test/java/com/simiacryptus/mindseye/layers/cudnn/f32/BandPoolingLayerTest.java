@@ -17,19 +17,23 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.NNLayer;
 
-/**
- * The interface Schema component.
- */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+public class BandPoolingLayerTest extends F32LayerTestBase {
+  
+  
+  @Override
+  public NNLayer getLayer() {
+    return new BandPoolingLayer();
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{
+      {3,3,2}
+    };
+  }
 }

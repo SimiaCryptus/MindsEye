@@ -17,19 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.activation;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
-
-/**
- * The interface Schema component.
- */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+public class L1NormalizationLayerTest extends ActivationLayerTestBase {
+  public L1NormalizationLayerTest() {
+    super(new L1NormalizationLayer());
+  }
 }

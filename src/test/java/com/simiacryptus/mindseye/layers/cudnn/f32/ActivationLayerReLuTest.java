@@ -17,19 +17,25 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
+import com.simiacryptus.mindseye.layers.NNLayer;
 
-/**
- * The interface Schema component.
- */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+public class ActivationLayerReLuTest extends F32LayerTestBase {
+
+  @Override
+  public NNLayer getLayer() {
+    return new ActivationLayer(ActivationLayer.Mode.RELU);
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{{1,1,3}};
+  }
+  
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-2, 1e-4);
+  }
 }

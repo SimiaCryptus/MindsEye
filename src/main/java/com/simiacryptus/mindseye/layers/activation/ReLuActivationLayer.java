@@ -79,6 +79,7 @@ public class ReLuActivationLayer extends NNLayer {
     super();
     this.weights = new Tensor(1);
     this.weights.set(0, 1.);
+    setFrozen(true);
   }
   
   /**
@@ -165,20 +166,20 @@ public class ReLuActivationLayer extends NNLayer {
           final Tensor weightDelta = new Tensor(ReLuActivationLayer.this.weights.getDimensions());
           double[] weightDeltaData = weightDelta.getData();
           for (int i = 0; i < deltaData.length; i++) {
-            weightDeltaData[0] = inputData[i] < 0 ? 0 : (deltaData[i] * inputData[i]);
+            weightDeltaData[0] += inputData[i] < 0 ? 0 : (deltaData[i] * inputData[i]);
           }
           buffer.get(ReLuActivationLayer.this, ReLuActivationLayer.this.weights).accumulate(weightDeltaData);
         });
       }
       if (this.inObj.isAlive()) {
-        double v = ReLuActivationLayer.this.weights.getData()[0];
+        double weight = ReLuActivationLayer.this.weights.getData()[0];
         Tensor[] passbackA = IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
           final double[] inputData = this.inObj.getData().get(dataIndex).getData();
           final int[] dims = this.inObj.getData().get(dataIndex).getDimensions();
           final Tensor passback = new Tensor(dims);
           for (int i = 0; i < passback.dim(); i++) {
-            passback.set(i, inputData[i] < 0 ? 0 : (deltaData[i] * v));
+            passback.set(i, inputData[i] < 0 ? 0 : (deltaData[i] * weight));
           }
           return passback;
         }).toArray(i -> new Tensor[i]);

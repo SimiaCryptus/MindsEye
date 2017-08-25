@@ -37,8 +37,7 @@ import java.util.stream.IntStream;
 public class AvgImageBandLayer extends NNLayer {
   
   public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    return json;
+    return super.getJsonStub();
   }
   
   /**
@@ -48,17 +47,15 @@ public class AvgImageBandLayer extends NNLayer {
    * @return the avg image band layer
    */
   public static AvgImageBandLayer fromJson(JsonObject json) {
-    JsonArray jsonArray = json.getAsJsonArray("inner");
-    return new AvgImageBandLayer(json, JsonUtil.getIntArray(jsonArray));
+    return new AvgImageBandLayer(json);
   }
 
   /**
    * Instantiates a new Avg image band layer.
    *
    * @param id         the id
-   * @param kernelDims the kernel dims
    */
-  protected AvgImageBandLayer(JsonObject id, int... kernelDims) {
+  protected AvgImageBandLayer(JsonObject id) {
     super(id);
   }
   

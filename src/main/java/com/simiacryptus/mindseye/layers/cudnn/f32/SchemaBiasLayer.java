@@ -101,12 +101,12 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
   }
   
   @Override
-  public SchemaOutputLayer setSchema(String... labels) {
+  public SchemaBiasLayer setSchema(String... labels) {
     if(null == labels) throw new RuntimeException();
     readFeatures();
     selected = labels;
     bias = IntStream.range(0,labels.length).mapToDouble(i->features.getOrDefault(labels[i],0.0)).toArray();
-    return null;
+    return this;
   }
   
   private void readFeatures() {

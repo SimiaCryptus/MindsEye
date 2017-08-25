@@ -146,5 +146,9 @@ public interface Trainable {
     public void reset() {
       weights.vector().stream().forEach(d -> d.overwrite());
     }
+  
+    public PointSample add(PointSample right) {
+      return new PointSample(this.delta.add(right.delta), this.weights, this.value + right.value);
+    }
   }
 }

@@ -17,19 +17,28 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.activation;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.NNLayer;
 
-/**
- * The interface Schema component.
- */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+public abstract class ActivationLayerTestBase extends LayerTestBase {
+  
+  public ActivationLayerTestBase(NNLayer layer) {
+    this.layer = layer;
+  }
+  
+  private final NNLayer layer;
+  
+  @Override
+  public NNLayer getLayer() {
+    return layer;
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{
+      {2}
+    };
+  }
 }

@@ -64,26 +64,22 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
       if (mu >= nu - absoluteTolerance) {
         monitor.log(String.format("mu >= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
-        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(bestAlpha, monitor).point;
       }
   
       if ((nu - mu) < nu * relativeTolerance) {
         monitor.log(String.format("mu /= nu: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
         loosenMetaparameters();
-        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(bestAlpha, monitor).point;
       }
       if (Math.abs(alpha) < minAlpha) {
         alpha = 1;
         monitor.log(String.format("MIN ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
-        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(bestAlpha, monitor).point;
       }
       if (Math.abs(alpha) > maxAlpha) {
         alpha = 1;
         monitor.log(String.format("MAX ALPHA: th(0)=%s;th'(0)=%s;", startValue, startLineDeriv));
-        if(null != lastStep && lastValue < startValue) return lastStep.point;
         return cursor.step(bestAlpha, monitor).point;
       }
       lastStep = cursor.step(alpha, monitor);

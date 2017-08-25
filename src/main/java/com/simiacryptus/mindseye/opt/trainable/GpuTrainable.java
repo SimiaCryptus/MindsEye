@@ -89,7 +89,7 @@ public class GpuTrainable implements Trainable {
     }
     PointSample result = GpuController.INSTANCE.distribute(sampledData,
       (list, dev) -> eval(NNResult.batchResultArray(list.stream().toArray(i1 -> new Tensor[i1][])), dev),
-      (a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)
+      (a, b) -> a.add(b)
     );
     // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
     // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC

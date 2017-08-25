@@ -17,19 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
 
-/**
- * The interface Schema component.
- */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+public abstract class F32LayerTestBase extends com.simiacryptus.mindseye.layers.LayerTestBase {
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-2, 1e-4);
+  }
 }

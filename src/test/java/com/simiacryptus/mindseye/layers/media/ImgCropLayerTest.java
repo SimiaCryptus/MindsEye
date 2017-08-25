@@ -17,19 +17,24 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.media;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import org.junit.Ignore;
 
-/**
- * The interface Schema component.
- */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+@Ignore
+public class ImgCropLayerTest extends LayerTestBase {
+  
+  @Override
+  public NNLayer getLayer() {
+    return new ImgCropLayer(1,1);
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{
+      {4,4,3}
+    };
+  }
 }

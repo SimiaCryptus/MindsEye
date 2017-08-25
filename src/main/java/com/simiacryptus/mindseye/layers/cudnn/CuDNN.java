@@ -509,6 +509,6 @@ public class CuDNN {
   
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}" + Long.toHexString(System.identityHashCode(this));
+    return getClass().getSimpleName() + "{" + deviceNumber + "; " + deviceName + "}@" + Long.toHexString(System.identityHashCode(this));
   }
 }

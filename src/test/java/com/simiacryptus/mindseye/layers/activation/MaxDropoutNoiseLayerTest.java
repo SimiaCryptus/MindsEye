@@ -17,28 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.cudnn;
+package com.simiacryptus.mindseye.layers.activation;
 
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/**
- * The type Cu dnn sandbox.
- */
-public class CuDnnSandbox {
-  
-  private static final Logger log = LoggerFactory.getLogger(CuDnnSandbox.class);
-  
-  /**
-   * Test pipeline.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void testPipeline() throws Throwable {
-  
-  
+public class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
+  public MaxDropoutNoiseLayerTest() {
+    super(new MaxDropoutNoiseLayer());
   }
-  
 }

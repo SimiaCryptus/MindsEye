@@ -17,19 +17,23 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.meta;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 
-/**
- * The interface Schema component.
- */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+public class WeightExtractorTest extends LayerTestBase {
+  
+  @Override
+  public NNLayer getLayer() {
+    return new WeightExtractor(0,new DenseSynapseLayer(new int[]{3},new int[]{3}));
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{
+      {3}
+    };
+  }
 }
