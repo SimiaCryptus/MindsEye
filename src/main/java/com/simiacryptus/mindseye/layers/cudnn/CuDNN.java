@@ -290,8 +290,8 @@ public class CuDNN {
             strideWidth, // horizontal filter stride
             1, // upscale the input in x-direction
             1, // upscale the input in y-direction
-            mode,
-            dataType
+            mode
+          //, dataType
         ));
         return new CudaResource<>(convDesc, JCudnn::cudnnDestroyConvolutionDescriptor);
     }

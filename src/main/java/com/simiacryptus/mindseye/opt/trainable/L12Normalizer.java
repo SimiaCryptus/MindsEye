@@ -60,8 +60,8 @@ public abstract class L12Normalizer implements Trainable {
       double factor_L2 = getL2(layer);
       for (int i = 0; i < gradientAdj.length; i++) {
         double sign = weights[i] < 0 ? -1.0 : 1.0;
-        gradientAdj[i] += factor_L1 * sign + factor_L2 * weights[i];
-        valueAdj += (factor_L1 * sign + 0.5 * factor_L2 * weights[i]) * weights[i];
+        gradientAdj[i] += factor_L1 * sign + 2 * factor_L2 * weights[i];
+        valueAdj += (factor_L1 * sign + factor_L2 * weights[i]) * weights[i];
       }
       assert (null != gradientAdj);
     }

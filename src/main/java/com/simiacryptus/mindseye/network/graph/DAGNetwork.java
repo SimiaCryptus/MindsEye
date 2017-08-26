@@ -223,7 +223,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   public <T extends NNLayer> T getByName(String name) {
     if(null == name) return null;
     AtomicReference<NNLayer> result = new AtomicReference<>();
-    visit(n->{
+    visitLayers(n->{
       if(name.equals(n.getName())) result.set(n);
     });
     return (T) result.get();
@@ -234,10 +234,10 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    *
    * @param visitor the visitor
    */
-  public void visit(Consumer<NNLayer> visitor) {
+  public void visitLayers(Consumer<NNLayer> visitor) {
     layersById.values().forEach(layer->{
       if(layer instanceof DAGNetwork) {
-        ((DAGNetwork)layer).visit(visitor);
+        ((DAGNetwork)layer).visitLayers(visitor);
       }
       if(layer instanceof NNLayerWrapper) {
         visitor.accept(((NNLayerWrapper)layer).getInner());
@@ -247,12 +247,26 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   }
   
   /**
+   * Visit.
+   *
+   * @param visitor the visitor
+   */
+  public void visitNodes(Consumer<DAGNode> visitor) {
+    nodesById.values().forEach(node->{
+      if(node.getLayer() instanceof DAGNetwork) {
+        ((DAGNetwork)node.getLayer()).visitNodes(visitor);
+      }
+      visitor.accept(node);
+    });
+  }
+  
+  /**
    * Attach.
    *
    * @param obj the obj
    */
   public void attach(MonitoredObject obj) {
-    visit(layer->{
+    visitLayers(layer->{
       if(layer instanceof MonitoredItem) {
         obj.addObj(layer.getName(),(MonitoredItem)layer);
       }
@@ -402,7 +416,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
   @Override
   public DAGNetwork freeze() {
-    visit(new Consumer<NNLayer>() {
+    visitLayers(new Consumer<NNLayer>() {
       @Override
       public void accept(NNLayer layer) {
         layer.freeze();

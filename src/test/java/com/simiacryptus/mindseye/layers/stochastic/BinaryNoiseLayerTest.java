@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.layers.stochastic;
 
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
+import org.junit.Ignore;
 
+@Ignore
 public class BinaryNoiseLayerTest extends LayerTestBase {
   
   @Override

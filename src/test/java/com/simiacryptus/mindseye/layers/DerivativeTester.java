@@ -38,7 +38,9 @@ public class DerivativeTester {
   
   public final double probeSize;
   private final double tolerance;
-
+  private boolean testLearning = true;
+  private boolean testFeedback = true;
+  
   /**
    * Instantiates a new Component test util.
    * @param tolerance
@@ -57,11 +59,11 @@ public class DerivativeTester {
    * @throws Throwable the throwable
    */
   public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
-    for (int i = 0; i < inputPrototype.length; i++) {
+    if(isTestFeedback()) for (int i = 0; i < inputPrototype.length; i++) {
       testFeedback(component, i, outputPrototype, inputPrototype);
     }
     final int layers = component.state().size();
-    for (int i = 0; i < layers; i++) {
+    if(isTestLearning()) for (int i = 0; i < layers; i++) {
       testLearning(component, i, outputPrototype, inputPrototype);
     }
   }
@@ -220,5 +222,23 @@ public class DerivativeTester {
         throw e;
       }
     }
+  }
+  
+  public boolean isTestLearning() {
+    return testLearning;
+  }
+  
+  public DerivativeTester setTestLearning(boolean testLearning) {
+    this.testLearning = testLearning;
+    return this;
+  }
+  
+  public boolean isTestFeedback() {
+    return testFeedback;
+  }
+  
+  public DerivativeTester setTestFeedback(boolean testFeedback) {
+    this.testFeedback = testFeedback;
+    return this;
   }
 }

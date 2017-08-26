@@ -46,7 +46,7 @@ public final class GpuController {
   /**
    * The Verbose.
    */
-  protected boolean verbose = true;
+  protected boolean verbose = false;
   /**
    * The Device weight.
    */

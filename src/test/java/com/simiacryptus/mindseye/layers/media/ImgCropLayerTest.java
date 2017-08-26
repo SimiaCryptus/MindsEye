@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import org.junit.Ignore;
 
+
 @Ignore
 public class ImgCropLayerTest extends LayerTestBase {
   
@@ -34,7 +35,7 @@ public class ImgCropLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4,4,3}
+      {3,3,1}
     };
   }
 }

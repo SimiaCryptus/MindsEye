@@ -87,9 +87,12 @@ public class EntropyLossLayer extends NNLayer {
       for (int i = 0; i < l.dim(); i++) {
         final double lv = Math.max(Math.min(ld[i], 1.), 1e-12);
         final double rv = rd[i];
-        assert(rv > 0);
-        gradientData[i] = -rv / lv;
-        total += -rv * Math.log(lv);
+        if(rv > 0) {
+          gradientData[i] = -rv / lv;
+          total += -rv * Math.log(lv);
+        } else {
+          gradientData[i] = 0;
+        }
       }
       assert(total >= 0);
       descriptiveNats = total;

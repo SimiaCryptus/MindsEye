@@ -59,7 +59,7 @@ public class GpuTrainable implements Trainable {
    * The Last weights.
    */
   protected DeltaSet lastWeights;
-  private boolean verbose = true;
+  private boolean verbose = false;
   
   /**
    * Instantiates a new Gpu trainable.
