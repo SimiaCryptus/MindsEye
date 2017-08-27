@@ -84,15 +84,11 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
   
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-        DeltaSet currentDirection = position(alpha).write();
-        PointSample measurement = measure(alpha, monitor);
+        DeltaSet currentDirection = position(alpha).accumulate();
+        PointSample measurement = cursor.step(alpha, monitor).point;
         return new LineSearchPoint(measurement, dot(currentDirection.vector(), measurement.delta.vector()));
       }
   
-      public PointSample measure(double alpha, TrainingMonitor monitor) {
-        return cursor.measure(alpha, monitor);
-      }
-
       @Override
       public DeltaSet position(double alpha) {
         // Restore to orginal position

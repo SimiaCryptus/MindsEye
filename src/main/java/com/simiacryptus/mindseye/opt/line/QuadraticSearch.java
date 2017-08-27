@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 /**
@@ -27,35 +28,28 @@ import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
  */
 public class QuadraticSearch implements LineSearchStrategy {
   
-  private double absoluteTolerance = 1e-8;
+  private double absoluteTolerance = 1e-12;
   private double relativeTolerance = 1e-2;
+  private double initialDerivFactor = 0.95;
+  private double currentRate = 0.0;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
-
     double leftX = 0;
+    PointSample pointSample = _step(cursor, monitor, leftX);
+    currentRate = pointSample.rate;
+    return pointSample;
+  }
+  
+  public PointSample _step(LineSearchCursor cursor, TrainingMonitor monitor, double leftX) {
     LineSearchPoint leftPoint = cursor.step(leftX, monitor);
     monitor.log(String.format("F(%s) = %s; F' = %s", leftX, leftPoint, leftPoint.derivative));
     if(0 == leftPoint.derivative) return leftPoint.point;
-
-    double rightX = Math.abs(leftPoint.point.value * 1e-4 / leftPoint.derivative);
-    LineSearchPoint rightPoint = cursor.step(rightX, monitor);
-    monitor.log(String.format("F(%s) = %s, F' = %s", rightX, rightPoint, rightPoint.derivative));
-  
-  
-    double lastX = rightX;
-    while(true) {
-      double startX = rightX;
-      if (rightPoint.point.value > leftPoint.point.value) {
-        rightX = rightX / 2;
-      } else {
-        break;
-      }
-      if(isSame(lastX, rightX)) break;
-      lastX = startX;
-      rightPoint = cursor.step(rightX, monitor);
-      monitor.log(String.format("F(%s) = %s", rightX, rightPoint));
-    }
+    
+    LocateInitialRightPoint locateInitialRightPoint = new LocateInitialRightPoint(cursor, monitor, leftPoint).apply();
+    LineSearchPoint rightPoint = locateInitialRightPoint.getRightPoint();
+    double rightX = locateInitialRightPoint.getRightX();
+    
     int loops = 0;
     while(true) {
       double a = (rightPoint.derivative - leftPoint.derivative) / (rightX - leftX);
@@ -74,9 +68,13 @@ public class QuadraticSearch implements LineSearchStrategy {
         thisX = (rightX + leftX) / 2;
       }
       LineSearchPoint thisPoint = cursor.step(thisX, monitor);
-      if(loops++<100) return filter(cursor, thisPoint.point, monitor);
+      if(loops++>100) {
+        monitor.log(String.format("Loops = %s", loops));
+        return filter(cursor, thisPoint.point, monitor);
+      }
       monitor.log(String.format("F(%s) = %s", thisX, thisPoint));
       if(isSame(leftX, rightX)) {
+        monitor.log(String.format("%s ~= %s", leftX, rightX));
         return filter(cursor, thisPoint.point, monitor);
       }
       boolean test;
@@ -86,7 +84,10 @@ public class QuadraticSearch implements LineSearchStrategy {
         test = thisPoint.derivative < 0;
       }
       if(test) {
-        if(thisPoint.point.value > leftPoint.point.value) return filter(cursor, leftPoint.point, monitor);
+        if(thisPoint.point.value > leftPoint.point.value) {
+          monitor.log(String.format("%s > %s", thisPoint.point.value, leftPoint.point.value));
+          return filter(cursor, leftPoint.point, monitor);
+        }
         if(!isBracketed && leftPoint.point.value < rightPoint.point.value) {
           rightX = leftX;
           rightPoint = leftPoint;
@@ -95,7 +96,10 @@ public class QuadraticSearch implements LineSearchStrategy {
         leftX = thisX;
         monitor.log(String.format("Left bracket at %s", thisX));
       } else {
-        if(thisPoint.point.value > rightPoint.point.value) return filter(cursor, rightPoint.point, monitor);
+        if(thisPoint.point.value > rightPoint.point.value) {
+          monitor.log(String.format("%s > %s", thisPoint.point.value, rightPoint.point.value));
+          return filter(cursor, rightPoint.point, monitor);
+        }
         if(!isBracketed && rightPoint.point.value < leftPoint.point.value) {
           leftX = rightX;
           leftPoint = rightPoint;
@@ -105,8 +109,6 @@ public class QuadraticSearch implements LineSearchStrategy {
         monitor.log(String.format("Right bracket at %s", thisX));
       }
     }
-    
-  
   }
   
   private double stepSize = 1.0;
@@ -184,5 +186,54 @@ public class QuadraticSearch implements LineSearchStrategy {
    */
   public void setStepSize(double stepSize) {
     this.stepSize = stepSize;
+  }
+  
+  private class LocateInitialRightPoint {
+    private LineSearchCursor cursor;
+    private TrainingMonitor monitor;
+    private LineSearchPoint initialPoint;
+    private double thisX;
+    private LineSearchPoint thisPoint;
+    
+    public LocateInitialRightPoint(LineSearchCursor cursor, TrainingMonitor monitor, LineSearchPoint leftPoint) {
+      this.cursor = cursor;
+      this.monitor = monitor;
+      this.initialPoint = leftPoint;
+      thisX = currentRate > 0 ? currentRate : Math.abs(leftPoint.point.value * 1e-4 / leftPoint.derivative);
+      thisPoint = cursor.step(thisX, monitor);
+      monitor.log(String.format("F(%s) = %s, F' = %s", thisX, thisPoint, thisPoint.derivative));
+    }
+    
+    public double getRightX() {
+      return thisX;
+    }
+    
+    public LineSearchPoint getRightPoint() {
+      return thisPoint;
+    }
+    
+    public LocateInitialRightPoint apply() {
+      double lastX = thisX;
+      while(true) {
+        if (thisPoint.point.value > initialPoint.point.value) {
+          thisX = thisX / 3;
+        } else {
+          if (thisPoint.derivative < initialDerivFactor * thisPoint.derivative) {
+            thisX = thisX * 2;
+          } else {
+            //monitor.log(String.format("%s <= %s", rightPoint.point.value, leftPoint.point.value));
+            break;
+          }
+        }
+        if(isSame(lastX, thisX)) {
+          monitor.log(String.format("%s ~= %s", lastX, thisX));
+          break;
+        }
+        lastX = thisX;
+        thisPoint = cursor.step(thisX, monitor);
+        monitor.log(String.format("F(%s) = %s", thisX, thisPoint));
+      }
+      return this;
+    }
   }
 }

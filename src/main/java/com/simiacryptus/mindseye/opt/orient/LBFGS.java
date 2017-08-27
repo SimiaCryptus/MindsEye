@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
@@ -46,6 +47,7 @@ public class LBFGS implements OrientationStrategy {
   public final ArrayList<PointSample> history = new ArrayList<>();
   private int minHistory = 3;
   private int maxHistory = 10;
+  protected boolean verbose = false;
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
@@ -66,13 +68,17 @@ public class LBFGS implements OrientationStrategy {
    */
   public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
     if (!measurement.delta.vector().stream().flatMapToDouble(y->Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
-      monitor.log("Corrupt measurement");
+      if(verbose) monitor.log("Corrupt measurement");
     } else if (!measurement.weights.vector().stream().flatMapToDouble(y->Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
-      monitor.log("Corrupt measurement");
+      if(verbose) monitor.log("Corrupt measurement");
     } else if(history.isEmpty() || !history.stream().filter(x->x.value==measurement.value).findAny().isPresent()) {
+      if(verbose) monitor.log(String.format("Adding measurement %s to history. Total: %s",Long.toHexString(System.identityHashCode(measurement)),history.size()));
       history.add(measurement);
       Collections.sort(history, Comparator.comparing(x->-x.value));
-      while(history.size() > maxHistory) history.remove(0);
+      while(history.size() > maxHistory) {
+        PointSample remove = history.remove(0);
+        if(verbose) monitor.log(String.format("Removed measurement %s to history. Total: %s",Long.toHexString(System.identityHashCode(remove)),history.size()));
+      }
     }
   }
   
@@ -161,9 +167,9 @@ public class LBFGS implements OrientationStrategy {
     }
     return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(descent))
     {
-      public PointSample measure(double t, TrainingMonitor monitor) {
-        PointSample measure = super.measure(t, monitor);
-        addToHistory(measure, monitor);
+      public LineSearchPoint step(double t, TrainingMonitor monitor) {
+        LineSearchPoint measure = super.step(t, monitor);
+        addToHistory(measure.point, monitor);
         return measure;
       }
     }

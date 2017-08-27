@@ -38,11 +38,13 @@ public class QQN extends LBFGS {
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
     addToHistory(origin, monitor);
-    SimpleLineSearchCursor lbfgs = _orient(subject, origin, monitor);
-    double lbfgsMag = lbfgs.direction.getMagnitude();
+    SimpleLineSearchCursor lbfgsCursor = _orient(subject, origin, monitor);
+    final DeltaSet lbfgs = lbfgsCursor.direction;
     DeltaSet gd = origin.delta.scale(-1);
+    double lbfgsMag = lbfgs.getMagnitude();
     double gdMag = gd.getMagnitude();
     if((Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag)) > 1e-2) {
+      monitor.log(String.format("Returning Quadratic Cursor"));
       return new LineSearchCursor(){
   
         @Override
@@ -53,32 +55,27 @@ public class QQN extends LBFGS {
         @Override
         public LineSearchPoint step(double t, TrainingMonitor monitor) {
           if(!Double.isFinite(t)) throw new IllegalArgumentException();
-          position(t).write();
-          PointSample sample = measure(t, monitor);
-          List<Delta> tangent = gd.scale(1-2*t).add(lbfgs.direction.scale(2*t)).vector();
+          reset();
+          position(t).accumulate();
+          PointSample sample = subject.measure().setRate(t);
+          addToHistory(sample, monitor);
+          List<Delta> tangent = gd.scale(1-2*t).add(lbfgs.scale(2*t)).vector();
           return new LineSearchPoint(sample, SimpleLineSearchCursor.dot(tangent, sample.delta.vector()));
         }
   
         @Override
         public DeltaSet position(double t) {
           if(!Double.isFinite(t)) throw new IllegalArgumentException();
-          return gd.scale(t-t*t).add(lbfgs.direction.scale(t*t));
-        }
-  
-        @Override
-        public PointSample measure(double t, TrainingMonitor monitor) {
-          PointSample sample = subject.measure().setRate(t);
-          addToHistory(sample, monitor);
-          return sample;
+          return gd.scale(t-t*t).add(lbfgs.scale(t*t));
         }
         
         @Override
         public void reset() {
-          lbfgs.reset();
+          lbfgsCursor.reset();
         }
       };
     } else {
-      return lbfgs;
+      return lbfgsCursor;
     }
   }
   

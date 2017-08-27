@@ -167,7 +167,7 @@ public class Delta {
    *
    * @param factor the factor
    */
-  public synchronized final void write(final double factor) {
+  public synchronized final void accumulate(final double factor) {
     assert Arrays.stream(target).allMatch(Double::isFinite);
     double[] calcVector = this.getDelta();
     if (null == calcVector)

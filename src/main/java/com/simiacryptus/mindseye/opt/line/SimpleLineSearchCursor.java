@@ -80,14 +80,9 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     if(!Double.isFinite(alpha)) throw new IllegalArgumentException();
     reset();
-    position(alpha).vector().stream().forEach(d -> d.write(alpha));
+    position(alpha).vector().stream().forEach(d -> d.accumulate(alpha));
     PointSample sample = subject.measure().setRate(alpha);
     return new LineSearchPoint(sample, dot(direction.vector(), sample.delta.vector()));
-  }
-  
-  @Override
-  public PointSample measure(double t, TrainingMonitor monitor) {
-    return subject.measure().setRate(t);
   }
   
   @Override

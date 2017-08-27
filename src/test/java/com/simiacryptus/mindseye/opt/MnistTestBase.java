@@ -41,6 +41,7 @@ import smile.plot.ScatterPlot;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -53,7 +54,9 @@ public abstract class MnistTestBase {
   @Test
   @Category(TestCategories.Report.class)
   public void test() throws IOException {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this).addCopy(System.out)) {
+    PrintStream originalOut = System.out;
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      if(null != originalOut) ((MarkdownNotebookOutput)log).addCopy(originalOut);
       log.p("First, define a model:");
       PipelineNetwork network = buildModel(log);
       Tensor[][] trainingData = getTrainingData(log);
@@ -64,6 +67,7 @@ public abstract class MnistTestBase {
         @Override
         public void log(String msg) {
           System.out.println(msg);
+          if(null != originalOut && System.out != originalOut) originalOut.println(msg);
           super.log(msg);
         }
   

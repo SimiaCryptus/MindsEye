@@ -201,8 +201,8 @@ public class DeltaSet {
    * @param alpha the alpha
    * @return the delta set
    */
-  public DeltaSet write(double alpha) {
-    vector().stream().forEach(d -> d.write(alpha));
+  public DeltaSet accumulate(double alpha) {
+    vector().stream().forEach(d -> d.accumulate(alpha));
     return this;
   }
 
@@ -211,8 +211,8 @@ public class DeltaSet {
    *
    * @return the delta set
    */
-  public DeltaSet write() {
-    write(1);
+  public DeltaSet accumulate() {
+    accumulate(1);
     return this;
   }
   

@@ -17,15 +17,17 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.line;
+package com.simiacryptus.mindseye.opt.region;
 
+import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.orient.GradientDescent;
+import com.simiacryptus.mindseye.opt.orient.OwlQn;
+import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.ml.Tensor;
@@ -35,17 +37,22 @@ import java.util.concurrent.TimeUnit;
 /**
  * The Basic test optimizer.
  */
-public class BisectionTest extends MnistTestBase {
+public class SingleOrthantTrustRegionTest extends MnistTestBase {
   
   @Override
   public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000);
+      StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 10000);
       return new IterativeTrainer(trainable)
+               .setIterationsPerSample(100)
                .setMonitor(monitor)
-               .setOrientation(new GradientDescent())
-               .setLineSearchFactory((String name) -> new BisectionSearch())
+               .setOrientation(new TrustRegionStrategy() {
+                 @Override
+                 public TrustRegion getRegionPolicy(NNLayer layer) {
+                   return new SingleOrthant();
+                 }
+               })
                .setTimeout(3, TimeUnit.MINUTES)
                .setMaxIterations(500)
                .run();

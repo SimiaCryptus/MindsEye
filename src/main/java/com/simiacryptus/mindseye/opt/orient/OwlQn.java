@@ -81,9 +81,6 @@ public class OwlQn implements OrientationStrategy {
       assert (null != searchDir);
     }
     return new SimpleLineSearchCursor(subject, measurement, searchDirection) {
-      public PointSample measure(double t, TrainingMonitor monitor) {
-        return gradient.measure(t, monitor);
-      }
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
         origin.weights.vector().stream().forEach(d -> d.overwrite());

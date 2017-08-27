@@ -53,15 +53,6 @@ public interface LineSearchCursor {
   DeltaSet position(double alpha);
   
   /**
-   * Measure trainable . point sample.
-   *
-   * @param alpha   the alpha
-   * @param monitor the monitor
-   * @return the trainable . point sample
-   */
-  Trainable.PointSample measure(double alpha, TrainingMonitor monitor);
-  
-  /**
    * Reset.
    */
   void reset();
