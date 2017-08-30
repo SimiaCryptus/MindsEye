@@ -45,7 +45,7 @@ public class MomentumTest extends MnistTestBase {
       StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
                .setMonitor(monitor)
-               .setOrientation(new MomentumStrategy(new GradientDescent()).setCarryOver(0.8))
+               .setOrientation(new ValidatingOrientationStrategy(new MomentumStrategy(new GradientDescent()).setCarryOver(0.8)))
                .setTimeout(3, TimeUnit.MINUTES)
                .setMaxIterations(500)
                .run();

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
 /**
@@ -37,7 +36,7 @@ public class QuadraticSearch implements LineSearchStrategy {
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
     double leftX = 0;
     PointSample pointSample = _step(cursor, monitor, leftX);
-    currentRate = pointSample.rate;
+    setCurrentRate(pointSample.rate);
     return pointSample;
   }
   
@@ -184,8 +183,18 @@ public class QuadraticSearch implements LineSearchStrategy {
    *
    * @param stepSize the step size
    */
-  public void setStepSize(double stepSize) {
+  public QuadraticSearch setStepSize(double stepSize) {
     this.stepSize = stepSize;
+    return this;
+  }
+  
+  public double getCurrentRate() {
+    return currentRate;
+  }
+  
+  public QuadraticSearch setCurrentRate(double currentRate) {
+    this.currentRate = currentRate;
+    return this;
   }
   
   private class LocateInitialRightPoint {
@@ -199,7 +208,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       this.cursor = cursor;
       this.monitor = monitor;
       this.initialPoint = leftPoint;
-      thisX = currentRate > 0 ? currentRate : Math.abs(leftPoint.point.value * 1e-4 / leftPoint.derivative);
+      thisX = getCurrentRate() > 0 ? getCurrentRate() : Math.abs(leftPoint.point.value * 1e-4 / leftPoint.derivative);
       thisPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s, F' = %s", thisX, thisPoint, thisPoint.derivative));
     }

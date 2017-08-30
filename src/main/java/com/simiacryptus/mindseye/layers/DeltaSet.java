@@ -147,11 +147,11 @@ public class DeltaSet {
       Delta value = entry.getValue();
       return value.sumSq();
     }).sum();
-    double sumCnt = map.entrySet().stream().mapToDouble(entry -> {
-      Delta value = entry.getValue();
-      return value.length();
-    }).sum();
-    return Math.sqrt(sumSq / sumCnt);
+//    double sumCnt = map.entrySet().stream().mapToDouble(entry -> {
+//      Delta value = entry.getValue();
+//      return value.length();
+//    }).sum();
+    return Math.sqrt(sumSq);
   }
   
   /**

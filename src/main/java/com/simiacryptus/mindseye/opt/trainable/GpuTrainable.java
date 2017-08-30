@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.opt.trainable;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.ml.Tensor;
@@ -116,10 +117,11 @@ public class GpuTrainable implements Trainable {
       stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
     assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    assert (result.getData().stream().allMatch(x -> x.dim() == 1));
-    assert (result.getData().stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-    double meanValue = result.getData().stream().mapToDouble(x -> x.getData()[0]).sum();
-    return new PointSample(deltaSet.scale(1.0/trainingSize), stateBackup, meanValue / trainingSize);
+    TensorList resultData = result.getData();
+    assert (resultData.stream().allMatch(x -> x.dim() == 1));
+    assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
+    double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
+    return new PointSample(deltaSet, stateBackup, sum);
   }
   
   /**

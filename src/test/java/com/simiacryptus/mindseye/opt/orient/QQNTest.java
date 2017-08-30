@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.ml.Tensor;
@@ -44,7 +45,8 @@ public class QQNTest extends MnistTestBase {
       return new IterativeTrainer(trainable)
                .setIterationsPerSample(25)
                .setMonitor(monitor)
-               .setOrientation(new QQN())
+               .setOrientation(new ValidatingOrientationStrategy(new QQN()))
+               .setLineSearchFactory(name->name.contains("QQN") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch())
                .setTimeout(3, TimeUnit.MINUTES)
                .setMaxIterations(500)
                .run();

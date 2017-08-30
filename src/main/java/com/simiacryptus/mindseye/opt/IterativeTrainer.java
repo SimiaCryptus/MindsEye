@@ -19,9 +19,8 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
-import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
-import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.opt.line.*;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
@@ -41,7 +40,6 @@ import java.util.function.Function;
  * The type Iterative trainer.
  */
 public class IterativeTrainer {
-  
   
   private final Trainable subject;
   private Duration timeout;
@@ -111,7 +109,9 @@ public class IterativeTrainer {
           lineSearchStrategyMap.put(directionType, lineSearchStrategy);
         }
         PointSample previous = currentPoint;
-        currentPoint = lineSearchStrategy.step(direction, monitor);
+        FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction);
+        lineSearchStrategy.step(wrapped, monitor);
+        currentPoint = wrapped.getBest().point;
         if(previous.value <= currentPoint.value) {
           if(previous.value < currentPoint.value) {
             monitor.log(String.format("Resetting Iteration"));

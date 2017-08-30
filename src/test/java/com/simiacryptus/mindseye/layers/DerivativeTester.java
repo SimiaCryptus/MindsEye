@@ -58,7 +58,7 @@ public class DerivativeTester {
    * @param inputPrototype  the input prototype
    * @throws Throwable the throwable
    */
-  public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
+  public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     if(isTestFeedback()) for (int i = 0; i < inputPrototype.length; i++) {
       testFeedback(component, i, outputPrototype, inputPrototype);
     }
@@ -68,7 +68,7 @@ public class DerivativeTester {
     }
   }
   
-  private Tensor[] getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  private Tensor getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor gradientBuffer = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
@@ -108,7 +108,7 @@ public class DerivativeTester {
           return tensor;
         },(a, b) -> a.add(b));
     }
-    return new Tensor[]{ gradientBuffer };
+    return gradientBuffer;
   }
   
   private Tensor getLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
@@ -188,9 +188,9 @@ public class DerivativeTester {
     return gradient;
   }
   
-  private void testFeedback(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
+  protected void testFeedback(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
-    final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype)[0];
+    final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
     for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {
       try {
         Assert.assertEquals(measuredGradient.getData()[i1], implementedGradient.getData()[i1], tolerance);
@@ -205,7 +205,7 @@ public class DerivativeTester {
     }
   }
   
-  private void testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) throws Throwable {
+  protected void testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
     final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
     for (int i1 = 0; i1 < measuredGradient.dim(); i1++) {

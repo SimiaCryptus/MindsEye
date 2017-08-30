@@ -50,18 +50,6 @@ public class StochasticArrayTrainable extends GpuTrainable {
    * @param trainingSize the training size
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
-    this(trainingData, network, trainingSize, trainingSize / CudaExecutionContext.gpuContexts.size());
-  }
-  
-  /**
-   * Instantiates a new Stochastic array trainable.
-   *
-   * @param trainingData the training data
-   * @param network      the network
-   * @param trainingSize the training size
-   * @param batchSize    the batch size
-   */
-  public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, int batchSize) {
     super(network);
     if(0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = Arrays.stream(trainingData).map(obj->new WeakCachedSupplier<Tensor[]>(()->obj)).collect(Collectors.toList());

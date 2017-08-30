@@ -86,25 +86,25 @@ public final class GpuController {
    * Distribute t.
    *
    * @param <T>         the type parameter
-   * @param sampledData the sampled data
-   * @param function    the function
+   * @param data the sampled data
+   * @param mapper    the function
    * @param reducer     the reducer
    * @return the t
    */
-  public <T> T distribute(List<Tensor[]> sampledData, BiFunction<List<Tensor[]>, CudaExecutionContext, T> function, BinaryOperator<T> reducer) {
-    if(sampledData.isEmpty()) return null;
+  public <T,U> T distribute(List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {
+    if(data.isEmpty()) return null;
     List<CudaExecutionContext> devices = CudaExecutionContext.gpuContexts.getAll();
     double weightSum = devices.stream().mapToDouble(d -> deviceWeight.getOrDefault(d.toString(), 1.0)).sum();
     List<Future<T>> results = new ArrayList<>();
     int start = 0;
     for(int i=0;i<devices.size();i++) {
       CudaExecutionContext dev = devices.get(i);
-      int sampleSize = (int) Math.max(1, ((sampledData.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0)));
+      int sampleSize = (int) Math.max(1, ((data.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0)));
       int end = start + sampleSize;
-      List<Tensor[]> subList = sampledData.subList(start, Math.min(end, sampledData.size()));
+      List<U> subList = data.subList(start, Math.min(end, data.size()));
       if(subList.isEmpty()) continue;
       try {
-        results.add(gpuDriverThreads.get(dev).submit(() -> evaluate(dev, subList, function, reducer)));
+        results.add(gpuDriverThreads.get(dev).submit(() -> evaluate(dev, subList, mapper, reducer)));
       } catch (ExecutionException e) {
         throw new RuntimeException(e);
       }
@@ -121,12 +121,12 @@ public final class GpuController {
     }).reduce(reducer).orElse(null);
   }
   
-  private <T> T evaluate(CudaExecutionContext gpu, List<Tensor[]> data, BiFunction<List<Tensor[]>, CudaExecutionContext, T> function, BinaryOperator<T> reducer) {
+  private <T,U> T evaluate(CudaExecutionContext gpu, List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {
     Integer batchSize = deviceBatchSizes.getOrDefault(gpu.toString(), data.size());
     try {
       long startNanos = System.nanoTime();
-      List<List<Tensor[]>> batches = (data.size() > batchSize) ? Lists.partition(data, batchSize) : Arrays.asList(data);
-      T deviceResult = batches.stream().map(x-> function.apply(x, gpu)).filter(x->null != x).reduce(reducer).get();
+      List<List<U>> batches = (data.size() > batchSize) ? Lists.partition(data, batchSize) : Arrays.asList(data);
+      T deviceResult = batches.stream().map(x-> mapper.apply(x, gpu)).filter(x->null != x).reduce(reducer).get();
       double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
       if(verbose) System.out.println(String.format("Device %s completed %s items in %s sec", gpu, data.size(), time));
       deviceWeight.put(gpu.toString(), data.size() / time);
@@ -136,7 +136,7 @@ public final class GpuController {
         batchSize = batchSize / 2;
         deviceBatchSizes.put(gpu.toString(), batchSize);
         cleanMemory();
-        return evaluate(gpu, data, function, reducer);
+        return evaluate(gpu, data, mapper, reducer);
       } else {
         RuntimeException runtimeException = new RuntimeException(String.format("Failed executing %s items", batchSize), t);
         runtimeException.fillInStackTrace();
