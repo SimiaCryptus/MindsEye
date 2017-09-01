@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.util;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +50,7 @@ public class ConstNNLayer extends NNLayer {
   public static ConstNNLayer fromJson(JsonObject json) {
     return new ConstNNLayer(json);
   }
-
+  
   /**
    * Instantiates a new Const nn layer.
    *
@@ -79,8 +79,8 @@ public class ConstNNLayer extends NNLayer {
     return new NNResult(data) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
-        if(!isFrozen()) {
-          data.stream().forEach(datum->{
+        if (!isFrozen()) {
+          data.stream().forEach(datum -> {
             buffer.get(ConstNNLayer.this, ConstNNLayer.this.data).accumulate(datum.getData());
           });
         }

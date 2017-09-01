@@ -20,12 +20,16 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Coordinate;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.IntArray;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +81,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
    * Instantiates a new Max dropout noise layer.
    */
   public MaxDropoutNoiseLayer() {
-    this(2,2);
+    this(2, 2);
   }
   
   /**
@@ -97,8 +101,8 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = input.map(x -> 0);
       final List<List<Coordinate>> cells = getCellMap_cached.apply(new IntArray(output.getDimensions()));
-      cells.forEach(cell->{
-        output.set(cell.stream().max(Comparator.comparingDouble(c->input.get(c))).get(), 1);
+      cells.forEach(cell -> {
+        output.set(cell.stream().max(Comparator.comparingDouble(c -> input.get(c))).get(), 1);
       });
       return output;
     }).toArray(i -> new Tensor[i]);
@@ -116,10 +120,10 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   }
   
   private List<List<Coordinate>> getCellMap(IntArray dims) {
-    return new ArrayList<>(new Tensor(dims.data).coordStream().collect(Collectors.groupingBy((Coordinate c) ->{
+    return new ArrayList<>(new Tensor(dims.data).coordStream().collect(Collectors.groupingBy((Coordinate c) -> {
       int cellId = 0;
       int max = 0;
-      for(int dim=0;dim<dims.size();dim++) {
+      for (int dim = 0; dim < dims.size(); dim++) {
         int pos = c.coords[dim] / kernelSize[dim];
         cellId = cellId * max + pos;
         max = dims.get(dim) / kernelSize[dim];
@@ -127,7 +131,8 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       return cellId;
     })).values());
   }
-  private final Function<IntArray,List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
+
+  private final Function<IntArray, List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
   
   
   @Override

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
@@ -29,7 +30,6 @@ import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -42,10 +42,10 @@ public class GDTest extends MnistTestBase {
   public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      new DerivativeTester(1e-2, 1e-6){
+      new DerivativeTester(1e-2, 1e-6) {
         @Override
         protected void testFeedback(NNLayer component, int i, Tensor outputPrototype, Tensor... inputPrototype) {
-          if(i == 0) super.testFeedback(component, i, outputPrototype, inputPrototype);
+          if (i == 0) super.testFeedback(component, i, outputPrototype, inputPrototype);
         }
       }.test(supervisedNetwork, new Tensor(1), trainingData[0]);
       StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000);

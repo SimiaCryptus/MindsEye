@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,10 +79,10 @@ public class MaxMetaLayer extends NNLayer {
     int itemCnt = input.getData().length();
     int vectorSize = input.getData().get(0).dim();
     int[] indicies = new int[vectorSize];
-    for(int i=0;i<vectorSize;i++) {
+    for (int i = 0; i < vectorSize; i++) {
       int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
-                             .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
+                      .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
     }
     return new NNResult(input.getData().get(0).map((v, c) -> {
       return input.getData().get(indicies[c.index]).getData()[c.index];

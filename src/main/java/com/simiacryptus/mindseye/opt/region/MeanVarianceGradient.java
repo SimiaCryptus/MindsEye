@@ -35,7 +35,7 @@ public class MeanVarianceGradient implements TrustRegion {
     double varWeights = ArrayUtil.mean(ArrayUtil.op(weights, x -> Math.abs(x - meanWeight)));
     double varPoint = ArrayUtil.mean(ArrayUtil.op(point, x -> Math.abs(x - meanPoint)));
     return ArrayUtil.op(weights, v -> {
-      return (v - meanWeight)*(varPoint/varWeights)+meanPoint;
+      return (v - meanWeight) * (varPoint / varWeights) + meanPoint;
     });
   }
   

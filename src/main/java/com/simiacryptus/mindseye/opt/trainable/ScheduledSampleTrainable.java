@@ -19,13 +19,13 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.ScalarStatistics;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -60,7 +60,7 @@ public class ScheduledSampleTrainable implements Trainable {
    * @return the scheduled sample trainable
    */
   public static ScheduledSampleTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double initialIncrease, double pow) {
-    return new ScheduledSampleTrainable(trainingData, network, trainingSize,initialIncrease/Math.pow(trainingSize, pow)).setIncreasePower(pow);
+    return new ScheduledSampleTrainable(trainingData, network, trainingSize, initialIncrease / Math.pow(trainingSize, pow)).setIncreasePower(pow);
   }
   
   private final Tensor[][] trainingData;
@@ -93,7 +93,8 @@ public class ScheduledSampleTrainable implements Trainable {
   @Override
   public Trainable.PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
-    NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, input);
+    NNResult result = network.eval(new NNLayer.NNExecutionContext() {
+    }, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
@@ -102,7 +103,7 @@ public class ScheduledSampleTrainable implements Trainable {
     });
     assert (result.getData().stream().allMatch(x -> x.dim() == 1));
     ScalarStatistics statistics = new ScalarStatistics();
-    result.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
+    result.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).forEach(x -> statistics.add(x));
     return new Trainable.PointSample(deltaSet, stateSet, statistics.getMean());
   }
   
@@ -145,16 +146,16 @@ public class ScheduledSampleTrainable implements Trainable {
   }
   
   private void refreshSampledData() {
-    this.trainingSize += increaseMultiplier * Math.pow(this.trainingSize,increasePower);
+    this.trainingSize += increaseMultiplier * Math.pow(this.trainingSize, increasePower);
     final Tensor[][] rawData = trainingData;
     assert 0 < rawData.length;
     assert 0 < getTrainingSize();
     Stream<Tensor[]> stream = Arrays.stream(rawData).parallel();
-    if(shuffled) {
+    if (shuffled) {
       stream = stream.sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash));
     }
-    this.sampledData = stream.limit((long) Math.min(Math.max(getTrainingSize(),trainingSizeMin), trainingSizeMax)) //
-                           .toArray(i -> new Tensor[i][]);
+    this.sampledData = stream.limit((long) Math.min(Math.max(getTrainingSize(), trainingSizeMin), trainingSizeMax)) //
+                         .toArray(i -> new Tensor[i][]);
   }
   
   /**

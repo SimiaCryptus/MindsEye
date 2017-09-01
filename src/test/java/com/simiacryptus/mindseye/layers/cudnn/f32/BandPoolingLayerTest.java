@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Band pooling layer test.
+ */
 public class BandPoolingLayerTest extends F32LayerTestBase {
   
   
@@ -33,7 +35,7 @@ public class BandPoolingLayerTest extends F32LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3,3,2}
+      {3, 3, 2}
     };
   }
 }

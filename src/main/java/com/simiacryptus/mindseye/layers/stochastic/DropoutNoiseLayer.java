@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.stochastic;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +55,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   public static DropoutNoiseLayer fromJson(JsonObject json) {
     return new DropoutNoiseLayer(json);
   }
-
+  
   /**
    * Instantiates a new Dropout noise layer.
    *

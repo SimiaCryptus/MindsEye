@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Hyperbolic activation layer test.
+ */
 public class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Hyperbolic activation layer test.
+   */
   public HyperbolicActivationLayerTest() {
     super(new HyperbolicActivationLayer());
   }

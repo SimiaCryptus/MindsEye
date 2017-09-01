@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +41,7 @@ public class AvgReducerLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json avg reducer layer.
    *
@@ -47,7 +51,7 @@ public class AvgReducerLayer extends NNLayer {
   public static AvgReducerLayer fromJson(JsonObject json) {
     return new AvgReducerLayer(json);
   }
-
+  
   /**
    * Instantiates a new Avg reducer layer.
    *
@@ -77,7 +81,7 @@ public class AvgReducerLayer extends NNLayer {
         }
       }
       return sum;
-    }).mapToObj(x->new Tensor(new int[]{1}, new double[]{x})).toArray(i->new Tensor[i])) {
+    }).mapToObj(x -> new Tensor(new int[]{1}, new double[]{x})).toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         for (final NNResult in_l : inObj) {
@@ -99,8 +103,9 @@ public class AvgReducerLayer extends NNLayer {
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
-          if (element.isAlive())
+          if (element.isAlive()) {
             return true;
+          }
         return false;
       }
       

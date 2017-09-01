@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.util;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Variable layer test.
+ */
 public class VariableLayerTest extends LayerTestBase {
   
   @Override

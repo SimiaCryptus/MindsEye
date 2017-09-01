@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.util.ConstNNLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -60,14 +60,14 @@ public class PipelineNetwork extends DAGNetwork {
   protected PipelineNetwork(JsonObject json) {
     super(json);
     UUID headId = UUID.fromString(json.get("head").getAsString());
-    assert(null != headId);
+    assert (null != headId);
     this.head = nodesById.get(headId);
-    if(null == this.head) head = getInput().get(0);
+    if (null == this.head) head = getInput().get(0);
     int inputIndex = inputHandles.indexOf(headId);
-    if(null == this.head && 0<=inputIndex) {
+    if (null == this.head && 0 <= inputIndex) {
       this.head = getInput(inputIndex);
     }
-    if(null == this.head) throw new IllegalArgumentException();
+    if (null == this.head) throw new IllegalArgumentException();
   }
   
   private DAGNode head;
@@ -108,7 +108,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @return the dag node
    */
   public DAGNode addAll(DAGNode node, NNLayer... layers) {
-    for(NNLayer l : layers) node = add(l, node);
+    for (NNLayer l : layers) node = add(l, node);
     return node;
   }
   
@@ -119,13 +119,13 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork(int inputs) {
     super(inputs);
-    head = 0==inputs?null:getInput().get(0);
+    head = 0 == inputs ? null : getInput().get(0);
   }
   
   @SafeVarargs
   @Override
   public final DAGNode add(String label, final NNLayer layer, final DAGNode... head) {
-    if(null == layer) throw new IllegalArgumentException();
+    if (null == layer) throw new IllegalArgumentException();
     DAGNode node = super.add(label, layer, head);
     //assert Arrays.stream(head).allMatch(x -> x != null);
     assert null != getInput();
@@ -135,8 +135,8 @@ public class PipelineNetwork extends DAGNetwork {
   
   @Override
   public DAGNode add(NNLayer nextHead, DAGNode... head) {
-    if(null == nextHead && head.length==1) return head[0];
-    if(null == nextHead) throw new IllegalArgumentException();
+    if (null == nextHead && head.length == 1) return head[0];
+    if (null == nextHead) throw new IllegalArgumentException();
     assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
     DAGNode node = super.add(nextHead, head);
     assert null != getInput();
@@ -151,7 +151,8 @@ public class PipelineNetwork extends DAGNetwork {
    * @return the dag node
    */
   public DAGNode constValue(Tensor tensor) {
-    DAGNode constNode = super.add(new ConstNNLayer(tensor));;
+    DAGNode constNode = super.add(new ConstNNLayer(tensor));
+    ;
     return constNode;
   }
   
@@ -166,7 +167,7 @@ public class PipelineNetwork extends DAGNetwork {
   }
   
   public DAGNode getHead() {
-    if(null == this.head) head = getInput().get(0);
+    if (null == this.head) head = getInput().get(0);
     return this.head;
   }
   
@@ -180,5 +181,5 @@ public class PipelineNetwork extends DAGNetwork {
     this.head = obj;
     return this;
   }
-
+  
 }

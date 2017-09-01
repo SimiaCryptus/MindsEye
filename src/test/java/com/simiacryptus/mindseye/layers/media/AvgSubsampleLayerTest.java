@@ -22,17 +22,20 @@ package com.simiacryptus.mindseye.layers.media;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Avg subsample layer test.
+ */
 public class AvgSubsampleLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new AvgSubsampleLayer(2,2,1);
+    return new AvgSubsampleLayer(2, 2, 1);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2,2,3}
+      {2, 2, 3}
     };
   }
 }

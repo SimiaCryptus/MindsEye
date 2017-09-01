@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.media;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Max image band layer test.
+ */
 public class MaxImageBandLayerTest extends LayerTestBase {
   
   @Override
@@ -32,7 +35,7 @@ public class MaxImageBandLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2,2,3}
+      {2, 2, 3}
     };
   }
 }

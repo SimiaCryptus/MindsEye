@@ -31,7 +31,7 @@ public class LinearSumConstraint implements TrustRegion {
     for (int i = 0; i < point.length; i++) {
       deltaSum += (point[i] - weights[i]) * sign(point[i]);
     }
-    if(deltaSum <= 0 && permitDecrease) return point;
+    if (deltaSum <= 0 && permitDecrease) return point;
     deltaSum /= point.length;
     double[] returnValue = new double[point.length];
     for (int i = 0; i < point.length; i++) {
@@ -47,7 +47,7 @@ public class LinearSumConstraint implements TrustRegion {
    * @return the int
    */
   public int sign(double weight) {
-    return (weight > 0)?1:-1;
+    return (weight > 0) ? 1 : -1;
   }
   
   /**

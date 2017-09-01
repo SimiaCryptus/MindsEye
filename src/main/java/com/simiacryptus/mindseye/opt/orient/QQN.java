@@ -43,30 +43,31 @@ public class QQN extends LBFGS {
     DeltaSet gd = origin.delta.scale(-1);
     double lbfgsMag = lbfgs.getMagnitude();
     double gdMag = gd.getMagnitude();
-    if((Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag)) > 1e-2) {
+    if ((Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag)) > 1e-2) {
+      DeltaSet scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor"));
-      return new LineSearchCursor(){
-  
+      return new LineSearchCursor() {
+
         @Override
         public String getDirectionType() {
           return "QQN";
         }
-  
+
         @Override
         public LineSearchPoint step(double t, TrainingMonitor monitor) {
-          if(!Double.isFinite(t)) throw new IllegalArgumentException();
+          if (!Double.isFinite(t)) throw new IllegalArgumentException();
           reset();
           position(t).accumulate();
           PointSample sample = subject.measure().setRate(t);
           addToHistory(sample, monitor);
-          List<Delta> tangent = gd.scale(1-2*t).add(lbfgs.scale(2*t)).vector();
+          List<Delta> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t)).vector();
           return new LineSearchPoint(sample, SimpleLineSearchCursor.dot(tangent, sample.delta.vector()));
         }
-  
+
         @Override
         public DeltaSet position(double t) {
-          if(!Double.isFinite(t)) throw new IllegalArgumentException();
-          return gd.scale(t-t*t).add(lbfgs.scale(t*t));
+          if (!Double.isFinite(t)) throw new IllegalArgumentException();
+          return scaledGradient.scale(t - t * t).add(lbfgs.scale(t * t));
         }
         
         @Override
@@ -74,7 +75,8 @@ public class QQN extends LBFGS {
           lbfgsCursor.reset();
         }
       };
-    } else {
+    }
+    else {
       return lbfgsCursor;
     }
   }

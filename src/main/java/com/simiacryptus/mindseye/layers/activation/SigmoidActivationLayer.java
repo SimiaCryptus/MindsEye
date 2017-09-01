@@ -88,10 +88,12 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   }
   
   private double exp(final double x) {
-    if (x < MIN_X)
+    if (x < MIN_X) {
       return MIN_F;
-    if (x > MAX_X)
+    }
+    if (x > MAX_X) {
       return MAX_F;
+    }
     return Math.exp(x);
   }
   

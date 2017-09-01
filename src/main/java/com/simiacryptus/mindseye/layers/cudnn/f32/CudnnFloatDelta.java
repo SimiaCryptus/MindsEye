@@ -19,12 +19,12 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
@@ -48,7 +48,7 @@ public class CudnnFloatDelta extends Delta {
    * The Buffer.
    */
   CudaPtr buffer;
-
+  
   /**
    * Accumulate.
    *
@@ -57,19 +57,20 @@ public class CudnnFloatDelta extends Delta {
    * @param cudnn the cudnn
    */
   public void accumulate(CudaResource<cudnnTensorDescriptor> size, CudaPtr data, CuDNN cudnn) {
-    if(null != buffer) {
+    if (null != buffer) {
       CuDNN.handle(cudnnAddTensor(cudnn.cudnnHandle,
         Pointer.to(new float[]{1.0f}), size.getPtr(), data.getPtr(),
         Pointer.to(new float[]{1.0f}), size.getPtr(), buffer.getPtr()));
       data.finalize();
-    } else {
+    }
+    else {
       buffer = data;
     }
   }
   
   @Override
   public double[] getDelta() {
-    if(null == delta) {
+    if (null == delta) {
       float[] data = new float[length()];
       buffer.read(data);
       this.delta = Tensor.toDoubles(data);

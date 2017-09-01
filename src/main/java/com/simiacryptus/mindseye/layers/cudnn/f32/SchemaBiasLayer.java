@@ -23,12 +23,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -63,10 +64,10 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
     readFeatures();
     JsonObject json = super.getJsonStub();
     JsonArray jsonSelected = new JsonArray();
-    for(String s : selected) jsonSelected.add(new JsonPrimitive(s));
+    for (String s : selected) jsonSelected.add(new JsonPrimitive(s));
     json.add("selected", jsonSelected);
     JsonObject jsonObject = new JsonObject();
-    for(Map.Entry<String, Double> e : features.entrySet()) {
+    for (Map.Entry<String, Double> e : features.entrySet()) {
       jsonObject.add(e.getKey(), new JsonPrimitive(e.getValue()));
     }
     json.add("features", jsonObject);
@@ -81,17 +82,17 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
   protected SchemaBiasLayer(JsonObject json) {
     super(json);
     JsonObject featuresJson = json.getAsJsonObject("features");
-    for(Map.Entry<String, JsonElement> e : featuresJson.entrySet()) {
+    for (Map.Entry<String, JsonElement> e : featuresJson.entrySet()) {
       features.put(e.getKey(), e.getValue().getAsDouble());
     }
     JsonArray selectedJson = json.getAsJsonArray("selected");
-    setSchema(IntStream.range(0,selectedJson.size()).mapToObj(i->selectedJson.get(i).getAsString()).toArray(i->new String[i]));
+    setSchema(IntStream.range(0, selectedJson.size()).mapToObj(i -> selectedJson.get(i).getAsString()).toArray(i -> new String[i]));
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
 
   private double[] bias;
   private String[] selected = new String[]{};
-  private Map<String,Double> features = new HashMap<>();
+  private Map<String, Double> features = new HashMap<>();
   
   /**
    * Instantiates a new Img band bias layer.
@@ -102,16 +103,16 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
   
   @Override
   public SchemaBiasLayer setSchema(String... labels) {
-    if(null == labels) throw new RuntimeException();
+    if (null == labels) throw new RuntimeException();
     readFeatures();
     selected = labels;
-    bias = IntStream.range(0,labels.length).mapToDouble(i->features.getOrDefault(labels[i],0.0)).toArray();
+    bias = IntStream.range(0, labels.length).mapToDouble(i -> features.getOrDefault(labels[i], 0.0)).toArray();
     return this;
   }
   
   private void readFeatures() {
-    if(null != bias && selected.length>0) {
-      for(int i=0;i<selected.length;i++) {
+    if (null != bias && selected.length > 0) {
+      for (int i = 0; i < selected.length; i++) {
         features.put(selected[i], bias[i]);
       }
     }
@@ -125,18 +126,18 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
-    assert(inputSize[2] == bias.length);
+    assert (inputSize[2] == bias.length);
     int[] outputSize = inputSize;
     int length = batch.length();
 
     try {
 
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-  
-      assert(0 < this.bias.length);
+        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
+
+      assert (0 < this.bias.length);
       CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.toFloats(this.bias));
       // Warning: For on-gpu operations, this modifies input mem buffer and can interfere with sibling consumers
       CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
@@ -147,7 +148,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
           Pointer.to(new float[]{1.0f}),
           inputDescriptor.getPtr(), inputData.getPtr()));
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
+        throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
       }
       filterPtr.finalize();
       TensorList output = CudaPtr.fromDeviceFloat(inputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
@@ -167,9 +168,9 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
                 Pointer.to(new float[]{1.0f}),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
+              throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
             }
-            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
+            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
             Delta deltaBuffer = buffer.get(SchemaBiasLayer.this, SchemaBiasLayer.this.bias);
             deltaBuffer.accumulate(weightGradient.getData());
@@ -187,7 +188,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
     }
   }
   

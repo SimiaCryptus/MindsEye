@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
+import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
@@ -73,62 +74,81 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
-    history.add(0,origin);
-    while(history.size() > maxHistory) history.remove(history.size()-1);
-    LineSearchCursor cursor = inner.orient(subject, origin, monitor);
+    history.add(0, origin);
+    while (history.size() > maxHistory) history.remove(history.size() - 1);
+    SimpleLineSearchCursor cursor = (SimpleLineSearchCursor) inner.orient(subject, origin, monitor);
     return new LineSearchCursor() {
       @Override
       public String getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
       }
-  
+
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-        DeltaSet currentDirection = position(alpha).accumulate();
-        PointSample measurement = cursor.step(alpha, monitor).point;
-        return new LineSearchPoint(measurement, dot(currentDirection.vector(), measurement.delta.vector()));
+        cursor.reset();
+        DeltaSet adjustedPosVector = cursor.position(alpha);
+        DeltaSet adjustedGradient = project(adjustedPosVector, monitor);
+        adjustedPosVector.accumulate();
+        PointSample sample = subject.measure().setRate(alpha);
+        return new LineSearchPoint(sample, dot(adjustedGradient.vector(), sample.delta.vector()));
       }
-  
+
       @Override
       public DeltaSet position(double alpha) {
-        // Restore to orginal position
-        cursor.reset();
-        DeltaSet innerVector = cursor.position(alpha).add(origin.weights.scale(-1));
-        // Adjust new point and associated tangent
-        DeltaSet currentDirection = innerVector.copy();
-        innerVector.map.forEach((layer, buffer) -> {
-          if (null == buffer.getDelta()) return;
-          Delta deltaBuffer = currentDirection.get(layer, buffer.target);
-          double[] delta = deltaBuffer.getDelta();
-          double[] projected = add(deltaBuffer.target, delta);
+        reset();
+        DeltaSet adjustedPosVector = cursor.position(alpha);
+        project(adjustedPosVector, new TrainingMonitor());
+        return adjustedPosVector;
+      }
+
+      public DeltaSet project(DeltaSet deltaSet, TrainingMonitor monitor) {
+        DeltaSet originalAlphaDerivative = cursor.direction;
+        DeltaSet newAlphaDerivative = originalAlphaDerivative.copy();
+        deltaSet.map.forEach((layer, buffer) -> {
+          double[] delta = buffer.getDelta();
+          if (null == delta) return;
+          double[] currentPosition = buffer.target;
+          double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDelta();
+          double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDelta();
+          double[] proposedPosition = add(currentPosition, delta);
           TrustRegion region = getRegionPolicy(layer);
-          if(null != region) {
+          if (null != region) {
             double[][] historyData = history.stream().map((PointSample x) -> x.weights.map.get(layer).getDelta()).toArray(i -> new double[i][]);
-            double[] adjusted = region.project(historyData, projected);
-            if(adjusted != projected) {
-              double[] correction = subtract(adjusted, projected);
-              double correctionMagSq = ArrayUtil.dot(correction,correction);
-              if(0 != correctionMagSq) {
-                double dot = ArrayUtil.dot(delta, correction);
-                double a = dot / correctionMagSq;
-                if(a != -1) {
-                  double[] tangent = add(delta, multiply(correction, -a));
-                  assert(ArrayUtil.dot(tangent, tangent) <= ArrayUtil.dot(delta, delta));
+            double[] projectedPosition = region.project(historyData, proposedPosition);
+            if (projectedPosition != proposedPosition) {
+              for (int i = 0; i < projectedPosition.length; i++) {
+                delta[i] = projectedPosition[i] - currentPosition[i];
+              }
+              double[] normal = subtract(projectedPosition, proposedPosition);
+              double normalMagSq = ArrayUtil.dot(normal, normal);
+//              monitor.log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
+//                ArrayUtil.dot(delta,delta),
+//                ArrayUtil.dot(projectedPosition,projectedPosition),
+//                ArrayUtil.dot(proposedPosition,proposedPosition),
+//                ArrayUtil.dot(currentPosition,currentPosition),
+//                normalMagSq));
+              if (0 < normalMagSq) {
+                double a = ArrayUtil.dot(originalAlphaD, normal);
+                if (a != -1) {
+                  double[] tangent = add(originalAlphaD, multiply(normal, -a / normalMagSq));
                   for (int i = 0; i < tangent.length; i++) {
-                    projected[i] = adjusted[i];
-                    delta[i] = tangent[i];
+                    newAlphaD[i] = tangent[i];
                   }
+//                  double newAlphaDerivSq = ArrayUtil.dot(tangent, tangent);
+//                  double originalAlphaDerivSq = ArrayUtil.dot(originalAlphaD, originalAlphaD);
+//                  assert(newAlphaDerivSq <= originalAlphaDerivSq);
+//                  assert(Math.abs(ArrayUtil.dot(tangent, normal)) <= 1e-4);
+//                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
                 }
               }
+
+
             }
           }
-          for (int i = 0; i < buffer.getDelta().length; i++) {
-            buffer.target[i] = projected[i];
-          }
         });
-        return currentDirection;
+        return newAlphaDerivative;
       }
-  
+
       @Override
       public void reset() {
         cursor.reset();

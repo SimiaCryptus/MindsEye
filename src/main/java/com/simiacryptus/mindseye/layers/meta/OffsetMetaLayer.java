@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,21 +77,21 @@ public class OffsetMetaLayer extends NNLayer {
     int itemCnt = inObj[0].getData().length();
     double scale = inObj[1].getData().get(0).getData()[0];
     Tensor[] tensors = IntStream.range(0, itemCnt)
-                           .parallel()
-                           .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c) -> v + scale))
-                           .toArray(i -> new Tensor[i]);
+                         .parallel()
+                         .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c) -> v + scale))
+                         .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel((v,c) -> v)).toArray(i -> new Tensor[i])));
+          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel((v, c) -> v)).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
           double delta = tensors[0].mapParallel((v, c) -> {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
           }).sum();
           Tensor passback = new Tensor(1);
-          passback.set(0,delta);
+          passback.set(0, delta);
           inObj[1].accumulate(buffer, new TensorArray(passback));
         }
       }

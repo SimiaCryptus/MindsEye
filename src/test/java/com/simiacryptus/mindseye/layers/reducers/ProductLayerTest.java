@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.reducers;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Product layer test.
+ */
 public class ProductLayerTest extends LayerTestBase {
   
   @Override

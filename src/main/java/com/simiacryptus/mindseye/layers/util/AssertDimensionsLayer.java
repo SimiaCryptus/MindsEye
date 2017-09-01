@@ -69,19 +69,19 @@ public class AssertDimensionsLayer extends NNLayer {
   protected AssertDimensionsLayer(JsonObject json) {
     super(json);
     JsonArray dimsJson = json.get("dims").getAsJsonArray();
-    this.dims = IntStream.range(0,dimsJson.size()).map(i->dimsJson.get(i).getAsInt()).toArray();
+    this.dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
   }
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
-    if(0 == array.length) {
+    if (0 == array.length) {
       throw new IllegalArgumentException();
     }
-    if(0 == array[0].getData().length()) {
+    if (0 == array[0].getData().length()) {
       throw new IllegalArgumentException();
     }
     int[] inputDims = array[0].getData().get(0).getDimensions();
-    if(!Arrays.equals(inputDims, dims)) {
+    if (!Arrays.equals(inputDims, dims)) {
       throw new IllegalArgumentException(Arrays.toString(inputDims) + " != " + Arrays.toString(dims));
     }
     return array[0];

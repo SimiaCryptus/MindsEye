@@ -23,13 +23,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.meta.WeightExtractor;
 import com.simiacryptus.mindseye.layers.util.NNLayerWrapper;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,26 +54,26 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     final JsonObject json = super.getJsonStub();
     JsonArray inputs = new JsonArray();
     json.add("inputs", inputs);
-    inputHandles.forEach(uuid->inputs.add(new JsonPrimitive(uuid.toString())));
+    inputHandles.forEach(uuid -> inputs.add(new JsonPrimitive(uuid.toString())));
     JsonObject layerMap = new JsonObject();
     JsonObject nodeMap = new JsonObject();
     JsonObject links = new JsonObject();
     nodesById.values().forEach(node -> {
       JsonArray linkArray = new JsonArray();
-      Arrays.stream(node.getInputs()).forEach((DAGNode input) ->linkArray.add(new JsonPrimitive(input.getId().toString())));
+      Arrays.stream(node.getInputs()).forEach((DAGNode input) -> linkArray.add(new JsonPrimitive(input.getId().toString())));
       NNLayer layer = node.getLayer();
       String nodeId = node.getId().toString();
       String layerId = layer.id.toString();
       nodeMap.addProperty(nodeId, layerId);
       layerMap.add(layerId, layer.getJson());
-      links.add(nodeId,linkArray);
+      links.add(nodeId, linkArray);
     });
     json.add("nodes", nodeMap);
     json.add("layers", layerMap);
     json.add("links", links);
     JsonObject labels = new JsonObject();
-    this.labels.forEach((k,v)->{
-      labels.addProperty(k.toString(),v.toString());
+    this.labels.forEach((k, v) -> {
+      labels.addProperty(k.toString(), v.toString());
     });
     json.add("labels", labels);
     json.addProperty("head", getHead().getId().toString());
@@ -89,7 +89,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     super(json);
     inputHandles = new ArrayList<>();
     inputNodes = new LinkedHashMap<>();
-    for(JsonElement item : json.getAsJsonArray("inputs")) {
+    for (JsonElement item : json.getAsJsonArray("inputs")) {
       UUID key = UUID.fromString(item.getAsString());
       inputHandles.add(key);
       inputNodes.put(key, new InputNode(this, key));
@@ -100,10 +100,10 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     JsonObject jsonLabels = json.getAsJsonObject("labels");
     Map<UUID, NNLayer> source_layersByNodeId = new HashMap<>();
     Map<UUID, NNLayer> source_layersByLayerId = new HashMap<>();
-    for(Entry<String, JsonElement> e : jsonLayers.entrySet()) {
+    for (Entry<String, JsonElement> e : jsonLayers.entrySet()) {
       source_layersByLayerId.put(UUID.fromString(e.getKey()), NNLayer.fromJson(e.getValue().getAsJsonObject()));
     }
-    for(Entry<String, JsonElement> e : jsonNodes.entrySet()) {
+    for (Entry<String, JsonElement> e : jsonNodes.entrySet()) {
       UUID nodeId = UUID.fromString(e.getKey());
       UUID layerId = UUID.fromString(e.getValue().getAsString());
       NNLayer layer = source_layersByLayerId.get(layerId);
@@ -111,26 +111,26 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
       source_layersByNodeId.put(nodeId, layer);
     }
     final LinkedHashMap<String, UUID> labels = new LinkedHashMap<>();
-    for(Entry<String, JsonElement> e : jsonLabels.entrySet()) {
+    for (Entry<String, JsonElement> e : jsonLabels.entrySet()) {
       labels.put(e.getKey(), UUID.fromString(e.getValue().getAsString()));
     }
     Map<UUID, List<UUID>> deserializedLinks = new HashMap<>();
-    for(Entry<String, JsonElement> e : jsonLinks.entrySet()) {
+    for (Entry<String, JsonElement> e : jsonLinks.entrySet()) {
       ArrayList<UUID> linkList = new ArrayList<>();
-      for(JsonElement linkItem : e.getValue().getAsJsonArray()) {
+      for (JsonElement linkItem : e.getValue().getAsJsonArray()) {
         linkList.add(UUID.fromString(linkItem.getAsString()));
       }
       deserializedLinks.put(UUID.fromString(e.getKey()), linkList);
     }
-    for(UUID key : labels.values()) {
+    for (UUID key : labels.values()) {
       initLinks(deserializedLinks, source_layersByNodeId, key);
     }
     UUID head = UUID.fromString(json.getAsJsonPrimitive("head").getAsString());
     initLinks(deserializedLinks, source_layersByNodeId, head);
     this.labels.putAll(labels);
     assertConsistent();
-    for(NNLayer layer : source_layersByNodeId.values()) {
-      if(layer instanceof WeightExtractor) {
+    for (NNLayer layer : source_layersByNodeId.values()) {
+      if (layer instanceof WeightExtractor) {
         WeightExtractor weightExtractor = (WeightExtractor) layer;
         weightExtractor.setInner(source_layersByLayerId.get(weightExtractor.getInnerId()));
       }
@@ -144,10 +144,10 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    */
   protected boolean assertConsistent() {
     assert null != getInput();
-    for(Entry<String, UUID> e : labels.entrySet()) {
+    for (Entry<String, UUID> e : labels.entrySet()) {
       assert (nodesById.containsKey(e.getValue()));
     }
-    for(Entry<UUID, DAGNode> e : nodesById.entrySet()) {
+    for (Entry<UUID, DAGNode> e : nodesById.entrySet()) {
       NNLayer layer = e.getValue().getLayer();
       assert (layersById.containsKey(layer.getId()));
       assert (layersById.get(layer.getId()) == layer);
@@ -156,15 +156,17 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   }
   
   private void initLinks(Map<UUID, List<UUID>> nodeLinks, Map<UUID, NNLayer> layersByNodeId, UUID newNodeId) {
-    if(layersById.containsKey(newNodeId)) return;
-    if(inputNodes.containsKey(newNodeId)) return;
+    if (layersById.containsKey(newNodeId)) return;
+    if (inputNodes.containsKey(newNodeId)) return;
     NNLayer layer = layersByNodeId.get(newNodeId);
-    if(layer == null) {
+    if (layer == null) {
       throw new RuntimeException(String.format("%s is linked to but not defined", newNodeId));
     }
     List<UUID> links = nodeLinks.get(newNodeId);
-    if(null != links) for(UUID link : links) {
-      initLinks(nodeLinks, layersByNodeId, link);
+    if (null != links) {
+      for (UUID link : links) {
+        initLinks(nodeLinks, layersByNodeId, link);
+      }
     }
     assertConsistent();
     DAGNode[] dependencies = getDependencies(nodeLinks, newNodeId);
@@ -176,13 +178,13 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
   private DAGNode[] getDependencies(Map<UUID, List<UUID>> deserializedLinks, UUID e) {
     List<UUID> links = deserializedLinks.get(e);
-    if(null == links) return new DAGNode[]{};
+    if (null == links) return new DAGNode[]{};
     return links.stream().map(id -> getNode(id)).toArray(i -> new DAGNode[i]);
   }
   
   private DAGNode getNode(UUID id) {
     DAGNode returnValue = nodesById.get(id);
-    if(null == returnValue) {
+    if (null == returnValue) {
       returnValue = inputNodes.get(id);
     }
     return returnValue;
@@ -221,10 +223,10 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    * @return the by name
    */
   public <T extends NNLayer> T getByName(String name) {
-    if(null == name) return null;
+    if (null == name) return null;
     AtomicReference<NNLayer> result = new AtomicReference<>();
-    visitLayers(n->{
-      if(name.equals(n.getName())) result.set(n);
+    visitLayers(n -> {
+      if (name.equals(n.getName())) result.set(n);
     });
     return (T) result.get();
   }
@@ -235,12 +237,12 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    * @param visitor the visitor
    */
   public void visitLayers(Consumer<NNLayer> visitor) {
-    layersById.values().forEach(layer->{
-      if(layer instanceof DAGNetwork) {
-        ((DAGNetwork)layer).visitLayers(visitor);
+    layersById.values().forEach(layer -> {
+      if (layer instanceof DAGNetwork) {
+        ((DAGNetwork) layer).visitLayers(visitor);
       }
-      if(layer instanceof NNLayerWrapper) {
-        visitor.accept(((NNLayerWrapper)layer).getInner());
+      if (layer instanceof NNLayerWrapper) {
+        visitor.accept(((NNLayerWrapper) layer).getInner());
       }
       visitor.accept(layer);
     });
@@ -252,9 +254,9 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    * @param visitor the visitor
    */
   public void visitNodes(Consumer<DAGNode> visitor) {
-    nodesById.values().forEach(node->{
-      if(node.getLayer() instanceof DAGNetwork) {
-        ((DAGNetwork)node.getLayer()).visitNodes(visitor);
+    nodesById.values().forEach(node -> {
+      if (node.getLayer() instanceof DAGNetwork) {
+        ((DAGNetwork) node.getLayer()).visitNodes(visitor);
       }
       visitor.accept(node);
     });
@@ -266,9 +268,9 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    * @param obj the obj
    */
   public void attach(MonitoredObject obj) {
-    visitLayers(layer->{
-      if(layer instanceof MonitoredItem) {
-        obj.addObj(layer.getName(),(MonitoredItem)layer);
+    visitLayers(layer -> {
+      if (layer instanceof MonitoredItem) {
+        obj.addObj(layer.getName(), (MonitoredItem) layer);
       }
     });
   }
@@ -317,8 +319,8 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    */
   public List<DAGNode> getNodes() {
     return Stream.concat(
-        nodesById.values().stream(),
-        getInput().stream()
+      nodesById.values().stream(),
+      getInput().stream()
     ).collect(Collectors.toList());
   }
   
@@ -339,7 +341,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    * @return the evaluation context
    */
   public EvaluationContext buildExeCtx(final NNResult... inputs) {
-    assert (inputs.length == inputHandles.size()) : inputs.length +" != "+ inputHandles.size();
+    assert (inputs.length == inputHandles.size()) : inputs.length + " != " + inputHandles.size();
     final EvaluationContext evaluationContext = new EvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
       evaluationContext.cache.put(this.inputHandles.get(i), new CountingNNResult(inputs[i]));
@@ -359,10 +361,12 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
   
   @Override
   public NNLayer getChild(final UUID id) {
-    if (this.id.equals(id))
+    if (this.id.equals(id)) {
       return this;
-    if (this.layersById.containsKey(id))
+    }
+    if (this.layersById.containsKey(id)) {
       return this.layersById.get(id);
+    }
     return this.layersById.values().stream().map(x -> x.getChild(id)).findAny().orElse(null);
   }
   
@@ -450,7 +454,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     final InnerNode node = new InnerNode(this, layer, head);
     this.layersById.put(layer.getId(), layer);
     nodesById.put(node.getId(), node);
-    if(null != label) labels.put(label,node.getId());
+    if (null != label) labels.put(label, node.getId());
     assertConsistent();
     return node;
   }

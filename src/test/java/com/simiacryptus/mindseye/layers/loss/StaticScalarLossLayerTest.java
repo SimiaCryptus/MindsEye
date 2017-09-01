@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.loss;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Static scalar loss layer test.
+ */
 public class StaticScalarLossLayerTest extends LayerTestBase {
   
   @Override

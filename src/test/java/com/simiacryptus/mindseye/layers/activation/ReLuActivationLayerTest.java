@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Re lu activation layer test.
+ */
 public class ReLuActivationLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Re lu activation layer test.
+   */
   public ReLuActivationLayerTest() {
     super(new ReLuActivationLayer());
   }

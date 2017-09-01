@@ -61,8 +61,10 @@ public class SingleOrthant implements TrustRegion {
   public int sign(double weight) {
     if (weight > zeroTol) {
       return 1;
-    } else if (weight < -zeroTol) {
-    } else {
+    }
+    else if (weight < -zeroTol) {
+    }
+    else {
       return -1;
     }
     return 0;

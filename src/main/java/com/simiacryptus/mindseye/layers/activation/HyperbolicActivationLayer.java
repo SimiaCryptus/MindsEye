@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,8 +118,8 @@ public class HyperbolicActivationLayer extends NNLayer {
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       return input.map(v -> {
-        final int sign = v<0?negativeMode:1;
-        final double a = Math.max(0, this.weights.get(v<0?1:0));
+        final int sign = v < 0 ? negativeMode : 1;
+        final double a = Math.max(0, this.weights.get(v < 0 ? 1 : 0));
         return sign * (Math.sqrt(Math.pow(a * v, 2) + 1) - a) / a;
       });
     }).toArray(i -> new Tensor[i]);
@@ -133,7 +137,7 @@ public class HyperbolicActivationLayer extends NNLayer {
    * @return the scale r
    */
   public double getScaleR() {
-    return 1/this.weights.get(0);
+    return 1 / this.weights.get(0);
   }
 
   /**
@@ -142,7 +146,7 @@ public class HyperbolicActivationLayer extends NNLayer {
    * @return the scale l
    */
   public double getScaleL() {
-    return 1/this.weights.get(1);
+    return 1 / this.weights.get(1);
   }
   
   /**
@@ -152,8 +156,8 @@ public class HyperbolicActivationLayer extends NNLayer {
    * @return the scale
    */
   public HyperbolicActivationLayer setScale(double scale) {
-    this.weights.set(0, 1/scale);
-    this.weights.set(1, 1/scale);
+    this.weights.set(0, 1 / scale);
+    this.weights.set(1, 1 / scale);
     return this;
   }
   
@@ -167,7 +171,7 @@ public class HyperbolicActivationLayer extends NNLayer {
     
     @Override
     public void accumulate(final DeltaSet buffer, final TensorList delta) {
-  
+
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
@@ -176,9 +180,9 @@ public class HyperbolicActivationLayer extends NNLayer {
           for (int i = 0; i < deltaData.length; i++) {
             double d = deltaData[i];
             double x = inputData[i];
-            final int sign = x<0?negativeMode:1;
-            double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x<0?1:0]);
-            weightDelta.add(x<0?1:0, -sign * d /(a*a*Math.sqrt(1+Math.pow(a*x,2))));
+            final int sign = x < 0 ? negativeMode : 1;
+            double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x < 0 ? 1 : 0]);
+            weightDelta.add(x < 0 ? 1 : 0, -sign * d / (a * a * Math.sqrt(1 + Math.pow(a * x, 2))));
           }
           buffer.get(HyperbolicActivationLayer.this, HyperbolicActivationLayer.this.weights).accumulate(weightDelta.getData());
         });
@@ -191,9 +195,9 @@ public class HyperbolicActivationLayer extends NNLayer {
           for (int i = 0; i < passback.dim(); i++) {
             double x = this.inObj.getData().get(dataIndex).getData()[i];
             double d = deltaData[i];
-            final int sign = x<0?negativeMode:1;
-            double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x<0?1:0]);
-            passback.set(i, sign * d * a * x / Math.sqrt(1+a * x*a * x));
+            final int sign = x < 0 ? negativeMode : 1;
+            double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x < 0 ? 1 : 0]);
+            passback.set(i, sign * d * a * x / Math.sqrt(1 + a * x * a * x));
           }
           return passback;
         }).toArray(i -> new Tensor[i]);

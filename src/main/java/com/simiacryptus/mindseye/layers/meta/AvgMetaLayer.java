@@ -21,8 +21,12 @@ package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +43,7 @@ public class AvgMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("lastResult", null==lastResult?null:lastResult.getJson());
+    json.add("lastResult", null == lastResult ? null : lastResult.getJson());
     return json;
   }
   
@@ -60,10 +64,11 @@ public class AvgMetaLayer extends NNLayer {
    */
   protected AvgMetaLayer(JsonObject id) {
     super(id);
-    if(!id.isJsonNull() && id.has("lastResult")) {
+    if (!id.isJsonNull() && id.has("lastResult")) {
       JsonElement lastResult = id.get("lastResult");
-      if(null != lastResult && !lastResult.isJsonNull())
+      if (null != lastResult && !lastResult.isJsonNull()) {
         this.lastResult = Tensor.fromJson(lastResult.getAsJsonObject());
+      }
     }
   }
   
@@ -86,9 +91,9 @@ public class AvgMetaLayer extends NNLayer {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
     Tensor result = input.getData().get(0).mapParallel((v, c) ->
-                                                  IntStream.range(0, itemCnt)
-                                                      .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                      .sum() / itemCnt);
+                                                         IntStream.range(0, itemCnt)
+                                                           .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                                                           .sum() / itemCnt);
     lastResult = result;
     return new NNResult(result) {
       @Override
@@ -97,7 +102,7 @@ public class AvgMetaLayer extends NNLayer {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          ((null==result)?lastResult:result).mapParallel((rho, inputCoord) -> {
+          ((null == result) ? lastResult : result).mapParallel((rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }

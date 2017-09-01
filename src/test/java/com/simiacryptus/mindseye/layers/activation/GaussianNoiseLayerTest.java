@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Gaussian noise layer test.
+ */
 public class GaussianNoiseLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Gaussian noise layer test.
+   */
   public GaussianNoiseLayerTest() {
     super(new GaussianNoiseLayer());
   }

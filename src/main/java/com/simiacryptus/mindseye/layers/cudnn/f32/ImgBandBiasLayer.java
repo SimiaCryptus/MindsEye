@@ -20,14 +20,18 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.Delta;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -94,18 +98,18 @@ public class ImgBandBiasLayer extends NNLayer {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.getDimensions();
-    assert(inputSize[2] == bias.length);
+    assert (inputSize[2] == bias.length);
     int[] outputSize = inputSize;
     int length = batch.length();
 
     try {
 
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-  
-      assert(0 < this.bias.length);
+        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
+
+      assert (0 < this.bias.length);
       CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.toFloats(this.bias));
       // Warning: For on-gpu operations, this modifies input mem buffer and can interfere with sibling consumers
       CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
@@ -116,7 +120,7 @@ public class ImgBandBiasLayer extends NNLayer {
           Pointer.to(new float[]{1.0f}),
           inputDescriptor.getPtr(), inputData.getPtr()));
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
+        throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
       }
       filterPtr.finalize();
       TensorList output = CudaPtr.fromDeviceFloat(inputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
@@ -136,9 +140,9 @@ public class ImgBandBiasLayer extends NNLayer {
                 Pointer.to(new float[]{1.0f}),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
+              throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
             }
-            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1,1,inputSize[2]});
+            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
             Delta deltaBuffer = buffer.get(ImgBandBiasLayer.this, ImgBandBiasLayer.this.bias);
             deltaBuffer.accumulate(weightGradient.getData());
@@ -156,7 +160,7 @@ public class ImgBandBiasLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
     }
   }
   
@@ -169,15 +173,15 @@ public class ImgBandBiasLayer extends NNLayer {
   public double[] add(final double[] input) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
     //assert Arrays.stream(input).allMatch(v->Double.isFinite(v));
-    assert(null != input);
+    assert (null != input);
     double[] bias = this.getBias();
     //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
-    assert(null != bias);
-    if(input.length % bias.length != 0) throw new IllegalArgumentException();
+    assert (null != bias);
+    if (input.length % bias.length != 0) throw new IllegalArgumentException();
     final double[] array = new double[input.length];
     int size = input.length / bias.length;
     for (int i = 0; i < array.length; i++) {
-      array[i] = input[i] + bias[i/size];
+      array[i] = input[i] + bias[i / size];
     }
     //assert Arrays.stream(array).allMatch(v->Double.isFinite(v));
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);

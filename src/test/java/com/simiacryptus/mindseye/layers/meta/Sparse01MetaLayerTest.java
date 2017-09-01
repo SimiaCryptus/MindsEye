@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.meta;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Sparse 01 meta layer test.
+ */
 public class Sparse01MetaLayerTest extends LayerTestBase {
   
   @Override

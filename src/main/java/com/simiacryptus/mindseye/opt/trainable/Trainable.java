@@ -35,7 +35,8 @@ public interface Trainable {
   /**
    * Reset to full.
    */
-  default void resetToFull() {}
+  default void resetToFull() {
+  }
   
   /**
    * Reset sampling boolean.
@@ -66,7 +67,7 @@ public interface Trainable {
      * The Rate.
      */
     public double rate;
-  
+    
     /**
      * Instantiates a new Point sample.
      *
@@ -75,9 +76,9 @@ public interface Trainable {
      * @param value   the value
      */
     public PointSample(DeltaSet delta, DeltaSet weights, double value) {
-      this(delta,weights,value, Double.NaN);
+      this(delta, weights, value, Double.NaN);
     }
-  
+    
     /**
      * Instantiates a new Point sample.
      *
@@ -100,7 +101,7 @@ public interface Trainable {
       sb.append('}');
       return sb.toString();
     }
-  
+    
     /**
      * Gets rate.
      *
@@ -109,7 +110,7 @@ public interface Trainable {
     public double getRate() {
       return rate;
     }
-  
+    
     /**
      * Sets rate.
      *
@@ -120,8 +121,8 @@ public interface Trainable {
       this.rate = rate;
       return this;
     }
-  
-  
+    
+    
     /**
      * Copy delta point sample.
      *
@@ -130,7 +131,7 @@ public interface Trainable {
     public PointSample copyDelta() {
       return new PointSample(delta.copy(), weights, value, rate);
     }
-  
+    
     /**
      * Copy full point sample.
      *
@@ -139,14 +140,20 @@ public interface Trainable {
     public PointSample copyFull() {
       return new PointSample(delta.copy(), weights.copy(), value, rate);
     }
-  
+    
     /**
      * Reset.
      */
     public void reset() {
       weights.vector().stream().forEach(d -> d.overwrite());
     }
-  
+    
+    /**
+     * Add point sample.
+     *
+     * @param right the right
+     * @return the point sample
+     */
     public PointSample add(PointSample right) {
       return new PointSample(this.delta.add(right.delta), this.weights, this.value + right.value);
     }

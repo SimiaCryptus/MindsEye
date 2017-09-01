@@ -27,12 +27,12 @@ import java.util.function.ToIntFunction;
  * @param <T> the type parameter
  */
 public class CudaResource<T> {
-
-    private final T ptr;
-    private final ToIntFunction<T> destructor;
-    private volatile boolean finalized = false;
-    //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
-    private final int device = CuDNN.getDevice();
+  
+  private final T ptr;
+  private final ToIntFunction<T> destructor;
+  private volatile boolean finalized = false;
+  //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
+  private final int device = CuDNN.getDevice();
   
   /**
    * Instantiates a new Cu dnn resource.
@@ -41,9 +41,9 @@ public class CudaResource<T> {
    * @param destructor the destructor
    */
   protected CudaResource(T obj, ToIntFunction<T> destructor) {
-        this.ptr = obj;
-        this.destructor = destructor;
-    }
+    this.ptr = obj;
+    this.destructor = destructor;
+  }
   
   /**
    * Is finalized boolean.
@@ -51,28 +51,28 @@ public class CudaResource<T> {
    * @return the boolean
    */
   public boolean isFinalized() {
-        return finalized;
+    return finalized;
+  }
+  
+  @Override
+  public synchronized void finalize() {
+    try {
+      if (!this.finalized) {
+        if (null != this.destructor) free();
+        this.finalized = true;
+      }
+      super.finalize();
+    } catch (Throwable e) {
+      new RuntimeException("Error freeing resource " + this, e).printStackTrace(System.err);
     }
-
-    @Override
-    public synchronized void finalize() {
-        try {
-            if(!this.finalized) {
-                if(null != this.destructor) free();
-                this.finalized = true;
-            }
-            super.finalize();
-        } catch (Throwable e) {
-            new RuntimeException("Error freeing resource " + this, e).printStackTrace(System.err);
-        }
-    }
+  }
   
   /**
    * Free.
    */
   protected void free() {
-        CuDNN.handle(this.destructor.applyAsInt(ptr));
-    }
+    CuDNN.handle(this.destructor.applyAsInt(ptr));
+  }
   
   /**
    * Gets ptr.
@@ -80,7 +80,7 @@ public class CudaResource<T> {
    * @return the ptr
    */
   public T getPtr() {
-        if(isFinalized()) return null;
-        return ptr;
-    }
+    if (isFinalized()) return null;
+    return ptr;
+  }
 }

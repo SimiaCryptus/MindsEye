@@ -87,13 +87,13 @@ public abstract class NNLayerWrapper extends NNLayer {
   
   @Override
   public boolean isFrozen() {
-    if(null == inner) return true;
+    if (null == inner) return true;
     return inner.isFrozen();
   }
   
   @Override
   public NNLayer setFrozen(boolean frozen) {
-    if(inner!=null) inner.setFrozen(frozen);
+    if (inner != null) inner.setFrozen(frozen);
     return this;
   }
 }

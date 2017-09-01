@@ -32,7 +32,7 @@ public class DistanceConstraint implements TrustRegion {
   public double[] project(double[] weights, double[] point) {
     double[] delta = ArrayUtil.subtract(point, weights);
     double distance = ArrayUtil.magnitude(delta);
-    return distance>max?ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)):point;
+    return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
   }
   
   /**

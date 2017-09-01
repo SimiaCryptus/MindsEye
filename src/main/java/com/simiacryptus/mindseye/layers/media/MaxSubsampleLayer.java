@@ -20,11 +20,15 @@
 package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.lang.Tuple2;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +58,7 @@ public class MaxSubsampleLayer extends NNLayer {
    */
   public static MaxSubsampleLayer fromJson(JsonObject json) {
     return new MaxSubsampleLayer(json,
-                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   /**
@@ -117,12 +121,12 @@ public class MaxSubsampleLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-  
+    
     final NNResult in = inObj[0];
     int itemCnt = in.getData().length();
     
     final int[] inputDims = in.getData().get(0).getDimensions();
-      final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxSubsampleLayer.CalcRegionsParameter(inputDims, this.kernelDims));
+    final List<Tuple2<Integer, int[]>> regions = calcRegionsCache.apply(new MaxSubsampleLayer.CalcRegionsParameter(inputDims, this.kernelDims));
     Tensor[] outputA = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       final int[] newDims = IntStream.range(0, inputDims.length).map(i -> {
         return (int) Math.ceil(inputDims[i] * 1.0 / this.kernelDims[i]);
@@ -162,7 +166,7 @@ public class MaxSubsampleLayer extends NNLayer {
             final Tensor backSignal = new Tensor(inputDims);
             int[] ints = gradientMapA[dataIndex];
             Tensor datum = data.get(dataIndex);
-            for(int i=0;i<datum.dim();i++){
+            for (int i = 0; i < datum.dim(); i++) {
               backSignal.add(ints[i], datum.get(i));
             }
             return backSignal;
@@ -195,7 +199,7 @@ public class MaxSubsampleLayer extends NNLayer {
      * The Kernel dims.
      */
     public int[] kernelDims;
-  
+    
     /**
      * Instantiates a new Calc regions parameter.
      *
@@ -209,15 +213,19 @@ public class MaxSubsampleLayer extends NNLayer {
     
     @Override
     public boolean equals(final Object obj) {
-      if (this == obj)
+      if (this == obj) {
         return true;
-      if (obj == null)
+      }
+      if (obj == null) {
         return false;
-      if (getClass() != obj.getClass())
+      }
+      if (getClass() != obj.getClass()) {
         return false;
+      }
       final MaxSubsampleLayer.CalcRegionsParameter other = (MaxSubsampleLayer.CalcRegionsParameter) obj;
-      if (!Arrays.equals(this.inputDims, other.inputDims))
+      if (!Arrays.equals(this.inputDims, other.inputDims)) {
         return false;
+      }
       return Arrays.equals(this.kernelDims, other.kernelDims);
     }
     

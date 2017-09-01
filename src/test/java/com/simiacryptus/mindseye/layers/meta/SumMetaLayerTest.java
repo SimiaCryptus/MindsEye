@@ -23,6 +23,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import org.junit.Ignore;
 
+/**
+ * The type Sum meta layer test.
+ */
 @Ignore
 public class SumMetaLayerTest extends LayerTestBase {
   

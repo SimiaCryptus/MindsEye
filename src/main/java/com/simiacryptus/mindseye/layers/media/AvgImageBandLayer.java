@@ -19,11 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.media;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +51,11 @@ public class AvgImageBandLayer extends NNLayer {
   public static AvgImageBandLayer fromJson(JsonObject json) {
     return new AvgImageBandLayer(json);
   }
-
+  
   /**
    * Instantiates a new Avg image band layer.
    *
-   * @param id         the id
+   * @param id the id
    */
   protected AvgImageBandLayer(JsonObject id) {
     super(id);
@@ -74,20 +76,20 @@ public class AvgImageBandLayer extends NNLayer {
   @SuppressWarnings("unchecked")
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-  
-    assert(1 == inObj.length);
+
+    assert (1 == inObj.length);
     final NNResult in = inObj[0];
     int itemCnt = in.getData().length();
     final int[] inputDims = in.getData().get(0).getDimensions();
-    assert(3 == inputDims.length);
-  
+    assert (3 == inputDims.length);
+
     Tensor[] results = in.getData().stream().map(data -> {
       return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
         int pixels = data.getDimensions()[0] * data.getDimensions()[1];
-        return data.coordStream().filter(e->e.coords[2]==band).mapToDouble(c -> data.get(c)).sum() / pixels;
+        return data.coordStream().filter(e -> e.coords[2] == band).mapToDouble(c -> data.get(c)).sum() / pixels;
       }).toArray());
     }).toArray(i -> new Tensor[i]);
-  
+
     return new NNResult(results) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
@@ -95,15 +97,15 @@ public class AvgImageBandLayer extends NNLayer {
           final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
             int[] inputDim = in.getData().get(dataIndex).getDimensions();
             Tensor backprop = data.get(dataIndex);
-            return new Tensor(inputDim).map((v, c)->{
+            return new Tensor(inputDim).map((v, c) -> {
               int pixels = inputDim[0] * inputDim[1];
-              return backprop.get(0,0,c.coords[2]) / pixels;
+              return backprop.get(0, 0, c.coords[2]) / pixels;
             });
           }).toArray(i -> new Tensor[i]);
           in.accumulate(buffer, new TensorArray(data1));
         }
       }
-    
+
       @Override
       public boolean isAlive() {
         return in.isAlive();
@@ -156,15 +158,19 @@ public class AvgImageBandLayer extends NNLayer {
     
     @Override
     public boolean equals(final Object obj) {
-      if (this == obj)
+      if (this == obj) {
         return true;
-      if (obj == null)
+      }
+      if (obj == null) {
         return false;
-      if (getClass() != obj.getClass())
+      }
+      if (getClass() != obj.getClass()) {
         return false;
+      }
       final AvgImageBandLayer.IndexMapKey other = (AvgImageBandLayer.IndexMapKey) obj;
-      if (!Arrays.equals(this.kernel, other.kernel))
+      if (!Arrays.equals(this.kernel, other.kernel)) {
         return false;
+      }
       return Arrays.equals(this.output, other.output);
     }
     

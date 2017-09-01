@@ -20,10 +20,14 @@
 package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Coordinate;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -85,7 +89,7 @@ public class ConvolutionLayer extends NNLayer {
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this((Tensor)null, (Tensor)null, true);
+    this((Tensor) null, (Tensor) null, true);
   }
   
   /**
@@ -99,10 +103,10 @@ public class ConvolutionLayer extends NNLayer {
     super();
     this.simple = simple;
     this.skip = skip;
-    if(kernel.getDimensions().length != 3) throw new IllegalArgumentException();
-    if(kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
-    if(kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
-    if(kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.kernel = kernel;
   }
   
@@ -127,9 +131,9 @@ public class ConvolutionLayer extends NNLayer {
    * @param simple the simple
    */
   public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
-    this(new Tensor(width,height,bands), new Tensor(new int[]{1,1}), simple);
-    assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
-    assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
+    this(new Tensor(width, height, bands), new Tensor(new int[]{1, 1}), simple);
+    assert (!simple || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
+    assert (!simple || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
   }
   
   /**
@@ -169,7 +173,7 @@ public class ConvolutionLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
@@ -177,21 +181,21 @@ public class ConvolutionLayer extends NNLayer {
     int[] kernelDims = this.kernel.getDimensions();
     ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, simple);
     Tensor[] output = IntStream.range(0, batch.length())
-                           .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
-                           .toArray(i -> new Tensor[i]);
+                        .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
+                        .toArray(i -> new Tensor[i]);
     try {
       double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolutionController.convolve(inputBuffers, this.kernel.getData(), outputBuffers);
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputDims),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputDims), e);
     }
-    assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-  
+    assert Arrays.stream(output).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+
     return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
-        assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
@@ -205,7 +209,7 @@ public class ConvolutionLayer extends NNLayer {
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           convolutionController.backprop(inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
-          assert Arrays.stream(inputBufferTensors).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          assert Arrays.stream(inputBufferTensors).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
           input.accumulate(buffer, new TensorArray(inputBufferTensors));
         }
       }

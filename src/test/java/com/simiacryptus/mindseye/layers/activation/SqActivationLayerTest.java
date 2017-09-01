@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Sq activation layer test.
+ */
 public class SqActivationLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Sq activation layer test.
+   */
   public SqActivationLayerTest() {
     super(new SqActivationLayer());
   }

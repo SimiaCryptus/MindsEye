@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
 
 import java.util.Comparator;
 import java.util.List;
@@ -85,7 +85,7 @@ public class DeltaSet {
    * @return the t
    */
   public <T extends Delta> T get(final NNLayer layer, Supplier<T> factory) {
-    return (T) this.map.computeIfAbsent(layer, l->factory.get());
+    return (T) this.map.computeIfAbsent(layer, l -> factory.get());
   }
   
   /**
@@ -164,7 +164,8 @@ public class DeltaSet {
     return map.entrySet().stream().mapToDouble(entry -> {
       if (right.map.contains(entry.getKey())) {
         return entry.getValue().dot(right.map.get(entry.getKey()));
-      } else {
+      }
+      else {
         return 0;
       }
     }).sum();
@@ -180,8 +181,8 @@ public class DeltaSet {
     DeltaSet returnValue = new DeltaSet();
     map.forEach((layer, buffer) -> {
       returnValue.get(layer, buffer.target)
-          .accumulate(buffer.getDelta())
-          .accumulate(right.get(layer, buffer.target).getDelta());
+        .accumulate(buffer.getDelta())
+        .accumulate(right.get(layer, buffer.target).getDelta());
     });
     return returnValue;
   }
@@ -205,7 +206,7 @@ public class DeltaSet {
     vector().stream().forEach(d -> d.accumulate(alpha));
     return this;
   }
-
+  
   /**
    * Write delta set.
    *
@@ -222,6 +223,6 @@ public class DeltaSet {
    * @return the boolean
    */
   public boolean isDifferent() {
-    return vector().stream().parallel().anyMatch(x-> ! x.areEqual());
+    return vector().stream().parallel().anyMatch(x -> !x.areEqual());
   }
 }

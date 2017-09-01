@@ -19,10 +19,11 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.DerivativeTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Activation layer sigmoid test.
+ */
 public class ActivationLayerSigmoidTest extends F32LayerTestBase {
   
   @Override
@@ -33,7 +34,7 @@ public class ActivationLayerSigmoidTest extends F32LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3,3,2}
+      {3, 3, 2}
     };
   }
 }

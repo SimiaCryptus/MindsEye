@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +75,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
-    assert(0 < itemCnt);
+    assert (0 < itemCnt);
     Tensor inputGradientA[] = new Tensor[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);

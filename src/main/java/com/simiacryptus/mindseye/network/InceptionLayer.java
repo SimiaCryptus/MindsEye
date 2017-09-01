@@ -53,9 +53,9 @@ public class InceptionLayer extends DAGNetwork {
     super(1);
     this.kernels = kernels;
     List<DAGNode> pipelines = new ArrayList<>();
-    for(int[][] kernelPipeline : this.kernels) {
+    for (int[][] kernelPipeline : this.kernels) {
       PipelineNetwork kernelPipelineNetwork = new PipelineNetwork();
-      for(int[] kernel : kernelPipeline) {
+      for (int[] kernel : kernelPipeline) {
         ConvolutionLayer convolutionSynapseLayer = new ConvolutionLayer(kernel[0], kernel[1], kernel[2]);
         convolutionLayers.add(convolutionSynapseLayer);
         kernelPipelineNetwork.add(convolutionSynapseLayer);
@@ -73,7 +73,7 @@ public class InceptionLayer extends DAGNetwork {
    * @return the weights
    */
   public InceptionLayer setWeights(final DoubleSupplier f) {
-    convolutionLayers.forEach(x->x.setWeights(f));
+    convolutionLayers.forEach(x -> x.setWeights(f));
     return this;
   }
   

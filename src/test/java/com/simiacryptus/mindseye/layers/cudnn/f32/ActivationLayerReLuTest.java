@@ -22,8 +22,11 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Activation layer re lu test.
+ */
 public class ActivationLayerReLuTest extends F32LayerTestBase {
-
+  
   @Override
   public NNLayer getLayer() {
     return new ActivationLayer(ActivationLayer.Mode.RELU);
@@ -31,7 +34,7 @@ public class ActivationLayerReLuTest extends F32LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
-    return new int[][]{{1,1,3}};
+    return new int[][]{{1, 1, 3}};
   }
   
   @Override

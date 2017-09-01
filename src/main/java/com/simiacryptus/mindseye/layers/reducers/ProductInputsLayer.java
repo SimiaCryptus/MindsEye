@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.Arrays;
 import java.util.List;
@@ -65,32 +69,33 @@ public class ProductInputsLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     assert inObj.length > 1;
-    for(int i=1;i<inObj.length;i++) {
-      if(Tensor.dim(inObj[0].getData().get(0).getDimensions()) != Tensor.dim(inObj[i].getData().get(0).getDimensions()))
+    for (int i = 1; i < inObj.length; i++) {
+      if (Tensor.dim(inObj[0].getData().get(0).getDimensions()) != Tensor.dim(inObj[i].getData().get(0).getDimensions())) {
         throw new RuntimeException(Arrays.toString(inObj[0].getData().get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].getData().get(0).getDimensions()));
+      }
     }
     TensorList result = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       Stream<Tensor> tensorStream = IntStream.range(0, Math.max(l.length(), r.length())).parallel()
-              .mapToObj(i -> {
-                Tensor left = l.get(Math.min(i, l.length() - 1));
-                Tensor right = r.get(Math.min(i, r.length() - 1));
-                return Tensor.product(left, right);
-              });
-      return new TensorArray(tensorStream.toArray(i->new Tensor[i]));
+                                      .mapToObj(i -> {
+                                        Tensor left = l.get(Math.min(i, l.length() - 1));
+                                        Tensor right = r.get(Math.min(i, r.length() - 1));
+                                        return Tensor.product(left, right);
+                                      });
+      return new TensorArray(tensorStream.toArray(i -> new Tensor[i]));
     }).get();
     return new NNResult(result) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList delta) {
-        assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
             final Tensor[] data1 = IntStream.range(0, input.getData().length()).parallel().mapToObj(i -> {
-              return delta.get(Math.min(i, delta.length())).map((v, c)->{
+              return delta.get(Math.min(i, delta.length())).map((v, c) -> {
                 double v1 = input.getData().get(i).get(c);
                 double r = v * result.get(Math.min(i, result.length())).get(c) / v1;
-                return Double.isFinite(r)?r:0.0;
+                return Double.isFinite(r) ? r : 0.0;
               });
-            }).toArray(i->new Tensor[i]);
+            }).toArray(i -> new Tensor[i]);
             input.accumulate(buffer, new TensorArray(data1));
           }
         }
@@ -99,8 +104,9 @@ public class ProductInputsLayer extends NNLayer {
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
-          if (element.isAlive())
+          if (element.isAlive()) {
             return true;
+          }
         return false;
       }
       

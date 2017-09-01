@@ -45,6 +45,6 @@ public interface TrustRegion {
    * @return the double [ ]
    */
   default double[] project(double[][] history, double[] point) {
-    return project(history[0],point);
+    return project(history[0], point);
   }
 }

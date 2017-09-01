@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,10 +81,12 @@ public class SumMetaLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
-    if(1<itemCnt) lastResult = input.getData().get(0).mapParallel((v, c) ->
-                                                      IntStream.range(0, itemCnt)
+    if (1 < itemCnt) {
+      lastResult = input.getData().get(0).mapParallel((v, c) ->
+                                                        IntStream.range(0, itemCnt)
                                                           .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                                                           .sum());
+    }
     return new NNResult(lastResult) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {

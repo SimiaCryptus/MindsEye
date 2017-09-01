@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,12 +75,12 @@ public class ScaleMetaLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
-    Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c)->v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
+    Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.map((v,c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i])));
+          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.map((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
           Tensor passback = tensors[0].map((v, c) -> {

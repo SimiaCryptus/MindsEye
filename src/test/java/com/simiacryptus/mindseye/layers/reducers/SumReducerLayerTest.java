@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.reducers;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Sum reducer layer test.
+ */
 public class SumReducerLayerTest extends LayerTestBase {
   
   @Override

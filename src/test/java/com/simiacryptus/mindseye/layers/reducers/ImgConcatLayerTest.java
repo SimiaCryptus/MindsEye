@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.reducers;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Img concat layer test.
+ */
 public class ImgConcatLayerTest extends LayerTestBase {
   
   @Override
@@ -32,7 +35,7 @@ public class ImgConcatLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2,2,1},{2,2,1}
+      {2, 2, 1}, {2, 2, 1}
     };
   }
 }

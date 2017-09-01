@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -33,7 +33,7 @@ public class GPUDataMirror {
   private long fingerprint;
   private int[] indicies;
   private volatile CudaPtr ptr;
-
+  
   /**
    * Instantiates a new Gpu data mirror.
    *
@@ -42,7 +42,7 @@ public class GPUDataMirror {
   public GPUDataMirror(int length) {
     this.indicies = IntStream.range(0, 3).map(i -> new Random().nextInt(length)).distinct().limit(3).toArray();
   }
-
+  
   /**
    * Upload cuda ptr.
    *
@@ -52,11 +52,11 @@ public class GPUDataMirror {
    */
   public CudaPtr upload(int device, float[] data) {
     long inputHash = hashFunction(data);
-    if(null != ptr && inputHash == fingerprint) return ptr;
+    if (null != ptr && inputHash == fingerprint) return ptr;
     this.fingerprint = inputHash;
     return ptr = CuDNN.write(device, data);
   }
-
+  
   /**
    * Upload cuda ptr.
    *
@@ -66,11 +66,11 @@ public class GPUDataMirror {
    */
   public CudaPtr upload(int device, double[] data) {
     long inputHash = hashFunction(data);
-    if(null != ptr && inputHash == fingerprint) return ptr;
+    if (null != ptr && inputHash == fingerprint) return ptr;
     this.fingerprint = inputHash;
     return ptr = CuDNN.write(device, data);
   }
-
+  
   /**
    * Upload as floats cuda ptr.
    *
@@ -80,11 +80,11 @@ public class GPUDataMirror {
    */
   public CudaPtr uploadAsFloats(int device, double[] data) {
     long inputHash = hashFunction(data);
-    if(null != ptr && inputHash == fingerprint) return ptr;
+    if (null != ptr && inputHash == fingerprint) return ptr;
     this.fingerprint = inputHash;
     return ptr = CuDNN.write(device, Tensor.toFloats(data));
   }
-
+  
   /**
    * Hash function long.
    *
@@ -92,11 +92,11 @@ public class GPUDataMirror {
    * @return the long
    */
   public long hashFunction(float[] data) {
-    return IntStream.of(indicies).mapToObj(i->data[i])
+    return IntStream.of(indicies).mapToObj(i -> data[i])
              .mapToInt(Float::floatToIntBits)
-             .reduce((a,b)->a^b).getAsInt();
+             .reduce((a, b) -> a ^ b).getAsInt();
   }
-
+  
   /**
    * Hash function long.
    *
@@ -104,8 +104,8 @@ public class GPUDataMirror {
    * @return the long
    */
   public long hashFunction(double[] data) {
-    return IntStream.of(indicies).mapToDouble(i->data[i])
+    return IntStream.of(indicies).mapToDouble(i -> data[i])
              .mapToLong(Double::doubleToLongBits)
-             .reduce((a,b)->a^b).getAsLong();
+             .reduce((a, b) -> a ^ b).getAsLong();
   }
 }

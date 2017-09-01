@@ -19,11 +19,14 @@
 
 package com.simiacryptus.mindseye.layers.loss;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.util.ml.Tensor;
 
+/**
+ * The type Entropy loss layer test.
+ */
 public class EntropyLossLayerTest extends LayerTestBase {
   
   @Override
@@ -34,7 +37,7 @@ public class EntropyLossLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4},{4}
+      {4}, {4}
     };
   }
   
@@ -43,7 +46,7 @@ public class EntropyLossLayerTest extends LayerTestBase {
     return new DerivativeTester(1e-4, 1e-8) {
       @Override
       protected void testFeedback(NNLayer component, int i, Tensor outputPrototype, Tensor... inputPrototype) {
-        if(i == 0) super.testFeedback(component, i, outputPrototype, inputPrototype);
+        if (i == 0) super.testFeedback(component, i, outputPrototype, inputPrototype);
       }
     };
   }

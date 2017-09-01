@@ -23,6 +23,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import org.junit.Ignore;
 
+/**
+ * The type Offset meta layer test.
+ */
 @Ignore
 public class OffsetMetaLayerTest extends LayerTestBase {
   
@@ -34,7 +37,7 @@ public class OffsetMetaLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3},{3}
+      {3}, {3}
     };
   }
 }

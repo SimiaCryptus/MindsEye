@@ -20,10 +20,14 @@
 package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Coordinate;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +54,9 @@ public class MaxImageBandLayer extends NNLayer {
    */
   public static MaxImageBandLayer fromJson(JsonObject json) {
     return new MaxImageBandLayer(json,
-                                 JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
-
+  
   /**
    * Instantiates a new Max image band layer.
    *
@@ -76,19 +80,19 @@ public class MaxImageBandLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-  
-    assert(1 == inObj.length);
+
+    assert (1 == inObj.length);
     final NNResult in = inObj[0];
     int itemCnt = in.getData().length();
     final int[] inputDims = in.getData().get(0).getDimensions();
-    assert(3 == inputDims.length);
-  
+    assert (3 == inputDims.length);
+
     Coordinate[][] maxCoords = in.getData().stream().map(data -> {
       return IntStream.range(0, inputDims[2]).mapToObj(band -> {
-        return data.coordStream().filter(e->e.coords[2]==band).max(Comparator.comparing(c -> data.get(c))).get();
+        return data.coordStream().filter(e -> e.coords[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
     }).toArray(i -> new Coordinate[i][]);
-  
+
     Tensor[] results = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         int[] maxCoord = maxCoords[dataIndex][band].coords;
@@ -104,7 +108,7 @@ public class MaxImageBandLayer extends NNLayer {
             Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
             IntStream.range(0, inputDims[2]).forEach(b -> {
               int[] maxCoord = maxCoords[dataIndex][b].coords;
-              passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0,0,b));
+              passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0, 0, b));
             });
             return passback;
           }).toArray(i -> new Tensor[i]);
@@ -150,15 +154,19 @@ public class MaxImageBandLayer extends NNLayer {
     
     @Override
     public boolean equals(final Object obj) {
-      if (this == obj)
+      if (this == obj) {
         return true;
-      if (obj == null)
+      }
+      if (obj == null) {
         return false;
-      if (getClass() != obj.getClass())
+      }
+      if (getClass() != obj.getClass()) {
         return false;
+      }
       final MaxImageBandLayer.CalcRegionsParameter other = (MaxImageBandLayer.CalcRegionsParameter) obj;
-      if (!Arrays.equals(this.inputDims, other.inputDims))
+      if (!Arrays.equals(this.inputDims, other.inputDims)) {
         return false;
+      }
       return Arrays.equals(this.kernelDims, other.kernelDims);
     }
     

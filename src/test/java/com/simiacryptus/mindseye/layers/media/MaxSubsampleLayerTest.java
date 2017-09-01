@@ -22,17 +22,20 @@ package com.simiacryptus.mindseye.layers.media;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Max subsample layer test.
+ */
 public class MaxSubsampleLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new MaxSubsampleLayer(2,2,1);
+    return new MaxSubsampleLayer(2, 2, 1);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2,2,3}
+      {2, 2, 3}
     };
   }
 }

@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +43,7 @@ public class SoftmaxActivationLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json softmax activation layer.
    *
@@ -49,7 +53,7 @@ public class SoftmaxActivationLayer extends NNLayer {
   public static SoftmaxActivationLayer fromJson(JsonObject json) {
     return new SoftmaxActivationLayer(json);
   }
-
+  
   /**
    * Instantiates a new Softmax activation layer.
    *
@@ -95,15 +99,15 @@ public class SoftmaxActivationLayer extends NNLayer {
         return Double.isFinite(x) ? x : 0;
       });
       assert Arrays.stream(exp.getData()).allMatch(Double::isFinite);
-      assert Arrays.stream(exp.getData()).allMatch(v->v>=0);
+      assert Arrays.stream(exp.getData()).allMatch(v -> v >= 0);
       //assert exp.sum() > 0;
-      double sum = 0<exp.sum()?exp.sum():1;
-      assert(Double.isFinite(sum));
+      double sum = 0 < exp.sum() ? exp.sum() : 1;
+      assert (Double.isFinite(sum));
       expA[dataIndex] = exp;
       sumA[dataIndex] = sum;
       return exp.map(x -> x / sum);
     }).toArray(i -> new Tensor[i]);
-    assert Arrays.stream(outputA).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
@@ -125,7 +129,7 @@ public class SoftmaxActivationLayer extends NNLayer {
             }
             return passback;
           }).toArray(i -> new Tensor[i]);
-          assert Arrays.stream(passbackA).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          assert Arrays.stream(passbackA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
           inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }
       }

@@ -41,9 +41,9 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
    * The type Hash map layer reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
-  
+
     private final HashMap<NNLayer, Double> map = new HashMap<>();
-  
+
     /**
      * Instantiates a new Hash map layer reweighting strategy.
      *
@@ -52,12 +52,12 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
     public HashMapLayerReweightingStrategy(OrientationStrategy inner) {
       super(inner);
     }
-  
+
     @Override
     public Double getRegionPolicy(NNLayer layer) {
       return getMap().get(layer);
     }
-  
+
     /**
      * Gets map.
      *
@@ -66,7 +66,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
     public HashMap<NNLayer, Double> getMap() {
       return map;
     }
-  
+
     @Override
     public void reset() {
       inner.reset();
@@ -95,7 +95,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
     direction.map.forEach((layer, buffer) -> {
       if (null == buffer.getDelta()) return;
       Double weight = getRegionPolicy(layer);
-      if(null != weight && 0 < weight) {
+      if (null != weight && 0 < weight) {
         Delta deltaBuffer = direction.get(layer, buffer.target);
         double[] adjusted = multiply(deltaBuffer.getDelta(), weight);
         for (int i = 0; i < adjusted.length; i++) {

@@ -19,13 +19,13 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.ScalarStatistics;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -61,7 +61,7 @@ public class HoldoverSampleTrainable implements Trainable {
    * @return the holdover sample trainable
    */
   public static HoldoverSampleTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int initialTrainingSize, double initialIncrease, double powerRelation) {
-    return new HoldoverSampleTrainable(trainingData, network, initialTrainingSize,initialIncrease/Math.pow(initialTrainingSize, powerRelation)).setIncreasePower(powerRelation);
+    return new HoldoverSampleTrainable(trainingData, network, initialTrainingSize, initialIncrease / Math.pow(initialTrainingSize, powerRelation)).setIncreasePower(powerRelation);
   }
   
   private final Tensor[][] trainingData;
@@ -96,7 +96,8 @@ public class HoldoverSampleTrainable implements Trainable {
   @Override
   public Trainable.PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
-    NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, input);
+    NNResult result = network.eval(new NNLayer.NNExecutionContext() {
+    }, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
@@ -105,13 +106,13 @@ public class HoldoverSampleTrainable implements Trainable {
     });
     assert (result.getData().stream().allMatch(x -> x.dim() == 1));
     // holdoverData
-    holdoverData = IntStream.range(0, result.getData().length()).mapToObj(x->x)
-                           .sorted(Comparator.comparingDouble(x -> -Arrays.stream(result.getData().get((int) x).getData()).sum()))
-                           .map(i->sampledData[i])
-                           .limit((long) (sampledData.length * holdoverFraction))
-                           .toArray(i -> new Tensor[i][]);
+    holdoverData = IntStream.range(0, result.getData().length()).mapToObj(x -> x)
+                     .sorted(Comparator.comparingDouble(x -> -Arrays.stream(result.getData().get((int) x).getData()).sum()))
+                     .map(i -> sampledData[i])
+                     .limit((long) (sampledData.length * holdoverFraction))
+                     .toArray(i -> new Tensor[i][]);
     ScalarStatistics statistics = new ScalarStatistics();
-    result.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).forEach(x->statistics.add(x));
+    result.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).forEach(x -> statistics.add(x));
     return new Trainable.PointSample(deltaSet, stateSet, statistics.getMean());
   }
   
@@ -154,17 +155,17 @@ public class HoldoverSampleTrainable implements Trainable {
   }
   
   private void refreshSampledData() {
-    this.trainingSize += increaseMultiplier * Math.pow(this.trainingSize,increasePower);
+    this.trainingSize += increaseMultiplier * Math.pow(this.trainingSize, increasePower);
     final Tensor[][] rawData = trainingData;
     assert 0 < rawData.length;
     assert 0 < getTrainingSize();
     Stream<Tensor[]> stream = Arrays.stream(rawData).parallel();
-    if(shuffled) {
+    if (shuffled) {
       stream = stream.sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash));
     }
     this.sampledData = Stream.concat(
-        stream.limit((long) Math.min(Math.max(getTrainingSize(),trainingSizeMin), trainingSizeMax)-holdoverData.length),
-        Arrays.stream(holdoverData)
+      stream.limit((long) Math.min(Math.max(getTrainingSize(), trainingSizeMin), trainingSizeMax) - holdoverData.length),
+      Arrays.stream(holdoverData)
     ).toArray(i -> new Tensor[i][]);
   }
   

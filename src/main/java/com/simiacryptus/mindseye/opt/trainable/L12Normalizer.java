@@ -66,9 +66,9 @@ public abstract class L12Normalizer implements Trainable {
       assert (null != gradientAdj);
     }
     return new Trainable.PointSample(
-                              innerMeasure.delta.add(normalizationVector),
-                              innerMeasure.weights,
-                              innerMeasure.value + (hideAdj?0:valueAdj));
+                                      innerMeasure.delta.add(normalizationVector),
+                                      innerMeasure.weights,
+                                      innerMeasure.value + (hideAdj ? 0 : valueAdj));
   }
   
   /**
@@ -105,12 +105,12 @@ public abstract class L12Normalizer implements Trainable {
    */
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
     return layers.stream()
-               .filter(layer -> {
-                 if (layer instanceof DenseSynapseLayer) return true;
-                 if (layer instanceof ToeplitzSynapseLayer) return true;
-                 return layer instanceof JavaDenseSynapseLayer;
-               })
-               .collect(Collectors.toList());
+             .filter(layer -> {
+               if (layer instanceof DenseSynapseLayer) return true;
+               if (layer instanceof ToeplitzSynapseLayer) return true;
+               return layer instanceof JavaDenseSynapseLayer;
+             })
+             .collect(Collectors.toList());
   }
   
 }

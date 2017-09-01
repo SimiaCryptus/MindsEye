@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -26,11 +27,9 @@ import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.orient.OwlQn;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -44,15 +43,17 @@ public class SingleOrthantTrustRegionTest extends MnistTestBase {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 10000);
+      TrustRegionStrategy trustRegionStrategy = new TrustRegionStrategy() {
+        @Override
+        public TrustRegion getRegionPolicy(NNLayer layer) {
+          return new SingleOrthant();
+        }
+      };
       return new IterativeTrainer(trainable)
                .setIterationsPerSample(100)
                .setMonitor(monitor)
-               .setOrientation(new TrustRegionStrategy() {
-                 @Override
-                 public TrustRegion getRegionPolicy(NNLayer layer) {
-                   return new SingleOrthant();
-                 }
-               })
+               //.setOrientation(new ValidatingOrientationStrategy(trustRegionStrategy))
+               .setOrientation(trustRegionStrategy)
                .setTimeout(3, TimeUnit.MINUTES)
                .setMaxIterations(500)
                .run();

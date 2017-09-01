@@ -19,13 +19,13 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,14 +52,7 @@ public class GpuTrainable implements Trainable {
    * The Sampled data.
    */
   protected List<Tensor[]> sampledData;
-  /**
-   * The Last ptr.
-   */
-  protected PointSample lastPtr;
-  /**
-   * The Last weights.
-   */
-  protected DeltaSet lastWeights;
+  
   private boolean verbose = false;
   
   /**
@@ -84,19 +77,13 @@ public class GpuTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    if(null != lastWeights && !lastWeights.isDifferent()) {
-      if(isVerbose()) System.out.println(String.format("Returning cached value"));
-      return lastPtr;
-    }
     PointSample result = GpuController.INSTANCE.distribute(sampledData,
       (list, dev) -> eval(NNResult.batchResultArray(list.stream().toArray(i1 -> new Tensor[i1][])), dev),
       (a, b) -> a.add(b)
     );
     // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
     // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
-    if(gcEachIteration) GpuController.INSTANCE.cleanMemory();
-    this.lastWeights = result.weights.copy();
-    this.lastPtr = result;
+    if (gcEachIteration) GpuController.INSTANCE.cleanMemory();
     return result;
   }
   
@@ -149,7 +136,7 @@ public class GpuTrainable implements Trainable {
    */
   protected void setSampledData(List<? extends Supplier<Tensor[]>> sampledData) {
     this.sampledData = sampledData.stream().parallel()
-                         .map(x->x.get())
+                         .map(x -> x.get())
                          .collect(Collectors.toList());
   }
   

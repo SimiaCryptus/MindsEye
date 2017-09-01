@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Log activation layer test.
+ */
 public class LogActivationLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Log activation layer test.
+   */
   public LogActivationLayerTest() {
     super(new LogActivationLayer());
   }

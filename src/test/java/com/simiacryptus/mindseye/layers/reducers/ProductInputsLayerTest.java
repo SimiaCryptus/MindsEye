@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.reducers;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Product inputs layer test.
+ */
 public class ProductInputsLayerTest extends LayerTestBase {
   
   @Override
@@ -32,7 +35,7 @@ public class ProductInputsLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3},{3}
+      {3}, {3}
     };
   }
 }

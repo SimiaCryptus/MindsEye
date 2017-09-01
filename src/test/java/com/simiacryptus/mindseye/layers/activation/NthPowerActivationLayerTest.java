@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Nth power activation layer test.
+ */
 public class NthPowerActivationLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Nth power activation layer test.
+   */
   public NthPowerActivationLayerTest() {
     super(new NthPowerActivationLayer());
   }

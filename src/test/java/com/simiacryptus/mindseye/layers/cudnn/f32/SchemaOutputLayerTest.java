@@ -19,20 +19,22 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Schema output layer test.
+ */
 public class SchemaOutputLayerTest extends F32LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new SchemaOutputLayer(2, -3).setSchema("test1","test2");
+    return new SchemaOutputLayer(2, -3).setSchema("test1", "test2");
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3,3,2}
+      {3, 3, 2}
     };
   }
 }

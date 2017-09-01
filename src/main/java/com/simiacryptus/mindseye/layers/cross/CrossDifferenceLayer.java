@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.cross;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.Arrays;
 import java.util.List;
@@ -63,46 +67,47 @@ public class CrossDifferenceLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert(1 == inObj.length);
-    return new NNResult(inObj[0].getData().stream().parallel().map(tensor->{
+    assert (1 == inObj.length);
+    return new NNResult(inObj[0].getData().stream().parallel().map(tensor -> {
       int inputDim = tensor.dim();
       int outputDim = (inputDim * inputDim - inputDim) / 2;
       Tensor result = new Tensor(outputDim);
       double[] inputData = tensor.getData();
       double[] resultData = result.getData();
-      IntStream.range(0, inputDim).forEach(x->{
-        IntStream.range(x+1, inputDim).forEach(y->{
-          resultData[index(x,y,inputDim)] = inputData[x] - inputData[y];
+      IntStream.range(0, inputDim).forEach(x -> {
+        IntStream.range(x + 1, inputDim).forEach(y -> {
+          resultData[index(x, y, inputDim)] = inputData[x] - inputData[y];
         });
       });
       return result;
-    }).toArray(i->new Tensor[i])) {
+    }).toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         final NNResult input = inObj[0];
         if (input.isAlive()) {
-          input.accumulate(buffer, new TensorArray(data.stream().parallel().map(tensor->{
+          input.accumulate(buffer, new TensorArray(data.stream().parallel().map(tensor -> {
             int outputDim = tensor.dim();
-            int inputDim = (1+(int)Math.sqrt(1+8 * outputDim))/2;
+            int inputDim = (1 + (int) Math.sqrt(1 + 8 * outputDim)) / 2;
             Tensor passback = new Tensor(inputDim);
             double[] passbackData = passback.getData();
             double[] tensorData = tensor.getData();
-            IntStream.range(0, inputDim).forEach(x->{
-              IntStream.range(x+1, inputDim).forEach(y->{
-                passbackData[x] += tensorData[index(x,y,inputDim)];
-                passbackData[y] += -tensorData[index(x,y,inputDim)];
+            IntStream.range(0, inputDim).forEach(x -> {
+              IntStream.range(x + 1, inputDim).forEach(y -> {
+                passbackData[x] += tensorData[index(x, y, inputDim)];
+                passbackData[y] += -tensorData[index(x, y, inputDim)];
               });
             });
             return passback;
-          }).toArray(i->new Tensor[i])));
+          }).toArray(i -> new Tensor[i])));
         }
       }
       
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
-          if (element.isAlive())
+          if (element.isAlive()) {
             return true;
+          }
         return false;
       }
       
@@ -123,7 +128,7 @@ public class CrossDifferenceLayer extends NNLayer {
    * @return the int
    */
   public static int index(int x, int y, int max) {
-    return (max *(max -1)/2) - (max - x)*((max - x)-1)/2 + y - x - 1;
+    return (max * (max - 1) / 2) - (max - x) * ((max - x) - 1) / 2 + y - x - 1;
   }
   
 }

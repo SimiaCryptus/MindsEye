@@ -22,11 +22,14 @@ package com.simiacryptus.mindseye.layers.synapse;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Dense synapse layer test.
+ */
 public class DenseSynapseLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new DenseSynapseLayer(new int[]{3},new int[]{3});
+    return new DenseSynapseLayer(new int[]{3}, new int[]{3});
   }
   
   @Override

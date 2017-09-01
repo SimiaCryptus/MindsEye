@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.util;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Monitoring wrapper test.
+ */
 public class MonitoringWrapperTest extends LayerTestBase {
   
   @Override

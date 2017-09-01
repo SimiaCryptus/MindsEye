@@ -58,7 +58,7 @@ public class LayerRateDiagnosticTrainer {
      * The Delta.
      */
     public final double delta;
-  
+    
     /**
      * Instantiates a new Layer stats.
      *
@@ -69,7 +69,7 @@ public class LayerRateDiagnosticTrainer {
       this.rate = rate;
       this.delta = delta;
     }
-  
+    
     @Override
     public String toString() {
       final StringBuffer sb = new StringBuffer("{");
@@ -89,7 +89,7 @@ public class LayerRateDiagnosticTrainer {
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
   private boolean strict = false;
-  private final Map<NNLayer,LayerStats> layerRates = new HashMap<>();
+  private final Map<NNLayer, LayerStats> layerRates = new HashMap<>();
   
   /**
    * Instantiates a new Layer rate diagnostic trainer.
@@ -132,13 +132,15 @@ public class LayerRateDiagnosticTrainer {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
     ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.map.keySet());
-    mainLoop: while (timeoutMs > System.currentTimeMillis() && measure.value > terminateThreshold) {
-      if(currentIteration.get() > maxIterations) break;
+    mainLoop:
+    while (timeoutMs > System.currentTimeMillis() && measure.value > terminateThreshold) {
+      if (currentIteration.get() > maxIterations) break;
       final PointSample initialPhasePoint = measure();
       
       measure = initialPhasePoint;
-      subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
-        if(currentIteration.incrementAndGet() > maxIterations) break;
+      subiterationLoop:
+      for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
+        if (currentIteration.incrementAndGet() > maxIterations) break;
         
         {
           SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
@@ -147,9 +149,9 @@ public class LayerRateDiagnosticTrainer {
           DeltaSet pointA = orient.step(0.0, monitor).point.delta.copy();
           DeltaSet d1 = pointA;
           DeltaSet d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
-          Map<NNLayer,Double> steps = new HashMap<>();
+          Map<NNLayer, Double> steps = new HashMap<>();
           double overallStepEstimate = d1.getMagnitude() / d2.getMagnitude();
-          for(NNLayer layer : layers) {
+          for (NNLayer layer : layers) {
             Delta a = d2.get(layer, (double[]) null);
             Delta b = d1.get(layer, (double[]) null);
             double bmag = Math.sqrt(b.sumSq());
@@ -161,40 +163,43 @@ public class LayerRateDiagnosticTrainer {
           }
           monitor.log(String.format("Estimated ideal rates for layers: %s (%s overall; probed at %s)", steps, overallStepEstimate, stepSize));
         }
-  
-  
+        
+        
         SimpleLineSearchCursor bestOrient = null;
         PointSample bestPoint = null;
-        layerLoop: for(NNLayer layer : layers) {
+        layerLoop:
+        for (NNLayer layer : layers) {
           SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           DeltaSet direction = filterDirection(orient.direction, layer);
-          if(direction.getMagnitude() == 0) {
+          if (direction.getMagnitude() == 0) {
             monitor.log(String.format("Zero derivative for layer %s; skipping", layer));
             continue layerLoop;
           }
           orient = new SimpleLineSearchCursor(orient.subject, orient.origin, direction);
           PointSample previous = measure;
           measure = getLineSearchStrategy().step(orient, monitor);
-          if(isStrict()) {
+          if (isStrict()) {
             monitor.log(String.format("Iteration %s reverting. Error: %s", currentIteration.get(), measure.value));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
-            if(null == bestPoint || bestPoint.value < measure.value) {
+            if (null == bestPoint || bestPoint.value < measure.value) {
               bestOrient = orient;
               bestPoint = measure;
             }
-            getLayerRates().put(layer, new LayerStats(measure.getRate(),initialPhasePoint.value-measure.value));
+            getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.value - measure.value));
             orient.step(0, monitor);
             measure = previous;
-          } else if(previous.value == measure.value) {
+          }
+          else if (previous.value == measure.value) {
             monitor.log(String.format("Iteration %s failed. Error: %s", currentIteration.get(), measure.value));
-          } else {
+          }
+          else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.value));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
-            getLayerRates().put(layer, new LayerStats(measure.getRate(),initialPhasePoint.value-measure.value));
+            getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.value - measure.value));
           }
         }
         monitor.log(String.format("Ideal rates: %s", getLayerRates()));
-        if(null != bestPoint) {
+        if (null != bestPoint) {
           bestOrient.step(bestPoint.rate, monitor);
         }
         monitor.onStepComplete(new Step(measure, currentIteration.get()));
@@ -214,8 +219,8 @@ public class LayerRateDiagnosticTrainer {
   
   private DeltaSet filterDirection(DeltaSet direction, NNLayer layer) {
     DeltaSet maskedDelta = new DeltaSet();
-    direction.map.forEach((layer2,delta)->maskedDelta.get(layer2,delta.target));
-    maskedDelta.get(layer,layer.state().get(0)).accumulate(direction.get(layer, (double[]) null).getDelta());
+    direction.map.forEach((layer2, delta) -> maskedDelta.get(layer2, delta.target));
+    maskedDelta.get(layer, layer.state().get(0)).accumulate(direction.get(layer, (double[]) null).getDelta());
     return maskedDelta;
   }
   
@@ -228,7 +233,7 @@ public class LayerRateDiagnosticTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if(!subject.resetSampling() && retries>0) throw new RuntimeException();
+      if (!subject.resetSampling() && retries > 0) throw new RuntimeException();
       if (10 < retries++) throw new RuntimeException();
       currentPoint = subject.measure();
     } while (!Double.isFinite(currentPoint.value));

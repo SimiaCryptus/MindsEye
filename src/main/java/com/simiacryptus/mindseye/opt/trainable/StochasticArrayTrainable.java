@@ -19,11 +19,10 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Tensor;
-import com.simiacryptus.util.ml.WeakCachedSupplier;
+import com.simiacryptus.util.function.WeakCachedSupplier;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -36,10 +35,11 @@ import java.util.stream.Collectors;
  * <p>
  * TODO: Redesign this package. This class is absorbing too many features.
  */
-public class StochasticArrayTrainable extends GpuTrainable {
+public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
   
   private static final int LOW_MEM_USE = 4 * 1024 * 1024 * 1024;
   private final List<? extends Supplier<Tensor[]>> trainingData;
+  private final int trainingSize;
   private long hash = Util.R.get().nextLong();
   
   /**
@@ -50,9 +50,9 @@ public class StochasticArrayTrainable extends GpuTrainable {
    * @param trainingSize the training size
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
-    super(network);
-    if(0 == trainingData.length) throw new IllegalArgumentException();
-    this.trainingData = Arrays.stream(trainingData).map(obj->new WeakCachedSupplier<Tensor[]>(()->obj)).collect(Collectors.toList());
+    super(new GpuTrainable(network));
+    if (0 == trainingData.length) throw new IllegalArgumentException();
+    this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<Tensor[]>(() -> obj)).collect(Collectors.toList());
     this.trainingSize = trainingSize;
     resetSampling();
   }
@@ -77,8 +77,8 @@ public class StochasticArrayTrainable extends GpuTrainable {
    * @param batchSize    the batch size
    */
   public StochasticArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize, int batchSize) {
-    super(network);
-    if(0 == trainingData.size()) throw new IllegalArgumentException();
+    super(new GpuTrainable(network));
+    if (0 == trainingData.size()) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.trainingSize = trainingSize;
     resetSampling();
@@ -86,7 +86,7 @@ public class StochasticArrayTrainable extends GpuTrainable {
   
   @Override
   public void resetToFull() {
-    this.setSampledData(trainingData.stream().collect(Collectors.toList()));
+    inner.setSampledData(trainingData.stream().collect(Collectors.toList()));
   }
   
   @Override
@@ -111,7 +111,7 @@ public class StochasticArrayTrainable extends GpuTrainable {
    * @return the training size
    */
   public StochasticArrayTrainable setTrainingSize(final int trainingSize) {
-    this.trainingSize = trainingSize;
+    inner.trainingSize = trainingSize;
     refreshSampledData();
     return this;
   }
@@ -126,12 +126,10 @@ public class StochasticArrayTrainable extends GpuTrainable {
    * Refresh sampled data.
    */
   protected void refreshSampledData() {
-    lastPtr = null;
-    lastWeights = null;
     assert 0 < trainingData.size();
     assert 0 < getTrainingSize();
-    this.setSampledData(trainingData.stream().parallel() //
-                           .filter(x->x!=null && x.get()!=null)
+    inner.setSampledData(trainingData.stream().parallel() //
+                           .filter(x -> x != null && x.get() != null)
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
                            .limit(getTrainingSize()) //
                            .collect(Collectors.toList()));

@@ -17,9 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
-
-import com.simiacryptus.util.ml.Tensor;
+package com.simiacryptus.mindseye.data;
 
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -64,11 +62,11 @@ public interface TensorList {
    * @return the tensor list
    */
   default TensorList add(TensorList right) {
-    assert(length() == right.length());
+    assert (length() == right.length());
     return new TensorArray(
-                            IntStream.range(0, length()).mapToObj(i->{
+                            IntStream.range(0, length()).mapToObj(i -> {
                               return get(i).add(right.get(i));
-                            }).toArray(i->new Tensor[i])
+                            }).toArray(i -> new Tensor[i])
     );
   }
   
@@ -78,10 +76,10 @@ public interface TensorList {
    * @param right the right
    */
   default void accum(TensorList right) {
-    if(right.length() == 0) return;
-    if(this.length() == 0) throw new RuntimeException();
-    assert(length() == right.length());
-    IntStream.range(0, length()).forEach(i->{
+    if (right.length() == 0) return;
+    if (this.length() == 0) throw new RuntimeException();
+    assert (length() == right.length());
+    IntStream.range(0, length()).forEach(i -> {
       get(i).accum(right.get(i));
     });
   }
@@ -93,7 +91,7 @@ public interface TensorList {
    */
   default TensorList copy() {
     return new TensorArray(
-      IntStream.range(0, length()).mapToObj(i-> get(i).copy()).toArray(i->new Tensor[i])
+                            IntStream.range(0, length()).mapToObj(i -> get(i).copy()).toArray(i -> new Tensor[i])
     );
   }
   

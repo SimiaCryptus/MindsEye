@@ -17,9 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
-
-import com.simiacryptus.util.ml.Tensor;
+package com.simiacryptus.mindseye.data;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -29,7 +27,7 @@ import java.util.stream.Stream;
  */
 public class TensorArray implements TensorList {
   private final Tensor[] data;
-
+  
   /**
    * Instantiates a new Tensor array.
    *
@@ -38,12 +36,21 @@ public class TensorArray implements TensorList {
   public TensorArray(Tensor... data) {
     this.data = data;
   }
+  
   @Override
-  public Tensor get(int i) { return data[i]; }
+  public Tensor get(int i) {
+    return data[i];
+  }
+  
   @Override
-  public int length() { return data.length; }
+  public int length() {
+    return data.length;
+  }
+  
   @Override
-  public Stream<Tensor> stream() { return Arrays.stream(data); }
+  public Stream<Tensor> stream() {
+    return Arrays.stream(data);
+  }
   
   @Override
   public int[] getDimensions() {

@@ -20,15 +20,15 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnActivationDescriptor;
@@ -84,7 +84,7 @@ public class ActivationLayer extends NNLayer {
 
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.addProperty("mode",mode);
+    json.addProperty("mode", mode);
     return json;
   }
   
@@ -135,19 +135,19 @@ public class ActivationLayer extends NNLayer {
     try {
 
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-  
+        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+
       CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.FLOAT * 1l * inputDims * length);
       CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
       try {
         CuDNN.handle(cudnnActivationForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, activationDesc.getPtr(),
-                Pointer.to(new float[]{1.0f}),
-                inputDescriptor.getPtr(), inputData.getPtr(),
+          Pointer.to(new float[]{1.0f}),
+          inputDescriptor.getPtr(), inputData.getPtr(),
           Pointer.to(new float[]{0.0f}),
-                inputDescriptor.getPtr(), outputData.getPtr()));
+          inputDescriptor.getPtr(), outputData.getPtr()));
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
+        throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
       }
       TensorList output = CudaPtr.fromDeviceFloat(outputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
@@ -162,14 +162,14 @@ public class ActivationLayer extends NNLayer {
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.FLOAT * length);
             try {
               CuDNN.handle(cudnnActivationBackward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, activationDesc.getPtr(),
-                      Pointer.to(new float[]{1.0f}),
-                      inputDescriptor.getPtr(), outputData.getPtr(),
-                      inputDescriptor.getPtr(), errorPtr.getPtr(),
-                      inputDescriptor.getPtr(), inputData.getPtr(),
-                      Pointer.to(new float[]{0.0f}),
-                      inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+                Pointer.to(new float[]{1.0f}),
+                inputDescriptor.getPtr(), outputData.getPtr(),
+                inputDescriptor.getPtr(), errorPtr.getPtr(),
+                inputDescriptor.getPtr(), inputData.getPtr(),
+                Pointer.to(new float[]{0.0f}),
+                inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(inputSize),e);
+              throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
             }
             input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle));
             passbackBuffer.finalize();
@@ -183,7 +183,7 @@ public class ActivationLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
     }
   }
 

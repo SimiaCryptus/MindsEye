@@ -21,8 +21,9 @@ package com.simiacryptus.mindseye.layers;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -57,10 +58,12 @@ public abstract class NNLayer implements Serializable {
    * @param json the json
    */
   protected NNLayer(JsonObject json) {
-    if(!getClass().getCanonicalName().equals(json.get("class").getAsString())) throw new IllegalArgumentException(getClass().getCanonicalName() +" != " + json.get("class").getAsString());
+    if (!getClass().getCanonicalName().equals(json.get("class").getAsString())) {
+      throw new IllegalArgumentException(getClass().getCanonicalName() + " != " + json.get("class").getAsString());
+    }
     this.id = UUID.fromString(json.get("id").getAsString());
-    if(json.has("isFrozen")) setFrozen(json.get("isFrozen").getAsBoolean());
-    if(json.has("name")) setName(json.get("name").getAsString());
+    if (json.has("isFrozen")) setFrozen(json.get("isFrozen").getAsBoolean());
+    if (json.has("name")) setName(json.get("name").getAsString());
   }
   
   /**
@@ -73,18 +76,24 @@ public abstract class NNLayer implements Serializable {
   
   @Override
   public boolean equals(final Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     final NNLayer other = (NNLayer) obj;
     if (this.id == null) {
-      if (other.id != null)
+      if (other.id != null) {
         return false;
-    } else if (!this.id.equals(other.id))
+      }
+    }
+    else if (!this.id.equals(other.id)) {
       return false;
+    }
     return true;
   }
   
@@ -135,8 +144,9 @@ public abstract class NNLayer implements Serializable {
    * @return the child
    */
   public NNLayer getChild(final UUID id) {
-    if (this.id.equals(id))
+    if (this.id.equals(id)) {
       return this;
+    }
     return null;
   }
   
@@ -168,9 +178,9 @@ public abstract class NNLayer implements Serializable {
     String className = inner.get("class").getAsString();
     try {
       Class<?> clazz = Class.forName(className);
-      if(null == clazz) throw new ClassNotFoundException(className);
+      if (null == clazz) throw new ClassNotFoundException(className);
       Method method = clazz.getMethod("fromJson", JsonObject.class);
-      if(method.getDeclaringClass() == NNLayer.class) throw new RuntimeException(className);
+      if (method.getDeclaringClass() == NNLayer.class) throw new RuntimeException(className);
       return (NNLayer) method.invoke(null, inner);
     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
@@ -281,7 +291,7 @@ public abstract class NNLayer implements Serializable {
    * The type Const nn result.
    */
   public static final class ConstNNResult extends NNResult {
-  
+    
     /**
      * Instantiates a new Const nn result.
      *

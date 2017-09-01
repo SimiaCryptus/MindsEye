@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Entropy layer test.
+ */
 public class EntropyLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Entropy layer test.
+   */
   public EntropyLayerTest() {
     super(new EntropyLayer());
   }

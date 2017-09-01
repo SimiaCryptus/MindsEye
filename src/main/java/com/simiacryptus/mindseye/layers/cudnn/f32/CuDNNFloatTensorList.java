@@ -19,12 +19,12 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.TensorArray;
-import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -69,7 +69,7 @@ public class CuDNNFloatTensorList implements TensorList {
     this.dimensions = dimensions;
     this.cudnnHandle = cudnnHandle;
     assert (ptr.size == length * 1l * Tensor.dim(dimensions) * Sizeof.FLOAT);
-    assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
   }
   
   private volatile TensorList _inner = null;
@@ -130,10 +130,10 @@ public class CuDNNFloatTensorList implements TensorList {
   
   @Override
   public TensorList add(TensorList right) {
-    assert(length() == right.length());
-    if(right instanceof CuDNNFloatTensorList) {
+    assert (length() == right.length());
+    if (right instanceof CuDNNFloatTensorList) {
       CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
-      assert(cudnnHandle == nativeRight.cudnnHandle);
+      assert (cudnnHandle == nativeRight.cudnnHandle);
       CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(cudnnAddTensor(cudnnHandle,
         Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
@@ -143,26 +143,27 @@ public class CuDNNFloatTensorList implements TensorList {
       return this;
     }
     return new TensorArray(
-                            IntStream.range(0, length()).mapToObj(i->{
+                            IntStream.range(0, length()).mapToObj(i -> {
                               return get(i).add(right.get(i));
-                            }).toArray(i->new Tensor[i])
+                            }).toArray(i -> new Tensor[i])
     );
   }
   
   @Override
   public void accum(TensorList right) {
-    assert(length() == right.length());
-    if(right instanceof CuDNNFloatTensorList) {
+    assert (length() == right.length());
+    if (right instanceof CuDNNFloatTensorList) {
       CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
-      assert(cudnnHandle == nativeRight.cudnnHandle);
+      assert (cudnnHandle == nativeRight.cudnnHandle);
       CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(cudnnAddTensor(cudnnHandle,
         Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
         Pointer.to(new float[]{1.0f}), size.getPtr(), CuDNNFloatTensorList.this.ptr.getPtr()));
       size.finalize();
       nativeRight.ptr.finalize(); // Make this function destructive to both arguments
-    } else {
-      IntStream.range(0, length()).forEach(i->{
+    }
+    else {
+      IntStream.range(0, length()).forEach(i -> {
         get(i).accum(right.get(i));
       });
     }

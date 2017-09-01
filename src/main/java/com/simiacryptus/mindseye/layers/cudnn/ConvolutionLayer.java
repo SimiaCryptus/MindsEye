@@ -20,10 +20,14 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Coordinate;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -93,7 +97,7 @@ public class ConvolutionLayer extends NNLayer {
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this((Tensor)null, (Tensor)null, true);
+    this((Tensor) null, (Tensor) null, true);
   }
   
   /**
@@ -107,10 +111,10 @@ public class ConvolutionLayer extends NNLayer {
     super();
     this.simple = simple;
     this.skip = skip;
-    if(kernel.getDimensions().length != 3) throw new IllegalArgumentException();
-    if(kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
-    if(kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
-    if(kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.kernel = kernel;
   }
   
@@ -135,9 +139,9 @@ public class ConvolutionLayer extends NNLayer {
    * @param simple the simple
    */
   public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
-    this(new Tensor(width,height,bands), new Tensor(new int[]{1,1}), simple);
-    assert(!simple || 0 == (width-1) % 2) : "Simple kernels must have odd width";
-    assert(!simple || 0 == (height-1) % 2) : "Simple kernels must have odd height";
+    this(new Tensor(width, height, bands), new Tensor(new int[]{1, 1}), simple);
+    assert (!simple || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
+    assert (!simple || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
   }
   
   /**
@@ -188,9 +192,11 @@ public class ConvolutionLayer extends NNLayer {
       int x;
       if (i == kernelSize.length - 1) {
         x = kernelSize[i] / inputSize[i];
-      } else if(simple) {
+      }
+      else if (simple) {
         x = inputSize[i];
-      } else {
+      }
+      else {
         x = 1 + inputSize[i] - kernelSize[i];
       }
       if (0 >= x) {
@@ -199,17 +205,17 @@ public class ConvolutionLayer extends NNLayer {
       return x;
     }).toArray();
     Tensor[] output = IntStream.range(0, batch.length())
-                           .mapToObj(dataIndex -> new Tensor(outputSize))
-                           .toArray(i -> new Tensor[i]);
+                        .mapToObj(dataIndex -> new Tensor(outputSize))
+                        .toArray(i -> new Tensor[i]);
     try {
       double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolve(((CudaExecutionContext) nncontext).getDeviceNumber(), inputSize, kernelSize, outputSize, simple, inputBuffers, this.kernel.getData(), outputBuffers, (CudaExecutionContext) nncontext);
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize),e);
+      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
     }
     //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-  
+
     return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -291,7 +297,7 @@ public class ConvolutionLayer extends NNLayer {
    */
   public static void backprop(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
-    assert(length == output.length);
+    assert (length == output.length);
     int inLength = input[0].length;
     int outLength = output[0].length;
     int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
@@ -300,43 +306,43 @@ public class ConvolutionLayer extends NNLayer {
     double[] inputBuffer = null;
     double[] outputBuffer = null;
     CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
-            CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+      CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
     CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-            simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
-            1, 1,
-            CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
+      simple ? ((kernelSize[1] - 1) / 2) : 0, simple ? ((kernelSize[0] - 1) / 2) : 0,
+      1, 1,
+      CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
     CudaPtr filterData = CuDNN.write(deviceId, weights);
-    for(int run=0;run<runs;run++) {
+    for (int run = 0; run < runs; run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+      if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);
       }
-      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+      if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
         Tensor.recycle(outputBuffer);
         outputBuffer = Tensor.obtain(outLength * currentNumItems);
       }
-      for (int i = 0; i< currentNumItems; i++) {
-        assert outLength == output[currentIndexOffset+i].length;
-        System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
+      for (int i = 0; i < currentNumItems; i++) {
+        assert outLength == output[currentIndexOffset + i].length;
+        System.arraycopy(output[currentIndexOffset + i], 0, outputBuffer, i * outLength, outLength);
       }
-      assert(0 < inputBuffer.length);
-      assert(0 < weights.length);
-      assert(0 < outputBuffer.length);
+      assert (0 < inputBuffer.length);
+      assert (0 < weights.length);
+      assert (0 < outputBuffer.length);
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length;
       double[] _inputBuffer = inputBuffer;
       double[] _outputBuffer = outputBuffer;
       try {
         CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
+          CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
         backprop(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
+        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
       }
-      for (int i = 0; i< currentNumItems; i++) {
-        assert inLength == input[currentIndexOffset+i].length;
-        System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset+i], 0, inLength);
+      for (int i = 0; i < currentNumItems; i++) {
+        assert inLength == input[currentIndexOffset + i].length;
+        System.arraycopy(inputBuffer, i * inLength, input[currentIndexOffset + i], 0, inLength);
       }
     }
     filterData.finalize();
@@ -359,53 +365,53 @@ public class ConvolutionLayer extends NNLayer {
    */
   public static void convolve(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
-    assert(length == output.length);
+    assert (length == output.length);
     int inLength = input[0].length;
     int outLength = output[0].length;
     int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, inLength), length);
-    assert(0 < inputsPerRun) : "Requested buffer is over max of " + MAX_BUFFER_SIZE;
+    assert (0 < inputsPerRun) : "Requested buffer is over max of " + MAX_BUFFER_SIZE;
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
     CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
-            CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+      CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
     CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-            simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
-            1, 1,
-            CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
+      simple ? ((kernelSize[1] - 1) / 2) : 0, simple ? ((kernelSize[0] - 1) / 2) : 0,
+      1, 1,
+      CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
     CudaPtr filterData = CuDNN.write(deviceId, weights);
-    for(int run=0;run<=runs;run++) {
+    for (int run = 0; run <= runs; run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < runs ? inputsPerRun : leftover;
-      if(0 == currentNumItems) continue;
-      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+      if (0 == currentNumItems) continue;
+      if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);
       }
-      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+      if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
         Tensor.recycle(outputBuffer);
         outputBuffer = Tensor.obtain(outLength * currentNumItems);
       }
-      for (int i = 0; i< currentNumItems; i++) {
-        assert inLength == input[currentIndexOffset+i].length;
-        System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
+      for (int i = 0; i < currentNumItems; i++) {
+        assert inLength == input[currentIndexOffset + i].length;
+        System.arraycopy(input[currentIndexOffset + i], 0, inputBuffer, i * inLength, inLength);
       }
-      assert(0 < inputBuffer.length);
-      assert(0 < weights.length);
-      assert(0 < outputBuffer.length);
+      assert (0 < inputBuffer.length);
+      assert (0 < weights.length);
+      assert (0 < outputBuffer.length);
       double[] _inputBuffer = inputBuffer;
       double[] _outputBuffer = outputBuffer;
       try {
         CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
+          CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
         convolve(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
+        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
       }
-      for (int i = 0; i< currentNumItems; i++) {
-        assert outLength == output[currentIndexOffset+i].length;
-        System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset+i], 0, outLength);
+      for (int i = 0; i < currentNumItems; i++) {
+        assert outLength == output[currentIndexOffset + i].length;
+        System.arraycopy(outputBuffer, i * outLength, output[currentIndexOffset + i], 0, outLength);
       }
     }
     filterData.finalize();
@@ -428,50 +434,50 @@ public class ConvolutionLayer extends NNLayer {
    */
   public static void gradient(int deviceId, final int[] inputSize, final int[] kernelSize, final int[] outputSize, boolean simple, final double[][] input, final double[] weights, final double[][] output, CuDNN cudnn) {
     int length = input.length;
-    assert(length == output.length);
+    assert (length == output.length);
     int inLength = input[0].length;
     int outLength = output[0].length;
-    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, Math.max(inLength,outLength)), length);
+    int inputsPerRun = Math.min(Math.floorDiv(MAX_BUFFER_SIZE, Math.max(inLength, outLength)), length);
     int runs = length / inputsPerRun;
     int leftover = length - runs * inputsPerRun;
     double[] inputBuffer = null;
     double[] outputBuffer = null;
     CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
-            CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+      CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
     CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-            simple?((kernelSize[1] - 1) / 2):0, simple?((kernelSize[0] - 1) / 2):0,
-            1, 1,
-            CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
-    for(int run=0;run<runs;run++) {
+      simple ? ((kernelSize[1] - 1) / 2) : 0, simple ? ((kernelSize[0] - 1) / 2) : 0,
+      1, 1,
+      CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
+    for (int run = 0; run < runs; run++) {
       int currentIndexOffset = run * inputsPerRun;
       int currentNumItems = run < run - 1 ? inputsPerRun : leftover == 0 ? inputsPerRun : leftover;
-      if(null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
+      if (null == inputBuffer || inputBuffer.length != inLength * currentNumItems) {
         Tensor.recycle(inputBuffer);
         inputBuffer = Tensor.obtain(inLength * currentNumItems);
       }
-      if(null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
+      if (null == outputBuffer || outputBuffer.length != outLength * currentNumItems) {
         Tensor.recycle(outputBuffer);
         outputBuffer = Tensor.obtain(outLength * currentNumItems);
       }
-      for (int i = 0; i< currentNumItems; i++) {
-        assert inLength == input[currentIndexOffset+i].length;
-        assert outLength == output[currentIndexOffset+i].length;
-        System.arraycopy(input[currentIndexOffset+i], 0, inputBuffer, i * inLength, inLength);
-        System.arraycopy(output[currentIndexOffset+i], 0, outputBuffer, i * outLength, outLength);
+      for (int i = 0; i < currentNumItems; i++) {
+        assert inLength == input[currentIndexOffset + i].length;
+        assert outLength == output[currentIndexOffset + i].length;
+        System.arraycopy(input[currentIndexOffset + i], 0, inputBuffer, i * inLength, inLength);
+        System.arraycopy(output[currentIndexOffset + i], 0, outputBuffer, i * outLength, outLength);
       }
       double[] buffer = Tensor.obtain(weights.length);
-      assert(0 < inputBuffer.length);
-      assert(0 < buffer.length);
-      assert(0 < outputBuffer.length);
+      assert (0 < inputBuffer.length);
+      assert (0 < buffer.length);
+      assert (0 < outputBuffer.length);
       double[] _inputBuffer = inputBuffer;
       double[] _outputBuffer = outputBuffer;
       try {
         int items = currentNumItems;
         CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-                CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, items, inputSize[2], inputSize[1], inputSize[0]);
+          CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, items, inputSize[2], inputSize[1], inputSize[0]);
         gradient(deviceId, outputSize, _inputBuffer, buffer, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize),e);
+        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
       }
       IntStream.range(0, weights.length).forEach(weightIndex -> {
         for (int i = weightIndex; i < buffer.length; i += weights.length) {
@@ -486,14 +492,14 @@ public class ConvolutionLayer extends NNLayer {
 
   private static void backprop(int deviceId, final int[] outputSize, double[] input, CudaPtr filterData, double[] output, CuDNN device, CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
-    assert(4 == outputDims.length);
-    assert(outputSize[0] == outputDims[3]);
-    assert(outputSize[1] == outputDims[2]);
-    assert(outputSize[2] == outputDims[1]);
+    assert (4 == outputDims.length);
+    assert (outputSize[0] == outputDims[3]);
+    assert (outputSize[1] == outputDims[2]);
+    assert (outputSize[2] == outputDims[1]);
     CudaResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
-            CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
+      CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
     int algorithm = device.getBackwardDataAlgorithm(
-            inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
+      inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
     CudaPtr workSpace = device.allocateBackwardDataWorkspace(deviceId,
       inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
     CudaPtr alpha = device.javaPtr(deviceId, 1.0);
@@ -501,10 +507,10 @@ public class ConvolutionLayer extends NNLayer {
     CudaPtr inputData = CuDNN.alloc(deviceId, input);
     CudaPtr outputData = device.write(deviceId, output);
     CuDNN.handle(cudnnConvolutionBackwardData(device.cudnnHandle, alpha.getPtr(),
-            filterDescriptor.getPtr(), filterData.getPtr(),
-            outputDescriptor.getPtr(), outputData.getPtr(),
-            convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
-            inputDescriptor.getPtr(), inputData.getPtr()));
+      filterDescriptor.getPtr(), filterData.getPtr(),
+      outputDescriptor.getPtr(), outputData.getPtr(),
+      convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
+      inputDescriptor.getPtr(), inputData.getPtr()));
     inputData.read(input);
     inputData.finalize();
     outputData.finalize();
@@ -512,14 +518,14 @@ public class ConvolutionLayer extends NNLayer {
 
   private static void convolve(int deviceId, final int[] outputSize, double[] input, CudaPtr filterData, double[] output, CuDNN device, CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
-    assert(4 == outputDims.length);
-    assert(outputSize[0] == outputDims[3]);
-    assert(outputSize[1] == outputDims[2]);
-    assert(outputSize[2] == outputDims[1]);
+    assert (4 == outputDims.length);
+    assert (outputSize[0] == outputDims[3]);
+    assert (outputSize[1] == outputDims[2]);
+    assert (outputSize[2] == outputDims[1]);
     CudaResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
-            CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
+      CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
     int algorithm = device.getForwardAlgorithm(
-            inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
+      inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
     CudaPtr workSpace = device.allocateForwardWorkspace(deviceId,
       inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
     CudaPtr alpha = device.javaPtr(deviceId, 1.0);
@@ -527,10 +533,10 @@ public class ConvolutionLayer extends NNLayer {
     CudaPtr inputData = device.write(deviceId, input);
     CudaPtr outputData = CuDNN.alloc(deviceId, output);
     CuDNN.handle(cudnnConvolutionForward(device.cudnnHandle, alpha.getPtr(),
-            inputDescriptor.getPtr(), inputData.getPtr(),
-            filterDescriptor.getPtr(), filterData.getPtr(),
-            convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
-            outputDescriptor.getPtr(), outputData.getPtr()));
+      inputDescriptor.getPtr(), inputData.getPtr(),
+      filterDescriptor.getPtr(), filterData.getPtr(),
+      convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
+      outputDescriptor.getPtr(), outputData.getPtr()));
     outputData.read(output);
     inputData.finalize();
     outputData.finalize();
@@ -538,14 +544,14 @@ public class ConvolutionLayer extends NNLayer {
 
   private static void gradient(int deviceId, final int[] outputSize, double[] input, double[] weights, double[] output, CuDNN device, CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
-    assert(4 == outputDims.length);
-    assert(outputSize[0] == outputDims[3]);
-    assert(outputSize[1] == outputDims[2]);
-    assert(outputSize[2] == outputDims[1]);
+    assert (4 == outputDims.length);
+    assert (outputSize[0] == outputDims[3]);
+    assert (outputSize[1] == outputDims[2]);
+    assert (outputSize[2] == outputDims[1]);
     CudaResource<cudnnTensorDescriptor> outputDescriptor = device.newTensorDescriptor(
-            CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
+      CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputDims[0], outputDims[1], outputDims[2], outputDims[3]);
     int algorithm = device.getBackwardFilterAlgorithm(
-            inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
+      inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
     CudaPtr workSpace = device.allocateBackwardFilterWorkspace(deviceId,
       inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
     CudaPtr alpha = device.javaPtr(deviceId, 1.0);
@@ -555,10 +561,10 @@ public class ConvolutionLayer extends NNLayer {
     CudaPtr outputData = device.write(deviceId, output);
 
     CuDNN.handle(cudnnConvolutionBackwardFilter(device.cudnnHandle, alpha.getPtr(),
-            inputDescriptor.getPtr(), inputData.getPtr(),
-            outputDescriptor.getPtr(), outputData.getPtr(),
-            convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
-            filterDescriptor.getPtr(), filterData.getPtr()));
+      inputDescriptor.getPtr(), inputData.getPtr(),
+      outputDescriptor.getPtr(), outputData.getPtr(),
+      convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
+      filterDescriptor.getPtr(), filterData.getPtr()));
 
     filterData.read(weights);
     inputData.finalize();

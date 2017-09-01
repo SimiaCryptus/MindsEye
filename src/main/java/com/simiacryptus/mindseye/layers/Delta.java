@@ -57,7 +57,7 @@ public class Delta {
    * @param layer  the layer
    */
   public Delta(final double[] target, final double[] delta, final NNLayer layer) {
-    if(null == target) throw new IllegalArgumentException();
+    if (null == target) throw new IllegalArgumentException();
     //if(null == array) throw new IllegalArgumentException();
     this.target = target;
     this.layer = layer;
@@ -71,7 +71,7 @@ public class Delta {
    * @param layer  the layer
    */
   public Delta(final double[] values, final NNLayer layer) {
-    if(null == values) throw new IllegalArgumentException();
+    if (null == values) throw new IllegalArgumentException();
     this.target = values;
     this.layer = layer;
     this.delta = new double[values.length];
@@ -87,7 +87,7 @@ public class Delta {
   public Delta accumulate(final double[] data) {
     assert Arrays.stream(data).allMatch(Double::isFinite);
     final int dim = length();
-    Arrays.parallelSetAll(this.getDelta(), i-> this.getDelta()[i] + data[i]);
+    Arrays.parallelSetAll(this.getDelta(), i -> this.getDelta()[i] + data[i]);
 //    for (int i = 0; i < dim; i++) {
 //      this.delta[i] = this.delta[i] + data[i];
 //    }
@@ -170,8 +170,9 @@ public class Delta {
   public synchronized final void accumulate(final double factor) {
     assert Arrays.stream(target).allMatch(Double::isFinite);
     double[] calcVector = this.getDelta();
-    if (null == calcVector)
+    if (null == calcVector) {
       return;
+    }
     calcVector = Arrays.copyOf(calcVector, calcVector.length);
     for (int i = 0; i < this.getDelta().length; i++) {
       calcVector[i] = calcVector[i] * factor;
@@ -200,8 +201,12 @@ public class Delta {
    * @return the double
    */
   public double dot(Delta right) {
-    if (this.layer != right.layer) throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
-    if (this.target != right.target) throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
+    if (this.layer != right.layer) {
+      throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
+    }
+    if (this.target != right.target) {
+      throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
+    }
     assert (this.getDelta().length == right.getDelta().length);
     return IntStream.range(0, this.getDelta().length).mapToDouble(i -> getDelta()[i] * right.getDelta()[i]).sum();
   }
@@ -259,9 +264,9 @@ public class Delta {
    * @return the boolean
    */
   public static boolean areEqual(double[] l, double[] r) {
-    assert(r.length == l.length);
-    for(int i=0;i<r.length;i++) {
-      if(r[i] != l[i]) return false;
+    assert (r.length == l.length);
+    for (int i = 0; i < r.length; i++) {
+      if (r[i] != l[i]) return false;
     }
     return true;
   }

@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.meta;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Avg meta layer test.
+ */
 public class AvgMetaLayerTest extends LayerTestBase {
   
   @Override

@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.cudnn.f64;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Img band bias layer test.
+ */
 public class ImgBandBiasLayerTest extends LayerTestBase {
   
   @Override
@@ -32,7 +35,7 @@ public class ImgBandBiasLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3,3,2}
+      {3, 3, 2}
     };
   }
 }

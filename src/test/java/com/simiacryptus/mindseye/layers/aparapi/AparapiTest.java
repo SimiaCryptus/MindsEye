@@ -93,7 +93,8 @@ public class AparapiTest {
     final Device bestDevice = Device.best();
     if (bestDevice == null) {
       System.out.println("OpenCLDevice.best() returned null!");
-    } else {
+    }
+    else {
       System.out.println("OpenCLDevice.best() returned { ");
       System.out.println("   Type                  : " + bestDevice.getType());
       System.out.println("   GlobalMemSize         : " + ((OpenCLDevice) bestDevice).getGlobalMemSize());
@@ -107,7 +108,8 @@ public class AparapiTest {
     final Device firstCPU = Device.firstCPU();
     if (firstCPU == null) {
       System.out.println("OpenCLDevice.firstCPU() returned null!");
-    } else {
+    }
+    else {
       System.out.println("OpenCLDevice.firstCPU() returned { ");
       System.out.println("   Type                  : " + firstCPU.getType());
       System.out.println("   GlobalMemSize         : " + ((OpenCLDevice) firstCPU).getGlobalMemSize());
@@ -121,7 +123,8 @@ public class AparapiTest {
     final Device firstGPU = Device.firstGPU();
     if (firstGPU == null) {
       System.out.println("OpenCLDevice.firstGPU() returned null!");
-    } else {
+    }
+    else {
       System.out.println("OpenCLDevice.firstGPU() returned { ");
       System.out.println("   Type                  : " + firstGPU.getType());
       System.out.println("   GlobalMemSize         : " + ((OpenCLDevice) firstGPU).getGlobalMemSize());
@@ -135,7 +138,8 @@ public class AparapiTest {
     final Device bestGPU = Device.bestGPU();
     if (bestGPU == null) {
       System.out.println("OpenCLDevice.bestGPU() returned null!");
-    } else {
+    }
+    else {
       System.out.println("OpenCLDevice.bestGPU() returned { ");
       System.out.println("   Type                  : " + bestGPU.getType());
       System.out.println("   GlobalMemSize         : " + ((OpenCLDevice) bestGPU).getGlobalMemSize());
@@ -149,7 +153,8 @@ public class AparapiTest {
     final Device firstACC = Device.bestACC();
     if (firstACC == null) {
       System.out.println("OpenCLDevice.firstACC() returned null!");
-    } else {
+    }
+    else {
       System.out.println("OpenCLDevice.firstACC() returned { ");
       System.out.println("   Type                  : " + firstACC.getType());
       System.out.println("   GlobalMemSize         : " + ((OpenCLDevice) firstACC).getGlobalMemSize());
@@ -163,7 +168,8 @@ public class AparapiTest {
     final Device bestACC = Device.bestACC();
     if (bestACC == null) {
       System.out.println("OpenCLDevice.bestACC() returned null!");
-    } else {
+    }
+    else {
       System.out.println("OpenCLDevice.bestACC() returned { ");
       System.out.println("   Type                  : " + bestACC.getType());
       System.out.println("   GlobalMemSize         : " + ((OpenCLDevice) bestACC).getGlobalMemSize());
@@ -239,24 +245,24 @@ public class AparapiTest {
      * @return the aparapi test . convolution
      */
     AparapiTest.Convolution applyConvolution(//
-                                 Range range, //
-                                 @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
-                                 //// from
-                                 //// filter
-                                 @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
-                                 // (actually char[])
-                                 @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
-                                 // read) from filter
-                                 // (actually char[])
-                                 @OpenCL.Arg("_width") int _width, //
-                                 @OpenCL.Arg("_height") int _height);
+                                             Range range, //
+                                             @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
+                                             //// from
+                                             //// filter
+                                             @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
+                                             // (actually char[])
+                                             @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
+                                             // read) from filter
+                                             // (actually char[])
+                                             @OpenCL.Arg("_width") int _width, //
+                                             @OpenCL.Arg("_height") int _height);
   }
   
   /**
    * The type Test kernel.
    */
   public static class TestKernel extends Kernel {
-  
+    
     /**
      * The Input.
      */

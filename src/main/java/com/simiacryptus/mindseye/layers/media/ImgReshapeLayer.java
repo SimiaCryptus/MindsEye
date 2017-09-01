@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.media;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +58,7 @@ public class ImgReshapeLayer extends NNLayer {
   public static ImgReshapeLayer fromJson(JsonObject json) {
     return new ImgReshapeLayer(json);
   }
-
+  
   /**
    * Instantiates a new Img reshape layer.
    *
@@ -88,34 +92,35 @@ public class ImgReshapeLayer extends NNLayer {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
-    assert(3 == inputDims.length);
-    assert(expand || 0 == inputDims[0] % kernelSizeX);
-    assert(expand || 0 == inputDims[1] % kernelSizeX);
-    assert(!expand || 0 == inputDims[2] % (kernelSizeX*kernelSizeY));
+    assert (3 == inputDims.length);
+    assert (expand || 0 == inputDims[0] % kernelSizeX);
+    assert (expand || 0 == inputDims[1] % kernelSizeX);
+    assert (!expand || 0 == inputDims[2] % (kernelSizeX * kernelSizeY));
     //assert input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     Tensor outputDims;
-    if(expand) {
+    if (expand) {
       outputDims = new Tensor(inputDims[0] * kernelSizeX,
-                                 inputDims[1] * kernelSizeY,
-                                 inputDims[2] / (kernelSizeX * kernelSizeY));
-    } else {
+                               inputDims[1] * kernelSizeY,
+                               inputDims[2] / (kernelSizeX * kernelSizeY));
+    }
+    else {
       outputDims = new Tensor(inputDims[0] / kernelSizeX,
-                                     inputDims[1] / kernelSizeY,
-                                     inputDims[2] * kernelSizeX * kernelSizeY);
+                               inputDims[1] / kernelSizeY,
+                               inputDims[2] * kernelSizeX * kernelSizeY);
     }
     return new NNResult(IntStream.range(0, batch.length()).parallel()
-                           .mapToObj(dataIndex -> expand?copyExpand(batch.get(dataIndex), outputDims.copy()):copyCondense(batch.get(dataIndex), outputDims.copy()))
-                           .toArray(i -> new Tensor[i])) {
+                          .mapToObj(dataIndex -> expand ? copyExpand(batch.get(dataIndex), outputDims.copy()) : copyCondense(batch.get(dataIndex), outputDims.copy()))
+                          .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
-             .mapToObj(dataIndex -> {
-               Tensor passback = new Tensor(inputDims);
-               Tensor err = error.get(dataIndex);
-               return expand ? copyCondense(err, passback) : copyExpand(err, passback);
-             }).toArray(i -> new Tensor[i]);
+                                   .mapToObj(dataIndex -> {
+                                     Tensor passback = new Tensor(inputDims);
+                                     Tensor err = error.get(dataIndex);
+                                     return expand ? copyCondense(err, passback) : copyExpand(err, passback);
+                                   }).toArray(i -> new Tensor[i]);
           input.accumulate(buffer, new TensorArray(data1));
         }
       }
@@ -147,12 +152,12 @@ public class ImgReshapeLayer extends NNLayer {
     int kernelSizeX = inDim[0] / outDim[0];
     int kernelSizeY = inDim[0] / outDim[0];
     int index = 0;
-    for(int xx=0;xx<kernelSizeX;xx++) {
-      for(int yy=0;yy<kernelSizeY;yy++) {
-        for(int z = 0; z< inDim[2]; z++) {
-          for(int y = 0; y< inDim[1]; y+=kernelSizeY) {
-            for(int x = 0; x< inDim[0]; x+=kernelSizeX) {
-              outputData.getData()[index++] = inputData.get(x+xx, y+yy, z);
+    for (int xx = 0; xx < kernelSizeX; xx++) {
+      for (int yy = 0; yy < kernelSizeY; yy++) {
+        for (int z = 0; z < inDim[2]; z++) {
+          for (int y = 0; y < inDim[1]; y += kernelSizeY) {
+            for (int x = 0; x < inDim[0]; x += kernelSizeX) {
+              outputData.getData()[index++] = inputData.get(x + xx, y + yy, z);
             }
           }
         }
@@ -181,12 +186,12 @@ public class ImgReshapeLayer extends NNLayer {
     int kernelSizeX = outDim[0] / inDim[0];
     int kernelSizeY = outDim[0] / inDim[0];
     int index = 0;
-    for(int xx=0;xx<kernelSizeX;xx++) {
-      for(int yy=0;yy<kernelSizeY;yy++) {
-        for(int z = 0; z< outDim[2]; z++) {
-          for(int y = 0; y< outDim[1]; y+=kernelSizeY) {
-            for(int x = 0; x< outDim[0]; x+=kernelSizeX) {
-              outputData.set(new int[]{x+xx, y+yy, z}, inputData.getData()[index++]);
+    for (int xx = 0; xx < kernelSizeX; xx++) {
+      for (int yy = 0; yy < kernelSizeY; yy++) {
+        for (int z = 0; z < outDim[2]; z++) {
+          for (int y = 0; y < outDim[1]; y += kernelSizeY) {
+            for (int x = 0; x < outDim[0]; x += kernelSizeX) {
+              outputData.set(new int[]{x + xx, y + yy, z}, inputData.getData()[index++]);
             }
           }
         }

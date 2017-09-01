@@ -20,15 +20,15 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -50,7 +50,7 @@ public class ProductInputsLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json product inputs layer.
    *
@@ -60,7 +60,7 @@ public class ProductInputsLayer extends NNLayer {
   public static ProductInputsLayer fromJson(JsonObject json) {
     return new ProductInputsLayer(json);
   }
-
+  
   /**
    * Instantiates a new Product inputs layer.
    *
@@ -69,7 +69,7 @@ public class ProductInputsLayer extends NNLayer {
   protected ProductInputsLayer(JsonObject id) {
     super(id);
   }
-
+  
   /**
    * Instantiates a new Product inputs layer.
    */
@@ -83,9 +83,10 @@ public class ProductInputsLayer extends NNLayer {
     assert inObj.length < 3;
     int[] dimensions = inObj[0].getData().getDimensions();
     int length = inObj[0].getData().length();
-    for(int i=1;i<inObj.length;i++) {
-      if(Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions()))
+    for (int i = 1; i < inObj.length; i++) {
+      if (Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions())) {
         throw new RuntimeException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
+      }
     }
     final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(CUDNN_OP_TENSOR_MUL, CUDNN_DATA_FLOAT);
     CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
@@ -106,8 +107,8 @@ public class ProductInputsLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList delta) {
         ((CudaExecutionContext) nncontext).initThread();
-        assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-        for(int index=0;index<inObj.length;index++) {
+        assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+        for (int index = 0; index < inObj.length; index++) {
           final NNResult input = inObj[index];
           if (input.isAlive()) {
             int _index = index;
@@ -129,8 +130,9 @@ public class ProductInputsLayer extends NNLayer {
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
-          if (element.isAlive())
+          if (element.isAlive()) {
             return true;
+          }
         return false;
       }
       

@@ -23,6 +23,9 @@ import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Std dev meta layer test.
+ */
 public class StdDevMetaLayerTest extends LayerTestBase {
   
   @Override

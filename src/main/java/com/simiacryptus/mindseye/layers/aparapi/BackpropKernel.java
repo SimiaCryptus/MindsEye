@@ -106,10 +106,10 @@ public final class BackpropKernel extends Kernel {
         final int k0 = k % ks0;
         
         final int o2 = k2 - i2 * this.outputSize[2];
-        if(o2 >= 0 && o2 < this.outputSize[2]) {
+        if (o2 >= 0 && o2 < this.outputSize[2]) {
           final int o1 = i1 + k1 - kernelOffset[1];
           final int o0 = i0 + k0 - kernelOffset[0];
-          if(o0 < this.outputSize[0] && o1 < this.outputSize[1] && o0 >= 0 && o1 >= 0) {
+          if (o0 < this.outputSize[0] && o1 < this.outputSize[1] && o0 >= 0 && o1 >= 0) {
             final int o = o0 + this.outputSize[0] * (o1 + this.outputSize[1] * (o2 + this.outputSize[2] * batch));
             accum += this.output[o] * this.weights[k];
           }

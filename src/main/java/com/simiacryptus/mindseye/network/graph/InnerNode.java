@@ -82,11 +82,12 @@ public final class InnerNode extends LazyResult {
     NNLayer innerLayer = getLayer();
     if (1 == this.inputNodes.length) {
       DAGNode inputNode = this.inputNodes[0];
-      final NNResult in = null==inputNode?null:inputNode.get(nncontext, ctx);
+      final NNResult in = null == inputNode ? null : inputNode.get(nncontext, ctx);
       final NNResult output = innerLayer.eval(nncontext, new NNResult[]{in});
       return output;
-    } else {
-      final NNResult[] in = Arrays.stream(this.inputNodes).map(x -> x==null?null:x.get(nncontext, ctx)).toArray(i -> new NNResult[i]);
+    }
+    else {
+      final NNResult[] in = Arrays.stream(this.inputNodes).map(x -> x == null ? null : x.get(nncontext, ctx)).toArray(i -> new NNResult[i]);
       final NNResult output = innerLayer.eval(nncontext, in);
       return output;
     }

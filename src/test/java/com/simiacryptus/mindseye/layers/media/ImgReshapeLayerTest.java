@@ -22,17 +22,20 @@ package com.simiacryptus.mindseye.layers.media;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Img reshape layer test.
+ */
 public class ImgReshapeLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ImgReshapeLayer(2,2,false);
+    return new ImgReshapeLayer(2, 2, false);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2,2,3}
+      {2, 2, 3}
     };
   }
 }

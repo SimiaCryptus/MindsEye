@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Linear activation layer test.
+ */
 public class LinearActivationLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Linear activation layer test.
+   */
   public LinearActivationLayerTest() {
     super(new LinearActivationLayer());
   }

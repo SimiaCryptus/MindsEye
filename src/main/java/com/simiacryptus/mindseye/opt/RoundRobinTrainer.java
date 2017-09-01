@@ -48,7 +48,7 @@ public class RoundRobinTrainer {
   private double terminateThreshold;
   private List<? extends OrientationStrategy> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
   private Function<String, ? extends LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
-  private Map<String,LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
+  private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -93,19 +93,23 @@ public class RoundRobinTrainer {
   public double run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample currentPoint = measure();
-    mainLoop: while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
-      if(currentIteration.get() > maxIterations) break;
+    mainLoop:
+    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
+      if (currentIteration.get() > maxIterations) break;
       currentPoint = measure();
-      subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
+      subiterationLoop:
+      for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
         PointSample previousOrientations = currentPoint;
-        orientationLoop: for(OrientationStrategy orientation : orientations) {
-          if(currentIteration.incrementAndGet() > maxIterations) break;
+        orientationLoop:
+        for (OrientationStrategy orientation : orientations) {
+          if (currentIteration.incrementAndGet() > maxIterations) break;
           LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
           String directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
           LineSearchStrategy lineSearchStrategy;
-          if(lineSearchStrategyMap.containsKey(directionType)) {
+          if (lineSearchStrategyMap.containsKey(directionType)) {
             lineSearchStrategy = lineSearchStrategyMap.get(directionType);
-          } else {
+          }
+          else {
             System.out.println(String.format("Constructing line search parameters: %s", directionType));
             lineSearchStrategy = lineSearchFactory.apply(directionType);
             lineSearchStrategyMap.put(directionType, lineSearchStrategy);
@@ -113,17 +117,19 @@ public class RoundRobinTrainer {
           PointSample previous = currentPoint;
           currentPoint = lineSearchStrategy.step(direction, monitor);
           monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
-          if(previous.value == currentPoint.value) {
+          if (previous.value == currentPoint.value) {
             monitor.log(String.format("Iteration %s failed, ignoring. Error: %s", currentIteration.get(), currentPoint.value));
-          } else {
+          }
+          else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
           }
         }
-        if(previousOrientations.value <= currentPoint.value) {
-          if(subject.resetSampling()) {
+        if (previousOrientations.value <= currentPoint.value) {
+          if (subject.resetSampling()) {
             monitor.log(String.format("MacroIteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
             break subiterationLoop;
-          } else {
+          }
+          else {
             monitor.log(String.format("MacroIteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
             break mainLoop;
           }
@@ -142,7 +148,7 @@ public class RoundRobinTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if(!subject.resetSampling() && retries>0) throw new RuntimeException();
+      if (!subject.resetSampling() && retries > 0) throw new RuntimeException();
       if (10 < retries++) throw new RuntimeException();
       currentPoint = subject.measure();
     } while (!Double.isFinite(currentPoint.value));

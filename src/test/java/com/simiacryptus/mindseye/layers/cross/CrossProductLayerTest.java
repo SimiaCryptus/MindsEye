@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.cross;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Cross product layer test.
+ */
 public class CrossProductLayerTest extends LayerTestBase {
   
   @Override

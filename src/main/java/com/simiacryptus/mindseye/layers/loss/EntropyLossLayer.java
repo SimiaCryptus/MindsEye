@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.loss;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +41,7 @@ public class EntropyLossLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json entropy loss layer.
    *
@@ -47,7 +51,7 @@ public class EntropyLossLayer extends NNLayer {
   public static EntropyLossLayer fromJson(JsonObject json) {
     return new EntropyLossLayer(json);
   }
-
+  
   /**
    * Instantiates a new Entropy loss layer.
    *
@@ -87,14 +91,15 @@ public class EntropyLossLayer extends NNLayer {
       for (int i = 0; i < l.dim(); i++) {
         final double lv = Math.max(Math.min(ld[i], 1.), 1e-12);
         final double rv = rd[i];
-        if(rv > 0) {
+        if (rv > 0) {
           gradientData[i] = -rv / lv;
           total += -rv * Math.log(lv);
-        } else {
+        }
+        else {
           gradientData[i] = 0;
         }
       }
-      assert(total >= 0);
+      assert (total >= 0);
       descriptiveNats = total;
       
       return new Tensor(new int[]{1}, new double[]{descriptiveNats});

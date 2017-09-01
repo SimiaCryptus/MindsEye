@@ -20,11 +20,16 @@
 package com.simiacryptus.mindseye.layers.synapse;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.Delta;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +58,7 @@ public class BiasLayer extends NNLayer {
   public static BiasLayer fromJson(JsonObject json) {
     return new BiasLayer(json);
   }
-
+  
   /**
    * Instantiates a new Bias layer.
    *
@@ -117,20 +122,21 @@ public class BiasLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     TensorList input;
-    if(0==inObj.length) {
+    if (0 == inObj.length) {
       input = new TensorArray();
-    } else {
+    }
+    else {
       input = inObj[0].getData();
     }
     Tensor[] outputA = input.stream().parallel()
-                           .map(r -> new Tensor(r.getDimensions(), add(r.getData())))
-                           .toArray(i -> new Tensor[i]);
+                         .map(r -> new Tensor(r.getDimensions(), add(r.getData())))
+                         .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
-        assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           Delta deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
           data.stream().parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
@@ -155,7 +161,7 @@ public class BiasLayer extends NNLayer {
    * @return the weights log
    */
   public BiasLayer setWeightsLog(final double value) {
-    for(int i=0;i<this.bias.length;i++) this.bias[i] = (FastRandom.random()-0.5)*Math.pow(10,value);
+    for (int i = 0; i < this.bias.length; i++) this.bias[i] = (FastRandom.random() - 0.5) * Math.pow(10, value);
     return this;
   }
   

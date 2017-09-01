@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +41,10 @@ public class Sparse01MetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.addProperty("sparsity",sparsity);
+    json.addProperty("sparsity", sparsity);
     return json;
   }
-
+  
   /**
    * From json sparse 01 meta layer.
    *
@@ -52,7 +56,7 @@ public class Sparse01MetaLayer extends NNLayer {
     obj.sparsity = json.get("sparsity").getAsInt();
     return obj;
   }
-
+  
   /**
    * Instantiates a new Sparse 01 meta layer.
    *
@@ -81,15 +85,17 @@ public class Sparse01MetaLayer extends NNLayer {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
     Tensor avgActivationArray = input.getData().get(0).map((v, c) ->
-                                                      IntStream.range(0, itemCnt)
-                                                          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                          .average().getAsDouble());
+                                                             IntStream.range(0, itemCnt)
+                                                               .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                                                               .average().getAsDouble());
     Tensor divergenceArray = avgActivationArray.map((avgActivation, c) -> {
       assert (Double.isFinite(avgActivation));
-      if (avgActivation > 0 && avgActivation < 1)
+      if (avgActivation > 0 && avgActivation < 1) {
         return sparsity * Math.log(sparsity / avgActivation) + (1 - sparsity) * Math.log((1 - sparsity) / (1 - avgActivation));
-      else
+      }
+      else {
         return 0;
+      }
     });
     return new NNResult(divergenceArray) {
       @Override
@@ -103,11 +109,12 @@ public class Sparse01MetaLayer extends NNLayer {
             double log2 = (1 - sparsity) / (1 - rho);
             double log3 = sparsity / rho;
             double value = d * (log2 - log3) / itemCnt;
-            if (Double.isFinite(value))
+            if (Double.isFinite(value)) {
               for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
                 //double in = input.data[inputItem].get(inputCoord);
                 feedback[inputItem].add(inputCoord, value);
               }
+            }
             return 0;
           });
           input.accumulate(buffer, new TensorArray(feedback));

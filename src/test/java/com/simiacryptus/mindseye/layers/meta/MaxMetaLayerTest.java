@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.meta;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Max meta layer test.
+ */
 public class MaxMetaLayerTest extends LayerTestBase {
   
   @Override

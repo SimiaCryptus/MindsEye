@@ -42,48 +42,56 @@ public class BisectionSearch implements LineSearchStrategy {
       leftLineDeriv = searchPoint.derivative;
       leftValue = searchPoint.point.value;
     }
-  
+    
     double rightRight = Double.POSITIVE_INFINITY;
     double rightX;
     double rightLineDeriv;
     double rightValue;
-    double rightRightSoft = this.currentRate *2;
+    double rightRightSoft = this.currentRate * 2;
     LineSearchPoint rightPoint;
-    while(true) {
+    int loopCount = 0;
+    while (true) {
       rightX = (leftX + Math.min(rightRight, rightRightSoft)) / 2;
       rightPoint = cursor.step(rightX, monitor);
       monitor.log(String.format("F(%s) = %s", rightX, rightPoint));
       rightLineDeriv = rightPoint.derivative;
       rightValue = rightPoint.point.value;
-      if((rightRight - leftX) * 2.0 / (leftX + rightRight) < Math.pow(10,-3)) {
+      if (loopCount++ > 1000) break;
+      if ((rightRight - leftX) * 2.0 / (leftX + rightRight) < Math.pow(10, -3)) {
         monitor.log(String.format("Right limit is nonconvergent at %s/%s", leftX, rightRight));
         return cursor.step(leftX, monitor).point;
       }
-      if(rightValue > leftValue) {
+      if (rightValue > leftValue) {
         rightRight = rightX;
         monitor.log(String.format("Right is at most %s", rightX));
-      } else if(rightLineDeriv < 0) {
+      }
+      else if (rightLineDeriv < 0) {
         rightRightSoft *= 2.0;
         leftLineDeriv = rightLineDeriv;
         leftValue = rightValue;
         leftX = rightX;
         monitor.log(String.format("Right is at least %s", rightX));
-      } else break;
+      }
+      else {
+        break;
+      }
     }
-  
-    if(this.currentRate < rightX) {
+    
+    if (this.currentRate < rightX) {
       currentRate = rightX;
       return rightPoint.point;
     }
     
     LineSearchPoint searchPoint;
-    while(true) {
+    loopCount = 0;
+    while (true) {
       double thisX;
       thisX = (rightX + leftX) / 2;
       searchPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s", thisX, searchPoint));
-      if(searchPoint.derivative < -zeroTol) {
-        if(leftX == thisX) {
+      if (loopCount++ > 1000) return searchPoint.point;
+      if (searchPoint.derivative < -zeroTol) {
+        if (leftX == thisX) {
           monitor.log(String.format("End (static left) at %s", thisX));
           currentRate = thisX;
           return searchPoint.point;
@@ -91,8 +99,9 @@ public class BisectionSearch implements LineSearchStrategy {
         leftLineDeriv = searchPoint.derivative;
         leftValue = searchPoint.point.value;
         leftX = thisX;
-      } else if(searchPoint.derivative > zeroTol) {
-        if(rightX == thisX) {
+      }
+      else if (searchPoint.derivative > zeroTol) {
+        if (rightX == thisX) {
           monitor.log(String.format("End (static right) at %s", thisX));
           currentRate = thisX;
           return searchPoint.point;
@@ -100,12 +109,13 @@ public class BisectionSearch implements LineSearchStrategy {
         rightLineDeriv = searchPoint.derivative;
         rightValue = searchPoint.point.value;
         rightX = thisX;
-      } else {
+      }
+      else {
         monitor.log(String.format("End (at zero) at %s", thisX));
         currentRate = thisX;
         return searchPoint.point;
       }
-      if(Math.log10((rightX-leftX)*2.0/(leftX+rightX)) < -1) {
+      if (Math.log10((rightX - leftX) * 2.0 / (leftX + rightX)) < -1) {
         monitor.log(String.format("End (narrow range) at %s to %s", rightX, leftX));
         currentRate = thisX;
         return searchPoint.point;

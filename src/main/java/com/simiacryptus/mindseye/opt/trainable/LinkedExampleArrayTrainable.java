@@ -19,11 +19,11 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -56,7 +56,8 @@ public class LinkedExampleArrayTrainable implements Trainable {
   @Override
   public PointSample measure() {
     NNResult[] input = NNResult.batchResultArray(sampledData);
-    NNResult result = network.eval(new NNLayer.NNExecutionContext() {}, input);
+    NNResult result = network.eval(new NNLayer.NNExecutionContext() {
+    }, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
@@ -70,7 +71,7 @@ public class LinkedExampleArrayTrainable implements Trainable {
   
   @Override
   public void resetToFull() {
-    sampledData = Arrays.stream(trainingData).parallel().flatMap(x-> Arrays.stream(x)).toArray(i -> new Tensor[i][]);
+    sampledData = Arrays.stream(trainingData).parallel().flatMap(x -> Arrays.stream(x)).toArray(i -> new Tensor[i][]);
   }
   
   @Override
@@ -109,9 +110,9 @@ public class LinkedExampleArrayTrainable implements Trainable {
   private void refreshSampledData() {
     assert 0 < getTrainingSize();
     this.sampledData = Arrays.stream(trainingData).parallel() //
-                           .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
-                           .flatMap(x-> Arrays.stream(x)) //
-                           .limit(getTrainingSize()) //
-                           .toArray(i -> new Tensor[i][]);
+                         .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+                         .flatMap(x -> Arrays.stream(x)) //
+                         .limit(getTrainingSize()) //
+                         .toArray(i -> new Tensor[i][]);
   }
 }

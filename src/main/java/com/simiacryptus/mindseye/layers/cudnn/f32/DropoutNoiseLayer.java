@@ -104,8 +104,8 @@ public class DropoutNoiseLayer extends PipelineNetwork implements StochasticComp
    */
   @Override
   public void shuffle() {
-    visitLayers(layer->{
-      if(layer instanceof StochasticComponent) ((StochasticComponent)layer).shuffle();
+    visitLayers(layer -> {
+      if (layer instanceof StochasticComponent) ((StochasticComponent) layer).shuffle();
     });
   }
   

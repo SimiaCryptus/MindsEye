@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.f32.CuDNNFloatTensorList;
 
 /**
@@ -87,25 +87,29 @@ public class CountingNNResult extends NNResult {
   
   @Override
   public void accumulate(DeltaSet buffer, TensorList data) {
-    if(data instanceof CuDNNFloatTensorList) assert null != ((CuDNNFloatTensorList)data).ptr.getPtr();
-    if(null == passbackBuffer) {
-      if(1 == getCount()) {
+    if (data instanceof CuDNNFloatTensorList) assert null != ((CuDNNFloatTensorList) data).ptr.getPtr();
+    if (null == passbackBuffer) {
+      if (1 == getCount()) {
         passbackBuffer = data;
-      } else {
+      }
+      else {
         passbackBuffer = data.copy();
       }
-    } else {
-      if(passbackBuffer.length() == 0) {
+    }
+    else {
+      if (passbackBuffer.length() == 0) {
         passbackBuffer = data;
-      } else {
+      }
+      else {
         passbackBuffer.accum(data);
       }
     }
-    if(++queued == getCount()) {
+    if (++queued == getCount()) {
       //System.err.println(String.format("Pass Count -> %s, Buffer -> %s", this.count, passbackBuffer.size()));
       inner.accumulate(buffer, passbackBuffer);
       queued = 0;
-    } else {
+    }
+    else {
       //System.err.println(String.format("Accum Count -> %s, Buffer -> %s", this.count, passbackBuffer.size()));
     }
     

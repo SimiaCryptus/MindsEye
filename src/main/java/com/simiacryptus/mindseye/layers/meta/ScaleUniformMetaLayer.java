@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,14 +81,14 @@ public class ScaleUniformMetaLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.map((v,c) -> v * scale)).toArray(i -> new Tensor[i])));
+          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.map((v, c) -> v * scale)).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
           double passback = tensors[0].map((v, c) -> {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c) * inObj[0].getData().get(i).get(c)).sum();
           }).sum();
           Tensor tensor = new Tensor(1);
-          tensor.set(0,passback);
+          tensor.set(0, passback);
           inObj[1].accumulate(buffer, new TensorArray(tensor));
         }
       }

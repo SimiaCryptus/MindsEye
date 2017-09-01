@@ -20,9 +20,13 @@
 package com.simiacryptus.mindseye.layers.stochastic;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +130,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
    * The Mask list.
    */
   List<Tensor> maskList = new ArrayList<>();
+
   /**
    * Shuffle.
    */
@@ -133,14 +138,15 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   public void shuffle() {
     maskList.clear();
   }
+
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     final NNResult input = inObj[0];
     int[] dimensions = input.getData().getDimensions();
     int length = input.getData().length();
-    if(maskList.size() > 1 && !Arrays.equals(maskList.get(0).getDimensions(), dimensions)) maskList.clear();
+    if (maskList.size() > 1 && !Arrays.equals(maskList.get(0).getDimensions(), dimensions)) maskList.clear();
     Tensor tensorPrototype = new Tensor(dimensions);
-    while(length > maskList.size()) {
+    while (length > maskList.size()) {
       maskList.add(tensorPrototype.map(v -> (FastRandom.random() < getValue()) ? 0 : 1));
     }
     TensorArray mask = new TensorArray(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
@@ -149,7 +155,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
       public void accumulate(DeltaSet buffer, TensorList data) {
         input.accumulate(buffer, new TensorArray());
       }
-  
+
       @Override
       public boolean isAlive() {
         return input.isAlive();

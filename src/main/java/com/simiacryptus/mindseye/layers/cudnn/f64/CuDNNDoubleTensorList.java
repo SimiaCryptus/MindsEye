@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
-import com.simiacryptus.mindseye.layers.TensorArray;
-import com.simiacryptus.mindseye.layers.TensorList;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.util.ml.Tensor;
 import jcuda.Sizeof;
 
 import java.util.Arrays;
@@ -54,15 +54,15 @@ public class CuDNNDoubleTensorList implements TensorList {
    * @param dimensions the dimensions
    */
   public CuDNNDoubleTensorList(CudaPtr ptr, int length, int[] dimensions) {
-          this.ptr = ptr;
-          this.length = length;
-          this.dimensions = dimensions;
-          assert(ptr.size == length * Tensor.dim(dimensions) * Sizeof.DOUBLE);
-          //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-      }
+    this.ptr = ptr;
+    this.length = length;
+    this.dimensions = dimensions;
+    assert (ptr.size == length * Tensor.dim(dimensions) * Sizeof.DOUBLE);
+    //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+    assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+  }
 
-      private volatile TensorList _inner = null;
+  private volatile TensorList _inner = null;
 
   /**
    * Inner tensor list.
@@ -70,45 +70,45 @@ public class CuDNNDoubleTensorList implements TensorList {
    * @return the tensor list
    */
   public TensorList inner() {
-          if(null == _inner) {
-              synchronized (this) {
-                  if(null == _inner) {
-                      int itemLength = Tensor.dim(dimensions);
-                      final double[] outputBuffer = Tensor.obtain(itemLength * length);
-                      assert(0 < outputBuffer.length);
-                      Tensor[] output = IntStream.range(0, length)
+    if (null == _inner) {
+      synchronized (this) {
+        if (null == _inner) {
+          int itemLength = Tensor.dim(dimensions);
+          final double[] outputBuffer = Tensor.obtain(itemLength * length);
+          assert (0 < outputBuffer.length);
+          Tensor[] output = IntStream.range(0, length)
                               .mapToObj(dataIndex -> new Tensor(dimensions))
                               .toArray(i -> new Tensor[i]);
-                      double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
-                      assert(length == outputBuffers.length);
-                      ptr.read(outputBuffer);
-                      for (int i = 0; i< length; i++) {
-                        assert itemLength == outputBuffers[0 +i].length;
-                        System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 +i], 0, itemLength);
-                      }
-                      //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-                      Tensor.recycle(outputBuffer);
-                      _inner = new TensorArray(output);
-                  }
-              }
+          double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
+          assert (length == outputBuffers.length);
+          ptr.read(outputBuffer);
+          for (int i = 0; i < length; i++) {
+            assert itemLength == outputBuffers[0 + i].length;
+            System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);
           }
-          return _inner;
+          //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          Tensor.recycle(outputBuffer);
+          _inner = new TensorArray(output);
+        }
       }
+    }
+    return _inner;
+  }
 
-      @Override
-      public Tensor get(int i) {
-          return inner().get(i);
-      }
+  @Override
+  public Tensor get(int i) {
+    return inner().get(i);
+  }
 
-      @Override
-      public int length() {
-          return length;
-      }
+  @Override
+  public int length() {
+    return length;
+  }
 
-      @Override
-      public Stream<Tensor> stream() {
-          return inner().stream();
-      }
+  @Override
+  public Stream<Tensor> stream() {
+    return inner().stream();
+  }
   
   @Override
   public int[] getDimensions() {

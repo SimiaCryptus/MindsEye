@@ -19,8 +19,10 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.opt.line.*;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
+import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
@@ -45,8 +47,8 @@ public class IterativeTrainer {
   private Duration timeout;
   private double terminateThreshold;
   private OrientationStrategy orientation = new LBFGS();
-  private Function<String,LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
-  private Map<String,LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
+  private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
+  private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -91,19 +93,22 @@ public class IterativeTrainer {
   public double run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample currentPoint = measure();
-    mainLoop: while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
-      if(currentIteration.get() > maxIterations) break;
+    mainLoop:
+    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
+      if (currentIteration.get() > maxIterations) break;
       currentPoint = measure();
-      assert(0 < currentPoint.delta.map.size()) : "Nothing to optimize";
-      subiterationLoop: for(int subiteration = 0; subiteration<iterationsPerSample; subiteration++) {
-        if(timeoutMs < System.currentTimeMillis()) break mainLoop;
-        if(currentIteration.incrementAndGet() > maxIterations) break mainLoop;
+      assert (0 < currentPoint.delta.map.size()) : "Nothing to optimize";
+      subiterationLoop:
+      for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
+        if (timeoutMs < System.currentTimeMillis()) break mainLoop;
+        if (currentIteration.incrementAndGet() > maxIterations) break mainLoop;
         LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
         String directionType = direction.getDirectionType();
         LineSearchStrategy lineSearchStrategy;
-        if(lineSearchStrategyMap.containsKey(directionType)) {
+        if (lineSearchStrategyMap.containsKey(directionType)) {
           lineSearchStrategy = lineSearchStrategyMap.get(directionType);
-        } else {
+        }
+        else {
           System.out.println(String.format("Constructing line search parameters: %s", directionType));
           lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
           lineSearchStrategyMap.put(directionType, lineSearchStrategy);
@@ -112,19 +117,21 @@ public class IterativeTrainer {
         FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction);
         lineSearchStrategy.step(wrapped, monitor);
         currentPoint = wrapped.getBest().point;
-        if(previous.value <= currentPoint.value) {
-          if(previous.value < currentPoint.value) {
+        if (previous.value <= currentPoint.value) {
+          if (previous.value < currentPoint.value) {
             monitor.log(String.format("Resetting Iteration"));
-            currentPoint = direction.step(0,monitor).point;
+            currentPoint = direction.step(0, monitor).point;
           }
-          if(subject.resetSampling()) {
+          if (subject.resetSampling()) {
             monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
             break subiterationLoop;
-          } else {
+          }
+          else {
             monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
             break mainLoop;
           }
-        } else {
+        }
+        else {
           monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
         }
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
@@ -144,7 +151,7 @@ public class IterativeTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if(!subject.resetSampling() && retries>0) throw new RuntimeException();
+      if (!subject.resetSampling() && retries > 0) throw new RuntimeException();
       if (10 < retries++) throw new RuntimeException();
       currentPoint = subject.measure();
     } while (!Double.isFinite(currentPoint.value));
@@ -280,7 +287,7 @@ public class IterativeTrainer {
    *
    * @return the line search factory
    */
-  public Function<String,LineSearchStrategy> getLineSearchFactory() {
+  public Function<String, LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
   
@@ -290,7 +297,7 @@ public class IterativeTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public IterativeTrainer setLineSearchFactory(Function<String,LineSearchStrategy> lineSearchFactory) {
+  public IterativeTrainer setLineSearchFactory(Function<String, LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }

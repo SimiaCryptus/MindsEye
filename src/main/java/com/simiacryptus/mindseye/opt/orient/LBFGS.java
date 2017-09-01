@@ -47,6 +47,9 @@ public class LBFGS implements OrientationStrategy {
   public final ArrayList<PointSample> history = new ArrayList<>();
   private int minHistory = 3;
   private int maxHistory = 10;
+  /**
+   * The Verbose.
+   */
   protected boolean verbose = false;
   
   @Override
@@ -67,17 +70,23 @@ public class LBFGS implements OrientationStrategy {
    * @param monitor     the monitor
    */
   public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
-    if (!measurement.delta.vector().stream().flatMapToDouble(y->Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
-      if(verbose) monitor.log("Corrupt measurement");
-    } else if (!measurement.weights.vector().stream().flatMapToDouble(y->Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
-      if(verbose) monitor.log("Corrupt measurement");
-    } else if(history.isEmpty() || !history.stream().filter(x->x.value==measurement.value).findAny().isPresent()) {
-      if(verbose) monitor.log(String.format("Adding measurement %s to history. Total: %s",Long.toHexString(System.identityHashCode(measurement)),history.size()));
+    if (!measurement.delta.vector().stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
+      if (verbose) monitor.log("Corrupt measurement");
+    }
+    else if (!measurement.weights.vector().stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
+      if (verbose) monitor.log("Corrupt measurement");
+    }
+    else if (history.isEmpty() || !history.stream().filter(x -> x.value == measurement.value).findAny().isPresent()) {
+      if (verbose) {
+        monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(measurement)), history.size()));
+      }
       history.add(measurement);
-      Collections.sort(history, Comparator.comparing(x->-x.value));
-      while(history.size() > maxHistory) {
+      Collections.sort(history, Comparator.comparing(x -> -x.value));
+      while (history.size() > maxHistory) {
         PointSample remove = history.remove(0);
-        if(verbose) monitor.log(String.format("Removed measurement %s to history. Total: %s",Long.toHexString(System.identityHashCode(remove)),history.size()));
+        if (verbose) {
+          monitor.log(String.format("Removed measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(remove)), history.size()));
+        }
       }
     }
   }
@@ -133,10 +142,10 @@ public class LBFGS implements OrientationStrategy {
         Arrays.setAll(descent.get(i).getDelta(), j -> _p.get(_i)[j]);
       }
       List<double[]> lbfgs = descent.stream().map(x -> x.getDelta()).collect(Collectors.toList());
-      double mag = Math.sqrt(ArrayUtil.dot(lbfgs,lbfgs));
-      double magGrad = Math.sqrt(ArrayUtil.dot(gradient,gradient));
+      double mag = Math.sqrt(ArrayUtil.dot(lbfgs, lbfgs));
+      double magGrad = Math.sqrt(ArrayUtil.dot(gradient, gradient));
       double dot = ArrayUtil.dot(lbfgs, gradient) / (mag * magGrad);
-  
+
       Map<String, String> anglesPerLayer = IntStream.range(0, deltaVector.size()).mapToObj(x -> x)
                                              .collect(Collectors.toMap((Integer i) -> {
                                                return deltaVector.get(i).layer.getName();
@@ -147,17 +156,19 @@ public class LBFGS implements OrientationStrategy {
                                                double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
                                                assert Double.isFinite(lbfgsMagnitude);
                                                assert Double.isFinite(gradientMagnitude);
-                                               if(gradientMagnitude == 0.0) {
+                                               if (gradientMagnitude == 0.0) {
                                                  return String.format("%.3e", lbfgsMagnitude);
-                                               } else {
+                                               }
+                                               else {
                                                  double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
                                                  return String.format("%.3f/%.3e", dotP, lbfgsMagnitude / gradientMagnitude);
                                                }
                                              }));
-  
-  
+
+
       monitor.log(String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s", mag, magGrad, dot, anglesPerLayer));
-    } else {
+    }
+    else {
       monitor.log(String.format("LBFGS History: %s points", history.size()));
     }
     if (accept(deltaVector, descent)) {
@@ -165,15 +176,14 @@ public class LBFGS implements OrientationStrategy {
       monitor.log("Orientation rejected. Popping history element from " + (history.size() - 1));
       return _orient(subject, measurement, monitor);
     }
-    return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(descent))
-    {
+    return new SimpleLineSearchCursor(subject, measurement, DeltaSet.fromList(descent)) {
       public LineSearchPoint step(double t, TrainingMonitor monitor) {
         LineSearchPoint measure = super.step(t, monitor);
         addToHistory(measure.point, monitor);
         return measure;
       }
     }
-    .setDirectionType(type);
+             .setDirectionType(type);
   }
   
   private boolean accept(List<Delta> gradient, List<Delta> direction) {

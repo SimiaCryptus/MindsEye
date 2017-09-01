@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.Arrays;
 import java.util.List;
@@ -89,7 +93,7 @@ public final class NthPowerActivationLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
-    assert(0 < itemCnt);
+    assert (0 < itemCnt);
     Tensor inputGradientA[] = new Tensor[itemCnt];
     Tensor[] outputA = IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
@@ -99,11 +103,13 @@ public final class NthPowerActivationLayer extends NNLayer {
       double[] gradientData = gradient.getData();
       double[] outputData = output.getData();
       inputGradientA[dataIndex] = gradient;
-      if(power == 2) {
+      if (power == 2) {
         square(input, inputData, gradientData, outputData);
-      } else if(power == 0.5) {
+      }
+      else if (power == 0.5) {
         squareRoot(input, inputData, gradientData, outputData);
-      } else {
+      }
+      else {
         nthPower(power, input, inputData, gradientData, outputData);
       }
       return output;
@@ -138,10 +144,10 @@ public final class NthPowerActivationLayer extends NNLayer {
     for (int i = 0; i < input.dim(); i++) {
       final double x = inputData[i];
       boolean isZero = Math.abs(x) < 1e-20;
-      double d = isZero?0.0:(power * Math.pow(x, power-1));
-      double f = isZero?0.0:Math.pow(x, power);
-      if(!Double.isFinite(d)) d = 0.0;
-      if(!Double.isFinite(f)) f = 0.0;
+      double d = isZero ? 0.0 : (power * Math.pow(x, power - 1));
+      double f = isZero ? 0.0 : Math.pow(x, power);
+      if (!Double.isFinite(d)) d = 0.0;
+      if (!Double.isFinite(f)) f = 0.0;
       gradientData[i] = d;
       outputData[i] = f;
     }
@@ -153,10 +159,10 @@ public final class NthPowerActivationLayer extends NNLayer {
       boolean isZero = Math.abs(x) < 1e-20;
       double power = 0.5;
       double v = Math.pow(x, power);
-      double d = isZero?0.0:(power / v);
-      double f = isZero?0.0: v;
-      if(!Double.isFinite(d)) d = 0.0;
-      if(!Double.isFinite(f)) f = 0.0;
+      double d = isZero ? 0.0 : (power / v);
+      double f = isZero ? 0.0 : v;
+      if (!Double.isFinite(d)) d = 0.0;
+      if (!Double.isFinite(f)) f = 0.0;
       gradientData[i] = d;
       outputData[i] = f;
     }

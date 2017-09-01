@@ -23,12 +23,15 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import org.junit.Ignore;
 
+/**
+ * The type Toeplitz synapse layer test.
+ */
 @Ignore
 public class ToeplitzSynapseLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ToeplitzSynapseLayer(new int[]{3},new int[]{3});
+    return new ToeplitzSynapseLayer(new int[]{3}, new int[]{3});
   }
   
   @Override

@@ -78,11 +78,11 @@ public class UncertiantyEstimateTrainable implements Trainable {
     List<PointSample> results = this.inner.stream().map(x -> {
       return x.measure();
     }).collect(Collectors.toList());
-    DeltaSet deltaSet = results.stream().map(x->x.delta).reduce((a,b)->a.add(b)).get().scale(1.0/results.size());
+    DeltaSet deltaSet = results.stream().map(x -> x.delta).reduce((a, b) -> a.add(b)).get().scale(1.0 / results.size());
     DoubleStatistics statistics = new DoubleStatistics().accept(results.stream().mapToDouble(x -> x.value).toArray());
     double meanValue = statistics.getAverage();
     this.lastStatistics = statistics;
-    if(null == this.firstStatistics) this.firstStatistics = statistics;
+    if (null == this.firstStatistics) this.firstStatistics = statistics;
     monitor.log(String.format("Uncertianty (%03f %%) Measurement %s +- %s", 100.0 * (statistics.getStandardDeviation() / meanValue), meanValue, statistics.getStandardDeviation()));
     return new PointSample(deltaSet, results.get(0).weights, meanValue);
   }
@@ -90,14 +90,14 @@ public class UncertiantyEstimateTrainable implements Trainable {
   @Override
   public void resetToFull() {
     onReset();
-    inner.forEach(x->x.resetToFull());
+    inner.forEach(x -> x.resetToFull());
   }
   
   /**
    * On reset.
    */
   public void onReset() {
-    if(null != monitor && null != firstStatistics && null != lastStatistics) {
+    if (null != monitor && null != firstStatistics && null != lastStatistics) {
       double improvement = (firstStatistics.getAverage() - lastStatistics.getAverage());
       double uncertianty = lastStatistics.getStandardDeviation();
       monitor.log(String.format("Uncertianty %s and Improvement %s", uncertianty, improvement));
@@ -108,7 +108,7 @@ public class UncertiantyEstimateTrainable implements Trainable {
   @Override
   public boolean resetSampling() {
     onReset();
-    return inner.stream().map(x->x.resetSampling()).reduce((a,b)->a||b).get();
+    return inner.stream().map(x -> x.resetSampling()).reduce((a, b) -> a || b).get();
   }
   
   /**
@@ -117,6 +117,6 @@ public class UncertiantyEstimateTrainable implements Trainable {
    * @return the uncertianty
    */
   public double getUncertianty() {
-    return (null==lastStatistics?firstStatistics:lastStatistics).getStandardDeviation();
+    return (null == lastStatistics ? firstStatistics : lastStatistics).getStandardDeviation();
   }
 }

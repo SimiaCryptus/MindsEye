@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.loss;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,14 +77,16 @@ public class MeanSqLossLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    if(2 != inObj.length) throw new IllegalArgumentException();
-    if(inObj[0].getData().length() != inObj[1].getData().length()) throw new IllegalArgumentException();
+    if (2 != inObj.length) throw new IllegalArgumentException();
+    if (inObj[0].getData().length() != inObj[1].getData().length()) throw new IllegalArgumentException();
     //assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     Tensor rA[] = new Tensor[inObj[0].getData().length()];
     Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(dataIndex);
       final Tensor b = inObj[1].getData().get(dataIndex);
-      if(a.dim() != b.dim()) throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
+      if (a.dim() != b.dim()) {
+        throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
+      }
       final Tensor r = new Tensor(a.getDimensions());
       double total = 0;
       for (int i = 0; i < a.dim(); i++) {

@@ -20,12 +20,17 @@
 package com.simiacryptus.mindseye.layers.synapse;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Coordinate;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.Delta;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.Tensor;
 import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,7 +157,7 @@ public class DenseSynapseLayer extends NNLayer {
 //    DoubleMatrix at = new DoubleMatrix(1, in.length, in);
 //    at.mmuli(matrix, new DoubleMatrix(out.length, 1, out));
 //  }
-  
+
 //  public static void multiplyT(final double[] data, final double[] in, double[] out) {
 //    DoubleMatrix matrix = new DoubleMatrix(in.length, out.length, data);
 //    DoubleMatrix at = new DoubleMatrix(in.length, 1, in);
@@ -183,8 +188,8 @@ public class DenseSynapseLayer extends NNLayer {
    */
   public static DoubleMatrix transpose(DoubleMatrix doubleMatrix) {
     DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, Tensor.obtain(doubleMatrix.length));
-    for(int i = 0; i < doubleMatrix.rows; ++i) {
-      for(int j = 0; j < doubleMatrix.columns; ++j) {
+    for (int i = 0; i < doubleMatrix.rows; ++i) {
+      for (int j = 0; j < doubleMatrix.columns; ++j) {
         result.put(j, i, doubleMatrix.get(i, j));
       }
     }
@@ -193,7 +198,7 @@ public class DenseSynapseLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
       final Tensor input = inObj[0].getData().get(dataIndex);
       return multiply2(this.getWeights().getData(), input.getData());
@@ -226,7 +231,7 @@ public class DenseSynapseLayer extends NNLayer {
    */
   public DenseSynapseLayer setWeightsLog(final double value) {
     this.weights.coordStream().parallel().forEach(c -> {
-      this.weights.set(c, (FastRandom.random()-0.5)*Math.pow(10,value));
+      this.weights.set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
     });
     return this;
   }
@@ -332,7 +337,7 @@ public class DenseSynapseLayer extends NNLayer {
     
     @Override
     public void accumulate(final DeltaSet buffer, final TensorList delta) {
-      assert delta.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
       if (!isFrozen()) {
         learn(delta, buffer);
       }

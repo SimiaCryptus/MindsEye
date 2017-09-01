@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.stochastic;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Dropout noise layer test.
+ */
 public class DropoutNoiseLayerTest extends LayerTestBase {
   
   @Override

@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.layers.synapse;
 
+import com.simiacryptus.mindseye.data.Coordinate;
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.Tensor;
 
 /**
  * The type Toeplitz synapse layer.
@@ -93,7 +93,7 @@ public class ToeplitzSynapseLayer extends MappedSynapseLayer {
   
   private boolean allowVector(int[] coordVector) {
     double total = 0;
-    for(int i=0;i<coordVector.length;i++) total += coordVector[i];
+    for (int i = 0; i < coordVector.length; i++) total += coordVector[i];
     return total < radius;
   }
   

@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.layers.util;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
@@ -46,11 +46,11 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     //json.add("forwardPerf",forwardPerf.getJson());
     //json.add("backwardPerf",backwardPerf.getJson());
     json.add("inner", getInner().getJson());
-    json.addProperty("totalBatches",totalBatches);
-    json.addProperty("totalItems",totalItems);
+    json.addProperty("totalBatches", totalBatches);
+    json.addProperty("totalItems", totalItems);
     return json;
   }
-
+  
   /**
    * From json monitoring wrapper.
    *
@@ -60,7 +60,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   public static MonitoringWrapper fromJson(JsonObject json) {
     return new MonitoringWrapper(json);
   }
-
+  
   /**
    * Instantiates a new Monitoring wrapper.
    *
@@ -68,9 +68,9 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    */
   protected MonitoringWrapper(JsonObject json) {
     super(json);
-    if(json.has("forwardPerf")) this.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
-    if(json.has("backwardPerf")) this.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
-    if(json.has("passbackPerformance")) this.passbackPerf.readJson(json.getAsJsonObject("passbackPerformance"));
+    if (json.has("forwardPerf")) this.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
+    if (json.has("backwardPerf")) this.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
+    if (json.has("passbackPerformance")) this.passbackPerf.readJson(json.getAsJsonObject("passbackPerformance"));
     this.totalBatches = json.get("totalBatches").getAsInt();
     this.totalItems = json.get("totalItems").getAsInt();
   }
@@ -95,7 +95,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     map.put("class", inner.getClass().getName());
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
-    if(verbose) {
+    if (verbose) {
       map.put("forwardPerformance", forwardPerf.getMetrics());
       map.put("backwardPerformance", backwardPerf.getMetrics());
       map.put("passbackPerformance", passbackPerf.getMetrics());
@@ -107,16 +107,16 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     double backpropMean = backwardPerf.getMean();
     double passbackMedian = passbackPerf.getPercentile(0.5);
     double backpropMedian = backwardPerf.getPercentile(0.5);
-    map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMean)?(backpropMean - passbackMean):backpropMean));
-    map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMedian)?(backpropMedian - passbackMedian):backpropMedian));
+    map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMean) ? (backpropMean - passbackMean) : backpropMean));
+    map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMedian) ? (backpropMedian - passbackMedian) : backpropMedian));
     List<double[]> state = state();
     ScalarStatistics statistics = new ScalarStatistics();
-    for(double[] s : state) {
-      for(double v : s) {
+    for (double[] s : state) {
+      for (double v : s) {
         statistics.add(v);
       }
     }
-    if(statistics.getCount() > 0) {
+    if (statistics.getCount() > 0) {
       HashMap<String, Object> weightStats = new HashMap<>();
       weightStats.put("buffers", state.size());
       weightStats.putAll(statistics.getMetrics());
@@ -135,7 +135,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
         result.accumulate(buffer, data);
         passbackPerf.add((passbacks * (System.nanoTime() - start) / 1000000000.0));
       }
-    
+      
       @Override
       public boolean isAlive() {
         return result.isAlive();
@@ -153,7 +153,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
         result.accumulate(buffer, data);
         backwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
       }
-  
+      
       @Override
       public boolean isAlive() {
         return result.isAlive();
@@ -180,7 +180,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    */
   public MonitoringWrapper addTo(MonitoredObject obj, String name) {
     setName(name);
-    obj.addObj(getName(),this);
+    obj.addObj(getName(), this);
     return this;
   }
   
@@ -191,7 +191,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   
   @Override
   public NNLayer setName(String name) {
-    if(null != getInner()) getInner().setName(name);
+    if (null != getInner()) getInner().setName(name);
     return this;
   }
   

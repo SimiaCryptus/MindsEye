@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.layers.util;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.ScalarStatistics;
@@ -41,8 +41,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.addProperty("totalBatches",totalBatches);
-    json.addProperty("totalItems",totalItems);
+    json.addProperty("totalBatches", totalBatches);
+    json.addProperty("totalItems", totalItems);
     return json;
   }
 
@@ -85,26 +85,26 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert(1==inObj.length);
+    assert (1 == inObj.length);
     NNResult input = inObj[0];
     long start = System.nanoTime();
     double elapsed = (System.nanoTime() - start) / 1000000000.0;
     totalBatches++;
     totalItems += input.getData().length();
     forwardStatistics.clear();
-    input.getData().stream().parallel().forEach(t->{
+    input.getData().stream().parallel().forEach(t -> {
       forwardStatistics.add(t.getData());
     });
     return new NNResult(input.getData()) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
         backpropStatistics.clear();
-        data.stream().parallel().forEach(t->{
+        data.stream().parallel().forEach(t -> {
           backpropStatistics.add(t.getData());
         });
         input.accumulate(buffer, data);
       }
-  
+
       @Override
       public boolean isAlive() {
         return input.isAlive();
@@ -146,7 +146,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
    */
   public MonitoringSynapse addTo(MonitoredObject obj, String name) {
     setName(name);
-    obj.addObj(getName(),this);
+    obj.addObj(getName(), this);
     return this;
   }
 }

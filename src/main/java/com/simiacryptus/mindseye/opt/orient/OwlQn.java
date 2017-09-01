@@ -94,7 +94,8 @@ public class OwlQn implements OrientationStrategy {
             if (sign(prevValue) != 0 && sign(prevValue) != sign(newValue)) {
               currentDelta[i] = 0;
               buffer.target[i] = 0;
-            } else {
+            }
+            else {
               buffer.target[i] = newValue;
             }
           }
@@ -118,8 +119,10 @@ public class OwlQn implements OrientationStrategy {
   protected int sign(double weight) {
     if (weight > zeroTol) {
       return 1;
-    } else if (weight < -zeroTol) {
-    } else {
+    }
+    else if (weight < -zeroTol) {
+    }
+    else {
       return -1;
     }
     return 0;
@@ -133,12 +136,12 @@ public class OwlQn implements OrientationStrategy {
    */
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
     return layers.stream()
-               .filter(layer -> {
-                 if (layer instanceof DenseSynapseLayer) return true;
-                 if (layer instanceof ToeplitzSynapseLayer) return true;
-                 return layer instanceof JavaDenseSynapseLayer;
-               })
-               .collect(Collectors.toList());
+             .filter(layer -> {
+               if (layer instanceof DenseSynapseLayer) return true;
+               if (layer instanceof ToeplitzSynapseLayer) return true;
+               return layer instanceof JavaDenseSynapseLayer;
+             })
+             .collect(Collectors.toList());
   }
   
   /**

@@ -43,21 +43,21 @@ public class CudaExecutionContext extends CuDNN implements NNLayer.NNExecutionCo
    * @return the list
    */
   static List<CudaExecutionContext> loadGpuContexts() {
-      int deviceCount = CuDNN.deviceCount();
-      System.out.println(String.format("Found %s devices", deviceCount));
-      List<Integer> devices = new ArrayList<Integer>();
-      for(int device=0;device<deviceCount;device++) {
-        System.out.println(String.format("Device %s - %s", device, getDeviceName(device)));
-          devices.add(device);
-      }
-      if(System.getProperties().containsKey("gpus")) {
-        devices = Arrays.stream(System.getProperty("gpus").split(","))
-                    .map(Integer::parseInt).collect(Collectors.toList());
-        
-      }
-      System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
-      return devices.stream()
-              .map(i->new CudaExecutionContext(i)).collect(Collectors.toList());
+    int deviceCount = CuDNN.deviceCount();
+    System.out.println(String.format("Found %s devices", deviceCount));
+    List<Integer> devices = new ArrayList<Integer>();
+    for (int device = 0; device < deviceCount; device++) {
+      System.out.println(String.format("Device %s - %s", device, getDeviceName(device)));
+      devices.add(device);
+    }
+    if (System.getProperties().containsKey("gpus")) {
+      devices = Arrays.stream(System.getProperty("gpus").split(","))
+                  .map(Integer::parseInt).collect(Collectors.toList());
+      
+    }
+    System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
+    return devices.stream()
+             .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
   }
   
   /**

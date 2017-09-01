@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +41,7 @@ public class ProductLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json product layer.
    *
@@ -47,7 +51,7 @@ public class ProductLayer extends NNLayer {
   public static ProductLayer fromJson(JsonObject json) {
     return new ProductLayer(json);
   }
-
+  
   /**
    * Instantiates a new Product layer.
    *
@@ -105,8 +109,9 @@ public class ProductLayer extends NNLayer {
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
-          if (element.isAlive())
+          if (element.isAlive()) {
             return true;
+          }
         return false;
       }
       

@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.loss;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +41,7 @@ public class StaticScalarLossLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json static scalar loss layer.
    *
@@ -47,7 +51,7 @@ public class StaticScalarLossLayer extends NNLayer {
   public static StaticScalarLossLayer fromJson(JsonObject json) {
     return new StaticScalarLossLayer(json);
   }
-
+  
   /**
    * Instantiates a new Static scalar loss layer.
    *
@@ -75,9 +79,9 @@ public class StaticScalarLossLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    if(1 != inObj.length) throw new IllegalArgumentException();
-    if(inObj[0].getData().length() != 1) throw new IllegalArgumentException();
-    assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    if (1 != inObj.length) throw new IllegalArgumentException();
+    if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
+    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(dataIndex);
       final double diff = Math.abs(a.get(0) - getTarget());
@@ -86,11 +90,11 @@ public class StaticScalarLossLayer extends NNLayer {
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
-        assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (inObj[0].isAlive()) {
           Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
             final Tensor a = inObj[0].getData().get(dataIndex);
-            final double deriv = data.get(dataIndex).get(0) * ((a.get(0) - getTarget())<0?-1:1);
+            final double deriv = data.get(dataIndex).get(0) * ((a.get(0) - getTarget()) < 0 ? -1 : 1);
             return new Tensor(new int[]{1}, new double[]{deriv});
           }).toArray(i -> new Tensor[i]);
           inObj[0].accumulate(buffer, new TensorArray(passbackA));

@@ -24,18 +24,21 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import org.junit.Ignore;
 
 
+/**
+ * The type Img crop layer test.
+ */
 @Ignore
 public class ImgCropLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ImgCropLayer(1,1);
+    return new ImgCropLayer(1, 1);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3,3,1}
+      {3, 3, 1}
     };
   }
 }

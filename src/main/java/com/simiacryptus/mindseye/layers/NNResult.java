@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -86,7 +88,7 @@ public abstract class NNResult {
   public static NNResult[] batchResultArray(Tensor[][] batchData) {
     return IntStream.range(0, batchData[0].length).mapToObj(inputIndex -> {
       Tensor[] inputBatch = IntStream.range(0, batchData.length)
-                  .mapToObj(trainingExampleId ->batchData[trainingExampleId][inputIndex]).toArray(i -> new Tensor[i]);
+                              .mapToObj(trainingExampleId -> batchData[trainingExampleId][inputIndex]).toArray(i -> new Tensor[i]);
       return new ConstNNResult(inputBatch);
     }).toArray(x -> new NNResult[x]);
   }
@@ -147,6 +149,6 @@ public abstract class NNResult {
    * @return the gpu floats
    */
   public CudaPtr getGpuFloats(int device) {
-    return stateCache.computeIfAbsent(device, i->CudaPtr.toDeviceAsFloat(device, data));
+    return stateCache.computeIfAbsent(device, i -> CudaPtr.toDeviceAsFloat(device, data));
   }
 }

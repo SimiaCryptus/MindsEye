@@ -20,12 +20,11 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.google.common.collect.Lists;
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
-import com.simiacryptus.util.ml.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +58,7 @@ public class ArrayTrainable implements Trainable {
    * @param batchSize    the batch size
    */
   public ArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
-    if(0 == trainingData.length) throw new IllegalArgumentException();
+    if (0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.network = network;
     this.batchSize = batchSize;
@@ -68,24 +67,24 @@ public class ArrayTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    List<List<Tensor[]>> collection = batchSize<trainingData.length?
+    List<List<Tensor[]>> collection = batchSize < trainingData.length ?
                                         Lists.partition(Arrays.asList(trainingData), batchSize)
-                                        :Arrays.asList(Arrays.asList(trainingData));
+                                        : Arrays.asList(Arrays.asList(trainingData));
     Stream<List<Tensor[]>> stream = collection.stream();
-    if(isParallel()) stream = stream.parallel();
-    return stream.map(trainingData->{
+    if (isParallel()) stream = stream.parallel();
+    return stream.map(trainingData -> {
       NNResult[] input = NNResult.batchResultArray(trainingData.toArray(new Tensor[][]{}));
-      NNResult result = CudaExecutionContext.gpuContexts.map(ctx->network.eval(ctx, input));
+      NNResult result = CudaExecutionContext.gpuContexts.map(ctx -> network.eval(ctx, input));
       DeltaSet deltaSet = new DeltaSet();
-      CudaExecutionContext.gpuContexts.apply(ctx->result.accumulate(deltaSet));
+      CudaExecutionContext.gpuContexts.apply(ctx -> result.accumulate(deltaSet));
       DeltaSet stateSet = new DeltaSet();
       deltaSet.map.forEach((layer, layerDelta) -> {
         stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
       });
       assert (result.getData().stream().allMatch(x -> x.dim() == 1));
       double sum = result.getData().stream().mapToDouble(x -> x.getData()[0]).sum();
-      return new PointSample(deltaSet.scale(1.0/trainingData.size()), stateSet, sum / trainingData.size());
-    }).reduce((a,b)->new PointSample(a.delta.add(b.delta),a.weights, a.value + b.value)).get();
+      return new PointSample(deltaSet.scale(1.0 / trainingData.size()), stateSet, sum / trainingData.size());
+    }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
   }
   
   @Override

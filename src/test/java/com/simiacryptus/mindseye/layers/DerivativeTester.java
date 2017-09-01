@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.io.KryoUtil;
-import com.simiacryptus.util.ml.Tensor;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,9 @@ public class DerivativeTester {
   
   private static final Logger log = LoggerFactory.getLogger(DerivativeTester.class);
   
+  /**
+   * The Probe size.
+   */
   public final double probeSize;
   private final double tolerance;
   private boolean testLearning = true;
@@ -43,7 +48,9 @@ public class DerivativeTester {
   
   /**
    * Instantiates a new Component test util.
-   * @param tolerance
+   *
+   * @param tolerance the tolerance
+   * @param probeSize the probe size
    */
   public DerivativeTester(double tolerance, double probeSize) {
     this.tolerance = tolerance;
@@ -59,12 +66,16 @@ public class DerivativeTester {
    * @throws Throwable the throwable
    */
   public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    if(isTestFeedback()) for (int i = 0; i < inputPrototype.length; i++) {
-      testFeedback(component, i, outputPrototype, inputPrototype);
+    if (isTestFeedback()) {
+      for (int i = 0; i < inputPrototype.length; i++) {
+        testFeedback(component, i, outputPrototype, inputPrototype);
+      }
     }
     final int layers = component.state().size();
-    if(isTestLearning()) for (int i = 0; i < layers; i++) {
-      testLearning(component, i, outputPrototype, inputPrototype);
+    if (isTestLearning()) {
+      for (int i = 0; i < layers; i++) {
+        testLearning(component, i, outputPrototype, inputPrototype);
+      }
     }
   }
   
@@ -106,7 +117,7 @@ public class DerivativeTester {
           Tensor tensor = eval.getData().get(0);
           eval.accumulate(new DeltaSet(), new TensorArray(data));
           return tensor;
-        },(a, b) -> a.add(b));
+        }, (a, b) -> a.add(b));
     }
     return gradientBuffer;
   }
@@ -127,9 +138,9 @@ public class DerivativeTester {
           Tensor tensor = eval.getData().get(0);
           eval.accumulate(buffer, new TensorArray(data));
           return tensor;
-        },(a, b) -> a.add(b));
-  
-  
+        }, (a, b) -> a.add(b));
+
+
       final Delta deltaFlushBuffer = buffer.map.values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
@@ -140,7 +151,7 @@ public class DerivativeTester {
   
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-  
+
     Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
       (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));
@@ -151,7 +162,7 @@ public class DerivativeTester {
       inputProbe.add(i, probeSize * 1);
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-  
+
       Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(copyInput),
         (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
         (a, b) -> a.add(b));
@@ -167,7 +178,7 @@ public class DerivativeTester {
   private Tensor measureLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-  
+
     Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
       (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));
@@ -175,7 +186,7 @@ public class DerivativeTester {
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += probeSize;
-  
+
       Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
         (data, exe) -> copy.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
         (a, b) -> a.add(b));
@@ -188,6 +199,14 @@ public class DerivativeTester {
     return gradient;
   }
   
+  /**
+   * Test feedback.
+   *
+   * @param component       the component
+   * @param i               the
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   */
   protected void testFeedback(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
     final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
@@ -205,6 +224,14 @@ public class DerivativeTester {
     }
   }
   
+  /**
+   * Test learning.
+   *
+   * @param component       the component
+   * @param i               the
+   * @param outputPrototype the output prototype
+   * @param inputPrototype  the input prototype
+   */
   protected void testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
     final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
@@ -224,19 +251,41 @@ public class DerivativeTester {
     }
   }
   
+  /**
+   * Is test learning boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestLearning() {
     return testLearning;
   }
   
+  /**
+   * Sets test learning.
+   *
+   * @param testLearning the test learning
+   * @return the test learning
+   */
   public DerivativeTester setTestLearning(boolean testLearning) {
     this.testLearning = testLearning;
     return this;
   }
   
+  /**
+   * Is test feedback boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTestFeedback() {
     return testFeedback;
   }
   
+  /**
+   * Sets test feedback.
+   *
+   * @param testFeedback the test feedback
+   * @return the test feedback
+   */
   public DerivativeTester setTestFeedback(boolean testFeedback) {
     this.testFeedback = testFeedback;
     return this;

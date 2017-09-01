@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.data.MNIST;
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
@@ -30,8 +32,6 @@ import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.ml.Tensor;
-import com.simiacryptus.util.test.MNIST;
 import com.simiacryptus.util.test.TestCategories;
 import com.simiacryptus.util.text.TableOutput;
 import org.junit.Test;
@@ -45,6 +45,9 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.IntStream;
 
+/**
+ * The type Mnist test base.
+ */
 public abstract class MnistTestBase {
   /**
    * Basic.
@@ -56,7 +59,7 @@ public abstract class MnistTestBase {
   public void test() throws IOException {
     PrintStream originalOut = System.out;
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if(null != originalOut) ((MarkdownNotebookOutput)log).addCopy(originalOut);
+      if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
       log.p("First, define a model:");
       PipelineNetwork network = buildModel(log);
       Tensor[][] trainingData = getTrainingData(log);
@@ -67,16 +70,16 @@ public abstract class MnistTestBase {
         @Override
         public void log(String msg) {
           System.out.println(msg);
-          if(null != originalOut && System.out != originalOut) originalOut.println(msg);
+          if (null != originalOut && System.out != originalOut) originalOut.println(msg);
           super.log(msg);
         }
-  
+        
         @Override
         public void onStepComplete(Step currentPoint) {
           history.add(currentPoint);
           super.onStepComplete(currentPoint);
         }
-  
+        
         @Override
         public void clear() {
           super.clear();
@@ -88,8 +91,15 @@ public abstract class MnistTestBase {
     }
   }
   
+  /**
+   * Report.
+   *
+   * @param log            the log
+   * @param monitoringRoot the monitoring root
+   * @param history        the history
+   */
   public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history) {
-    log.code(()->{
+    log.code(() -> {
       try {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         JsonUtil.writeJson(out, monitoringRoot.getMetrics());
@@ -98,8 +108,8 @@ public abstract class MnistTestBase {
         throw new RuntimeException(e);
       }
     });
-    log.code(() ->{
-      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step->new double[]{step.iteration, Math.log10(step.point.value)}).toArray(i->new double[i][]));
+    log.code(() -> {
+      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.value)}).toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Iteration", "log10(Fitness)");
       plot.setSize(600, 400);
@@ -107,14 +117,28 @@ public abstract class MnistTestBase {
     });
   }
   
+  /**
+   * Add monitoring.
+   *
+   * @param network        the network
+   * @param monitoringRoot the monitoring root
+   */
   public void addMonitoring(PipelineNetwork network, MonitoredObject monitoringRoot) {
-    network.visitNodes(node->{
-      if(node instanceof InnerNode && !(node.getLayer() instanceof MonitoringWrapper)) {
-        ((InnerNode)node).setLayer(new MonitoringWrapper(node.getLayer()).addTo(monitoringRoot));
+    network.visitNodes(node -> {
+      if (node instanceof InnerNode && !(node.getLayer() instanceof MonitoringWrapper)) {
+        ((InnerNode) node).setLayer(new MonitoringWrapper(node.getLayer()).addTo(monitoringRoot));
       }
     });
   }
   
+  /**
+   * Train.
+   *
+   * @param log          the log
+   * @param network      the network
+   * @param trainingData the training data
+   * @param monitor      the monitor
+   */
   public abstract void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor);
   
   /**

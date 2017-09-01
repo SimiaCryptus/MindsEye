@@ -22,8 +22,16 @@ package com.simiacryptus.mindseye.layers.activation;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Activation layer test base.
+ */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
   
+  /**
+   * Instantiates a new Activation layer test base.
+   *
+   * @param layer the layer
+   */
   public ActivationLayerTestBase(NNLayer layer) {
     this.layer = layer;
   }

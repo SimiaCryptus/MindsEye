@@ -34,9 +34,9 @@ public class AdaptiveTrustSphere implements TrustRegion {
     double[] weights = history[0];
     double[] delta = ArrayUtil.subtract(point, weights);
     double distance = ArrayUtil.magnitude(delta);
-    if(history.length < lookback+1) return point;
-    double max = ArrayUtil.magnitude(ArrayUtil.subtract(weights, history[lookback]))/ divisor;
-    return distance>max?ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)):point;
+    if (history.length < lookback + 1) return point;
+    double max = ArrayUtil.magnitude(ArrayUtil.subtract(weights, history[lookback])) / divisor;
+    return distance > max ? ArrayUtil.add(weights, ArrayUtil.multiply(delta, max / distance)) : point;
   }
   
   /**

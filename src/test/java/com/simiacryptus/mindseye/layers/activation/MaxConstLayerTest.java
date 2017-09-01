@@ -19,7 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.activation;
 
+/**
+ * The type Max const layer test.
+ */
 public class MaxConstLayerTest extends ActivationLayerTestBase {
+  /**
+   * Instantiates a new Max const layer test.
+   */
   public MaxConstLayerTest() {
     super(new MaxConstLayer());
   }

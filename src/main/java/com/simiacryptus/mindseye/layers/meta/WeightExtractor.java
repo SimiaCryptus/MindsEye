@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.TensorList;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public final class WeightExtractor extends NNLayer {
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.addProperty("innerId", getInner().getId().toString());
-    json.addProperty("index",index);
+    json.addProperty("index", index);
     return json;
   }
 
@@ -101,7 +101,7 @@ public final class WeightExtractor extends NNLayer {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
         assert (data.length() == 1);
-        if(!isFrozen() && !inner.isFrozen()) buffer.get(inner, doubles).accumulate(data.get(0).getData());
+        if (!isFrozen() && !inner.isFrozen()) buffer.get(inner, doubles).accumulate(data.get(0).getData());
       }
     };
   }
@@ -136,6 +136,6 @@ public final class WeightExtractor extends NNLayer {
    */
   public void setInner(NNLayer inner) {
     this.inner = inner;
-    this.innerId = inner.id;
+    this.innerId = null == inner ? null : inner.id;
   }
 }

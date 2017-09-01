@@ -20,8 +20,12 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +39,7 @@ public class SumInputsLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json sum inputs layer.
    *
@@ -45,7 +49,7 @@ public class SumInputsLayer extends NNLayer {
   public static SumInputsLayer fromJson(JsonObject json) {
     return new SumInputsLayer(json);
   }
-
+  
   /**
    * Instantiates a new Sum inputs layer.
    *
@@ -54,7 +58,7 @@ public class SumInputsLayer extends NNLayer {
   protected SumInputsLayer(JsonObject id) {
     super(id);
   }
-
+  
   /**
    * Instantiates a new Sum inputs layer.
    */
@@ -66,18 +70,19 @@ public class SumInputsLayer extends NNLayer {
     TensorList data = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length()).parallel()
-              .mapToObj(i->Tensor.add(l.get(i>=l.length()?0:i), r.get(i>=r.length()?0:i)))
-              .toArray(i->new Tensor[i]));
+                               .mapToObj(i -> Tensor.add(l.get(i >= l.length() ? 0 : i), r.get(i >= r.length() ? 0 : i)))
+                               .toArray(i -> new Tensor[i]));
     }).get();
     return new NNResult(data) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
-        assert data.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+        assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            if(1 < data.length() && input.getData().length() == 1) {
-              input.accumulate(buffer, new TensorArray(data.stream().parallel().reduce((a,b)->a.add(b)).get()));
-            } else {
+            if (1 < data.length() && input.getData().length() == 1) {
+              input.accumulate(buffer, new TensorArray(data.stream().parallel().reduce((a, b) -> a.add(b)).get()));
+            }
+            else {
               input.accumulate(buffer, data);
             }
           }
@@ -87,8 +92,9 @@ public class SumInputsLayer extends NNLayer {
       @Override
       public boolean isAlive() {
         for (final NNResult element : inObj)
-          if (element.isAlive())
+          if (element.isAlive()) {
             return true;
+          }
         return false;
       }
       

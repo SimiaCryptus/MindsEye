@@ -19,35 +19,69 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.activation.ActivationLayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.ml.Tensor;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
+/**
+ * The type Layer test base.
+ */
 public abstract class LayerTestBase {
   private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);
   
+  /**
+   * Test derivatives.
+   *
+   * @throws Throwable the throwable
+   */
   @Test
   public void testDerivatives() throws Throwable {
-    Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim->new Tensor(dim).fill(() -> Util.R.get().nextDouble()))
-                                .toArray(i->new Tensor[i]);
+    Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> Util.R.get().nextDouble()))
+                                .toArray(i -> new Tensor[i]);
     Tensor outputPrototype = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
       (data, exe) -> getLayer().eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));
     getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
   }
   
+  /**
+   * Test json.
+   *
+   * @throws Throwable the throwable
+   */
+  @Test
+  public void testJson() throws Throwable {
+    NNLayer layer = getLayer();
+    NNLayer echo = NNLayer.fromJson(layer.getJson());
+    assert (echo != null && layer != echo);
+  }
+  
+  /**
+   * Gets derivative tester.
+   *
+   * @return the derivative tester
+   */
   public DerivativeTester getDerivativeTester() {
     return new DerivativeTester(1e-4, 1e-8);
   }
   
+  /**
+   * Gets layer.
+   *
+   * @return the layer
+   */
   public abstract NNLayer getLayer();
   
+  /**
+   * Get input dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
   public abstract int[][] getInputDims();
 }

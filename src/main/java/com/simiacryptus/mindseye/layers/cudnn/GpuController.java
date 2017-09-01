@@ -23,7 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.simiacryptus.util.ml.Tensor;
+import com.simiacryptus.mindseye.data.Tensor;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -76,33 +76,34 @@ public final class GpuController {
    * @return the boolean
    */
   public static boolean isOom(Throwable t) {
-    if(t instanceof OutOfMemoryError) return true;
-    if(t instanceof DeviceOutOfMemoryError) return true;
-    if(null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
+    if (t instanceof OutOfMemoryError) return true;
+    if (t instanceof DeviceOutOfMemoryError) return true;
+    if (null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
     return false;
   }
   
   /**
    * Distribute t.
    *
-   * @param <T>         the type parameter
-   * @param data the sampled data
-   * @param mapper    the function
-   * @param reducer     the reducer
+   * @param <T>     the type parameter
+   * @param <U>     the type parameter
+   * @param data    the sampled data
+   * @param mapper  the function
+   * @param reducer the reducer
    * @return the t
    */
-  public <T,U> T distribute(List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {
-    if(data.isEmpty()) return null;
+  public <T, U> T distribute(List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {
+    if (data.isEmpty()) return null;
     List<CudaExecutionContext> devices = CudaExecutionContext.gpuContexts.getAll();
     double weightSum = devices.stream().mapToDouble(d -> deviceWeight.getOrDefault(d.toString(), 1.0)).sum();
     List<Future<T>> results = new ArrayList<>();
     int start = 0;
-    for(int i=0;i<devices.size();i++) {
+    for (int i = 0; i < devices.size(); i++) {
       CudaExecutionContext dev = devices.get(i);
       int sampleSize = (int) Math.max(1, ((data.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0)));
       int end = start + sampleSize;
       List<U> subList = data.subList(start, Math.min(end, data.size()));
-      if(subList.isEmpty()) continue;
+      if (subList.isEmpty()) continue;
       try {
         results.add(gpuDriverThreads.get(dev).submit(() -> evaluate(dev, subList, mapper, reducer)));
       } catch (ExecutionException e) {
@@ -121,23 +122,24 @@ public final class GpuController {
     }).reduce(reducer).orElse(null);
   }
   
-  private <T,U> T evaluate(CudaExecutionContext gpu, List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {
+  private <T, U> T evaluate(CudaExecutionContext gpu, List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {
     Integer batchSize = deviceBatchSizes.getOrDefault(gpu.toString(), data.size());
     try {
       long startNanos = System.nanoTime();
       List<List<U>> batches = (data.size() > batchSize) ? Lists.partition(data, batchSize) : Arrays.asList(data);
-      T deviceResult = batches.stream().map(x-> mapper.apply(x, gpu)).filter(x->null != x).reduce(reducer).get();
+      T deviceResult = batches.stream().map(x -> mapper.apply(x, gpu)).filter(x -> null != x).reduce(reducer).get();
       double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
-      if(verbose) System.out.println(String.format("Device %s completed %s items in %s sec", gpu, data.size(), time));
+      if (verbose) System.out.println(String.format("Device %s completed %s items in %s sec", gpu, data.size(), time));
       deviceWeight.put(gpu.toString(), data.size() / time);
       return deviceResult;
     } catch (Throwable t) {
-      if(GpuController.isOom(t) && batchSize > 1) {
+      if (GpuController.isOom(t) && batchSize > 1) {
         batchSize = batchSize / 2;
         deviceBatchSizes.put(gpu.toString(), batchSize);
         cleanMemory();
         return evaluate(gpu, data, mapper, reducer);
-      } else {
+      }
+      else {
         RuntimeException runtimeException = new RuntimeException(String.format("Failed executing %s items", batchSize), t);
         runtimeException.fillInStackTrace();
         runtimeException.printStackTrace(System.err);

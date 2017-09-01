@@ -65,7 +65,8 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
     if (0. == x) {
       d = 0;
       f = 0;
-    } else {
+    }
+    else {
       final double log = Math.log(Math.abs(x));
       d = -(1 + log);
       f = -x * log;

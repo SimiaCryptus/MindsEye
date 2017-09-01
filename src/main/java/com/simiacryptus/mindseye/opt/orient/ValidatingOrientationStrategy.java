@@ -25,10 +25,18 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
+/**
+ * The type Validating orientation strategy.
+ */
 public class ValidatingOrientationStrategy implements OrientationStrategy {
   
   private final OrientationStrategy inner;
   
+  /**
+   * Instantiates a new Validating orientation strategy.
+   *
+   * @param inner the inner
+   */
   public ValidatingOrientationStrategy(OrientationStrategy inner) {
     this.inner = inner;
   }
@@ -46,7 +54,12 @@ public class ValidatingOrientationStrategy implements OrientationStrategy {
   
   private static class ValidatingLineSearchCursor implements LineSearchCursor {
     private final LineSearchCursor cursor;
-    
+
+    /**
+     * Instantiates a new Validating line search cursor.
+     *
+     * @param cursor the cursor
+     */
     public ValidatingLineSearchCursor(LineSearchCursor cursor) {
       this.cursor = cursor;
     }
@@ -65,28 +78,35 @@ public class ValidatingOrientationStrategy implements OrientationStrategy {
       test(monitor, primaryPoint, 1e-6);
       return primaryPoint;
     }
-  
+
+    /**
+     * Test.
+     *
+     * @param monitor      the monitor
+     * @param primaryPoint the primary point
+     * @param probeSize    the probe size
+     */
     public void test(TrainingMonitor monitor, LineSearchPoint primaryPoint, double probeSize) {
       double tolerance = 1e-4;
       double alpha = primaryPoint.point.rate;
       double probeAlpha = alpha + ((primaryPoint.point.value * probeSize) / primaryPoint.derivative);
-      if(!Double.isFinite(probeAlpha) || probeAlpha == alpha) {
+      if (!Double.isFinite(probeAlpha) || probeAlpha == alpha) {
         probeAlpha = alpha + probeSize;
       }
       LineSearchPoint probePoint = cursor.step(probeAlpha, monitor);
       double dy = probePoint.point.value - primaryPoint.point.value;
       double dx = probeAlpha - alpha;
       double measuredDerivative = dy / dx;
-      monitor.log(String.format("%s vs (%s, %s); probe=%s",measuredDerivative, primaryPoint.derivative, probePoint.derivative, probeSize));
+      monitor.log(String.format("%s vs (%s, %s); probe=%s", measuredDerivative, primaryPoint.derivative, probePoint.derivative, probeSize));
     }
-  
+
     private int compare(double a, double b, double tol) {
       double c = 2 * (a - b) / (a + b);
-      if(c < -tol) return -1;
-      if(c > tol) return 1;
+      if (c < -tol) return -1;
+      if (c > tol) return 1;
       return 0;
     }
-  
+
     @Override
     public DeltaSet position(double alpha) {
       return cursor.position(alpha);

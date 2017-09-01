@@ -32,7 +32,7 @@ public final class DeviceOutOfMemoryError extends RuntimeException {
   public DeviceOutOfMemoryError(String msg, Exception cause) {
     super(msg, cause);
   }
-
+  
   /**
    * Instantiates a new Device out of memory error.
    *

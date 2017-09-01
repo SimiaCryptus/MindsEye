@@ -23,10 +23,14 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.*;
+import com.simiacryptus.mindseye.data.Coordinate;
+import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.data.TensorArray;
+import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.ml.Coordinate;
-import com.simiacryptus.util.ml.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +61,9 @@ public class AvgSubsampleLayer extends NNLayer {
    */
   public static AvgSubsampleLayer fromJson(JsonObject json) {
     return new AvgSubsampleLayer(json,
-                                    JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
-
+  
   /**
    * Instantiates a new Avg subsample layer.
    *
@@ -76,22 +80,22 @@ public class AvgSubsampleLayer extends NNLayer {
    * The constant indexMapCache.
    */
   public static final LoadingCache<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-                                                                                                  .build(new CacheLoader<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
-                                                                                                    @Override
-                                                                                                    public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
-                                                                                                      final int[] ksize = key.kernel;
-                                                                                                      final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(false).collect(Collectors.toMap(o -> o, o -> {
-                                                                                                        return new Tensor(ksize).coordStream(false).map(kernelCoord -> {
-                                                                                                          final int[] r = new int[o.coords.length];
-                                                                                                          for (int i = 0; i < o.coords.length; i++) {
-                                                                                                            r[i] = o.coords[i] * ksize[i] + kernelCoord.coords[i];
-                                                                                                          }
-                                                                                                          return r;
-                                                                                                        }).collect(Collectors.toList());
-                                                                                                      }));
-                                                                                                      return coordMap;
-                                                                                                    }
-                                                                                                  });
+                                                                                                                  .build(new CacheLoader<AvgSubsampleLayer.IndexMapKey, Map<Coordinate, List<int[]>>>() {
+                                                                                                                    @Override
+                                                                                                                    public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
+                                                                                                                      final int[] ksize = key.kernel;
+                                                                                                                      final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(false).collect(Collectors.toMap(o -> o, o -> {
+                                                                                                                        return new Tensor(ksize).coordStream(false).map(kernelCoord -> {
+                                                                                                                          final int[] r = new int[o.coords.length];
+                                                                                                                          for (int i = 0; i < o.coords.length; i++) {
+                                                                                                                            r[i] = o.coords[i] * ksize[i] + kernelCoord.coords[i];
+                                                                                                                          }
+                                                                                                                          return r;
+                                                                                                                        }).collect(Collectors.toList());
+                                                                                                                      }));
+                                                                                                                      return coordMap;
+                                                                                                                    }
+                                                                                                                  });
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgSubsampleLayer.class);
   /**
@@ -224,15 +228,19 @@ public class AvgSubsampleLayer extends NNLayer {
     
     @Override
     public boolean equals(final Object obj) {
-      if (this == obj)
+      if (this == obj) {
         return true;
-      if (obj == null)
+      }
+      if (obj == null) {
         return false;
-      if (getClass() != obj.getClass())
+      }
+      if (getClass() != obj.getClass()) {
         return false;
+      }
       final AvgSubsampleLayer.IndexMapKey other = (AvgSubsampleLayer.IndexMapKey) obj;
-      if (!Arrays.equals(this.kernel, other.kernel))
+      if (!Arrays.equals(this.kernel, other.kernel)) {
         return false;
+      }
       return Arrays.equals(this.output, other.output);
     }
     

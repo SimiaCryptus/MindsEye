@@ -22,6 +22,9 @@ package com.simiacryptus.mindseye.layers.cross;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.NNLayer;
 
+/**
+ * The type Cross difference layer test.
+ */
 public class CrossDifferenceLayerTest extends LayerTestBase {
   
   @Override

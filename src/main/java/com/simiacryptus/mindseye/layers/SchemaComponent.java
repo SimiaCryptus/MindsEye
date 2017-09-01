@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.layers.cudnn.f32.SchemaBiasLayer;
-
 /**
  * The interface Schema component.
  */
