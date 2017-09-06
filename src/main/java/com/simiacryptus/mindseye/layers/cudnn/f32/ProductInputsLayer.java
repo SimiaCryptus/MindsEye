@@ -85,7 +85,7 @@ public class ProductInputsLayer extends NNLayer {
     int length = inObj[0].getData().length();
     for (int i = 1; i < inObj.length; i++) {
       if (Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions())) {
-        throw new RuntimeException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
+        throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }
     final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(CUDNN_OP_TENSOR_MUL, CUDNN_DATA_FLOAT);

@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.PercentileStatistics;
 import com.simiacryptus.util.ScalarStatistics;
 
 import java.util.Arrays;
@@ -72,8 +73,8 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
   private int totalBatches = 0;
   private int totalItems = 0;
-  private final ScalarStatistics backpropStatistics = new ScalarStatistics();
-  private final ScalarStatistics forwardStatistics = new ScalarStatistics();
+  private final ScalarStatistics backpropStatistics = new PercentileStatistics();
+  private final ScalarStatistics forwardStatistics = new PercentileStatistics();
   
   /**
    * Instantiates a new Monitoring synapse.

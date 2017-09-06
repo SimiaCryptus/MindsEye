@@ -24,6 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.GpuError;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -55,10 +56,7 @@ public final class GpuController {
    * The Device batch sizes.
    */
   Map<String, Integer> deviceBatchSizes = new HashMap<>();
-  /**
-   * The Gpu driver threads.
-   */
-  LoadingCache<CuDNN, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
+  private LoadingCache<CuDNN, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
     @Override
     public ExecutorService load(CuDNN gpu) throws Exception {
       return Executors.newSingleThreadExecutor(r -> {
@@ -76,8 +74,9 @@ public final class GpuController {
    * @return the boolean
    */
   public static boolean isOom(Throwable t) {
-    if (t instanceof OutOfMemoryError) return true;
-    if (t instanceof DeviceOutOfMemoryError) return true;
+    if (t instanceof java.lang.OutOfMemoryError) return true;
+    if (t instanceof com.simiacryptus.mindseye.lang.OutOfMemoryError) return true;
+    //if (t instanceof com.simiacryptus.mindseye.lang.GpuError) return true;
     if (null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
     return false;
   }
@@ -105,9 +104,9 @@ public final class GpuController {
       List<U> subList = data.subList(start, Math.min(end, data.size()));
       if (subList.isEmpty()) continue;
       try {
-        results.add(gpuDriverThreads.get(dev).submit(() -> evaluate(dev, subList, mapper, reducer)));
+        results.add(getGpuDriverThreads().get(dev).submit(() -> evaluate(dev, subList, mapper, reducer)));
       } catch (ExecutionException e) {
-        throw new RuntimeException(e);
+        throw new GpuError(e);
       }
       start = end;
     }
@@ -115,9 +114,9 @@ public final class GpuController {
       try {
         return x.get();
       } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+        throw new GpuError(e);
       } catch (ExecutionException e) {
-        throw new RuntimeException(e);
+        throw new GpuError(e);
       }
     }).reduce(reducer).orElse(null);
   }
@@ -140,7 +139,7 @@ public final class GpuController {
         return evaluate(gpu, data, mapper, reducer);
       }
       else {
-        RuntimeException runtimeException = new RuntimeException(String.format("Failed executing %s items", batchSize), t);
+        RuntimeException runtimeException = new GpuError(String.format("Failed executing %s items", batchSize), t);
         runtimeException.fillInStackTrace();
         runtimeException.printStackTrace(System.err);
         throw runtimeException;
@@ -155,5 +154,16 @@ public final class GpuController {
     Tensor.clear();
     System.gc();
     System.runFinalization();
+  }
+  
+  /**
+   * The Gpu driver threads.
+   */
+  public LoadingCache<CuDNN, ExecutorService> getGpuDriverThreads() {
+    return gpuDriverThreads;
+  }
+  
+  public void setGpuDriverThreads(LoadingCache<CuDNN, ExecutorService> gpuDriverThreads) {
+    this.gpuDriverThreads = gpuDriverThreads;
   }
 }

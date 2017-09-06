@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.data.Coordinate;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -225,7 +226,7 @@ public class ConvolutionLayer extends NNLayer {
           outputDescriptor.getPtr(), outputBuffer.getPtr()));
         workSpace.finalize();
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
       TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
 
@@ -251,7 +252,7 @@ public class ConvolutionLayer extends NNLayer {
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+              throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
             buffer.get(ConvolutionLayer.this, () -> new CudnnFloatDelta(filter.getData(), ConvolutionLayer.this))
               .accumulate(CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, kernelSize[2], kernelSize[1], kernelSize[0]), filterBuffer, (CudaExecutionContext) nncontext);
@@ -270,7 +271,7 @@ public class ConvolutionLayer extends NNLayer {
                 inputDescriptor.getPtr(), inputBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+              throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
             TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
             inObj[0].accumulate(buffer, inputBufferTensors);
@@ -284,7 +285,7 @@ public class ConvolutionLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
   }
   

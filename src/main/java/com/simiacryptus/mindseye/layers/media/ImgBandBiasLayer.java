@@ -223,7 +223,7 @@ public class ImgBandBiasLayer extends NNLayer {
    */
   public double[] getBias() {
     if (!Arrays.stream(bias).allMatch(v -> Double.isFinite(v))) {
-      throw new RuntimeException(Arrays.toString(bias));
+      throw new IllegalStateException(Arrays.toString(bias));
     }
     return bias;
   }

@@ -160,7 +160,7 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     if (inputNodes.containsKey(newNodeId)) return;
     NNLayer layer = layersByNodeId.get(newNodeId);
     if (layer == null) {
-      throw new RuntimeException(String.format("%s is linked to but not defined", newNodeId));
+      throw new IllegalArgumentException(String.format("%s is linked to but not defined", newNodeId));
     }
     List<UUID> links = nodeLinks.get(newNodeId);
     if (null != links) {

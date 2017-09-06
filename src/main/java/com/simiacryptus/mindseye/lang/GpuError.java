@@ -17,28 +17,26 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.lang;
 
-/**
- * The type Device out of memory error.
- */
-public final class DeviceOutOfMemoryError extends RuntimeException {
-  /**
-   * Instantiates a new Device out of memory error.
-   *
-   * @param msg   the msg
-   * @param cause the cause
-   */
-  public DeviceOutOfMemoryError(String msg, Exception cause) {
-    super(msg, cause);
+public class GpuError extends RuntimeException {
+  
+  public GpuError(String message, Throwable cause) {
+    super(message, cause);
   }
   
-  /**
-   * Instantiates a new Device out of memory error.
-   *
-   * @param message the message
-   */
-  public DeviceOutOfMemoryError(String message) {
+  public GpuError(Throwable cause) {
+    super(cause);
+  }
+  
+  public GpuError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
+  
+  public GpuError() {
+  }
+  
+  public GpuError(String message) {
     super(message);
   }
 }

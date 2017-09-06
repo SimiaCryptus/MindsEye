@@ -21,14 +21,20 @@ package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -77,14 +83,38 @@ public class GpuTrainable implements Trainable {
   
   @Override
   public PointSample measure() {
-    PointSample result = GpuController.INSTANCE.distribute(sampledData,
-      (list, dev) -> eval(NNResult.batchResultArray(list.stream().toArray(i1 -> new Tensor[i1][])), dev),
-      (a, b) -> a.add(b)
-    );
-    // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
-    // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
-    if (gcEachIteration) GpuController.INSTANCE.cleanMemory();
-    return result;
+    return measure(3);
+  }
+  
+  public PointSample measure(int retries) {
+    try {
+      PointSample result = GpuController.INSTANCE.distribute(sampledData,
+        (list, dev) -> eval(NNResult.batchResultArray(list.stream().toArray(i1 -> new Tensor[i1][])), dev),
+        (a, b) -> a.add(b)
+      );
+      // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
+      // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
+      if (gcEachIteration) GpuController.INSTANCE.cleanMemory();
+      return result;
+    } catch (Exception e) {
+      if(retries > 0) {
+        GpuController.INSTANCE.cleanMemory();
+        for(Map.Entry<CuDNN, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
+          try {
+            entry.getValue().submit(()->JCuda.cudaDeviceReset()).get();
+          } catch (InterruptedException e1) {
+            throw new GpuError(e1);
+          } catch (ExecutionException e1) {
+            throw new GpuError(e1);
+          }
+        }
+        GpuController.INSTANCE.cleanMemory();
+        e.printStackTrace();
+        return measure(retries-1);
+      } else {
+        throw e;
+      }
+    }
   }
   
   /**
@@ -135,9 +165,12 @@ public class GpuTrainable implements Trainable {
    * @param sampledData the sampled data
    */
   protected void setSampledData(List<? extends Supplier<Tensor[]>> sampledData) {
-    this.sampledData = sampledData.stream().parallel()
-                         .map(x -> x.get())
-                         .collect(Collectors.toList());
+    setData(sampledData.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
+  }
+  
+  protected GpuTrainable setData(List<Tensor[]> sampledData) {
+    this.sampledData = sampledData;
+    return this;
   }
   
   /**

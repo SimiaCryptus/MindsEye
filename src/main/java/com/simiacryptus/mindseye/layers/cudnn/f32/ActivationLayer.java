@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -147,7 +148,7 @@ public class ActivationLayer extends NNLayer {
           Pointer.to(new float[]{0.0f}),
           inputDescriptor.getPtr(), outputData.getPtr()));
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
       TensorList output = CudaPtr.fromDeviceFloat(outputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
@@ -169,7 +170,7 @@ public class ActivationLayer extends NNLayer {
                 Pointer.to(new float[]{0.0f}),
                 inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
+              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
             input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle));
             passbackBuffer.finalize();
@@ -183,7 +184,7 @@ public class ActivationLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
   }
 

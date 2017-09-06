@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f64;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -158,7 +159,7 @@ public class PoolingLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error", e);
+      throw new ComponentException("Error", e);
     }
   }
 

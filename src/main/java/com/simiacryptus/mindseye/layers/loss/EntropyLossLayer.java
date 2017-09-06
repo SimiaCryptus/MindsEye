@@ -110,7 +110,7 @@ public class EntropyLossLayer extends NNLayer {
         NNResult a = inObj[0];
         NNResult b = inObj[1];
         if (b.isAlive()) {
-          throw new RuntimeException();
+          throw new IllegalArgumentException();
         }
         if (a.isAlive()) {
           a.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {

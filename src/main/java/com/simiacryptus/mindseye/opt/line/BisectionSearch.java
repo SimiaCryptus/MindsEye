@@ -53,10 +53,10 @@ public class BisectionSearch implements LineSearchStrategy {
     while (true) {
       rightX = (leftX + Math.min(rightRight, rightRightSoft)) / 2;
       rightPoint = cursor.step(rightX, monitor);
-      monitor.log(String.format("F(%s) = %s", rightX, rightPoint));
+      monitor.log(String.format("F(%s)@%s = %s", rightX, loopCount, rightPoint));
       rightLineDeriv = rightPoint.derivative;
       rightValue = rightPoint.point.value;
-      if (loopCount++ > 1000) break;
+      if (loopCount++ > 100) break;
       if ((rightRight - leftX) * 2.0 / (leftX + rightRight) < Math.pow(10, -3)) {
         monitor.log(String.format("Right limit is nonconvergent at %s/%s", leftX, rightRight));
         return cursor.step(leftX, monitor).point;

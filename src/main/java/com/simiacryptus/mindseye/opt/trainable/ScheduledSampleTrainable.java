@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
+import com.simiacryptus.util.PercentileStatistics;
 import com.simiacryptus.util.ScalarStatistics;
 import com.simiacryptus.util.Util;
 
@@ -102,7 +103,7 @@ public class ScheduledSampleTrainable implements Trainable {
       stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
     assert (result.getData().stream().allMatch(x -> x.dim() == 1));
-    ScalarStatistics statistics = new ScalarStatistics();
+    ScalarStatistics statistics = new PercentileStatistics();
     result.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).forEach(x -> statistics.add(x));
     return new Trainable.PointSample(deltaSet, stateSet, statistics.getMean());
   }

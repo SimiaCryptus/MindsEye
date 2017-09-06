@@ -31,10 +31,12 @@ public class QuadraticSearch implements LineSearchStrategy {
   private double relativeTolerance = 1e-2;
   private double initialDerivFactor = 0.95;
   private double currentRate = 0.0;
+  private double minRate = 1e-10;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
     double leftX = 0;
+    if(currentRate < getMinRate()) currentRate = getMinRate();
     PointSample pointSample = _step(cursor, monitor, leftX);
     setCurrentRate(pointSample.rate);
     return pointSample;
@@ -77,7 +79,7 @@ public class QuadraticSearch implements LineSearchStrategy {
         monitor.log(String.format("Loops = %s", loops));
         return filter(cursor, thisPoint.point, monitor);
       }
-      monitor.log(String.format("F(%s) = %s", thisX, thisPoint));
+      monitor.log(String.format("F(%s)@%s = %s", thisX, loops, thisPoint));
       if (isSame(leftX, rightX)) {
         monitor.log(String.format("%s ~= %s", leftX, rightX));
         return filter(cursor, thisPoint.point, monitor);
@@ -216,6 +218,14 @@ public class QuadraticSearch implements LineSearchStrategy {
   public QuadraticSearch setCurrentRate(double currentRate) {
     this.currentRate = currentRate;
     return this;
+  }
+  
+  public double getMinRate() {
+    return minRate;
+  }
+  
+  public void setMinRate(double minRate) {
+    this.minRate = minRate;
   }
   
   private class LocateInitialRightPoint {

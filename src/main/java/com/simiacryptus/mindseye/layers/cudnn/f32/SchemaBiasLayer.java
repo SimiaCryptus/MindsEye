@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.layers.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
@@ -103,7 +104,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
   
   @Override
   public SchemaBiasLayer setSchema(String... labels) {
-    if (null == labels) throw new RuntimeException();
+    if (null == labels) throw new IllegalArgumentException();
     readFeatures();
     selected = labels;
     bias = IntStream.range(0, labels.length).mapToDouble(i -> features.getOrDefault(labels[i], 0.0)).toArray();
@@ -148,7 +149,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
           Pointer.to(new float[]{1.0f}),
           inputDescriptor.getPtr(), inputData.getPtr()));
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
       filterPtr.finalize();
       TensorList output = CudaPtr.fromDeviceFloat(inputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
@@ -168,7 +169,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
                 Pointer.to(new float[]{1.0f}),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
+              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
@@ -188,7 +189,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
   }
   

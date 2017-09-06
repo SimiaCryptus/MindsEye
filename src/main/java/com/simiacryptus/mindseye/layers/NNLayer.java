@@ -180,7 +180,7 @@ public abstract class NNLayer implements Serializable {
       Class<?> clazz = Class.forName(className);
       if (null == clazz) throw new ClassNotFoundException(className);
       Method method = clazz.getMethod("fromJson", JsonObject.class);
-      if (method.getDeclaringClass() == NNLayer.class) throw new RuntimeException(className);
+      if (method.getDeclaringClass() == NNLayer.class) throw new IllegalArgumentException("Cannot find deserialization method for " + className);
       return (NNLayer) method.invoke(null, inner);
     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);

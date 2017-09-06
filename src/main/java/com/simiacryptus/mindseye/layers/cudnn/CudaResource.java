@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.simiacryptus.mindseye.lang.ComponentException;
+
 import java.util.function.ToIntFunction;
 
 /**
@@ -63,7 +65,7 @@ public class CudaResource<T> {
       }
       super.finalize();
     } catch (Throwable e) {
-      new RuntimeException("Error freeing resource " + this, e).printStackTrace(System.err);
+      new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
     }
   }
   
@@ -71,7 +73,11 @@ public class CudaResource<T> {
    * Free.
    */
   protected void free() {
-    CuDNN.handle(this.destructor.applyAsInt(ptr));
+    try {
+      CuDNN.handle(this.destructor.applyAsInt(ptr));
+    } catch (Throwable e) {
+      //new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
+    }
   }
   
   /**

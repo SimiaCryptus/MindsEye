@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
+import com.simiacryptus.util.PercentileStatistics;
 import com.simiacryptus.util.ScalarStatistics;
 import com.simiacryptus.util.Util;
 
@@ -102,7 +103,7 @@ public class SiftingFitnessTrainable implements Trainable {
                      .map(i -> sampledData[i])
                      .limit((long) (sampledData.length * holdoverFraction))
                      .toArray(i -> new Tensor[i][]);
-    ScalarStatistics statistics = new ScalarStatistics();
+    ScalarStatistics statistics = new PercentileStatistics();
     result.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).forEach(x -> statistics.add(x));
     return new PointSample(deltaSet, stateSet, statistics.getMean());
   }

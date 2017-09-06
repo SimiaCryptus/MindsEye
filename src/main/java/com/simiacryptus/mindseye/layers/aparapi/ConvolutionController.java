@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,7 +163,7 @@ public final class ConvolutionController {
           backpropTask.weights = null;
         }
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + this, e);
+        throw new ComponentException("Error with " + this, e);
       }
     });
 
@@ -243,7 +244,7 @@ public final class ConvolutionController {
           convolveTask.weights = null;
         }
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + this, e);
+        throw new ComponentException("Error with " + this, e);
       }
     });
   }
@@ -332,7 +333,7 @@ public final class ConvolutionController {
           kernelTask.kernelSize = null;
         }
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + this, e);
+        throw new ComponentException("Error with " + this, e);
       }
     });
   }

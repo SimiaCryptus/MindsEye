@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.simiacryptus.mindseye.lang.GpuError;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.*;
@@ -121,7 +122,7 @@ public class CuDNN {
    */
   public static void handle(int returnCode) {
     if (returnCode != CUDNN_STATUS_SUCCESS) {
-      throw new RuntimeException("returnCode = " + cudnnStatus.stringFor(returnCode));
+      throw new GpuError("returnCode = " + cudnnStatus.stringFor(returnCode));
     }
   }
   

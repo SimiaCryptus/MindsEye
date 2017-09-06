@@ -71,7 +71,7 @@ public class ProductInputsLayer extends NNLayer {
     assert inObj.length > 1;
     for (int i = 1; i < inObj.length; i++) {
       if (Tensor.dim(inObj[0].getData().get(0).getDimensions()) != Tensor.dim(inObj[i].getData().get(0).getDimensions())) {
-        throw new RuntimeException(Arrays.toString(inObj[0].getData().get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].getData().get(0).getDimensions()));
+        throw new IllegalArgumentException(Arrays.toString(inObj[0].getData().get(0).getDimensions()) + " != " + Arrays.toString(inObj[i].getData().get(0).getDimensions()));
       }
     }
     TensorList result = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {

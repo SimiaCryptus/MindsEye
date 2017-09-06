@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.PercentileStatistics;
 import com.simiacryptus.util.ScalarStatistics;
 
 import java.util.Arrays;
@@ -71,13 +72,17 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     if (json.has("forwardPerf")) this.forwardPerf.readJson(json.getAsJsonObject("forwardPerf"));
     if (json.has("backwardPerf")) this.backwardPerf.readJson(json.getAsJsonObject("backwardPerf"));
     if (json.has("passbackPerformance")) this.passbackPerf.readJson(json.getAsJsonObject("passbackPerformance"));
+    if (json.has("backpropStatistics")) this.backpropStatistics.readJson(json.getAsJsonObject("backpropStatistics"));
+    if (json.has("outputStatistics")) this.outputStatistics.readJson(json.getAsJsonObject("outputStatistics"));
     this.totalBatches = json.get("totalBatches").getAsInt();
     this.totalItems = json.get("totalItems").getAsInt();
   }
   
-  private final ScalarStatistics passbackPerf = new ScalarStatistics();
-  private final ScalarStatistics forwardPerf = new ScalarStatistics();
-  private final ScalarStatistics backwardPerf = new ScalarStatistics();
+  private final PercentileStatistics passbackPerf = new PercentileStatistics();
+  private final PercentileStatistics forwardPerf = new PercentileStatistics();
+  private final PercentileStatistics backwardPerf = new PercentileStatistics();
+  private final ScalarStatistics backpropStatistics = new PercentileStatistics();
+  private final ScalarStatistics outputStatistics = new PercentileStatistics();
   private int totalBatches = 0;
   private int totalItems = 0;
   
@@ -95,6 +100,8 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     map.put("class", inner.getClass().getName());
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
+    map.put("outputStatistics", outputStatistics.getMetrics());
+    map.put("backpropStatistics", backpropStatistics.getMetrics());
     if (verbose) {
       map.put("forwardPerformance", forwardPerf.getMetrics());
       map.put("backwardPerformance", backwardPerf.getMetrics());
@@ -110,7 +117,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     map.put("avgMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMean) ? (backpropMean - passbackMean) : backpropMean));
     map.put("medianMsPerItem_Backward", 1000 * batchesPerItem * (Double.isFinite(passbackMedian) ? (backpropMedian - passbackMedian) : backpropMedian));
     List<double[]> state = state();
-    ScalarStatistics statistics = new ScalarStatistics();
+    ScalarStatistics statistics = new PercentileStatistics();
     for (double[] s : state) {
       for (double v : s) {
         statistics.add(v);
@@ -142,21 +149,29 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
       }
     }).toArray(i -> new NNResult[i]);
     long start = System.nanoTime();
-    final NNResult result = this.getInner().eval(nncontext, wrappedInput);
+    final NNResult output = this.getInner().eval(nncontext, wrappedInput);
     forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
     totalItems += inObj[0].getData().length();
-    return new NNResult(result.getData()) {
+    outputStatistics.clear();
+    output.getData().stream().parallel().forEach(t -> {
+      outputStatistics.add(t.getData());
+    });
+    return new NNResult(output.getData()) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
+        backpropStatistics.clear();
+        data.stream().parallel().forEach(t -> {
+          backpropStatistics.add(t.getData());
+        });
         long start = System.nanoTime();
-        result.accumulate(buffer, data);
+        output.accumulate(buffer, data);
         backwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
       }
       
       @Override
       public boolean isAlive() {
-        return result.isAlive();
+        return output.isAlive();
       }
     };
   }

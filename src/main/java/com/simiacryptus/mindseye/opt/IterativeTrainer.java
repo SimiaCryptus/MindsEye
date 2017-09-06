@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -151,8 +152,8 @@ public class IterativeTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if (!subject.resetSampling() && retries > 0) throw new RuntimeException();
-      if (10 < retries++) throw new RuntimeException();
+      if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
+      if (10 < retries++) throw new IterativeStopException();
       currentPoint = subject.measure();
     } while (!Double.isFinite(currentPoint.value));
     assert (Double.isFinite(currentPoint.value));

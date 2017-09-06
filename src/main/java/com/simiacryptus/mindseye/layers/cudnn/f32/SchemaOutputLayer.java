@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -125,7 +126,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
   
   @Override
   public SchemaOutputLayer setSchema(String... labels) {
-    if (null == labels) throw new RuntimeException();
+    if (null == labels) throw new IllegalArgumentException();
     readFeatures();
     selected = labels;
     filter = new Tensor(1, 1, labels.length * inputBands);
@@ -197,7 +198,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
           outputDescriptor.getPtr(), outputBuffer.getPtr()));
         workSpace.finalize();
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
       TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
 
@@ -223,7 +224,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
                 betaPtr, filterDescriptor.getPtr(), filterBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+              throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, SchemaOutputLayer.this.filter.getDimensions());
             buffer.get(SchemaOutputLayer.this, SchemaOutputLayer.this.filter).accumulate(weightGradient.getData());
@@ -243,7 +244,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
                 inputDescriptor.getPtr(), inputBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+              throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
             TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
             input.accumulate(buffer, inputBufferTensors);
@@ -258,7 +259,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error map image with " + Arrays.toString(inputSize), e);
     }
   }
   

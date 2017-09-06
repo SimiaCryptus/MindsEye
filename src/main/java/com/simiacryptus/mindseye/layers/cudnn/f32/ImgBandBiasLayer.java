@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.layers.Delta;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
@@ -120,7 +121,7 @@ public class ImgBandBiasLayer extends NNLayer {
           Pointer.to(new float[]{1.0f}),
           inputDescriptor.getPtr(), inputData.getPtr()));
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
       filterPtr.finalize();
       TensorList output = CudaPtr.fromDeviceFloat(inputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
@@ -140,7 +141,7 @@ public class ImgBandBiasLayer extends NNLayer {
                 Pointer.to(new float[]{1.0f}),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
             } catch (Throwable e) {
-              throw new RuntimeException("Error map " + Arrays.toString(inputSize), e);
+              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
@@ -160,7 +161,7 @@ public class ImgBandBiasLayer extends NNLayer {
         }
       };
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
   }
   

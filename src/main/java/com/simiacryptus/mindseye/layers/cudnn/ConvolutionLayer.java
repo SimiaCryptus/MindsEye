@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.data.Coordinate;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.data.TensorArray;
 import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.ComponentException;
 import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
@@ -212,7 +213,7 @@ public class ConvolutionLayer extends NNLayer {
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolve(((CudaExecutionContext) nncontext).getDeviceNumber(), inputSize, kernelSize, outputSize, simple, inputBuffers, this.kernel.getData(), outputBuffers, (CudaExecutionContext) nncontext);
     } catch (Throwable e) {
-      throw new RuntimeException("Error map image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
     }
     //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
 
@@ -338,7 +339,7 @@ public class ConvolutionLayer extends NNLayer {
           CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
         backprop(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
       for (int i = 0; i < currentNumItems; i++) {
         assert inLength == input[currentIndexOffset + i].length;
@@ -407,7 +408,7 @@ public class ConvolutionLayer extends NNLayer {
           CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, currentNumItems, inputSize[2], inputSize[1], inputSize[0]);
         convolve(deviceId, outputSize, _inputBuffer, filterData, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
       for (int i = 0; i < currentNumItems; i++) {
         assert outLength == output[currentIndexOffset + i].length;
@@ -477,7 +478,7 @@ public class ConvolutionLayer extends NNLayer {
           CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, items, inputSize[2], inputSize[1], inputSize[0]);
         gradient(deviceId, outputSize, _inputBuffer, buffer, _outputBuffer, cudnn, inputDescriptor, filterDescriptor, convolutionDescriptor);
       } catch (Throwable e) {
-        throw new RuntimeException("Error map " + Arrays.toString(kernelSize), e);
+        throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
       IntStream.range(0, weights.length).forEach(weightIndex -> {
         for (int i = weightIndex; i < buffer.length; i += weights.length) {

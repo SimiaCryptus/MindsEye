@@ -47,7 +47,7 @@ public class CachedTrainable<T> implements Trainable {
   }
   
   @Override
-  public PointSample measure() {
+  public final PointSample measure() {
     for (PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) System.out.println(String.format("Returning cached value"));
@@ -102,11 +102,13 @@ public class CachedTrainable<T> implements Trainable {
   
   @Override
   public void resetToFull() {
+    history.clear();
     inner.resetToFull();
   }
   
   @Override
   public boolean resetSampling() {
+    history.clear();
     return inner.resetSampling();
   }
 }
