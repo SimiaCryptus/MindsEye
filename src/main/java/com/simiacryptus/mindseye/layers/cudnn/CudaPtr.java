@@ -388,7 +388,7 @@ public class CudaPtr extends CudaResource<Pointer> {
    */
   public CudaPtr read(float[] data) {
     synchronized (getPciBusLock()) {
-      if (this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
+      if (this.size != data.length * 1l * Sizeof.FLOAT) throw new IllegalArgumentException(this.size + " != " + (data.length * 1l * Sizeof.FLOAT));
       CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
       getGpuStats(deviceId).memoryReads.addAndGet(size);
       return this;

@@ -27,12 +27,12 @@ import java.util.List;
  *
  * @param <T> the type parameter
  */
-public class CachedTrainable<T> implements Trainable {
+public class CachedTrainable<T extends Trainable> implements Trainable {
   
   /**
    * The Inner.
    */
-  protected final GpuTrainable inner;
+  protected final T inner;
   private boolean verbose = false;
   private List<PointSample> history = new ArrayList<>();
   private int historySize = 3;
@@ -42,7 +42,7 @@ public class CachedTrainable<T> implements Trainable {
    *
    * @param inner the inner
    */
-  public CachedTrainable(GpuTrainable inner) {
+  public CachedTrainable(T inner) {
     this.inner = inner;
   }
   

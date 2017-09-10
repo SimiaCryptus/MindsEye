@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import jcuda.runtime.JCuda;
 
@@ -108,6 +109,7 @@ public class GpuTrainable implements Trainable {
             throw new GpuError(e1);
           }
         }
+        CudaPtr.METRICS.invalidateAll();
         GpuController.INSTANCE.cleanMemory();
         e.printStackTrace();
         return measure(retries-1);

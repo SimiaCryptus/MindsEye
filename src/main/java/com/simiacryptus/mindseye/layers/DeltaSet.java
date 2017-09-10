@@ -85,6 +85,9 @@ public class DeltaSet {
    * @return the t
    */
   public <T extends Delta> T get(final NNLayer layer, Supplier<T> factory) {
+    if (null == this.map) throw new IllegalArgumentException();
+    if (null == factory) throw new IllegalArgumentException();
+    if (null == layer) throw new IllegalArgumentException();
     return (T) this.map.computeIfAbsent(layer, l -> factory.get());
   }
   

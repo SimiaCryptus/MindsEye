@@ -122,6 +122,9 @@ public class ConvolutionLayer extends NNLayer {
     if (filter.getDimensions()[0] <= 0) throw new IllegalArgumentException();
     if (filter.getDimensions()[1] <= 0) throw new IllegalArgumentException();
     if (filter.getDimensions()[2] <= 0) throw new IllegalArgumentException();
+//    if (filter.getDimensions()[2] > 5000) {
+//      throw new IllegalArgumentException("are you sure?? " + Arrays.toString(filter.getDimensions()));
+//    }
     this.filter = filter;
   }
   

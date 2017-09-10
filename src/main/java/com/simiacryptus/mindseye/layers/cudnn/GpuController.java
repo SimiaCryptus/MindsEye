@@ -47,7 +47,7 @@ public final class GpuController {
   /**
    * The Verbose.
    */
-  protected boolean verbose = false;
+  protected boolean verbose = true;
   /**
    * The Device weight.
    */
@@ -128,7 +128,7 @@ public final class GpuController {
       List<List<U>> batches = (data.size() > batchSize) ? Lists.partition(data, batchSize) : Arrays.asList(data);
       T deviceResult = batches.stream().map(x -> mapper.apply(x, gpu)).filter(x -> null != x).reduce(reducer).get();
       double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
-      if (verbose) System.out.println(String.format("Device %s completed %s items in %s sec", gpu, data.size(), time));
+      if (verbose) log("Device %s completed %s items in %s sec", gpu, data.size(), time);
       deviceWeight.put(gpu.toString(), data.size() / time);
       return deviceResult;
     } catch (Throwable t) {
@@ -145,6 +145,11 @@ public final class GpuController {
         throw runtimeException;
       }
     }
+  }
+  
+  private void log(String msg, Object... args) {
+    String format = String.format(msg, args);
+    System.out.println(format);
   }
   
   /**

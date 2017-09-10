@@ -68,7 +68,7 @@ public class CuDNNFloatTensorList implements TensorList {
     this.length = length;
     this.dimensions = dimensions;
     this.cudnnHandle = cudnnHandle;
-    assert (ptr.size == length * 1l * Tensor.dim(dimensions) * Sizeof.FLOAT);
+    assert (ptr.size == this.length * 1l * Tensor.dim(this.dimensions) * Sizeof.FLOAT);
     assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
   }
   
@@ -83,9 +83,10 @@ public class CuDNNFloatTensorList implements TensorList {
     if (null == _inner) {
       synchronized (this) {
         if (null == _inner) {
-          int itemLength = Tensor.dim(dimensions);
-          final float[] buffer = new float[itemLength * length];
+          int itemLength = Tensor.dim(this.dimensions);
+          final float[] buffer = new float[itemLength * this.length];
           assert (0 < buffer.length);
+          assert (ptr.size == this.length * 1l * itemLength * Sizeof.FLOAT);
           
           //Arrays.stream(output).map(x -> x.getDataAsFloats()).toArray(i -> new float[i][]);
           ptr.read(buffer);
