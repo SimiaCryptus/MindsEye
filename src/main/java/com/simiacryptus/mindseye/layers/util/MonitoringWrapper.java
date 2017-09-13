@@ -85,6 +85,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   private final ScalarStatistics outputStatistics = new PercentileStatistics();
   private int totalBatches = 0;
   private int totalItems = 0;
+  private boolean activityStats = true;
   
   /**
    * Instantiates a new Monitoring wrapper.
@@ -153,17 +154,21 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     forwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
     totalItems += inObj[0].getData().length();
-    outputStatistics.clear();
-    output.getData().stream().parallel().forEach(t -> {
-      outputStatistics.add(t.getData());
-    });
+    if(isActivityStats()) {
+      outputStatistics.clear();
+      output.getData().stream().parallel().forEach(t -> {
+        outputStatistics.add(t.getData());
+      });
+    }
     return new NNResult(output.getData()) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
-        backpropStatistics.clear();
-        data.stream().parallel().forEach(t -> {
-          backpropStatistics.add(t.getData());
-        });
+        if(isActivityStats()) {
+          backpropStatistics.clear();
+          data.stream().parallel().forEach(t -> {
+            backpropStatistics.add(t.getData());
+          });
+        }
         long start = System.nanoTime();
         output.accumulate(buffer, data);
         backwardPerf.add(((System.nanoTime() - start) / 1000000000.0));
@@ -210,4 +215,12 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     return this;
   }
   
+  public boolean isActivityStats() {
+    return activityStats;
+  }
+  
+  public MonitoringWrapper setActivityStats(boolean activityStats) {
+    this.activityStats = activityStats;
+    return this;
+  }
 }

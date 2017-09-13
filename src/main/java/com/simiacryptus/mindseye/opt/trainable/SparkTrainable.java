@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.DeltaSet;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.storage.StorageLevel;
@@ -41,15 +41,14 @@ import java.util.stream.StreamSupport;
  */
 public class SparkTrainable implements Trainable {
   
-  private final int sampleSize;
-  private int partitions;
+  protected final int sampleSize;
+  protected int partitions;
   
   public StorageLevel getStorageLevel() {
     return storageLevel;
   }
   
   public CachedTrainable<SparkTrainable> cached() {
-    setStorageLevel(StorageLevel.MEMORY_AND_DISK());
     return new CachedTrainable<SparkTrainable>(this);
   }
   
@@ -68,7 +67,15 @@ public class SparkTrainable implements Trainable {
     return this;
   }
   
-  private static class ReducableResult implements Serializable {
+  public boolean isVerbose() {
+    return verbose;
+  }
+  
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+  }
+  
+  protected static class ReducableResult implements Serializable {
     /**
      * The Deltas.
      */
@@ -133,33 +140,34 @@ public class SparkTrainable implements Trainable {
   
   }
   
-  private static void debug(String msg, Object... args) {
+  protected static void debug(String msg, Object... args) {
     String format = String.format(msg, args);
     System.out.println(format);
   }
   
-  private static class PartitionTask implements FlatMapFunction<Iterator<Tensor[]>, SparkTrainable.ReducableResult> {
+  protected static class PartitionTask implements FlatMapFunction<Iterator<Tensor[]>, SparkTrainable.ReducableResult> {
     /**
      * The Network.
      */
     final NNLayer network;
     boolean verbose = true;
     
-    private PartitionTask(NNLayer network) {
+    protected PartitionTask(NNLayer network) {
       this.network = network;
     }
     
     @Override
     public Iterator<SparkTrainable.ReducableResult> call(Iterator<Tensor[]> partition) throws Exception {
+      long startTime = System.nanoTime();
       GpuTrainable trainable = new GpuTrainable(network);
       Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
-      if(verbose) debug("Materialized %s records", tensors.length);
+      if(verbose) debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
       PointSample measure = trainable.setData(Arrays.asList(tensors)).measure();
       return Arrays.asList(SparkTrainable.getResult(measure.delta, new double[]{measure.value})).iterator();
     }
   }
   
-  private static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
+  protected static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
     Map<String, double[]> deltas = delta.map.entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().id.toString(), e -> e.getValue().getDelta()
     ));
@@ -183,7 +191,7 @@ public class SparkTrainable implements Trainable {
   }
   
   
-  private DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
+  protected DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
     DeltaSet deltaSet = new DeltaSet();
     Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
     NNResult result = CudaExecutionContext.gpuContexts.map(exe->network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
@@ -192,9 +200,10 @@ public class SparkTrainable implements Trainable {
     return deltaSet;
   }
   
-  private final RDD<Tensor[]> dataRDD;
-  private RDD<Tensor[]> sampledRDD;
-  private final NNLayer network;
+  protected final RDD<Tensor[]> dataRDD;
+  protected RDD<Tensor[]> sampledRDD;
+  protected final NNLayer network;
+  protected boolean verbose = true;
   
   /**
    * Instantiates a new Spark trainable.
@@ -216,8 +225,11 @@ public class SparkTrainable implements Trainable {
   
   @Override
   public Trainable.PointSample measure() {
-    SparkTrainable.ReducableResult result = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network))
-                                              .reduce(SparkTrainable.ReducableResult::add);
+    long time1 = System.nanoTime();
+    JavaRDD<ReducableResult> mapPartitions = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
+    long time2 = System.nanoTime();
+    SparkTrainable.ReducableResult result = mapPartitions.reduce(SparkTrainable.ReducableResult::add);
+    if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9));
     DeltaSet deltaSet = getDelta(result);
     DeltaSet stateSet = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
@@ -240,14 +252,14 @@ public class SparkTrainable implements Trainable {
     return false;
   }
   
-  private StorageLevel storageLevel = StorageLevel.MEMORY_AND_DISK();
+  protected StorageLevel storageLevel = StorageLevel.MEMORY_AND_DISK();
   
   @Override
   public void resetToFull() {
     this.sampledRDD = this.dataRDD.repartition(dataRDD.sparkContext().executorEnvs().size(), null).persist(getStorageLevel());
   }
   
-  private static Stream<Tensor[]> getStream(Iterator<Tensor[]> partition) {
+  protected static Stream<Tensor[]> getStream(Iterator<Tensor[]> partition) {
     int characteristics = Spliterator.ORDERED;
     boolean parallel = false;
     Spliterator<Tensor[]> spliterator = Spliterators.spliteratorUnknownSize(partition, characteristics);
