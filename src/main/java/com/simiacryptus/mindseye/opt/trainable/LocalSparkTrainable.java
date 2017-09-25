@@ -54,16 +54,25 @@ public class LocalSparkTrainable extends SparkTrainable {
   public Trainable.PointSample measure() {
     long time1 = System.nanoTime();
     JavaRDD<Tensor[]> javaRDD = this.sampledRDD.toJavaRDD();
+    assert !javaRDD.isEmpty();
     List<ReducableResult> mapPartitions = javaRDD.partitions().stream().map(partition -> {
       try {
-        return new PartitionTask(network).call(Arrays.stream(javaRDD.collectPartitions(new int[]{partition.index()})).flatMap(i -> i.stream()).iterator()).next();
+        List<Tensor[]>[] array = javaRDD.collectPartitions(new int[]{partition.index()});
+        assert 0 < array.length;
+        if(0 == Arrays.stream(array).mapToInt((List<Tensor[]> x) ->x.size()).sum()) {
+          return null;
+        }
+        assert 0 < Arrays.stream(array).mapToInt(x->x.stream().mapToInt(y->y.length).sum()).sum();
+        Stream<Tensor[]> stream = Arrays.stream(array).flatMap(i -> i.stream());
+        Iterator<Tensor[]> iterator = stream.iterator();
+        return new PartitionTask(network).call(iterator).next();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }).collect(Collectors.toList());
+    }).filter(x->null!=x).collect(Collectors.toList());
     long time2 = System.nanoTime();
     SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
-    if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9));
+    if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     DeltaSet deltaSet = getDelta(result);
     DeltaSet stateSet = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {

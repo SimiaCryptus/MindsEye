@@ -97,6 +97,7 @@ public final class GpuController {
     double weightSum = devices.stream().mapToDouble(d -> deviceWeight.getOrDefault(d.toString(), 1.0)).sum();
     List<Future<T>> results = new ArrayList<>();
     int start = 0;
+    assert !devices.isEmpty();
     for (int i = 0; i < devices.size(); i++) {
       CudaExecutionContext dev = devices.get(i);
       int sampleSize = (int) Math.max(1, ((data.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0)));
@@ -110,9 +111,12 @@ public final class GpuController {
       }
       start = end;
     }
+    assert !results.isEmpty();
     return results.stream().map(x -> {
       try {
-        return x.get();
+        T t = x.get();
+        assert (null != t);
+        return t;
       } catch (InterruptedException e) {
         throw new GpuError(e);
       } catch (ExecutionException e) {

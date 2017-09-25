@@ -54,7 +54,7 @@ public class SparkTrainable implements Trainable {
   
   public SparkTrainable setStorageLevel(StorageLevel storageLevel) {
     this.storageLevel = storageLevel;
-    this.sampledRDD.persist(storageLevel);
+    resetSampling();
     return this;
   }
   
@@ -163,6 +163,7 @@ public class SparkTrainable implements Trainable {
       Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
       if(verbose) debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
       PointSample measure = trainable.setData(Arrays.asList(tensors)).measure();
+      assert (measure != null);
       return Arrays.asList(SparkTrainable.getResult(measure.delta, new double[]{measure.value})).iterator();
     }
   }
@@ -173,6 +174,7 @@ public class SparkTrainable implements Trainable {
     ));
     return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum());
   }
+  
   protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
     NNResult result = network.eval(nncontext, input);
     DeltaSet deltaSet = new DeltaSet();
@@ -189,7 +191,6 @@ public class SparkTrainable implements Trainable {
     double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
     return new PointSample(deltaSet, stateBackup, sum);
   }
-  
   
   protected DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
     DeltaSet deltaSet = new DeltaSet();
@@ -229,7 +230,7 @@ public class SparkTrainable implements Trainable {
     JavaRDD<ReducableResult> mapPartitions = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
     long time2 = System.nanoTime();
     SparkTrainable.ReducableResult result = mapPartitions.reduce(SparkTrainable.ReducableResult::add);
-    if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9));
+    if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     DeltaSet deltaSet = getDelta(result);
     DeltaSet stateSet = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
@@ -240,16 +241,16 @@ public class SparkTrainable implements Trainable {
   
   @Override
   public boolean resetSampling() {
-    if(this.sampleSize > 0) {
-      long count = dataRDD.count();
-      if(this.sampleSize < count) {
-        this.sampledRDD = dataRDD.sample(false, sampleSize * 1.0 / count, System.currentTimeMillis())
-          .repartition(getPartitions(), null)
-          .persist(getStorageLevel());
-        return true;
-      }
-    }
-    return false;
+    assert (0 < sampleSize);
+    long count = dataRDD.count();
+    assert !this.dataRDD.isEmpty();
+    if(null != this.sampledRDD) this.sampledRDD.unpersist(false);
+    this.sampledRDD = dataRDD.sample(false, sampleSize * 1.0 / count, System.currentTimeMillis())
+      .repartition(getPartitions(), null)
+      .persist(getStorageLevel());
+    assert !this.sampledRDD.isEmpty();
+    System.out.println(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
+    return true;
   }
   
   protected StorageLevel storageLevel = StorageLevel.MEMORY_AND_DISK();
@@ -257,6 +258,7 @@ public class SparkTrainable implements Trainable {
   @Override
   public void resetToFull() {
     this.sampledRDD = this.dataRDD.repartition(dataRDD.sparkContext().executorEnvs().size(), null).persist(getStorageLevel());
+    System.out.println(String.format("Reset sample size to %s", sampledRDD.count()));
   }
   
   protected static Stream<Tensor[]> getStream(Iterator<Tensor[]> partition) {

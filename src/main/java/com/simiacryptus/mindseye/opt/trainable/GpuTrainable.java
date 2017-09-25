@@ -89,10 +89,12 @@ public class GpuTrainable implements Trainable {
   
   public PointSample measure(int retries) {
     try {
+      assert !sampledData.isEmpty();
       PointSample result = GpuController.INSTANCE.distribute(sampledData,
         (list, dev) -> eval(NNResult.batchResultArray(list.stream().toArray(i1 -> new Tensor[i1][])), dev),
         (a, b) -> a.add(b)
       );
+      assert (null != result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if (gcEachIteration) GpuController.INSTANCE.cleanMemory();
@@ -171,6 +173,7 @@ public class GpuTrainable implements Trainable {
   }
   
   protected GpuTrainable setData(List<Tensor[]> sampledData) {
+    assert !sampledData.isEmpty();
     this.sampledData = sampledData;
     return this;
   }

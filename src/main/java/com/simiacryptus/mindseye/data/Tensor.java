@@ -432,13 +432,15 @@ public class Tensor implements Serializable {
     return getData()[index];
   }
   
-  /**
-   * Get double.
-   *
-   * @param coords the coords
-   * @return the double
-   */
-  public double get(final int... coords) {
+  public double get(final int c1, final int c2) {
+    return getData()[index(c1, c2)];
+  }
+  
+  public double get(final int c1, final int c2, final int c3, final int... coords) {
+    return getData()[index(c1, c2, c3, coords)];
+  }
+  
+  public double get(final int[] coords) {
     return getData()[index(coords)];
   }
   
@@ -494,10 +496,37 @@ public class Tensor implements Serializable {
    * @param coords the coords
    * @return the int
    */
-  public int index(final int... coords) {
+  public int index(final int[] coords) {
     int v = 0;
     for (int i = 0; i < this.strides.length && i < coords.length; i++) {
       v += this.strides[i] * coords[i];
+    }
+    return v;
+    // return IntStream.range(0, strides.length).map(i->strides[i]*coords[i]).sum();
+  }
+  
+  public int index(final int c1) {
+    int v = 0;
+    v += this.strides[0] * c1;
+    return v;
+    // return IntStream.range(0, strides.length).map(i->strides[i]*coords[i]).sum();
+  }
+  
+  public int index(final int c1, final int c2) {
+    int v = 0;
+    v += this.strides[0] * c1;
+    v += this.strides[1] * c2;
+    return v;
+    // return IntStream.range(0, strides.length).map(i->strides[i]*coords[i]).sum();
+  }
+  
+  public int index(final int c1, final int c2, final int c3, final int... coords) {
+    int v = 0;
+    v += this.strides[0] * c1;
+    v += this.strides[1] * c2;
+    v += this.strides[2] * c3;
+    if(null != coords && 0 < coords.length) for (int i = 0; (3+i) < this.strides.length && i < coords.length; i++) {
+      v += this.strides[3+i] * coords[3+i];
     }
     return v;
     // return IntStream.range(0, strides.length).map(i->strides[i]*coords[i]).sum();
