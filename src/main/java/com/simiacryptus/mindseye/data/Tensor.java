@@ -886,14 +886,15 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public static Tensor product(Tensor left, Tensor right) {
-    assert Tensor.dim(left.getDimensions()) == Tensor.dim(right.getDimensions());
+    if(left.dim() == 1 && right.dim() != 1) return product(right, left);
+    assert left.dim() == right.dim() || 1 == right.dim();
     Tensor result = new Tensor(left.getDimensions());
     double[] resultData = result.getData();
     double[] leftData = left.getData();
     double[] rightData = right.getData();
     for (int i = 0; i < resultData.length; i++) {
       double l = leftData[i];
-      double r = rightData[i];
+      double r = rightData[1==rightData.length?rightData.length-1:i];
       resultData[i] = l * r;
     }
     return result;

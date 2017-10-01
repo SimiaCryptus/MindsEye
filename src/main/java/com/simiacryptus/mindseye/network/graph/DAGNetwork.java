@@ -215,6 +215,12 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    */
   protected final LinkedHashMap<String, UUID> labels = new LinkedHashMap<>();
   
+  public void reset() {
+    layersById.clear();
+    nodesById.clear();
+    labels.clear();
+  }
+  
   /**
    * Gets by name.
    *

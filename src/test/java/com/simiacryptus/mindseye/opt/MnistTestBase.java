@@ -60,35 +60,44 @@ public abstract class MnistTestBase {
     PrintStream originalOut = System.out;
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
       if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
-      log.p("First, define a model:");
-      PipelineNetwork network = buildModel(log);
-      Tensor[][] trainingData = getTrainingData(log);
-      MonitoredObject monitoringRoot = new MonitoredObject();
       List<Step> history = new ArrayList<>();
-      addMonitoring(network, monitoringRoot);
-      TrainingMonitor monitor = new TrainingMonitor() {
-        @Override
-        public void log(String msg) {
-          System.out.println(msg);
-          if (null != originalOut && System.out != originalOut) originalOut.println(msg);
-          super.log(msg);
-        }
-        
-        @Override
-        public void onStepComplete(Step currentPoint) {
-          history.add(currentPoint);
-          super.onStepComplete(currentPoint);
-        }
-        
-        @Override
-        public void clear() {
-          super.clear();
-        }
-      };
-      train(log, network, trainingData, monitor);
+      MonitoredObject monitoringRoot = new MonitoredObject();
+      TrainingMonitor monitor = getMonitor(originalOut, history);
+      Tensor[][] trainingData = getTrainingData(log);
+      PipelineNetwork network = _test(log, monitoringRoot, monitor, trainingData, history);
       validate(log, network);
       report(log, monitoringRoot, history);
     }
+  }
+  
+  public PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
+    log.p("First, define a model:");
+    PipelineNetwork network = buildModel(log);
+    addMonitoring(network, monitoringRoot);
+    train(log, network, trainingData, monitor);
+    return network;
+  }
+  
+  public TrainingMonitor getMonitor(PrintStream originalOut, List<Step> history) {
+    return new TrainingMonitor() {
+      @Override
+      public void log(String msg) {
+        System.out.println(msg);
+        if (null != originalOut && System.out != originalOut) originalOut.println(msg);
+        super.log(msg);
+      }
+      
+      @Override
+      public void onStepComplete(Step currentPoint) {
+        history.add(currentPoint);
+        super.onStepComplete(currentPoint);
+      }
+      
+      @Override
+      public void clear() {
+        super.clear();
+      }
+    };
   }
   
   /**
@@ -127,6 +136,13 @@ public abstract class MnistTestBase {
     network.visitNodes(node -> {
       if (node instanceof InnerNode && !(node.getLayer() instanceof MonitoringWrapper)) {
         ((InnerNode) node).setLayer(new MonitoringWrapper(node.getLayer()).addTo(monitoringRoot));
+      }
+    });
+  }
+  public void removeMonitoring(PipelineNetwork network) {
+    network.visitNodes(node -> {
+      if (node instanceof InnerNode && (node.getLayer() instanceof MonitoringWrapper)) {
+        ((InnerNode) node).setLayer(((MonitoringWrapper)node.getLayer()).getInner());
       }
     });
   }

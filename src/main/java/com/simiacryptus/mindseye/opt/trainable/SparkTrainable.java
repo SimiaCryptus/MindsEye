@@ -59,10 +59,11 @@ public class SparkTrainable implements Trainable {
   }
   
   public int getPartitions() {
-    return partitions;
+    return Math.max(1,partitions);
   }
   
   public SparkTrainable setPartitions(int partitions) {
+    if(1 > partitions) throw new IllegalArgumentException();
     this.partitions = partitions;
     return this;
   }
@@ -220,7 +221,7 @@ public class SparkTrainable implements Trainable {
     this.dataRDD = trainingData;
     this.network = network;
     this.sampleSize = sampleSize;
-    this.setPartitions(dataRDD.sparkContext().executorEnvs().size());
+    this.setPartitions(Math.max(1,dataRDD.sparkContext().executorEnvs().size()));
     resetSampling();
   }
   

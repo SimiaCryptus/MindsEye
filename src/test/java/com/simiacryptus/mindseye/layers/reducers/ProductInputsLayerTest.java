@@ -25,17 +25,35 @@ import com.simiacryptus.mindseye.layers.NNLayer;
 /**
  * The type Product inputs layer test.
  */
-public class ProductInputsLayerTest extends LayerTestBase {
-  
-  @Override
-  public NNLayer getLayer() {
-    return new ProductInputsLayer();
+public class ProductInputsLayerTest {
+  public static class NNTest extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new ProductInputsLayer();
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}, {3}
+      };
+    }
   }
   
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}, {3}
-    };
+  public static class N1Test extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new ProductInputsLayer();
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}, {1}
+      };
+    }
   }
+  
 }
