@@ -45,7 +45,7 @@ public class SigmoidTreeNetworkTest extends MnistTestBase {
   int trainingSize = 10000;
   int iterationsPerSample = 25;
   int maxIterations = 500;
-  int timeoutMinutes = 3;
+  int timeoutMinutes = 5;
   
   @Override
   public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
@@ -70,18 +70,21 @@ public class SigmoidTreeNetworkTest extends MnistTestBase {
     PipelineNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
   
+    iterationsPerSample = 5;
     trainingSize = 5000;
+    timeoutMinutes = 5;
+    // Base Linear Phase
     run(log, monitoringRoot, monitor, trainingData, history, network);
-    nextPhase(monitoringRoot, monitor, history, network);
-    run(log, monitoringRoot, monitor, trainingData, history, network);
-    trainingSize = 10000;
+    trainingSize = 25000;
+    timeoutMinutes = 30;
+    iterationsPerSample = 15;
     for(int j=0;j< 3;j++) {
-      for(int i=0;i<4;i++) {
+      for(int i=0;i<2;i++) {
         nextPhase(monitoringRoot, monitor, history, network);
         run(log, monitoringRoot, monitor, trainingData, history, network);
       }
-      trainingSize *= 5;
-      timeoutMinutes *= 5;
+      trainingSize *= 2;
+      timeoutMinutes *= 2;
     }
     
     return network;
@@ -107,9 +110,10 @@ public class SigmoidTreeNetworkTest extends MnistTestBase {
             "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
-      network.add(new BiasLayer(28, 28, 1));
-      this.tree = new SigmoidTreeNetwork(new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10})
-                                                                       .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+      this.tree = new SigmoidTreeNetwork(
+        new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(() -> 0.001 * (Math.random() - 0.45)),
+        new BiasLayer(28, 28, 1)
+      );
       network.add(tree);
       network.add(new SoftmaxActivationLayer());
       return network;

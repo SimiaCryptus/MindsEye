@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
+import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
@@ -37,19 +38,23 @@ import java.util.UUID;
  */
 public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   
-  
   public enum NodeMode {
     Linear,
     Fuzzy,
     Bilinear,
-    Tuning,
     Final
   }
-  NNLayer alpha = null;
-  NNLayer gamma = null;
-  NNLayer beta = null;
+  private NNLayer alpha = null;
+  private NNLayer alphaBias = null;
+  private NNLayer gate = null;
+  private NNLayer gateBias = null;
+  private NNLayer beta = null;
+  private NNLayer betaBias = null;
   private DAGNode head = null;
   private NodeMode mode = null;
+  private double gateInitialization = 0.00001;
+  private boolean skipChildStage = true;
+  private boolean multigate = false;
   
   public JsonObject getJson() {
     assertConsistent();
@@ -57,9 +62,14 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     JsonObject json = super.getJson();
     json.addProperty("head", head.getId().toString());
     if(null != alpha) json.addProperty("alpha", alpha.getId().toString());
+    if(null != alphaBias) json.addProperty("alphaBias", alpha.getId().toString());
     if(null != beta) json.addProperty("beta", beta.getId().toString());
-    if(null != gamma) json.addProperty("gamma", gamma.getId().toString());
-    json.addProperty("mode", mode.name());
+    if(null != betaBias) json.addProperty("betaBias", beta.getId().toString());
+    if(null != gate) json.addProperty("gate", gate.getId().toString());
+    if(null != gateBias) json.addProperty("gateBias", gate.getId().toString());
+    json.addProperty("gateInitialization", getGateInitialization());
+    json.addProperty("mode", getMode().name());
+    json.addProperty("skipChildStage", skipChildStage());
     assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
     return json;
   }
@@ -83,17 +93,23 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     super(json);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
     if(json.get("alpha") != null) alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
+    if(json.get("alphaBias") != null) alphaBias = layersById.get(UUID.fromString(json.get("alphaBias").getAsString()));
     if(json.get("beta") != null) beta = layersById.get(UUID.fromString(json.get("beta").getAsString()));
-    if(json.get("gamma") != null) gamma = layersById.get(UUID.fromString(json.get("gamma").getAsString()));
+    if(json.get("betaBias") != null) betaBias = layersById.get(UUID.fromString(json.get("betaBias").getAsString()));
+    if(json.get("gate") != null) gate = layersById.get(UUID.fromString(json.get("gate").getAsString()));
+    if(json.get("gateBias") != null) gate = layersById.get(UUID.fromString(json.get("gateBias").getAsString()));
+    setGateInitialization((json.get("gateInitialization") != null) ? json.get("gateInitialization").getAsDouble() : getGateInitialization());
+    setSkipChildStage((json.get("skipChildStage") != null) ? json.get("skipChildStage").getAsBoolean() : skipChildStage());
     mode = NodeMode.valueOf(json.get("mode").getAsString());
   }
   
   /**
    * Instantiates a new Pipeline network.
    */
-  public SigmoidTreeNetwork(NNLayer alpha) {
+  public SigmoidTreeNetwork(NNLayer alpha, NNLayer alphaBias) {
     super(1);
     this.alpha = alpha;
+    this.alphaBias = alphaBias;
     this.mode = NodeMode.Linear;
   }
   
@@ -103,55 +119,44 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
         if(null == head) {
           this.reset();
           DAGNode input = getInput(0);
-          switch (mode) {
+          switch (getMode()) {
             case Linear:
-              head = add(alpha.setFrozen(false), input);
+              head = add(alpha.setFrozen(false), add(alphaBias.setFrozen(false), input));
               break;
-            case Fuzzy:
+            case Fuzzy: {
+              DAGNode gateNode = add(gate.setFrozen(false), (null != gateBias) ? add(gateBias.setFrozen(false), input) : input);
               head = add(new ProductInputsLayer(),
-                add(alpha.setFrozen(false), input),
-                add(new SigmoidActivationLayer().setBalanced(false), add(gamma.setFrozen(false), input))
+                add(alpha.setFrozen(false), add(alphaBias.setFrozen(false), input)),
+                add(new LinearActivationLayer().setScale(2).freeze(),
+                  add(new SigmoidActivationLayer().setBalanced(false), gateNode))
               );
               break;
-            case Bilinear: {
-              DAGNode gammaNode = add(gamma.setFrozen(true), input);
-              head = add(new SumInputsLayer(),
-                add(new ProductInputsLayer(),
-                  add(alpha.setFrozen(false), input),
-                  add(new SigmoidActivationLayer().setBalanced(false), gammaNode)
-                ),
-                add(new ProductInputsLayer(),
-                  add(beta.setFrozen(false), input),
-                  add(new SigmoidActivationLayer().setBalanced(false),
-                    add(new LinearActivationLayer().setScale(-1).freeze(), gammaNode))
-                ));
-              break;
             }
-            case Tuning: {
-              DAGNode gammaNode = add(gamma.setFrozen(false), input);
+            case Bilinear: {
+              DAGNode gateNode = add(gate.setFrozen(false), (null != gateBias) ? add(gateBias.setFrozen(false), input) : input);
               head = add(new SumInputsLayer(),
                 add(new ProductInputsLayer(),
-                  add(alpha.setFrozen(false), input),
-                  add(new SigmoidActivationLayer().setBalanced(false), gammaNode)
+                  add(alpha.setFrozen(false), add(alphaBias.setFrozen(false), input)),
+                  add(new SigmoidActivationLayer().setBalanced(false), gateNode)
                 ),
                 add(new ProductInputsLayer(),
-                  add(beta.setFrozen(false), input),
+                  add(beta.setFrozen(false), add(betaBias.setFrozen(false), input)),
                   add(new SigmoidActivationLayer().setBalanced(false),
-                    add(new LinearActivationLayer().setScale(-1).freeze(), gammaNode))
+                    add(new LinearActivationLayer().setScale(-1).freeze(), gateNode))
                 ));
               break;
             }
             case Final: {
-              DAGNode gammaNode = add(gamma.setFrozen(false), input);
+              DAGNode gateNode = add(gate.setFrozen(false), (null != gateBias) ? add(gateBias.setFrozen(false), input) : input);
               head = add(new SumInputsLayer(),
                 add(new ProductInputsLayer(),
                   add(alpha, input),
-                  add(new SigmoidActivationLayer().setBalanced(false), gammaNode)
+                  add(new SigmoidActivationLayer().setBalanced(false), gateNode)
                 ),
                 add(new ProductInputsLayer(),
                   add(beta, input),
                   add(new SigmoidActivationLayer().setBalanced(false),
-                    add(new LinearActivationLayer().setScale(-1).freeze(), gammaNode))
+                    add(new LinearActivationLayer().setScale(-1).freeze(), gateNode))
                 ));
               break;
             }
@@ -164,41 +169,35 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   
   @Override
   public void nextPhase() {
-    switch (mode) {
+    switch (getMode()) {
       case Linear: {
-        head = null;
+        this.head = null;
         DenseSynapseLayer alpha = (DenseSynapseLayer) this.alpha;
-        gamma = new DenseSynapseLayer(alpha.inputDims, new int[]{1});
-        ((DenseSynapseLayer)gamma).setWeights(()->0.01*Math.random());
-        mode = NodeMode.Fuzzy;
+        //alpha.weights.scale(2);
+        this.gate = new DenseSynapseLayer(alpha.inputDims, multigate?alpha.outputDims:new int[]{1})
+                      .setWeights(() -> getGateInitialization() * (Math.random() - 0.5));
+        this.gateBias = new BiasLayer(alpha.inputDims);
+        this.mode = NodeMode.Fuzzy;
         break;
       }
       case Fuzzy: {
-        head = null;
+        this.head = null;
         DenseSynapseLayer alpha = (DenseSynapseLayer) this.alpha;
-        beta = new DenseSynapseLayer(alpha.inputDims, alpha.outputDims);
-        List<double[]> alphaState = alpha.state();
-        List<double[]> betaState = beta.state();
-        for(int i=0;i<alphaState.size();i++) {
-          double[] betaBuffer = betaState.get(i);
-          double[] alphaBuffer = alphaState.get(i);
-          System.arraycopy(alphaBuffer, 0, betaBuffer, 0, alphaBuffer.length);
-        }
-        mode = NodeMode.Bilinear;
+        BiasLayer alphaBias = (BiasLayer) this.alphaBias;
+        this.beta = new DenseSynapseLayer(alpha.inputDims, alpha.outputDims);
+        this.betaBias = new BiasLayer(alphaBias.bias.length);
+        copyState(alpha, beta);
+        copyState(alphaBias, betaBias);
+        this.mode = NodeMode.Bilinear;
         break;
       }
       case Bilinear: {
-        head = null;
-        mode = NodeMode.Tuning;
-        break;
-      }
-      case Tuning: {
-        head = null;
-        alpha = new SigmoidTreeNetwork(alpha);
-        ((SigmoidTreeNetwork)alpha).nextPhase();
-        beta = new SigmoidTreeNetwork(beta);
-        ((SigmoidTreeNetwork)beta).nextPhase();
-        mode = NodeMode.Final;
+        this.head = null;
+        this.alpha = new SigmoidTreeNetwork(alpha, alphaBias);
+        if(skipChildStage()) ((SigmoidTreeNetwork)alpha).nextPhase();
+        this.beta = new SigmoidTreeNetwork(beta, betaBias);
+        if(skipChildStage()) ((SigmoidTreeNetwork)beta).nextPhase();
+        this.mode = NodeMode.Final;
         break;
       }
       case Final: {
@@ -209,6 +208,36 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
         break;
       }
     }
+  }
+  
+  public void copyState(NNLayer from, NNLayer to) {
+    List<double[]> alphaState = from.state();
+    List<double[]> betaState = to.state();
+    for(int i=0;i<alphaState.size();i++) {
+      double[] betaBuffer = betaState.get(i);
+      double[] alphaBuffer = alphaState.get(i);
+      System.arraycopy(alphaBuffer, 0, betaBuffer, 0, alphaBuffer.length);
+    }
+  }
+  
+  public double getGateInitialization() {
+    return gateInitialization;
+  }
+  
+  public void setGateInitialization(double gateInitialization) {
+    this.gateInitialization = gateInitialization;
+  }
+  
+  public boolean skipChildStage() {
+    return skipChildStage;
+  }
+  
+  public void setSkipChildStage(boolean skipChildStage) {
+    this.skipChildStage = skipChildStage;
+  }
+  
+  public NodeMode getMode() {
+    return mode;
   }
   
 }

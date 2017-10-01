@@ -640,7 +640,7 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * Scale tensor.
+   * Scale tensor (in-place)
    *
    * @param d the d
    * @return the tensor

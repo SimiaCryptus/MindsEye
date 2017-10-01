@@ -151,11 +151,13 @@ public class LBFGS implements OrientationStrategy {
                                                return deltaVector.get(i).layer.getName();
                                              }, (Integer i) -> {
                                                double[] lbfgsVector = descent.get(i).getDelta();
+                                               for(int index=0;index<lbfgsVector.length;index++) lbfgsVector[index] = Double.isFinite(lbfgsVector[index])?lbfgsVector[index]:0;
                                                double[] gradientVector = gradient.get(i);
+                                               for(int index=0;index<gradientVector.length;index++) gradientVector[index] = Double.isFinite(gradientVector[index])?gradientVector[index]:0;
                                                double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
                                                double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
-                                               assert Double.isFinite(lbfgsMagnitude);
                                                assert Double.isFinite(gradientMagnitude);
+                                               //assert Double.isFinite(lbfgsMagnitude);
                                                if (gradientMagnitude == 0.0) {
                                                  return String.format("%.3e", lbfgsMagnitude);
                                                }
