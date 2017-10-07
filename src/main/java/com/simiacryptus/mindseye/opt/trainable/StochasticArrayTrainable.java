@@ -127,12 +127,11 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
    */
   protected void refreshSampledData() {
     assert 0 < trainingData.size();
-    assert 0 < getTrainingSize();
-    inner.setSampledData(trainingData.stream().parallel() //
+    inner.setSampledData(0 < getTrainingSize() ? trainingData.stream().parallel() //
                            .filter(x -> x != null && x.get() != null)
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
                            .limit(getTrainingSize()) //
-                           .collect(Collectors.toList()));
+                           .collect(Collectors.toList()) : trainingData);
   }
   
 }

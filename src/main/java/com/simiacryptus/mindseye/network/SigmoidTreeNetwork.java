@@ -38,6 +38,7 @@ import java.util.UUID;
  */
 public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   
+  
   public enum NodeMode {
     Linear,
     Fuzzy,
@@ -52,9 +53,9 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   private NNLayer betaBias = null;
   private DAGNode head = null;
   private NodeMode mode = null;
-  private double gateInitialization = 0.00001;
   private boolean skipChildStage = true;
   private boolean multigate = false;
+  private boolean skipFuzzy = false;
   
   public JsonObject getJson() {
     assertConsistent();
@@ -67,9 +68,9 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     if(null != betaBias) json.addProperty("betaBias", beta.getId().toString());
     if(null != gate) json.addProperty("gate", gate.getId().toString());
     if(null != gateBias) json.addProperty("gateBias", gate.getId().toString());
-    json.addProperty("gateInitialization", getGateInitialization());
     json.addProperty("mode", getMode().name());
     json.addProperty("skipChildStage", skipChildStage());
+    json.addProperty("skipFuzzy", isSkipFuzzy());
     assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
     return json;
   }
@@ -98,8 +99,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     if(json.get("betaBias") != null) betaBias = layersById.get(UUID.fromString(json.get("betaBias").getAsString()));
     if(json.get("gate") != null) gate = layersById.get(UUID.fromString(json.get("gate").getAsString()));
     if(json.get("gateBias") != null) gate = layersById.get(UUID.fromString(json.get("gateBias").getAsString()));
-    setGateInitialization((json.get("gateInitialization") != null) ? json.get("gateInitialization").getAsDouble() : getGateInitialization());
     setSkipChildStage((json.get("skipChildStage") != null) ? json.get("skipChildStage").getAsBoolean() : skipChildStage());
+    setSkipFuzzy(((json.get("skipFuzzy") != null) ? json.get("skipFuzzy").getAsBoolean() : isSkipFuzzy()));
     mode = NodeMode.valueOf(json.get("mode").getAsString());
   }
   
@@ -167,6 +168,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     return head;
   }
   
+  double initialFuzzyCoeff = 1e-8;
   @Override
   public void nextPhase() {
     switch (getMode()) {
@@ -174,8 +176,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
         this.head = null;
         DenseSynapseLayer alpha = (DenseSynapseLayer) this.alpha;
         //alpha.weights.scale(2);
-        this.gate = new DenseSynapseLayer(alpha.inputDims, multigate?alpha.outputDims:new int[]{1})
-                      .setWeights(() -> getGateInitialization() * (Math.random() - 0.5));
+        this.gate = new DenseSynapseLayer(alpha.inputDims, multigate?alpha.outputDims:new int[]{1});
         this.gateBias = new BiasLayer(alpha.inputDims);
         this.mode = NodeMode.Fuzzy;
         break;
@@ -184,11 +185,14 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
         this.head = null;
         DenseSynapseLayer alpha = (DenseSynapseLayer) this.alpha;
         BiasLayer alphaBias = (BiasLayer) this.alphaBias;
-        this.beta = new DenseSynapseLayer(alpha.inputDims, alpha.outputDims);
+        this.beta = new DenseSynapseLayer(alpha.inputDims, alpha.outputDims).setWeights(() -> {
+          return initialFuzzyCoeff * (Math.random() - 0.5);
+        });
         this.betaBias = new BiasLayer(alphaBias.bias.length);
         copyState(alpha, beta);
         copyState(alphaBias, betaBias);
         this.mode = NodeMode.Bilinear;
+        if(isSkipFuzzy()) nextPhase();
         break;
       }
       case Bilinear: {
@@ -220,24 +224,26 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     }
   }
   
-  public double getGateInitialization() {
-    return gateInitialization;
-  }
-  
-  public void setGateInitialization(double gateInitialization) {
-    this.gateInitialization = gateInitialization;
-  }
-  
   public boolean skipChildStage() {
     return skipChildStage;
   }
   
-  public void setSkipChildStage(boolean skipChildStage) {
+  public SigmoidTreeNetwork setSkipChildStage(boolean skipChildStage) {
     this.skipChildStage = skipChildStage;
+    return this;
   }
   
   public NodeMode getMode() {
     return mode;
+  }
+  
+  public boolean isSkipFuzzy() {
+    return skipFuzzy;
+  }
+  
+  public SigmoidTreeNetwork setSkipFuzzy(boolean skipFuzzy) {
+    this.skipFuzzy = skipFuzzy;
+    return this;
   }
   
 }

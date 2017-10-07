@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The Basic test optimizer.
  */
-public class SimpleStochasticGradientDescentTest extends MnistTestBase {
+public class HoldoverStochasticGradientDescentTest extends MnistTestBase {
   
   @Override
   public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
@@ -45,7 +45,7 @@ public class SimpleStochasticGradientDescentTest extends MnistTestBase {
     iterations = 3;
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 10000);
+      Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, 10000);
       return new IterativeTrainer(trainable)
                .setMonitor(monitor)
                .setOrientation(new GradientDescent())

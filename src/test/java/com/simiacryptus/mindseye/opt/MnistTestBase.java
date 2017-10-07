@@ -49,6 +49,7 @@ import java.util.stream.IntStream;
  * The type Mnist test base.
  */
 public abstract class MnistTestBase {
+  public int iterations = 1;
   /**
    * Basic.
    *
@@ -64,9 +65,11 @@ public abstract class MnistTestBase {
       MonitoredObject monitoringRoot = new MonitoredObject();
       TrainingMonitor monitor = getMonitor(originalOut, history);
       Tensor[][] trainingData = getTrainingData(log);
-      PipelineNetwork network = _test(log, monitoringRoot, monitor, trainingData, history);
-      validate(log, network);
-      report(log, monitoringRoot, history);
+      for(int i = 0; i< iterations; i++) {
+        PipelineNetwork network = _test(log, monitoringRoot, monitor, trainingData, history);
+        validate(log, network);
+        report(log, monitoringRoot, history);
+      }
     }
   }
   
@@ -117,7 +120,7 @@ public abstract class MnistTestBase {
         throw new RuntimeException(e);
       }
     });
-    log.code(() -> {
+    if(!history.isEmpty()) log.code(() -> {
       PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.value)}).toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Iteration", "log10(Fitness)");

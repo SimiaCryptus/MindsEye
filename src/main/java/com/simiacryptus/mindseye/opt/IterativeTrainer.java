@@ -100,7 +100,7 @@ public class IterativeTrainer {
       currentPoint = measure();
       assert (0 < currentPoint.delta.map.size()) : "Nothing to optimize";
       subiterationLoop:
-      for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
+      for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
         if (timeoutMs < System.currentTimeMillis()) break mainLoop;
         if (currentIteration.incrementAndGet() > maxIterations) break mainLoop;
         LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);

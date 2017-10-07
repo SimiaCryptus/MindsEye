@@ -22,15 +22,15 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.mindseye.opt.trainable.DeltaHoldoverArrayTrainable;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -40,9 +40,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * The Basic test optimizer.
  */
-public class SigmoidTreeNetworkTest extends MnistTestBase {
+public class PolynomialNetworkTest extends MnistTestBase {
   
-  SigmoidTreeNetwork tree;
+  PolynomialNetwork tree;
   int trainingSize = 10000;
   int iterationsPerSample = 25;
   int maxIterations = 500;
@@ -52,7 +52,7 @@ public class SigmoidTreeNetworkTest extends MnistTestBase {
   public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, trainingSize);
+      Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
       return new IterativeTrainer(trainable)
                .setIterationsPerSample(iterationsPerSample)
                .setMonitor(monitor)
@@ -74,23 +74,29 @@ public class SigmoidTreeNetworkTest extends MnistTestBase {
     iterationsPerSample = 5;
     trainingSize = 5000;
     timeoutMinutes = 5;
-    // Base Linear Phase 1
     run(log, monitoringRoot, monitor, trainingData, history, network);
-    iterationsPerSample = 500;
-    trainingSize = 0;
-    timeoutMinutes = 120;
-    // Base Linear Phase 2
+
+//    iterationsPerSample = 0;
+//    trainingSize = 0;
+    trainingSize = 10000;
+    timeoutMinutes = 5;
     run(log, monitoringRoot, monitor, trainingData, history, network);
+  
     timeoutMinutes = 120;
-    for(int j=0;j< 3;j++) {
-      for(int i=0;i<2;i++) {
-        nextPhase(monitoringRoot, monitor, history, network);
-        run(log, monitoringRoot, monitor, trainingData, history, network);
-      }
-      trainingSize *= 2;
-      timeoutMinutes *= 2;
-    }
-    
+    tree.addTerm(1);
+    addMonitoring(network, monitoringRoot);
+    run(log, monitoringRoot, monitor, trainingData, history, network);
+  
+    timeoutMinutes = 120;
+    tree.addTerm(-1);
+    addMonitoring(network, monitoringRoot);
+    run(log, monitoringRoot, monitor, trainingData, history, network);
+  
+    timeoutMinutes = 120;
+    tree.addTerm(2);
+    addMonitoring(network, monitoringRoot);
+    run(log, monitoringRoot, monitor, trainingData, history, network);
+  
     return network;
   }
   
@@ -102,22 +108,15 @@ public class SigmoidTreeNetworkTest extends MnistTestBase {
     history.clear();
   }
   
-  public void nextPhase(MonitoredObject monitoringRoot, TrainingMonitor monitor, List<Step> history, PipelineNetwork network) {
-    removeMonitoring(network);
-    tree.nextPhase();
-    addMonitoring(network, monitoringRoot);
-  }
-  
   @Override
   public PipelineNetwork buildModel(NotebookOutput log) {
     log.p("This is a very simple model that performs basic logistic regression. " +
             "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
-      this.tree = new SigmoidTreeNetwork(
-        new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10}),
-        new BiasLayer(28, 28, 1)
-      ).setSkipFuzzy(true).setSkipChildStage(true);
+      this.tree = new PolynomialNetwork(
+        new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(()->1e-8*(Math.random()-1))
+      );
       network.add(tree);
       network.add(new SoftmaxActivationLayer());
       return network;
