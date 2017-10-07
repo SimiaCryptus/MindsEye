@@ -20,21 +20,19 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.NthPowerActivationLayer;
-import com.simiacryptus.mindseye.layers.activation.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Spliterators;
 import java.util.UUID;
 
 public class PolynomialNetwork extends DAGNetwork {
@@ -57,8 +55,9 @@ public class PolynomialNetwork extends DAGNetwork {
     }
   
     public DAGNode add(DAGNode input) {
-      return PolynomialNetwork.this.add(new NthPowerActivationLayer().setPower(power), PolynomialNetwork.this.add(bias, PolynomialNetwork.this.add(factor, input)));
+      return PolynomialNetwork.this.add(newNthPowerLayer(power), PolynomialNetwork.this.add(bias, PolynomialNetwork.this.add(factor, input)));
     }
+  
     public JsonObject getJson() {
       JsonObject json = new JsonObject();
       json.addProperty("bias", bias.getId().toString());
@@ -68,10 +67,13 @@ public class PolynomialNetwork extends DAGNetwork {
     }
   }
   
-  private DenseSynapseLayer alpha = null;
-  private BiasLayer alphaBias = null;
-  private DAGNode head;
-  private List<Correcton> corrections = new ArrayList<>();
+  protected NNLayer alpha = null;
+  protected NNLayer alphaBias = null;
+  protected DAGNode head;
+  protected List<Correcton> corrections = new ArrayList<>();
+  protected final int[] inputDims;
+  protected final int[] outputDims;
+  
   
   public JsonObject getJson() {
     assertConsistent();
@@ -80,6 +82,8 @@ public class PolynomialNetwork extends DAGNetwork {
     json.addProperty("head", head.getId().toString());
     if(null != alpha) json.addProperty("alpha", alpha.getId().toString());
     if(null != alphaBias) json.addProperty("alphaBias", alpha.getId().toString());
+    json.add("inputDims", toJson(inputDims));
+    json.add("outputDims", toJson(outputDims));
     JsonArray elements = new JsonArray();
     for(Correcton c : corrections) elements.add(c.getJson());
     json.add("corrections", elements);
@@ -96,21 +100,50 @@ public class PolynomialNetwork extends DAGNetwork {
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
     if(json.get("alpha") != null) alpha = (DenseSynapseLayer) layersById.get(UUID.fromString(json.get("alpha").getAsString()));
     if(json.get("alphaBias") != null) alphaBias = (BiasLayer) layersById.get(UUID.fromString(json.get("alphaBias").getAsString()));
+    inputDims = toIntArray(json.getAsJsonArray("inputDims"));
+    outputDims = toIntArray(json.getAsJsonArray("outputDims"));
     json.getAsJsonArray("corrections").forEach(item->{
       corrections.add(new Correcton(item.getAsJsonObject()));
     });
   }
   
-  public PolynomialNetwork(DenseSynapseLayer alpha) {
+  public static JsonArray toJson(int[] dims) {
+    JsonArray array = new JsonArray();
+    for(int i:dims) array.add(new JsonPrimitive(i));
+    return array;
+  }
+  
+  public static int[] toIntArray(JsonArray dims) {
+    int[] x = new int[dims.size()];
+    int j = 0;
+    for(Iterator<JsonElement> i = dims.iterator(); i.hasNext();) {
+      x[j++] = i.next().getAsInt();
+    }
+    return x;
+  }
+  
+  public PolynomialNetwork(int[] inputDims,int[] outputDims) {
     super(1);
-    this.alpha = alpha;
-    this.alphaBias = new BiasLayer(alpha.inputDims);
+    this.inputDims = inputDims;
+    this.outputDims = outputDims;
+  }
+  
+  public NNLayer newBias(int[] dims, double weight) {
+    return new BiasLayer(dims).setWeights(i->weight);
+  }
+  
+  public NNLayer newSynapse(double weight) {
+    return new DenseSynapseLayer(inputDims, outputDims).setWeights(() -> weight * (Math.random() - 1));
   }
   
   public synchronized DAGNode getHead() {
     if(null == head) {
       synchronized (this) {
         if(null == head) {
+          if(null == alpha) {
+            this.alpha = newSynapse(1e-8);
+            this.alphaBias = newBias(inputDims, 0.0);
+          }
           this.reset();
           DAGNode input = getInput(0);
           ArrayList<DAGNode> terms = new ArrayList<>();
@@ -118,17 +151,25 @@ public class PolynomialNetwork extends DAGNetwork {
           for(Correcton c : corrections) {
             terms.add(c.add(input));
           }
-          head = terms.size()==1?terms.get(0):add(new ProductInputsLayer(), terms.toArray(new DAGNode[]{}));
+          head = terms.size()==1?terms.get(0):add(newProductLayer(), terms.toArray(new DAGNode[]{}));
         }
       }
     }
     return head;
   }
   
+  public NNLayer newNthPowerLayer(double power) {
+    return new NthPowerActivationLayer().setPower(power);
+  }
+  
+  public NNLayer newProductLayer() {
+    return new com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer();
+  }
+  
   public void addTerm(double power) {
     corrections.add(new Correcton(power,
-      new BiasLayer(alpha.outputDims).setWeights(i->1.0),
-      new DenseSynapseLayer(alpha.inputDims, alpha.outputDims).setWeights(()->0.0)
+      newBias(outputDims, 1.0),
+      newSynapse(0.0)
     ));
   }
   

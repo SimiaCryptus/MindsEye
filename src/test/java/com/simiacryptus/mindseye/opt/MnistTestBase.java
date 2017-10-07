@@ -23,6 +23,8 @@ import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.data.Tensor;
 import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.util.MonitoringWrapper;
@@ -172,8 +174,7 @@ public abstract class MnistTestBase {
       try {
         return MNIST.validationDataStream().mapToDouble(labeledObject -> {
           int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-          double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {
-          }, labeledObject.data).getData().get(0).getData();
+          double[] predictionSignal = CudaExecutionContext.gpuContexts.map(ctx->network.eval(ctx, labeledObject.data).getData().get(0).getData());
           int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
           return predictionList[0] == actualCategory ? 1 : 0;
         }).average().getAsDouble() * 100;
@@ -189,8 +190,7 @@ public abstract class MnistTestBase {
         MNIST.validationDataStream().map(labeledObject -> {
           try {
             int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-            double[] predictionSignal = network.eval(new NNLayer.NNExecutionContext() {
-            }, labeledObject.data).getData().get(0).getData();
+            double[] predictionSignal = CudaExecutionContext.gpuContexts.map(ctx->network.eval(ctx, labeledObject.data).getData().get(0).getData());
             int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
             LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();

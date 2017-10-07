@@ -105,17 +105,15 @@ public class ConvolutionLayer extends NNLayer {
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this((Tensor) null, (Tensor) null, true);
+    this((Tensor) null, true);
   }
   
   /**
    * Instantiates a new Convolution layer.
-   *
-   * @param filter the filter
-   * @param skip   the skip
+   *  @param filter the filter
    * @param simple the simple
    */
-  protected ConvolutionLayer(Tensor filter, Tensor skip, boolean simple) {
+  protected ConvolutionLayer(Tensor filter, boolean simple) {
     super();
     this.simple = simple;
     if (filter.getDimensions().length != 3) throw new IllegalArgumentException();
@@ -146,7 +144,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param simple the simple
    */
   public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
-    this(new Tensor(width, height, bands), new Tensor(new int[]{1, 1}), simple);
+    this(new Tensor(width, height, bands), simple);
     assert (!simple || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
     assert (!simple || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
   }
