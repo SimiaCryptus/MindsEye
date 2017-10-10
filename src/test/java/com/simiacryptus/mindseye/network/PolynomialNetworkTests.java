@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.layers.NNLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f32.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
@@ -31,8 +28,8 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.opt.trainable.DeltaHoldoverArrayTrainable;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.util.MonitoredObject;
@@ -63,7 +60,9 @@ public class PolynomialNetworkTests {
                  .setIterationsPerSample(iterationsPerSample)
                  .setMonitor(monitor)
                  .setOrientation(new QQN())
-                 //.setLineSearchFactory(name->name.contains("QQN") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch().setCurrentRate(1e-6))
+                 .setLineSearchFactory(name->new QuadraticSearch()
+                                               .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
+                                               .setRelativeTolerance(1e-1))
                  .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
                  .setMaxIterations(maxIterations)
                  .run();
@@ -75,32 +74,28 @@ public class PolynomialNetworkTests {
     public PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
       log.p("First, define a model:");
       PipelineNetwork network = buildModel(log);
-      addMonitoring(network, monitoringRoot);
       
-      iterationsPerSample = 5;
+      iterationsPerSample = 10;
       trainingSize = 5000;
-      timeoutMinutes = 5;
+      timeoutMinutes = 30;
       run(log, monitoringRoot, monitor, trainingData, history, network);
 
 //    iterationsPerSample = 0;
 //    trainingSize = 0;
-      trainingSize = 10000;
-      timeoutMinutes = 5;
+      trainingSize = 20000;
+      timeoutMinutes = 60;
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
       timeoutMinutes = 120;
       tree.addTerm(1);
-      addMonitoring(network, monitoringRoot);
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
       timeoutMinutes = 120;
       tree.addTerm(-1);
-      addMonitoring(network, monitoringRoot);
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
       timeoutMinutes = 120;
       tree.addTerm(2);
-      addMonitoring(network, monitoringRoot);
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
       return network;
@@ -146,29 +141,4 @@ public class PolynomialNetworkTests {
     
   }
   
-  public static class PolynomialConvolutionNetwork extends PolynomialNetwork {
-    private final int radius;
-    private final boolean simple;
-    
-    public PolynomialConvolutionNetwork(int[] inputDims, int[] outputDims, int radius, boolean simple) {
-      super(inputDims, outputDims);
-      this.radius = radius;
-      this.simple = simple;
-    }
-    
-    @Override
-    public NNLayer newBias(int[] dims, double weight) {
-      return new ImgBandBiasLayer(dims[2]).setWeights(i->weight);
-    }
-  
-    @Override
-    public NNLayer newProductLayer() {
-      return new com.simiacryptus.mindseye.layers.cudnn.f32.ProductInputsLayer();
-    }
-  
-    @Override
-    public NNLayer newSynapse(double weight) {
-      return new ConvolutionLayer(radius, radius, inputDims[2]*outputDims[2], simple);
-    }
-  }
 }
