@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * The type Quadratic search.
  */
@@ -32,6 +34,7 @@ public class QuadraticSearch implements LineSearchStrategy {
   private double initialDerivFactor = 0.95;
   private double currentRate = 0.0;
   private double minRate = 1e-10;
+  private int maxIterations = 100;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
@@ -276,6 +279,7 @@ public class QuadraticSearch implements LineSearchStrategy {
      */
     public LocateInitialRightPoint apply() {
       double lastX = thisX;
+      int loops = 0;
       while (true) {
         if (thisPoint.point.value > initialPoint.point.value) {
           thisX = thisX / 3;
@@ -296,6 +300,10 @@ public class QuadraticSearch implements LineSearchStrategy {
         lastX = thisX;
         thisPoint = cursor.step(thisX, monitor);
         monitor.log(String.format("F(%s) = %s", thisX, thisPoint));
+        if (loops++ > 100) {
+          monitor.log(String.format("Loops = %s", loops));
+          return this;
+        }
       }
       return this;
     }

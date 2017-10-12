@@ -74,20 +74,28 @@ public class PolynomialNetworkTests {
     public PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
       log.p("First, define a model:");
       PipelineNetwork network = buildModel(log);
-      
+  
+      iterationsPerSample = 1;
+      trainingSize = 1000;
+      timeoutMinutes = 30;
+      run(log, monitoringRoot, monitor, trainingData, history, network);
+  
       iterationsPerSample = 10;
       trainingSize = 5000;
-      timeoutMinutes = 30;
+      timeoutMinutes = 180;
       run(log, monitoringRoot, monitor, trainingData, history, network);
 
 //    iterationsPerSample = 0;
 //    trainingSize = 0;
-      trainingSize = 20000;
+      trainingSize = 10000;
       timeoutMinutes = 60;
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
       timeoutMinutes = 120;
+      trainingSize = 5000;
       tree.addTerm(1);
+      run(log, monitoringRoot, monitor, trainingData, history, network);
+      trainingSize = 10000;
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
       timeoutMinutes = 120;
