@@ -76,19 +76,21 @@ public class PolynomialNetworkTests {
       PipelineNetwork network = buildModel(log);
   
       iterationsPerSample = 1;
-      trainingSize = 1000;
+      trainingSize = 2500;
       timeoutMinutes = 30;
       run(log, monitoringRoot, monitor, trainingData, history, network);
   
       iterationsPerSample = 10;
       trainingSize = 5000;
-      timeoutMinutes = 180;
+      timeoutMinutes = 240;
       run(log, monitoringRoot, monitor, trainingData, history, network);
 
 //    iterationsPerSample = 0;
 //    trainingSize = 0;
       trainingSize = 10000;
-      timeoutMinutes = 60;
+      timeoutMinutes = 120;
+      run(log, monitoringRoot, monitor, trainingData, history, network);
+      timeoutMinutes = 120;
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
       timeoutMinutes = 120;
