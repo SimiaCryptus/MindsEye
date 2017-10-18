@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.lang.DeltaSet;
 
 /**
  * The interface Trainable.
@@ -76,7 +76,7 @@ public interface Trainable {
      * @param value   the value
      */
     public PointSample(DeltaSet delta, DeltaSet weights, double value) {
-      this(delta, weights, value, Double.NaN);
+      this(delta, weights, value, 0.0);
     }
     
     /**

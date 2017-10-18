@@ -19,22 +19,15 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorList;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.rdd.RDD;
-import org.apache.spark.storage.StorageLevel;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * The type Spark trainable. Calculation happens locally without Spark serialization overhead or multi-node compute capability

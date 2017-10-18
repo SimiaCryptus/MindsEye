@@ -20,12 +20,12 @@
 package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorArray;
-import com.simiacryptus.mindseye.data.TensorList;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,7 +153,7 @@ public class LinearActivationLayer extends NNLayer {
           final double[] inputData = this.inObj.getData().get(dataIndex).getData();
           final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
-            weightDelta.add(0, deltaData[i] * inputData[i]);
+            weightDelta.add(0, deltaData[i] * inputData[inputData.length==1?0:i]);
             weightDelta.add(1, deltaData[i]);
           }
           buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).accumulate(weightDelta.getData());

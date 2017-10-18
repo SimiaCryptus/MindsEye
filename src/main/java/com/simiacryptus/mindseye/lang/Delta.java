@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.lang;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

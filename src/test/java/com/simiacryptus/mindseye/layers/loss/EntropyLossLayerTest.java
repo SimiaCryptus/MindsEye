@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.layers.loss;
 
-import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
  * The type Entropy loss layer test.

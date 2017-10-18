@@ -20,12 +20,12 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorArray;
-import com.simiacryptus.mindseye.data.TensorList;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.Arrays;
 import java.util.List;
@@ -70,7 +70,13 @@ public class SumInputsLayer extends NNLayer {
     TensorList data = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length()).parallel()
-                               .mapToObj(i -> Tensor.add(l.get(i >= l.length() ? 0 : i), r.get(i >= r.length() ? 0 : i)))
+                               .mapToObj(i -> {
+                                 Tensor left = l.get(i >= l.length() ? 0 : i);
+                                 Tensor right = r.get(i >= r.length() ? 0 : i);
+                                 boolean b = right.dim() == 1;
+                                 return left.mapParallel((v,c)-> v + (b ? right.get(0) : right.get(c)));
+                                 //return Tensor.add(left, right);
+                               })
                                .toArray(i -> new Tensor[i]));
     }).get();
     return new NNResult(data) {
@@ -79,12 +85,14 @@ public class SumInputsLayer extends NNLayer {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            if (1 < data.length() && input.getData().length() == 1) {
-              input.accumulate(buffer, new TensorArray(data.stream().parallel().reduce((a, b) -> a.add(b)).get()));
+            TensorList data1 = data;
+            if (1 < data1.length() && input.getData().length() == 1) {
+              data1 = new TensorArray(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
             }
-            else {
-              input.accumulate(buffer, data);
+            if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
+              data1 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i->new Tensor[i]));
             }
+            input.accumulate(buffer, data1);
           }
         }
       }

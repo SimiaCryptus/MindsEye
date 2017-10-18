@@ -20,11 +20,9 @@
 package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.data.MNIST;
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.util.MonitoringWrapper;

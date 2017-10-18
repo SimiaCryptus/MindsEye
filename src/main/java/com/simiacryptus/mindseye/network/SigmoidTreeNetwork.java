@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;

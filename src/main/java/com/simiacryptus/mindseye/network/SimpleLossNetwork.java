@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 
 /**

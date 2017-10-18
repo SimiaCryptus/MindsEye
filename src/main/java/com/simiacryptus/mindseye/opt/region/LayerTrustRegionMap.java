@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 
 import java.util.HashMap;

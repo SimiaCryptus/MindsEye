@@ -19,8 +19,9 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.trainable.Trainable;
 
 /**
  * The type Failsafe line search cursor.
@@ -33,10 +34,13 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * Instantiates a new Failsafe line search cursor.
    *
    * @param direction the direction
+   * @param previousPoint
    */
-  public FailsafeLineSearchCursor(LineSearchCursor direction) {
+  public FailsafeLineSearchCursor(LineSearchCursor direction, Trainable.PointSample previousPoint) {
     this.direction = direction;
     this.best = null;
+    assert 0 == previousPoint.rate;
+    accumulate(new LineSearchPoint(previousPoint, Double.NaN));
   }
   
   @Override
@@ -48,10 +52,14 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
   @Override
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     LineSearchPoint step = direction.step(alpha, monitor);
-    if (null == getBest() || getBest().point.value > step.point.value) {
+    accumulate(step);
+    return step;
+  }
+  
+  public void accumulate(LineSearchPoint step) {
+    if (null == this.best || this.best.point.value > step.point.value) {
       this.best = step;
     }
-    return step;
   }
   
   @Override
@@ -69,8 +77,8 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    *
    * @return the best
    */
-  public LineSearchPoint getBest() {
-    return best;
+  public LineSearchPoint getBest(TrainingMonitor monitor) {
+    return null==best?null:step(best.point.rate, monitor);
   }
   
 }

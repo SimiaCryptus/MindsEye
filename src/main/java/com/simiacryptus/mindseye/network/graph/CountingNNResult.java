@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.simiacryptus.mindseye.data.TensorList;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.f32.CuDNNFloatTensorList;
 
 /**

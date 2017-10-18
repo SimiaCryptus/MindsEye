@@ -17,12 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorList;
 import com.simiacryptus.util.Util;
 
 import java.io.Serializable;

@@ -115,9 +115,9 @@ public class IterativeTrainer {
           lineSearchStrategyMap.put(directionType, lineSearchStrategy);
         }
         PointSample previous = currentPoint;
-        FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction);
+        FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous);
         lineSearchStrategy.step(wrapped, monitor);
-        currentPoint = wrapped.getBest().point;
+        currentPoint = wrapped.getBest(monitor).point;
         if (previous.value <= currentPoint.value) {
           if (previous.value < currentPoint.value) {
             monitor.log(String.format("Resetting Iteration"));

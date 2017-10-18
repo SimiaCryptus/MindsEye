@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;

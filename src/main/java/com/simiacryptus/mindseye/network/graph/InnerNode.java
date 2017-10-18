@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.util.Util;
 
 import java.util.Arrays;

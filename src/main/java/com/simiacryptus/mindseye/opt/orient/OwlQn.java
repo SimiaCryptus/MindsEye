@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.synapse.JavaDenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.synapse.ToeplitzSynapseLayer;

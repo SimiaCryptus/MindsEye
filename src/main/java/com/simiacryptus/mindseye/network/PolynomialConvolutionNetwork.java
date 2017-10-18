@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ImgBandBiasLayer;
 

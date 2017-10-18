@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.util;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 import java.util.List;
 

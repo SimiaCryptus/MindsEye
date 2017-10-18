@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.synapse;
 
-import com.simiacryptus.mindseye.data.Coordinate;
-import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.Coordinate;
+import com.simiacryptus.mindseye.lang.Tensor;
 
 /**
  * The type Transposed synapse layer.

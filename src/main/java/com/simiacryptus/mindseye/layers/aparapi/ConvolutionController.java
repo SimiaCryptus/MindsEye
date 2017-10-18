@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.aparapi;
 
-import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.ComponentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

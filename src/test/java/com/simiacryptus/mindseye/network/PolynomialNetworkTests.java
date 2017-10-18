@@ -19,10 +19,11 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
+import com.simiacryptus.mindseye.layers.meta.AvgNormalizationMetaLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.opt.*;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
@@ -61,7 +62,7 @@ public class PolynomialNetworkTests {
                  .setOrientation(new QQN())
                  .setLineSearchFactory(name->new QuadraticSearch()
                                                .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-                                               .setRelativeTolerance(1e-1))
+                                               .setRelativeTolerance(2e-1))
                  .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
                  .setMaxIterations(maxIterations)
                  .run();
@@ -76,34 +77,34 @@ public class PolynomialNetworkTests {
   
       iterationsPerSample = 1;
       trainingSize = 2500;
-      timeoutMinutes = 30;
+      timeoutMinutes = 60;
       run(log, monitoringRoot, monitor, trainingData, history, network);
   
-      iterationsPerSample = 10;
-      trainingSize = 5000;
-      timeoutMinutes = 240;
-      run(log, monitoringRoot, monitor, trainingData, history, network);
-
-//    iterationsPerSample = 0;
-//    trainingSize = 0;
-      trainingSize = 10000;
-      timeoutMinutes = 120;
-      run(log, monitoringRoot, monitor, trainingData, history, network);
-      timeoutMinutes = 120;
-      run(log, monitoringRoot, monitor, trainingData, history, network);
+//      iterationsPerSample = 10;
+//      trainingSize = 5000;
+//      timeoutMinutes = 240;
+//      run(log, monitoringRoot, monitor, trainingData, history, network);
+//
+////    iterationsPerSample = 0;
+////    trainingSize = 0;
+////      trainingSize = 10000;
+//      timeoutMinutes = 120;
+//      run(log, monitoringRoot, monitor, trainingData, history, network);
+//      timeoutMinutes = 120;
+//      run(log, monitoringRoot, monitor, trainingData, history, network);
       
-      timeoutMinutes = 120;
-      trainingSize = 5000;
+      //timeoutMinutes = 60;
+//      trainingSize = 5000;
       tree.addTerm(1);
       run(log, monitoringRoot, monitor, trainingData, history, network);
-      trainingSize = 10000;
-      run(log, monitoringRoot, monitor, trainingData, history, network);
+      //trainingSize = 10000;
+      //run(log, monitoringRoot, monitor, trainingData, history, network);
       
-      timeoutMinutes = 120;
+      //timeoutMinutes = 120;
       tree.addTerm(-1);
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
-      timeoutMinutes = 120;
+      //timeoutMinutes = 120;
       tree.addTerm(2);
       run(log, monitoringRoot, monitor, trainingData, history, network);
       
@@ -142,7 +143,8 @@ public class PolynomialNetworkTests {
         this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
         network.add(this.tree);
         network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
-        network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10}).setWeights(()->1e-5*(Math.random()-0.5)));
+        network.add(new AvgNormalizationMetaLayer());
+        network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
         network.add(new SoftmaxActivationLayer());
         return network;
       });

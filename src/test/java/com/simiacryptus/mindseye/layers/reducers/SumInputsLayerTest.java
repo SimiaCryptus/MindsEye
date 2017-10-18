@@ -20,22 +20,38 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
  * The type Sum inputs layer test.
  */
-public class SumInputsLayerTest extends LayerTestBase {
-  
-  @Override
-  public NNLayer getLayer() {
-    return new SumInputsLayer();
+public class SumInputsLayerTest {
+  public static class NNTest extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new SumInputsLayer();
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}, {3}
+      };
+    }
   }
-  
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}
-    };
+  public static class N1Test extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new SumInputsLayer();
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}, {1}
+      };
+    }
   }
 }

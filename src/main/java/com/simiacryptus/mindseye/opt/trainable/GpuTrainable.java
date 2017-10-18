@@ -19,12 +19,12 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.GpuError;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -32,12 +32,14 @@ import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /**
  * The type Gpu trainable.
@@ -130,18 +132,21 @@ public class GpuTrainable implements Trainable {
    */
   protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
     NNResult result = network.eval(nncontext, input);
+    TensorList resultData = result.getData();
+    assert (resultData.stream().allMatch(x -> x.dim() == 1));
+    assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
+    DoubleStream stream = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData()));
+    DoubleSummaryStatistics statistics = stream.summaryStatistics();
+    double sum = statistics.getAverage();
     DeltaSet deltaSet = new DeltaSet();
-    result.accumulate(deltaSet);
+    result.accumulate(deltaSet, 1.0 / statistics.getCount());
     assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
       stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
     assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    TensorList resultData = result.getData();
-    assert (resultData.stream().allMatch(x -> x.dim() == 1));
-    assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-    double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
+
     return new PointSample(deltaSet, stateBackup, sum);
   }
   

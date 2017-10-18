@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
  * The type Convolution layer test.

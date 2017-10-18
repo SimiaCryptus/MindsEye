@@ -17,27 +17,44 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.stochastic;
+package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import org.junit.Ignore;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
- * The type Binary noise layer test.
+ * The type Tensor array.
  */
-@Ignore
-public class BinaryNoiseLayerTest extends LayerTestBase {
+public class TensorArray implements TensorList {
+  private final Tensor[] data;
   
-  @Override
-  public NNLayer getLayer() {
-    return new BinaryNoiseLayer();
+  /**
+   * Instantiates a new Tensor array.
+   *
+   * @param data the data
+   */
+  public TensorArray(Tensor... data) {
+    this.data = data;
   }
   
   @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}
-    };
+  public Tensor get(int i) {
+    return data[i];
   }
+  
+  @Override
+  public int length() {
+    return data.length;
+  }
+  
+  @Override
+  public Stream<Tensor> stream() {
+    return Arrays.stream(data);
+  }
+  
+  @Override
+  public int[] getDimensions() {
+    return data[0].getDimensions();
+  }
+  
 }

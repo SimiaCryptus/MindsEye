@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.data;
 
 
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.DataLoader;
 
 import javax.imageio.ImageIO;

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.data;
+package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -196,12 +196,12 @@ public class Tensor implements Serializable {
     }
     try {
       return new double[length];
-    } catch (OutOfMemoryError e) {
+    } catch (java.lang.OutOfMemoryError e) {
       try {
         clear();
         System.gc();
         return new double[length];
-      } catch (OutOfMemoryError e2) {
+      } catch (java.lang.OutOfMemoryError e2) {
         throw new com.simiacryptus.mindseye.lang.OutOfMemoryError("Could not allocate " + length + " bytes", e2);
       }
     }

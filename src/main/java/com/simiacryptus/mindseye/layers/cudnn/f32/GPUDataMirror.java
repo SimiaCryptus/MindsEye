@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 

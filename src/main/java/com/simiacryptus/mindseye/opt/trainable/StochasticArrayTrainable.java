@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 
@@ -39,7 +39,7 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
   
   private static final int LOW_MEM_USE = 4 * 1024 * 1024 * 1024;
   private final List<? extends Supplier<Tensor[]>> trainingData;
-  private final int trainingSize;
+  private int trainingSize;
   private long hash = Util.R.get().nextLong();
   
   /**
@@ -112,6 +112,7 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
    */
   public StochasticArrayTrainable setTrainingSize(final int trainingSize) {
     inner.trainingSize = trainingSize;
+    this.trainingSize = trainingSize;
     refreshSampledData();
     return this;
   }

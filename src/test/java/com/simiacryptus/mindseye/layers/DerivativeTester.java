@@ -19,9 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorArray;
-import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.io.KryoUtil;
 import org.junit.Assert;

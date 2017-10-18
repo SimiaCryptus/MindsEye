@@ -19,7 +19,9 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.data.Tensor;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.ActivationLayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.Util;

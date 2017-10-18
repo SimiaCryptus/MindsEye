@@ -19,11 +19,11 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorArray;
-import com.simiacryptus.mindseye.data.TensorList;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.layers.activation.GaussianNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxDropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;

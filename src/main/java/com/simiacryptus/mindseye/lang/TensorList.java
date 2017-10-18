@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.data;
+package com.simiacryptus.mindseye.lang;
 
 import java.util.stream.IntStream;
 import java.util.stream.Stream;

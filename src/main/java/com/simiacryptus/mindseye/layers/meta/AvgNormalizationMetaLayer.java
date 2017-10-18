@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.NthPowerActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SqActivationLayer;
+import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
+import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
@@ -36,7 +38,7 @@ import java.util.UUID;
  * The type Std dev meta layer.
  */
 @SuppressWarnings("serial")
-public class StdDevMetaLayer extends DAGNetwork {
+public class AvgNormalizationMetaLayer extends DAGNetwork {
   
   /**
    * From json nn layer.
@@ -45,7 +47,7 @@ public class StdDevMetaLayer extends DAGNetwork {
    * @return the nn layer
    */
   public static NNLayer fromJson(JsonObject inner) {
-    return new StdDevMetaLayer(inner);
+    return new AvgNormalizationMetaLayer(inner);
   }
 
   /**
@@ -53,25 +55,28 @@ public class StdDevMetaLayer extends DAGNetwork {
    *
    * @param json the json
    */
-  protected StdDevMetaLayer(JsonObject json) {
+  protected AvgNormalizationMetaLayer(JsonObject json) {
     super(json);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(AvgNormalizationMetaLayer.class);
   private final DAGNode head;
   
   /**
    * Instantiates a new Std dev meta layer.
    */
-  public StdDevMetaLayer() {
+  public AvgNormalizationMetaLayer() {
     super(1);
-    this.head = add(new NthPowerActivationLayer().setPower(0.5),
-      add(new SumInputsLayer(),
-        add(new AvgMetaLayer(), add(new SqActivationLayer(), getInput(0))),
-        add(new LinearActivationLayer().setScale(-1), add(new SqActivationLayer(), add(new AvgMetaLayer(), getInput(0))))
-      ));
+    DAGNode centered = add(new SumInputsLayer(),
+      getInput(0),
+      add(new LinearActivationLayer().setScale(-1), add(new AvgReducerLayer(), getInput(0)))
+    );
+    this.head = add(new ProductInputsLayer(),
+      centered,
+      add(new NthPowerActivationLayer().setPower(-0.5), add(new AvgReducerLayer(), add(new SqActivationLayer(), centered)))
+    );
   }
   
   @Override

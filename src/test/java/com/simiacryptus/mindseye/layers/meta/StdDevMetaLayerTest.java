@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.meta;
 
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
  * The type Std dev meta layer test.

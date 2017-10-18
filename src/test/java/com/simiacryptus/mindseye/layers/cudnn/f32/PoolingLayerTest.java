@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
  * The type Pooling layer test.

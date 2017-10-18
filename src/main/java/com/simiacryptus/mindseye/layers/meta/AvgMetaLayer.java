@@ -21,12 +21,12 @@ package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorArray;
-import com.simiacryptus.mindseye.data.TensorList;
-import com.simiacryptus.mindseye.layers.DeltaSet;
-import com.simiacryptus.mindseye.layers.NNLayer;
-import com.simiacryptus.mindseye.layers.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,24 +85,26 @@ public class AvgMetaLayer extends NNLayer {
    * The Last result.
    */
   public Tensor lastResult;
+  int minBatchCount = 1;
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
-    Tensor result = input.getData().get(0).mapParallel((v, c) ->
-                                                         IntStream.range(0, itemCnt)
-                                                           .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                           .sum() / itemCnt);
-    lastResult = result;
-    return new NNResult(result) {
+    if(null == lastResult || input.getData().length() > minBatchCount) {
+      lastResult = input.getData().get(0).mapParallel((v, c) ->
+                                                           IntStream.range(0, itemCnt)
+                                                             .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                                                             .sum() / itemCnt);
+    }
+    return new NNResult(lastResult) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (input.isAlive()) {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          ((null == result) ? lastResult : result).mapParallel((rho, inputCoord) -> {
+          ((null == lastResult) ? lastResult : lastResult).mapParallel((rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }

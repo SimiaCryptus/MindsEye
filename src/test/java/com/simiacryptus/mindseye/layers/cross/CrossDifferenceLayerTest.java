@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cross;
 
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
  * The type Cross difference layer test.

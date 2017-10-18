@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.util.lang.StaticResourcePool;
 
 import java.util.ArrayList;

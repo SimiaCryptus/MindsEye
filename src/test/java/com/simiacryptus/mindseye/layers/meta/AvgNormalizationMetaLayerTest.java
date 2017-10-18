@@ -17,44 +17,25 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.data;
+package com.simiacryptus.mindseye.layers.meta;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Tensor array.
+ * The type Avg meta layer test.
  */
-public class TensorArray implements TensorList {
-  private final Tensor[] data;
+public class AvgNormalizationMetaLayerTest extends LayerTestBase {
   
-  /**
-   * Instantiates a new Tensor array.
-   *
-   * @param data the data
-   */
-  public TensorArray(Tensor... data) {
-    this.data = data;
+  @Override
+  public NNLayer getLayer() {
+    return new AvgNormalizationMetaLayer();
   }
   
   @Override
-  public Tensor get(int i) {
-    return data[i];
+  public int[][] getInputDims() {
+    return new int[][]{
+      {3}
+    };
   }
-  
-  @Override
-  public int length() {
-    return data.length;
-  }
-  
-  @Override
-  public Stream<Tensor> stream() {
-    return Arrays.stream(data);
-  }
-  
-  @Override
-  public int[] getDimensions() {
-    return data[0].getDimensions();
-  }
-  
 }

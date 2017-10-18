@@ -17,12 +17,9 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorArray;
-import com.simiacryptus.mindseye.data.TensorList;
-import com.simiacryptus.mindseye.layers.NNLayer.ConstNNResult;
+import com.simiacryptus.mindseye.lang.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 
 import java.util.Arrays;

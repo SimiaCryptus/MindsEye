@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 

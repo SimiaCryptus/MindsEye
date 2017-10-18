@@ -17,9 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
-
-import com.simiacryptus.mindseye.data.Tensor;
+package com.simiacryptus.mindseye.lang;
 
 import java.util.Comparator;
 import java.util.List;

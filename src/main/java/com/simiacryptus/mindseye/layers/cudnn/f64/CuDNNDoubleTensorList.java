@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
-import com.simiacryptus.mindseye.data.Tensor;
-import com.simiacryptus.mindseye.data.TensorArray;
-import com.simiacryptus.mindseye.data.TensorList;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import jcuda.Sizeof;
 

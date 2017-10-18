@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.layers.Delta;
-import com.simiacryptus.mindseye.layers.DeltaSet;
+import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;

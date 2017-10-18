@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.layers.NNLayer;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;

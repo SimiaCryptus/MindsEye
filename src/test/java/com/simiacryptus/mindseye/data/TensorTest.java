@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.data;
 
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
