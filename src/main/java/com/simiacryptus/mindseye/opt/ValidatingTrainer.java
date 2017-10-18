@@ -111,19 +111,8 @@ public class ValidatingTrainer {
       if (shouldHalt(timeoutMs)) break;
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       EpochResult epochResult = epoch(epochParams);
-//      monitor.log(String.format("Epoch result validation delta = %.9f; %f to %f",
-//        epochResult.getValidationDelta(), epochResult.priorValidation.value, epochResult.currentValidation.value));
-//      monitor.log(String.format("Epoch result training delta = %.9f; %f to %f",
-//        epochResult.getTrainingDelta(), epochResult.priorPoint.value, epochResult.currentPoint.value));
       monitor.log(String.format("Epoch result validation delta = %.6f; training delta = %.6f; Overtraining = %.9f ",
         epochResult.getValidationDelta(), epochResult.getTrainingDelta(), epochResult.getOverTrainingCoeff()));
-  
-      //        if (value1 > Math.pow(target1, 1 - adjustmentTolerance)) {
-//          epochParams.iterations = Math.max(minEpochIterations, epochParams.iterations * 2);
-//        }
-//        else if (value1 < Math.pow(target1, 1 + adjustmentTolerance)) {
-//          epochParams.iterations = Math.min(maxEpochIterations, epochParams.iterations / 2);
-//        }
       double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(epochResult.getValidationDelta()), adjustmentFactor);
       monitor.log(String.format("Adjustment from %f to %f: %.9f ", Math.log(epochResult.getValidationDelta()), Math.log(getTrainingTarget()), adj1));
       if(epochResult.getValidationDelta() < 1.0) {
@@ -384,72 +373,81 @@ public class ValidatingTrainer {
     return trainingSize;
   }
   
-  public void setTrainingSize(int trainingSize) {
+  public ValidatingTrainer setTrainingSize(int trainingSize) {
     this.trainingSize = trainingSize;
+    return this;
   }
   
   public double getTrainingTarget() {
     return trainingTarget;
   }
   
-  public void setTrainingTarget(double trainingTarget) {
+  public ValidatingTrainer setTrainingTarget(double trainingTarget) {
     this.trainingTarget = trainingTarget;
+    return this;
   }
   
   public double getOvertrainingTarget() {
     return overtrainingTarget;
   }
   
-  public void setOvertrainingTarget(double overtrainingTarget) {
+  public ValidatingTrainer setOvertrainingTarget(double overtrainingTarget) {
     this.overtrainingTarget = overtrainingTarget;
+    return this;
   }
   
   public int getMinEpochIterations() {
     return minEpochIterations;
   }
   
-  public void setMinEpochIterations(int minEpochIterations) {
+  public ValidatingTrainer setMinEpochIterations(int minEpochIterations) {
     this.minEpochIterations = minEpochIterations;
+    return this;
   }
   
   public int getMaxEpochIterations() {
     return maxEpochIterations;
   }
   
-  public void setMaxEpochIterations(int maxEpochIterations) {
+  public ValidatingTrainer setMaxEpochIterations(int maxEpochIterations) {
     this.maxEpochIterations = maxEpochIterations;
+    return this;
   }
   
   public int getMinTrainingSize() {
     return minTrainingSize;
   }
   
-  public void setMinTrainingSize(int minTrainingSize) {
+  public ValidatingTrainer setMinTrainingSize(int minTrainingSize) {
     this.minTrainingSize = minTrainingSize;
+    return this;
   }
   
   public int getMaxTrainingSize() {
     return maxTrainingSize;
   }
   
-  public void setMaxTrainingSize(int maxTrainingSize) {
+  public ValidatingTrainer setMaxTrainingSize(int maxTrainingSize) {
     this.maxTrainingSize = maxTrainingSize;
+    return this;
   }
   
   public double getAdjustmentTolerance() {
     return adjustmentTolerance;
   }
   
-  public void setAdjustmentTolerance(double adjustmentTolerance) {
+  public ValidatingTrainer setAdjustmentTolerance(double adjustmentTolerance) {
     this.adjustmentTolerance = adjustmentTolerance;
+    return this;
   }
   
   public double getAdjustmentFactor() {
     return adjustmentFactor;
   }
   
-  public void setAdjustmentFactor(double adjustmentFactor) {
+  public ValidatingTrainer setAdjustmentFactor(double adjustmentFactor) {
     this.adjustmentFactor = adjustmentFactor;
+    return this;
   }
   
   private class TrainingStepResult {
@@ -479,8 +477,8 @@ public class ValidatingTrainer {
     }
   
   }
-
-  public static class EpochResult {
+  
+  private static class EpochResult {
 
     boolean continueTraining;
     PointSample priorValidation;
