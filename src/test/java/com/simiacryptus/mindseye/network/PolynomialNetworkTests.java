@@ -24,12 +24,10 @@ import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
-import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.MnistTestBase;
-import com.simiacryptus.mindseye.opt.Step;
-import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.*;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.mindseye.opt.trainable.ArrayTrainable;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.util.MonitoredObject;
@@ -55,9 +53,10 @@ public class PolynomialNetworkTests {
       log.code(() -> {
         SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
         //Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
-        Trainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, trainingSize);
-        return new IterativeTrainer(trainable)
-                 .setIterationsPerSample(iterationsPerSample)
+        StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, trainingSize);
+        Trainable validation = new ArrayTrainable(trainingData, supervisedNetwork);
+        return new ValidatingTrainer(trainable, validation)
+                 .setEpochIterations(iterationsPerSample)
                  .setMonitor(monitor)
                  .setOrientation(new QQN())
                  .setLineSearchFactory(name->new QuadraticSearch()
@@ -143,7 +142,7 @@ public class PolynomialNetworkTests {
         this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
         network.add(this.tree);
         network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
-        network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10}));
+        network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10}).setWeights(()->1e-5*(Math.random()-0.5)));
         network.add(new SoftmaxActivationLayer());
         return network;
       });
