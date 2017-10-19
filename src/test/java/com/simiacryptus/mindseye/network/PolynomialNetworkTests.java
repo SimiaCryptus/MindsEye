@@ -44,27 +44,23 @@ public class PolynomialNetworkTests {
   public static class LinearTest extends MnistTestBase {
     
     PolynomialNetwork tree;
-    int trainingSize = 10000;
-    int iterationsPerSample = 25;
-    int maxIterations = 500;
-    int timeoutMinutes = 5;
     
     @Override
     public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
       log.code(() -> {
         SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
         //Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
-        StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, trainingSize);
+        StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 10000);
         Trainable validation = new ArrayTrainable(trainingData, supervisedNetwork);
         return new ValidatingTrainer(trainable, validation)
-                 .setEpochIterations(iterationsPerSample)
+                 .setEpochIterations(1)
                  .setMonitor(monitor)
                  .setOrientation(new QQN())
                  .setLineSearchFactory(name->new QuadraticSearch()
                                                .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
                                                .setRelativeTolerance(2e-1))
-                 .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
-                 .setMaxIterations(maxIterations)
+                 .setTimeout(8, TimeUnit.HOURS)
+                 .setMaxIterations(1000)
                  .run();
       });
       
@@ -74,40 +70,13 @@ public class PolynomialNetworkTests {
     public PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
       log.p("First, define a model:");
       PipelineNetwork network = buildModel(log);
-  
-      iterationsPerSample = 1;
-      trainingSize = 2500;
-      timeoutMinutes = 60;
       run(log, monitoringRoot, monitor, trainingData, history, network);
-  
-//      iterationsPerSample = 10;
-//      trainingSize = 5000;
-//      timeoutMinutes = 240;
-//      run(log, monitoringRoot, monitor, trainingData, history, network);
-//
-////    iterationsPerSample = 0;
-////    trainingSize = 0;
-////      trainingSize = 10000;
-//      timeoutMinutes = 120;
-//      run(log, monitoringRoot, monitor, trainingData, history, network);
-//      timeoutMinutes = 120;
-//      run(log, monitoringRoot, monitor, trainingData, history, network);
-      
-      //timeoutMinutes = 60;
-//      trainingSize = 5000;
       tree.addTerm(1);
       run(log, monitoringRoot, monitor, trainingData, history, network);
-      //trainingSize = 10000;
-      //run(log, monitoringRoot, monitor, trainingData, history, network);
-      
-      //timeoutMinutes = 120;
       tree.addTerm(-1);
       run(log, monitoringRoot, monitor, trainingData, history, network);
-      
-      //timeoutMinutes = 120;
       tree.addTerm(2);
       run(log, monitoringRoot, monitor, trainingData, history, network);
-      
       return network;
     }
     
@@ -139,8 +108,9 @@ public class PolynomialNetworkTests {
       log.p("This is a very simple model that performs basic logistic regression. " +
               "It is expected to be trainable to about 91% accuracy on MNIST.");
       return log.code(() -> {
-        PipelineNetwork network = new PipelineNetwork();
         this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
+        PipelineNetwork network = new PipelineNetwork();
+        network.add(new AvgNormalizationMetaLayer());
         network.add(this.tree);
         network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
         network.add(new AvgNormalizationMetaLayer());

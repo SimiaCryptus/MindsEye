@@ -66,8 +66,7 @@ public abstract class MnistTestBase {
       TrainingMonitor monitor = getMonitor(originalOut, history);
       Tensor[][] trainingData = getTrainingData(log);
       for(int i = 0; i< iterations; i++) {
-        PipelineNetwork network = _test(log, monitoringRoot, monitor, trainingData, history);
-        validate(log, network);
+        _test(log, monitoringRoot, monitor, trainingData, history);
         report(log, monitoringRoot, history);
       }
     }
@@ -78,6 +77,7 @@ public abstract class MnistTestBase {
     PipelineNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
     train(log, network, trainingData, monitor);
+    validate(log, network);
     return network;
   }
   
