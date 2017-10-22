@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 
 /***
  * Builds a network NNLayer components, assumed to form a directed acyclic graph
- * map a single output. Supplied builder methods designed to build linear
+ * mapCoords a single output. Supplied builder methods designed to build linear
  * sequence of units acting on the current output node.
  *
  * @author Andrew Charneski

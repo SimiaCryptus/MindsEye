@@ -88,7 +88,7 @@ public class CuDNNFloatTensorList implements TensorList {
           assert (0 < buffer.length);
           assert (ptr.size == this.length * 1l * itemLength * Sizeof.FLOAT);
           
-          //Arrays.stream(output).map(x -> x.getDataAsFloats()).toArray(i -> new float[i][]);
+          //Arrays.stream(output).mapCoords(x -> x.getDataAsFloats()).toArray(i -> new float[i][]);
           ptr.read(buffer);
           //assert IntStream.range(0,buffer.length).mapToDouble(ii->buffer[ii]).allMatch(Double::isFinite);
           float[][] floats = IntStream.range(0, length)

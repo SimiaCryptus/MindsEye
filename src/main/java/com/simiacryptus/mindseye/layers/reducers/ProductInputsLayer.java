@@ -94,7 +94,7 @@ public class ProductInputsLayer extends NNLayer {
             final Tensor[] data = IntStream.range(0, input.getData().length()).parallel().mapToObj(i -> {
               Tensor tensorDelta = delta.get(Math.min(i, delta.length()-1));
               Tensor inputI = input.getData().get(Math.min(i, input.getData().length()-1));
-              return inputI.map((v, c) -> {
+              return inputI.mapIndex((v, c) -> {
                 Tensor tensorResult = result.get(Math.min(i, result.length()));
                 double vA;
                 double vB;

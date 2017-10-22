@@ -38,14 +38,14 @@ import static com.simiacryptus.util.ArrayUtil.multiply;
 public abstract class LayerReweightingStrategy implements OrientationStrategy {
   
   /**
-   * The type Hash map layer reweighting strategy.
+   * The type Hash mapCoords layer reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
 
     private final HashMap<NNLayer, Double> map = new HashMap<>();
 
     /**
-     * Instantiates a new Hash map layer reweighting strategy.
+     * Instantiates a new Hash mapCoords layer reweighting strategy.
      *
      * @param inner the inner
      */
@@ -59,9 +59,9 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
     }
 
     /**
-     * Gets map.
+     * Gets mapCoords.
      *
-     * @return the map
+     * @return the mapCoords
      */
     public HashMap<NNLayer, Double> getMap() {
       return map;

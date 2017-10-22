@@ -84,11 +84,11 @@ public class Sparse01MetaLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
-    Tensor avgActivationArray = input.getData().get(0).map((v, c) ->
+    Tensor avgActivationArray = input.getData().get(0).mapIndex((v, c) ->
                                                              IntStream.range(0, itemCnt)
                                                                .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                                                                .average().getAsDouble());
-    Tensor divergenceArray = avgActivationArray.map((avgActivation, c) -> {
+    Tensor divergenceArray = avgActivationArray.mapIndex((avgActivation, c) -> {
       assert (Double.isFinite(avgActivation));
       if (avgActivation > 0 && avgActivation < 1) {
         return sparsity * Math.log(sparsity / avgActivation) + (1 - sparsity) * Math.log((1 - sparsity) / (1 - avgActivation));
@@ -104,7 +104,7 @@ public class Sparse01MetaLayer extends NNLayer {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          avgActivationArray.map((rho, inputCoord) -> {
+          avgActivationArray.mapIndex((rho, inputCoord) -> {
             double d = delta.get(inputCoord);
             double log2 = (1 - sparsity) / (1 - rho);
             double log3 = sparsity / rho;

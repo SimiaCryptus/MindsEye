@@ -84,8 +84,8 @@ public class MaxMetaLayer extends NNLayer {
       indicies[i] = IntStream.range(0, itemCnt)
                       .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
     }
-    return new NNResult(input.getData().get(0).map((v, c) -> {
-      return input.getData().get(indicies[c.index]).getData()[c.index];
+    return new NNResult(input.getData().get(0).mapIndex((v, c) -> {
+      return input.getData().get(indicies[c]).getData()[c];
     })) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {

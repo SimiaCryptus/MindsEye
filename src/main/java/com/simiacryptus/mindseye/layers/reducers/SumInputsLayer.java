@@ -74,7 +74,7 @@ public class SumInputsLayer extends NNLayer {
                                  Tensor left = l.get(i >= l.length() ? 0 : i);
                                  Tensor right = r.get(i >= r.length() ? 0 : i);
                                  boolean b = right.dim() == 1;
-                                 return left.mapParallel((v,c)-> v + (b ? right.get(0) : right.get(c)));
+                                 return b ? left.mapParallel(v-> v + (right.get(0))) : left.reduceParallel(right, (v1,v2)-> v1 + v2);
                                  //return Tensor.add(left, right);
                                })
                                .toArray(i -> new Tensor[i]));

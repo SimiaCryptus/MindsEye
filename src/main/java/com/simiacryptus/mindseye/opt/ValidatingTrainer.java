@@ -65,7 +65,6 @@ public class ValidatingTrainer {
   private int maxTrainingSize = 1000000;
   private double adjustmentTolerance = 0.1;
   private double adjustmentFactor = 0.5;
-  private int disappointments = 3;
   
   /**
    * Instantiates a new Iterative trainer.
@@ -108,30 +107,28 @@ public class ValidatingTrainer {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     EpochParams epochParams = new EpochParams(timeoutMs, epochIterations, getTrainingSize(), validationSubject.measure());
     PointSample currentPoint = resetAndMeasure();
-    int disappointmentCounter = 0;
     while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
       if (shouldHalt(timeoutMs)) break;
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       EpochResult epochResult = epoch(epochParams);
-      if(!epochResult.continueTraining) break;
-      if(epochResult.getValidationDelta() > (1-1e-3)) {
-        if(disappointmentCounter++ > disappointments) break;
-      } else {
-        disappointmentCounter = 0;
-      }
       double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(epochResult.getValidationDelta()), adjustmentFactor);
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
+      boolean nonproductive = epochResult.getValidationDelta() > (1 - 1e-3);
+      boolean saturated = epochParams.trainingSize >= getMaxTrainingSize();
       monitor.log(String.format("Epoch result: {validation delta = %.6f; training delta = %.6f; Overtraining = %.3f}, {%.3f, %.3f}",
         epochResult.getValidationDelta(), epochResult.getTrainingDelta(), epochResult.getOverTrainingCoeff(), adj1, adj2));
-      if(epochResult.getValidationDelta() < 1.0) {
-        if(adj1 < (1-adjustmentTolerance) || adj1 > (1+adjustmentTolerance)) {
-          epochParams.iterations = Math.max(getMinEpochIterations(),Math.min(getMaxEpochIterations(), (int) (epochResult.iterations * adj1)));
+      if (!epochResult.continueTraining) break;
+      if (nonproductive && saturated) break;
+      if (epochResult.getValidationDelta() < 1.0) {
+        if (adj1 < (1 - adjustmentTolerance) || adj1 > (1 + adjustmentTolerance)) {
+          epochParams.iterations = Math.max(getMinEpochIterations(), Math.min(getMaxEpochIterations(), (int) (epochResult.iterations * adj1)));
         }
         if (adj2 < (1 + adjustmentTolerance) || adj2 > (1 - adjustmentTolerance)) {
-          epochParams.trainingSize = Math.max(getMinTrainingSize(),Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2)));
+          epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2)));
         }
-      } else {
-        epochParams.trainingSize = Math.max(getMinTrainingSize(),Math.min(getMaxTrainingSize(), epochParams.trainingSize * 2));
+      }
+      else {
+        epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 2));
       }
       epochParams.priorValidation = epochResult.currentValidation;
       orientation.reset();
@@ -144,20 +141,22 @@ public class ValidatingTrainer {
     PointSample currentPoint = resetAndMeasure();
     PointSample priorPoint = currentPoint.copyDelta();
     assert (0 < currentPoint.delta.map.size()) : "Nothing to optimize";
-    int subiteration = 0;
-    for (; subiteration < epochParams.iterations || epochParams.iterations <= 0; subiteration++) {
-      if (shouldHalt(epochParams.timeoutMs))
-        return new EpochResult(false, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, subiteration);
+    int step = 0;
+    for (; step < epochParams.iterations || epochParams.iterations <= 0; step++) {
+      if (shouldHalt(epochParams.timeoutMs)) {
+        return new EpochResult(false, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
+      }
       StepResult epoch = step(currentPoint);
       currentPoint = epoch.currentPoint.setRate(0.0);
       if (epoch.previous.value <= epoch.currentPoint.value) {
-        return new EpochResult(reset(epoch.currentPoint.value), epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, subiteration);
-      } else {
+        return new EpochResult(reset(epoch.currentPoint.value), epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
+      }
+      else {
         monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), epoch.currentPoint.value));
       }
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
-    return new EpochResult(true, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, subiteration);
+    return new EpochResult(true, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
   }
   
   protected StepResult step(PointSample previousPoint) {
@@ -204,7 +203,7 @@ public class ValidatingTrainer {
     do {
       if (10 < retries++) throw new IterativeStopException();
       PointSample currentPoint = trainingSubject.measure();
-      if(Double.isFinite(currentPoint.value)) return currentPoint;
+      if (Double.isFinite(currentPoint.value)) return currentPoint;
     } while (true);
   }
   
@@ -456,25 +455,17 @@ public class ValidatingTrainer {
     return this;
   }
   
-  public int getDisappointments() {
-    return disappointments;
-  }
-  
-  public void setDisappointments(int disappointments) {
-    this.disappointments = disappointments;
-  }
-  
   private class StepResult {
     PointSample currentPoint;
     LineSearchCursor direction;
     PointSample previous;
-  
+    
     public StepResult(PointSample currentPoint, LineSearchCursor direction, PointSample previous) {
       this.currentPoint = currentPoint;
       this.direction = direction;
       this.previous = previous;
     }
-  
+    
   }
   
   private static class EpochParams {
@@ -489,18 +480,18 @@ public class ValidatingTrainer {
       this.trainingSize = trainingSize;
       this.priorValidation = priorValidation;
     }
-  
+    
   }
   
   private static class EpochResult {
-
+    
     boolean continueTraining;
     PointSample priorValidation;
     PointSample priorPoint;
     PointSample currentValidation;
     PointSample currentPoint;
     int iterations;
-  
+    
     public EpochResult(boolean continueTraining, PointSample priorValidation, PointSample priorPoint, PointSample currentValidation, PointSample currentPoint, int iterations) {
       this.priorValidation = priorValidation;
       this.priorPoint = priorPoint;
@@ -509,19 +500,19 @@ public class ValidatingTrainer {
       this.continueTraining = continueTraining;
       this.iterations = iterations;
     }
-  
+    
     public double getOverTrainingCoeff() {
       return (Math.log(getTrainingDelta()) / Math.log(getValidationDelta()));
     }
-  
+    
     public double getValidationDelta() {
       return (currentValidation.value / priorValidation.value);
     }
-  
+    
     public double getTrainingDelta() {
       return (currentPoint.value / priorPoint.value);
     }
-  
+    
   }
 }
 

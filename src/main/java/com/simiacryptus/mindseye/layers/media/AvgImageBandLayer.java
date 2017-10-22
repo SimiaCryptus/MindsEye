@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
@@ -84,10 +85,11 @@ public class AvgImageBandLayer extends NNLayer {
     assert (3 == inputDims.length);
 
     Tensor[] results = in.getData().stream().map(data -> {
-      return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
+      DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
         int pixels = data.getDimensions()[0] * data.getDimensions()[1];
         return data.coordStream().filter(e -> e.coords[2] == band).mapToDouble(c -> data.get(c)).sum() / pixels;
-      }).toArray());
+      });
+      return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);
 
     return new NNResult(results) {
@@ -97,7 +99,7 @@ public class AvgImageBandLayer extends NNLayer {
           final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
             int[] inputDim = in.getData().get(dataIndex).getDimensions();
             Tensor backprop = data.get(dataIndex);
-            return new Tensor(inputDim).map((v, c) -> {
+            return new Tensor(inputDim).mapCoords((v, c) -> {
               int pixels = inputDim[0] * inputDim[1];
               return backprop.get(0, 0, c.coords[2]) / pixels;
             });
@@ -119,7 +121,7 @@ public class AvgImageBandLayer extends NNLayer {
   }
   
   /**
-   * The type Index map key.
+   * The type Index mapCoords key.
    */
   public static final class IndexMapKey {
     /**
@@ -132,7 +134,7 @@ public class AvgImageBandLayer extends NNLayer {
     int[] output;
 
     /**
-     * Instantiates a new Index map key.
+     * Instantiates a new Index mapCoords key.
      *
      * @param kernel the kernel
      * @param output the output
@@ -144,7 +146,7 @@ public class AvgImageBandLayer extends NNLayer {
     }
 
     /**
-     * Instantiates a new Index map key.
+     * Instantiates a new Index mapCoords key.
      *
      * @param kernel the kernel
      * @param input  the input

@@ -189,7 +189,7 @@ public class AvgSubsampleLayer extends NNLayer {
   }
   
   /**
-   * The type Index map key.
+   * The type Index mapCoords key.
    */
   public static final class IndexMapKey {
     /**
@@ -202,7 +202,7 @@ public class AvgSubsampleLayer extends NNLayer {
     int[] output;
 
     /**
-     * Instantiates a new Index map key.
+     * Instantiates a new Index mapCoords key.
      *
      * @param kernel the kernel
      * @param output the output
@@ -214,7 +214,7 @@ public class AvgSubsampleLayer extends NNLayer {
     }
 
     /**
-     * Instantiates a new Index map key.
+     * Instantiates a new Index mapCoords key.
      *
      * @param kernel the kernel
      * @param input  the input

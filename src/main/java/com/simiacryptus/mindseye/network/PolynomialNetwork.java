@@ -98,8 +98,8 @@ public class PolynomialNetwork extends DAGNetwork {
   protected PolynomialNetwork(JsonObject json) {
     super(json);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
-    if(json.get("alpha") != null) alpha = (DenseSynapseLayer) layersById.get(UUID.fromString(json.get("alpha").getAsString()));
-    if(json.get("alphaBias") != null) alphaBias = (BiasLayer) layersById.get(UUID.fromString(json.get("alphaBias").getAsString()));
+    if(json.get("alpha") != null) alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
+    if(json.get("alphaBias") != null) alphaBias = layersById.get(UUID.fromString(json.get("alphaBias").getAsString()));
     inputDims = toIntArray(json.getAsJsonArray("inputDims"));
     outputDims = toIntArray(json.getAsJsonArray("outputDims"));
     json.getAsJsonArray("corrections").forEach(item->{

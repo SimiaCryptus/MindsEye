@@ -259,7 +259,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
         }
       };
     } catch (Throwable e) {
-      throw new ComponentException("Error map image with " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error mapCoords image with " + Arrays.toString(inputSize), e);
     }
   }
   

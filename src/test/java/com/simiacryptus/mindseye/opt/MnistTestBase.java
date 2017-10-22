@@ -66,13 +66,13 @@ public abstract class MnistTestBase {
       TrainingMonitor monitor = getMonitor(originalOut, history);
       Tensor[][] trainingData = getTrainingData(log);
       for(int i = 0; i< iterations; i++) {
-        _test(log, monitoringRoot, monitor, trainingData, history);
-        report(log, monitoringRoot, history);
+        PipelineNetwork network = _test(log, monitoringRoot, monitor, trainingData, history);
+        report(log, monitoringRoot, history, network);
       }
     }
   }
   
-  public PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
+  protected PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("First, define a model:");
     PipelineNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
@@ -103,14 +103,15 @@ public abstract class MnistTestBase {
     };
   }
   
+  int modelNo = 0;
   /**
    * Report.
-   *
-   * @param log            the log
+   *  @param log            the log
    * @param monitoringRoot the monitoring root
    * @param history        the history
+   * @param network
    */
-  public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history) {
+  public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history, PipelineNetwork network) {
     log.code(() -> {
       try {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -120,6 +121,8 @@ public abstract class MnistTestBase {
         throw new RuntimeException(e);
       }
     });
+    String modelName = "model" + modelNo++ + ".json";
+    log.p("Saved model as " + log.file(network.getJson().toString(), modelName,modelName));
     if(!history.isEmpty()) log.code(() -> {
       PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.value)}).toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
@@ -217,7 +220,7 @@ public abstract class MnistTestBase {
   public Tensor[][] getTrainingData(NotebookOutput log) {
     log.p("We use the standard MNIST dataset, made available by a helper function. " +
             "In order to use data, we convert it into data tensors; helper functions are defined to " +
-            "work map images.");
+            "work mapCoords images.");
     return log.code(() -> {
       try {
         return MNIST.trainingDataStream().map(labeledObject -> {

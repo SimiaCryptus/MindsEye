@@ -125,9 +125,9 @@ public class LayerRateDiagnosticTrainer {
   }
   
   /**
-   * Run map.
+   * Run mapCoords.
    *
-   * @return the map
+   * @return the mapCoords
    */
   public Map<NNLayer, LayerStats> run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();

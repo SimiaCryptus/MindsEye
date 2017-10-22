@@ -92,7 +92,7 @@ public class AvgMetaLayer extends NNLayer {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
     if(null == lastResult || input.getData().length() > minBatchCount) {
-      lastResult = input.getData().get(0).mapParallel((v, c) ->
+      lastResult = input.getData().get(0).mapCoordsParallel((v, c) ->
                                                            IntStream.range(0, itemCnt)
                                                              .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
                                                              .sum() / itemCnt);
@@ -104,7 +104,7 @@ public class AvgMetaLayer extends NNLayer {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          ((null == lastResult) ? lastResult : lastResult).mapParallel((rho, inputCoord) -> {
+          ((null == lastResult) ? lastResult : lastResult).mapCoordsParallel((rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }

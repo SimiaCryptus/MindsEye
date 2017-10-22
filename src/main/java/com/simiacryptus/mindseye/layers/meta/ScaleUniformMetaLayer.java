@@ -76,15 +76,15 @@ public class ScaleUniformMetaLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
     double scale = inObj[1].getData().get(0).getData()[0];
-    Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c) -> v * scale)).toArray(i -> new Tensor[i]);
+    Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v) -> v * scale)).toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.map((v, c) -> v * scale)).toArray(i -> new Tensor[i])));
+          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.map((v) -> v * scale)).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
-          double passback = tensors[0].map((v, c) -> {
+          double passback = tensors[0].mapIndex((v, c) -> {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c) * inObj[0].getData().get(i).get(c)).sum();
           }).sum();
           Tensor tensor = new Tensor(1);

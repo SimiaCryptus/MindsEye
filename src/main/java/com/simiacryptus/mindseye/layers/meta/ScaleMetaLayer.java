@@ -75,15 +75,15 @@ public class ScaleMetaLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
-    Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).map((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
+    Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive()) {
-          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.map((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i])));
+          inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
-          Tensor passback = tensors[0].map((v, c) -> {
+          Tensor passback = tensors[0].mapIndex((v, c) -> {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c) * inObj[0].getData().get(i).get(c)).sum();
           });
           inObj[1].accumulate(buffer, new TensorArray(passback));

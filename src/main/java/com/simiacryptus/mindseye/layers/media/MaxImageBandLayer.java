@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
@@ -94,10 +95,11 @@ public class MaxImageBandLayer extends NNLayer {
     }).toArray(i -> new Coordinate[i][]);
 
     Tensor[] results = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
-      return new Tensor(1, 1, inputDims[2]).set(IntStream.range(0, inputDims[2]).mapToDouble(band -> {
+      DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         int[] maxCoord = maxCoords[dataIndex][band].coords;
         return in.getData().get(dataIndex).get(maxCoord[0], maxCoord[1], band);
-      }).toArray());
+      });
+      return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);
 
     return new NNResult(results) {

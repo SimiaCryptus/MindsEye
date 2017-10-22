@@ -115,7 +115,6 @@ public class GpuTrainable implements Trainable {
         }
         CudaPtr.METRICS.invalidateAll();
         GpuController.INSTANCE.cleanMemory();
-        e.printStackTrace();
         return measure(retries-1);
       } else {
         throw e;
