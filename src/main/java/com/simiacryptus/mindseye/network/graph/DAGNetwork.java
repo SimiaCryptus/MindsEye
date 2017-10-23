@@ -23,9 +23,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.meta.WeightExtractor;
 import com.simiacryptus.mindseye.layers.util.NNLayerWrapper;
 import com.simiacryptus.util.MonitoredItem;
@@ -215,6 +215,9 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
    */
   protected final LinkedHashMap<String, UUID> labels = new LinkedHashMap<>();
   
+  /**
+   * Reset.
+   */
   public void reset() {
     layersById.clear();
     nodesById.clear();

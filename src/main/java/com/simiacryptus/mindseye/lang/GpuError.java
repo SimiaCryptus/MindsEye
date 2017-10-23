@@ -19,23 +19,53 @@
 
 package com.simiacryptus.mindseye.lang;
 
+/**
+ * The type Gpu error.
+ */
 public class GpuError extends RuntimeException {
   
+  /**
+   * Instantiates a new Gpu error.
+   *
+   * @param message the message
+   * @param cause   the cause
+   */
   public GpuError(String message, Throwable cause) {
     super(message, cause);
   }
   
+  /**
+   * Instantiates a new Gpu error.
+   *
+   * @param cause the cause
+   */
   public GpuError(Throwable cause) {
     super(cause);
   }
   
+  /**
+   * Instantiates a new Gpu error.
+   *
+   * @param message            the message
+   * @param cause              the cause
+   * @param enableSuppression  the enable suppression
+   * @param writableStackTrace the writable stack trace
+   */
   public GpuError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
   
+  /**
+   * Instantiates a new Gpu error.
+   */
   public GpuError() {
   }
   
+  /**
+   * Instantiates a new Gpu error.
+   *
+   * @param message the message
+   */
   public GpuError(String message) {
     super(message);
   }

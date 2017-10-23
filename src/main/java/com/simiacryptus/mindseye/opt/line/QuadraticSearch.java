@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
  * The type Quadratic search.
@@ -221,10 +221,20 @@ public class QuadraticSearch implements LineSearchStrategy {
     return this;
   }
   
+  /**
+   * Gets min rate.
+   *
+   * @return the min rate
+   */
   public double getMinRate() {
     return minRate;
   }
   
+  /**
+   * Sets min rate.
+   *
+   * @param minRate the min rate
+   */
   public void setMinRate(double minRate) {
     this.minRate = minRate;
   }
@@ -235,7 +245,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     private LineSearchPoint initialPoint;
     private double thisX;
     private LineSearchPoint thisPoint;
-    
+
     /**
      * Instantiates a new Locate initial right point.
      *
@@ -251,7 +261,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       thisPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s, F' = %s", thisX, thisPoint, thisPoint.derivative));
     }
-    
+
     /**
      * Gets right x.
      *
@@ -260,7 +270,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     public double getRightX() {
       return thisX;
     }
-    
+
     /**
      * Gets right point.
      *
@@ -269,7 +279,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     public LineSearchPoint getRightPoint() {
       return thisPoint;
     }
-    
+
     /**
      * Apply locate initial right point.
      *

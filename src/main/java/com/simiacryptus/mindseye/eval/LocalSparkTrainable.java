@@ -19,13 +19,15 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.rdd.RDD;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,10 +36,23 @@ import java.util.stream.Stream;
  */
 public class LocalSparkTrainable extends SparkTrainable {
   
+  /**
+   * Instantiates a new Local spark trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   */
   public LocalSparkTrainable(RDD<Tensor[]> trainingData, NNLayer network) {
     super(trainingData, network);
   }
   
+  /**
+   * Instantiates a new Local spark trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param sampleSize   the sample size
+   */
   public LocalSparkTrainable(RDD<Tensor[]> trainingData, NNLayer network, int sampleSize) {
     super(trainingData, network, sampleSize);
   }

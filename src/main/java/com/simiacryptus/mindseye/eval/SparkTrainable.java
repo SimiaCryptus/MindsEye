@@ -19,11 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -41,41 +37,87 @@ import java.util.stream.StreamSupport;
  */
 public class SparkTrainable implements Trainable {
   
+  /**
+   * The Sample size.
+   */
   protected final int sampleSize;
+  /**
+   * The Partitions.
+   */
   protected int partitions;
   
+  /**
+   * Gets storage level.
+   *
+   * @return the storage level
+   */
   public StorageLevel getStorageLevel() {
     return storageLevel;
   }
   
+  /**
+   * Cached cached trainable.
+   *
+   * @return the cached trainable
+   */
   public CachedTrainable<SparkTrainable> cached() {
     return new CachedTrainable<SparkTrainable>(this);
   }
   
+  /**
+   * Sets storage level.
+   *
+   * @param storageLevel the storage level
+   * @return the storage level
+   */
   public SparkTrainable setStorageLevel(StorageLevel storageLevel) {
     this.storageLevel = storageLevel;
     resetSampling();
     return this;
   }
   
+  /**
+   * Gets partitions.
+   *
+   * @return the partitions
+   */
   public int getPartitions() {
     return Math.max(1,partitions);
   }
   
+  /**
+   * Sets partitions.
+   *
+   * @param partitions the partitions
+   * @return the partitions
+   */
   public SparkTrainable setPartitions(int partitions) {
     if(1 > partitions) throw new IllegalArgumentException();
     this.partitions = partitions;
     return this;
   }
   
+  /**
+   * Is verbose boolean.
+   *
+   * @return the boolean
+   */
   public boolean isVerbose() {
     return verbose;
   }
   
+  /**
+   * Sets verbose.
+   *
+   * @param verbose the verbose
+   */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
   
+  /**
+   * The type Reducable result.
+   */
   protected static class ReducableResult implements Serializable {
     /**
      * The Deltas.
@@ -85,17 +127,18 @@ public class SparkTrainable implements Trainable {
      * The Sum.
      */
     public final double sum;
-    
+  
     /**
      * Instantiates a new Reducable result.
-     *  @param deltas the deltas
+     *
+     * @param deltas the deltas
      * @param sum    the sum
      */
     public ReducableResult(Map<String, double[]> deltas, double sum) {
       this.deltas = deltas;
       this.sum = sum;
     }
-    
+  
     /**
      * Accumulate.
      *
@@ -107,7 +150,7 @@ public class SparkTrainable implements Trainable {
       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).accumulate(v));
     }
-    
+  
     /**
      * Add spark trainable . reducable result.
      *
@@ -141,18 +184,35 @@ public class SparkTrainable implements Trainable {
   
   }
   
+  /**
+   * Debug.
+   *
+   * @param msg  the msg
+   * @param args the args
+   */
   protected static void debug(String msg, Object... args) {
     String format = String.format(msg, args);
     System.out.println(format);
   }
   
+  /**
+   * The type Partition task.
+   */
   protected static class PartitionTask implements FlatMapFunction<Iterator<Tensor[]>, SparkTrainable.ReducableResult> {
     /**
      * The Network.
      */
     final NNLayer network;
+    /**
+     * The Verbose.
+     */
     boolean verbose = true;
-    
+  
+    /**
+     * Instantiates a new Partition task.
+     *
+     * @param network the network
+     */
     protected PartitionTask(NNLayer network) {
       this.network = network;
     }
@@ -169,6 +229,13 @@ public class SparkTrainable implements Trainable {
     }
   }
   
+  /**
+   * Gets result.
+   *
+   * @param delta  the delta
+   * @param values the values
+   * @return the result
+   */
   protected static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
     Map<String, double[]> deltas = delta.map.entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().id.toString(), e -> e.getValue().getDelta()
@@ -176,6 +243,13 @@ public class SparkTrainable implements Trainable {
     return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum());
   }
   
+  /**
+   * Eval point sample.
+   *
+   * @param input     the input
+   * @param nncontext the nncontext
+   * @return the point sample
+   */
   protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
     NNResult result = network.eval(nncontext, input);
     DeltaSet deltaSet = new DeltaSet();
@@ -193,6 +267,12 @@ public class SparkTrainable implements Trainable {
     return new PointSample(deltaSet, stateBackup, sum);
   }
   
+  /**
+   * Gets delta.
+   *
+   * @param reduce the reduce
+   * @return the delta
+   */
   protected DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
     DeltaSet deltaSet = new DeltaSet();
     Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
@@ -202,9 +282,21 @@ public class SparkTrainable implements Trainable {
     return deltaSet;
   }
   
+  /**
+   * The Data rdd.
+   */
   protected final RDD<Tensor[]> dataRDD;
+  /**
+   * The Sampled rdd.
+   */
   protected RDD<Tensor[]> sampledRDD;
+  /**
+   * The Network.
+   */
   protected final NNLayer network;
+  /**
+   * The Verbose.
+   */
   protected boolean verbose = true;
   
   /**
@@ -217,6 +309,13 @@ public class SparkTrainable implements Trainable {
     this(trainingData, network, -1);
   }
   
+  /**
+   * Instantiates a new Spark trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param sampleSize   the sample size
+   */
   public SparkTrainable(RDD<Tensor[]> trainingData, NNLayer network, int sampleSize) {
     this.dataRDD = trainingData;
     this.network = network;
@@ -254,6 +353,9 @@ public class SparkTrainable implements Trainable {
     return true;
   }
   
+  /**
+   * The Storage level.
+   */
   protected StorageLevel storageLevel = StorageLevel.MEMORY_AND_DISK();
   
   @Override
@@ -262,6 +364,12 @@ public class SparkTrainable implements Trainable {
     System.out.println(String.format("Reset sample size to %s", sampledRDD.count()));
   }
   
+  /**
+   * Gets stream.
+   *
+   * @param partition the partition
+   * @return the stream
+   */
   protected static Stream<Tensor[]> getStream(Iterator<Tensor[]> partition) {
     int characteristics = Spliterator.ORDERED;
     boolean parallel = false;

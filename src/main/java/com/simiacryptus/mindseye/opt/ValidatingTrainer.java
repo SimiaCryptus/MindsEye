@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
@@ -26,9 +29,6 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.util.Util;
 
 import java.time.Duration;
@@ -69,7 +69,8 @@ public class ValidatingTrainer {
   /**
    * Instantiates a new Iterative trainer.
    *
-   * @param trainingSubject the subject
+   * @param trainingSubject   the subject
+   * @param validationSubject the validation subject
    */
   public ValidatingTrainer(StochasticArrayTrainable trainingSubject, Trainable validationSubject) {
     this.trainingSubject = trainingSubject;
@@ -136,6 +137,12 @@ public class ValidatingTrainer {
     return null == currentPoint ? Double.NaN : currentPoint.value;
   }
   
+  /**
+   * Epoch epoch result.
+   *
+   * @param epochParams the epoch params
+   * @return the epoch result
+   */
   protected EpochResult epoch(EpochParams epochParams) {
     trainingSubject.setTrainingSize(epochParams.trainingSize);
     PointSample currentPoint = resetAndMeasure();
@@ -159,6 +166,12 @@ public class ValidatingTrainer {
     return new EpochResult(true, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
   }
   
+  /**
+   * Step step result.
+   *
+   * @param previousPoint the previous point
+   * @return the step result
+   */
   protected StepResult step(PointSample previousPoint) {
     currentIteration.incrementAndGet();
     LineSearchCursor direction = orientation.orient(trainingSubject, previousPoint, monitor);
@@ -189,6 +202,12 @@ public class ValidatingTrainer {
     }
   }
   
+  /**
+   * Should halt boolean.
+   *
+   * @param timeoutMs the timeout ms
+   * @return the boolean
+   */
   protected boolean shouldHalt(long timeoutMs) {
     boolean stopTraining = timeoutMs < System.currentTimeMillis();
     stopTraining |= currentIteration.get() > maxIterations;
@@ -196,6 +215,11 @@ public class ValidatingTrainer {
   }
   
   
+  /**
+   * Reset and measure point sample.
+   *
+   * @return the point sample
+   */
   protected PointSample resetAndMeasure() {
     //currentIteration.incrementAndGet();
     if (!trainingSubject.resetSampling()) throw new IterativeStopException();
@@ -370,96 +394,216 @@ public class ValidatingTrainer {
     return this;
   }
   
+  /**
+   * Gets validation subject.
+   *
+   * @return the validation subject
+   */
   public Trainable getValidationSubject() {
     return validationSubject;
   }
   
+  /**
+   * Gets training size.
+   *
+   * @return the training size
+   */
   public int getTrainingSize() {
     return trainingSize;
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public ValidatingTrainer setTrainingSize(int trainingSize) {
     this.trainingSize = trainingSize;
     return this;
   }
   
+  /**
+   * Gets training target.
+   *
+   * @return the training target
+   */
   public double getTrainingTarget() {
     return trainingTarget;
   }
   
+  /**
+   * Sets training target.
+   *
+   * @param trainingTarget the training target
+   * @return the training target
+   */
   public ValidatingTrainer setTrainingTarget(double trainingTarget) {
     this.trainingTarget = trainingTarget;
     return this;
   }
   
+  /**
+   * Gets overtraining target.
+   *
+   * @return the overtraining target
+   */
   public double getOvertrainingTarget() {
     return overtrainingTarget;
   }
   
+  /**
+   * Sets overtraining target.
+   *
+   * @param overtrainingTarget the overtraining target
+   * @return the overtraining target
+   */
   public ValidatingTrainer setOvertrainingTarget(double overtrainingTarget) {
     this.overtrainingTarget = overtrainingTarget;
     return this;
   }
   
+  /**
+   * Gets min epoch iterations.
+   *
+   * @return the min epoch iterations
+   */
   public int getMinEpochIterations() {
     return minEpochIterations;
   }
   
+  /**
+   * Sets min epoch iterations.
+   *
+   * @param minEpochIterations the min epoch iterations
+   * @return the min epoch iterations
+   */
   public ValidatingTrainer setMinEpochIterations(int minEpochIterations) {
     this.minEpochIterations = minEpochIterations;
     return this;
   }
   
+  /**
+   * Gets max epoch iterations.
+   *
+   * @return the max epoch iterations
+   */
   public int getMaxEpochIterations() {
     return maxEpochIterations;
   }
   
+  /**
+   * Sets max epoch iterations.
+   *
+   * @param maxEpochIterations the max epoch iterations
+   * @return the max epoch iterations
+   */
   public ValidatingTrainer setMaxEpochIterations(int maxEpochIterations) {
     this.maxEpochIterations = maxEpochIterations;
     return this;
   }
   
+  /**
+   * Gets min training size.
+   *
+   * @return the min training size
+   */
   public int getMinTrainingSize() {
     return minTrainingSize;
   }
   
+  /**
+   * Sets min training size.
+   *
+   * @param minTrainingSize the min training size
+   * @return the min training size
+   */
   public ValidatingTrainer setMinTrainingSize(int minTrainingSize) {
     this.minTrainingSize = minTrainingSize;
     return this;
   }
   
+  /**
+   * Gets max training size.
+   *
+   * @return the max training size
+   */
   public int getMaxTrainingSize() {
     return maxTrainingSize;
   }
   
+  /**
+   * Sets max training size.
+   *
+   * @param maxTrainingSize the max training size
+   * @return the max training size
+   */
   public ValidatingTrainer setMaxTrainingSize(int maxTrainingSize) {
     this.maxTrainingSize = maxTrainingSize;
     return this;
   }
   
+  /**
+   * Gets adjustment tolerance.
+   *
+   * @return the adjustment tolerance
+   */
   public double getAdjustmentTolerance() {
     return adjustmentTolerance;
   }
   
+  /**
+   * Sets adjustment tolerance.
+   *
+   * @param adjustmentTolerance the adjustment tolerance
+   * @return the adjustment tolerance
+   */
   public ValidatingTrainer setAdjustmentTolerance(double adjustmentTolerance) {
     this.adjustmentTolerance = adjustmentTolerance;
     return this;
   }
   
+  /**
+   * Gets adjustment factor.
+   *
+   * @return the adjustment factor
+   */
   public double getAdjustmentFactor() {
     return adjustmentFactor;
   }
   
+  /**
+   * Sets adjustment factor.
+   *
+   * @param adjustmentFactor the adjustment factor
+   * @return the adjustment factor
+   */
   public ValidatingTrainer setAdjustmentFactor(double adjustmentFactor) {
     this.adjustmentFactor = adjustmentFactor;
     return this;
   }
   
   private class StepResult {
+    /**
+     * The Current point.
+     */
     PointSample currentPoint;
+    /**
+     * The Direction.
+     */
     LineSearchCursor direction;
+    /**
+     * The Previous.
+     */
     PointSample previous;
-    
+
+    /**
+     * Instantiates a new Step result.
+     *
+     * @param currentPoint the current point
+     * @param direction    the direction
+     * @param previous     the previous
+     */
     public StepResult(PointSample currentPoint, LineSearchCursor direction, PointSample previous) {
       this.currentPoint = currentPoint;
       this.direction = direction;
@@ -469,9 +613,21 @@ public class ValidatingTrainer {
   }
   
   private static class EpochParams {
+    /**
+     * The Timeout ms.
+     */
     long timeoutMs;
+    /**
+     * The Iterations.
+     */
     int iterations;
+    /**
+     * The Training size.
+     */
     int trainingSize;
+    /**
+     * The Prior validation.
+     */
     PointSample priorValidation;
     
     private EpochParams(long timeoutMs, int iterations, int trainingSize, PointSample priorValidation) {
@@ -484,14 +640,42 @@ public class ValidatingTrainer {
   }
   
   private static class EpochResult {
-    
+
+    /**
+     * The Continue training.
+     */
     boolean continueTraining;
+    /**
+     * The Prior validation.
+     */
     PointSample priorValidation;
+    /**
+     * The Prior point.
+     */
     PointSample priorPoint;
+    /**
+     * The Current validation.
+     */
     PointSample currentValidation;
+    /**
+     * The Current point.
+     */
     PointSample currentPoint;
+    /**
+     * The Iterations.
+     */
     int iterations;
-    
+
+    /**
+     * Instantiates a new Epoch result.
+     *
+     * @param continueTraining  the continue training
+     * @param priorValidation   the prior validation
+     * @param priorPoint        the prior point
+     * @param currentValidation the current validation
+     * @param currentPoint      the current point
+     * @param iterations        the iterations
+     */
     public EpochResult(boolean continueTraining, PointSample priorValidation, PointSample priorPoint, PointSample currentValidation, PointSample currentPoint, int iterations) {
       this.priorValidation = priorValidation;
       this.priorPoint = priorPoint;
@@ -500,15 +684,30 @@ public class ValidatingTrainer {
       this.continueTraining = continueTraining;
       this.iterations = iterations;
     }
-    
+
+    /**
+     * Gets over training coeff.
+     *
+     * @return the over training coeff
+     */
     public double getOverTrainingCoeff() {
       return (Math.log(getTrainingDelta()) / Math.log(getValidationDelta()));
     }
-    
+
+    /**
+     * Gets validation delta.
+     *
+     * @return the validation delta
+     */
     public double getValidationDelta() {
       return (currentValidation.value / priorValidation.value);
     }
-    
+
+    /**
+     * Gets training delta.
+     *
+     * @return the training delta
+     */
     public double getTrainingDelta() {
       return (currentPoint.value / priorPoint.value);
     }

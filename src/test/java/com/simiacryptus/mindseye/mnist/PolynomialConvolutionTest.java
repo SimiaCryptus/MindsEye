@@ -36,8 +36,14 @@ import com.simiacryptus.util.test.SysOutInterceptor;
 
 import java.util.List;
 
+/**
+ * The type Polynomial convolution test.
+ */
 public class PolynomialConvolutionTest extends LinearTest {
   
+  /**
+   * The Tree.
+   */
   protected PolynomialConvolutionNetwork tree;
   
   @Override

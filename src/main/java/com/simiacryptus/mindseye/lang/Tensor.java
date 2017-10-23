@@ -257,10 +257,20 @@ public class Tensor implements Serializable {
   
   private byte references = 1;
   
+  /**
+   * Acquire reference short.
+   *
+   * @return the short
+   */
   public short acquireReference() {
     return ++references;
   }
   
+  /**
+   * Release boolean.
+   *
+   * @return the boolean
+   */
   public boolean release() {
     if(--references <= 0) {
       if (null != data) {
@@ -443,14 +453,36 @@ public class Tensor implements Serializable {
     return getData()[index];
   }
   
+  /**
+   * Get double.
+   *
+   * @param c1 the c 1
+   * @param c2 the c 2
+   * @return the double
+   */
   public double get(final int c1, final int c2) {
     return getData()[index(c1, c2)];
   }
   
+  /**
+   * Get double.
+   *
+   * @param c1     the c 1
+   * @param c2     the c 2
+   * @param c3     the c 3
+   * @param coords the coords
+   * @return the double
+   */
   public double get(final int c1, final int c2, final int c3, final int... coords) {
     return getData()[index(c1, c2, c3, coords)];
   }
   
+  /**
+   * Get double.
+   *
+   * @param coords the coords
+   * @return the double
+   */
   public double get(final int[] coords) {
     return getData()[index(coords)];
   }
@@ -516,6 +548,12 @@ public class Tensor implements Serializable {
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
   
+  /**
+   * Index int.
+   *
+   * @param c1 the c 1
+   * @return the int
+   */
   public int index(final int c1) {
     int v = 0;
     v += this.strides[0] * c1;
@@ -523,6 +561,13 @@ public class Tensor implements Serializable {
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
   
+  /**
+   * Index int.
+   *
+   * @param c1 the c 1
+   * @param c2 the c 2
+   * @return the int
+   */
   public int index(final int c1, final int c2) {
     int v = 0;
     v += this.strides[0] * c1;
@@ -531,6 +576,15 @@ public class Tensor implements Serializable {
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
   
+  /**
+   * Index int.
+   *
+   * @param c1     the c 1
+   * @param c2     the c 2
+   * @param c3     the c 3
+   * @param coords the coords
+   * @return the int
+   */
   public int index(final int c1, final int c2, final int c3, final int... coords) {
     int v = 0;
     v += this.strides[0] * c1;
@@ -580,7 +634,17 @@ public class Tensor implements Serializable {
     return new Tensor(this.dimensions, cpy);
   }
   
+  /**
+   * The interface Tuple operator.
+   */
   public interface TupleOperator {
+    /**
+     * Eval double.
+     *
+     * @param value the value
+     * @param index the index
+     * @return the double
+     */
     double eval(double value, int index);
   }
   
@@ -619,7 +683,8 @@ public class Tensor implements Serializable {
   /**
    * Map parallel tensor.
    *
-   * @param f the f
+   * @param right the right
+   * @param f     the f
    * @return the tensor
    */
   public Tensor reduceParallel(Tensor right, final DoubleBinaryOperator f) {
@@ -639,6 +704,13 @@ public class Tensor implements Serializable {
     return new Tensor(this.dimensions, getDoubles(IntStream.range(0, dim()).mapToDouble(i->f.applyAsDouble(data[i])), dim()));
   }
   
+  /**
+   * Get doubles double [ ].
+   *
+   * @param stream the stream
+   * @param dim    the dim
+   * @return the double [ ]
+   */
   public static double[] getDoubles(DoubleStream stream, int dim) {
     final double[] doubles = obtain(dim);
     AtomicInteger j = new AtomicInteger();

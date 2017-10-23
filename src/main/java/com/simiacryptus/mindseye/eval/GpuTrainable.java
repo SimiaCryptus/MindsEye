@@ -19,12 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.GpuError;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -78,6 +73,12 @@ public class GpuTrainable implements Trainable {
     return measure(3);
   }
   
+  /**
+   * Measure point sample.
+   *
+   * @param retries the retries
+   * @return the point sample
+   */
   public PointSample measure(int retries) {
     try {
       assert !data.isEmpty();
@@ -165,6 +166,12 @@ public class GpuTrainable implements Trainable {
     setData(data.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
   }
   
+  /**
+   * Sets data.
+   *
+   * @param sampledData the sampled data
+   * @return the data
+   */
   public GpuTrainable setData(List<Tensor[]> sampledData) {
     assert !sampledData.isEmpty();
     this.data = sampledData;

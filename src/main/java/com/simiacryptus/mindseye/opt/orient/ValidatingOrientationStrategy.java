@@ -19,11 +19,11 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
-import com.simiacryptus.mindseye.eval.Trainable;
 
 /**
  * The type Validating orientation strategy.

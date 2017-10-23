@@ -19,23 +19,53 @@
 
 package com.simiacryptus.mindseye.lang;
 
+/**
+ * The type Out of memory error.
+ */
 public class OutOfMemoryError extends RuntimeException {
   
+  /**
+   * Instantiates a new Out of memory error.
+   *
+   * @param message the message
+   * @param cause   the cause
+   */
   public OutOfMemoryError(String message, Throwable cause) {
     super(message, cause);
   }
   
+  /**
+   * Instantiates a new Out of memory error.
+   *
+   * @param cause the cause
+   */
   public OutOfMemoryError(Throwable cause) {
     super(cause);
   }
   
+  /**
+   * Instantiates a new Out of memory error.
+   *
+   * @param message            the message
+   * @param cause              the cause
+   * @param enableSuppression  the enable suppression
+   * @param writableStackTrace the writable stack trace
+   */
   public OutOfMemoryError(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
   
+  /**
+   * Instantiates a new Out of memory error.
+   */
   public OutOfMemoryError() {
   }
   
+  /**
+   * Instantiates a new Out of memory error.
+   *
+   * @param message the message
+   */
   public OutOfMemoryError(String message) {
     super(message);
   }

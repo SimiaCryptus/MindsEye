@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 
@@ -48,6 +48,7 @@ public class StochasticArrayTrainable extends CachedTrainable<StaticArrayTrainab
    * @param trainingData the training data
    * @param network      the network
    * @param trainingSize the training size
+   * @param batchSize    the batch size
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, int batchSize) {
     super(new StaticArrayTrainable(network, batchSize));

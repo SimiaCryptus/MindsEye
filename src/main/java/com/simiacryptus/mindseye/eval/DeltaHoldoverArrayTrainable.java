@@ -20,9 +20,9 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 
@@ -168,10 +168,24 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   }
   
   private static class WrappingLayer extends NNLayer {
+    /**
+     * The Inner.
+     */
     NNLayer inner;
+    /**
+     * The Last result.
+     */
     NNResult lastResult;
+    /**
+     * The First result.
+     */
     NNResult firstResult;
-    
+
+    /**
+     * Instantiates a new Wrapping layer.
+     *
+     * @param network the network
+     */
     public WrappingLayer(NNLayer network) {
       this.inner = network;
     }

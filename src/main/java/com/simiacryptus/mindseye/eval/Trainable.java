@@ -67,7 +67,7 @@ public interface Trainable {
      * The Rate.
      */
     public double rate;
-    
+  
     /**
      * Instantiates a new Point sample.
      *
@@ -78,7 +78,7 @@ public interface Trainable {
     public PointSample(DeltaSet delta, DeltaSet weights, double value) {
       this(delta, weights, value, 0.0);
     }
-    
+  
     /**
      * Instantiates a new Point sample.
      *
@@ -101,7 +101,7 @@ public interface Trainable {
       sb.append('}');
       return sb.toString();
     }
-    
+  
     /**
      * Gets rate.
      *
@@ -110,7 +110,7 @@ public interface Trainable {
     public double getRate() {
       return rate;
     }
-    
+  
     /**
      * Sets rate.
      *
@@ -121,8 +121,8 @@ public interface Trainable {
       this.rate = rate;
       return this;
     }
-    
-    
+  
+  
     /**
      * Copy delta point sample.
      *
@@ -131,7 +131,7 @@ public interface Trainable {
     public PointSample copyDelta() {
       return new PointSample(delta.copy(), weights, value, rate);
     }
-    
+  
     /**
      * Copy full point sample.
      *
@@ -140,14 +140,14 @@ public interface Trainable {
     public PointSample copyFull() {
       return new PointSample(delta.copy(), weights.copy(), value, rate);
     }
-    
+  
     /**
      * Reset.
      */
     public void reset() {
       weights.vector().stream().forEach(d -> d.overwrite());
     }
-    
+  
     /**
      * Add point sample.
      *

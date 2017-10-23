@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
+import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.eval.Trainable;
 
 /**
  * The type Failsafe line search cursor.
@@ -33,8 +33,8 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
   /**
    * Instantiates a new Failsafe line search cursor.
    *
-   * @param direction the direction
-   * @param previousPoint
+   * @param direction     the direction
+   * @param previousPoint the previous point
    */
   public FailsafeLineSearchCursor(LineSearchCursor direction, Trainable.PointSample previousPoint) {
     this.direction = direction;
@@ -56,6 +56,11 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
     return step;
   }
   
+  /**
+   * Accumulate.
+   *
+   * @param step the step
+   */
   public void accumulate(LineSearchPoint step) {
     if (null == this.best || this.best.point.value > step.point.value) {
       this.best = step;
@@ -75,6 +80,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
   /**
    * Gets best.
    *
+   * @param monitor the monitor
    * @return the best
    */
   public LineSearchPoint getBest(TrainingMonitor monitor) {

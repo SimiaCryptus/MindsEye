@@ -19,23 +19,53 @@
 
 package com.simiacryptus.mindseye.lang;
 
+/**
+ * The type Component exception.
+ */
 public class ComponentException extends RuntimeException {
   
+  /**
+   * Instantiates a new Component exception.
+   *
+   * @param message the message
+   * @param cause   the cause
+   */
   public ComponentException(String message, Throwable cause) {
     super(message, cause);
   }
   
+  /**
+   * Instantiates a new Component exception.
+   *
+   * @param cause the cause
+   */
   public ComponentException(Throwable cause) {
     super(cause);
   }
   
+  /**
+   * Instantiates a new Component exception.
+   *
+   * @param message            the message
+   * @param cause              the cause
+   * @param enableSuppression  the enable suppression
+   * @param writableStackTrace the writable stack trace
+   */
   public ComponentException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
   
+  /**
+   * Instantiates a new Component exception.
+   */
   public ComponentException() {
   }
   
+  /**
+   * Instantiates a new Component exception.
+   *
+   * @param message the message
+   */
   public ComponentException(String message) {
     super(message);
   }

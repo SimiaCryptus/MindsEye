@@ -19,17 +19,17 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.lang.IterativeStopException;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.util.Util;
 
 import java.time.Duration;
@@ -59,7 +59,7 @@ public class LayerRateDiagnosticTrainer {
      * The Delta.
      */
     public final double delta;
-    
+
     /**
      * Instantiates a new Layer stats.
      *

@@ -26,10 +26,22 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The type Array trainable.
+ */
 public abstract class ArrayTrainable extends CachedTrainable<GpuTrainable> {
   
+  /**
+   * The Batch size.
+   */
   protected final int batchSize;
   
+  /**
+   * Instantiates a new Array trainable.
+   *
+   * @param network   the network
+   * @param batchSize the batch size
+   */
   public ArrayTrainable(NNLayer network, int batchSize) {
     super(new GpuTrainable(network));
     this.batchSize = batchSize;
@@ -64,5 +76,10 @@ public abstract class ArrayTrainable extends CachedTrainable<GpuTrainable> {
     return batchSize;
   }
   
+  /**
+   * Get training data tensor [ ] [ ].
+   *
+   * @return the tensor [ ] [ ]
+   */
   public abstract Tensor[][] getTrainingData();
 }

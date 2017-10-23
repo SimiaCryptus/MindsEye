@@ -20,12 +20,7 @@
 package com.simiacryptus.mindseye.layers.loss;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +36,7 @@ public class MeanSqLossLayer extends NNLayer {
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
    * From json mean sq loss layer.
    *
@@ -51,7 +46,7 @@ public class MeanSqLossLayer extends NNLayer {
   public static MeanSqLossLayer fromJson(JsonObject json) {
     return new MeanSqLossLayer(json);
   }
-
+  
   /**
    * Instantiates a new Mean sq loss layer.
    *

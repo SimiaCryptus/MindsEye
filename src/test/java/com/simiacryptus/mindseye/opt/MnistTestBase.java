@@ -49,7 +49,11 @@ import java.util.stream.IntStream;
  * The type Mnist test base.
  */
 public abstract class MnistTestBase {
+  /**
+   * The Iterations.
+   */
   public int iterations = 1;
+
   /**
    * Basic.
    *
@@ -72,6 +76,16 @@ public abstract class MnistTestBase {
     }
   }
   
+  /**
+   * Test pipeline network.
+   *
+   * @param log            the log
+   * @param monitoringRoot the monitoring root
+   * @param monitor        the monitor
+   * @param trainingData   the training data
+   * @param history        the history
+   * @return the pipeline network
+   */
   protected PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("First, define a model:");
     PipelineNetwork network = buildModel(log);
@@ -81,6 +95,13 @@ public abstract class MnistTestBase {
     return network;
   }
   
+  /**
+   * Gets monitor.
+   *
+   * @param originalOut the original out
+   * @param history     the history
+   * @return the monitor
+   */
   public TrainingMonitor getMonitor(PrintStream originalOut, List<Step> history) {
     return new TrainingMonitor() {
       @Override
@@ -103,13 +124,18 @@ public abstract class MnistTestBase {
     };
   }
   
+  /**
+   * The Model no.
+   */
   int modelNo = 0;
+
   /**
    * Report.
-   *  @param log            the log
+   *
+   * @param log            the log
    * @param monitoringRoot the monitoring root
    * @param history        the history
-   * @param network
+   * @param network        the network
    */
   public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history, PipelineNetwork network) {
     log.code(() -> {
@@ -145,6 +171,12 @@ public abstract class MnistTestBase {
       }
     });
   }
+
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
   public void removeMonitoring(PipelineNetwork network) {
     network.visitNodes(node -> {
       if (node instanceof InnerNode && (node.getLayer() instanceof MonitoringWrapper)) {

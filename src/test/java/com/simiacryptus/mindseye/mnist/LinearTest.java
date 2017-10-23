@@ -43,6 +43,9 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+/**
+ * The type Linear test.
+ */
 public class LinearTest extends MnistTestBase {
   
   @Override
@@ -66,6 +69,14 @@ public class LinearTest extends MnistTestBase {
     });
   }
   
+  /**
+   * Gets training trainable.
+   *
+   * @param log               the log
+   * @param trainingData      the training data
+   * @param supervisedNetwork the supervised network
+   * @return the training trainable
+   */
   public StochasticArrayTrainable getTrainingTrainable(NotebookOutput log, Tensor[][] trainingData, SimpleLossNetwork supervisedNetwork) {
       //Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
     Tensor[][] expanded = Arrays.stream(trainingData).flatMap(row -> expand(row)).toArray(i -> new Tensor[i][]);
@@ -73,6 +84,12 @@ public class LinearTest extends MnistTestBase {
     return new StochasticArrayTrainable(expanded, supervisedNetwork, 10000, 50000);
   }
   
+  /**
+   * Gets validation trainable.
+   *
+   * @param supervisedNetwork the supervised network
+   * @return the validation trainable
+   */
   public Trainable getValidationTrainable(SimpleLossNetwork supervisedNetwork) {
     Tensor[][] validationData = new Tensor[0][];
     try {
@@ -89,6 +106,13 @@ public class LinearTest extends MnistTestBase {
     //return new StochasticArrayTrainable(validationData, supervisedNetwork, 50000);
   }
   
+  /**
+   * Print sample.
+   *
+   * @param log      the log
+   * @param expanded the expanded
+   * @param size     the size
+   */
   public static void printSample(NotebookOutput log, Tensor[][] expanded, int size) {
     ArrayList<Tensor[]> list = new ArrayList<>(Arrays.asList(expanded));
     Collections.shuffle(list);
@@ -102,6 +126,12 @@ public class LinearTest extends MnistTestBase {
     }).reduce((a,b)->a+b).get());
   }
 
+  /**
+   * Expand stream.
+   *
+   * @param data the data
+   * @return the stream
+   */
   protected Stream<Tensor[]> expand(Tensor... data) {
     Random random = new Random();
     return Stream.of(
@@ -112,6 +142,14 @@ public class LinearTest extends MnistTestBase {
     );
   }
 
+  /**
+   * Translate tensor.
+   *
+   * @param dx     the dx
+   * @param dy     the dy
+   * @param tensor the tensor
+   * @return the tensor
+   */
   protected static Tensor translate(int dx, int dy, Tensor tensor) {
     int sx = tensor.getDimensions()[0];
     int sy = tensor.getDimensions()[1];
@@ -128,6 +166,12 @@ public class LinearTest extends MnistTestBase {
     }).toArray());
   }
 
+  /**
+   * Add noise tensor.
+   *
+   * @param tensor the tensor
+   * @return the tensor
+   */
   protected static Tensor addNoise(Tensor tensor) {
     return tensor.mapParallel((v)-> Math.random()<0.9?v:(v + Math.random() * 100));
   }
@@ -143,6 +187,16 @@ public class LinearTest extends MnistTestBase {
     });
   }
   
+  /**
+   * Run.
+   *
+   * @param log            the log
+   * @param monitoringRoot the monitoring root
+   * @param monitor        the monitor
+   * @param trainingData   the training data
+   * @param history        the history
+   * @param network        the network
+   */
   public void run(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history, PipelineNetwork network) {
     train(log, network, trainingData, monitor);
     report(log, monitoringRoot, history, network);

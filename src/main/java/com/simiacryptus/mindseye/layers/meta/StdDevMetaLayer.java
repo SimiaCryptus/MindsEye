@@ -47,7 +47,7 @@ public class StdDevMetaLayer extends DAGNetwork {
   public static NNLayer fromJson(JsonObject inner) {
     return new StdDevMetaLayer(inner);
   }
-
+  
   /**
    * Instantiates a new Std dev meta layer.
    *

@@ -24,8 +24,17 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ImgBandBiasLayer;
 
+/**
+ * The type Polynomial convolution network.
+ */
 public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   
+  /**
+   * From json polynomial convolution network.
+   *
+   * @param json the json
+   * @return the polynomial convolution network
+   */
   public static PolynomialConvolutionNetwork fromJson(JsonObject json) {
     return new PolynomialConvolutionNetwork(json);
   }
@@ -33,12 +42,25 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   private final int radius;
   private final boolean simple;
   
+  /**
+   * Instantiates a new Polynomial convolution network.
+   *
+   * @param json the json
+   */
   protected PolynomialConvolutionNetwork(JsonObject json) {
     super(json);
     radius = json.get("radius").getAsInt();
     simple = json.get("simple").getAsBoolean();
   }
   
+  /**
+   * Instantiates a new Polynomial convolution network.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   * @param radius     the radius
+   * @param simple     the simple
+   */
   public PolynomialConvolutionNetwork(int[] inputDims, int[] outputDims, int radius, boolean simple) {
     super(inputDims, outputDims);
     this.radius = radius;

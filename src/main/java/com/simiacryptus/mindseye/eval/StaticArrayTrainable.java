@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 
 /**
  * The type Array trainable.
@@ -39,10 +39,16 @@ public class StaticArrayTrainable extends ArrayTrainable {
     this(trainingData, network, trainingData.length);
   }
   
+  /**
+   * Instantiates a new Static array trainable.
+   *
+   * @param network   the network
+   * @param batchSize the batch size
+   */
   public StaticArrayTrainable(NNLayer network, int batchSize) {
     this(null, network, batchSize);
   }
-
+  
   /**
    * Instantiates a new Array trainable.
    *
@@ -60,6 +66,11 @@ public class StaticArrayTrainable extends ArrayTrainable {
     return trainingData;
   }
   
+  /**
+   * Sets training data.
+   *
+   * @param trainingData the training data
+   */
   public void setTrainingData(Tensor[][] trainingData) {
     this.trainingData = trainingData;
   }

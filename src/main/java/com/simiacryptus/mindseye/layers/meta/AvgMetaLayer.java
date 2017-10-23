@@ -21,12 +21,7 @@ package com.simiacryptus.mindseye.layers.meta;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +80,9 @@ public class AvgMetaLayer extends NNLayer {
    * The Last result.
    */
   public Tensor lastResult;
+  /**
+   * The Min batch count.
+   */
   int minBatchCount = 1;
   
   @Override

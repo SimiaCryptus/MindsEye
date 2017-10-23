@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
-import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.f32.CuDNNFloatTensorList;
 
 /**
@@ -39,7 +39,7 @@ public class CountingNNResult extends NNResult {
     super(inner.getData());
     this.inner = inner;
   }
-
+  
   /**
    * Gets count.
    *
@@ -48,7 +48,7 @@ public class CountingNNResult extends NNResult {
   public int getCount() {
     return count;
   }
-
+  
   /**
    * Increment counting nn result.
    *
@@ -58,7 +58,7 @@ public class CountingNNResult extends NNResult {
     add(1);
     return this;
   }
-
+  
   /**
    * Add int.
    *
@@ -70,7 +70,7 @@ public class CountingNNResult extends NNResult {
     //System.err.println("Count -> " + this.count);
     return this.count;
   }
-
+  
   /**
    * The Inner.
    */

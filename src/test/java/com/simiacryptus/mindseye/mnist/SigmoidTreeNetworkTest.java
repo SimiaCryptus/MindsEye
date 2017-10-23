@@ -36,10 +36,19 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.List;
 
+/**
+ * The type Sigmoid tree network test.
+ */
 public class SigmoidTreeNetworkTest extends LinearTest {
 
+  /**
+   * The Description.
+   */
   protected String description = "This report demonstrates a basic linear model fit against the MNIST dataset. " +
                                    "It serves as a reference report to compare algorithm variants.";
+  /**
+   * The Tree.
+   */
   protected SigmoidTreeNetwork tree;
 
   @Override

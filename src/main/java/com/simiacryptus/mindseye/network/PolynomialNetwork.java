@@ -35,29 +35,67 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * The type Polynomial network.
+ */
 public class PolynomialNetwork extends DAGNetwork {
   
+  /**
+   * The type Correcton.
+   */
   public class Correcton {
+    /**
+     * The Power.
+     */
     public final double power;
+    /**
+     * The Bias.
+     */
     public final NNLayer bias;
+    /**
+     * The Factor.
+     */
     public final NNLayer factor;
   
+    /**
+     * Instantiates a new Correcton.
+     *
+     * @param power  the power
+     * @param bias   the bias
+     * @param factor the factor
+     */
     public Correcton(double power, NNLayer bias, NNLayer factor) {
       this.power = power;
       this.bias = bias;
       this.factor = factor;
     }
   
+    /**
+     * Instantiates a new Correcton.
+     *
+     * @param json the json
+     */
     public Correcton(JsonObject json) {
       this.power = json.get("power").getAsDouble();
       this.bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
       this.factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
     }
   
+    /**
+     * Add dag node.
+     *
+     * @param input the input
+     * @return the dag node
+     */
     public DAGNode add(DAGNode input) {
       return PolynomialNetwork.this.add(newNthPowerLayer(power), PolynomialNetwork.this.add(bias, PolynomialNetwork.this.add(factor, input)));
     }
   
+    /**
+     * Gets json.
+     *
+     * @return the json
+     */
     public JsonObject getJson() {
       JsonObject json = new JsonObject();
       json.addProperty("bias", bias.getId().toString());
@@ -67,11 +105,29 @@ public class PolynomialNetwork extends DAGNetwork {
     }
   }
   
+  /**
+   * The Alpha.
+   */
   protected NNLayer alpha = null;
+  /**
+   * The Alpha bias.
+   */
   protected NNLayer alphaBias = null;
+  /**
+   * The Head.
+   */
   protected DAGNode head;
+  /**
+   * The Corrections.
+   */
   protected List<Correcton> corrections = new ArrayList<>();
+  /**
+   * The Input dims.
+   */
   protected final int[] inputDims;
+  /**
+   * The Output dims.
+   */
   protected final int[] outputDims;
   
   
@@ -91,10 +147,21 @@ public class PolynomialNetwork extends DAGNetwork {
     return json;
   }
   
+  /**
+   * From json polynomial network.
+   *
+   * @param json the json
+   * @return the polynomial network
+   */
   public static PolynomialNetwork fromJson(JsonObject json) {
     return new PolynomialNetwork(json);
   }
   
+  /**
+   * Instantiates a new Polynomial network.
+   *
+   * @param json the json
+   */
   protected PolynomialNetwork(JsonObject json) {
     super(json);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
@@ -107,12 +174,24 @@ public class PolynomialNetwork extends DAGNetwork {
     });
   }
   
+  /**
+   * To json json array.
+   *
+   * @param dims the dims
+   * @return the json array
+   */
   public static JsonArray toJson(int[] dims) {
     JsonArray array = new JsonArray();
     for(int i:dims) array.add(new JsonPrimitive(i));
     return array;
   }
   
+  /**
+   * To int array int [ ].
+   *
+   * @param dims the dims
+   * @return the int [ ]
+   */
   public static int[] toIntArray(JsonArray dims) {
     int[] x = new int[dims.size()];
     int j = 0;
@@ -122,16 +201,35 @@ public class PolynomialNetwork extends DAGNetwork {
     return x;
   }
   
+  /**
+   * Instantiates a new Polynomial network.
+   *
+   * @param inputDims  the input dims
+   * @param outputDims the output dims
+   */
   public PolynomialNetwork(int[] inputDims,int[] outputDims) {
     super(1);
     this.inputDims = inputDims;
     this.outputDims = outputDims;
   }
   
+  /**
+   * New bias nn layer.
+   *
+   * @param dims   the dims
+   * @param weight the weight
+   * @return the nn layer
+   */
   public NNLayer newBias(int[] dims, double weight) {
     return new BiasLayer(dims).setWeights(i->weight);
   }
   
+  /**
+   * New synapse nn layer.
+   *
+   * @param weight the weight
+   * @return the nn layer
+   */
   public NNLayer newSynapse(double weight) {
     return new DenseSynapseLayer(inputDims, outputDims).setWeights(() -> weight * (Math.random() - 1));
   }
@@ -158,14 +256,30 @@ public class PolynomialNetwork extends DAGNetwork {
     return head;
   }
   
+  /**
+   * New nth power layer nn layer.
+   *
+   * @param power the power
+   * @return the nn layer
+   */
   public NNLayer newNthPowerLayer(double power) {
     return new NthPowerActivationLayer().setPower(power);
   }
   
+  /**
+   * New product layer nn layer.
+   *
+   * @return the nn layer
+   */
   public NNLayer newProductLayer() {
     return new com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer();
   }
   
+  /**
+   * Add term.
+   *
+   * @param power the power
+   */
   public void addTerm(double power) {
     corrections.add(new Correcton(power,
       newBias(outputDims, 1.0),

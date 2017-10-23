@@ -19,10 +19,20 @@
 
 package com.simiacryptus.mindseye.eval;
 
+/**
+ * The type Trainable wrapper.
+ *
+ * @param <T> the type parameter
+ */
 public abstract class TrainableWrapper<T extends Trainable> implements Trainable {
   
   private final T inner;
   
+  /**
+   * Instantiates a new Trainable wrapper.
+   *
+   * @param inner the inner
+   */
   public TrainableWrapper(T inner) {
     this.inner = inner;
   }
@@ -32,6 +42,11 @@ public abstract class TrainableWrapper<T extends Trainable> implements Trainable
     return inner.measure();
   };
   
+  /**
+   * Gets inner.
+   *
+   * @return the inner
+   */
   public T getInner() {
     return inner;
   }

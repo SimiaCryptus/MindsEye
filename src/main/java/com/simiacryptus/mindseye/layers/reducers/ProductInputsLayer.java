@@ -20,12 +20,7 @@
 package com.simiacryptus.mindseye.layers.reducers;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.*;
 
 import java.util.Arrays;
 import java.util.List;

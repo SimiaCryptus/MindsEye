@@ -39,10 +39,25 @@ import java.util.UUID;
 public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   
   
+  /**
+   * The enum Node mode.
+   */
   public enum NodeMode {
+    /**
+     * Linear node mode.
+     */
     Linear,
+    /**
+     * Fuzzy node mode.
+     */
     Fuzzy,
+    /**
+     * Bilinear node mode.
+     */
     Bilinear,
+    /**
+     * Final node mode.
+     */
     Final
   }
   private NNLayer alpha = null;
@@ -106,6 +121,9 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   
   /**
    * Instantiates a new Pipeline network.
+   *
+   * @param alpha     the alpha
+   * @param alphaBias the alpha bias
    */
   public SigmoidTreeNetwork(NNLayer alpha, NNLayer alphaBias) {
     super(1);
@@ -168,6 +186,9 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     return head;
   }
   
+  /**
+   * The Initial fuzzy coeff.
+   */
   double initialFuzzyCoeff = 1e-8;
   @Override
   public void nextPhase() {
@@ -214,6 +235,12 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     }
   }
   
+  /**
+   * Copy state.
+   *
+   * @param from the from
+   * @param to   the to
+   */
   public void copyState(NNLayer from, NNLayer to) {
     List<double[]> alphaState = from.state();
     List<double[]> betaState = to.state();
@@ -224,23 +251,50 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     }
   }
   
+  /**
+   * Skip child stage boolean.
+   *
+   * @return the boolean
+   */
   public boolean skipChildStage() {
     return skipChildStage;
   }
   
+  /**
+   * Sets skip child stage.
+   *
+   * @param skipChildStage the skip child stage
+   * @return the skip child stage
+   */
   public SigmoidTreeNetwork setSkipChildStage(boolean skipChildStage) {
     this.skipChildStage = skipChildStage;
     return this;
   }
   
+  /**
+   * Gets mode.
+   *
+   * @return the mode
+   */
   public NodeMode getMode() {
     return mode;
   }
   
+  /**
+   * Is skip fuzzy boolean.
+   *
+   * @return the boolean
+   */
   public boolean isSkipFuzzy() {
     return skipFuzzy;
   }
   
+  /**
+   * Sets skip fuzzy.
+   *
+   * @param skipFuzzy the skip fuzzy
+   * @return the skip fuzzy
+   */
   public SigmoidTreeNetwork setSkipFuzzy(boolean skipFuzzy) {
     this.skipFuzzy = skipFuzzy;
     return this;

@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
  * Created by Andrew Charneski on 5/6/2017.

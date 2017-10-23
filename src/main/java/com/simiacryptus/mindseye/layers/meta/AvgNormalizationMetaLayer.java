@@ -49,7 +49,7 @@ public class AvgNormalizationMetaLayer extends DAGNetwork {
   public static NNLayer fromJson(JsonObject inner) {
     return new AvgNormalizationMetaLayer(inner);
   }
-
+  
   /**
    * Instantiates a new Std dev meta layer.
    *

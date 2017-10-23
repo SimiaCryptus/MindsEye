@@ -26,6 +26,9 @@ import com.simiacryptus.mindseye.lang.NNLayer;
  * The type Product inputs layer test.
  */
 public class ProductInputsLayerTest {
+  /**
+   * The type Nn test.
+   */
   public static class NNTest extends LayerTestBase {
     
     @Override
@@ -41,6 +44,9 @@ public class ProductInputsLayerTest {
     }
   }
   
+  /**
+   * The type N 1 test.
+   */
   public static class N1Test extends LayerTestBase {
     
     @Override

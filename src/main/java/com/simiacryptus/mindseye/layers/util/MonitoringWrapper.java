@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.layers.util;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.PercentileStatistics;
@@ -215,10 +215,21 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
     return this;
   }
   
+  /**
+   * Is activity stats boolean.
+   *
+   * @return the boolean
+   */
   public boolean isActivityStats() {
     return activityStats;
   }
   
+  /**
+   * Sets activity stats.
+   *
+   * @param activityStats the activity stats
+   * @return the activity stats
+   */
   public MonitoringWrapper setActivityStats(boolean activityStats) {
     this.activityStats = activityStats;
     return this;

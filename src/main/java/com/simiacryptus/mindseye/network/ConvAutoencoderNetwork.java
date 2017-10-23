@@ -19,11 +19,10 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.eval.ConstL12Normalizer;
+import com.simiacryptus.mindseye.eval.L12Normalizer;
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.activation.GaussianNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxDropoutNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;
@@ -39,9 +38,6 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.eval.ConstL12Normalizer;
-import com.simiacryptus.mindseye.eval.L12Normalizer;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 
@@ -78,7 +74,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     private final List<TensorList> representations = new ArrayList<>();
     private final List<int[]> dimensions = new ArrayList<>();
     private final List<ConvAutoencoderNetwork> layers = new ArrayList<>();
-    
+
     /**
      * Instantiates a new Recursive builder.
      *
@@ -88,7 +84,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       representations.add(data);
       dimensions.add(data.get(0).getDimensions());
     }
-    
+
     /**
      * Grow layer conv autoencoder network.
      *
@@ -98,7 +94,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public ConvAutoencoderNetwork growLayer(int... dims) {
       return growLayer(layers.isEmpty() ? 100 : 0, 1, 100, dims);
     }
-    
+
     /**
      * Grow layer conv autoencoder network.
      *
@@ -123,7 +119,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       representations.add(newLayer.encode(data));
       return newLayer;
     }
-    
+
     /**
      * Tune.
      */
@@ -157,7 +153,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
         }
       }).train(representations.get(0));
     }
-    
+
     /**
      * Configure conv autoencoder network . training parameters.
      *
@@ -167,7 +163,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     protected ConvAutoencoderNetwork.TrainingParameters configure(ConvAutoencoderNetwork.TrainingParameters trainingParameters) {
       return trainingParameters;
     }
-    
+
     /**
      * Configure conv autoencoder network . builder.
      *
@@ -177,7 +173,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     protected ConvAutoencoderNetwork.Builder configure(ConvAutoencoderNetwork.Builder builder) {
       return builder;
     }
-    
+
     /**
      * Echo nn layer.
      *
@@ -189,7 +185,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       network.add(getDecoder());
       return network;
     }
-    
+
     /**
      * Gets encoder.
      *
@@ -202,7 +198,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       }
       return network;
     }
-    
+
     /**
      * Gets decoder.
      *
@@ -215,7 +211,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       }
       return network;
     }
-    
+
     /**
      * Gets layers.
      *
@@ -457,7 +453,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     private int timeoutMinutes = 10;
     private double endFitness = Double.NEGATIVE_INFINITY;
     private int maxIterations = Integer.MAX_VALUE;
-    
+
     /**
      * Train.
      *
@@ -477,7 +473,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       trainer.setMaxIterations(maxIterations);
       trainer.run();
     }
-    
+
     /**
      * Wrap training monitor.
      *
@@ -485,14 +481,14 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
      * @return the training monitor
      */
     protected abstract TrainingMonitor wrap(TrainingMonitor monitor);
-    
+
     /**
      * Gets training network.
      *
      * @return the training network
      */
     public abstract SimpleLossNetwork getTrainingNetwork();
-    
+
     /**
      * Gets sample size.
      *
@@ -501,7 +497,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public int getSampleSize() {
       return sampleSize;
     }
-    
+
     /**
      * Gets l 1 normalization.
      *
@@ -510,7 +506,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public double getL1normalization() {
       return l1normalization;
     }
-    
+
     /**
      * Gets l 2 normalization.
      *
@@ -519,7 +515,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public double getL2normalization() {
       return l2normalization;
     }
-    
+
     /**
      * Gets orient.
      *
@@ -528,7 +524,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public OrientationStrategy getOrient() {
       return orient;
     }
-    
+
     /**
      * Gets step.
      *
@@ -537,7 +533,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public LineSearchStrategy getStep() {
       return step;
     }
-    
+
     /**
      * Gets monitor.
      *
@@ -546,7 +542,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public TrainingMonitor getMonitor() {
       return monitor;
     }
-    
+
     /**
      * Gets timeout minutes.
      *
@@ -555,7 +551,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public int getTimeoutMinutes() {
       return timeoutMinutes;
     }
-    
+
     /**
      * Gets end fitness.
      *
@@ -564,7 +560,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public double getEndFitness() {
       return endFitness;
     }
-    
+
     /**
      * Sets sample size.
      *
@@ -575,7 +571,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.sampleSize = sampleSize;
       return this;
     }
-    
+
     /**
      * Sets l 1 normalization.
      *
@@ -586,7 +582,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.l1normalization = l1normalization;
       return this;
     }
-    
+
     /**
      * Sets l 2 normalization.
      *
@@ -597,7 +593,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.l2normalization = l2normalization;
       return this;
     }
-    
+
     /**
      * Sets orient.
      *
@@ -608,7 +604,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.orient = orient;
       return this;
     }
-    
+
     /**
      * Sets step.
      *
@@ -619,7 +615,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.step = step;
       return this;
     }
-    
+
     /**
      * Sets monitor.
      *
@@ -630,7 +626,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.monitor = monitor;
       return this;
     }
-    
+
     /**
      * Sets timeout minutes.
      *
@@ -641,7 +637,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.timeoutMinutes = timeoutMinutes;
       return this;
     }
-    
+
     /**
      * Sets end fitness.
      *
@@ -652,7 +648,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.endFitness = endFitness;
       return this;
     }
-    
+
     /**
      * Sets max iterations.
      *
@@ -663,7 +659,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.maxIterations = maxIterations;
       return this;
     }
-    
+
     /**
      * Gets max iterations.
      *
@@ -691,7 +687,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.outerSize = outerSize;
       this.innerSize = innerSize;
     }
-    
+
     /**
      * Get outer size int [ ].
      *
@@ -700,7 +696,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public int[] getOuterSize() {
       return outerSize;
     }
-    
+
     /**
      * Get inner size int [ ].
      *
@@ -709,7 +705,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public int[] getInnerSize() {
       return innerSize;
     }
-    
+
     /**
      * Gets noise.
      *
@@ -718,7 +714,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public double getNoise() {
       return noise;
     }
-    
+
     /**
      * Gets init radius.
      *
@@ -727,7 +723,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public double getInitRadius() {
       return initRadius;
     }
-    
+
     /**
      * Gets init stiffness.
      *
@@ -736,7 +732,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public int getInitStiffness() {
       return initStiffness;
     }
-    
+
     /**
      * Gets init peak.
      *
@@ -745,7 +741,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public double getInitPeak() {
       return initPeak;
     }
-    
+
     /**
      * Gets dropout.
      *
@@ -754,7 +750,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
     public double getDropout() {
       return dropout;
     }
-    
+
     /**
      * Sets noise.
      *
@@ -765,7 +761,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.noise = noise;
       return this;
     }
-    
+
     /**
      * Sets init radius.
      *
@@ -776,7 +772,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.initRadius = initRadius;
       return this;
     }
-    
+
     /**
      * Sets init stiffness.
      *
@@ -787,7 +783,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.initStiffness = initStiffness;
       return this;
     }
-    
+
     /**
      * Sets init peak.
      *
@@ -798,7 +794,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.initPeak = initPeak;
       return this;
     }
-    
+
     /**
      * Sets dropout.
      *
@@ -809,7 +805,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
       this.dropout = dropout;
       return this;
     }
-    
+
     /**
      * Build conv autoencoder network.
      *

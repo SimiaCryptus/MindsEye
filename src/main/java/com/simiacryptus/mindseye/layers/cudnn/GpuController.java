@@ -23,8 +23,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.GpuError;
+import com.simiacryptus.mindseye.lang.Tensor;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -167,11 +167,18 @@ public final class GpuController {
   
   /**
    * The Gpu driver threads.
+   *
+   * @return the gpu driver threads
    */
   public LoadingCache<CuDNN, ExecutorService> getGpuDriverThreads() {
     return gpuDriverThreads;
   }
   
+  /**
+   * Sets gpu driver threads.
+   *
+   * @param gpuDriverThreads the gpu driver threads
+   */
   public void setGpuDriverThreads(LoadingCache<CuDNN, ExecutorService> gpuDriverThreads) {
     this.gpuDriverThreads = gpuDriverThreads;
   }

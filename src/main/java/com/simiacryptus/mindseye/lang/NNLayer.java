@@ -289,7 +289,7 @@ public abstract class NNLayer implements Serializable {
    * The type Const nn result.
    */
   public static final class ConstNNResult extends NNResult {
-    
+  
     /**
      * Instantiates a new Const nn result.
      *
