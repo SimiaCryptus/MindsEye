@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -60,7 +60,7 @@ public class GpuTrainable implements Trainable {
   /**
    * The Sampled data.
    */
-  protected List<Tensor[]> sampledData;
+  protected List<Tensor[]> data;
   
   private boolean verbose = false;
   
@@ -73,17 +73,6 @@ public class GpuTrainable implements Trainable {
     this.network = network;
   }
   
-  /**
-   * Instantiates a new Gpu trainable.
-   *
-   * @param network the network
-   * @param data    the data
-   */
-  public GpuTrainable(NNLayer network, List<? extends Supplier<Tensor[]>> data) {
-    this.network = network;
-    this.setSampledData(data);
-  }
-  
   @Override
   public PointSample measure() {
     return measure(3);
@@ -91,8 +80,8 @@ public class GpuTrainable implements Trainable {
   
   public PointSample measure(int retries) {
     try {
-      assert !sampledData.isEmpty();
-      PointSample result = GpuController.INSTANCE.distribute(sampledData,
+      assert !data.isEmpty();
+      PointSample result = GpuController.INSTANCE.distribute(data,
         (list, dev) -> eval(NNResult.batchResultArray(list.stream().toArray(i1 -> new Tensor[i1][])), dev),
         (a, b) -> a.add(b)
       );
@@ -170,15 +159,15 @@ public class GpuTrainable implements Trainable {
   /**
    * Sets sampled data.
    *
-   * @param sampledData the sampled data
+   * @param data the sampled data
    */
-  protected void setSampledData(List<? extends Supplier<Tensor[]>> sampledData) {
-    setData(sampledData.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
+  protected void setDataSupplier(List<? extends Supplier<Tensor[]>> data) {
+    setData(data.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
   }
   
-  protected GpuTrainable setData(List<Tensor[]> sampledData) {
+  public GpuTrainable setData(List<Tensor[]> sampledData) {
     assert !sampledData.isEmpty();
-    this.sampledData = sampledData;
+    this.data = sampledData;
     return this;
   }
   

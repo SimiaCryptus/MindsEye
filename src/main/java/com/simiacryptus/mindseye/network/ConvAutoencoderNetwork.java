@@ -39,9 +39,9 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.opt.trainable.ConstL12Normalizer;
-import com.simiacryptus.mindseye.opt.trainable.L12Normalizer;
-import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.ConstL12Normalizer;
+import com.simiacryptus.mindseye.eval.L12Normalizer;
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 

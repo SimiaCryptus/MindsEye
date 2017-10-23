@@ -25,8 +25,8 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
-import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.util.Util;
 
 import java.time.Duration;

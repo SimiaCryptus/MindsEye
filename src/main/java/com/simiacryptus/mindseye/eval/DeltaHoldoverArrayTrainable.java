@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.eval;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -94,7 +94,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   
   @Override
   public void resetToFull() {
-    this.setSampledData(trainingData.stream().collect(Collectors.toList()));
+    this.setDataSupplier(trainingData);
   }
   
   @Override
@@ -136,17 +136,17 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   protected void refreshSampledData() {
     assert 0 < trainingData.size();
     if(0 >= getTrainingSize()) {
-      setSampledData(trainingData);
+      setDataSupplier(trainingData);
     } else {
       List<Tensor[]> holdover;
       if(wrappingLayer.firstResult != null && wrappingLayer.lastResult != null && wrappingLayer.firstResult != wrappingLayer.lastResult) {
-        holdover = IntStream.range(0, sampledData.size()).mapToObj(x -> x)
+        holdover = IntStream.range(0, data.size()).mapToObj(x -> x)
                                     .sorted(Comparator.comparingDouble(x -> {
                                       double currentData = Arrays.stream(wrappingLayer.firstResult.getData().get((int) x).getData()).sum();
                                       double latestData = Arrays.stream(wrappingLayer.lastResult.getData().get((int) x).getData()).sum();
                                       return (latestData - currentData);
                                     }))
-                                    .map(i -> sampledData.get(i))
+                                    .map(i -> data.get(i))
                                     .limit((long)(getTrainingSize() * holdoverFraction))
                                     .collect(Collectors.toList());
         

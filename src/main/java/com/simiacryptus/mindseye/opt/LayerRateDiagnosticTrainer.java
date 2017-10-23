@@ -28,8 +28,8 @@ import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
-import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.util.Util;
 
 import java.time.Duration;

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable;
 
 /**
  * Created by Andrew Charneski on 7/2/2017.

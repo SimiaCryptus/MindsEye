@@ -23,8 +23,8 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
-import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 
 /**
  * The type Gradient descent.

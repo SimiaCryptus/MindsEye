@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
+import com.simiacryptus.mindseye.eval.L12Normalizer;
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;

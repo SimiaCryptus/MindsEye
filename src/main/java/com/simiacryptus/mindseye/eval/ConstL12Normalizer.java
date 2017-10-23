@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;

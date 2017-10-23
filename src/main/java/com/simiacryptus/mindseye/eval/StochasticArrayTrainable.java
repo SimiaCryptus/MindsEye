@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
@@ -50,7 +50,7 @@ public class StochasticArrayTrainable extends CachedTrainable<StaticArrayTrainab
    * @param trainingSize the training size
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, int batchSize) {
-    super(new StaticArrayTrainable(null, network, batchSize));
+    super(new StaticArrayTrainable(network, batchSize));
     if (0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<Tensor[]>(() -> obj)).collect(Collectors.toList());
     this.trainingSize = trainingSize;

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.eval;
 
 import java.util.ArrayList;
 import java.util.List;

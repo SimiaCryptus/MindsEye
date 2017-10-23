@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.eval;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.NNLayer;
@@ -25,8 +25,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public abstract class ArrayTrainable extends CachedTrainable<GpuTrainable> {
   
@@ -39,13 +37,18 @@ public abstract class ArrayTrainable extends CachedTrainable<GpuTrainable> {
   
   @Override
   public PointSample measure() {
-    List<List<Tensor[]>> collection = batchSize < getTrainingData().length ?
-                                        Lists.partition(Arrays.asList(getTrainingData()), batchSize)
-                                        : Arrays.asList(Arrays.asList(getTrainingData()));
-    return collection.stream().map(trainingData -> {
-      getInner().setSampledData(trainingData.stream().map(x->(Supplier<Tensor[]>)(()->x)).collect(Collectors.toList()));
-      return getInner().measure();
-    }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+    List<Tensor[]> tensors = Arrays.asList(getTrainingData());
+    if(batchSize < tensors.size()) {
+      List<List<Tensor[]>> collection = Lists.partition(tensors, batchSize);
+      return collection.stream().map(trainingData -> {
+        if(batchSize < trainingData.size()) {
+          throw new RuntimeException();
+        }
+        return getInner().setData(trainingData).measure();
+      }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+    } else {
+      return getInner().setData(tensors).measure();
+    }
   }
   
   @Override

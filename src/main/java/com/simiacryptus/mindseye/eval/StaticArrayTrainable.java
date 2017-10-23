@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt.trainable;
+package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
@@ -39,6 +39,10 @@ public class StaticArrayTrainable extends ArrayTrainable {
     this(trainingData, network, trainingData.length);
   }
   
+  public StaticArrayTrainable(NNLayer network, int batchSize) {
+    this(null, network, batchSize);
+  }
+
   /**
    * Instantiates a new Array trainable.
    *
@@ -48,9 +52,7 @@ public class StaticArrayTrainable extends ArrayTrainable {
    */
   public StaticArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
     super(network, batchSize);
-    if (0 == trainingData.length) throw new IllegalArgumentException();
-    this.setTrainingData(trainingData);
-    resetSampling();
+    this.trainingData = trainingData;
   }
   
   @Override

@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 
 /**
  * The type Quadratic search.

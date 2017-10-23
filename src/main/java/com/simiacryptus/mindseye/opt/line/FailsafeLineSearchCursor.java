@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable;
 
 /**
  * The type Failsafe line search cursor.

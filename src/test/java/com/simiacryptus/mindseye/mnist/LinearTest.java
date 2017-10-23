@@ -32,9 +32,9 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.opt.trainable.StaticArrayTrainable;
-import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
+import com.simiacryptus.mindseye.eval.StaticArrayTrainable;
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -45,11 +45,6 @@ import java.util.stream.Stream;
 
 public class LinearTest extends MnistTestBase {
   
-  protected String description = "This report demonstrates a basic linear model fit against the MNIST dataset. " +
-                         "It serves as a reference report to compare algorithm variants. " +
-                         "This is a very simple model that performs basic logistic regression. " +
-                         "It is expected to be trainable to about 91% accuracy on MNIST.";
-
   @Override
   public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {

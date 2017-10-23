@@ -27,8 +27,8 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
-import com.simiacryptus.mindseye.opt.trainable.Trainable;
-import com.simiacryptus.mindseye.opt.trainable.Trainable.PointSample;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.util.ArrayUtil;
 
 import java.util.LinkedList;
