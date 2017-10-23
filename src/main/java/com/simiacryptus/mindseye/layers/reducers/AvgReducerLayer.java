@@ -96,6 +96,7 @@ public class AvgReducerLayer extends NNLayer {
               return passback;
             }).toArray(i -> new Tensor[i]);
             in_l.accumulate(buffer, new TensorArray(data1));
+            for(Tensor t : data1) t.release();
           }
         }
       }

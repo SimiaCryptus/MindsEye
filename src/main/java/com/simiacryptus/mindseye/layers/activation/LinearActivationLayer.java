@@ -146,7 +146,6 @@ public class LinearActivationLayer extends NNLayer {
     
     @Override
     public void accumulate(final DeltaSet buffer, final TensorList delta) {
-      
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();
@@ -170,6 +169,7 @@ public class LinearActivationLayer extends NNLayer {
           return passback;
         }).toArray(i -> new Tensor[i]);
         this.inObj.accumulate(buffer, new TensorArray(passbackA));
+        for(Tensor t : passbackA) t.release();
       }
     }
     

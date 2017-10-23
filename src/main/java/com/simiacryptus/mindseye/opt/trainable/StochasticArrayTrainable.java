@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * <p>
  * TODO: Redesign this package. This class is absorbing too many features.
  */
-public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
+public class StochasticArrayTrainable extends CachedTrainable<StaticArrayTrainable> {
   
   private static final int LOW_MEM_USE = 4 * 1024 * 1024 * 1024;
   private final List<? extends Supplier<Tensor[]>> trainingData;
@@ -49,12 +49,23 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
    * @param network      the network
    * @param trainingSize the training size
    */
-  public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
-    super(new GpuTrainable(network));
+  public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, int batchSize) {
+    super(new StaticArrayTrainable(null, network, batchSize));
     if (0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<Tensor[]>(() -> obj)).collect(Collectors.toList());
     this.trainingSize = trainingSize;
     resetSampling();
+  }
+  
+  /**
+   * Instantiates a new Stochastic array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param trainingSize the training size
+   */
+  public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
+    this(trainingData, network, trainingSize, trainingSize);
   }
   
   /**
@@ -77,7 +88,7 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
    * @param batchSize    the batch size
    */
   public StochasticArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize, int batchSize) {
-    super(new GpuTrainable(network));
+    super(new StaticArrayTrainable(null, network, batchSize));
     if (0 == trainingData.size()) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.trainingSize = trainingSize;
@@ -86,7 +97,7 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
   
   @Override
   public void resetToFull() {
-    inner.setSampledData(trainingData.stream().collect(Collectors.toList()));
+    getInner().setTrainingData(trainingData.stream().toArray(i->new Tensor[i][]));
   }
   
   @Override
@@ -111,7 +122,6 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
    * @return the training size
    */
   public StochasticArrayTrainable setTrainingSize(final int trainingSize) {
-    inner.trainingSize = trainingSize;
     this.trainingSize = trainingSize;
     refreshSampledData();
     return this;
@@ -128,11 +138,11 @@ public class StochasticArrayTrainable extends CachedTrainable<GpuTrainable> {
    */
   protected void refreshSampledData() {
     assert 0 < trainingData.size();
-    inner.setSampledData(0 < getTrainingSize() ? trainingData.stream().parallel() //
+    getInner().setTrainingData(0 < getTrainingSize() ? (trainingData.stream().parallel() //
                            .filter(x -> x != null && x.get() != null)
                            .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
-                           .limit(getTrainingSize()) //
-                           .collect(Collectors.toList()) : trainingData);
+                           .limit(getTrainingSize()).map(x->x.get())
+                           .toArray(i->new Tensor[i][])) : trainingData.stream().toArray(i->new Tensor[i][]));
   }
   
 }

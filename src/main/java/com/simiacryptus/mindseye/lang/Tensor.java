@@ -65,6 +65,7 @@ public class Tensor implements Serializable {
    */
   protected volatile double[] data;
   
+  
   /**
    * Instantiates a new Tensor.
    */
@@ -250,11 +251,25 @@ public class Tensor implements Serializable {
   
   @Override
   public void finalize() throws Throwable {
-    if (null != data) {
-      recycle(data);
-      data = null;
-    }
+    release();
     super.finalize();
+  }
+  
+  private byte references = 1;
+  
+  public short acquireReference() {
+    return ++references;
+  }
+  
+  public boolean release() {
+    if(--references <= 0) {
+      if (null != data) {
+        recycle(data);
+        data = null;
+        return true;
+      }
+    }
+    return false;
   }
   
   private int[] _add(final int[] base, final int... extra) {

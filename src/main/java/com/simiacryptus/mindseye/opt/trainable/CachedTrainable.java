@@ -27,12 +27,8 @@ import java.util.List;
  *
  * @param <T> the type parameter
  */
-public class CachedTrainable<T extends Trainable> implements Trainable {
+public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   
-  /**
-   * The Inner.
-   */
-  protected final T inner;
   private boolean verbose = false;
   private List<PointSample> history = new ArrayList<>();
   private int historySize = 3;
@@ -43,7 +39,7 @@ public class CachedTrainable<T extends Trainable> implements Trainable {
    * @param inner the inner
    */
   public CachedTrainable(T inner) {
-    this.inner = inner;
+    super(inner);
   }
   
   @Override
@@ -54,7 +50,7 @@ public class CachedTrainable<T extends Trainable> implements Trainable {
         return result;
       }
     }
-    PointSample result = inner.measure();
+    PointSample result = super.measure();
     history.add(result.copyFull());
     while (getHistorySize() < history.size()) history.remove(0);
     return result;
@@ -103,12 +99,12 @@ public class CachedTrainable<T extends Trainable> implements Trainable {
   @Override
   public void resetToFull() {
     history.clear();
-    inner.resetToFull();
+    super.resetToFull();
   }
   
   @Override
   public boolean resetSampling() {
     history.clear();
-    return inner.resetSampling();
+    return super.resetSampling();
   }
 }

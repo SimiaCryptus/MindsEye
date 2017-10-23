@@ -20,55 +20,31 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-/**
- * The type Array trainable.
- */
-public class ArrayTrainable extends CachedTrainable<GpuTrainable> {
+public abstract class ArrayTrainable extends CachedTrainable<GpuTrainable> {
   
-  private final Tensor[][] trainingData;
-  private final int batchSize;
+  protected final int batchSize;
   
-  /**
-   * Instantiates a new Array trainable.
-   *
-   * @param trainingData the training data
-   * @param network      the network
-   */
-  public ArrayTrainable(Tensor[][] trainingData, NNLayer network) {
-    this(trainingData, network, trainingData.length);
-  }
-  
-  /**
-   * Instantiates a new Array trainable.
-   *
-   * @param trainingData the training data
-   * @param network      the network
-   * @param batchSize    the batch size
-   */
-  public ArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
+  public ArrayTrainable(NNLayer network, int batchSize) {
     super(new GpuTrainable(network));
-    if (0 == trainingData.length) throw new IllegalArgumentException();
-    this.trainingData = trainingData;
     this.batchSize = batchSize;
-    resetSampling();
   }
   
   @Override
   public PointSample measure() {
-    List<List<Tensor[]>> collection = batchSize < trainingData.length ?
-                                        Lists.partition(Arrays.asList(trainingData), batchSize)
-                                        : Arrays.asList(Arrays.asList(trainingData));
+    List<List<Tensor[]>> collection = batchSize < getTrainingData().length ?
+                                        Lists.partition(Arrays.asList(getTrainingData()), batchSize)
+                                        : Arrays.asList(Arrays.asList(getTrainingData()));
     return collection.stream().map(trainingData -> {
-      inner.setSampledData(trainingData.stream().map(x->(Supplier<Tensor[]>)(()->x)).collect(Collectors.toList()));
-      return inner.measure();
+      getInner().setSampledData(trainingData.stream().map(x->(Supplier<Tensor[]>)(()->x)).collect(Collectors.toList()));
+      return getInner().measure();
     }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
   }
   
@@ -85,4 +61,5 @@ public class ArrayTrainable extends CachedTrainable<GpuTrainable> {
     return batchSize;
   }
   
+  public abstract Tensor[][] getTrainingData();
 }

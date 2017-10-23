@@ -326,8 +326,8 @@ public abstract class MappedSynapseLayer extends NNLayer {
           deltaBuffer.accumulate(buffer1.getData());
         });
         try {
-          buffer1.finalize();
-          buffer2.finalize();
+          buffer1.release();
+          buffer2.release();
         } catch (Throwable e) {
           throw new RuntimeException(e);
         }

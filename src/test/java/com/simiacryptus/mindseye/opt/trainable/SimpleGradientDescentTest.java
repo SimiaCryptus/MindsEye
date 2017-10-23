@@ -50,7 +50,7 @@ public class SimpleGradientDescentTest extends MnistTestBase {
       ArrayList<Tensor[]> trainingList = new ArrayList<>(Arrays.stream(trainingData).collect(Collectors.toList()));
       Collections.shuffle(trainingList);
       Tensor[][] randomSelection = trainingList.subList(0, 10000).toArray(new Tensor[][]{});
-      Trainable trainable = new ArrayTrainable(randomSelection, supervisedNetwork);
+      Trainable trainable = new StaticArrayTrainable(randomSelection, supervisedNetwork);
       return new IterativeTrainer(trainable)
                .setMonitor(monitor)
                .setTimeout(3, TimeUnit.MINUTES)

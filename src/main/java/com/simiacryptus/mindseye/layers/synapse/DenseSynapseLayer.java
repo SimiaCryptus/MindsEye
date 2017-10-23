@@ -328,7 +328,7 @@ public class DenseSynapseLayer extends NNLayer {
       this.inObj.accumulate(buffer, new TensorArray(passbackA));
       Arrays.stream(passbackA).forEach(x -> {
         try {
-          x.finalize();
+          x.release();
         } catch (Throwable throwable) {
           throw new RuntimeException(throwable);
         }
@@ -364,7 +364,7 @@ public class DenseSynapseLayer extends NNLayer {
           deltaBuffer.accumulate(weightDelta.getData());
         });
         try {
-          weightDelta.finalize();
+          weightDelta.release();
         } catch (Throwable throwable) {
           throw new RuntimeException(throwable);
         }

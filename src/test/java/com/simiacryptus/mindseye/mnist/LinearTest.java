@@ -32,7 +32,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.opt.trainable.ArrayTrainable;
+import com.simiacryptus.mindseye.opt.trainable.StaticArrayTrainable;
 import com.simiacryptus.mindseye.opt.trainable.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.opt.trainable.Trainable;
 import com.simiacryptus.util.MonitoredObject;
@@ -75,7 +75,7 @@ public class LinearTest extends MnistTestBase {
       //Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
     Tensor[][] expanded = Arrays.stream(trainingData).flatMap(row -> expand(row)).toArray(i -> new Tensor[i][]);
     printSample(log, expanded, 100);
-    return new StochasticArrayTrainable(expanded, supervisedNetwork, 10000);
+    return new StochasticArrayTrainable(expanded, supervisedNetwork, 10000, 50000);
   }
   
   public Trainable getValidationTrainable(SimpleLossNetwork supervisedNetwork) {
@@ -90,7 +90,8 @@ public class LinearTest extends MnistTestBase {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return new StochasticArrayTrainable(validationData, supervisedNetwork, 50000);
+    return new StaticArrayTrainable(validationData, supervisedNetwork, 50000);
+    //return new StochasticArrayTrainable(validationData, supervisedNetwork, 50000);
   }
   
   public static void printSample(NotebookOutput log, Tensor[][] expanded, int size) {
