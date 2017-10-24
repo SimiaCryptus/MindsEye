@@ -136,7 +136,7 @@ public class LinearTest extends MnistTestBase {
     Random random = new Random();
     return Stream.of(
       new Tensor[]{ data[0], data[1] },
-      new Tensor[]{ addNoise(data[0]), data[1] },
+      //new Tensor[]{ addNoise(data[0]), data[1] },
       new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] },
       new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] }
     );
