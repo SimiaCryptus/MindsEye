@@ -41,6 +41,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -79,7 +80,7 @@ public class LinearTest extends MnistTestBase {
    */
   public StochasticArrayTrainable getTrainingTrainable(NotebookOutput log, Tensor[][] trainingData, SimpleLossNetwork supervisedNetwork) {
       //Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
-    Tensor[][] expanded = Arrays.stream(trainingData).flatMap(row -> expand(row)).toArray(i -> new Tensor[i][]);
+    Tensor[][] expanded = Arrays.stream(trainingData).flatMap(row -> testDataExpansion.apply(row)).toArray(i -> new Tensor[i][]);
     printSample(log, expanded, 100);
     return new StochasticArrayTrainable(expanded, supervisedNetwork, 10000, 50000);
   }
@@ -126,13 +127,8 @@ public class LinearTest extends MnistTestBase {
     }).reduce((a,b)->a+b).get());
   }
 
-  /**
-   * Expand stream.
-   *
-   * @param data the data
-   * @return the stream
-   */
-  protected Stream<Tensor[]> expand(Tensor... data) {
+  
+  protected Function<Tensor[],Stream<Tensor[]>> testDataExpansion = data -> {
     Random random = new Random();
     return Stream.of(
       new Tensor[]{ data[0], data[1] },
@@ -140,7 +136,7 @@ public class LinearTest extends MnistTestBase {
       new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] },
       new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] }
     );
-  }
+  };
 
   /**
    * Translate tensor.

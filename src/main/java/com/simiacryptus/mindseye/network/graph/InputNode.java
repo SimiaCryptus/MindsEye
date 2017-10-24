@@ -69,6 +69,10 @@ final class InputNode extends LazyResult {
   public NNLayer getLayer() {
     return null;
   }
+  @Override
+  public void setLayer(NNLayer layer) {
+    throw new IllegalStateException();
+  }
   
   /**
    * Add dag node.

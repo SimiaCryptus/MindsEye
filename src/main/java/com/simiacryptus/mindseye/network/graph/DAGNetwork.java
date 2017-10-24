@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  *
  * @author Andrew Charneski
  */
-public abstract class DAGNetwork extends NNLayer implements DAGNode {
+public abstract class DAGNetwork extends NNLayer {
   
   @Override
   public JsonObject getJson() {
@@ -417,7 +417,6 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return nodesById.get(labels.get(key));
   }
   
-  @Override
   public NNResult get(NNExecutionContext nncontext, EvaluationContext buildExeCtx) {
     return getHead().get(nncontext, buildExeCtx);
   }
@@ -480,7 +479,6 @@ public abstract class DAGNetwork extends NNLayer implements DAGNode {
     return input;
   }
   
-  @Override
   public NNLayer getLayer() {
     return this;
   }

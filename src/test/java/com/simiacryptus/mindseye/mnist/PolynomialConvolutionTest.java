@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.mnist;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.meta.AvgNormalizationMetaLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
@@ -46,12 +48,14 @@ public class PolynomialConvolutionTest extends LinearTest {
    */
   protected PolynomialConvolutionNetwork tree;
   
+  
   @Override
   public PipelineNetwork buildModel(NotebookOutput log) {
     log.p("");
     return log.code(() -> {
+      PipelineNetwork network = null;
       this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
-      PipelineNetwork network = new PipelineNetwork();
+      network = new PipelineNetwork();
       network.add(new AvgNormalizationMetaLayer());
       network.add(this.tree);
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
@@ -68,6 +72,23 @@ public class PolynomialConvolutionTest extends LinearTest {
   public PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("This report trains a model using a recursive polynomial convolution layer.");
     PipelineNetwork network = buildModel(log);
+    network.visitNodes(node->{
+      NNLayer layer = node.getLayer();
+      if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer.class));
+      } else if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer.class));
+      }
+    });
+    run(log, monitoringRoot, monitor, trainingData, history, network);
+    network.visitNodes(node->{
+      NNLayer layer = node.getLayer();
+      if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer.class));
+      } else if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer.class));
+      }
+    });
     run(log, monitoringRoot, monitor, trainingData, history, network);
     tree.addTerm(1);
     run(log, monitoringRoot, monitor, trainingData, history, network);

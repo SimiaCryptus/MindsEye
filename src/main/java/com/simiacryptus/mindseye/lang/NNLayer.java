@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.util.Util;
 
 import java.io.Serializable;
@@ -62,6 +63,13 @@ public abstract class NNLayer implements Serializable {
     this.id = UUID.fromString(json.get("id").getAsString());
     if (json.has("isFrozen")) setFrozen(json.get("isFrozen").getAsBoolean());
     if (json.has("name")) setName(json.get("name").getAsString());
+  }
+  
+  public <T extends NNLayer> T as(Class<T> targetClass) {
+    JsonObject json = getJson();
+    json.remove("class");
+    json.addProperty("class", targetClass.getCanonicalName());
+    return (T) fromJson(json);
   }
   
   /**
