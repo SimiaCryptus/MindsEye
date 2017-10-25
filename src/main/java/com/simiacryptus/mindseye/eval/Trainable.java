@@ -106,7 +106,7 @@ public interface Trainable {
     @Override
     public String toString() {
       final StringBuffer sb = new StringBuffer("PointSample{");
-      sb.append("value=").append(sum);
+      sb.append("avg=").append(getMean());
       sb.append('}');
       return sb.toString();
     }

@@ -39,8 +39,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    */
   public FailsafeLineSearchCursor(LineSearchCursor direction, Trainable.PointSample previousPoint, TrainingMonitor monitor) {
     this.direction = direction;
-    if(0.0 != previousPoint.rate) throw new IllegalArgumentException();
-    this.best = previousPoint;
+    this.best = previousPoint.copyFull();
     this.monitor = monitor;
   }
   
@@ -63,8 +62,8 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * @param step the step
    */
   public void accumulate(Trainable.PointSample step) {
-    if (null == this.best || this.best.sum > step.sum) {
-      monitor.log(String.format("New Minimum: %s > %s", this.best.sum, step.sum));
+    if (null == this.best || this.best.getMean() > step.getMean()) {
+      monitor.log(String.format("New Minimum: %s > %s", this.best.getMean(), step.getMean()));
       this.best = step.copyFull();
     }
   }

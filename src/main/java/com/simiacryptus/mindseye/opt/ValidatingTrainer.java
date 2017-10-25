@@ -118,11 +118,12 @@ public class ValidatingTrainer {
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
       boolean antivalidated = Math.random() > (1 - epochResult.getValidationDelta());
       boolean saturated = epochParams.trainingSize >= getMaxTrainingSize();
-      monitor.log(String.format("Epoch result: {validation delta = %.6f; training delta = %.6f; Overtraining = %.3f}, {%.3f, %.3f}",
-        epochResult.getValidationDelta(), epochResult.getTrainingDelta(), epochResult.getOverTrainingCoeff(), adj1, adj2));
+      monitor.log(String.format("Epoch result with %s iter, %s samples: {validation delta = %.6f; training delta = %.6f; Overtraining = %.3f}, {%.3f, %.3f}",
+        epochResult.iterations, epochParams.trainingSize, epochResult.getValidationDelta(), epochResult.getTrainingDelta(), epochResult.getOverTrainingCoeff(), adj1, adj2));
       if (!epochResult.continueTraining) break;
       if (antivalidated && saturated) {
         if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
+          monitor.log("Training converged");
           break;
         }
       } else {
@@ -142,6 +143,7 @@ public class ValidatingTrainer {
       epochParams.priorValidation = epochResult.currentValidation;
       orientation.reset();
     }
+    monitor.log("Training terminated");
     return null == currentPoint ? Double.NaN : currentPoint.getMean();
   }
   
@@ -156,8 +158,8 @@ public class ValidatingTrainer {
     PointSample currentPoint = resetAndMeasure();
     PointSample priorPoint = currentPoint.copyDelta();
     assert (0 < currentPoint.delta.map.size()) : "Nothing to optimize";
-    int step = 0;
-    for (; step < epochParams.iterations || epochParams.iterations <= 0; step++) {
+    int step = 1;
+    for (; step <= epochParams.iterations || epochParams.iterations <= 0; step++) {
       if (shouldHalt(epochParams.timeoutMs)) {
         return new EpochResult(false, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
       }

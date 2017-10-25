@@ -65,7 +65,7 @@ public class LinearTest extends MnistTestBase {
                                              .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
                                              .setRelativeTolerance(2e-1))
                .setTimeout(8, TimeUnit.HOURS)
-               .setMaxIterations(1000)
+               .setMaxIterations(10000)
                .run();
     });
   }
@@ -128,15 +128,7 @@ public class LinearTest extends MnistTestBase {
   }
 
   
-  protected Function<Tensor[],Stream<Tensor[]>> testDataExpansion = data -> {
-    Random random = new Random();
-    return Stream.of(
-      new Tensor[]{ data[0], data[1] },
-      //new Tensor[]{ addNoise(data[0]), data[1] },
-      new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] },
-      new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] }
-    );
-  };
+  protected Function<Tensor[],Stream<Tensor[]>> testDataExpansion = data -> Stream.<Tensor[]>of(new Tensor[]{ data[0], data[1] });
 
   /**
    * Translate tensor.

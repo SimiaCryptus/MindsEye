@@ -37,6 +37,8 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Stream;
 
 /**
  * The type Polynomial convolution test.
@@ -80,6 +82,16 @@ public class PolynomialConvolutionTest extends LinearTest {
         node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer.class));
       }
     });
+    run(log, monitoringRoot, monitor, trainingData, history, network);
+    testDataExpansion = data -> {
+      Random random = new Random();
+      return Stream.of(
+        new Tensor[]{ data[0], data[1] },
+        new Tensor[]{ addNoise(data[0]), data[1] },
+        new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] },
+        new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] }
+      );
+    };
     run(log, monitoringRoot, monitor, trainingData, history, network);
     network.visitNodes(node->{
       NNLayer layer = node.getLayer();
