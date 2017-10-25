@@ -65,6 +65,8 @@ public class ValidatingTrainer {
   private int maxTrainingSize = 1000000;
   private double adjustmentTolerance = 0.1;
   private double adjustmentFactor = 0.5;
+  private int disappointmentThreshold = 0;
+  private final AtomicInteger disappointments = new AtomicInteger(0);
   
   /**
    * Instantiates a new Iterative trainer.
@@ -108,19 +110,25 @@ public class ValidatingTrainer {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     EpochParams epochParams = new EpochParams(timeoutMs, epochIterations, getTrainingSize(), validationSubject.measure());
     PointSample currentPoint = resetAndMeasure();
-    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
+    while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
       if (shouldHalt(timeoutMs)) break;
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       EpochResult epochResult = epoch(epochParams);
       double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(epochResult.getValidationDelta()), adjustmentFactor);
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
-      boolean nonproductive = epochResult.getValidationDelta() > (1 - 1e-3);
+      boolean antivalidated = Math.random() > (1 - epochResult.getValidationDelta());
       boolean saturated = epochParams.trainingSize >= getMaxTrainingSize();
       monitor.log(String.format("Epoch result: {validation delta = %.6f; training delta = %.6f; Overtraining = %.3f}, {%.3f, %.3f}",
         epochResult.getValidationDelta(), epochResult.getTrainingDelta(), epochResult.getOverTrainingCoeff(), adj1, adj2));
       if (!epochResult.continueTraining) break;
-      if (nonproductive && saturated) break;
-      if (epochResult.getValidationDelta() < 1.0) {
+      if (antivalidated && saturated) {
+        if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
+          break;
+        }
+      } else {
+        disappointments.set(0);
+      }
+      if (epochResult.getValidationDelta() < 1.0 && epochResult.getTrainingDelta() < 1.0) {
         if (adj1 < (1 - adjustmentTolerance) || adj1 > (1 + adjustmentTolerance)) {
           epochParams.iterations = Math.max(getMinEpochIterations(), Math.min(getMaxEpochIterations(), (int) (epochResult.iterations * adj1)));
         }
@@ -134,7 +142,7 @@ public class ValidatingTrainer {
       epochParams.priorValidation = epochResult.currentValidation;
       orientation.reset();
     }
-    return null == currentPoint ? Double.NaN : currentPoint.value;
+    return null == currentPoint ? Double.NaN : currentPoint.getMean();
   }
   
   /**
@@ -155,11 +163,10 @@ public class ValidatingTrainer {
       }
       StepResult epoch = step(currentPoint);
       currentPoint = epoch.currentPoint.setRate(0.0);
-      if (epoch.previous.value <= epoch.currentPoint.value) {
-        return new EpochResult(reset(epoch.currentPoint.value), epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
-      }
-      else {
-        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), epoch.currentPoint.value));
+      if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
+        return new EpochResult(reset(epoch.currentPoint.getMean()), epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
+      } else {
+        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), epoch.currentPoint.getMean()));
       }
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
@@ -185,10 +192,11 @@ public class ValidatingTrainer {
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
-    FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previousPoint);
-    lineSearchStrategy.step(wrapped, monitor);
-    PointSample currentPoint = wrapped.getBest(monitor).point;
-    return new StepResult(currentPoint, direction, previousPoint);
+    FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
+    lineSearchStrategy.step(cursor, monitor);
+    PointSample bestPoint = cursor.getBest(monitor).reset();
+    if(bestPoint.getMean() > previousPoint.getMean()) throw new IllegalStateException(bestPoint.getMean() +" > "+previousPoint.getMean());
+    return new StepResult(previousPoint, bestPoint);
   }
   
   private boolean reset(double value) {
@@ -227,7 +235,7 @@ public class ValidatingTrainer {
     do {
       if (10 < retries++) throw new IterativeStopException();
       PointSample currentPoint = trainingSubject.measure();
-      if (Double.isFinite(currentPoint.value)) return currentPoint;
+      if (Double.isFinite(currentPoint.getMean())) return currentPoint;
     } while (true);
   }
   
@@ -583,15 +591,19 @@ public class ValidatingTrainer {
     return this;
   }
   
+  public int getDisappointmentThreshold() {
+    return disappointmentThreshold;
+  }
+  
+  public void setDisappointmentThreshold(int disappointmentThreshold) {
+    this.disappointmentThreshold = disappointmentThreshold;
+  }
+  
   private class StepResult {
     /**
      * The Current point.
      */
     PointSample currentPoint;
-    /**
-     * The Direction.
-     */
-    LineSearchCursor direction;
     /**
      * The Previous.
      */
@@ -600,13 +612,11 @@ public class ValidatingTrainer {
     /**
      * Instantiates a new Step result.
      *
-     * @param currentPoint the current point
-     * @param direction    the direction
      * @param previous     the previous
+     * @param currentPoint the current point
      */
-    public StepResult(PointSample currentPoint, LineSearchCursor direction, PointSample previous) {
+    public StepResult(PointSample previous, PointSample currentPoint) {
       this.currentPoint = currentPoint;
-      this.direction = direction;
       this.previous = previous;
     }
     
@@ -700,7 +710,7 @@ public class ValidatingTrainer {
      * @return the validation delta
      */
     public double getValidationDelta() {
-      return (currentValidation.value / priorValidation.value);
+      return (currentValidation.getMean() / priorValidation.getMean());
     }
 
     /**
@@ -709,7 +719,7 @@ public class ValidatingTrainer {
      * @return the training delta
      */
     public double getTrainingDelta() {
-      return (currentPoint.value / priorPoint.value);
+      return (currentPoint.getMean() / priorPoint.getMean());
     }
     
   }

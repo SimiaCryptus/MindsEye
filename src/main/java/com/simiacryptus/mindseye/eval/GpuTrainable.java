@@ -136,7 +136,7 @@ public class GpuTrainable implements Trainable {
     });
     assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
 
-    return new PointSample(deltaSet, stateBackup, sum);
+    return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
   }
   
   /**

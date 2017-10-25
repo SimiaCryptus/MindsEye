@@ -68,7 +68,7 @@ public abstract class L12Normalizer implements Trainable {
     return new Trainable.PointSample(
                                       innerMeasure.delta.add(normalizationVector),
                                       innerMeasure.weights,
-                                      innerMeasure.value + (hideAdj ? 0 : valueAdj));
+                                      innerMeasure.sum + (hideAdj ? 0 : valueAdj));
   }
   
   /**

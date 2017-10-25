@@ -62,7 +62,10 @@ public interface Trainable {
     /**
      * The Value.
      */
-    public final double value;
+    public final double sum;
+    public final int count;
+    
+    public double getMean() { return sum / count; }
     /**
      * The Rate.
      */
@@ -73,31 +76,37 @@ public interface Trainable {
      *
      * @param delta   the delta
      * @param weights the weights
-     * @param value   the value
+     * @param sum   the value
      */
-    public PointSample(DeltaSet delta, DeltaSet weights, double value) {
-      this(delta, weights, value, 0.0);
+    public PointSample(DeltaSet delta, DeltaSet weights, double sum, int count) {
+      this(delta, weights, sum, 0.0, count);
     }
-  
+    public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate) {
+      this(delta, weights, sum, rate, 1);
+    }
+    public PointSample(DeltaSet delta, DeltaSet weights, double sum) {
+      this(delta, weights, sum, 1);
+    }
     /**
      * Instantiates a new Point sample.
      *
      * @param delta   the delta
      * @param weights the weights
-     * @param value   the value
+     * @param sum   the value
      * @param rate    the rate
      */
-    public PointSample(DeltaSet delta, DeltaSet weights, double value, double rate) {
+    public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate, int count) {
       this.delta = delta;
       this.weights = weights;
-      this.value = value;
+      this.sum = sum;
+      this.count = count;
       this.setRate(rate);
     }
     
     @Override
     public String toString() {
       final StringBuffer sb = new StringBuffer("PointSample{");
-      sb.append("value=").append(value);
+      sb.append("value=").append(sum);
       sb.append('}');
       return sb.toString();
     }
@@ -129,7 +138,7 @@ public interface Trainable {
      * @return the point sample
      */
     public PointSample copyDelta() {
-      return new PointSample(delta.copy(), weights, value, rate);
+      return new PointSample(delta.copy(), weights, sum, rate, count);
     }
   
     /**
@@ -138,14 +147,15 @@ public interface Trainable {
      * @return the point sample
      */
     public PointSample copyFull() {
-      return new PointSample(delta.copy(), weights.copy(), value, rate);
+      return new PointSample(delta.copy(), weights.copy(), sum, rate, count);
     }
   
     /**
      * Reset.
      */
-    public void reset() {
+    public PointSample reset() {
       weights.vector().stream().forEach(d -> d.overwrite());
+      return this;
     }
   
     /**
@@ -155,7 +165,7 @@ public interface Trainable {
      * @return the point sample
      */
     public PointSample add(PointSample right) {
-      return new PointSample(this.delta.add(right.delta), this.weights, this.value + right.value);
+      return new PointSample(this.delta.add(right.delta), this.weights, this.sum + right.sum, this.count + right.count);
     }
   }
 }

@@ -28,19 +28,20 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  */
 public class FailsafeLineSearchCursor implements LineSearchCursor {
   private final LineSearchCursor direction;
-  private LineSearchPoint best;
+  private final TrainingMonitor monitor;
+  private Trainable.PointSample best;
   
   /**
    * Instantiates a new Failsafe line search cursor.
-   *
-   * @param direction     the direction
+   *  @param direction     the direction
    * @param previousPoint the previous point
+   * @param monitor
    */
-  public FailsafeLineSearchCursor(LineSearchCursor direction, Trainable.PointSample previousPoint) {
+  public FailsafeLineSearchCursor(LineSearchCursor direction, Trainable.PointSample previousPoint, TrainingMonitor monitor) {
     this.direction = direction;
-    this.best = null;
-    assert 0 == previousPoint.rate;
-    accumulate(new LineSearchPoint(previousPoint, Double.NaN));
+    if(0.0 != previousPoint.rate) throw new IllegalArgumentException();
+    this.best = previousPoint;
+    this.monitor = monitor;
   }
   
   @Override
@@ -52,7 +53,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
   @Override
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     LineSearchPoint step = direction.step(alpha, monitor);
-    accumulate(step);
+    accumulate(step.point);
     return step;
   }
   
@@ -61,9 +62,10 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    *
    * @param step the step
    */
-  public void accumulate(LineSearchPoint step) {
-    if (null == this.best || this.best.point.value > step.point.value) {
-      this.best = step;
+  public void accumulate(Trainable.PointSample step) {
+    if (null == this.best || this.best.sum > step.sum) {
+      monitor.log(String.format("New Minimum: %s > %s", this.best.sum, step.sum));
+      this.best = step.copyFull();
     }
   }
   
@@ -83,8 +85,8 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * @param monitor the monitor
    * @return the best
    */
-  public LineSearchPoint getBest(TrainingMonitor monitor) {
-    return null==best?null:step(best.point.rate, monitor);
+  public Trainable.PointSample getBest(TrainingMonitor monitor) {
+    return best;
   }
   
 }

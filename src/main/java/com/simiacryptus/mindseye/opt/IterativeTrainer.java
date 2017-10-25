@@ -95,7 +95,7 @@ public class IterativeTrainer {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample currentPoint = measure();
     mainLoop:
-    while (timeoutMs > System.currentTimeMillis() && currentPoint.value > terminateThreshold) {
+    while (timeoutMs > System.currentTimeMillis() && currentPoint.sum > terminateThreshold) {
       if (currentIteration.get() > maxIterations) break;
       currentPoint = measure();
       assert (0 < currentPoint.delta.map.size()) : "Nothing to optimize";
@@ -115,32 +115,31 @@ public class IterativeTrainer {
           lineSearchStrategyMap.put(directionType, lineSearchStrategy);
         }
         PointSample previous = currentPoint;
-        FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous);
+        FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
         lineSearchStrategy.step(wrapped, monitor);
-        currentPoint = wrapped.getBest(monitor).point;
-        if (previous.value <= currentPoint.value) {
-          if (previous.value < currentPoint.value) {
+        currentPoint = wrapped.getBest(monitor);
+        if (previous.sum <= currentPoint.sum) {
+          if (previous.sum < currentPoint.sum) {
             monitor.log(String.format("Resetting Iteration"));
             currentPoint = direction.step(0, monitor).point;
           }
           if (subject.resetSampling()) {
-            monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.value));
+            monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.sum));
             break subiterationLoop;
           }
           else {
-            monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.value));
+            monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.sum));
             break mainLoop;
           }
         }
         else {
-          monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.value));
+          monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.sum));
         }
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
-        
       }
       orientation.reset();
     }
-    return null == currentPoint ? Double.NaN : currentPoint.value;
+    return null == currentPoint ? Double.NaN : currentPoint.sum;
   }
   
   /**
@@ -155,8 +154,8 @@ public class IterativeTrainer {
       if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
       currentPoint = subject.measure();
-    } while (!Double.isFinite(currentPoint.value));
-    assert (Double.isFinite(currentPoint.value));
+    } while (!Double.isFinite(currentPoint.sum));
+    assert (Double.isFinite(currentPoint.sum));
     return currentPoint;
   }
   

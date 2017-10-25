@@ -225,7 +225,7 @@ public class SparkTrainable implements Trainable {
       if(verbose) debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
       PointSample measure = trainable.setData(Arrays.asList(tensors)).measure();
       assert (measure != null);
-      return Arrays.asList(SparkTrainable.getResult(measure.delta, new double[]{measure.value})).iterator();
+      return Arrays.asList(SparkTrainable.getResult(measure.delta, new double[]{measure.sum})).iterator();
     }
   }
   

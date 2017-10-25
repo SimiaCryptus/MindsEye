@@ -57,7 +57,7 @@ public abstract class ArrayTrainable extends CachedTrainable<GpuTrainable> {
           throw new RuntimeException();
         }
         return getInner().setData(trainingData).measure();
-      }).reduce((a, b) -> new PointSample(a.delta.add(b.delta), a.weights, a.value + b.value)).get();
+      }).reduce((a, b) -> a.add(b)).get();
     } else {
       return getInner().setData(tensors).measure();
     }

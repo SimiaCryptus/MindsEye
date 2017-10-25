@@ -40,7 +40,7 @@ public class BisectionSearch implements LineSearchStrategy {
       LineSearchPoint searchPoint = cursor.step(leftX, monitor);
       monitor.log(String.format("F(%s) = %s", leftX, searchPoint));
       leftLineDeriv = searchPoint.derivative;
-      leftValue = searchPoint.point.value;
+      leftValue = searchPoint.point.sum;
     }
     
     double rightRight = Double.POSITIVE_INFINITY;
@@ -55,7 +55,7 @@ public class BisectionSearch implements LineSearchStrategy {
       rightPoint = cursor.step(rightX, monitor);
       monitor.log(String.format("F(%s)@%s = %s", rightX, loopCount, rightPoint));
       rightLineDeriv = rightPoint.derivative;
-      rightValue = rightPoint.point.value;
+      rightValue = rightPoint.point.sum;
       if (loopCount++ > 100) break;
       if ((rightRight - leftX) * 2.0 / (leftX + rightRight) < Math.pow(10, -3)) {
         monitor.log(String.format("Right limit is nonconvergent at %s/%s", leftX, rightRight));
@@ -97,7 +97,7 @@ public class BisectionSearch implements LineSearchStrategy {
           return searchPoint.point;
         }
         leftLineDeriv = searchPoint.derivative;
-        leftValue = searchPoint.point.value;
+        leftValue = searchPoint.point.sum;
         leftX = thisX;
       }
       else if (searchPoint.derivative > zeroTol) {
@@ -107,7 +107,7 @@ public class BisectionSearch implements LineSearchStrategy {
           return searchPoint.point;
         }
         rightLineDeriv = searchPoint.derivative;
-        rightValue = searchPoint.point.value;
+        rightValue = searchPoint.point.sum;
         rightX = thisX;
       }
       else {

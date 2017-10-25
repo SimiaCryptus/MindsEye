@@ -89,12 +89,12 @@ public class ValidatingOrientationStrategy implements OrientationStrategy {
     public void test(TrainingMonitor monitor, LineSearchPoint primaryPoint, double probeSize) {
       double tolerance = 1e-4;
       double alpha = primaryPoint.point.rate;
-      double probeAlpha = alpha + ((primaryPoint.point.value * probeSize) / primaryPoint.derivative);
+      double probeAlpha = alpha + ((primaryPoint.point.sum * probeSize) / primaryPoint.derivative);
       if (!Double.isFinite(probeAlpha) || probeAlpha == alpha) {
         probeAlpha = alpha + probeSize;
       }
       LineSearchPoint probePoint = cursor.step(probeAlpha, monitor);
-      double dy = probePoint.point.value - primaryPoint.point.value;
+      double dy = probePoint.point.sum - primaryPoint.point.sum;
       double dx = probeAlpha - alpha;
       double measuredDerivative = dy / dx;
       monitor.log(String.format("%s vs (%s, %s); probe=%s", measuredDerivative, primaryPoint.derivative, probePoint.derivative, probeSize));

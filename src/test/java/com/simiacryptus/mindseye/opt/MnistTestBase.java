@@ -150,7 +150,7 @@ public abstract class MnistTestBase {
     String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName,modelName));
     if(!history.isEmpty()) log.code(() -> {
-      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.value)}).toArray(i -> new double[i][]));
+      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.sum)}).toArray(i -> new double[i][]));
       plot.setTitle("Convergence Plot");
       plot.setAxisLabels("Iteration", "log10(Fitness)");
       plot.setSize(600, 400);

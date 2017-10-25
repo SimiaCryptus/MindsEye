@@ -76,12 +76,12 @@ public class LBFGS implements OrientationStrategy {
     else if (!measurement.weights.vector().stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
       if (verbose) monitor.log("Corrupt measurement");
     }
-    else if (history.isEmpty() || !history.stream().filter(x -> x.value == measurement.value).findAny().isPresent()) {
+    else if (history.isEmpty() || !history.stream().filter(x -> x.sum == measurement.sum).findAny().isPresent()) {
       if (verbose) {
         monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(measurement)), history.size()));
       }
       history.add(measurement);
-      Collections.sort(history, Comparator.comparing(x -> -x.value));
+      Collections.sort(history, Comparator.comparing(x -> -x.sum));
       while (history.size() > maxHistory) {
         PointSample remove = history.remove(0);
         if (verbose) {

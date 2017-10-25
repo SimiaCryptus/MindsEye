@@ -134,7 +134,7 @@ public class LayerRateDiagnosticTrainer {
     PointSample measure = measure();
     ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.map.keySet());
     mainLoop:
-    while (timeoutMs > System.currentTimeMillis() && measure.value > terminateThreshold) {
+    while (timeoutMs > System.currentTimeMillis() && measure.sum > terminateThreshold) {
       if (currentIteration.get() > maxIterations) break;
       final PointSample initialPhasePoint = measure();
       
@@ -145,7 +145,7 @@ public class LayerRateDiagnosticTrainer {
         
         {
           SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
-          double stepSize = 1e-12 * orient.origin.value;
+          double stepSize = 1e-12 * orient.origin.sum;
           DeltaSet pointB = orient.step(stepSize, monitor).point.delta.copy();
           DeltaSet pointA = orient.step(0.0, monitor).point.delta.copy();
           DeltaSet d1 = pointA;
@@ -180,23 +180,23 @@ public class LayerRateDiagnosticTrainer {
           PointSample previous = measure;
           measure = getLineSearchStrategy().step(orient, monitor);
           if (isStrict()) {
-            monitor.log(String.format("Iteration %s reverting. Error: %s", currentIteration.get(), measure.value));
+            monitor.log(String.format("Iteration %s reverting. Error: %s", currentIteration.get(), measure.sum));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
-            if (null == bestPoint || bestPoint.value < measure.value) {
+            if (null == bestPoint || bestPoint.sum < measure.sum) {
               bestOrient = orient;
               bestPoint = measure;
             }
-            getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.value - measure.value));
+            getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.sum - measure.sum));
             orient.step(0, monitor);
             measure = previous;
           }
-          else if (previous.value == measure.value) {
-            monitor.log(String.format("Iteration %s failed. Error: %s", currentIteration.get(), measure.value));
+          else if (previous.sum == measure.sum) {
+            monitor.log(String.format("Iteration %s failed. Error: %s", currentIteration.get(), measure.sum));
           }
           else {
-            monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.value));
+            monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.sum));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
-            getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.value - measure.value));
+            getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.sum - measure.sum));
           }
         }
         monitor.log(String.format("Ideal rates: %s", getLayerRates()));
@@ -237,8 +237,8 @@ public class LayerRateDiagnosticTrainer {
       if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
       currentPoint = subject.measure();
-    } while (!Double.isFinite(currentPoint.value));
-    assert (Double.isFinite(currentPoint.value));
+    } while (!Double.isFinite(currentPoint.sum));
+    assert (Double.isFinite(currentPoint.sum));
     return currentPoint;
   }
   

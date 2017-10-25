@@ -93,11 +93,11 @@ public class QuadraticSearch implements LineSearchStrategy {
         test = thisPoint.derivative < 0;
       }
       if (test) {
-        if (thisPoint.point.value > leftPoint.point.value) {
-          monitor.log(String.format("%s > %s", thisPoint.point.value, leftPoint.point.value));
+        if (thisPoint.point.sum > leftPoint.point.sum) {
+          monitor.log(String.format("%s > %s", thisPoint.point.sum, leftPoint.point.sum));
           return filter(cursor, leftPoint.point, monitor);
         }
-        if (!isBracketed && leftPoint.point.value < rightPoint.point.value) {
+        if (!isBracketed && leftPoint.point.sum < rightPoint.point.sum) {
           rightX = leftX;
           rightPoint = leftPoint;
         }
@@ -106,11 +106,11 @@ public class QuadraticSearch implements LineSearchStrategy {
         monitor.log(String.format("Left bracket at %s", thisX));
       }
       else {
-        if (thisPoint.point.value > rightPoint.point.value) {
-          monitor.log(String.format("%s > %s", thisPoint.point.value, rightPoint.point.value));
+        if (thisPoint.point.sum > rightPoint.point.sum) {
+          monitor.log(String.format("%s > %s", thisPoint.point.sum, rightPoint.point.sum));
           return filter(cursor, rightPoint.point, monitor);
         }
-        if (!isBracketed && rightPoint.point.value < leftPoint.point.value) {
+        if (!isBracketed && rightPoint.point.sum < leftPoint.point.sum) {
           leftX = rightX;
           leftPoint = rightPoint;
         }
@@ -257,7 +257,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       this.cursor = cursor;
       this.monitor = monitor;
       this.initialPoint = leftPoint;
-      thisX = getCurrentRate() > 0 ? getCurrentRate() : Math.abs(leftPoint.point.value * 1e-4 / leftPoint.derivative);
+      thisX = getCurrentRate() > 0 ? getCurrentRate() : Math.abs(leftPoint.point.sum * 1e-4 / leftPoint.derivative);
       thisPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s, F' = %s", thisX, thisPoint, thisPoint.derivative));
     }
@@ -289,7 +289,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       double lastX = thisX;
       int loops = 0;
       while (true) {
-        if (thisPoint.point.value > initialPoint.point.value) {
+        if (thisPoint.point.sum > initialPoint.point.sum) {
           thisX = thisX / 3;
         }
         else {
