@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
+import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.Util;
 
 import java.time.Duration;
@@ -49,7 +50,7 @@ public class ValidatingTrainer {
   private final Trainable validationSubject;
   private Duration timeout;
   private double terminateThreshold;
-  private OrientationStrategy orientation = new LBFGS();
+  private OrientationStrategy orientation = new QQN();
   private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
   private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
@@ -66,6 +67,7 @@ public class ValidatingTrainer {
   private double adjustmentTolerance = 0.1;
   private double adjustmentFactor = 0.5;
   private int disappointmentThreshold = 0;
+  private double pessimism = 3;
   private final AtomicInteger disappointments = new AtomicInteger(0);
   
   /**
@@ -116,7 +118,7 @@ public class ValidatingTrainer {
       EpochResult epochResult = epoch(epochParams);
       double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(epochResult.getValidationDelta()), adjustmentFactor);
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
-      boolean antivalidated = Math.random() > (1 - epochResult.getValidationDelta());
+      boolean antivalidated = Math.random() > Math.pow((1 - epochResult.getValidationDelta()), pessimism);
       boolean saturated = epochParams.trainingSize >= getMaxTrainingSize();
       monitor.log(String.format("Epoch result with %s iter, %s samples: {validation delta = %.6f; training delta = %.6f; Overtraining = %.3f}, {%.3f, %.3f}",
         epochResult.iterations, epochParams.trainingSize, epochResult.getValidationDelta(), epochResult.getTrainingDelta(), epochResult.getOverTrainingCoeff(), adj1, adj2));
@@ -599,6 +601,14 @@ public class ValidatingTrainer {
   
   public void setDisappointmentThreshold(int disappointmentThreshold) {
     this.disappointmentThreshold = disappointmentThreshold;
+  }
+  
+  public double getPessimism() {
+    return pessimism;
+  }
+  
+  public void setPessimism(double pessimism) {
+    this.pessimism = pessimism;
   }
   
   private class StepResult {

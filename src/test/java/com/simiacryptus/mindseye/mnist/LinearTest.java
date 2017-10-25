@@ -61,9 +61,9 @@ public class LinearTest extends MnistTestBase {
                .setMaxTrainingSize(100000)
                .setMonitor(monitor)
                .setOrientation(new QQN())
-               .setLineSearchFactory(name->new QuadraticSearch()
-                                             .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-                                             .setRelativeTolerance(2e-1))
+//               .setLineSearchFactory(name->new QuadraticSearch()
+//                                             .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
+//                                             .setRelativeTolerance(2e-1))
                .setTimeout(8, TimeUnit.HOURS)
                .setMaxIterations(10000)
                .run();

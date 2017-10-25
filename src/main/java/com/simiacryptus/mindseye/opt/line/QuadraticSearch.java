@@ -85,14 +85,14 @@ public class QuadraticSearch implements LineSearchStrategy {
         monitor.log(String.format("%s ~= %s", leftX, rightX));
         return filter(cursor, thisPoint.point, monitor);
       }
-      boolean test;
+      boolean isLeft;
       if (!isBracketed) {
-        test = Math.abs(rightPoint.point.rate - thisPoint.point.rate) > Math.abs(leftPoint.point.rate - thisPoint.point.rate);
+        isLeft = Math.abs(rightPoint.point.rate - thisPoint.point.rate) > Math.abs(leftPoint.point.rate - thisPoint.point.rate);
       }
       else {
-        test = thisPoint.derivative < 0;
+        isLeft = thisPoint.derivative < 0;
       }
-      if (test) {
+      if (isLeft) {
         if (thisPoint.point.getMean() > leftPoint.point.getMean()) {
           monitor.log(String.format("%s > %s", thisPoint.point.getMean(), leftPoint.point.getMean()));
           return filter(cursor, leftPoint.point, monitor);
