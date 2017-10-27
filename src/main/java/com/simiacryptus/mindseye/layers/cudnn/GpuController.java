@@ -102,6 +102,7 @@ public final class GpuController {
       CudaExecutionContext dev = devices.get(i);
       int sampleSize = (int) Math.max(1, ((data.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0)));
       int end = start + sampleSize;
+      if(i == devices.size()-1) end = data.size();
       List<U> subList = data.subList(start, Math.min(end, data.size()));
       if (subList.isEmpty()) continue;
       try {

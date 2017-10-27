@@ -25,11 +25,11 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Avg meta layer test.
  */
-public class AvgNormalizationMetaLayerTest extends LayerTestBase {
+public class NormalizationMetaLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new AvgNormalizationMetaLayer();
+    return new NormalizationMetaLayer();
   }
   
   @Override

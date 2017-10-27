@@ -20,19 +20,20 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.MNIST;
+import com.simiacryptus.mindseye.eval.ArrayTrainable;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
-import com.simiacryptus.mindseye.opt.MnistTestBase;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.eval.StaticArrayTrainable;
 import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.util.MonitoredObject;
@@ -50,7 +51,7 @@ import java.util.stream.Stream;
 public class LinearTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       return new ValidatingTrainer(
@@ -61,9 +62,9 @@ public class LinearTest extends MnistTestBase {
                .setMaxTrainingSize(100000)
                .setMonitor(monitor)
                .setOrientation(new QQN())
-//               .setLineSearchFactory(name->new QuadraticSearch()
-//                                             .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-//                                             .setRelativeTolerance(2e-1))
+               .setLineSearchFactory(name->new QuadraticSearch()
+                                             .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
+                                             .setRelativeTolerance(2e-1))
                .setTimeout(8, TimeUnit.HOURS)
                .setMaxIterations(10000)
                .run();
@@ -103,7 +104,7 @@ public class LinearTest extends MnistTestBase {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return new StaticArrayTrainable(validationData, supervisedNetwork, 50000);
+    return new ArrayTrainable(validationData, supervisedNetwork, 50000);
     //return new StochasticArrayTrainable(validationData, supervisedNetwork, 50000);
   }
   
@@ -165,7 +166,7 @@ public class LinearTest extends MnistTestBase {
   }
   
   @Override
-  public PipelineNetwork buildModel(NotebookOutput log) {
+  public DAGNetwork buildModel(NotebookOutput log) {
     log.p("");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
@@ -185,7 +186,7 @@ public class LinearTest extends MnistTestBase {
    * @param history        the history
    * @param network        the network
    */
-  public void run(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history, PipelineNetwork network) {
+  public void run(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history, NNLayer network) {
     train(log, network, trainingData, monitor);
     report(log, monitoringRoot, history, network);
     validate(log, network);

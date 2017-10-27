@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.mindseye.lang.NNLayer.ConstNNResult;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 
 import java.util.Arrays;
@@ -83,11 +82,10 @@ public abstract class NNResult {
    * @return - Returns a result array for NNLayer evaluation
    */
   public static NNResult[] batchResultArray(Tensor[][] batchData) {
-    return IntStream.range(0, batchData[0].length).mapToObj(inputIndex -> {
-      Tensor[] inputBatch = IntStream.range(0, batchData.length)
-                              .mapToObj(trainingExampleId -> batchData[trainingExampleId][inputIndex]).toArray(i -> new Tensor[i]);
-      return new ConstNNResult(inputBatch);
-    }).toArray(x -> new NNResult[x]);
+    return IntStream.range(0, batchData[0].length).mapToObj(inputIndex ->
+      new ConstNNResult(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
+        batchData[trainingExampleId][inputIndex]
+    ).toArray(i -> new Tensor[i]))).toArray(x -> new NNResult[x]);
   }
   
   /**

@@ -17,9 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.MNIST;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
@@ -27,7 +28,10 @@ import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.layers.util.MonitoringWrapper;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.InnerNode;
+import com.simiacryptus.mindseye.opt.Step;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
@@ -70,7 +74,7 @@ public abstract class MnistTestBase {
       TrainingMonitor monitor = getMonitor(originalOut, history);
       Tensor[][] trainingData = getTrainingData(log);
       for(int i = 0; i< iterations; i++) {
-        PipelineNetwork network = _test(log, monitoringRoot, monitor, trainingData, history);
+        NNLayer network = _test(log, monitoringRoot, monitor, trainingData, history);
         report(log, monitoringRoot, history, network);
       }
     }
@@ -86,9 +90,9 @@ public abstract class MnistTestBase {
    * @param history        the history
    * @return the pipeline network
    */
-  protected PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
+  protected NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("First, define a model:");
-    PipelineNetwork network = buildModel(log);
+    DAGNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
     train(log, network, trainingData, monitor);
     validate(log, network);
@@ -137,7 +141,7 @@ public abstract class MnistTestBase {
    * @param history        the history
    * @param network        the network
    */
-  public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history, PipelineNetwork network) {
+  public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history, NNLayer network) {
     log.code(() -> {
       try {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -164,7 +168,7 @@ public abstract class MnistTestBase {
    * @param network        the network
    * @param monitoringRoot the monitoring root
    */
-  public void addMonitoring(PipelineNetwork network, MonitoredObject monitoringRoot) {
+  public void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
     network.visitNodes(node -> {
       if (node instanceof InnerNode && !(node.getLayer() instanceof MonitoringWrapper)) {
         ((InnerNode) node).setLayer(new MonitoringWrapper(node.getLayer()).addTo(monitoringRoot));
@@ -177,7 +181,7 @@ public abstract class MnistTestBase {
    *
    * @param network the network
    */
-  public void removeMonitoring(PipelineNetwork network) {
+  public void removeMonitoring(DAGNetwork network) {
     network.visitNodes(node -> {
       if (node instanceof InnerNode && (node.getLayer() instanceof MonitoringWrapper)) {
         ((InnerNode) node).setLayer(((MonitoringWrapper)node.getLayer()).getInner());
@@ -193,7 +197,7 @@ public abstract class MnistTestBase {
    * @param trainingData the training data
    * @param monitor      the monitor
    */
-  public abstract void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor);
+  public abstract void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor);
   
   /**
    * Validate.
@@ -201,7 +205,7 @@ public abstract class MnistTestBase {
    * @param log     the log
    * @param network the network
    */
-  public void validate(NotebookOutput log, PipelineNetwork network) {
+  public void validate(NotebookOutput log, NNLayer network) {
     log.p("If we test our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       try {
@@ -273,7 +277,7 @@ public abstract class MnistTestBase {
    * @param log the log
    * @return the pipeline network
    */
-  public PipelineNetwork buildModel(NotebookOutput log) {
+  public DAGNetwork buildModel(NotebookOutput log) {
     log.p("This is a very simple model that performs basic logistic regression. " +
             "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {

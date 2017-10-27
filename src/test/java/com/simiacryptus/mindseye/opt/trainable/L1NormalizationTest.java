@@ -25,10 +25,9 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.MnistTestBase;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -40,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class L1NormalizationTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       Trainable trainable = new L12Normalizer(new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000)) {

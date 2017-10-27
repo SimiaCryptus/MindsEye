@@ -32,7 +32,8 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 
 /**
- * The type Std dev meta layer.
+ * Using a gaussian model based on mean/stddev metrics, calculates the fraction of positive values.
+ * Operates per-element, reducing the data to a single batch. Statistics and models are calculated per-element.
  */
 @SuppressWarnings("serial")
 public class SignMetaLayer extends DAGNetwork {

@@ -302,7 +302,7 @@ public abstract class DAGNetwork extends NNLayer {
    *
    * @return the dag network
    */
-  public DAGNetwork addInput() {
+  public NNLayer addInput() {
     UUID key = UUID.randomUUID();
     inputHandles.add(key);
     inputNodes.put(key, new InputNode(this, key));
@@ -314,7 +314,7 @@ public abstract class DAGNetwork extends NNLayer {
    *
    * @return the dag network
    */
-  public DAGNetwork removeLastInput() {
+  public NNLayer removeLastInput() {
     int index = inputHandles.size() - 1;
     UUID key = inputHandles.remove(index);
     inputNodes.remove(key);
@@ -427,7 +427,7 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public DAGNetwork freeze() {
+  public NNLayer freeze() {
     visitLayers(new Consumer<NNLayer>() {
       @Override
       public void accept(NNLayer layer) {

@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * <p>
  * TODO: Redesign this package. This class is absorbing too many features.
  */
-public class StochasticArrayTrainable extends CachedTrainable<StaticArrayTrainable> {
+public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> {
   
   private static final int LOW_MEM_USE = 4 * 1024 * 1024 * 1024;
   private final List<? extends Supplier<Tensor[]>> trainingData;
@@ -51,7 +51,7 @@ public class StochasticArrayTrainable extends CachedTrainable<StaticArrayTrainab
    * @param batchSize    the batch size
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, int batchSize) {
-    super(new StaticArrayTrainable(network, batchSize));
+    super(new ArrayTrainable(network, batchSize));
     if (0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<Tensor[]>(() -> obj)).collect(Collectors.toList());
     this.trainingSize = trainingSize;
@@ -89,7 +89,7 @@ public class StochasticArrayTrainable extends CachedTrainable<StaticArrayTrainab
    * @param batchSize    the batch size
    */
   public StochasticArrayTrainable(List<? extends Supplier<Tensor[]>> trainingData, NNLayer network, int trainingSize, int batchSize) {
-    super(new StaticArrayTrainable(null, network, batchSize));
+    super(new ArrayTrainable(null, network, batchSize));
     if (0 == trainingData.size()) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.trainingSize = trainingSize;
@@ -122,7 +122,7 @@ public class StochasticArrayTrainable extends CachedTrainable<StaticArrayTrainab
    * @param trainingSize the training size
    * @return the training size
    */
-  public StochasticArrayTrainable setTrainingSize(final int trainingSize) {
+  public Trainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
     return this;

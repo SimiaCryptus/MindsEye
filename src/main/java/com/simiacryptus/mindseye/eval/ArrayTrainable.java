@@ -19,67 +19,67 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * The type Array trainable.
  */
-public abstract class ArrayTrainable extends CachedTrainable<GpuTrainable> {
+public class ArrayTrainable extends BatchedTrainable {
   
-  /**
-   * The Batch size.
-   */
-  protected final int batchSize;
+  private Tensor[][] trainingData;
   
   /**
    * Instantiates a new Array trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   */
+  public ArrayTrainable(Tensor[][] trainingData, NNLayer network) {
+    this(trainingData, network, trainingData.length);
+  }
+  
+  /**
+   * Instantiates a new Static array trainable.
    *
    * @param network   the network
    * @param batchSize the batch size
    */
   public ArrayTrainable(NNLayer network, int batchSize) {
-    super(new GpuTrainable(network));
-    this.batchSize = batchSize;
-  }
-  
-  @Override
-  public PointSample measure() {
-    List<Tensor[]> tensors = Arrays.asList(getTrainingData());
-    if(batchSize < tensors.size()) {
-      List<List<Tensor[]>> collection = Lists.partition(tensors, batchSize);
-      return collection.stream().map(trainingData -> {
-        if(batchSize < trainingData.size()) {
-          throw new RuntimeException();
-        }
-        return getInner().setData(trainingData).measure();
-      }).reduce((a, b) -> a.add(b)).get();
-    } else {
-      return getInner().setData(tensors).measure();
-    }
-  }
-  
-  @Override
-  public void resetToFull() {
+    this(null, network, batchSize);
   }
   
   /**
-   * Gets batch size.
+   * Instantiates a new Array trainable.
    *
-   * @return the batch size
+   * @param trainingData the training data
+   * @param network      the network
+   * @param batchSize    the batch size
    */
-  public int getBatchSize() {
-    return batchSize;
+  public ArrayTrainable(Tensor[][] trainingData, NNLayer network, int batchSize) {
+    super(network, batchSize);
+    this.trainingData = trainingData;
+  }
+  
+  @Override
+  public Trainable setData(List<Tensor[]> tensors) {
+    trainingData = tensors.toArray(new Tensor[][]{});
+    return this;
+  }
+  
+  @Override
+  public Tensor[][] getData() {
+    return trainingData;
   }
   
   /**
-   * Get training data tensor [ ] [ ].
+   * Sets training data.
    *
-   * @return the tensor [ ] [ ]
+   * @param trainingData the training data
    */
-  public abstract Tensor[][] getTrainingData();
+  public void setTrainingData(Tensor[][] trainingData) {
+    this.trainingData = trainingData;
+  }
 }

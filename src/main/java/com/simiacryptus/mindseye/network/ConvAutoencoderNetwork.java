@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.eval.ConstL12Normalizer;
 import com.simiacryptus.mindseye.eval.L12Normalizer;
 import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.activation.GaussianNoiseLayer;
 import com.simiacryptus.mindseye.layers.activation.MaxDropoutNoiseLayer;
@@ -461,7 +462,7 @@ public class ConvAutoencoderNetwork implements MonitoredItem {
      */
     public void train(TensorList data) {
       SimpleLossNetwork trainingNetwork = getTrainingNetwork();
-      StochasticArrayTrainable trainable = new StochasticArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
+      Trainable trainable = new StochasticArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
       L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
       IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());

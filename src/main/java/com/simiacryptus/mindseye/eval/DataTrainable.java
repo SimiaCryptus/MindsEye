@@ -19,46 +19,17 @@
 
 package com.simiacryptus.mindseye.eval;
 
-/**
- * The type Trainable wrapper.
- *
- * @param <T> the type parameter
- */
-public class TrainableWrapper<T extends Trainable> implements Trainable {
-  
-  private final T inner;
+import com.simiacryptus.mindseye.lang.Tensor;
+
+import java.util.List;
+
+public interface DataTrainable extends Trainable {
+  Trainable setData(List<Tensor[]> tensors);
   
   /**
-   * Instantiates a new Trainable wrapper.
+   * Get training data tensor [ ] [ ].
    *
-   * @param inner the inner
+   * @return the tensor [ ] [ ]
    */
-  public TrainableWrapper(T inner) {
-    this.inner = inner;
-  }
-  
-  @Override
-  public PointSample measure() {
-    return inner.measure();
-  };
-  
-  /**
-   * Gets inner.
-   *
-   * @return the inner
-   */
-  public T getInner() {
-    return inner;
-  }
-  
-  @Override
-  public void resetToFull() {
-    getInner().resetToFull();
-  }
-  
-  @Override
-  public boolean resetSampling() {
-    return getInner().resetSampling();
-  }
-  
+  Tensor[][] getData();
 }

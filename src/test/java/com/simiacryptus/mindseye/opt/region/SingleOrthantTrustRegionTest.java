@@ -19,13 +19,13 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
+import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.MnistTestBase;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
@@ -39,10 +39,10 @@ import java.util.concurrent.TimeUnit;
 public class SingleOrthantTrustRegionTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      StochasticArrayTrainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 10000);
+      Trainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 10000);
       TrustRegionStrategy trustRegionStrategy = new TrustRegionStrategy() {
         @Override
         public TrustRegion getRegionPolicy(NNLayer layer) {

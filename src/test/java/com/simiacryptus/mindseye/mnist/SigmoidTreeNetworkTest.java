@@ -19,16 +19,16 @@
 
 package com.simiacryptus.mindseye.mnist;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
-import com.simiacryptus.mindseye.mnist.LinearTest;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.PolynomialConvolutionNetwork;
 import com.simiacryptus.mindseye.network.SigmoidTreeNetwork;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.MonitoredObject;
@@ -52,7 +52,7 @@ public class SigmoidTreeNetworkTest extends LinearTest {
   protected SigmoidTreeNetwork tree;
 
   @Override
-  public PipelineNetwork buildModel(NotebookOutput log) {
+  public DAGNetwork buildModel(NotebookOutput log) {
     log.p("This is a very simple model that performs basic logistic regression. " +
             "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
@@ -70,10 +70,10 @@ public class SigmoidTreeNetworkTest extends LinearTest {
   }
 
   @Override
-  public PipelineNetwork _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
+  public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p(description);
     log.p("First, define a model:");
-    PipelineNetwork network = buildModel(log);
+    NNLayer network = buildModel(log);
     run(log, monitoringRoot, monitor, trainingData, history, network);
     tree.nextPhase();
     run(log, monitoringRoot, monitor, trainingData, history, network);

@@ -19,32 +19,28 @@
 
 package com.simiacryptus.mindseye.eval;
 
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import jcuda.runtime.JCuda;
 
-import java.util.Arrays;
-import java.util.DoubleSummaryStatistics;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 /**
  * The type Gpu trainable.
  */
-public class GpuTrainable implements Trainable {
+public class GpuTrainable implements DataTrainable {
+  
   /**
    * The Network.
    */
   protected final NNLayer network;
-  /**
-   * The Training size.
-   */
-  protected int trainingSize = Integer.MAX_VALUE;
   /**
    * The Gc each iteration.
    */
@@ -55,6 +51,7 @@ public class GpuTrainable implements Trainable {
   protected List<Tensor[]> data;
   
   private boolean verbose = false;
+  private boolean[] dynamicMask = null;
   
   /**
    * Instantiates a new Gpu trainable.
@@ -62,7 +59,13 @@ public class GpuTrainable implements Trainable {
    * @param network the network
    */
   public GpuTrainable(NNLayer network) {
+    this(network, null, null);
+  }
+  
+  public GpuTrainable(NNLayer network, List<Tensor[]> data, boolean[] dynamicMask) {
     this.network = network;
+    this.data = data;
+    this.dynamicMask = dynamicMask;
   }
   
   @Override
@@ -80,9 +83,11 @@ public class GpuTrainable implements Trainable {
     try {
       assert !data.isEmpty();
       PointSample result = GpuController.INSTANCE.distribute(data,
-        (list, dev) -> eval(NNResult.batchResultArray(list.stream().toArray(i1 -> new Tensor[i1][])), dev),
+        (list, dev) -> eval(list, dev),
         (a, b) -> a.add(b)
       );
+      //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.map.size()));
+  
       assert (null != result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
@@ -118,12 +123,12 @@ public class GpuTrainable implements Trainable {
   /**
    * Eval point sample.
    *
-   * @param input     the input
+   * @param list the input
    * @param nncontext the nncontext
    * @return the point sample
    */
-  protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
-    NNResult result = network.eval(nncontext, input);
+  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext) {
+    NNResult result = network.eval(nncontext, getNNContext(list));
     TensorList resultData = result.getData();
     assert (resultData.stream().allMatch(x -> x.dim() == 1));
     assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
@@ -132,14 +137,43 @@ public class GpuTrainable implements Trainable {
     double sum = statistics.getAverage();
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet, 1.0 / statistics.getCount());
+    System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.map.size()));
     assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
       stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
     assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-
     return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
+  }
+  
+  private NNResult[] getNNContext(List<Tensor[]> list) {
+    Tensor[] head = list.get(0);
+    return IntStream.range(0, head.length).mapToObj(inputIndex -> {
+      Tensor[] array = IntStream.range(0, list.size()).mapToObj(trainingExampleId -> {
+          return list.get(trainingExampleId)[inputIndex];
+        }
+      ).toArray(i -> new Tensor[i]);
+      if(null == dynamicMask || !dynamicMask[inputIndex]) {
+        return new ConstNNResult(array);
+      } else {
+        return new NNResult(array){
+          InputNNLayer layer = new InputNNLayer();
+          
+          @Override
+          public void accumulate(DeltaSet buffer, TensorList data) {
+            for(int index=0;index<data.length();index++){
+              buffer.get(layer, array[index]).accumulate(data.get(index).getData());
+            }
+          }
+          
+          @Override
+          public boolean isAlive() {
+            return true;
+          }
+        };
+      }
+    }).toArray(x1 -> new NNResult[x1]);
   }
   
   /**
@@ -175,10 +209,15 @@ public class GpuTrainable implements Trainable {
    * @param sampledData the sampled data
    * @return the data
    */
-  public GpuTrainable setData(List<Tensor[]> sampledData) {
+  public Trainable setData(List<Tensor[]> sampledData) {
     assert !sampledData.isEmpty();
     this.data = sampledData;
     return this;
+  }
+  
+  @Override
+  public Tensor[][] getData() {
+    return data.toArray(new Tensor[][]{});
   }
   
   /**
@@ -195,7 +234,34 @@ public class GpuTrainable implements Trainable {
    *
    * @param verbose the verbose
    */
-  public void setVerbose(boolean verbose) {
+  public GpuTrainable setVerbose(boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+  
+  public boolean[] getDynamicMask() {
+    return dynamicMask;
+  }
+  
+  public GpuTrainable setDynamicMask(boolean[] dynamicMask) {
+    this.dynamicMask = dynamicMask;
+    return this;
+  }
+  
+  private static class InputNNLayer extends NNLayer {
+    @Override
+    public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
+      throw new IllegalStateException();
+    }
+    
+    @Override
+    public JsonObject getJson() {
+      throw new IllegalStateException();
+    }
+    
+    @Override
+    public List<double[]> state() {
+      throw new IllegalStateException();
+    }
   }
 }

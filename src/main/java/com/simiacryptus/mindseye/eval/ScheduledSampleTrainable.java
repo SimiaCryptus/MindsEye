@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.PercentileStatistics;
 import com.simiacryptus.util.ScalarStatistics;
 import com.simiacryptus.util.Util;
@@ -46,7 +45,7 @@ public class ScheduledSampleTrainable implements Trainable {
    * @param initialIncrease the initial increase
    * @return the scheduled sample trainable
    */
-  public static ScheduledSampleTrainable Sqrt(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double initialIncrease) {
+  public static ScheduledSampleTrainable Sqrt(Tensor[][] trainingData, NNLayer network, int trainingSize, double initialIncrease) {
     return Pow(trainingData, network, trainingSize, initialIncrease, -0.5);
   }
   
@@ -60,12 +59,12 @@ public class ScheduledSampleTrainable implements Trainable {
    * @param pow             the pow
    * @return the scheduled sample trainable
    */
-  public static ScheduledSampleTrainable Pow(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double initialIncrease, double pow) {
+  public static ScheduledSampleTrainable Pow(Tensor[][] trainingData, NNLayer network, int trainingSize, double initialIncrease, double pow) {
     return new ScheduledSampleTrainable(trainingData, network, trainingSize, initialIncrease / Math.pow(trainingSize, pow)).setIncreasePower(pow);
   }
   
   private final Tensor[][] trainingData;
-  private final DAGNetwork network;
+  private final NNLayer network;
   private long hash = Util.R.get().nextLong();
   private double trainingSize = Integer.MAX_VALUE;
   private int trainingSizeMax = Integer.MAX_VALUE;
@@ -83,7 +82,7 @@ public class ScheduledSampleTrainable implements Trainable {
    * @param trainingSize       the training size
    * @param increaseMultiplier the increase multiplier
    */
-  public ScheduledSampleTrainable(Tensor[][] trainingData, DAGNetwork network, int trainingSize, double increaseMultiplier) {
+  public ScheduledSampleTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize, double increaseMultiplier) {
     this.trainingData = trainingData;
     this.network = network;
     this.trainingSize = trainingSize;

@@ -25,10 +25,9 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.MnistTestBase;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -40,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class L2NormalizationTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
             "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
             "Finally, we use a simple iterative scheme to refine the weights of our model. " +

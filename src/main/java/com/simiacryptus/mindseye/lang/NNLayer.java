@@ -293,29 +293,4 @@ public abstract class NNLayer implements Serializable {
     return this;
   }
   
-  /**
-   * The type Const nn result.
-   */
-  public static final class ConstNNResult extends NNResult {
-  
-    /**
-     * Instantiates a new Const nn result.
-     *
-     * @param data the data
-     */
-    public ConstNNResult(final Tensor... data) {
-      super(data);
-    }
-    
-    @Override
-    public void accumulate(final DeltaSet buffer, final TensorList data) {
-      // Do Nothing
-    }
-    
-    @Override
-    public boolean isAlive() {
-      return false;
-    }
-  }
-  
 }

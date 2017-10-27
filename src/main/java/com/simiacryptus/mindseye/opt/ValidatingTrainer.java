@@ -112,6 +112,7 @@ public class ValidatingTrainer {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     EpochParams epochParams = new EpochParams(timeoutMs, epochIterations, getTrainingSize(), validationSubject.measure());
     PointSample currentPoint = resetAndMeasure();
+    int epochNumber = 0;
     while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
       if (shouldHalt(timeoutMs)) break;
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
@@ -120,8 +121,8 @@ public class ValidatingTrainer {
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
       boolean antivalidated = Math.random() > Math.pow((1 - epochResult.getValidationDelta()), pessimism);
       boolean saturated = epochParams.trainingSize >= getMaxTrainingSize();
-      monitor.log(String.format("Epoch result with %s iter, %s samples: {validation delta = %.6f; training delta = %.6f; Overtraining = %.3f}, {%.3f, %.3f}",
-        epochResult.iterations, epochParams.trainingSize, epochResult.getValidationDelta(), epochResult.getTrainingDelta(), epochResult.getOverTrainingCoeff(), adj1, adj2));
+      monitor.log(String.format("Epoch %d result with %s iterations, %s samples: {validation *= 2^%.3f; training *= 2^%.3f; Overtraining = %.3f}, {itr*=%.3f, len*=%.3f}",
+        ++epochNumber, epochResult.iterations, epochParams.trainingSize, Math.log(epochResult.getValidationDelta())/Math.log(2), Math.log(epochResult.getTrainingDelta())/Math.log(2), epochResult.getOverTrainingCoeff(), adj1, adj2));
       if (!epochResult.continueTraining) break;
       if (antivalidated && saturated) {
         if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {

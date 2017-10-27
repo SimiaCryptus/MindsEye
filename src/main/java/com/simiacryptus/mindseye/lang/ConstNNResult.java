@@ -17,48 +17,29 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.eval;
+package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Trainable wrapper.
- *
- * @param <T> the type parameter
+ * The type Const nn result.
  */
-public class TrainableWrapper<T extends Trainable> implements Trainable {
-  
-  private final T inner;
-  
+public final class ConstNNResult extends NNResult {
+
   /**
-   * Instantiates a new Trainable wrapper.
+   * Instantiates a new Const nn result.
    *
-   * @param inner the inner
+   * @param data the data
    */
-  public TrainableWrapper(T inner) {
-    this.inner = inner;
+  public ConstNNResult(final Tensor... data) {
+    super(data);
   }
   
   @Override
-  public PointSample measure() {
-    return inner.measure();
-  };
-  
-  /**
-   * Gets inner.
-   *
-   * @return the inner
-   */
-  public T getInner() {
-    return inner;
+  public void accumulate(final DeltaSet buffer, final TensorList data) {
+    // Do Nothing
   }
   
   @Override
-  public void resetToFull() {
-    getInner().resetToFull();
+  public boolean isAlive() {
+    return false;
   }
-  
-  @Override
-  public boolean resetSampling() {
-    return getInner().resetSampling();
-  }
-  
 }

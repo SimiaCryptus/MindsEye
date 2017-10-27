@@ -38,7 +38,7 @@ import java.util.UUID;
  * The type Std dev meta layer.
  */
 @SuppressWarnings("serial")
-public class AvgNormalizationMetaLayer extends DAGNetwork {
+public class NormalizationMetaLayer extends DAGNetwork {
   
   /**
    * From json nn layer.
@@ -47,7 +47,7 @@ public class AvgNormalizationMetaLayer extends DAGNetwork {
    * @return the nn layer
    */
   public static NNLayer fromJson(JsonObject inner) {
-    return new AvgNormalizationMetaLayer(inner);
+    return new NormalizationMetaLayer(inner);
   }
   
   /**
@@ -55,27 +55,40 @@ public class AvgNormalizationMetaLayer extends DAGNetwork {
    *
    * @param json the json
    */
-  protected AvgNormalizationMetaLayer(JsonObject json) {
+  protected NormalizationMetaLayer(JsonObject json) {
     super(json);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(AvgNormalizationMetaLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(NormalizationMetaLayer.class);
   private final DAGNode head;
   
   /**
    * Instantiates a new Std dev meta layer.
    */
-  public AvgNormalizationMetaLayer() {
+  public NormalizationMetaLayer() {
     super(1);
-    DAGNode centered = add(new SumInputsLayer(),
-      getInput(0),
-      add(new LinearActivationLayer().setScale(-1), add(new AvgReducerLayer(), getInput(0)))
-    );
     this.head = add(new ProductInputsLayer(),
-      centered,
-      add(new NthPowerActivationLayer().setPower(-0.5), add(new AvgReducerLayer(), add(new SqActivationLayer(), centered)))
+      getInput(0),
+      add(new NthPowerActivationLayer().setPower(-0.5),
+        add(new AvgMetaLayer(),
+          add(new AvgReducerLayer(),
+            add(new SqActivationLayer(),
+              add(new SumInputsLayer(),
+                getInput(0),
+                add(
+                  new LinearActivationLayer().setScale(-1),
+                  add(
+                    new AvgMetaLayer(),
+                    getInput(0)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
     );
   }
   

@@ -182,8 +182,11 @@ public class DeltaSet {
     DeltaSet returnValue = new DeltaSet();
     map.forEach((layer, buffer) -> {
       returnValue.get(layer, buffer.target)
-        .accumulate(buffer.getDelta())
-        .accumulate(right.get(layer, buffer.target).getDelta());
+        .accumulate(buffer.getDelta());
+    });
+    right.map.forEach((layer, buffer) -> {
+      returnValue.get(layer, buffer.target)
+        .accumulate(buffer.getDelta());
     });
     return returnValue;
   }

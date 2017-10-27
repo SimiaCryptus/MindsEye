@@ -19,14 +19,14 @@
 
 package com.simiacryptus.mindseye.opt.trainable;
 
-import com.simiacryptus.mindseye.eval.StaticArrayTrainable;
+import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.MnistTestBase;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class SimpleGradientDescentTest extends MnistTestBase {
   
   @Override
-  public void train(NotebookOutput log, PipelineNetwork network, Tensor[][] trainingData, TrainingMonitor monitor) {
+  public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
             "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
             "Finally, we use a simple iterative scheme to refine the weights of our model. " +
@@ -52,7 +52,7 @@ public class SimpleGradientDescentTest extends MnistTestBase {
       ArrayList<Tensor[]> trainingList = new ArrayList<>(Arrays.stream(trainingData).collect(Collectors.toList()));
       Collections.shuffle(trainingList);
       Tensor[][] randomSelection = trainingList.subList(0, 10000).toArray(new Tensor[][]{});
-      Trainable trainable = new StaticArrayTrainable(randomSelection, supervisedNetwork);
+      Trainable trainable = new ArrayTrainable(randomSelection, supervisedNetwork);
       return new IterativeTrainer(trainable)
                .setMonitor(monitor)
                .setTimeout(3, TimeUnit.MINUTES)
