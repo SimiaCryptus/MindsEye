@@ -83,10 +83,10 @@ public class BiasLayer extends NNLayer {
   /**
    * Instantiates a new Bias layer.
    *
-   * @param outputDims the output dims
+   * @param dims the output dims
    */
-  public BiasLayer(final int... outputDims) {
-    this.bias = new double[Tensor.dim(outputDims)];
+  public BiasLayer(final int... dims) {
+    this.bias = new double[Tensor.dim(dims)];
   }
   
   /**
@@ -97,8 +97,14 @@ public class BiasLayer extends NNLayer {
    */
   public double[] add(final double[] input) {
     final double[] array = Tensor.obtain(input.length);
-    for (int i = 0; i < array.length; i++) {
-      array[i] = input[i] + this.bias[i];
+    if(1 == this.bias.length) {
+      for (int i = 0; i < array.length; i++) {
+        array[i] = input[i] + this.bias[0];
+      }
+    } else {
+      for (int i = 0; i < array.length; i++) {
+        array[i] = input[i] + this.bias[i];
+      }
     }
     return array;
   }
@@ -133,7 +139,14 @@ public class BiasLayer extends NNLayer {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           Delta deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
-          data.stream().parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
+          if(1 == BiasLayer.this.bias.length) {
+            data.stream().parallel().forEach(d -> {
+              double[] array = d.getData();
+              deltaBuffer.accumulate(1==array.length?array:new double[]{Arrays.stream(array).sum()});
+            });
+          } else {
+            data.stream().parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
+          }
         }
         if (0 < inObj.length && inObj[0].isAlive()) {
           inObj[0].accumulate(buffer, data);

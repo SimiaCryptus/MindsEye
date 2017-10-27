@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.ComponentException;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToIntFunction;
 
 /**
@@ -56,10 +57,13 @@ public class CudaResource<T> {
     return finalized;
   }
   
+  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
+  public final int objGeneration = gpuGeneration.get();
+  
   @Override
   public synchronized void finalize() {
     try {
-      if (!this.finalized) {
+      if (!this.finalized && isActiveObj()) {
         if (null != this.destructor) free();
         this.finalized = true;
       }
@@ -69,12 +73,20 @@ public class CudaResource<T> {
     }
   }
   
+  public boolean isActiveObj() {
+    synchronized (CudaResource.gpuGeneration) {
+      return objGeneration == gpuGeneration.get();
+    }
+  }
+  
   /**
    * Free.
    */
   protected void free() {
     try {
-      CuDNN.handle(this.destructor.applyAsInt(ptr));
+      if(isActiveObj()) {
+        CuDNN.handle(this.destructor.applyAsInt(ptr));
+      }
     } catch (Throwable e) {
       //new ComponentException("Error freeing resource " + this, e).printStackTrace(System.err);
     }

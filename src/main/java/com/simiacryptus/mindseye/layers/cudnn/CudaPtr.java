@@ -32,6 +32,7 @@ import jcuda.jcudnn.cudnnHandle;
 import jcuda.runtime.JCuda;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static jcuda.runtime.JCuda.*;
@@ -291,7 +292,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     CuDNN.handle(cudaMemset(this.getPtr(), 0, size));
   }
 
-  private GpuStats getGpuStats(int deviceId) {
+  public static GpuStats getGpuStats(int deviceId) {
     GpuStats devivceMemCtr;
     try {
       devivceMemCtr = METRICS.get(deviceId);
@@ -300,11 +301,13 @@ public class CudaPtr extends CudaResource<Pointer> {
     }
     return devivceMemCtr;
   }
-
+  
   @Override
   protected void free() {
-    super.free();
-    getGpuStats(deviceId).usedMemory.addAndGet(-size);
+    if(isActiveObj()) {
+      super.free();
+      getGpuStats(deviceId).usedMemory.addAndGet(-size);
+    }
   }
   
   /**

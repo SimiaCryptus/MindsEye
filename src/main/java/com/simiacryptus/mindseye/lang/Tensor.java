@@ -170,7 +170,7 @@ public class Tensor implements Serializable {
     BlockingQueue<double[]> bin = recycling.get(data.length);
     if (null == bin) {
       //System.err.println("New Recycle Bin: " + data.length);
-      bin = new ArrayBlockingQueue<double[]>((int) (1e8 / data.length));
+      bin = new ArrayBlockingQueue<double[]>(Math.max(1,(int) (1e8 / data.length)));
       recycling.put(data.length, bin);
     }
     bin.offer(data);

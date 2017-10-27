@@ -24,11 +24,12 @@ import com.google.gson.JsonObject;
 /**
  * The type Sigmoid activation layer.
  */
-public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
+public final class GaussianActivationLayer extends SimpleActivationLayer<GaussianActivationLayer> {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.addProperty("balanced",balanced);
+    json.addProperty("mean", mean);
+    json.addProperty("stddev", stddev);
     return json;
   }
 
@@ -38,8 +39,8 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    * @param json the json
    * @return the sigmoid activation layer
    */
-  public static SigmoidActivationLayer fromJson(JsonObject json) {
-    return new SigmoidActivationLayer(json);
+  public static GaussianActivationLayer fromJson(JsonObject json) {
+    return new GaussianActivationLayer(json);
   }
 
   /**
@@ -47,9 +48,10 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    *
    * @param id the id
    */
-  protected SigmoidActivationLayer(JsonObject id) {
+  protected GaussianActivationLayer(JsonObject id) {
     super(id);
-    balanced = id.get("balanced").getAsBoolean();
+    mean = id.get("mean").getAsDouble();
+    stddev = id.get("stddev").getAsDouble();
   }
   
   private static final double MIN_X = -20;
@@ -61,33 +63,35 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    */
   private static final long serialVersionUID = -1676818127036480927L;
   
-  private boolean balanced = true;
+  private double mean;
+  private double stddev;
   
   /**
    * Instantiates a new Sigmoid activation layer.
    */
-  public SigmoidActivationLayer() {
+  public GaussianActivationLayer(double mean, double stddev) {
+    this.mean = mean;
+    this.stddev = stddev;
   }
   
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
-    final double ex = exp(x);
-    final double ex1 = 1 + ex;
-    double d = ex / (ex1 * ex1);
-    double f = 1 / (1 + 1. / ex);
+    final double c = x - mean;
+    final double s2 = stddev * stddev;
+    final double s3 = stddev * s2;
+    final double k = Math.sqrt(2 * Math.PI);
+    final double e = exp(-((c * c) / (2 * s2)));
+    double d = e * c / (s3 * k);
+    double f = e / (stddev * k);
     // double d = f * (1 - f);
     if (!Double.isFinite(d) || d < minDeriv) {
       d = minDeriv;
     }
     assert Double.isFinite(d);
     assert minDeriv <= Math.abs(d);
-    if (isBalanced()) {
-      d = 2 * d;
-      f = 2 * f - 1;
-    }
     results[0] = f;
-    results[1] = d;
+    results[1] = -d;
   }
   
   private double exp(final double x) {
@@ -100,23 +104,4 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     return Math.exp(x);
   }
   
-  /**
-   * Is balanced boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isBalanced() {
-    return this.balanced;
-  }
-  
-  /**
-   * Sets balanced.
-   *
-   * @param balanced the balanced
-   * @return the balanced
-   */
-  public SigmoidActivationLayer setBalanced(final boolean balanced) {
-    this.balanced = balanced;
-    return this;
-  }
 }

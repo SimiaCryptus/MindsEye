@@ -43,7 +43,7 @@ public interface DAGNode extends Serializable {
    *
    * @return the layer
    */
-  NNLayer getLayer();
+  <T extends NNLayer> T getLayer();
   void setLayer(NNLayer layer);
   
   /**

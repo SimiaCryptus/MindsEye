@@ -25,17 +25,35 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 /**
  * The type Bias layer test.
  */
-public class BiasLayerTest extends LayerTestBase {
-  
-  @Override
-  public NNLayer getLayer() {
-    return new BiasLayer(3);
+public class BiasLayerTest {
+  public static class Normal extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new BiasLayer(3);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}
+      };
+    }
   }
   
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}
-    };
+  public static class Reducing extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new BiasLayer(1);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}
+      };
+    }
   }
+  
 }

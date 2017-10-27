@@ -20,10 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.*;
 import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
@@ -94,13 +91,19 @@ public class GpuTrainable implements Trainable {
     } catch (Exception e) {
       if(retries > 0) {
         GpuController.INSTANCE.cleanMemory();
-        for(Map.Entry<CuDNN, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
-          try {
-            entry.getValue().submit(()->JCuda.cudaDeviceReset()).get();
-          } catch (InterruptedException e1) {
-            throw new GpuError(e1);
-          } catch (ExecutionException e1) {
-            throw new GpuError(e1);
+        synchronized (CudaResource.gpuGeneration) {
+          for(Map.Entry<CuDNN, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
+            CudaResource.gpuGeneration.incrementAndGet();
+            try {
+              entry.getValue().submit(()->{
+                CudaPtr.getGpuStats(entry.getKey().getDeviceNumber()).usedMemory.set(0);
+                return JCuda.cudaDeviceReset();
+              }).get();
+            } catch (InterruptedException e1) {
+              throw new GpuError(e1);
+            } catch (ExecutionException e1) {
+              throw new GpuError(e1);
+            }
           }
         }
         CudaPtr.METRICS.invalidateAll();
