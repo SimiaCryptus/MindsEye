@@ -59,7 +59,7 @@ public class QQN extends LBFGS {
           reset();
           position(t).accumulate();
           PointSample sample = subject.measure().setRate(t);
-          monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.map.size(), origin.delta.map.size(), lbfgs.map.size(), gd.map.size(), scaledGradient.map.size()));
+          //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.map.size(), origin.delta.map.size(), lbfgs.map.size(), gd.map.size(), scaledGradient.map.size()));
           addToHistory(sample, monitor);
           DeltaSet tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, SimpleLineSearchCursor.dot(tangent.vector(), sample.delta.vector()));

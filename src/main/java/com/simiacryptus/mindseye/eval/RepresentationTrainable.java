@@ -24,37 +24,36 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import jcuda.runtime.JCuda;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.DoubleSummaryStatistics;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
  * The type Gpu trainable.
  */
-public class GpuTrainable implements DataTrainable {
+public class RepresentationTrainable implements Trainable {
   
   /**
    * The Network.
    */
   protected final NNLayer network;
-  /**
-   * The Gc each iteration.
-   */
+  private final NNResult[] dataContext;
+  private final Tensor[][] data;
   protected boolean gcEachIteration = true;
-  /**
-   * The Sampled data.
-   */
-  protected List<Tensor[]> data;
-  
   private boolean verbose = false;
+  private boolean[] dynamicMask = null;
   
-  public GpuTrainable(NNLayer network) {
+  public RepresentationTrainable(NNLayer network, Tensor[][] data, boolean[] dynamicMask) {
+    assert 0<data.length;
     this.network = network;
-    this.data = null;
+    this.dynamicMask = dynamicMask;
+    this.data = data;
+    this.dataContext = getDataContext(data, dynamicMask);
   }
   
   @Override
@@ -70,13 +69,9 @@ public class GpuTrainable implements DataTrainable {
    */
   public PointSample measure(int retries) {
     try {
-      assert !data.isEmpty();
-      PointSample result = GpuController.INSTANCE.distribute(data,
-        (list, dev) -> eval(list, dev),
-        (a, b) -> a.add(b)
-      );
-      //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.map.size()));
-  
+      CudaExecutionContext executionContext = CudaExecutionContext.gpuContexts.getAll().get(0);
+      ExecutorService executorService = GpuController.INSTANCE.getGpuDriverThreads().get(executionContext);
+      PointSample result = executorService.submit(()->eval(executionContext)).get();
       assert (null != result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
@@ -89,8 +84,10 @@ public class GpuTrainable implements DataTrainable {
           for(Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
             CudaResource.gpuGeneration.incrementAndGet();
             try {
-              entry.getValue().submit(()->{
-                CudaPtr.getGpuStats(entry.getKey().getDeviceNumber()).usedMemory.set(0);
+              ExecutorService executorService = entry.getValue();
+              CudaExecutionContext executionContext = entry.getKey();
+              executorService.submit(()->{
+                CudaPtr.getGpuStats(executionContext.getDeviceNumber()).usedMemory.set(0);
                 return JCuda.cudaDeviceReset();
               }).get();
             } catch (InterruptedException e1) {
@@ -104,7 +101,7 @@ public class GpuTrainable implements DataTrainable {
         GpuController.INSTANCE.cleanMemory();
         return measure(retries-1);
       } else {
-        throw e;
+        throw new RuntimeException(e);
       }
     }
   }
@@ -112,12 +109,11 @@ public class GpuTrainable implements DataTrainable {
   /**
    * Eval point sample.
    *
-   * @param list the input
    * @param nncontext the nncontext
    * @return the point sample
    */
-  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext) {
-    NNResult result = network.eval(nncontext, getNNContext(list));
+  protected PointSample eval(CudaExecutionContext nncontext) {
+    NNResult result = network.eval(nncontext, dataContext);
     TensorList resultData = result.getData();
     assert (resultData.stream().allMatch(x -> x.dim() == 1));
     assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
@@ -136,15 +132,41 @@ public class GpuTrainable implements DataTrainable {
     return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
   }
   
-  private NNResult[] getNNContext(List<Tensor[]> list) {
-    Tensor[] head = list.get(0);
-    return IntStream.range(0, head.length).mapToObj(inputIndex -> {
-      Tensor[] array = IntStream.range(0, list.size()).mapToObj(trainingExampleId -> {
-          return list.get(trainingExampleId)[inputIndex];
-        }
-      ).toArray(i -> new Tensor[i]);
-      return new ConstNNResult(array);
+  public static NNResult[] getDataContext(Tensor[][] data, boolean[] dynamicMask) {
+    int cols = data[0].length;
+    int rows = data.length;
+    return IntStream.range(0, cols).mapToObj(col -> {
+      if(null == dynamicMask || !dynamicMask[col]) {
+        return new ConstNNResult(IntStream.range(0, rows).mapToObj(row -> {
+            return data[row][col];
+          }
+        ).toArray(i -> new Tensor[i]));
+      } else {
+        Tensor[] array = IntStream.range(0, rows).mapToObj(row -> {
+            return data[row][col];
+          }
+        ).toArray(i -> new Tensor[i]);
+        return new NNResult(array){
+          InputNNLayer layer = new InputNNLayer();
+          
+          @Override
+          public void accumulate(DeltaSet buffer, TensorList data) {
+            for(int index=0;index<data.length();index++){
+              buffer.get(layer, array[index]).accumulate(data.get(index).getData());
+            }
+          }
+          
+          @Override
+          public boolean isAlive() {
+            return true;
+          }
+        };
+      }
     }).toArray(x1 -> new NNResult[x1]);
+  }
+  
+  public Tensor[][] getData() {
+    return data;
   }
   
   /**
@@ -166,32 +188,6 @@ public class GpuTrainable implements DataTrainable {
   }
   
   /**
-   * Sets sampled data.
-   *
-   * @param data the sampled data
-   */
-  protected void setDataSupplier(List<? extends Supplier<Tensor[]>> data) {
-    setData(data.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
-  }
-  
-  /**
-   * Sets data.
-   *
-   * @param sampledData the sampled data
-   * @return the data
-   */
-  public Trainable setData(List<Tensor[]> sampledData) {
-    assert !sampledData.isEmpty();
-    this.data = sampledData;
-    return this;
-  }
-  
-  @Override
-  public Tensor[][] getData() {
-    return data.toArray(new Tensor[][]{});
-  }
-  
-  /**
    * Is verbose boolean.
    *
    * @return the boolean
@@ -205,8 +201,17 @@ public class GpuTrainable implements DataTrainable {
    *
    * @param verbose the verbose
    */
-  public GpuTrainable setVerbose(boolean verbose) {
+  public RepresentationTrainable setVerbose(boolean verbose) {
     this.verbose = verbose;
+    return this;
+  }
+  
+  public boolean[] getDynamicMask() {
+    return dynamicMask;
+  }
+  
+  public RepresentationTrainable setDynamicMask(boolean[] dynamicMask) {
+    this.dynamicMask = dynamicMask;
     return this;
   }
   

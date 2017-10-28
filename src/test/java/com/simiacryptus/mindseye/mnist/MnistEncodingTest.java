@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.eval.GpuTrainable;
+import com.simiacryptus.mindseye.eval.RepresentationTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -211,7 +212,7 @@ public class MnistEncodingTest {
   public Trainable getTrainingTrainable(NotebookOutput log, Tensor[][] data, SimpleLossNetwork network) {
     //Trainable trainable = new DeltaHoldoverArrayTrainable(data, supervisedNetwork, trainingSize);
     //printSample(log, expanded, 100);
-    return new GpuTrainable(network, Arrays.asList(data), new boolean[]{ true, false });
+    return new RepresentationTrainable(network, data, new boolean[]{ true, false });
   }
   
   /**

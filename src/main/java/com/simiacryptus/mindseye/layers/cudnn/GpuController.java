@@ -56,7 +56,7 @@ public final class GpuController {
    * The Device batch sizes.
    */
   Map<String, Integer> deviceBatchSizes = new HashMap<>();
-  private LoadingCache<CuDNN, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
+  private LoadingCache<CudaExecutionContext, ExecutorService> gpuDriverThreads = CacheBuilder.newBuilder().build(new CacheLoader<CuDNN, ExecutorService>() {
     @Override
     public ExecutorService load(CuDNN gpu) throws Exception {
       return Executors.newSingleThreadExecutor(r -> {
@@ -171,7 +171,7 @@ public final class GpuController {
    *
    * @return the gpu driver threads
    */
-  public LoadingCache<CuDNN, ExecutorService> getGpuDriverThreads() {
+  public LoadingCache<CudaExecutionContext, ExecutorService> getGpuDriverThreads() {
     return gpuDriverThreads;
   }
   
@@ -180,7 +180,7 @@ public final class GpuController {
    *
    * @param gpuDriverThreads the gpu driver threads
    */
-  public void setGpuDriverThreads(LoadingCache<CuDNN, ExecutorService> gpuDriverThreads) {
+  public void setGpuDriverThreads(LoadingCache<CudaExecutionContext, ExecutorService> gpuDriverThreads) {
     this.gpuDriverThreads = gpuDriverThreads;
   }
 }

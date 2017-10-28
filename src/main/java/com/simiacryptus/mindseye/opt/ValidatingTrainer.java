@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -68,7 +70,9 @@ public class ValidatingTrainer {
   private double adjustmentFactor = 0.5;
   private int disappointmentThreshold = 0;
   private double pessimism = 3;
+  private int staleIterations = 0;
   private final AtomicInteger disappointments = new AtomicInteger(0);
+  private int improvmentStaleThreshold = 10;
   
   /**
    * Instantiates a new Iterative trainer.
@@ -113,26 +117,37 @@ public class ValidatingTrainer {
     EpochParams epochParams = new EpochParams(timeoutMs, epochIterations, getTrainingSize(), validationSubject.measure());
     PointSample currentPoint = resetAndMeasure();
     int epochNumber = 0;
+    int stepsSinceBest = 0;
+    AtomicReference lowestValidation = new AtomicReference(Double.POSITIVE_INFINITY);
     while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
       if (shouldHalt(timeoutMs)) break;
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       EpochResult epochResult = epoch(epochParams);
-      double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(epochResult.getValidationDelta()), adjustmentFactor);
+      double validationDelta = epochResult.getValidationDelta();
+      double trainingDelta = epochResult.getTrainingDelta();
+      double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(validationDelta), adjustmentFactor);
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
-      boolean antivalidated = Math.random() > Math.pow((1 - epochResult.getValidationDelta()), pessimism);
-      boolean saturated = epochParams.trainingSize >= getMaxTrainingSize();
       monitor.log(String.format("Epoch %d result with %s iterations, %s samples: {validation *= 2^%.3f; training *= 2^%.3f; Overtraining = %.3f}, {itr*=%.3f, len*=%.3f}",
-        ++epochNumber, epochResult.iterations, epochParams.trainingSize, Math.log(epochResult.getValidationDelta())/Math.log(2), Math.log(epochResult.getTrainingDelta())/Math.log(2), epochResult.getOverTrainingCoeff(), adj1, adj2));
+        ++epochNumber, epochResult.iterations, epochParams.trainingSize, Math.log(validationDelta)/Math.log(2), Math.log(trainingDelta)/Math.log(2), epochResult.getOverTrainingCoeff(), adj1, adj2));
       if (!epochResult.continueTraining) break;
-      if (antivalidated && saturated) {
-        if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
-          monitor.log("Training converged");
-          break;
-        }
-      } else {
-        disappointments.set(0);
+      double newBest = (double) lowestValidation.updateAndGet(r -> Math.min((double) r, epochResult.currentValidation.getMean()));
+      if(newBest == epochResult.currentValidation.getMean()) {
+        stepsSinceBest = 0;
       }
-      if (epochResult.getValidationDelta() < 1.0 && epochResult.getTrainingDelta() < 1.0) {
+      if(epochParams.trainingSize >= getMaxTrainingSize()) {
+        if(newBest < epochResult.currentValidation.getMean()) {
+          stepsSinceBest += epochResult.iterations;
+        }
+        if (stepsSinceBest > improvmentStaleThreshold) {
+          if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
+            monitor.log("Training converged");
+            break;
+          }
+        } else {
+          disappointments.set(0);
+        }
+      }
+      if (validationDelta < 1.0 && trainingDelta < 1.0) {
         if (adj1 < (1 - adjustmentTolerance) || adj1 > (1 + adjustmentTolerance)) {
           epochParams.iterations = Math.max(getMinEpochIterations(), Math.min(getMaxEpochIterations(), (int) (epochResult.iterations * adj1)));
         }
@@ -141,7 +156,7 @@ public class ValidatingTrainer {
         }
       }
       else {
-        epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 2));
+        epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 3));
       }
       epochParams.priorValidation = epochResult.currentValidation;
       orientation.reset();
@@ -610,6 +625,14 @@ public class ValidatingTrainer {
   
   public void setPessimism(double pessimism) {
     this.pessimism = pessimism;
+  }
+  
+  public int getImprovmentStaleThreshold() {
+    return improvmentStaleThreshold;
+  }
+  
+  public void setImprovmentStaleThreshold(int improvmentStaleThreshold) {
+    this.improvmentStaleThreshold = improvmentStaleThreshold;
   }
   
   private class StepResult {
