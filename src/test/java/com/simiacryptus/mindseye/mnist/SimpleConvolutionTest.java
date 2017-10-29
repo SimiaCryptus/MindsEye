@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
+import com.simiacryptus.mindseye.layers.meta.CumNormalizationMetaLayer;
 import com.simiacryptus.mindseye.layers.meta.NormalizationMetaLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -51,13 +52,17 @@ public class SimpleConvolutionTest extends LinearTest {
     return log.code(() -> {
       PipelineNetwork network = null;
       network = new PipelineNetwork();
-      network.add(new NormalizationMetaLayer());
+      double carryOver = 0.5;
+      int carryoverDenominator = 100;
+      //network.add(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
       network.add(new ConvolutionLayer(3, 3, 5, false).setWeights(i->1e-8*(Math.random()-0.5)));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
+//      network.add(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
       network.add(new NormalizationMetaLayer());
       network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
-//      network.add(new NormalizationMetaLayer());
-//      network.add(new LinearActivationLayer());
+//      network.add(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
+      network.add(new NormalizationMetaLayer());
+      network.add(new LinearActivationLayer());
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -66,6 +71,7 @@ public class SimpleConvolutionTest extends LinearTest {
   public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("This report trains a model using a recursive polynomial convolution layer.");
     DAGNetwork network = buildModel(log);
+    run(log, monitoringRoot, monitor, trainingData, history, network);
     network.visitNodes(node->{
       NNLayer layer = node.getLayer();
       if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {

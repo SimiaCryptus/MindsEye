@@ -47,6 +47,7 @@ public class LBFGS implements OrientationStrategy {
   public final ArrayList<PointSample> history = new ArrayList<>();
   private int minHistory = 3;
   private int maxHistory = 10;
+  
   /**
    * The Verbose.
    */
@@ -70,18 +71,20 @@ public class LBFGS implements OrientationStrategy {
    * @param monitor     the monitor
    */
   public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
-    if (!measurement.delta.vector().stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
+    PointSample copyFull = measurement.copyFull();
+    if (!copyFull.delta.vector().stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
       if (verbose) monitor.log("Corrupt measurement");
     }
-    else if (!measurement.weights.vector().stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
+    else if (!copyFull.weights.vector().stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
       if (verbose) monitor.log("Corrupt measurement");
     }
-    else if (history.isEmpty() || !history.stream().filter(x -> x.sum == measurement.sum).findAny().isPresent()) {
+    else if (history.isEmpty() || !history.stream().filter(x -> x.sum == copyFull.sum).findAny().isPresent()) {
       if (verbose) {
-        monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(measurement)), history.size()));
+        monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(copyFull)), history.size()));
       }
-      history.add(measurement);
-      Collections.sort(history, Comparator.comparing(x -> -x.sum));
+      history.add(copyFull);
+      Collections.sort(history, Comparator.comparing(x -> -(copyFull.weights.subtract(x.weights).getMagnitude())));
+      //Collections.sort(history, Comparator.comparing(x -> -x.sum));
       while (history.size() > maxHistory) {
         PointSample remove = history.remove(0);
         if (verbose) {

@@ -172,6 +172,9 @@ public class DeltaSet {
     }).sum();
   }
   
+  public DeltaSet subtract(DeltaSet right) {
+    return this.add(right.scale(-1));
+  }
   /**
    * Add delta set.
    *

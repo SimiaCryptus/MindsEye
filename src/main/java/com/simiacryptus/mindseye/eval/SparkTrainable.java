@@ -223,7 +223,7 @@ public class SparkTrainable implements Trainable {
       GpuTrainable trainable = new GpuTrainable(network);
       Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
       if(verbose) debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
-      PointSample measure = trainable.setData(Arrays.asList(tensors)).measure();
+      PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(false);
       assert (measure != null);
       return Arrays.asList(SparkTrainable.getResult(measure.delta, new double[]{measure.sum})).iterator();
     }
@@ -325,7 +325,7 @@ public class SparkTrainable implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure() {
+  public Trainable.PointSample measure(boolean isStatic) {
     long time1 = System.nanoTime();
     JavaRDD<ReducableResult> mapPartitions = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
     long time2 = System.nanoTime();

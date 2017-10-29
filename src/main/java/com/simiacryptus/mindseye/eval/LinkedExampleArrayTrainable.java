@@ -54,7 +54,7 @@ public class LinkedExampleArrayTrainable implements Trainable {
   }
   
   @Override
-  public PointSample measure() {
+  public PointSample measure(boolean isStatic) {
     NNResult[] input = NNResult.batchResultArray(sampledData);
     NNResult result = network.eval(new NNLayer.NNExecutionContext() {
     }, input);

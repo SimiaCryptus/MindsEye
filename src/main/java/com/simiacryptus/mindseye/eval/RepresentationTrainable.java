@@ -57,7 +57,7 @@ public class RepresentationTrainable implements Trainable {
   }
   
   @Override
-  public PointSample measure() {
+  public PointSample measure(boolean isStatic) {
     return measure(3);
   }
   

@@ -94,13 +94,13 @@ public final class GpuController {
   public <T, U> T distribute(List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {
     if (data.isEmpty()) return null;
     List<CudaExecutionContext> devices = CudaExecutionContext.gpuContexts.getAll();
-    double weightSum = devices.stream().mapToDouble(d -> deviceWeight.getOrDefault(d.toString(), 1.0)).sum();
+    double weightSum = devices.stream().mapToDouble(d -> getDeviceWeight(d)).sum();
     List<Future<T>> results = new ArrayList<>();
     int start = 0;
     assert !devices.isEmpty();
     for (int i = 0; i < devices.size(); i++) {
       CudaExecutionContext dev = devices.get(i);
-      int sampleSize = (int) Math.max(1, ((data.size() / weightSum) * deviceWeight.getOrDefault(dev.toString(), 1.0)));
+      int sampleSize = (int) Math.max(1, ((data.size() / weightSum) * getDeviceWeight(dev)));
       int end = start + sampleSize;
       if(i == devices.size()-1) end = data.size();
       List<U> subList = data.subList(start, Math.min(end, data.size()));
@@ -124,6 +124,11 @@ public final class GpuController {
         throw new GpuError(e);
       }
     }).reduce(reducer).orElse(null);
+  }
+  
+  public double getDeviceWeight(CudaExecutionContext d) {
+    return 1.0;
+    //return deviceWeight.getOrDefault(d.toString(), 1.0);
   }
   
   private <T, U> T evaluate(CudaExecutionContext gpu, List<U> data, BiFunction<List<U>, CudaExecutionContext, T> mapper, BinaryOperator<T> reducer) {

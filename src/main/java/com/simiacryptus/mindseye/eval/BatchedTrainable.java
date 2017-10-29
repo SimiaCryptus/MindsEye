@@ -52,20 +52,22 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   }
   
   @Override
-  public PointSample measure() {
+  public PointSample measure(boolean isStatic) {
     List<Tensor[]> tensors = Arrays.asList(getData());
     if(batchSize < tensors.size()) {
-      List<List<Tensor[]>> collection = Lists.partition(tensors, batchSize);
+      int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
+      int evenBatchSize = (int) Math.ceil(tensors.size() * 1.0 / batches);
+      List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
       return collection.stream().map(trainingData -> {
         if(batchSize < trainingData.size()) {
           throw new RuntimeException();
         }
         getInner().setData(trainingData);
-        return super.measure();
+        return super.measure(isStatic);
       }).reduce((a, b) -> a.add(b)).get();
     } else {
       getInner().setData(tensors);
-      return super.measure();
+      return super.measure(isStatic);
     }
   }
   

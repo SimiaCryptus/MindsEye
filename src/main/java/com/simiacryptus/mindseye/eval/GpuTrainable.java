@@ -58,8 +58,8 @@ public class GpuTrainable implements DataTrainable {
   }
   
   @Override
-  public PointSample measure() {
-    return measure(3);
+  public PointSample measure(boolean isStatic) {
+    return measure(3, isStatic);
   }
   
   /**
@@ -68,11 +68,11 @@ public class GpuTrainable implements DataTrainable {
    * @param retries the retries
    * @return the point sample
    */
-  public PointSample measure(int retries) {
+  public PointSample measure(int retries, boolean isStatic) {
     try {
       assert !data.isEmpty();
       PointSample result = GpuController.INSTANCE.distribute(data,
-        (list, dev) -> eval(list, dev),
+        (list, dev) -> eval(list, dev, isStatic),
         (a, b) -> a.add(b)
       );
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.map.size()));
@@ -102,7 +102,7 @@ public class GpuTrainable implements DataTrainable {
         }
         CudaPtr.METRICS.invalidateAll();
         GpuController.INSTANCE.cleanMemory();
-        return measure(retries-1);
+        return measure(retries-1, isStatic);
       } else {
         throw e;
       }
@@ -114,9 +114,11 @@ public class GpuTrainable implements DataTrainable {
    *
    * @param list the input
    * @param nncontext the nncontext
+   * @param isStatic
    * @return the point sample
    */
-  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext) {
+  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, boolean isStatic) {
+    nncontext.setStatic(isStatic);
     NNResult result = network.eval(nncontext, getNNContext(list));
     TensorList resultData = result.getData();
     assert (resultData.stream().allMatch(x -> x.dim() == 1));

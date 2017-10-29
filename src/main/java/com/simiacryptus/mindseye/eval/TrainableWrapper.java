@@ -38,8 +38,8 @@ public class TrainableWrapper<T extends Trainable> implements Trainable {
   }
   
   @Override
-  public PointSample measure() {
-    return inner.measure();
+  public PointSample measure(boolean isStatic) {
+    return inner.measure(isStatic);
   };
   
   /**

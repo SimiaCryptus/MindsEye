@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
@@ -28,7 +27,6 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
-import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.Util;
@@ -69,10 +67,9 @@ public class ValidatingTrainer {
   private double adjustmentTolerance = 0.1;
   private double adjustmentFactor = 0.5;
   private int disappointmentThreshold = 0;
-  private double pessimism = 3;
-  private int staleIterations = 0;
+  private double pessimism = 10;
   private final AtomicInteger disappointments = new AtomicInteger(0);
-  private int improvmentStaleThreshold = 10;
+  private int improvmentStaleThreshold = 3;
   
   /**
    * Instantiates a new Iterative trainer.
@@ -113,14 +110,16 @@ public class ValidatingTrainer {
    * @return the double
    */
   public double run() {
-    long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
-    EpochParams epochParams = new EpochParams(timeoutMs, epochIterations, getTrainingSize(), validationSubject.measure());
-    PointSample currentPoint = resetAndMeasure();
+    long timeoutAt = System.currentTimeMillis() + timeout.toMillis();
+    EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(true));
     int epochNumber = 0;
     int stepsSinceBest = 0;
-    AtomicReference lowestValidation = new AtomicReference(Double.POSITIVE_INFINITY);
-    while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
-      if (shouldHalt(timeoutMs)) break;
+    double lowestValidation = Double.POSITIVE_INFINITY;
+    while (true) {
+      if (shouldHalt(timeoutAt)) {
+        monitor.log("Training halted");
+        break;
+      }
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       EpochResult epochResult = epoch(epochParams);
       double validationDelta = epochResult.getValidationDelta();
@@ -129,22 +128,34 @@ public class ValidatingTrainer {
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
       monitor.log(String.format("Epoch %d result with %s iterations, %s samples: {validation *= 2^%.3f; training *= 2^%.3f; Overtraining = %.3f}, {itr*=%.3f, len*=%.3f}",
         ++epochNumber, epochResult.iterations, epochParams.trainingSize, Math.log(validationDelta)/Math.log(2), Math.log(trainingDelta)/Math.log(2), epochResult.getOverTrainingCoeff(), adj1, adj2));
-      if (!epochResult.continueTraining) break;
-      double newBest = (double) lowestValidation.updateAndGet(r -> Math.min((double) r, epochResult.currentValidation.getMean()));
-      if(newBest == epochResult.currentValidation.getMean()) {
+      if (!epochResult.continueTraining) {
+        monitor.log(String.format("Training %d epoch halted", epochNumber));
+        break;
+      }
+      double validationMean = epochResult.currentValidation.getMean();
+      double previousMean = lowestValidation;
+      lowestValidation = Math.min(previousMean, validationMean);
+      double improvement = previousMean - validationMean;
+      if(improvement > 0) {
         stepsSinceBest = 0;
       }
       if(epochParams.trainingSize >= getMaxTrainingSize()) {
-        if(newBest < epochResult.currentValidation.getMean()) {
+        if(improvement < 0) {
           stepsSinceBest += epochResult.iterations;
         }
-        if (stepsSinceBest > improvmentStaleThreshold) {
-          if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
-            monitor.log("Training converged");
-            break;
-          }
+        double roll = Math.random();
+        if (roll > Math.pow((2 - validationDelta), pessimism)) {
+          monitor.log(String.format("Training randomly converged: %3f", roll));
+          break;
         } else {
-          disappointments.set(0);
+          if (stepsSinceBest > improvmentStaleThreshold) {
+            if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
+              monitor.log(String.format("Training converged after %s iterations", stepsSinceBest));
+              break;
+            }
+          } else {
+            disappointments.set(0);
+          }
         }
       }
       if (validationDelta < 1.0 && trainingDelta < 1.0) {
@@ -156,13 +167,13 @@ public class ValidatingTrainer {
         }
       }
       else {
-        epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 3));
+        epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 5));
+        epochParams.iterations = 1;
       }
-      epochParams.priorValidation = epochResult.currentValidation;
+      epochParams.validation = epochResult.currentValidation;
       orientation.reset();
     }
-    monitor.log("Training terminated");
-    return null == currentPoint ? Double.NaN : currentPoint.getMean();
+    return epochParams.validation.getMean();
   }
   
   /**
@@ -179,18 +190,18 @@ public class ValidatingTrainer {
     int step = 1;
     for (; step <= epochParams.iterations || epochParams.iterations <= 0; step++) {
       if (shouldHalt(epochParams.timeoutMs)) {
-        return new EpochResult(false, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
+        return new EpochResult(false, epochParams.validation, priorPoint, validationSubject.measure(true), currentPoint, step);
       }
       StepResult epoch = step(currentPoint);
       currentPoint = epoch.currentPoint.setRate(0.0);
       if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
-        return new EpochResult(reset(epoch.currentPoint.getMean()), epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
+        return new EpochResult(reset(epoch.currentPoint.getMean()), epochParams.validation, priorPoint, validationSubject.measure(true), currentPoint, step);
       } else {
         monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), epoch.currentPoint.getMean()));
       }
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
-    return new EpochResult(true, epochParams.priorValidation, priorPoint, validationSubject.measure(), currentPoint, step);
+    return new EpochResult(true, epochParams.validation, priorPoint, validationSubject.measure(true), currentPoint, step);
   }
   
   /**
@@ -254,7 +265,7 @@ public class ValidatingTrainer {
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
-      PointSample currentPoint = trainingSubject.measure();
+      PointSample currentPoint = trainingSubject.measure(false);
       if (Double.isFinite(currentPoint.getMean())) return currentPoint;
     } while (true);
   }
@@ -674,13 +685,13 @@ public class ValidatingTrainer {
     /**
      * The Prior validation.
      */
-    PointSample priorValidation;
+    PointSample validation;
     
-    private EpochParams(long timeoutMs, int iterations, int trainingSize, PointSample priorValidation) {
+    private EpochParams(long timeoutMs, int iterations, int trainingSize, PointSample validation) {
       this.timeoutMs = timeoutMs;
       this.iterations = iterations;
       this.trainingSize = trainingSize;
-      this.priorValidation = priorValidation;
+      this.validation = validation;
     }
     
   }

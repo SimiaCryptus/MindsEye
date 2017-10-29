@@ -38,7 +38,7 @@ public class AvgMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("lastResult", null == lastResult ? null : lastResult.getJson());
+    if(null != lastResult) json.add("lastResult", lastResult.getJson());
     return json;
   }
   
@@ -55,16 +55,11 @@ public class AvgMetaLayer extends NNLayer {
   /**
    * Instantiates a new Avg meta layer.
    *
-   * @param id the id
+   * @param json the json
    */
-  protected AvgMetaLayer(JsonObject id) {
-    super(id);
-    if (!id.isJsonNull() && id.has("lastResult")) {
-      JsonElement lastResult = id.get("lastResult");
-      if (null != lastResult && !lastResult.isJsonNull()) {
-        this.lastResult = Tensor.fromJson(lastResult.getAsJsonObject());
-      }
-    }
+  protected AvgMetaLayer(JsonObject json) {
+    super(json);
+    this.lastResult = Tensor.fromJson(json.getAsJsonObject("lastResult"));
   }
   
   @SuppressWarnings("unused")
@@ -89,24 +84,30 @@ public class AvgMetaLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
+    Tensor thisResult;
+    boolean passback;
     if(null == lastResult || input.getData().length() > minBatchCount) {
-      lastResult = input.getData().get(0).mapCoordsParallel((v, c) ->
-                                                           IntStream.range(0, itemCnt)
-                                                             .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                             .sum() / itemCnt);
+      thisResult = input.getData().get(0).mapCoordsParallel((v, c) ->
+                                                              IntStream.range(0, itemCnt)
+                                                                .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+                                                                .sum() / itemCnt);
+      passback = true;
+      this.lastResult = thisResult;
+    } else {
+      passback = false;
+      thisResult = this.lastResult;
     }
-    return new NNResult(lastResult) {
+    return new NNResult(thisResult) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
-        if (input.isAlive()) {
+        if (passback && input.isAlive()) {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          ((null == lastResult) ? lastResult : lastResult).mapCoordsParallel((rho, inputCoord) -> {
+          thisResult.coordStream(true).forEach((inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }
-            return 0;
           });
           input.accumulate(buffer, new TensorArray(feedback));
         }

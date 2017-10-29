@@ -43,14 +43,14 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   }
   
   @Override
-  public PointSample measure() {
+  public PointSample measure(boolean isStatic) {
     for (PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) System.out.println(String.format("Returning cached value"));
         return result;
       }
     }
-    PointSample result = super.measure();
+    PointSample result = super.measure(isStatic);
     history.add(result.copyFull());
     while (getHistorySize() < history.size()) history.remove(0);
     return result;

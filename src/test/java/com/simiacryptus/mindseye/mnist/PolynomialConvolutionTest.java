@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.meta.NormalizationMetaLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
@@ -54,15 +55,18 @@ public class PolynomialConvolutionTest extends LinearTest {
     log.p("");
     return log.code(() -> {
       PipelineNetwork network = null;
-      this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
+      //this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
       network = new PipelineNetwork();
       network.add(new NormalizationMetaLayer());
-      network.add(this.tree);
+      network.add(new ConvolutionLayer(3,3, 5, false)
+                    .setWeights(i->1e-8*(Math.random()-0.5)));
+      //network.add(this.tree);
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
       network.add(new NormalizationMetaLayer());
-      network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
-      network.add(new NormalizationMetaLayer());
-      network.add(new LinearActivationLayer());
+      network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10})
+                    .setWeights(()->1e-8*(Math.random()-0.5)));
+//      network.add(new NormalizationMetaLayer());
+//      network.add(new LinearActivationLayer());
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -72,6 +76,7 @@ public class PolynomialConvolutionTest extends LinearTest {
   public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("This report trains a model using a recursive polynomial convolution layer.");
     DAGNetwork network = buildModel(log);
+    run(log, monitoringRoot, monitor, trainingData, history, network);
     network.visitNodes(node->{
       NNLayer layer = node.getLayer();
       if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
@@ -100,12 +105,12 @@ public class PolynomialConvolutionTest extends LinearTest {
       }
     });
     run(log, monitoringRoot, monitor, trainingData, history, network);
-    tree.addTerm(1);
-    run(log, monitoringRoot, monitor, trainingData, history, network);
-    tree.addTerm(-1);
-    run(log, monitoringRoot, monitor, trainingData, history, network);
-    tree.addTerm(2);
-    run(log, monitoringRoot, monitor, trainingData, history, network);
+//    tree.addTerm(1);
+//    run(log, monitoringRoot, monitor, trainingData, history, network);
+//    tree.addTerm(-1);
+//    run(log, monitoringRoot, monitor, trainingData, history, network);
+//    tree.addTerm(2);
+//    run(log, monitoringRoot, monitor, trainingData, history, network);
     return network;
   }
   

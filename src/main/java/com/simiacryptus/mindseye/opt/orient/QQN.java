@@ -21,14 +21,11 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
-import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
-
-import java.util.List;
 
 /**
  * Quadratic Quasi-Newton strategy
@@ -58,7 +55,7 @@ public class QQN extends LBFGS {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           reset();
           position(t).accumulate();
-          PointSample sample = subject.measure().setRate(t);
+          PointSample sample = subject.measure(true).setRate(t);
           //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.map.size(), origin.delta.map.size(), lbfgs.map.size(), gd.map.size(), scaledGradient.map.size()));
           addToHistory(sample, monitor);
           DeltaSet tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));

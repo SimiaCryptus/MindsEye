@@ -29,8 +29,9 @@ public interface Trainable {
    * Measure trainable . point sample.
    *
    * @return the trainable . point sample
+   * @param isStatic
    */
-  Trainable.PointSample measure();
+  Trainable.PointSample measure(boolean isStatic);
   
   /**
    * Reset to full.

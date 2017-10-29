@@ -84,7 +84,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
     reset();
     position(alpha).accumulate();
-    PointSample sample = subject.measure().setRate(alpha);
+    PointSample sample = subject.measure(true).setRate(alpha);
     double deltaMagnitude = sample.delta.getMagnitude();
     if (deltaMagnitude <= 0) deltaMagnitude = 1;
     return new LineSearchPoint(sample, dot(direction.vector(), sample.delta.vector()));

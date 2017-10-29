@@ -100,7 +100,8 @@ public class OwlQn implements OrientationStrategy {
             }
           }
         });
-        return new LineSearchPoint(subject.measure().setRate(alpha), dot(currentDirection.vector(), subject.measure().delta.vector()));
+        PointSample measure = subject.measure(true).setRate(alpha);
+        return new LineSearchPoint(measure, dot(currentDirection.vector(), measure.delta.vector()));
       }
     }.setDirectionType("OWL/QN");
   }

@@ -104,6 +104,9 @@ public final class NthPowerActivationLayer extends NNLayer {
       else if (power == 0.5) {
         squareRoot(input, inputData, gradientData, outputData);
       }
+      else if (power == 0.0) {
+        unity(input, inputData, gradientData, outputData);
+      }
       else {
         nthPower(power, input, inputData, gradientData, outputData);
       }
@@ -130,7 +133,7 @@ public final class NthPowerActivationLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive();
+        return (0.0 != power) && inObj[0].isAlive();
       }
     };
   }
@@ -145,6 +148,13 @@ public final class NthPowerActivationLayer extends NNLayer {
       if (!Double.isFinite(f)) f = 0.0;
       gradientData[i] = d;
       outputData[i] = f;
+    }
+  }
+  
+  private static void unity(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
+    for (int i = 0; i < input.dim(); i++) {
+      gradientData[i] = 0;
+      outputData[i] = 1;
     }
   }
   

@@ -91,7 +91,7 @@ public class ScheduledSampleTrainable implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure() {
+  public Trainable.PointSample measure(boolean isStatic) {
     NNResult[] input = NNResult.batchResultArray(sampledData);
     NNResult result = network.eval(new NNLayer.NNExecutionContext() {
     }, input);

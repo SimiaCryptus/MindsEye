@@ -42,6 +42,11 @@ public abstract class NNLayer implements Serializable {
    * The interface Nn execution context.
    */
   public interface NNExecutionContext {
+    /**
+     * If true, prevent state changes as a result of evaluation.
+     * (Used mainly to control meta layers.)
+     */
+    default boolean staticEvaluation() { return false; }
   }
   
   /**

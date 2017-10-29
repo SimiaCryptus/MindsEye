@@ -66,7 +66,21 @@ public class CudaExecutionContext extends CuDNN implements NNLayer.NNExecutionCo
    * @param deviceNumber the device number
    */
   public CudaExecutionContext(int deviceNumber) {
+    this(deviceNumber, false);
+  }
+  public CudaExecutionContext(int deviceNumber, boolean isStatic) {
     super(deviceNumber);
+    this.isStatic = isStatic;
   }
   
+  private boolean isStatic = false;
+  
+  @Override
+  public boolean staticEvaluation() {
+    return isStatic;
+  }
+  
+  public void setStatic(boolean aStatic) {
+    isStatic = aStatic;
+  }
 }

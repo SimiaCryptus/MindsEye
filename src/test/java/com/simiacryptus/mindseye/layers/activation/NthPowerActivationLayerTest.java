@@ -22,11 +22,60 @@ package com.simiacryptus.mindseye.layers.activation;
 /**
  * The type Nth power activation layer test.
  */
-public class NthPowerActivationLayerTest extends ActivationLayerTestBase {
-  /**
-   * Instantiates a new Nth power activation layer test.
-   */
-  public NthPowerActivationLayerTest() {
-    super(new NthPowerActivationLayer());
+public class NthPowerActivationLayerTest {
+  
+  public static class NthPowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Nth power activation layer test.
+     */
+    public NthPowerTest() {
+      super(new NthPowerActivationLayer().setPower(2.5));
+    }
   }
+  
+  public static class SquarePowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Nth power activation layer test.
+     */
+    public SquarePowerTest() {
+      super(new NthPowerActivationLayer().setPower(2));
+    }
+  }
+  
+  public static class SqrtPowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Nth power activation layer test.
+     */
+    public SqrtPowerTest() {
+      super(new NthPowerActivationLayer().setPower(0.5));
+    }
+  }
+  
+  public static class InvPowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Nth power activation layer test.
+     */
+    public InvPowerTest() {
+      super(new NthPowerActivationLayer().setPower(-1));
+    }
+  }
+  
+  public static class InvSqrtPowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Nth power activation layer test.
+     */
+    public InvSqrtPowerTest() {
+      super(new NthPowerActivationLayer().setPower(-0.5));
+    }
+  }
+  
+  public static class ZeroPowerTest extends ActivationLayerTestBase {
+    /**
+     * Instantiates a new Nth power activation layer test.
+     */
+    public ZeroPowerTest() {
+      super(new NthPowerActivationLayer().setPower(0));
+    }
+  }
+  
 }
