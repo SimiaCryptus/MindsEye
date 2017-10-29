@@ -86,30 +86,34 @@ public class ProductInputsLayer extends NNLayer {
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            final Tensor[] data = IntStream.range(0, input.getData().length()).parallel().mapToObj(i -> {
-              Tensor tensorDelta = delta.get(Math.min(i, delta.length()-1));
-              Tensor inputI = input.getData().get(Math.min(i, input.getData().length()-1));
-              return inputI.mapIndex((v, c) -> {
-                Tensor tensorResult = result.get(Math.min(i, result.length()));
-                double vA;
-                double vB;
-                if(1 == inputI.dim()) {
+            int inputBatches = input.getData().length();
+            int deltaBatches = delta.length();
+            Tensor[] data = IntStream.range(0, deltaBatches).parallel().mapToObj(i -> {
+              Tensor deltaTensor = delta.get(i);
+              Tensor inputTensor = input.getData().get(Math.min(i, inputBatches -1));
+              Tensor passbackTensor = inputTensor.mapIndex((v, c) -> {
+                Tensor tensorResult = result.get(i);
+                if (1 == inputTensor.dim() && 1 < deltaTensor.dim()) {
                   double sum = 0;
-                  for(int j = 0; j<tensorDelta.dim(); j++) {
-                    vA = tensorDelta.get(j);
-                    vB = tensorResult.get(j);
+                  for (int j = 0; j < deltaTensor.dim(); j++) {
+                    double vA = deltaTensor.get(j);
+                    double vB = tensorResult.get(j);
                     double r = vB * vA / v;
                     sum += Double.isFinite(r) ? r : 0.0;
                   }
                   return sum;
                 } else {
-                  vA = tensorDelta.get(c);
-                  vB = tensorResult.get(c);
+                  double vA = deltaTensor.get(c);
+                  double vB = tensorResult.get(c);
                   double r = vB * vA / v;
                   return Double.isFinite(r) ? r : 0.0;
                 }
               });
+              return passbackTensor;
             }).toArray(i -> new Tensor[i]);
+            if(1 == inputBatches && 1 < deltaBatches) {
+              data = new Tensor[] { Arrays.stream(data).reduce((a,b)->a.add(b)).get() };
+            }
             input.accumulate(buffer, new TensorArray(data));
           }
         }

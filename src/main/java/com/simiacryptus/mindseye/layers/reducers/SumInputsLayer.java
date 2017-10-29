@@ -66,11 +66,13 @@ public class SumInputsLayer extends NNLayer {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length()).parallel()
                                .mapToObj(i -> {
-                                 Tensor left = l.get(i >= l.length() ? 0 : i);
-                                 Tensor right = r.get(i >= r.length() ? 0 : i);
-                                 boolean b = right.dim() == 1;
-                                 return b ? left.mapParallel(v-> v + (right.get(0))) : left.reduceParallel(right, (v1,v2)-> v1 + v2);
-                                 //return Tensor.add(left, right);
+                                 Tensor left = l.get(1 == l.length() ? 0 : i);
+                                 Tensor right = r.get(1 == r.length() ? 0 : i);
+                                 if(right.dim() == 1) {
+                                   return left.mapParallel(v-> v + (right.get(0)));
+                                 } else {
+                                   return left.reduceParallel(right, (v1,v2)-> v1 + v2);
+                                 }
                                })
                                .toArray(i -> new Tensor[i]));
     }).get();

@@ -69,33 +69,50 @@ public class NormalizationMetaLayer extends DAGNetwork {
    */
   public NormalizationMetaLayer() {
     super(1);
-    DAGNode mean = add(
-      new AvgMetaLayer(),
-      add(
-        new AvgReducerLayer(),
-        getInput(0)
-      )
-    );
-    DAGNode recentered = add(new SumInputsLayer(),
-      getInput(0),
-      add(
-        new LinearActivationLayer().setScale(-1).freeze(),
-        mean
-      )
-    );
-    DAGNode variance = add(new AvgMetaLayer(),
-      add(new AvgReducerLayer(),
-        add(new SqActivationLayer(),
-          recentered
+    DAGNode input = getInput(0);
+//    DAGNode mean = add(
+//      new AvgMetaLayer(),
+//      input
+//    );
+//    DAGNode recentered = add(new SumInputsLayer(),
+//      input,
+//      add(
+//        new LinearActivationLayer().setScale(-1).freeze(),
+//        mean
+//      )
+//    );
+//    DAGNode variance = add(new AvgMetaLayer(),
+//      add(new AvgReducerLayer(),
+//        add(new SqActivationLayer(),
+//          recentered
+//        )
+//      )
+//    );
+//    DAGNode rescaled = add(new ProductInputsLayer(),
+//      recentered,
+//      add(new NthPowerActivationLayer().setPower(-0.5),
+//        variance
+//      )
+//    );
+//    DAGNode reoffset = add(new SumInputsLayer(),
+//      mean,
+//      rescaled
+//    );
+//
+    DAGNode rescaled1 = add(new ProductInputsLayer(),
+      input,
+      add(new NthPowerActivationLayer().setPower(-0.5),
+        add(new AvgMetaLayer(),
+          add(new AvgReducerLayer(),
+            add(new SqActivationLayer(),
+              input
+            )
+          )
         )
       )
     );
-    this.head = add(new ProductInputsLayer(),
-      recentered,
-      add(new NthPowerActivationLayer().setPower(-0.5),
-        variance
-      )
-    );
+  
+    this.head = rescaled1;
   }
   
   @Override
