@@ -22,14 +22,24 @@ package com.simiacryptus.mindseye.mnist;
 import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.eval.RepresentationTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.activation.LogActivationLayer;
+import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.meta.SignMetaLayer;
+import com.simiacryptus.mindseye.layers.meta.SignMetaReducerLayer;
+import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
+import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
+import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.SimpleLossNetwork;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
+import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.graph.EvaluationContext;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -70,7 +80,7 @@ public class MnistEncodingTest {
       List<Step> history = new ArrayList<>();
       TrainingMonitor monitor = getMonitor(originalOut, history);
       Tensor[][] trainingData = getTrainingData(log);
-      NNLayer network = buildModel(log);
+      DAGNetwork network = buildModel(log);
   
       Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
       train(log, monitor, network, primingData);
@@ -146,12 +156,15 @@ public class MnistEncodingTest {
    * @param network the network
    * @param data
    */
-  public void validate(NotebookOutput log, NNLayer network, Tensor[][] data) {
+  public void validate(NotebookOutput log, DAGNetwork network, Tensor[][] data) {
     log.code(() -> {
       TableOutput table = new TableOutput();
       Arrays.stream(data).map(tensorArray -> {
         try {
-          Tensor predictionSignal = CudaExecutionContext.gpuContexts.run(ctx->network.eval(ctx, tensorArray[0]).getData().get(0));
+          Tensor predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> {
+            EvaluationContext exeCtx = network.buildExeCtx(NNResult.singleResultArray(new Tensor[]{tensorArray[0], null}));
+            return network.getByLabel("image").get(ctx, exeCtx).getData().get(0);
+          });
           LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
           row.put("Source", log.image(tensorArray[1].toGrayImage(), ""));
           row.put("Echo", log.image(predictionSignal.toGrayImage(), ""));
@@ -178,25 +191,33 @@ public class MnistEncodingTest {
    * @param log the log
    * @return the pipeline network
    */
-  public NNLayer buildModel(NotebookOutput log) {
+  public DAGNetwork buildModel(NotebookOutput log) {
     return log.code(() -> {
-      PipelineNetwork network = new PipelineNetwork();
+      PipelineNetwork network = new PipelineNetwork(2);
       //network.add(new ReLuActivationLayer());
       //network.add(new BiasLayer(features));
+      DAGNode input = network.getInput(0);
+      network.add(new ReLuActivationLayer());
       network.add(new DenseSynapseLayer(new int[]{features}, new int[]{28, 28, 1})
-                    .setWeights(() -> 0.25 * (Math.random() - 0.5)));
+                    .setWeights(() -> 0.25 * (Math.random() - 0.5)), input);
       network.add(new LinearActivationLayer());
-      network.add(new BiasLayer(28, 28, 1));
+      DAGNode image = network.add("image", new BiasLayer(28, 28, 1), network.getHead());
+  
+      network.add(new ProductInputsLayer(),
+        network.add(new MeanSqLossLayer(), image, network.getInput(1)),
+        network.add(new AvgReducerLayer(),
+          network.add(new SignMetaReducerLayer(),
+            input)));
+
       return network;
     });
   }
   
   public void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data) {
     log.code(() -> {
-      SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new MeanSqLossLayer());
       //Trainable trainable = new DeltaHoldoverArrayTrainable(data, supervisedNetwork, trainingSize);
       //printSample(log, expanded, features);
-      RepresentationTrainable subject = new RepresentationTrainable(supervisedNetwork, data, new boolean[]{true, false});
+      RepresentationTrainable subject = new RepresentationTrainable(network, data, new boolean[]{true, false});
       return new IterativeTrainer(subject)
                .setMonitor(monitor)
                .setOrientation(new QQN())
