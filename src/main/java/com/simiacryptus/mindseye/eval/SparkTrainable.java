@@ -276,7 +276,7 @@ public class SparkTrainable implements Trainable {
   protected DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
     DeltaSet deltaSet = new DeltaSet();
     Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
-    NNResult result = CudaExecutionContext.gpuContexts.map(exe->network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
+    NNResult result = CudaExecutionContext.gpuContexts.run(exe->network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
     result.accumulate(deltaSet, 0);
     reduce.accumulate(deltaSet);
     return deltaSet;

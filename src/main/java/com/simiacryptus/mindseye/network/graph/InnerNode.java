@@ -36,10 +36,6 @@ public final class InnerNode extends LazyResult {
    */
   @SuppressWarnings("unused")
   public final String[] createdBy = Util.currentStack();
-  /**
-   * The Id.
-   */
-  public final UUID id;
   private final DAGNetwork dagNetwork;
   private final DAGNode[] inputNodes;
   
@@ -47,28 +43,27 @@ public final class InnerNode extends LazyResult {
    * Instantiates a new Inner node.
    *
    * @param dagNetwork the dag network
-   * @param id         the id
+   * @param key         the id
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(DAGNetwork dagNetwork, final NNLayer id, final DAGNode... inputNodes) {
-    this(dagNetwork, id, UUID.randomUUID(), inputNodes);
+  InnerNode(DAGNetwork dagNetwork, final NNLayer key, final DAGNode... inputNodes) {
+    this(dagNetwork, key, UUID.randomUUID(), inputNodes);
   }
   
   /**
    * Instantiates a new Inner node.
    *
    * @param dagNetwork the dag network
-   * @param id         the id
-   * @param nodeId     the node id
+   * @param key         the id
    * @param inputNodes the input nodes
    */
   @SafeVarargs
-  InnerNode(DAGNetwork dagNetwork, final NNLayer id, UUID nodeId, final DAGNode... inputNodes) {
+  InnerNode(DAGNetwork dagNetwork, final NNLayer layer, UUID key, final DAGNode... inputNodes) {
+    super(key);
     this.dagNetwork = dagNetwork;
     assert null != inputNodes;
-    this.id = nodeId;
-    this.setLayer(id);
+    this.setLayer(layer);
     this.inputNodes = inputNodes;
   }
   
@@ -91,11 +86,6 @@ public final class InnerNode extends LazyResult {
       final NNResult output = innerLayer.eval(nncontext, in);
       return output;
     }
-  }
-  
-  @Override
-  public UUID getId() {
-    return this.id;
   }
   
   /**

@@ -71,7 +71,16 @@ public class DeltaSet {
    * @return the delta buffer
    */
   public Delta get(final NNLayer layer, final double[] ptr) {
-    return get(layer, () -> new Delta(ptr, layer));
+//    if(!this.run.containsKey(layer)) {
+//      System.out.println(String.format("%s -> %s", layer.id, Long.toHexString(System.identityHashCode(ptr))));
+//    }
+    Delta delta = get(layer, () -> new Delta(ptr, layer));
+    assert delta.layer == layer;
+//    if(delta.target != ptr) {
+//      System.out.println(String.format("%s -> %s", layer.id, Long.toHexString(System.identityHashCode(ptr))));
+//    }
+    assert delta.target == ptr;
+    return delta;
   }
   
   /**

@@ -33,7 +33,13 @@ abstract class LazyResult implements DAGNode {
   /**
    * The Key.
    */
-  public final UUID key;
+  public final UUID id;
+  
+  
+  @Override
+  public final UUID getId() {
+    return id;
+  }
   
   /**
    * Instantiates a new Lazy result.
@@ -45,11 +51,11 @@ abstract class LazyResult implements DAGNode {
   /**
    * Instantiates a new Lazy result.
    *
-   * @param key the key
+   * @param id the key
    */
-  protected LazyResult(final UUID key) {
+  protected LazyResult(final UUID id) {
     super();
-    this.key = key;
+    this.id = id;
   }
   
   /**
@@ -63,7 +69,7 @@ abstract class LazyResult implements DAGNode {
   
   @Override
   public synchronized CountingNNResult get(NNLayer.NNExecutionContext nncontext, final EvaluationContext t) {
-    return t.cache.computeIfAbsent(this.key, k -> {
+    return t.cache.computeIfAbsent(this.id, k -> {
       try {
         return new CountingNNResult(eval(t, nncontext));
       } catch (Throwable e) {

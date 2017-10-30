@@ -53,7 +53,37 @@ public class RepresentationTrainable implements Trainable {
     this.network = network;
     this.dynamicMask = dynamicMask;
     this.data = data;
-    this.dataContext = getDataContext(data, dynamicMask);
+    int cols = data[0].length;
+    int rows = data.length;
+    this.dataContext = IntStream.range(0, cols).mapToObj(col -> {
+      Tensor[] tensors = IntStream.range(0, rows).mapToObj(row -> data[row][col]).toArray(i -> new Tensor[i]);
+      if (null == dynamicMask || !dynamicMask[col]) {
+        return new ConstNNResult(tensors);
+      }
+      else {
+        return new NNResult(tensors) {
+          PlaceholderLayer[] layer = IntStream.range(0,tensors.length)
+                                       .mapToObj(i->new PlaceholderLayer())
+                                       .toArray(i->new PlaceholderLayer[i]);
+        
+          @Override
+          public void accumulate(DeltaSet buffer, TensorList delta) {
+            //System.out.println("Accumulating data");
+            for (int index = 0; index < delta.length(); index++) {
+              double[] doubles = delta.get(index).getData();
+              //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));
+              Delta deltaObj = buffer.get(layer[index], tensors[index]);
+              deltaObj.accumulate(doubles);
+            }
+          }
+        
+          @Override
+          public boolean isAlive() {
+            return true;
+          }
+        };
+      }
+    }).toArray(x1 -> new NNResult[x1]);
   }
   
   @Override
@@ -122,7 +152,7 @@ public class RepresentationTrainable implements Trainable {
     double sum = statistics.getAverage();
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet, 1.0 / statistics.getCount());
-    //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.map.size()));
+    //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
     assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
@@ -130,39 +160,6 @@ public class RepresentationTrainable implements Trainable {
     });
     assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
-  }
-  
-  public static NNResult[] getDataContext(Tensor[][] data, boolean[] dynamicMask) {
-    int cols = data[0].length;
-    int rows = data.length;
-    return IntStream.range(0, cols).mapToObj(col -> {
-      if(null == dynamicMask || !dynamicMask[col]) {
-        return new ConstNNResult(IntStream.range(0, rows).mapToObj(row -> {
-            return data[row][col];
-          }
-        ).toArray(i -> new Tensor[i]));
-      } else {
-        Tensor[] array = IntStream.range(0, rows).mapToObj(row -> {
-            return data[row][col];
-          }
-        ).toArray(i -> new Tensor[i]);
-        return new NNResult(array){
-          InputNNLayer layer = new InputNNLayer();
-          
-          @Override
-          public void accumulate(DeltaSet buffer, TensorList data) {
-            for(int index=0;index<data.length();index++){
-              buffer.get(layer, array[index]).accumulate(data.get(index).getData());
-            }
-          }
-          
-          @Override
-          public boolean isAlive() {
-            return true;
-          }
-        };
-      }
-    }).toArray(x1 -> new NNResult[x1]);
   }
   
   public Tensor[][] getData() {
@@ -215,7 +212,7 @@ public class RepresentationTrainable implements Trainable {
     return this;
   }
   
-  private static class InputNNLayer extends NNLayer {
+  private static class PlaceholderLayer extends NNLayer {
     @Override
     public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
       throw new IllegalStateException();

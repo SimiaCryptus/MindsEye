@@ -31,7 +31,6 @@ final class InputNode extends LazyResult {
   /**
    * The Handle.
    */
-  public final UUID handle;
   private final DAGNetwork dagNetwork;
   
   /**
@@ -47,22 +46,16 @@ final class InputNode extends LazyResult {
    * Instantiates a new Input node.
    *
    * @param dagNetwork the dag network
-   * @param handle     the handle
+   * @param key     the handle
    */
-  public InputNode(DAGNetwork dagNetwork, final UUID handle) {
-    super(handle);
+  public InputNode(DAGNetwork dagNetwork, final UUID key) {
+    super(key);
     this.dagNetwork = dagNetwork;
-    this.handle = handle;
   }
   
   @Override
   protected NNResult eval(final EvaluationContext t, NNLayer.NNExecutionContext nncontext) {
-    return t.cache.get(this.handle);
-  }
-  
-  @Override
-  public UUID getId() {
-    return handle;
+    return t.cache.get(this.id);
   }
   
   @Override

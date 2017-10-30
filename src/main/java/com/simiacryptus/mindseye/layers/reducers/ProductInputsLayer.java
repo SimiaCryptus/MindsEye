@@ -92,20 +92,16 @@ public class ProductInputsLayer extends NNLayer {
               Tensor deltaTensor = delta.get(i);
               Tensor inputTensor = input.getData().get(Math.min(i, inputBatches -1));
               Tensor passbackTensor = inputTensor.mapIndex((v, c) -> {
-                Tensor tensorResult = result.get(i);
+                Tensor resultTensor = result.get(i);
                 if (1 == inputTensor.dim() && 1 < deltaTensor.dim()) {
                   double sum = 0;
                   for (int j = 0; j < deltaTensor.dim(); j++) {
-                    double vA = deltaTensor.get(j);
-                    double vB = tensorResult.get(j);
-                    double r = vB * vA / v;
+                    double r = deltaTensor.get(j) * resultTensor.get(j) / v;
                     sum += Double.isFinite(r) ? r : 0.0;
                   }
                   return sum;
                 } else {
-                  double vA = deltaTensor.get(c);
-                  double vB = tensorResult.get(c);
-                  double r = vB * vA / v;
+                  double r = deltaTensor.get(c) * resultTensor.get(c) / v;
                   return Double.isFinite(r) ? r : 0.0;
                 }
               });

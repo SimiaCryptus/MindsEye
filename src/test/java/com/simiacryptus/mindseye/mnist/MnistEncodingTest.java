@@ -20,11 +20,10 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.MNIST;
-import com.simiacryptus.mindseye.eval.GpuTrainable;
 import com.simiacryptus.mindseye.eval.RepresentationTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
@@ -34,12 +33,9 @@ import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
 import com.simiacryptus.util.text.TableOutput;
 import org.junit.Test;
@@ -52,13 +48,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 /**
  * The type Mnist test base.
  */
 public class MnistEncodingTest {
-
+  
+  private int features = 10;
+  
   /**
    * Basic.
    *
@@ -154,7 +151,7 @@ public class MnistEncodingTest {
       TableOutput table = new TableOutput();
       Arrays.stream(data).map(tensorArray -> {
         try {
-          Tensor predictionSignal = CudaExecutionContext.gpuContexts.map(ctx->network.eval(ctx, tensorArray[0]).getData().get(0));
+          Tensor predictionSignal = CudaExecutionContext.gpuContexts.run(ctx->network.eval(ctx, tensorArray[0]).getData().get(0));
           LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
           row.put("Source", log.image(tensorArray[1].toGrayImage(), ""));
           row.put("Echo", log.image(predictionSignal.toGrayImage(), ""));
@@ -169,50 +166,10 @@ public class MnistEncodingTest {
   
   public Tensor[][] getTrainingData(NotebookOutput log) {
     return log.code(() -> {
-      return getTrainingData(log, getTrainingStream());
+      return MNIST.trainingDataStream().map(labeledObject -> {
+        return new Tensor[]{ new Tensor(features).fill(()->0.5*(Math.random()-0.5)), labeledObject.data };
+      }).toArray(i -> new Tensor[i][]);
     });
-  }
-  
-  public Tensor[][] getValidationData(NotebookOutput log) {
-    return log.code(() -> {
-      return getTrainingData(log, getValidationStream());
-    });
-  }
-  
-  public Tensor[][] getTrainingData(NotebookOutput log, Stream<LabeledObject<Tensor>> labeledObjectStream) {
-    return labeledObjectStream.map(labeledObject -> {
-      return new Tensor[]{ new Tensor(100), labeledObject.data };
-    }).toArray(i -> new Tensor[i][]);
-  }
-  
-  public Stream<LabeledObject<Tensor>> getTrainingStream() {
-    try {
-      return MNIST.trainingDataStream();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  public Stream<LabeledObject<Tensor>> getValidationStream() {
-    try {
-      return MNIST.validationDataStream();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  /**
-   * Gets training trainable.
-   *
-   * @param log               the log
-   * @param data      the training data
-   * @param network the supervised network
-   * @return the training trainable
-   */
-  public Trainable getTrainingTrainable(NotebookOutput log, Tensor[][] data, SimpleLossNetwork network) {
-    //Trainable trainable = new DeltaHoldoverArrayTrainable(data, supervisedNetwork, trainingSize);
-    //printSample(log, expanded, 100);
-    return new RepresentationTrainable(network, data, new boolean[]{ true, false });
   }
   
   /**
@@ -225,9 +182,10 @@ public class MnistEncodingTest {
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
       //network.add(new ReLuActivationLayer());
-      network.add(new BiasLayer(100));
-      network.add(new DenseSynapseLayer(new int[]{100}, new int[]{28, 28, 1})
-                    .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+      //network.add(new BiasLayer(features));
+      network.add(new DenseSynapseLayer(new int[]{features}, new int[]{28, 28, 1})
+                    .setWeights(() -> 0.25 * (Math.random() - 0.5)));
+      network.add(new LinearActivationLayer());
       network.add(new BiasLayer(28, 28, 1));
       return network;
     });
@@ -236,14 +194,17 @@ public class MnistEncodingTest {
   public void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new MeanSqLossLayer());
-      return new IterativeTrainer(getTrainingTrainable(log, data, supervisedNetwork))
+      //Trainable trainable = new DeltaHoldoverArrayTrainable(data, supervisedNetwork, trainingSize);
+      //printSample(log, expanded, features);
+      RepresentationTrainable subject = new RepresentationTrainable(supervisedNetwork, data, new boolean[]{true, false});
+      return new IterativeTrainer(subject)
                .setMonitor(monitor)
                .setOrientation(new QQN())
-               .setLineSearchFactory(name->new QuadraticSearch()
-                                             .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-                                             .setRelativeTolerance(2e-1))
-               .setTimeout(60, TimeUnit.MINUTES)
-               .setMaxIterations(10000)
+//               .setLineSearchFactory(name->new QuadraticSearch()
+//                                             .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
+//                                             .setRelativeTolerance(2e-1))
+               .setTimeout(5, TimeUnit.MINUTES)
+               .setMaxIterations(100)
                .run();
     });
   }

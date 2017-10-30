@@ -75,7 +75,7 @@ public class GpuTrainable implements DataTrainable {
         (list, dev) -> eval(list, dev, isStatic),
         (a, b) -> a.add(b)
       );
-      //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.map.size()));
+      //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
   
       assert (null != result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
@@ -128,7 +128,7 @@ public class GpuTrainable implements DataTrainable {
     double sum = statistics.getAverage();
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet, 1.0 / statistics.getCount());
-    //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.map.size()));
+    //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
     assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
