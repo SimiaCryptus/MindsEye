@@ -19,14 +19,12 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -63,7 +61,7 @@ public class RepresentationTrainable implements Trainable {
       else {
         return new NNResult(tensors) {
           PlaceholderLayer[] layer = IntStream.range(0,tensors.length)
-                                       .mapToObj(i->new PlaceholderLayer())
+                                       .mapToObj(i->new PlaceholderLayer(tensors[i]))
                                        .toArray(i->new PlaceholderLayer[i]);
         
           @Override
@@ -153,12 +151,12 @@ public class RepresentationTrainable implements Trainable {
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet, 1.0 / statistics.getCount());
     //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-    assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
       stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
-    assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
   }
   
@@ -212,20 +210,4 @@ public class RepresentationTrainable implements Trainable {
     return this;
   }
   
-  private static class PlaceholderLayer extends NNLayer {
-    @Override
-    public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
-      throw new IllegalStateException();
-    }
-    
-    @Override
-    public JsonObject getJson() {
-      throw new IllegalStateException();
-    }
-    
-    @Override
-    public List<double[]> state() {
-      throw new IllegalStateException();
-    }
-  }
 }

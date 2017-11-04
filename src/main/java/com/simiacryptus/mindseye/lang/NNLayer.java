@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.util.Util;
 
 import java.io.Serializable;
@@ -49,10 +48,7 @@ public abstract class NNLayer implements Serializable {
     default boolean staticEvaluation() { return false; }
   }
   
-  /**
-   * The Id.
-   */
-  public final UUID id;
+  private final UUID id;
   private boolean frozen = false;
   private String name;
   
@@ -82,11 +78,11 @@ public abstract class NNLayer implements Serializable {
    */
   protected NNLayer() {
     this.id = Util.uuid();
-    this.name = getClass().getSimpleName() + "/" + id;
+    this.name = getClass().getSimpleName() + "/" + getId();
   }
   
   @Override
-  public boolean equals(final Object obj) {
+  public final boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
@@ -97,12 +93,12 @@ public abstract class NNLayer implements Serializable {
       return false;
     }
     final NNLayer other = (NNLayer) obj;
-    if (this.id == null) {
-      if (other.id != null) {
+    if (this.getId() == null) {
+      if (other.getId() != null) {
         return false;
       }
     }
-    else if (!this.id.equals(other.id)) {
+    else if (!this.getId().equals(other.getId())) {
       return false;
     }
     return true;
@@ -154,8 +150,8 @@ public abstract class NNLayer implements Serializable {
    * @param id the id
    * @return the child
    */
-  public NNLayer getChild(final UUID id) {
-    if (this.id.equals(id)) {
+  public NNLayer getChild(final String id) {
+    if (this.getId().equals(id)) {
       return this;
     }
     return null;
@@ -171,12 +167,14 @@ public abstract class NNLayer implements Serializable {
   }
   
   /**
+   * The Id.
+   */ /**
    * Gets id.
    *
    * @return the id
    */
-  public final UUID getId() {
-    return this.id;
+  public String getId() {
+    return this.id.toString();
   }
   
   /**
@@ -229,11 +227,8 @@ public abstract class NNLayer implements Serializable {
   }
   
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (this.id == null ? 0 : this.id.hashCode());
-    return result;
+  public final int hashCode() {
+    return this.getId().hashCode();
   }
   
   /**

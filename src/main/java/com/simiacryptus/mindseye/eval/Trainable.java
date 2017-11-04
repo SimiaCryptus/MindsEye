@@ -33,6 +33,10 @@ public interface Trainable {
    */
   Trainable.PointSample measure(boolean isStatic);
   
+  default CachedTrainable<? extends Trainable> cached() {
+    return new CachedTrainable<>(this);
+  }
+  
   /**
    * Reset to full.
    */
@@ -97,6 +101,7 @@ public interface Trainable {
      * @param rate    the rate
      */
     public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate, int count) {
+      assert(delta.map.size() == weights.map.size());
       this.delta = delta;
       this.weights = weights;
       this.sum = sum;
@@ -155,7 +160,7 @@ public interface Trainable {
      * Reset.
      */
     public PointSample reset() {
-      weights.vector().stream().forEach(d -> d.overwrite());
+      weights.stream().forEach(d -> d.overwrite());
       return this;
     }
   
@@ -166,7 +171,16 @@ public interface Trainable {
      * @return the point sample
      */
     public PointSample add(PointSample right) {
-      return new PointSample(this.delta.add(right.delta), this.weights, this.sum + right.sum, this.count + right.count);
+      return add(this, right);
+    }
+  
+    public static PointSample add(PointSample left, PointSample right) {
+      assert(left.delta.map.size() == left.weights.map.size());
+      assert(right.delta.map.size() == right.weights.map.size());
+      return new PointSample(left.delta.add(right.delta),
+                             left.weights.union(right.weights),
+                              left.sum + right.sum,
+                              left.count + right.count);
     }
   }
 }

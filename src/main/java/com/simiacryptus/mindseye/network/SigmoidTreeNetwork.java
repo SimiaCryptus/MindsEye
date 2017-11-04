@@ -77,12 +77,12 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     DAGNode head = getHead();
     JsonObject json = super.getJson();
     json.addProperty("head", head.getId().toString());
-    if(null != alpha) json.addProperty("alpha", alpha.getId().toString());
-    if(null != alphaBias) json.addProperty("alphaBias", alpha.getId().toString());
-    if(null != beta) json.addProperty("beta", beta.getId().toString());
-    if(null != betaBias) json.addProperty("betaBias", beta.getId().toString());
-    if(null != gate) json.addProperty("gate", gate.getId().toString());
-    if(null != gateBias) json.addProperty("gateBias", gate.getId().toString());
+    if(null != alpha) json.addProperty("alpha", alpha.getId());
+    if(null != alphaBias) json.addProperty("alphaBias", alpha.getId());
+    if(null != beta) json.addProperty("beta", beta.getId());
+    if(null != betaBias) json.addProperty("betaBias", beta.getId());
+    if(null != gate) json.addProperty("gate", gate.getId());
+    if(null != gateBias) json.addProperty("gateBias", gate.getId());
     json.addProperty("mode", getMode().name());
     json.addProperty("skipChildStage", skipChildStage());
     json.addProperty("skipFuzzy", isSkipFuzzy());

@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Delta set.
@@ -71,14 +72,8 @@ public class DeltaSet {
    * @return the delta buffer
    */
   public Delta get(final NNLayer layer, final double[] ptr) {
-//    if(!this.run.containsKey(layer)) {
-//      System.out.println(String.format("%s -> %s", layer.id, Long.toHexString(System.identityHashCode(ptr))));
-//    }
     Delta delta = get(layer, () -> new Delta(ptr, layer));
-    assert delta.layer == layer;
-//    if(delta.target != ptr) {
-//      System.out.println(String.format("%s -> %s", layer.id, Long.toHexString(System.identityHashCode(ptr))));
-//    }
+    assert delta.layer.equals(layer);
     assert delta.target == ptr;
     return delta;
   }
@@ -129,13 +124,8 @@ public class DeltaSet {
     return map(x -> x.scale(f));
   }
   
-  /**
-   * Vector list.
-   *
-   * @return the list
-   */
-  public List<Delta> vector() {
-    return this.map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId())).collect(Collectors.toList());
+  public Stream<Delta> stream() {
+    return this.map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId()));
   }
   
   /**
@@ -171,9 +161,12 @@ public class DeltaSet {
    * @return the double
    */
   public double dot(DeltaSet right) {
+    ConcurrentHashMap<NNLayer, Delta> r = right.map;
     return map.entrySet().stream().mapToDouble(entry -> {
-      if (right.map.contains(entry.getKey())) {
-        return entry.getValue().dot(right.map.get(entry.getKey()));
+      NNLayer key = entry.getKey();
+      assert key.equals(key);
+      if (r.containsKey(key)) {
+        return entry.getValue().dot(r.get(key));
       }
       else {
         return 0;
@@ -203,6 +196,17 @@ public class DeltaSet {
     return returnValue;
   }
   
+  public DeltaSet union(DeltaSet right) {
+    DeltaSet returnValue = new DeltaSet();
+    map.forEach((layer, buffer) -> {
+      returnValue.get(layer, buffer.target).set(buffer.delta);
+    });
+    right.map.forEach((layer, buffer) -> {
+      returnValue.get(layer, buffer.target).set(buffer.delta);
+    });
+    return returnValue;
+  }
+  
   /**
    * Copy delta set.
    *
@@ -219,7 +223,7 @@ public class DeltaSet {
    * @return the delta set
    */
   public DeltaSet accumulate(double alpha) {
-    vector().stream().forEach(d -> d.accumulate(alpha));
+    stream().forEach(d -> d.accumulate(alpha));
     return this;
   }
   
@@ -239,6 +243,6 @@ public class DeltaSet {
    * @return the boolean
    */
   public boolean isDifferent() {
-    return vector().stream().parallel().anyMatch(x -> !x.areEqual());
+    return stream().parallel().anyMatch(x -> !x.areEqual());
   }
 }

@@ -33,9 +33,8 @@ import java.util.stream.Collectors;
 /**
  * The type Stochastic array trainable.
  * <p>
- * TODO: Redesign this package. This class is absorbing too many features.
  */
-public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> {
+public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> implements StochasticTrainable, TrainableDataMask {
   
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private int trainingSize;
@@ -66,6 +65,11 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> {
    */
   public StochasticArrayTrainable(Tensor[][] trainingData, NNLayer network, int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
+  }
+  
+  @Override
+  public CachedTrainable<? extends Trainable> cached() {
+    return this;
   }
   
   /**
@@ -111,6 +115,7 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> {
    *
    * @return the training size
    */
+  @Override
   public int getTrainingSize() {
     return this.trainingSize;
   }
@@ -121,7 +126,8 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> {
    * @param trainingSize the training size
    * @return the training size
    */
-  public Trainable setTrainingSize(final int trainingSize) {
+  @Override
+  public StochasticTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
     return this;

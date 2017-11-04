@@ -24,7 +24,7 @@ package com.simiacryptus.mindseye.eval;
  *
  * @param <T> the type parameter
  */
-public class TrainableWrapper<T extends Trainable> implements Trainable {
+public class TrainableWrapper<T extends Trainable> implements TrainableDataMask {
   
   private final T inner;
   
@@ -61,4 +61,14 @@ public class TrainableWrapper<T extends Trainable> implements Trainable {
     return getInner().resetSampling();
   }
   
+  @Override
+  public boolean[] getMask() {
+    return ((TrainableDataMask)inner).getMask();
+  }
+  
+  @Override
+  public TrainableDataMask setMask(boolean... mask) {
+    ((TrainableDataMask)inner).setMask(mask);
+    return this;
+  }
 }

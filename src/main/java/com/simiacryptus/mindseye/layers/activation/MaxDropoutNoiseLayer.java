@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.util.IntArray;
+import com.simiacryptus.util.data.IntArray;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;

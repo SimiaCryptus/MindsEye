@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.UUID;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
@@ -85,12 +84,20 @@ public class Delta {
    * @return the delta buffer
    */
   public Delta accumulate(final double[] data) {
+    //assert Arrays.stream(data).allMatch(Double::isFinite);
+    double[] delta = this.getDelta();
+    accumulate(delta, data);
+    //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
+    return this;
+  }
+  
+  public static void accumulate(double[] data, double[] delta) {
+    Arrays.parallelSetAll(data, i -> data[i] + delta[i]);
+  }
+  
+  public Delta set(final double[] data) {
     assert Arrays.stream(data).allMatch(Double::isFinite);
-    final int dim = length();
-    Arrays.parallelSetAll(this.getDelta(), i -> this.getDelta()[i] + data[i]);
-//    for (int i = 0; i < dim; i++) {
-//      this.delta[i] = this.delta[i] + data[i];
-//    }
+    Arrays.parallelSetAll(this.getDelta(), i -> data[i]);
     assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
     return this;
   }
@@ -109,7 +116,7 @@ public class Delta {
    *
    * @return the id
    */
-  public UUID getId() {
+  public String getId() {
     return this.layer.getId();
   }
   
@@ -201,11 +208,11 @@ public class Delta {
    * @return the double
    */
   public double dot(Delta right) {
-    if (this.layer != right.layer) {
-      throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
-    }
     if (this.target != right.target) {
       throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
+    }
+    if (!this.layer.equals(right.layer)) {
+      throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
     }
     assert (this.getDelta().length == right.getDelta().length);
     return IntStream.range(0, this.getDelta().length).mapToDouble(i -> getDelta()[i] * right.getDelta()[i]).sum();

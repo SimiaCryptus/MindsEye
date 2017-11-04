@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.*;
 import jcuda.runtime.JCuda;
@@ -35,7 +34,7 @@ import java.util.stream.IntStream;
 /**
  * The type Gpu trainable.
  */
-public class GpuTrainable implements DataTrainable {
+public class GpuTrainable implements DataTrainable, TrainableDataMask {
   
   /**
    * The Network.
@@ -55,6 +54,39 @@ public class GpuTrainable implements DataTrainable {
   public GpuTrainable(NNLayer network) {
     this.network = network;
     this.data = null;
+  }
+  
+  protected static NNResult[] getNNContext(List<Tensor[]> data, boolean[] mask) {
+    int cols = data.get(0).length;
+    return IntStream.range(0, cols).parallel().mapToObj(col -> {
+      Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
+      if (null == mask || !mask[col]) {
+        return new ConstNNResult(tensors);
+      }
+      else {
+        return new NNResult(tensors) {
+          PlaceholderLayer[] layer = IntStream.range(0,tensors.length)
+                                                               .mapToObj(i->new PlaceholderLayer(tensors[i]))
+                                                               .toArray(i->new PlaceholderLayer[i]);
+        
+          @Override
+          public void accumulate(DeltaSet buffer, TensorList delta) {
+            System.out.println("Accumulating data");
+            for (int index = 0; index < delta.length(); index++) {
+              double[] doubles = delta.get(index).getData();
+              //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));
+              Delta deltaObj = buffer.get(layer[index], tensors[index]);
+              deltaObj.accumulate(doubles);
+            }
+          }
+        
+          @Override
+          public boolean isAlive() {
+            return true;
+          }
+        };
+      }
+    }).toArray(x1 -> new NNResult[x1]);
   }
   
   @Override
@@ -119,7 +151,8 @@ public class GpuTrainable implements DataTrainable {
    */
   protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, boolean isStatic) {
     nncontext.setStatic(isStatic);
-    NNResult result = network.eval(nncontext, getNNContext(list));
+    NNResult[] nnContext = getNNContext(list, mask);
+    NNResult result = network.eval(nncontext, nnContext);
     TensorList resultData = result.getData();
     assert (resultData.stream().allMatch(x -> x.dim() == 1));
     assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
@@ -129,25 +162,15 @@ public class GpuTrainable implements DataTrainable {
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet, 1.0 / statistics.getCount());
     //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-    assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
       stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
-    assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
   }
   
-  private NNResult[] getNNContext(List<Tensor[]> list) {
-    Tensor[] head = list.get(0);
-    return IntStream.range(0, head.length).mapToObj(inputIndex -> {
-      Tensor[] array = IntStream.range(0, list.size()).mapToObj(trainingExampleId -> {
-          return list.get(trainingExampleId)[inputIndex];
-        }
-      ).toArray(i -> new Tensor[i]);
-      return new ConstNNResult(array);
-    }).toArray(x1 -> new NNResult[x1]);
-  }
   
   /**
    * Is gc each iteration boolean.
@@ -212,20 +235,16 @@ public class GpuTrainable implements DataTrainable {
     return this;
   }
   
-  private static class InputNNLayer extends NNLayer {
-    @Override
-    public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
-      throw new IllegalStateException();
-    }
-    
-    @Override
-    public JsonObject getJson() {
-      throw new IllegalStateException();
-    }
-    
-    @Override
-    public List<double[]> state() {
-      throw new IllegalStateException();
-    }
+  boolean[] mask = null;
+  @Override
+  public boolean[] getMask() {
+    return mask;
   }
+  
+  @Override
+  public TrainableDataMask setMask(boolean... mask) {
+    this.mask = mask;
+    return this;
+  }
+  
 }

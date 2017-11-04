@@ -56,15 +56,6 @@ public class SparkTrainable implements Trainable {
   }
   
   /**
-   * Cached cached trainable.
-   *
-   * @return the cached trainable
-   */
-  public CachedTrainable<SparkTrainable> cached() {
-    return new CachedTrainable<SparkTrainable>(this);
-  }
-  
-  /**
    * Sets storage level.
    *
    * @param storageLevel the storage level
@@ -146,7 +137,7 @@ public class SparkTrainable implements Trainable {
      */
     public void accumulate(DeltaSet source) {
       Map<String, NNLayer> idIndex = source.map.entrySet().stream().collect(Collectors.toMap(
-        e -> e.getKey().id.toString(), e -> e.getKey()
+        e -> e.getKey().getId(), e -> e.getKey()
       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).accumulate(v));
     }
@@ -238,7 +229,7 @@ public class SparkTrainable implements Trainable {
    */
   protected static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
     Map<String, double[]> deltas = delta.map.entrySet().stream().collect(Collectors.toMap(
-      e -> e.getKey().id.toString(), e -> e.getValue().getDelta()
+      e -> e.getKey().getId(), e -> e.getValue().getDelta()
     ));
     return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum());
   }
@@ -254,12 +245,12 @@ public class SparkTrainable implements Trainable {
     NNResult result = network.eval(nncontext, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
-    assert (deltaSet.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
     deltaSet.map.forEach((layer, layerDelta) -> {
       stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
-    assert (stateBackup.vector().stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     TensorList resultData = result.getData();
     assert (resultData.stream().allMatch(x -> x.dim() == 1));
     assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));

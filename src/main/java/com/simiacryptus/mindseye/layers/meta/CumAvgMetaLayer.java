@@ -100,7 +100,7 @@ public class CumAvgMetaLayer extends DAGNetwork implements CumSum {
     JsonObject json = super.getJson();
     JsonArray childrenArray = new JsonArray();
     for (CumSum item : cumsumChildren) {
-      childrenArray.add(new JsonPrimitive(((NNLayer)(item)).id.toString()));
+      childrenArray.add(new JsonPrimitive(((NNLayer) (item)).getId()));
     }
     json.add("children", childrenArray);
     return json;

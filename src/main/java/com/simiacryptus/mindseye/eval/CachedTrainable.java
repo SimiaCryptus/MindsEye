@@ -43,6 +43,11 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   }
   
   @Override
+  public CachedTrainable<? extends Trainable> cached() {
+    return this;
+  }
+  
+  @Override
   public PointSample measure(boolean isStatic) {
     for (PointSample result : history) {
       if (!result.weights.isDifferent()) {

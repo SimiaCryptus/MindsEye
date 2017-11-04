@@ -98,8 +98,8 @@ public class PolynomialNetwork extends DAGNetwork {
      */
     public JsonObject getJson() {
       JsonObject json = new JsonObject();
-      json.addProperty("bias", bias.getId().toString());
-      json.addProperty("factor", factor.getId().toString());
+      json.addProperty("bias", bias.getId());
+      json.addProperty("factor", factor.getId());
       json.addProperty("power", power);
       return json;
     }
@@ -136,8 +136,8 @@ public class PolynomialNetwork extends DAGNetwork {
     DAGNode head = getHead();
     JsonObject json = super.getJson();
     json.addProperty("head", head.getId().toString());
-    if(null != alpha) json.addProperty("alpha", alpha.getId().toString());
-    if(null != alphaBias) json.addProperty("alphaBias", alpha.getId().toString());
+    if(null != alpha) json.addProperty("alpha", alpha.getId());
+    if(null != alphaBias) json.addProperty("alphaBias", alpha.getId());
     json.add("inputDims", toJson(inputDims));
     json.add("outputDims", toJson(outputDims));
     JsonArray elements = new JsonArray();

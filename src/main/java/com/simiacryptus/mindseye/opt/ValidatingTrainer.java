@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.StochasticTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -46,7 +45,7 @@ import java.util.function.Function;
  */
 public class ValidatingTrainer {
   
-  private final StochasticArrayTrainable trainingSubject;
+  private final StochasticTrainable trainingSubject;
   private final Trainable validationSubject;
   private Duration timeout;
   private double terminateThreshold;
@@ -77,9 +76,10 @@ public class ValidatingTrainer {
    * @param trainingSubject   the subject
    * @param validationSubject the validation subject
    */
-  public ValidatingTrainer(StochasticArrayTrainable trainingSubject, Trainable validationSubject) {
+  public ValidatingTrainer(StochasticTrainable trainingSubject, Trainable validationSubject) {
     this.trainingSubject = trainingSubject;
     this.validationSubject = validationSubject;
+    this.trainingSize = trainingSubject.getTrainingSize();
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = Double.NEGATIVE_INFINITY;
   }
@@ -171,7 +171,6 @@ public class ValidatingTrainer {
         epochParams.iterations = 1;
       }
       epochParams.validation = epochResult.currentValidation;
-      orientation.reset();
     }
     return epochParams.validation.getMean();
   }
@@ -262,6 +261,7 @@ public class ValidatingTrainer {
   protected PointSample resetAndMeasure() {
     //currentIteration.incrementAndGet();
     if (!trainingSubject.resetSampling()) throw new IterativeStopException();
+    orientation.reset();
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
@@ -634,8 +634,9 @@ public class ValidatingTrainer {
     return pessimism;
   }
   
-  public void setPessimism(double pessimism) {
+  public ValidatingTrainer setPessimism(double pessimism) {
     this.pessimism = pessimism;
+    return this;
   }
   
   public int getImprovmentStaleThreshold() {

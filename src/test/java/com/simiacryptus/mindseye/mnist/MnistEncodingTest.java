@@ -20,34 +20,32 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.MNIST;
-import com.simiacryptus.mindseye.eval.RepresentationTrainable;
+import com.simiacryptus.mindseye.eval.*;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.activation.LogActivationLayer;
 import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.meta.SignMetaLayer;
-import com.simiacryptus.mindseye.layers.meta.SignMetaReducerLayer;
-import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
-import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
+import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
-import com.simiacryptus.mindseye.network.graph.EvaluationContext;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.ValidatingTrainer;
+import com.simiacryptus.mindseye.opt.orient.OwlQn;
 import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
-import com.simiacryptus.util.text.TableOutput;
+import com.simiacryptus.text.TableOutput;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import smile.plot.PlotCanvas;
@@ -64,7 +62,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class MnistEncodingTest {
   
-  private int features = 10;
+  private int features = 100;
   
   /**
    * Basic.
@@ -85,11 +83,11 @@ public class MnistEncodingTest {
       Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
       train(log, monitor, network, primingData);
       validate(log, network, primingData);
-      report(log, history, network);
+      report(log, history, network, primingData);
   
       train(log, monitor, network, trainingData);
       validate(log, network, trainingData);
-      report(log, history, network);
+      report(log, history, network, trainingData);
 
     }
   }
@@ -130,14 +128,30 @@ public class MnistEncodingTest {
 
   /**
    * Report.
-   *  @param log            the log
+   * @param log            the log
    * @param history        the history
    * @param network        the network
+   * @param data
    */
-  public void report(NotebookOutput log, List<Step> history, NNLayer network) {
+  public void report(NotebookOutput log, List<Step> history, NNLayer network, Tensor[][] data) {
     log.code(() -> {
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       return out.toString();
+    });
+    log.out("Learned Model Statistics:");
+    log.code(()->{
+      ScalarStatistics scalarStatistics = new ScalarStatistics();
+      network.state().stream().flatMapToDouble(x-> Arrays.stream(x))
+        .forEach(v->scalarStatistics.add(v));
+      return scalarStatistics.getMetrics();
+    });
+    log.out("Learned Representation Statistics:");
+    log.code(()->{
+      ScalarStatistics scalarStatistics = new ScalarStatistics();
+      Arrays.stream(data)
+        .flatMapToDouble(row-> Arrays.stream(row[0].getData()))
+        .forEach(v->scalarStatistics.add(v));
+      return scalarStatistics.getMetrics();
     });
     String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
@@ -161,10 +175,10 @@ public class MnistEncodingTest {
       TableOutput table = new TableOutput();
       Arrays.stream(data).map(tensorArray -> {
         try {
+          NNLayer imageNetwork = network.getLabelNetwork("image");
           Tensor predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> {
-            EvaluationContext exeCtx = network.buildExeCtx(NNResult.singleResultArray(new Tensor[]{tensorArray[0], null}));
-            return network.getByLabel("image").get(ctx, exeCtx).getData().get(0);
-          });
+            return imageNetwork.eval(ctx, tensorArray);
+          }).getData().get(0);
           LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
           row.put("Source", log.image(tensorArray[1].toGrayImage(), ""));
           row.put("Echo", log.image(predictionSignal.toGrayImage(), ""));
@@ -202,12 +216,28 @@ public class MnistEncodingTest {
                     .setWeights(() -> 0.25 * (Math.random() - 0.5)), input);
       network.add(new LinearActivationLayer());
       DAGNode image = network.add("image", new BiasLayer(28, 28, 1), network.getHead());
+      DAGNode softmax = network.add(new SoftmaxActivationLayer(), input);
   
-      network.add(new ProductInputsLayer(),
-        network.add(new MeanSqLossLayer(), image, network.getInput(1)),
-        network.add(new AvgReducerLayer(),
-          network.add(new SignMetaReducerLayer(),
-            input)));
+      network.add(new SumInputsLayer(),
+//        network.add(new NthPowerActivationLayer().setPower(1.0/2.0),
+          network.add(new LinearActivationLayer().setScale(100).freeze(),
+            network.add(new EntropyLossLayer(), softmax, softmax)),
+          network.add(new MeanSqLossLayer(), image, network.getInput(1))
+//        )
+//        network.add(new LinearActivationLayer().setScale(100),
+//          network.add(new NthPowerActivationLayer().setPower(1.0/2.0),
+//            network.add(new AvgReducerLayer(),
+//              network.add(new NthPowerActivationLayer().setPower(2.0),
+//                network.add(new LinearActivationLayer().setBias(-0.1),
+//                  network.add(new SignMetaReducerLayer(),
+//                    input)
+//                )
+//              )
+//            )
+//          )
+//        )
+      )
+      ;
 
       return network;
     });
@@ -215,18 +245,17 @@ public class MnistEncodingTest {
   
   public void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data) {
     log.code(() -> {
-      //Trainable trainable = new DeltaHoldoverArrayTrainable(data, supervisedNetwork, trainingSize);
-      //printSample(log, expanded, features);
-      RepresentationTrainable subject = new RepresentationTrainable(network, data, new boolean[]{true, false});
-      return new IterativeTrainer(subject)
-               .setMonitor(monitor)
-               .setOrientation(new QQN())
-//               .setLineSearchFactory(name->new QuadraticSearch()
-//                                             .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-//                                             .setRelativeTolerance(2e-1))
-               .setTimeout(5, TimeUnit.MINUTES)
-               .setMaxIterations(100)
-               .run();
+      StochasticTrainable trainingSubject = (StochasticTrainable) new ConstL12Normalizer(new StochasticArrayTrainable(data, network, 1000)).setFactor_L1(0.000001).setMask(true, false);
+      //StochasticTrainable trainingSubject = (StochasticTrainable) new StochasticArrayTrainable(data, network, 1000).setMask(true, false);
+      new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
+        .setMaxTrainingSize(data.length)
+        //.setPessimism(Double.POSITIVE_INFINITY)
+        .setMonitor(monitor)
+        //.setOrientation(new OwlQn())
+        .setOrientation(new QQN())
+        .setTimeout(30, TimeUnit.MINUTES)
+        .setMaxIterations(100)
+        .run();
     });
   }
   

@@ -37,7 +37,7 @@ import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
-import com.simiacryptus.util.text.TableOutput;
+import com.simiacryptus.text.TableOutput;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import smile.plot.PlotCanvas;

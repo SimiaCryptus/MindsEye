@@ -26,8 +26,8 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
-import com.simiacryptus.util.PercentileStatistics;
-import com.simiacryptus.util.ScalarStatistics;
+import com.simiacryptus.util.data.PercentileStatistics;
+import com.simiacryptus.util.data.ScalarStatistics;
 
 import java.util.Arrays;
 import java.util.HashMap;

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * The type Array trainable.
  */
-public class ArrayTrainable extends BatchedTrainable {
+public class ArrayTrainable extends BatchedTrainable implements TrainableDataMask {
   
   private Tensor[][] trainingData;
   

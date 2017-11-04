@@ -17,28 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.loss;
+package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.DerivativeTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.lang.NNLayer;
-
-/**
- * The type Entropy loss layer test.
- */
-public class EntropyLossLayerTest extends LayerTestBase {
+public interface StochasticTrainable extends Trainable {
+  int getTrainingSize();
   
-  @Override
-  public NNLayer getLayer() {
-    return new EntropyLossLayer();
-  }
-  
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {4}, {4}
-    };
-  }
-  
+  StochasticTrainable setTrainingSize(int trainingSize);
 }

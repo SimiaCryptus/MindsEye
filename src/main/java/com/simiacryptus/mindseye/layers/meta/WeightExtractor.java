@@ -36,7 +36,7 @@ public final class WeightExtractor extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.addProperty("innerId", getInner().getId().toString());
+    json.addProperty("innerId", getInner().getId());
     json.addProperty("index", index);
     return json;
   }
@@ -60,7 +60,7 @@ public final class WeightExtractor extends NNLayer {
     super(json);
     this.setInner(null);
     this.index = json.get("index").getAsInt();
-    this.innerId = UUID.fromString(json.getAsJsonPrimitive("innerId").getAsString());
+    this.innerId = (json.getAsJsonPrimitive("innerId").getAsString());
   }
   
   /**
@@ -69,7 +69,7 @@ public final class WeightExtractor extends NNLayer {
   static final Logger log = LoggerFactory.getLogger(WeightExtractor.class);
   
   private NNLayer inner;
-  private UUID innerId;
+  private String innerId;
   private final int index;
 
   /**
@@ -81,7 +81,7 @@ public final class WeightExtractor extends NNLayer {
   public WeightExtractor(final int index, final NNLayer inner) {
     this.setInner(inner);
     this.index = index;
-    this.innerId = inner.id;
+    this.innerId = inner.getId();
   }
 
   @Override
@@ -112,7 +112,7 @@ public final class WeightExtractor extends NNLayer {
    *
    * @return the inner id
    */
-  public UUID getInnerId() {
+  public String getInnerId() {
     return innerId;
   }
   
@@ -132,6 +132,6 @@ public final class WeightExtractor extends NNLayer {
    */
   public void setInner(NNLayer inner) {
     this.inner = inner;
-    this.innerId = null == inner ? null : inner.id;
+    this.innerId = null == inner ? null : inner.getId();
   }
 }

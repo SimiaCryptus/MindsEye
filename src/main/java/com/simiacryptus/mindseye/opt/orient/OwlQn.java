@@ -42,7 +42,7 @@ public class OwlQn implements OrientationStrategy {
    * The Inner.
    */
   public final OrientationStrategy inner;
-  private double factor_L1 = 0.0001;
+  private double factor_L1 = 0.000;
   private double zeroTol = 1e-20;
   
   /**
@@ -83,7 +83,7 @@ public class OwlQn implements OrientationStrategy {
     return new SimpleLineSearchCursor(subject, measurement, searchDirection) {
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-        origin.weights.vector().stream().forEach(d -> d.overwrite());
+        origin.weights.stream().forEach(d -> d.overwrite());
         DeltaSet currentDirection = direction.copy();
         direction.map.forEach((layer, buffer) -> {
           if (null == buffer.getDelta()) return;
@@ -101,7 +101,7 @@ public class OwlQn implements OrientationStrategy {
           }
         });
         PointSample measure = subject.measure(true).setRate(alpha);
-        return new LineSearchPoint(measure, dot(currentDirection.vector(), measure.delta.vector()));
+        return new LineSearchPoint(measure, currentDirection.dot(measure.delta));
       }
     }.setDirectionType("OWL/QN");
   }

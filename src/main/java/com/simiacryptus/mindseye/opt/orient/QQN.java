@@ -35,7 +35,7 @@ public class QQN extends LBFGS {
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
     addToHistory(origin, monitor);
-    SimpleLineSearchCursor lbfgsCursor = _orient(subject, origin, monitor);
+    SimpleLineSearchCursor lbfgsCursor = (SimpleLineSearchCursor) super.orient(subject, origin, monitor);
     final DeltaSet lbfgs = lbfgsCursor.direction;
     DeltaSet gd = origin.delta.scale(-1.0 / origin.count);
     double lbfgsMag = lbfgs.getMagnitude();
@@ -59,7 +59,7 @@ public class QQN extends LBFGS {
           //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
           addToHistory(sample, monitor);
           DeltaSet tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
-          return new LineSearchPoint(sample, SimpleLineSearchCursor.dot(tangent.vector(), sample.delta.vector()));
+          return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
 
         @Override

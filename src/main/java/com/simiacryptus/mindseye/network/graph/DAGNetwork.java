@@ -63,7 +63,7 @@ public abstract class DAGNetwork extends NNLayer {
       Arrays.stream(node.getInputs()).forEach((DAGNode input) -> linkArray.add(new JsonPrimitive(input.getId().toString())));
       NNLayer layer = node.getLayer();
       String nodeId = node.getId().toString();
-      String layerId = layer.id.toString();
+      String layerId = layer.getId();
       nodeMap.addProperty(nodeId, layerId);
       layerMap.add(layerId, layer.getJson());
       links.add(nodeId, linkArray);
@@ -204,7 +204,7 @@ public abstract class DAGNetwork extends NNLayer {
   /**
    * The Layers by id.
    */
-  protected final LinkedHashMap<UUID, NNLayer> layersById = new LinkedHashMap<>();
+  protected final LinkedHashMap<String, NNLayer> layersById = new LinkedHashMap<>();
   /**
    * The Nodes by id.
    */
@@ -369,8 +369,8 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public NNLayer getChild(final UUID id) {
-    if (this.id.equals(id)) {
+  public NNLayer getChild(final String id) {
+    if (this.getId().equals(id)) {
       return this;
     }
     if (this.layersById.containsKey(id)) {
@@ -415,6 +415,25 @@ public abstract class DAGNetwork extends NNLayer {
    */
   public DAGNode getByLabel(String key) {
     return nodesById.get(labels.get(key));
+  }
+  
+  public NNLayer getLabelNetwork(String key) {
+    return new NNLayer() {
+      @Override
+      public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
+        return nodesById.get(labels.get(key)).get(nncontext, buildExeCtx(array));
+      }
+  
+      @Override
+      public JsonObject getJson() {
+        throw new UnsupportedOperationException();
+      }
+  
+      @Override
+      public List<double[]> state() {
+        return DAGNetwork.this.state();
+      }
+    };
   }
   
   public NNResult get(NNExecutionContext nncontext, EvaluationContext buildExeCtx) {

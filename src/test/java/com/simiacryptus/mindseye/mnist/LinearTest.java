@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
+import com.simiacryptus.mindseye.eval.StochasticTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
@@ -79,7 +80,7 @@ public class LinearTest extends MnistTestBase {
    * @param supervisedNetwork the supervised network
    * @return the training trainable
    */
-  public StochasticArrayTrainable getTrainingTrainable(NotebookOutput log, Tensor[][] trainingData, SimpleLossNetwork supervisedNetwork) {
+  public StochasticTrainable getTrainingTrainable(NotebookOutput log, Tensor[][] trainingData, SimpleLossNetwork supervisedNetwork) {
       //Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
     Tensor[][] expanded = Arrays.stream(trainingData).flatMap(row -> testDataExpansion.apply(row)).toArray(i -> new Tensor[i][]);
     printSample(log, expanded, 100);

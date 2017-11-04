@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
 /**
  * Created by Andrew Charneski on 5/26/2017.
  */
-public class ConstL12Normalizer extends L12Normalizer {
+public class ConstL12Normalizer extends L12Normalizer implements StochasticTrainable, TrainableDataMask {
   private double factor_L1 = 0.0;
   private double factor_L2 = 0.0;
   
@@ -93,6 +93,28 @@ public class ConstL12Normalizer extends L12Normalizer {
    */
   public ConstL12Normalizer setFactor_L2(double factor_L2) {
     this.factor_L2 = factor_L2;
+    return this;
+  }
+  
+  @Override
+  public int getTrainingSize() {
+    return ((StochasticTrainable)inner).getTrainingSize();
+  }
+  
+  @Override
+  public ConstL12Normalizer setTrainingSize(int trainingSize) {
+    ((StochasticTrainable)inner).setTrainingSize(trainingSize);
+    return this;
+  }
+  
+  @Override
+  public boolean[] getMask() {
+    return ((TrainableDataMask)inner).getMask();
+  }
+  
+  @Override
+  public TrainableDataMask setMask(boolean... mask) {
+    ((TrainableDataMask)inner).setMask(mask);
     return this;
   }
 }
