@@ -71,7 +71,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         
           @Override
           public void accumulate(DeltaSet buffer, TensorList delta) {
-            System.out.println("Accumulating data");
+            //System.out.println("Accumulating data");
             for (int index = 0; index < delta.length(); index++) {
               double[] doubles = delta.get(index).getData();
               //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));

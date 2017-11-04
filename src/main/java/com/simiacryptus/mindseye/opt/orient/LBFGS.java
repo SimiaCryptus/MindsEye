@@ -58,15 +58,14 @@ public class LBFGS implements OrientationStrategy {
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     addToHistory(measurement, monitor);
     List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
-    DeltaSet result = lbfgs(measurement, monitor, history, true);
-    if(null == result) result = lbfgs(measurement, monitor, history, false);
+    DeltaSet result = lbfgs(measurement, monitor, history);
     SimpleLineSearchCursor returnValue;
     if(null == result) {
       returnValue = cursor(subject, measurement, "GD", measurement.delta.scale(-1));
     } else {
       returnValue = cursor(subject, measurement, "LBFGS", result);
     }
-    while (this.history.size() > maxHistory) {
+    while (this.history.size() > ((null==result)?minHistory:maxHistory)) {
       PointSample remove = this.history.pollFirst();
       if (verbose) {
         monitor.log(String.format("Removed measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(remove)), history.size()));
@@ -94,7 +93,7 @@ public class LBFGS implements OrientationStrategy {
     else if (!copyFull.weights.stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
       if (verbose) monitor.log("Corrupt measurement");
     }
-    else if (history.isEmpty() || !history.stream().filter(x -> x.sum < copyFull.sum).findAny().isPresent()) {
+    else if (history.isEmpty() || !history.stream().filter(x -> x.sum <= copyFull.sum).findAny().isPresent()) {
       if (verbose) {
         monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(copyFull)), history.size()));
       }
@@ -102,7 +101,7 @@ public class LBFGS implements OrientationStrategy {
     }
   }
   
-  protected DeltaSet lbfgs(PointSample measurement, TrainingMonitor monitor, List<PointSample> history, boolean removeLow) {
+  protected DeltaSet lbfgs(PointSample measurement, TrainingMonitor monitor, List<PointSample> history) {
     DeltaSet result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       DeltaSet original = result.copy();
@@ -115,8 +114,7 @@ public class LBFGS implements OrientationStrategy {
         double denominator = sd.dot(yd);
         if (0 == denominator) {
           monitor.log("Orientation vanished. Popping history element from " + history.stream().map(x->String.format("%s",x.getMean())).reduce((a,b)->a+", "+b));
-          List<PointSample> newHistory = removeLow ? history.subList(1, history.size()) : history.subList(0, history.size() - 1);
-          return lbfgs(measurement, monitor, newHistory, removeLow);
+          return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
         }
         alphas[i] = p.dot(sd) / denominator;
         p = p.subtract(yd.scale(alphas[i]));
@@ -168,8 +166,7 @@ public class LBFGS implements OrientationStrategy {
     }
     if (!accept(measurement.delta, result)) {
       monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x->String.format("%s",x.getMean())).reduce((a,b)->a+", "+b));
-      List<PointSample> newHistory = removeLow ? history.subList(1, history.size()) : history.subList(0, history.size() - 1);
-      return lbfgs(measurement, monitor, newHistory, removeLow);
+      return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
     } else {
       this.history.clear();
       this.history.addAll(history);

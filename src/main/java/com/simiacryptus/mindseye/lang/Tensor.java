@@ -237,13 +237,13 @@ public class Tensor implements Serializable {
     return a;
   }
   
-  private static int bounds(final int value) {
+  private static int bound8bit(final int value) {
     final int max = 0xFF;
     final int min = 0;
     return (value < min) ? min : ((value > max) ? max : value);
   }
   
-  private static double bounds(final double value) {
+  private static double bound8bit(final double value) {
     final int max = 0xFF;
     final int min = 0;
     return (value < min) ? min : ((value > max) ? max : value);
@@ -865,12 +865,12 @@ public class Tensor implements Serializable {
       for (int y = 0; y < img.getHeight(); y++) {
         if (this.getDimensions()[2] == 1) {
           final double value = this.get(x, y, 0);
-          img.setRGB(x, y, bounds((int) value) * 0x010101);
+          img.setRGB(x, y, bound8bit((int) value) * 0x010101);
         }
         else {
-          final double red = bounds(this.get(x, y, 0));
-          final double green = bounds(this.get(x, y, 1));
-          final double blue = bounds(this.get(x, y, 2));
+          final double red = bound8bit(this.get(x, y, 0));
+          final double green = bound8bit(this.get(x, y, 1));
+          final double blue = bound8bit(this.get(x, y, 2));
           img.setRGB(x, y, (int) (red + ((int) green << 8) + ((int) blue << 16)));
         }
       }

@@ -67,7 +67,6 @@ public class LBFGSTest extends MnistTestBase {
   public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      //return new IterativeTrainer(new StochasticArrayTrainable(trainingData, supervisedNetwork, 10000))
       return new ValidatingTrainer(
         new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000,10000),
         new ArrayTrainable(trainingData, supervisedNetwork).cached()

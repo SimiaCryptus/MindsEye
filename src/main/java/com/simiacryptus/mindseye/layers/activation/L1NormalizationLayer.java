@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.activation;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.util.ArrayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,26 +30,26 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type L 1 normalization layer.
+ * The type Softmax activation layer.
  */
 public class L1NormalizationLayer extends NNLayer {
   
   public JsonObject getJson() {
     return super.getJsonStub();
   }
-
+  
   /**
-   * From json l 1 normalization layer.
+   * From json softmax activation layer.
    *
    * @param json the json
-   * @return the l 1 normalization layer
+   * @return the softmax activation layer
    */
   public static L1NormalizationLayer fromJson(JsonObject json) {
     return new L1NormalizationLayer(json);
   }
-
+  
   /**
-   * Instantiates a new L 1 normalization layer.
+   * Instantiates a new Softmax activation layer.
    *
    * @param id the id
    */
@@ -58,56 +59,52 @@ public class L1NormalizationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
-  private static final long serialVersionUID = -8028442822064680557L;
+
+  /**
+   * The Max input.
+   */
+  double maxInput = 50;
   
   /**
-   * Instantiates a new L 1 normalization layer.
+   * Instantiates a new Softmax activation layer.
    */
   public L1NormalizationLayer() {
   }
   
   @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    int itemCnt = inObj[0].getData().length();
-    double[] sum_A = new double[itemCnt];
-    final Tensor inputA[] = new Tensor[itemCnt];
-    final boolean isZeroInputA[] = new boolean[itemCnt];
-    Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-      final Tensor input = inObj[0].getData().get(dataIndex);
-      final double sum = input.sum();
-      sum_A[dataIndex] = sum;
-      final boolean isZeroInput = sum == 0.;
-      isZeroInputA[dataIndex] = isZeroInput;
-      inputA[dataIndex] = input;
-      return input.map(x -> isZeroInput ? x : x / sum);
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... input) {
+    final NNResult in = input[0];
+    final TensorList inData = in.getData();
+    Tensor[] output = IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
+      final Tensor value = inData.get(dataIndex);
+      double sum = value.sum();
+      assert Double.isFinite(sum) && 0 != sum;
+      return value.scale(1.0 / sum);
     }).toArray(i -> new Tensor[i]);
-    
-    return new NNResult(outputA) {
+    return new NNResult(output) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
-        if (inObj[0].isAlive()) {
-          Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
-            final double[] delta = Arrays.copyOf(data.get(dataIndex).getData(), data.get(dataIndex).getData().length);
-            final double[] indata = inputA[dataIndex].getData();
-            final Tensor passback = new Tensor(data.get(dataIndex).getDimensions());
-            double dot = 0;
-            for (int i = 0; i < indata.length; i++) {
-              dot += delta[i] * indata[i];
-            }
-            for (int i = 0; i < indata.length; i++) {
-              final double d = delta[i];
-              double sum = sum_A[dataIndex];
-              passback.set(i, isZeroInputA[dataIndex] ? d : (d * sum - dot) / (sum * sum));
+      public void accumulate(final DeltaSet buffer, final TensorList outDelta) {
+        if (in.isAlive()) {
+          Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
+            final double[] value = inData.get(dataIndex).getData();
+            final double[] delta = outDelta.get(dataIndex).getData();
+            double dot = ArrayUtil.dot(value, delta);
+            double sum = Arrays.stream(value).sum();
+            final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
+            double[] passbackData = passback.getData();
+            for (int i = 0; i < value.length; i++) {
+              passbackData[i] = (delta[i] - dot / sum) / sum;
             }
             return passback;
           }).toArray(i -> new Tensor[i]);
-          inObj[0].accumulate(buffer, new TensorArray(passbackA));
+          assert Arrays.stream(passbackArray).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+          in.accumulate(buffer, new TensorArray(passbackArray));
         }
       }
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive();
+        return in.isAlive();
       }
       
     };
@@ -117,5 +114,4 @@ public class L1NormalizationLayer extends NNLayer {
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
 }
