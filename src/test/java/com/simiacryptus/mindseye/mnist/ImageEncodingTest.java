@@ -66,6 +66,9 @@ import java.util.stream.Collectors;
  */
 public class ImageEncodingTest {
   
+  int fromSize = 0;
+  int toSize = 0;
+
   /**
    * Basic test.
    *
@@ -79,39 +82,40 @@ public class ImageEncodingTest {
       if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
       List<Step> history = new ArrayList<>();
       TrainingMonitor monitor = getMonitor(originalOut, history);
-      Tensor[][] trainingData = getImages(log, new String[]{"kangaroo"});
   
+      int timeoutMinutes = 30;
+      int band1 = 3;
+      toSize = fromSize = 256;
+      Tensor[][] trainingData = getImages(log, new String[]{"kangaroo"}, fromSize);
+  
+      int band2 = 12;
       DAGNetwork innerModelA = log.code(() -> {
         int radius = 5;
+        fromSize = toSize;
+        toSize = (fromSize / 2 + (radius-1)); // 132
         PipelineNetwork network = new PipelineNetwork(1);
-        network.add(new ConvolutionLayer(radius, radius, 12, 3 * 4, true).setWeights(()-> 0.1 * (Math.random() - 0.5)));
-        network.add(new ImgBandBiasLayer(3 * 4));
+        network.add(new ConvolutionLayer(radius, radius, band2, band1 * 4, false).setWeights(()-> 0.1 * (Math.random() - 0.5)));
+        network.add(new ImgBandBiasLayer(band1 * 4));
         network.add(new ImgReshapeLayer(2,2,true));
         network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         return network;
       });
       trainingData = Arrays.stream(trainingData).map(x -> {
-        Tensor image = x[0];
-        int[] dimensions = Arrays.copyOf(image.getDimensions(), image.getDimensions().length);
-        dimensions[0] /= 2;
-        dimensions[1] /= 2;
-        dimensions[2] = 12;
         return new Tensor[]{
           x[0],
-          new Tensor(dimensions).fill(() -> 0.5 * (Math.random() - 0.5))
+          new Tensor(toSize, toSize, band2).fill(() -> 0.5 * (Math.random() - 0.5))
         };
       }).limit(10).toArray(i -> new Tensor[i][]);
-  
       {
         DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelA, 0, 1, 0, 0);
         DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelA, 0, 1, 1e-3, 1e-1);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), 15, 1e-8, false, true);
+        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 1e-8, false, true);
         validationReport(log, trainingData, innerModelA);
         printModel(log, innerModelA);
         printDataStatistics(log, trainingData);
         printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel1, trainingData, new OwlQn(), 30, 1e-8, false, true);
+        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-8, false, true);
         validationReport(log, trainingData, innerModelA);
         printModel(log, innerModelA);
         printDataStatistics(log, trainingData);
@@ -119,37 +123,47 @@ public class ImageEncodingTest {
         history.clear();
       }
   
+      int band3 = 48;
       DAGNetwork innerModelB = log.code(() -> {
         int radius = 5;
+        fromSize = toSize;
+        toSize = (fromSize / 2 + (radius-1)); // 70
         PipelineNetwork network = new PipelineNetwork(1);
-        network.add(new ConvolutionLayer(radius, radius, 48, 12 * 4, true).setWeights(()-> 0.1 * (Math.random() - 0.5)));
-        network.add(new ImgBandBiasLayer(12 * 4));
+        network.add(new ConvolutionLayer(radius, radius, band3, band2 * 4, false).setWeights(()-> 0.1 * (Math.random() - 0.5)));
+        network.add(new ImgBandBiasLayer(band2 * 4));
         network.add(new ImgReshapeLayer(2,2,true));
         network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         return network;
       });
+      DAGNetwork innerModelAB = log.code(() -> {
+        PipelineNetwork network = new PipelineNetwork(1);
+        network.add(innerModelB);
+        network.add(innerModelA);
+        return network;
+      });
       trainingData = Arrays.stream(trainingData).map(x -> {
-        Tensor image = x[1];
-        int[] dimensions = Arrays.copyOf(image.getDimensions(), image.getDimensions().length);
-        dimensions[0] /= 2;
-        dimensions[1] /= 2;
-        dimensions[2] = 48;
         return new Tensor[]{
-          x[0],x[1],
-          new Tensor(dimensions).fill(() -> 0.5 * (Math.random() - 0.5))
+          x[0], x[1],
+          new Tensor(toSize, toSize, band3).fill(() -> 0.5 * (Math.random() - 0.5))
         };
       }).limit(10).toArray(i -> new Tensor[i][]);
-  
       {
         DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelB, 1, 2, 0, 0);
-        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelB, 1, 2, 1e-3, 1e-1);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), 15, 1e-8, false, false, true);
+        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelAB, 0, 2, 0, 0);
+        DAGNetwork trainingModel2 = buildTrainingModel(log, innerModelAB, 0, 2, 1e-3, 1e-1);
+        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 1e-8, false, false, true);
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
         printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel1, trainingData, new OwlQn(), 30, 1e-8, false, false, true);
+        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-8, false, false, true);
+        validationReport(log, trainingData, innerModelA, innerModelB);
+        printModel(log, innerModelB);
+        printDataStatistics(log, trainingData);
+        printHistory(log, history);
+        history.clear();
+        train(log, monitor, trainingModel2, trainingData, new OwlQn(), timeoutMinutes, 1e-8, false, false, true);
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
@@ -162,7 +176,7 @@ public class ImageEncodingTest {
   
   private DAGNetwork buildTrainingModel(NotebookOutput log, DAGNetwork innerModel, int reproducedColumn, int learnedColumn, double factor_l1, double factor_entropy) {
     return log.code(() -> {
-      PipelineNetwork network = new PipelineNetwork(2);
+      PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn)+1);
       DAGNode input = network.getInput(learnedColumn);
       DAGNode output = network.add("image", innerModel, input);
       DAGNode density = network.add(new L1NormalizationLayer(),
@@ -170,17 +184,14 @@ public class ImageEncodingTest {
           network.add(new AbsActivationLayer(), input)));
       DAGNode entropy = network.add(new AbsActivationLayer(),
         network.add(new EntropyLossLayer(), density, density));
-      
       DAGNode rmsError = network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
         network.add(new MeanSqLossLayer(), output, network.getInput(reproducedColumn))
       );
-  
       List<DAGNode> fitnessNodes = new ArrayList<>();
       fitnessNodes.add(rmsError);
       if(0<factor_entropy) fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_entropy).freeze(), entropy));
       if(0<factor_l1) fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_l1).freeze(), entropy));
       network.add(new SumInputsLayer(), fitnessNodes.toArray(new DAGNode[]{}));
-      
       return network;
     });
   }
@@ -208,7 +219,7 @@ public class ImageEncodingTest {
   }
   
   private void printDataStatistics(NotebookOutput log, Tensor[][] data) {
-    for(int col=0;col<data.length;col++) {
+    for(int col=0;col<data[0].length;col++) {
       int c = col;
       log.out("Learned Representation Statistics for Column " + col);
       log.code(()->{
@@ -253,9 +264,9 @@ public class ImageEncodingTest {
           for(int col=0;col<tensorArray.length;col++) {
             Tensor tensor = tensorArray[col];
             row.put("Data_"+col, render(log, tensor));
-            if(network.length <= col) {
+            if(network.length >= col && 0 < col) {
               PipelineNetwork decoder = new PipelineNetwork();
-              for(int i=col-1;i>=0;i++) {
+              for(int i=col-1;i>=0;i--) {
                 decoder.add(network[i]);
               }
               row.put("Decode_"+col, log.image(CudaExecutionContext.gpuContexts.run(ctx -> {
@@ -292,7 +303,7 @@ public class ImageEncodingTest {
     return image;
   }
   
-  private Tensor[][] getImages(NotebookOutput log, String[] categories) {
+  private Tensor[][] getImages(NotebookOutput log, String[] categories, int size) {
     log.code(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
     });
@@ -301,7 +312,7 @@ public class ImageEncodingTest {
       return Caltech101.trainingDataStream().filter(x -> {
         return Arrays.asList(categories).contains(x.label);
       }).map(labeledObj -> new Tensor[]{
-        Tensor.fromRGB(resize(labeledObj.data.get(), 256))
+        Tensor.fromRGB(resize(labeledObj.data.get(), size))
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).toArray(i -> new Tensor[i][]);
     });
   }
