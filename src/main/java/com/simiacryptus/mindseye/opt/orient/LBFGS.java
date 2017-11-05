@@ -113,7 +113,7 @@ public class LBFGS implements OrientationStrategy {
         DeltaSet yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         double denominator = sd.dot(yd);
         if (0 == denominator) {
-          monitor.log("Orientation vanished. Popping history element from " + history.stream().map(x->String.format("%s",x.getMean())).reduce((a,b)->a+", "+b));
+          monitor.log("Orientation vanished. Popping history element from " + history.stream().map(x->String.format("%s",x.getMean())).reduce((a,b)->a+", "+b).get());
           return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
         }
         alphas[i] = p.dot(sd) / denominator;
@@ -165,7 +165,7 @@ public class LBFGS implements OrientationStrategy {
       return null;
     }
     if (!accept(measurement.delta, result)) {
-      monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x->String.format("%s",x.getMean())).reduce((a,b)->a+", "+b));
+      monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x->String.format("%s",x.getMean())).reduce((a,b)->a+", "+b).get());
       return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
     } else {
       this.history.clear();

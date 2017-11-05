@@ -126,8 +126,10 @@ public class ValidatingTrainer {
       double trainingDelta = epochResult.getTrainingDelta();
       double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(validationDelta), adjustmentFactor);
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
-      monitor.log(String.format("Epoch %d result with %s iterations, %s samples: {validation *= 2^%.3f; training *= 2^%.3f; Overtraining = %.3f}, {itr*=%.3f, len*=%.3f}",
-        ++epochNumber, epochResult.iterations, epochParams.trainingSize, Math.log(validationDelta)/Math.log(2), Math.log(trainingDelta)/Math.log(2), epochResult.getOverTrainingCoeff(), adj1, adj2));
+      monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement",
+        ++epochNumber, epochResult.iterations, epochParams.trainingSize, getMaxTrainingSize(),
+        Math.log(validationDelta)/Math.log(2), Math.log(trainingDelta)/Math.log(2),
+        epochResult.getOverTrainingCoeff(), adj1, adj2, stepsSinceBest));
       if (!epochResult.continueTraining) {
         monitor.log(String.format("Training %d epoch halted", epochNumber));
         break;
@@ -152,6 +154,8 @@ public class ValidatingTrainer {
             if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
               monitor.log(String.format("Training converged after %s iterations", stepsSinceBest));
               break;
+            } else {
+              monitor.log(String.format("Training failed to converged on %s attempt after %s iterations", disappointments.get(), stepsSinceBest));
             }
           } else {
             disappointments.set(0);

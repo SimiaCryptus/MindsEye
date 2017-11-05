@@ -57,6 +57,8 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   }
   
   protected static NNResult[] getNNContext(List<Tensor[]> data, boolean[] mask) {
+    if(null == data) throw new IllegalArgumentException();
+    if(0 >= data.size()) throw new IllegalArgumentException();
     int cols = data.get(0).length;
     return IntStream.range(0, cols).parallel().mapToObj(col -> {
       Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);

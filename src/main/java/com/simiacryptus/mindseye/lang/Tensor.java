@@ -836,18 +836,52 @@ public class Tensor implements Serializable {
     }
   }
   
+  public List<BufferedImage> toImages() {
+    int[] dims = getDimensions();
+    if (3 == dims.length) {
+      if (3 == dims[2]) {
+        return Arrays.asList(toRgbImage());
+      }
+      else if (0 == dims[2] % 3) {
+        ArrayList<BufferedImage> list = new ArrayList<>();
+        for(int i=0;i<dims[2];i+=3) {
+          list.add(toRgbImage(i,i+1,i+2));
+        }
+        return list;
+      }
+      else if (1 == dims[2]) {
+        return Arrays.asList(toGrayImage());
+      }
+      else {
+        ArrayList<BufferedImage> list = new ArrayList<>();
+        for(int i=0;i<dims[2];i++) {
+          list.add(toGrayImage(i));
+        }
+        return list;
+      }
+    }
+    else {
+      assert (2 == dims.length);
+      return Arrays.asList(toGrayImage());
+    }
+  }
+  
   /**
    * To gray image buffered image.
    *
    * @return the buffered image
    */
   public BufferedImage toGrayImage() {
+    return toGrayImage(0);
+  }
+  
+  public BufferedImage toGrayImage(int band) {
     int width = getDimensions()[0];
     int height = getDimensions()[1];
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
     for (int x = 0; x < width; x++)
       for (int y = 0; y < height; y++) {
-        double v = get(x, y);
+        double v = get(x, y, band);
         image.getRaster().setSample(x, y, 0, v < 0 ? 0 : v > 255 ? 255 : v);
       }
     return image;
@@ -859,6 +893,18 @@ public class Tensor implements Serializable {
    * @return the buffered image
    */
   public BufferedImage toRgbImage() {
+    return toRgbImage(0, 1, 2);
+  }
+  
+  /**
+   * To rgb image buffered image.
+   *
+   * @return the buffered image
+   * @param redBand
+   * @param greenBand
+   * @param blueBand
+   */
+  public BufferedImage toRgbImage(int redBand, int greenBand, int blueBand) {
     final int[] dims = this.getDimensions();
     final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -868,9 +914,9 @@ public class Tensor implements Serializable {
           img.setRGB(x, y, bound8bit((int) value) * 0x010101);
         }
         else {
-          final double red = bound8bit(this.get(x, y, 0));
-          final double green = bound8bit(this.get(x, y, 1));
-          final double blue = bound8bit(this.get(x, y, 2));
+          final double red = bound8bit(this.get(x, y, redBand));
+          final double green = bound8bit(this.get(x, y, greenBand));
+          final double blue = bound8bit(this.get(x, y, blueBand));
           img.setRGB(x, y, (int) (red + ((int) green << 8) + ((int) blue << 16)));
         }
       }
