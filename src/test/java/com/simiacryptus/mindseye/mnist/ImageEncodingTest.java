@@ -31,6 +31,8 @@ import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.media.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.meta.TargetValueLayer;
+import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
@@ -100,22 +102,22 @@ public class ImageEncodingTest {
         network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         return network;
       });
-      trainingData = Arrays.stream(trainingData).map(x -> {
+      trainingData = Arrays.stream(trainingData).limit(50).map(x -> {
         return new Tensor[]{
           x[0],
           new Tensor(toSize, toSize, band2).fill(() -> 0.5 * (Math.random() - 0.5))
         };
-      }).limit(10).toArray(i -> new Tensor[i][]);
+      }).toArray(i -> new Tensor[i][]);
       {
         DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelA, 0, 1, 0, 0);
-        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelA, 0, 1, 1e-3, 1e-1);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 1e-8, false, true);
+        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelA, 0, 1, 1e1, 1e0);
+        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, false, true);
         validationReport(log, trainingData, innerModelA);
         printModel(log, innerModelA);
         printDataStatistics(log, trainingData);
         printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-8, false, true);
+        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-3, false, true);
         validationReport(log, trainingData, innerModelA);
         printModel(log, innerModelA);
         printDataStatistics(log, trainingData);
@@ -146,24 +148,24 @@ public class ImageEncodingTest {
           x[0], x[1],
           new Tensor(toSize, toSize, band3).fill(() -> 0.5 * (Math.random() - 0.5))
         };
-      }).limit(10).toArray(i -> new Tensor[i][]);
+      }).toArray(i -> new Tensor[i][]);
       {
         DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelB, 1, 2, 0, 0);
-        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelAB, 0, 2, 0, 0);
-        DAGNetwork trainingModel2 = buildTrainingModel(log, innerModelAB, 0, 2, 1e-3, 1e-1);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 1e-8, false, false, true);
+        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelAB, 0, 2, 1e-1, 0);
+        DAGNetwork trainingModel2 = buildTrainingModel(log, innerModelAB, 0, 2, 1e0, 1e-1);
+        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, false, false, true);
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
         printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-8, false, false, true);
+        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-4, false, false, true);
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
         printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel2, trainingData, new OwlQn(), timeoutMinutes, 1e-8, false, false, true);
+        train(log, monitor, trainingModel2, trainingData, new OwlQn(), timeoutMinutes, 1e-5, false, false, true);
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
@@ -179,18 +181,31 @@ public class ImageEncodingTest {
       PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn)+1);
       DAGNode input = network.getInput(learnedColumn);
       DAGNode output = network.add("image", innerModel, input);
-      DAGNode density = network.add(new L1NormalizationLayer(),
-        network.add(new SigmoidActivationLayer().setBalanced(true),
-          network.add(new AbsActivationLayer(), input)));
-      DAGNode entropy = network.add(new AbsActivationLayer(),
-        network.add(new EntropyLossLayer(), density, density));
       DAGNode rmsError = network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
         network.add(new MeanSqLossLayer(), output, network.getInput(reproducedColumn))
       );
       List<DAGNode> fitnessNodes = new ArrayList<>();
       fitnessNodes.add(rmsError);
-      if(0<factor_entropy) fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_entropy).freeze(), entropy));
-      if(0<factor_l1) fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_l1).freeze(), entropy));
+      if(0<factor_entropy) {
+        DAGNode density = network.add(new L1NormalizationLayer(),
+          network.add(new SigmoidActivationLayer().setBalanced(true),
+            network.add(new AbsActivationLayer(), input)));
+        DAGNode entropy = network.add(new AbsActivationLayer(),
+          network.add(new EntropyLossLayer(), density, density));
+        fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_entropy).freeze(), entropy));
+      }
+      if(0<factor_l1) {
+        double lfactor = 1.0;
+        DAGNode avgSignal = network.add(new NthPowerActivationLayer().setPower(1.0/lfactor),
+          network.add(new AvgReducerLayer(),
+            network.add(new NthPowerActivationLayer().setPower(lfactor),
+              input)));
+        fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_l1).freeze(),
+          network.add(new MeanSqLossLayer(),
+            network.add(new NthPowerActivationLayer().setPower(1), avgSignal),
+            network.add(new NthPowerActivationLayer().setPower(0), avgSignal)
+          )));
+      }
       network.add(new SumInputsLayer(), fitnessNodes.toArray(new DAGNode[]{}));
       return network;
     });
