@@ -7,3 +7,5 @@ logs/
 .*
 *.iml
 reports/
+*.gz
+*.zip
