@@ -31,8 +31,8 @@ import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.media.ImgReshapeLayer;
-import com.simiacryptus.mindseye.layers.meta.TargetValueLayer;
 import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
+import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
@@ -62,6 +62,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The type Mnist test base.
@@ -85,11 +86,14 @@ public class ImageEncodingTest {
       List<Step> history = new ArrayList<>();
       TrainingMonitor monitor = getMonitor(originalOut, history);
   
-      int timeoutMinutes = 30;
+      double trainingDropout = 0.3;
+      int trainingExpansion = 5;
+      int timeoutMinutes = 1;
       int band1 = 3;
       toSize = fromSize = 256;
-      Tensor[][] trainingData = getImages(log, new String[]{"kangaroo"}, fromSize);
+      Tensor[][] originalTrainingData = getImages(log, new String[]{"kangaroo"}, fromSize);
   
+      log.h1("First Layer");
       int band2 = 12;
       DAGNetwork innerModelA = log.code(() -> {
         int radius = 5;
@@ -102,29 +106,48 @@ public class ImageEncodingTest {
         network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         return network;
       });
-      trainingData = Arrays.stream(trainingData).limit(50).map(x -> {
-        return new Tensor[]{
-          x[0],
-          new Tensor(toSize, toSize, band2).fill(() -> 0.5 * (Math.random() - 0.5))
-        };
+      Tensor[][] trainingData = Arrays.stream(originalTrainingData).limit(50).map(x -> new Tensor[]{
+        x[0], new Tensor(toSize, toSize, band2).fill(() -> 0.5 * (Math.random() - 0.5))
       }).toArray(i -> new Tensor[i][]);
+      Tensor[][] sparseTrainingData = Arrays.stream(trainingData).limit(50).flatMap(x -> {
+        return IntStream.range(0, trainingExpansion).mapToObj(i -> {
+          Tensor mask = x[1].map(v -> {
+            return Math.random() > trainingDropout ? 0 : 1;
+          });
+          return new Tensor[]{
+            x[0], x[1], mask.scale(1.0/mask.sum())
+          };
+        });
+      }).toArray(i -> new Tensor[i][]);
+
+      
       {
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelA, 0, 1, 0, 0);
-        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelA, 0, 1, 1e1, 1e0);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, false, true);
+        log.h2("Initialization");
+        log.h3("Training");
+        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelA, 0, 1, 2, 0, 0);
+        train(log, monitor, trainingModel0, sparseTrainingData, new QQN(), timeoutMinutes, 0, false, true, false);
+        printHistory(log, history);
+        log.h3("Results");
         validationReport(log, trainingData, innerModelA);
         printModel(log, innerModelA);
         printDataStatistics(log, trainingData);
-        printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-3, false, true);
+      }
+      
+      {
+        log.h2("Sparsification");
+        log.h3("Training");
+        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelA, 0, 1, 2, 1e1, 1e0);
+        train(log, monitor, trainingModel1, sparseTrainingData, new OwlQn(), timeoutMinutes, 1e-3, false, true, false);
+        printHistory(log, history);
+        log.h3("Results");
         validationReport(log, trainingData, innerModelA);
         printModel(log, innerModelA);
         printDataStatistics(log, trainingData);
-        printHistory(log, history);
         history.clear();
       }
   
+      log.h1("Second Layer");
       int band3 = 48;
       DAGNetwork innerModelB = log.code(() -> {
         int radius = 5;
@@ -143,72 +166,94 @@ public class ImageEncodingTest {
         network.add(innerModelA);
         return network;
       });
-      trainingData = Arrays.stream(trainingData).map(x -> {
-        return new Tensor[]{
-          x[0], x[1],
-          new Tensor(toSize, toSize, band3).fill(() -> 0.5 * (Math.random() - 0.5))
-        };
+      trainingData = Arrays.stream(trainingData).limit(50).map(x -> new Tensor[]{
+        x[0], x[1], new Tensor(toSize, toSize, band3).fill(() -> 0.3 * (Math.random() - 0.5))
       }).toArray(i -> new Tensor[i][]);
+      sparseTrainingData = Arrays.stream(trainingData).limit(50).flatMap(x -> {
+        return IntStream.range(0, trainingExpansion).mapToObj(i -> {
+          Tensor mask = x[2].map(v -> {
+            return Math.random() < trainingDropout ? 0 : 1;
+          });
+          return new Tensor[]{
+            x[0], x[1], x[2], mask.scale(1.0/mask.sum())
+          };
+        });
+      }).toArray(i -> new Tensor[i][]);
+  
+      
       {
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelB, 1, 2, 0, 0);
-        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelAB, 0, 2, 1e-1, 0);
-        DAGNetwork trainingModel2 = buildTrainingModel(log, innerModelAB, 0, 2, 1e0, 1e-1);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, false, false, true);
+        log.h2("Initialization");
+        log.h3("Training");
+        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelB, 1, 2, 3, 0, 0);
+        train(log, monitor, trainingModel0, sparseTrainingData, new QQN(), timeoutMinutes, 0, false, false, true, false);
+        printHistory(log, history);
+        log.h3("Results");
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
-        printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel1, trainingData, new OwlQn(), timeoutMinutes, 1e-4, false, false, true);
+      }
+      
+      {
+        log.h2("Integration Training");
+        log.h3("Training");
+        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelAB, 0, 2, 3, 1e-1, 0);
+        train(log, monitor, trainingModel1, sparseTrainingData, new OwlQn(), timeoutMinutes, 1e-4, false, false, true, false);
+        printHistory(log, history);
+        log.h3("Results");
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
-        printHistory(log, history);
         history.clear();
-        train(log, monitor, trainingModel2, trainingData, new OwlQn(), timeoutMinutes, 1e-5, false, false, true);
+      }
+  
+      {
+        log.h2("Sparsification");
+        log.h3("Training");
+        DAGNetwork trainingModel2 = buildTrainingModel(log, innerModelAB, 0, 2, 3, 1e0, 1e-1);
+        train(log, monitor, trainingModel2, sparseTrainingData, new OwlQn(), timeoutMinutes, 1e-5, false, false, true, false);
+        printHistory(log, history);
+        log.h3("Results");
         validationReport(log, trainingData, innerModelA, innerModelB);
         printModel(log, innerModelB);
         printDataStatistics(log, trainingData);
-        printHistory(log, history);
         history.clear();
       }
   
     }
   }
   
-  private DAGNetwork buildTrainingModel(NotebookOutput log, DAGNetwork innerModel, int reproducedColumn, int learnedColumn, double factor_l1, double factor_entropy) {
-    return log.code(() -> {
-      PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn)+1);
-      DAGNode input = network.getInput(learnedColumn);
-      DAGNode output = network.add("image", innerModel, input);
-      DAGNode rmsError = network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
-        network.add(new MeanSqLossLayer(), output, network.getInput(reproducedColumn))
-      );
-      List<DAGNode> fitnessNodes = new ArrayList<>();
-      fitnessNodes.add(rmsError);
-      if(0<factor_entropy) {
-        DAGNode density = network.add(new L1NormalizationLayer(),
-          network.add(new SigmoidActivationLayer().setBalanced(true),
-            network.add(new AbsActivationLayer(), input)));
-        DAGNode entropy = network.add(new AbsActivationLayer(),
-          network.add(new EntropyLossLayer(), density, density));
-        fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_entropy).freeze(), entropy));
-      }
-      if(0<factor_l1) {
-        double lfactor = 1.0;
-        DAGNode avgSignal = network.add(new NthPowerActivationLayer().setPower(1.0/lfactor),
-          network.add(new AvgReducerLayer(),
-            network.add(new NthPowerActivationLayer().setPower(lfactor),
-              input)));
-        fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_l1).freeze(),
-          network.add(new MeanSqLossLayer(),
-            network.add(new NthPowerActivationLayer().setPower(1), avgSignal),
-            network.add(new NthPowerActivationLayer().setPower(0), avgSignal)
-          )));
-      }
-      network.add(new SumInputsLayer(), fitnessNodes.toArray(new DAGNode[]{}));
-      return network;
-    });
+  private DAGNetwork buildTrainingModel(NotebookOutput log, DAGNetwork innerModel, int reproducedColumn, int learnedColumn, int maskColumn, double factor_l1, double factor_entropy) {
+    PipelineNetwork network = new PipelineNetwork(Math.max(maskColumn, Math.max(learnedColumn, reproducedColumn))+1);
+    DAGNode input = 0 > maskColumn ? network.getInput(learnedColumn) : network.add(new ProductInputsLayer(), network.getInput(learnedColumn), network.getInput(maskColumn));
+    DAGNode output = network.add("image", innerModel, input);
+    DAGNode rmsError = network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
+      network.add(new MeanSqLossLayer(), output, network.getInput(reproducedColumn))
+    );
+    List<DAGNode> fitnessNodes = new ArrayList<>();
+    fitnessNodes.add(rmsError);
+    if(0<factor_entropy) {
+      DAGNode density = network.add(new L1NormalizationLayer(),
+        network.add(new SigmoidActivationLayer().setBalanced(true),
+          network.add(new AbsActivationLayer(), input)));
+      DAGNode entropy = network.add(new AbsActivationLayer(),
+        network.add(new EntropyLossLayer(), density, density));
+      fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_entropy).freeze(), entropy));
+    }
+    if(0<factor_l1) {
+      double lfactor = 1.0;
+      DAGNode avgSignal = network.add(new NthPowerActivationLayer().setPower(1.0/lfactor),
+        network.add(new AvgReducerLayer(),
+          network.add(new NthPowerActivationLayer().setPower(lfactor),
+            input)));
+      fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_l1).freeze(),
+        network.add(new MeanSqLossLayer(),
+          network.add(new NthPowerActivationLayer().setPower(1), avgSignal),
+          network.add(new NthPowerActivationLayer().setPower(0), avgSignal)
+        )));
+    }
+    network.add(new SumInputsLayer(), fitnessNodes.toArray(new DAGNode[]{}));
+    return network;
   }
   
   private TrainingMonitor getMonitor(PrintStream originalOut, List<Step> history) {
@@ -249,7 +294,7 @@ public class ImageEncodingTest {
   
   int modelNo = 0;
   private void printModel(NotebookOutput log, NNLayer network) {
-    log.out("Learned Model Statistics:");
+    log.out("Learned Model Statistics: ");
     log.code(()->{
       ScalarStatistics scalarStatistics = new ScalarStatistics();
       network.state().stream().flatMapToDouble(x-> Arrays.stream(x))
@@ -261,16 +306,20 @@ public class ImageEncodingTest {
   }
   
   private void printHistory(NotebookOutput log, List<Step> history) {
-    if(!history.isEmpty()) log.code(() -> {
-      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
-      plot.setTitle("Convergence Plot");
-      plot.setAxisLabels("Iteration", "log10(Fitness)");
-      plot.setSize(600, 400);
-      return plot;
-    });
+    if(!history.isEmpty()) {
+      log.out("Convergence Plot: ");
+      log.code(() -> {
+        PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
+        plot.setTitle("Convergence Plot");
+        plot.setAxisLabels("Iteration", "log10(Fitness)");
+        plot.setSize(600, 400);
+        return plot;
+      });
+    }
   }
   
   private void validationReport(NotebookOutput log, Tensor[][] data, final NNLayer... network) {
+    log.out("Current dataset and evaluation results: ");
     log.code(() -> {
       TableOutput table = new TableOutput();
       Arrays.stream(data).map(tensorArray -> {
@@ -319,20 +368,24 @@ public class ImageEncodingTest {
   }
   
   private Tensor[][] getImages(NotebookOutput log, String[] categories, int size) {
+    log.out("Available images and categories:");
     log.code(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
     });
     int seed = (int)((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return log.code(() -> {
+    try {
       return Caltech101.trainingDataStream().filter(x -> {
         return Arrays.asList(categories).contains(x.label);
       }).map(labeledObj -> new Tensor[]{
         Tensor.fromRGB(resize(labeledObj.data.get(), size))
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).toArray(i -> new Tensor[i][]);
-    });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   private void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, double factor_l1, boolean... mask) {
+    log.out("Training for %s minutes, l1=%s, mask=%s", timeoutMinutes, factor_l1, Arrays.toString(mask));
     log.code(() -> {
       StochasticTrainable trainingSubject = new StochasticArrayTrainable(data, network, data.length);
       if(0 < factor_l1) trainingSubject = new ConstL12Normalizer(trainingSubject).setFactor_L1(factor_l1);
