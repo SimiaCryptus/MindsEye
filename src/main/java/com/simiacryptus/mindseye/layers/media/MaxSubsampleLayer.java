@@ -98,8 +98,8 @@ public class MaxSubsampleLayer extends NNLayer {
     }).toArray();
     final Tensor output = new Tensor(newDims);
     
-    return output.coordStream(false).map(o -> {
-      final int[] inCoords = new Tensor(p.kernelDims).coordStream(false).mapToInt(kernelCoord -> {
+    return output.coordStream().map(o -> {
+      final int[] inCoords = new Tensor(p.kernelDims).coordStream().mapToInt(kernelCoord -> {
         final int[] result = new int[o.coords.length];
         for (int index = 0; index < o.coords.length; index++) {
           int outputCoordinate = o.coords[index];

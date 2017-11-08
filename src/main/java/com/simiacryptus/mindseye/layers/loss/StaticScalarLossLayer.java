@@ -80,7 +80,7 @@ public class StaticScalarLossLayer extends NNLayer {
     Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(dataIndex);
       final double diff = Math.abs(a.get(0) - getTarget());
-      return new Tensor(new int[]{1}, new double[]{diff});
+      return new Tensor(new double[]{diff}, new int[]{1});
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
@@ -90,7 +90,7 @@ public class StaticScalarLossLayer extends NNLayer {
           Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
             final Tensor a = inObj[0].getData().get(dataIndex);
             final double deriv = data.get(dataIndex).get(0) * ((a.get(0) - getTarget()) < 0 ? -1 : 1);
-            return new Tensor(new int[]{1}, new double[]{deriv});
+            return new Tensor(new double[]{deriv}, new int[]{1});
           }).toArray(i -> new Tensor[i]);
           inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }

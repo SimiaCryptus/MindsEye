@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.IntStream;
 
 /**
@@ -81,9 +82,10 @@ public class BiasMetaLayer extends NNLayer {
           inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
-          Tensor passback = tensors[0].mapCoordsParallel((v, c) -> {
+          final ToDoubleBiFunction<Double,Coordinate> f = (v, c) -> {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
-          });
+          };
+          Tensor passback = tensors[0].mapCoords(f);
           inObj[1].accumulate(buffer, new TensorArray(passback));
         }
       }

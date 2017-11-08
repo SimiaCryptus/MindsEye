@@ -100,7 +100,7 @@ public class CuDNNFloatTensorList implements TensorList {
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           Tensor[] output = Arrays.stream(floats).map(floats2 -> {
-            return new Tensor(dimensions, floats2);
+            return new Tensor(floats2, dimensions);
           }).toArray(i -> new Tensor[i]);
           _inner = new TensorArray(output);
         }

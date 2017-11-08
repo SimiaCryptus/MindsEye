@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.Caltech101;
 import com.simiacryptus.mindseye.eval.*;
+import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.activation.*;
@@ -49,6 +50,10 @@ import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.stat.correlation.Covariance;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import smile.plot.PlotCanvas;
@@ -61,8 +66,10 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The type Mnist test base.
@@ -86,59 +93,37 @@ public class ImageEncodingTest {
       List<Step> history = new ArrayList<>();
       TrainingMonitor monitor = getMonitor(originalOut, history);
   
-      double trainingDropout = 0.3;
-      int trainingExpansion = 5;
-      int timeoutMinutes = 1;
+      int timeoutMinutes = 20;
       int band1 = 3;
+      int images = 10;
       toSize = fromSize = 256;
       Tensor[][] originalTrainingData = getImages(log, new String[]{"kangaroo"}, fromSize);
-  
+      Tensor[][] _originalTrainingData = originalTrainingData;
       log.h1("First Layer");
-      int band2 = 12;
+      int band2 = 18;
       DAGNetwork innerModelA = log.code(() -> {
-        int radius = 5;
+        int radius = 3;
         fromSize = toSize;
         toSize = (fromSize / 2 + (radius-1)); // 132
         PipelineNetwork network = new PipelineNetwork(1);
-        network.add(new ConvolutionLayer(radius, radius, band2, band1 * 4, false).setWeights(()-> 0.1 * (Math.random() - 0.5)));
-        network.add(new ImgBandBiasLayer(band1 * 4));
+        ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1 * 4, false).setWeights(() -> 0.1 * (Math.random() - 0.5));
+        ImgBandBiasLayer biasLayer = new ImgBandBiasLayer(band1 * 4);
+        initViaPCA(monitor, convolutionFeatures(reshapeTensors(Arrays.stream(_originalTrainingData).map(x -> x[0])), 3), convolutionLayer, biasLayer);
+        network.add(convolutionLayer);
+        network.add(biasLayer);
         network.add(new ImgReshapeLayer(2,2,true));
         network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         return network;
       });
-      Tensor[][] trainingData = Arrays.stream(originalTrainingData).limit(50).map(x -> new Tensor[]{
-        x[0], new Tensor(toSize, toSize, band2).fill(() -> 0.5 * (Math.random() - 0.5))
+      Tensor[][] trainingData = Arrays.stream(originalTrainingData).limit(images).map(x -> new Tensor[]{
+        x[0], new Tensor(toSize, toSize, band2).fill(() -> 0.0 * (Math.random() - 0.5))
       }).toArray(i -> new Tensor[i][]);
-      Tensor[][] sparseTrainingData = Arrays.stream(trainingData).limit(50).flatMap(x -> {
-        return IntStream.range(0, trainingExpansion).mapToObj(i -> {
-          Tensor mask = x[1].map(v -> {
-            return Math.random() > trainingDropout ? 0 : 1;
-          });
-          return new Tensor[]{
-            x[0], x[1], mask.scale(1.0/mask.sum())
-          };
-        });
-      }).toArray(i -> new Tensor[i][]);
-
-      
+  
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelA, 0, 1, 2, 0, 0);
-        train(log, monitor, trainingModel0, sparseTrainingData, new QQN(), timeoutMinutes, 0, false, true, false);
-        printHistory(log, history);
-        log.h3("Results");
-        validationReport(log, trainingData, innerModelA);
-        printModel(log, innerModelA);
-        printDataStatistics(log, trainingData);
-        history.clear();
-      }
-      
-      {
-        log.h2("Sparsification");
-        log.h3("Training");
-        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelA, 0, 1, 2, 1e1, 1e0);
-        train(log, monitor, trainingModel1, sparseTrainingData, new OwlQn(), timeoutMinutes, 1e-3, false, true, false);
+        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelA, 0, 1, -1, 0, 0);
+        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, false, true);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, innerModelA);
@@ -147,15 +132,43 @@ public class ImageEncodingTest {
         history.clear();
       }
   
+      {
+        log.h2("Noising");
+        log.h3("Training");
+        double trainingDropout = 0;
+        double trainingNoise = 0.05;
+        int trainingExpansion = 5;
+        Tensor[][] noisyTrainingData = Arrays.stream(trainingData).flatMap(x -> {
+          return IntStream.range(0, trainingExpansion).mapToObj(i -> {
+            Tensor mask = x[1].map(v -> (Math.random() > trainingDropout ? 1 : 0) * Math.pow(2,trainingNoise * (Math.random() - 0.5)));
+            return new Tensor[]{
+              x[0], x[1], mask.scale(1.0/mask.sum())
+            };
+          });
+        }).toArray(i -> new Tensor[i][]);
+        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelA, 0, 1, 2, 0, 0);
+        train(log, monitor, trainingModel0, noisyTrainingData, new QQN(), timeoutMinutes, 0, false, true, false);
+        printHistory(log, history);
+        log.h3("Results");
+        validationReport(log, trainingData, innerModelA);
+        printModel(log, innerModelA);
+        printDataStatistics(log, trainingData);
+        history.clear();
+      }
+  
+      int band3 = 72;
       log.h1("Second Layer");
-      int band3 = 48;
+      Tensor[][] _trainingData = trainingData;
       DAGNetwork innerModelB = log.code(() -> {
-        int radius = 5;
+        int radius = 3;
         fromSize = toSize;
         toSize = (fromSize / 2 + (radius-1)); // 70
         PipelineNetwork network = new PipelineNetwork(1);
-        network.add(new ConvolutionLayer(radius, radius, band3, band2 * 4, false).setWeights(()-> 0.1 * (Math.random() - 0.5)));
-        network.add(new ImgBandBiasLayer(band2 * 4));
+        ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, band3, band2 * 4, false).setWeights(()-> 0.01 * (Math.random() - 0.5));
+        ImgBandBiasLayer biasLayer = new ImgBandBiasLayer(band2 * 4);
+        initViaPCA(monitor, convolutionFeatures(reshapeTensors(Arrays.stream(_trainingData).map(x -> x[1])), 3), convolutionLayer, biasLayer);
+        network.add(convolutionLayer);
+        network.add(biasLayer);
         network.add(new ImgReshapeLayer(2,2,true));
         network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         return network;
@@ -166,26 +179,15 @@ public class ImageEncodingTest {
         network.add(innerModelA);
         return network;
       });
-      trainingData = Arrays.stream(trainingData).limit(50).map(x -> new Tensor[]{
-        x[0], x[1], new Tensor(toSize, toSize, band3).fill(() -> 0.3 * (Math.random() - 0.5))
+      trainingData = Arrays.stream(trainingData).map(x -> new Tensor[]{
+        x[0], x[1], new Tensor(toSize, toSize, band3).fill(() -> 0.0 * (Math.random() - 0.5))
       }).toArray(i -> new Tensor[i][]);
-      sparseTrainingData = Arrays.stream(trainingData).limit(50).flatMap(x -> {
-        return IntStream.range(0, trainingExpansion).mapToObj(i -> {
-          Tensor mask = x[2].map(v -> {
-            return Math.random() < trainingDropout ? 0 : 1;
-          });
-          return new Tensor[]{
-            x[0], x[1], x[2], mask.scale(1.0/mask.sum())
-          };
-        });
-      }).toArray(i -> new Tensor[i][]);
-  
       
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelB, 1, 2, 3, 0, 0);
-        train(log, monitor, trainingModel0, sparseTrainingData, new QQN(), timeoutMinutes, 0, false, false, true, false);
+        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModelB, 1, 2, -1, 0, 0);
+        train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, false, false, true);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, innerModelA, innerModelB);
@@ -197,8 +199,8 @@ public class ImageEncodingTest {
       {
         log.h2("Integration Training");
         log.h3("Training");
-        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelAB, 0, 2, 3, 1e-1, 0);
-        train(log, monitor, trainingModel1, sparseTrainingData, new OwlQn(), timeoutMinutes, 1e-4, false, false, true, false);
+        DAGNetwork trainingModel1 = buildTrainingModel(log, innerModelAB, 0, 2, -1, 0, 0);
+        train(log, monitor, trainingModel1, trainingData, new QQN(), timeoutMinutes, 0, false, false, true, false);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, innerModelA, innerModelB);
@@ -208,10 +210,21 @@ public class ImageEncodingTest {
       }
   
       {
-        log.h2("Sparsification");
+        log.h2("Noising");
         log.h3("Training");
-        DAGNetwork trainingModel2 = buildTrainingModel(log, innerModelAB, 0, 2, 3, 1e0, 1e-1);
-        train(log, monitor, trainingModel2, sparseTrainingData, new OwlQn(), timeoutMinutes, 1e-5, false, false, true, false);
+        double trainingDropout = 0;
+        double trainingNoise = 0.01;
+        int trainingExpansion = 5;
+        Tensor[][] noisyTrainingData = Arrays.stream(trainingData).flatMap(x -> {
+          return IntStream.range(0, trainingExpansion).mapToObj(i -> {
+            Tensor mask = x[2].map(v -> (Math.random() > trainingDropout ? 1 : 0) * Math.pow(2, trainingNoise * (Math.random() - 0.5)));
+            return new Tensor[]{
+              x[0], x[1], x[2], mask.scale(1.0 / mask.sum())
+            };
+          });
+        }).toArray(i -> new Tensor[i][]);
+        DAGNetwork trainingModel2 = buildTrainingModel(log, innerModelAB, 0, 2, 3, 0, 0);
+        train(log, monitor, trainingModel2, noisyTrainingData, new OwlQn(), timeoutMinutes, 0, false, false, true, false);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, innerModelA, innerModelB);
@@ -221,6 +234,83 @@ public class ImageEncodingTest {
       }
   
     }
+  }
+  
+  public static void initViaPCA(TrainingMonitor monitor, Tensor[] tensorStream, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
+    Tensor prototype = tensorStream[0];
+    int outputs = prototype.dim();
+    int[] dimensions = prototype.getDimensions();
+    int[] filterDimensions = convolutionLayer.filter.getDimensions();
+    assert filterDimensions[0] == dimensions[0];
+    assert filterDimensions[1] == dimensions[1];
+    int outputBands = dimensions[2];
+    int inputBands = filterDimensions[2] / outputBands;
+    double[] averages = IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
+      return Arrays.stream(tensorStream).mapToDouble(tensor -> {
+        return Arrays.stream(tensor.mapCoords((v, c) -> c.coords[2] == b ? v : Double.NaN).getData()).filter(Double::isFinite).average().getAsDouble();
+      }).average().getAsDouble();
+    }).toArray();
+    biasLayer.setWeights(i -> {
+      double v = averages[i];
+      return Double.isFinite(v)?v:biasLayer.getBias()[i];
+    });
+    double[][] data = Arrays.stream(tensorStream).map(tensor -> {
+      final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> v - averages[c.coords[2]];
+      return tensor.mapCoords(f);
+    })
+                           .map(x -> x.getData()).toArray(i -> new double[i][]);
+    RealMatrix realMatrix = MatrixUtils.createRealMatrix(data);
+    Covariance covariance = new Covariance(realMatrix);
+    RealMatrix covarianceMatrix = covariance.getCovarianceMatrix();
+    EigenDecomposition decomposition = new EigenDecomposition(covarianceMatrix);
+    int[] orderedVectors = IntStream.range(0, inputBands).mapToObj(x -> x)
+                    .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
+    Tensor[] vectors = Arrays.stream(orderedVectors)
+                         .mapToObj(b -> {
+      Tensor tensor = new Tensor(decomposition.getEigenvector(orderedVectors[b]).toArray(), dimensions[0], dimensions[1], outputBands).copy();
+      //monitor.log(String.format("%s - %s * %s", orderedVectors[b], decomposition.getRealEigenvalue(orderedVectors[b]), tensor));
+      return tensor
+               .scale(Math.sqrt(6. / (inputBands + outputs + 1)))
+               .scale(1.0 / (tensor.rms()))
+               .scale(decomposition.getRealEigenvalue(orderedVectors[b]) / decomposition.getRealEigenvalue(orderedVectors[0]))
+        ;
+    }).toArray(i->new Tensor[i]);
+    
+    convolutionLayer.filter.setByCoord(c->{
+      int outband = c.coords[2] % outputBands;
+      int inband = c.coords[2] / outputBands;
+//      int outband = c.coords[2] / inputBands;
+//      int inband = c.coords[2] % inputBands;
+      assert c.coords[0] < dimensions[0];
+      assert c.coords[1] < dimensions[1];
+      assert outband < outputBands;
+      assert inband < inputBands;
+      double v = vectors[inband].get(dimensions[0] - (c.coords[0]+1), dimensions[1]-(c.coords[1]+1), outband);
+      return Double.isFinite(v)?v:convolutionLayer.filter.get(c);
+    });
+  }
+  
+  public static Tensor[] convolutionFeatures(Stream<Tensor> tensors, int radius) {
+    int padding = (radius - 1);
+    return tensors.parallel().flatMap(image->{
+      return IntStream.range(0, image.getDimensions()[0]-padding).filter(x->0==x%(radius-1)).mapToObj(x->x).flatMap(x->{
+        return IntStream.range(0, image.getDimensions()[1]-padding).filter(y->0==y%(radius-1)).mapToObj(y->{
+          Tensor region = new Tensor(radius, radius, image.getDimensions()[2]);
+          final ToDoubleBiFunction<Double,Coordinate> f = (v, c)->{
+            return image.get(c.coords[0] + x, c.coords[1] + y, c.coords[2]);
+          };
+          return region.mapCoords(f);
+        });
+      });
+    }).toArray(i->new Tensor[i]);
+  }
+  
+  public static Stream<Tensor> reshapeTensors(Stream<Tensor> stream) {
+    return stream.map(tensor->{
+      return CudaExecutionContext.gpuContexts.run(ctx -> {
+        return new ImgReshapeLayer(2,2,false).eval(ctx, new Tensor[]{tensor});
+      }).getData().get(0);
+    });
   }
   
   private DAGNetwork buildTrainingModel(NotebookOutput log, DAGNetwork innerModel, int reproducedColumn, int learnedColumn, int maskColumn, double factor_l1, double factor_entropy) {

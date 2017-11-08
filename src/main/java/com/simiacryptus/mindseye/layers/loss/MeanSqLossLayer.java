@@ -91,7 +91,7 @@ public class MeanSqLossLayer extends NNLayer {
       }
       rA[dataIndex] = r;
       final double rms = total / a.dim();
-      return new Tensor(new int[]{1}, new double[]{rms});
+      return new Tensor(new double[]{rms}, new int[]{1});
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override

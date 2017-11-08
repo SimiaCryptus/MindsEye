@@ -143,7 +143,7 @@ public class LinearTest extends MnistTestBase {
   protected static Tensor translate(int dx, int dy, Tensor tensor) {
     int sx = tensor.getDimensions()[0];
     int sy = tensor.getDimensions()[1];
-    return new Tensor(tensor.getDimensions(), tensor.coordStream(false).mapToDouble(c -> {
+    return new Tensor(tensor.coordStream().mapToDouble(c -> {
       int x = c.coords[0] + dx;
       int y = c.coords[1] + dy;
       if(x < 0 || x >= sx) {
@@ -153,7 +153,7 @@ public class LinearTest extends MnistTestBase {
       } else {
         return tensor.get(x, y);
       }
-    }).toArray());
+    }).toArray(), tensor.getDimensions());
   }
 
   /**

@@ -113,7 +113,8 @@ public class ValidatingTrainer {
     long timeoutAt = System.currentTimeMillis() + timeout.toMillis();
     EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(true));
     int epochNumber = 0;
-    int stepsSinceBest = 0;
+    int iterationNumber = 0;
+    int lastImprovement = 0;
     double lowestValidation = Double.POSITIVE_INFINITY;
     while (true) {
       if (shouldHalt(timeoutAt)) {
@@ -122,40 +123,36 @@ public class ValidatingTrainer {
       }
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       EpochResult epochResult = epoch(epochParams);
+      iterationNumber += epochResult.iterations;
       double validationDelta = epochResult.getValidationDelta();
       double trainingDelta = epochResult.getTrainingDelta();
       double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(validationDelta), adjustmentFactor);
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
+      double validationMean = epochResult.currentValidation.getMean();
+      if(validationMean < lowestValidation) {
+        lowestValidation = validationMean;
+        lastImprovement = iterationNumber;
+      }
       monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement",
         ++epochNumber, epochResult.iterations, epochParams.trainingSize, getMaxTrainingSize(),
         Math.log(validationDelta)/Math.log(2), Math.log(trainingDelta)/Math.log(2),
-        epochResult.getOverTrainingCoeff(), adj1, adj2, stepsSinceBest));
+        epochResult.getOverTrainingCoeff(), adj1, adj2, (iterationNumber - lastImprovement)));
       if (!epochResult.continueTraining) {
         monitor.log(String.format("Training %d epoch halted", epochNumber));
         break;
       }
-      double validationMean = epochResult.currentValidation.getMean();
-      double previousMean = lowestValidation;
-      lowestValidation = Math.min(previousMean, validationMean);
-      double improvement = previousMean - validationMean;
-      if(improvement > 0) {
-        stepsSinceBest = 0;
-      }
       if(epochParams.trainingSize >= getMaxTrainingSize()) {
-        if(improvement < 0) {
-          stepsSinceBest += epochResult.iterations;
-        }
         double roll = Math.random();
         if (roll > Math.pow((2 - validationDelta), pessimism)) {
           monitor.log(String.format("Training randomly converged: %3f", roll));
           break;
         } else {
-          if (stepsSinceBest > improvmentStaleThreshold) {
+          if ((iterationNumber - lastImprovement) > improvmentStaleThreshold) {
             if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
-              monitor.log(String.format("Training converged after %s iterations", stepsSinceBest));
+              monitor.log(String.format("Training converged after %s iterations", (iterationNumber - lastImprovement)));
               break;
             } else {
-              monitor.log(String.format("Training failed to converged on %s attempt after %s iterations", disappointments.get(), stepsSinceBest));
+              monitor.log(String.format("Training failed to converged on %s attempt after %s iterations", disappointments.get(), (iterationNumber - lastImprovement)));
             }
           } else {
             disappointments.set(0);

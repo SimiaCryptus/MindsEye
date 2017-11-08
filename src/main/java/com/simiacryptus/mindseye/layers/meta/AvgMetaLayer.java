@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.layers.meta;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
@@ -27,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.IntStream;
 
 /**
@@ -87,10 +87,11 @@ public class AvgMetaLayer extends NNLayer {
     Tensor thisResult;
     boolean passback;
     if(null == lastResult || input.getData().length() > minBatchCount) {
-      thisResult = input.getData().get(0).mapCoordsParallel((v, c) ->
+      final ToDoubleBiFunction<Double,Coordinate> f = (v, c) ->
                                                               IntStream.range(0, itemCnt)
                                                                 .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                                .sum() / itemCnt);
+                                                                .sum() / itemCnt;
+      thisResult = input.getData().get(0).mapCoords(f);
       passback = true;
       this.lastResult = thisResult;
     } else {
@@ -104,7 +105,7 @@ public class AvgMetaLayer extends NNLayer {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          thisResult.coordStream(true).forEach((inputCoord) -> {
+          thisResult.coordStream().forEach((inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, delta.get(inputCoord) / itemCnt);
             }

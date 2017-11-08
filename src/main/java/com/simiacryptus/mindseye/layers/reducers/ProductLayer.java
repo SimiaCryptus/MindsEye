@@ -81,7 +81,7 @@ public class ProductLayer extends NNLayer {
         }
       }
       sum_A[dataIndex] = sum;
-      return new Tensor(new int[]{1}, new double[]{sum});
+      return new Tensor(new double[]{sum}, new int[]{1});
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override

@@ -74,9 +74,7 @@ public class CudaResource<T> {
   }
   
   public boolean isActiveObj() {
-    synchronized (CudaResource.gpuGeneration) {
-      return objGeneration == gpuGeneration.get();
-    }
+    return objGeneration == gpuGeneration.get();
   }
   
   /**

@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.IntStream;
 
 /**
@@ -78,10 +79,11 @@ public class CumSumMetaLayer extends NNLayer implements CumSum {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
-    Tensor thisSum = input.getData().get(0).mapCoordsParallel((v, c) ->
+    final ToDoubleBiFunction<Double, Coordinate> f = (v, c) ->
                                                                    IntStream.range(0, itemCnt)
                                                                      .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                                     .sum());
+                                                                     .sum();
+    Tensor thisSum = input.getData().get(0).mapCoords(f);
     Tensor prior;
     if(null != this.priorAccumulation && nncontext.staticEvaluation()) {
       prior = this.priorAccumulation;
@@ -105,12 +107,13 @@ public class CumSumMetaLayer extends NNLayer implements CumSum {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          delta.mapCoordsParallel((rho, inputCoord) -> {
+          final ToDoubleBiFunction<Double,Coordinate> f = (rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, rho);
             }
             return 0;
-          });
+          };
+          delta.mapCoords(f);
           input.accumulate(buffer, new TensorArray(feedback));
         }
       }

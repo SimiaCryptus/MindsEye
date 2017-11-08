@@ -129,7 +129,7 @@ public class ImgCropLayer extends NNLayer {
     assert inDim[1] >= outDim[1];
     int paddingX = (inDim[0] - outDim[0]);
     int paddingY = (inDim[0] - outDim[0]);
-    outputData.coordStream(true).forEach((c) -> outputData.set(c, inputData.get(c.coords[0] + paddingX, c.coords[1] + paddingY, c.coords[2])));
+    outputData.coordStream().forEach((c) -> outputData.set(c, inputData.get(c.coords[0] + paddingX, c.coords[1] + paddingY, c.coords[2])));
     return outputData;
   }
   

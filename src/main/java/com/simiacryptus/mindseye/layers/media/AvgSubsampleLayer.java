@@ -78,8 +78,8 @@ public class AvgSubsampleLayer extends NNLayer {
                                                                                                                     @Override
                                                                                                                     public Map<Coordinate, List<int[]>> load(final AvgSubsampleLayer.IndexMapKey key) throws Exception {
                                                                                                                       final int[] ksize = key.kernel;
-                                                                                                                      final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream(false).collect(Collectors.toMap(o -> o, o -> {
-                                                                                                                        return new Tensor(ksize).coordStream(false).map(kernelCoord -> {
+                                                                                                                      final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().collect(Collectors.toMap(o -> o, o -> {
+                                                                                                                        return new Tensor(ksize).coordStream().map(kernelCoord -> {
                                                                                                                           final int[] r = new int[o.coords.length];
                                                                                                                           for (int i = 0; i < o.coords.length; i++) {
                                                                                                                             r[i] = o.coords[i] * ksize[i] + kernelCoord.coords[i];

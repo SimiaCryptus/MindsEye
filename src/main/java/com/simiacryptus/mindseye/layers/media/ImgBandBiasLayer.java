@@ -141,7 +141,7 @@ public class ImgBandBiasLayer extends NNLayer {
                              throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
                                getName(), Arrays.toString(r.getDimensions()), bias.length));
                            }
-                           return new Tensor(r.getDimensions(), add(r.getData()));
+                           return new Tensor(add(r.getData()), r.getDimensions());
                          })
                          .toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));

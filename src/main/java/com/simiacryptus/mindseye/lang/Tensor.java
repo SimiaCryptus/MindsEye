@@ -82,16 +82,16 @@ public class Tensor implements Serializable {
    * @param dims the dims
    */
   public Tensor(final int... dims) {
-    this(dims, (double[]) null);
+    this((double[]) null, dims);
   }
   
   /**
    * Instantiates a new Tensor.
    *
-   * @param dims the dims
    * @param data the data
+   * @param dims the dims
    */
-  public Tensor(final int[] dims, final double[] data) {
+  public Tensor(final double[] data, final int... dims) {
     this.dimensions = Arrays.copyOf(dims, dims.length);
     this.strides = getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
@@ -105,10 +105,10 @@ public class Tensor implements Serializable {
   /**
    * Instantiates a new Tensor.
    *
-   * @param dims the dims
    * @param data the data
+   * @param dims the dims
    */
-  public Tensor(final int[] dims, final float[] data) {
+  public Tensor(final float[] data, final int... dims) {
     this.dimensions = Arrays.copyOf(dims, dims.length);
     this.strides = getSkips(dims);
     if (null != data) {
@@ -141,7 +141,7 @@ public class Tensor implements Serializable {
    * @param ds the ds
    */
   public Tensor(double[] ds) {
-    this(new int[]{ds.length}, ds);
+    this(ds, new int[]{ds.length});
   }
   
   /**
@@ -328,16 +328,6 @@ public class Tensor implements Serializable {
    * @return the stream
    */
   public Stream<Coordinate> coordStream() {
-    return coordStream(false);
-  }
-  
-  /**
-   * Coord stream stream.
-   *
-   * @param paralell the paralell
-   * @return the stream
-   */
-  public Stream<Coordinate> coordStream(final boolean paralell) {
     return StreamSupport.stream(Spliterators.spliterator(new Iterator<Coordinate>() {
       
       int cnt = 0;
@@ -363,7 +353,7 @@ public class Tensor implements Serializable {
         // assert index(last) == index;
         return new Coordinate(this.cnt++, this.val);
       }
-    }, dim(), Spliterator.ORDERED), paralell);
+    }, dim(), Spliterator.ORDERED), false);
   }
   
   /**
@@ -372,7 +362,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor copy() {
-    return new Tensor(Arrays.copyOf(this.dimensions, this.dimensions.length), Arrays.copyOf(getData(), getData().length));
+    return new Tensor(Arrays.copyOf(getData(), getData().length), Arrays.copyOf(this.dimensions, this.dimensions.length));
   }
   
   /**
@@ -631,7 +621,7 @@ public class Tensor implements Serializable {
       cpy[i] = v;
     }
     ;
-    return new Tensor(this.dimensions, cpy);
+    return new Tensor(cpy, this.dimensions);
   }
   
   /**
@@ -655,7 +645,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor mapIndex(final TupleOperator f) {
-    return new Tensor(this.dimensions, getDoubles(IntStream.range(0,dim()).mapToDouble(i -> f.eval(get(i), i)), dim()));
+    return new Tensor(getDoubles(IntStream.range(0,dim()).mapToDouble(i -> f.eval(get(i), i)), dim()), this.dimensions);
   }
   
   /**
@@ -665,19 +655,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor mapCoords(final ToDoubleBiFunction<Double, Coordinate> f) {
-    return new Tensor(this.dimensions, getDoubles(coordStream(false).mapToDouble(i -> f.applyAsDouble(get(i), i)), dim()));
-  }
-  
-  /**
-   * Map parallel tensor.
-   *
-   * @param f the f
-   * @return the tensor
-   */
-  public Tensor mapCoordsParallel(final ToDoubleBiFunction<Double, Coordinate> f) {
-    double[] data = getData();
-    //IntStream.range(0, dim()).mapToDouble(i->data[i])
-    return new Tensor(this.dimensions, getDoubles(coordStream(true).mapToDouble(i -> f.applyAsDouble(get(i), i)), dim()));
+    return new Tensor(getDoubles(coordStream().mapToDouble(i -> f.applyAsDouble(get(i), i)), dim()), this.dimensions);
   }
   
   /**
@@ -690,7 +668,7 @@ public class Tensor implements Serializable {
   public Tensor reduceParallel(Tensor right, final DoubleBinaryOperator f) {
     double[] dataL = getData();
     double[] dataR = right.getData();
-    return new Tensor(this.dimensions, getDoubles(IntStream.range(0, dim()).mapToDouble(i->f.applyAsDouble(dataL[i],dataR[i])), dim()));
+    return new Tensor(getDoubles(IntStream.range(0, dim()).mapToDouble(i->f.applyAsDouble(dataL[i],dataR[i])), dim()), this.dimensions);
   }
   
   /**
@@ -701,7 +679,7 @@ public class Tensor implements Serializable {
    */
   public Tensor mapParallel(final DoubleUnaryOperator f) {
     double[] data = getData();
-    return new Tensor(this.dimensions, getDoubles(IntStream.range(0, dim()).mapToDouble(i->f.applyAsDouble(data[i])), dim()));
+    return new Tensor(getDoubles(IntStream.range(0, dim()).mapToDouble(i->f.applyAsDouble(data[i])), dim()), this.dimensions);
   }
   
   /**
@@ -723,8 +701,8 @@ public class Tensor implements Serializable {
    *
    * @param f the f
    */
-  public void setParallelByCoord(final ToDoubleFunction<Coordinate> f) {
-    coordStream(true).forEach(c -> set(c, f.applyAsDouble(c)));
+  public void setByCoord(final ToDoubleFunction<Coordinate> f) {
+    coordStream().forEach(c -> set(c, f.applyAsDouble(c)));
   }
   
   /**
@@ -758,7 +736,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor reformat(final int... dims) {
-    return new Tensor(dims, getData());
+    return new Tensor(getData(), dims);
   }
   
   /**
@@ -784,8 +762,9 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor scale(final double d) {
-    for (int i = 0; i < getData().length; i++) {
-      getData()[i] *= d;
+    double[] data = getData();
+    for (int i = 0; i < data.length; i++) {
+      data[i] *= d;
     }
     return this;
   }
@@ -972,6 +951,17 @@ public class Tensor implements Serializable {
     // assert Double.isFinite(v);
     return v;
   }
+  public double mean() { return sum() / dim();}
+  public double rms() { return Math.sqrt(sumSq() / dim());}
+  
+  public double sumSq() {
+    double v = 0;
+    for (final double element : getData()) {
+      v += element*element;
+    }
+    // assert Double.isFinite(v);
+    return v;
+  }
   
   @Override
   public String toString() {
@@ -1038,7 +1028,7 @@ public class Tensor implements Serializable {
     if (null == json) return null;
     int[] dims = JsonUtil.getIntArray(json.getAsJsonArray("dimensions"));
     double[] data = json.has("data") ? JsonUtil.getDoubleArray(json.getAsJsonArray("data")) : null;
-    return new Tensor(dims, data);
+    return new Tensor(data, dims);
   }
   
   /**
@@ -1129,7 +1119,8 @@ public class Tensor implements Serializable {
    */
   public Tensor add(Tensor tensor) {
     assert (Arrays.equals(getDimensions(), tensor.getDimensions()));
-    return mapCoordsParallel((v, c) -> v + tensor.get(c));
+    final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> v + tensor.get(c);
+    return mapCoords(f);
   }
   
   /**

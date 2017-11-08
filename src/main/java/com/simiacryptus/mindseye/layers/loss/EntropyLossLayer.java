@@ -96,7 +96,7 @@ public class EntropyLossLayer extends NNLayer {
       assert (total >= 0);
       descriptiveNats = total;
       gradientA[dataIndex] = gradient;
-      return new Tensor(new int[]{1}, new double[]{descriptiveNats});
+      return new Tensor(new double[]{descriptiveNats}, new int[]{1});
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override

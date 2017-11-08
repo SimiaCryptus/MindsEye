@@ -131,7 +131,7 @@ public class BiasLayer extends NNLayer {
       input = inObj[0].getData();
     }
     Tensor[] outputA = input.stream().parallel()
-                         .map(r -> new Tensor(r.getDimensions(), add(r.getData())))
+                         .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
                          .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
