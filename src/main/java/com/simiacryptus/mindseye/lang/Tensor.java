@@ -701,8 +701,9 @@ public class Tensor implements Serializable {
    *
    * @param f the f
    */
-  public void setByCoord(final ToDoubleFunction<Coordinate> f) {
+  public Tensor fillByCoord(final ToDoubleFunction<Coordinate> f) {
     coordStream().forEach(c -> set(c, f.applyAsDouble(c)));
+    return this;
   }
   
   /**
