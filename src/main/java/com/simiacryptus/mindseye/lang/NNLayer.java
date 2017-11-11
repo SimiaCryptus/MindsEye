@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.Util;
 
 import java.io.Serializable;
@@ -36,6 +37,10 @@ import java.util.UUID;
  * @author Andrew Charneski
  */
 public abstract class NNLayer implements Serializable {
+  
+  public NNLayer copy() {
+    return NNLayer.fromJson(getJson());
+  }
   
   /**
    * The interface Nn execution context.

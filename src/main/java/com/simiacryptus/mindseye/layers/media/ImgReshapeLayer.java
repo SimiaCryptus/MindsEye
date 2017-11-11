@@ -147,12 +147,13 @@ public class ImgReshapeLayer extends NNLayer {
     int kernelSizeX = inDim[0] / outDim[0];
     int kernelSizeY = inDim[0] / outDim[0];
     int index = 0;
+    double[] outputDataData = outputData.getData();
     for (int xx = 0; xx < kernelSizeX; xx++) {
       for (int yy = 0; yy < kernelSizeY; yy++) {
         for (int z = 0; z < inDim[2]; z++) {
           for (int y = 0; y < inDim[1]; y += kernelSizeY) {
             for (int x = 0; x < inDim[0]; x += kernelSizeX) {
-              outputData.getData()[index++] = inputData.get(x + xx, y + yy, z);
+              outputDataData[index++] = inputData.get(x + xx, y + yy, z);
             }
           }
         }
@@ -186,7 +187,7 @@ public class ImgReshapeLayer extends NNLayer {
         for (int z = 0; z < outDim[2]; z++) {
           for (int y = 0; y < outDim[1]; y += kernelSizeY) {
             for (int x = 0; x < outDim[0]; x += kernelSizeX) {
-              outputData.set(new int[]{x + xx, y + yy, z}, inputData.getData()[index++]);
+              outputData.set(x + xx, y + yy, z, inputData.getData()[index++]);
             }
           }
         }

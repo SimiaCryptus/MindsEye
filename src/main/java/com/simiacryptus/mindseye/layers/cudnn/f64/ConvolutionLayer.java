@@ -29,6 +29,7 @@ import com.simiacryptus.util.Util;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnFilterDescriptor;
+import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
@@ -215,13 +216,14 @@ public class ConvolutionLayer extends NNLayer {
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
 
       CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputSize) * 1l * length * Sizeof.DOUBLE);
+      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
       try {
         assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
         int algorithm = ((CudaExecutionContext) nncontext).getForwardAlgorithm(
           inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
         CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateForwardWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
           inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-        CuDNN.handle(cudnnConvolutionForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+        CuDNN.handle(cudnnConvolutionForward(cudnnHandle, alpha.getPtr(),
           inputDescriptor.getPtr(), inputData.getPtr(),
           filterDescriptor.getPtr(), filterPtr.getPtr(),
           convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
@@ -230,7 +232,7 @@ public class ConvolutionLayer extends NNLayer {
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
-      TensorList output = CudaPtr.fromDeviceDouble(outputBuffer, length, outputSize);
+      TensorList output = CudaPtr.fromDeviceDouble(outputBuffer, length, outputSize, cudnnHandle);
 
       return new NNResult(output) {
         @Override
@@ -247,7 +249,7 @@ public class ConvolutionLayer extends NNLayer {
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
               CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateBackwardFilterWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-              CuDNN.handle(cudnnConvolutionBackwardFilter(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+              CuDNN.handle(cudnnConvolutionBackwardFilter(cudnnHandle, alpha.getPtr(),
                 inputDescriptor.getPtr(), inputData.getPtr(),
                 outputDescriptor.getPtr(), errorPtr.getPtr(),
                 convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
@@ -266,7 +268,7 @@ public class ConvolutionLayer extends NNLayer {
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
               CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateBackwardDataWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-              CuDNN.handle(cudnnConvolutionBackwardData(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+              CuDNN.handle(cudnnConvolutionBackwardData(cudnnHandle, alpha.getPtr(),
                 filterDescriptor.getPtr(), filterPtr.getPtr(),
                 outputDescriptor.getPtr(), errorPtr.getPtr(),
                 convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
@@ -274,7 +276,7 @@ public class ConvolutionLayer extends NNLayer {
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
-            TensorList inputBufferTensors = CudaPtr.fromDeviceDouble(inputBuffer, length, inputSize);
+            TensorList inputBufferTensors = CudaPtr.fromDeviceDouble(inputBuffer, length, inputSize, cudnnHandle);
             input.accumulate(buffer, inputBufferTensors);
           }
         }

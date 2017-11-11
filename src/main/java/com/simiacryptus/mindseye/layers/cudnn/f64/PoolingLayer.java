@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import jcuda.Sizeof;
+import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnPoolingDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
@@ -122,12 +123,13 @@ public class PoolingLayer extends NNLayer {
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.DOUBLE * 1l * Tensor.dim(outputSize));
-      CuDNN.handle(cudnnPoolingForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, poolingDesc.getPtr(),
+      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
+      CuDNN.handle(cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
         alpha.getPtr(),
         inputDescriptor.getPtr(), inputData.getPtr(),
         beta.getPtr(),
         outputDescriptor.getPtr(), outputData.getPtr()));
-      TensorList output = CudaPtr.fromDeviceDouble(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]});
+      TensorList output = CudaPtr.fromDeviceDouble(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle);
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -137,14 +139,14 @@ public class PoolingLayer extends NNLayer {
           CudaPtr errorPtr = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
           if (input.isAlive()) {
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.DOUBLE * length);
-            CuDNN.handle(cudnnPoolingBackward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, poolingDesc.getPtr(),
+            CuDNN.handle(cudnnPoolingBackward(cudnnHandle, poolingDesc.getPtr(),
               alpha.getPtr(),
               outputDescriptor.getPtr(), outputData.getPtr(),
               outputDescriptor.getPtr(), errorPtr.getPtr(),
               inputDescriptor.getPtr(), inputData.getPtr(),
               beta.getPtr(),
               inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            input.accumulate(buffer, CudaPtr.fromDeviceDouble(passbackBuffer, length, inputSize));
+            input.accumulate(buffer, CudaPtr.fromDeviceDouble(passbackBuffer, length, inputSize, cudnnHandle));
           }
         }
 

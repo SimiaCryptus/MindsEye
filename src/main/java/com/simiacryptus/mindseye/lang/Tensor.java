@@ -928,6 +928,16 @@ public class Tensor implements Serializable {
     set(index(coords), value);
   }
   
+  public void set(final int coord1, final int coord2, final double value) {
+    assert Double.isFinite(value);
+    set(index(coord1, coord2), value);
+  }
+  
+  public void set(final int coord1, final int coord2, final int coord3, final double value) {
+    assert Double.isFinite(value);
+    set(index(coord1, coord2, coord3), value);
+  }
+  
   /**
    * Set.
    *

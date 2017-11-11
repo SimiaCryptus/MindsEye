@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnActivationDescriptor;
+import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
@@ -137,6 +138,7 @@ public class ActivationLayer extends NNLayer {
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.DOUBLE * 1l * inputDims * length);
       CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
+      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
       try {
         CuDNN.handle(cudnnActivationForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, activationDesc.getPtr(),
           alpha.getPtr(),
@@ -146,7 +148,7 @@ public class ActivationLayer extends NNLayer {
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
-      TensorList output = CudaPtr.fromDeviceDouble(outputData, length, outputSize);
+      TensorList output = CudaPtr.fromDeviceDouble(outputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       return new NNResult(output) {
         @Override
@@ -168,7 +170,7 @@ public class ActivationLayer extends NNLayer {
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            input.accumulate(buffer, CudaPtr.fromDeviceDouble(passbackBuffer, length, inputSize));
+            input.accumulate(buffer, CudaPtr.fromDeviceDouble(passbackBuffer, length, inputSize, cudnnHandle));
           }
         }
         

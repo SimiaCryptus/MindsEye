@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
 import jcuda.Sizeof;
+import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
@@ -108,15 +109,16 @@ public class ImgBandBiasLayer extends NNLayer {
       assert (0 < this.bias.length);
       CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), this.bias);
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
+      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
       try {
-        CuDNN.handle(cudnnAddTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+        CuDNN.handle(cudnnAddTensor(cudnnHandle, alpha.getPtr(),
           filterDescriptor.getPtr(), filterPtr.getPtr(),
           beta.getPtr(),
           inputDescriptor.getPtr(), inputData.getPtr()));
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
-      TensorList output = CudaPtr.fromDeviceDouble(inputData, length, outputSize);
+      TensorList output = CudaPtr.fromDeviceDouble(inputData, length, outputSize, cudnnHandle);
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -127,7 +129,7 @@ public class ImgBandBiasLayer extends NNLayer {
           if (!isFrozen()) {
             CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), ImgBandBiasLayer.this.bias.length * 1l * Sizeof.DOUBLE);
             try {
-              CuDNN.handle(cudnnConvolutionBackwardBias(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+              CuDNN.handle(cudnnConvolutionBackwardBias(cudnnHandle, alpha.getPtr(),
                 inputDescriptor.getPtr(), errorPtr.getPtr(),
                 beta.getPtr(),
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));

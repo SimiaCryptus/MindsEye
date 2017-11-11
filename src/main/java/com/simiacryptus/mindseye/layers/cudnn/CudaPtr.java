@@ -51,8 +51,8 @@ public class CudaPtr extends CudaResource<Pointer> {
    * @param dimensions the dimensions
    * @return the tensor list
    */
-  public static TensorList fromDeviceDouble(CudaPtr ptr, int length, int[] dimensions) {
-    return new CuDNNDoubleTensorList(ptr, length, dimensions);
+  public static TensorList fromDeviceDouble(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
+    return new CuDNNDoubleTensorList(ptr, length, dimensions, cudnnHandle);
   }
   
   /**

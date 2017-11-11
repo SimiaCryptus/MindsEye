@@ -78,7 +78,7 @@ public class L1NormalizationLayer extends NNLayer {
     Tensor[] output = IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
       final Tensor value = inData.get(dataIndex);
       double sum = value.sum();
-      assert Double.isFinite(sum) && 0 != sum;
+      if(!Double.isFinite(sum) || 0 == sum) return value;
       return value.scale(1.0 / sum);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(output) {
@@ -92,7 +92,7 @@ public class L1NormalizationLayer extends NNLayer {
             double sum = Arrays.stream(value).sum();
             final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
             double[] passbackData = passback.getData();
-            for (int i = 0; i < value.length; i++) {
+            if(0 != sum || Double.isFinite(sum)) for (int i = 0; i < value.length; i++) {
               passbackData[i] = (delta[i] - dot / sum) / sum;
             }
             return passback;

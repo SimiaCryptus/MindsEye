@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   private double minAlpha = 1e-15;
-  private double maxAlpha = 1e2;
+  private double maxAlpha = 1e4;
   private double c1 = 1e-6;
   private double c2 = 0.9;
   private double alpha = 1.0;

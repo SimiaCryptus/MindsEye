@@ -22,12 +22,23 @@ package com.simiacryptus.mindseye.layers.cudnn.f64;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
+import com.simiacryptus.mindseye.layers.cudnn.f32.CuDNNFloatTensorList;
+import jcuda.Pointer;
 import jcuda.Sizeof;
+import jcuda.jcudnn.cudnnHandle;
+import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
+import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
  * The type Cu dnn double tensor list.
@@ -45,7 +56,8 @@ public class CuDNNDoubleTensorList implements TensorList {
    * The Dimensions.
    */
   public final int[] dimensions;
-
+  protected final jcuda.jcudnn.cudnnHandle cudnnHandle;
+  
   /**
    * Instantiates a new Cu dnn double tensor list.
    *
@@ -53,10 +65,11 @@ public class CuDNNDoubleTensorList implements TensorList {
    * @param length     the length
    * @param dimensions the dimensions
    */
-  public CuDNNDoubleTensorList(CudaPtr ptr, int length, int[] dimensions) {
+  public CuDNNDoubleTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
     this.ptr = ptr;
     this.length = length;
     this.dimensions = dimensions;
+    this.cudnnHandle = cudnnHandle;
     assert (ptr.size == length * Tensor.dim(dimensions) * Sizeof.DOUBLE);
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
@@ -94,7 +107,48 @@ public class CuDNNDoubleTensorList implements TensorList {
     }
     return _inner;
   }
-
+  
+  @Override
+  public TensorList add(TensorList right) {
+    assert (length() == right.length());
+    if (right instanceof CuDNNDoubleTensorList) {
+      CuDNNDoubleTensorList nativeRight = (CuDNNDoubleTensorList) right;
+      assert (cudnnHandle == nativeRight.cudnnHandle);
+      CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+      CuDNN.handle(cudnnAddTensor(cudnnHandle,
+        Pointer.to(new double[]{1.0}), size.getPtr(), nativeRight.ptr.getPtr(),
+        Pointer.to(new double[]{1.0}), size.getPtr(), CuDNNDoubleTensorList.this.ptr.getPtr()));
+      size.finalize();
+      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+      return this;
+    }
+    return new TensorArray(
+                            IntStream.range(0, length()).mapToObj(i -> {
+                              return get(i).add(right.get(i));
+                            }).toArray(i -> new Tensor[i])
+    );
+  }
+  
+  @Override
+  public void accum(TensorList right) {
+    assert (length() == right.length());
+    if (right instanceof CuDNNDoubleTensorList) {
+      CuDNNDoubleTensorList nativeRight = (CuDNNDoubleTensorList) right;
+      assert (cudnnHandle == nativeRight.cudnnHandle);
+      CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
+      CuDNN.handle(cudnnAddTensor(cudnnHandle,
+        Pointer.to(new double[]{1.0}), size.getPtr(), nativeRight.ptr.getPtr(),
+        Pointer.to(new double[]{1.0}), size.getPtr(), CuDNNDoubleTensorList.this.ptr.getPtr()));
+      size.finalize();
+      nativeRight.ptr.finalize(); // Make this function destructive to both arguments
+    }
+    else {
+      IntStream.range(0, length()).forEach(i -> {
+        get(i).accum(right.get(i));
+      });
+    }
+  }
+  
   @Override
   public Tensor get(int i) {
     return inner().get(i);

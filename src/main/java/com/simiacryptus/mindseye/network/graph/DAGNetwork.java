@@ -446,7 +446,12 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public NNLayer freeze() {
+  public DAGNetwork copy() {
+    return (DAGNetwork) super.copy();
+  }
+  
+  @Override
+  public DAGNetwork freeze() {
     visitLayers(new Consumer<NNLayer>() {
       @Override
       public void accept(NNLayer layer) {
