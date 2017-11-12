@@ -117,9 +117,10 @@ public class PipelineNetwork extends DAGNetwork {
    *
    * @param inputs the inputs
    */
-  public PipelineNetwork(int inputs) {
+  public PipelineNetwork(int inputs, NNLayer... layers) {
     super(inputs);
     head = 0 == inputs ? null : getInput().get(0);
+    for(NNLayer layer : layers) add(layer);
   }
   
   @SafeVarargs

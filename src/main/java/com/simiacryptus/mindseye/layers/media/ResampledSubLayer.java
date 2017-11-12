@@ -67,18 +67,18 @@ public class ResampledSubLayer extends NNLayer {
     final int[] inputDims = batch.get(0).getDimensions();
     assert (3 == inputDims.length);
     
-    PipelineNetwork dynamicNetwork = new PipelineNetwork();
-    DAGNode condensed = dynamicNetwork.add(new ImgReshapeLayer(scale, scale, false));
-    dynamicNetwork.add(new ImgConcatLayer(), IntStream.range(0, scale*scale).mapToObj(subband->{
+    PipelineNetwork network = new PipelineNetwork();
+    DAGNode condensed = network.add(new ImgReshapeLayer(scale, scale, false));
+    network.add(new ImgConcatLayer(), IntStream.range(0, scale*scale).mapToObj(subband->{
       int[] select = new int[inputDims[2]];
       for(int i=0;i<inputDims[2];i++) select[i] = subband * inputDims[2] + i;
-      return dynamicNetwork.add(subnetwork,
-        dynamicNetwork.add(new ImgBandSelectLayer(select),
+      return network.add(subnetwork,
+        network.add(new ImgBandSelectLayer(select),
           condensed));
     }).toArray(i->new DAGNode[i]));
-    dynamicNetwork.add(new ImgReshapeLayer(scale,scale,true));
+    network.add(new ImgReshapeLayer(scale,scale,true));
     
-    return dynamicNetwork.eval(nncontext, inObj);
+    return network.eval(nncontext, inObj);
   }
   
   
