@@ -41,6 +41,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class ImageEncodingTest extends ImageEncodingUtil {
   
@@ -49,37 +50,93 @@ public class ImageEncodingTest extends ImageEncodingUtil {
   @Test
   @Category(TestCategories.Report.class)
   public void test() throws Exception {
-    PrintStream originalOut = System.out;
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
+      if (null != out) ((MarkdownNotebookOutput) log).addCopy(out);
       
       int pretrainMinutes = 1;
-      int timeoutMinutes = 5;
+      int timeoutMinutes = 1;
       int size = 256;
+      int images = 10;
       
-      Tensor[][] originalTrainingData = getImages(log, size, "kangaroo");
+      Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
+      
       log.h1("First Layer");
-      InitializationStep step0 = new InitializationStep(log, originalTrainingData,
-                                                                      50, size, pretrainMinutes, timeoutMinutes,
-                                                                      3, 7, 5).invoke();
-  
+      InitializationStep step0 = log.code(()->{
+        return new InitializationStep(log, trainingImages,
+          images, size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
+      }).invoke();
+      
       log.h1("Second Layer");
-      AddLayerStep step1 = new AddLayerStep(log, step0.trainingData, step0.innerModel,
-                                             2, step0.toSize, pretrainMinutes, timeoutMinutes,
-                                             step0.band1, 11, 5, 2).invoke();
-  
+      AddLayerStep step1 = log.code(()->{
+        return new AddLayerStep(log, step0.trainingData, step0.model,
+          2, step0.toSize, pretrainMinutes, timeoutMinutes,
+          step0.band1, 11, 5, 4);
+      }).invoke();
+      
       log.h1("Third Layer");
-      AddLayerStep step2 = new AddLayerStep(log, step1.trainingData, step1.innerModel,
-                                             2, step1.toSize, pretrainMinutes, timeoutMinutes,
-                                             step1.band2, 17, 5, 3).invoke();
+      AddLayerStep step2 = log.code(()->{
+        return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
+          3, step1.toSize, pretrainMinutes, timeoutMinutes,
+          step1.band2, 17, 5, 2);
+      }).invoke();
+      
+      log.h1("Transcoding Different Category");
+      TranscodeStep step3 = log.code(()->{
+        return new TranscodeStep(log, "yin_yang",
+          images, size, timeoutMinutes, step2.integrationModel, step2.toSize, step2.toSize, step2.band2);
+      }).invoke();
+      
+    }
+  }
   
+  protected class TranscodeStep {
+    public final int size;
+    public final String category;
+    public final int imageCount;
+    public final NotebookOutput log;
+    public final NNLayer model;
+    public final Tensor[][] trainingData;
+    public final TrainingMonitor monitor;
+    public final int trainMinutes;
+    public final List<Step> history = new ArrayList<>();
+    
+    public TranscodeStep(NotebookOutput log, String category, int imageCount, int size, int trainMinutes, NNLayer model, int... representationDims) {
+      this.category = category;
+      this.imageCount = imageCount;
+      this.log = log;
+      this.size = size;
+      this.model = model;
+      this.trainingData = addColumn(getImages(log, size, imageCount, category), representationDims);
+      this.monitor = getMonitor(out, history);
+      this.trainMinutes = trainMinutes;
+    }
+  
+    @Override
+    public String toString() {
+      return "TranscodeStep{" +
+        "category='" + category + '\'' +
+        ", imageCount=" + imageCount +
+        ", trainMinutes=" + trainMinutes +
+        '}';
+    }
+  
+    public TranscodeStep invoke() {
+      log.h3("Training");
+      DAGNetwork trainingModel0 = buildTrainingModel(log, model.copy().freeze(), 0, 1, 0, 0);
+      train(log, monitor, trainingModel0, trainingData, new QQN(), trainMinutes, 0, false, true);
+      printHistory(log, history);
+      log.h3("Results");
+      validationReport(log, trainingData, Arrays.asList(this.model), imageCount);
+      printDataStatistics(log, trainingData);
+      history.clear();
+      return this;
     }
   }
   
   int modelNo = 0;
   public List<NNLayer> dataPipeline = new ArrayList<>();
   
-  private class InitializationStep {
+  protected class InitializationStep {
     public final ConvolutionLayer convolutionLayer;
     public final ImgBandBiasLayer biasLayer;
     public final int fromSize;
@@ -91,26 +148,40 @@ public class ImageEncodingTest extends ImageEncodingUtil {
     public final int timeoutMinutes;
     public final int images;
     public final int radius;
-    public final DAGNetwork innerModel;
+    public final DAGNetwork model;
     public final Tensor[][] trainingData;
     public final int band0;
     public final int band1;
-  
+    
     public InitializationStep(NotebookOutput log, Tensor[][] originalTrainingData, int images, int fromSize, int pretrainMinutes, int timeoutMinutes, int band0, int band1, int radius) {
       this.band1 = band1;
       this.band0 = band0;
       this.log = log;
-      this.monitor = getMonitor(System.out, history);
+      this.monitor = getMonitor(out, history);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
       this.images = images;
       this.fromSize = fromSize;
-      this.toSize = (fromSize / 1 + (radius - 1));
+      this.toSize = (fromSize + (radius - 1));
       this.trainingData = addColumn(originalTrainingData, toSize, toSize, band1);
       this.radius = radius;
       this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0, false).setWeights(() -> 0.1 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band0);
-      this.innerModel = buildModel();
+      this.model = buildModel();
+    }
+  
+    @Override
+    public String toString() {
+      return "InitializationStep{" +
+        ", fromSize=" + fromSize +
+        ", toSize=" + toSize +
+        ", pretrainMinutes=" + pretrainMinutes +
+        ", timeoutMinutes=" + timeoutMinutes +
+        ", images=" + images +
+        ", radius=" + radius +
+        ", band0=" + band0 +
+        ", band1=" + band1 +
+        '}';
     }
   
     public PipelineNetwork buildModel() {
@@ -122,20 +193,20 @@ public class ImageEncodingTest extends ImageEncodingUtil {
         return network;
       });
     }
-  
+    
     public InitializationStep invoke() {
-      dataPipeline.add(innerModel);
-      initViaPCA(log, monitor, convolutionFeatures(Arrays.stream(trainingData).map(x1 -> x1[0]), radius), convolutionLayer, biasLayer);
+      dataPipeline.add(model);
+      initialize(log, convolutionFeatures(Arrays.stream(trainingData).map(x1 -> x1[0]), radius), convolutionLayer, biasLayer);
       
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModel.copy().freeze(), 0, 1, -1, 0, 0);
+        DAGNetwork trainingModel0 = buildTrainingModel(log, model.copy().freeze(), 0, 1, 0, 0);
         train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, 0, false, true);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, dataPipeline, displayImage);
-        printModel(log, innerModel, modelNo++);
+        printModel(log, model, modelNo++);
         printDataStatistics(log, trainingData);
         history.clear();
       }
@@ -143,22 +214,22 @@ public class ImageEncodingTest extends ImageEncodingUtil {
       {
         log.h2("Tuning");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModel, 0, 1, -1, 0, 0);
+        DAGNetwork trainingModel0 = buildTrainingModel(log, model, 0, 1, 0, 0);
         train(log, monitor, trainingModel0, trainingData, new OwlQn(), timeoutMinutes, 0, false, true);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, dataPipeline, displayImage);
-        printModel(log, innerModel, modelNo++);
+        printModel(log, model, modelNo++);
         printDataStatistics(log, trainingData);
         history.clear();
       }
       
       return this;
     }
-  
+    
   }
   
-  private class AddLayerStep {
+  protected class AddLayerStep {
     public final int toSize;
     public final ConvolutionLayer convolutionLayer;
     public final ImgBandBiasLayer biasLayer;
@@ -176,22 +247,23 @@ public class ImageEncodingTest extends ImageEncodingUtil {
     public final PipelineNetwork integrationModel;
     public final int band1;
     public final int band2;
-  
+    
     public AddLayerStep(NotebookOutput log, Tensor[][] trainingData, DAGNetwork priorModel, int layerNumber, int fromSize, int pretrainMinutes, int timeoutMinutes, int band1, int band2, int radius, int scale) {
-      this.originalOut = System.out;
+      this.originalOut = out;
       this.log = log;
       this.band1 = band1;
       this.band2 = band2;
       this.layerNumber = layerNumber;
       this.scale = scale;
-      this.toSize = (fromSize + (radius - 1) * scale); // 70
+      if (0 != fromSize % scale) throw new IllegalArgumentException(fromSize + " % " + scale);
+      this.toSize = (fromSize / scale + (radius - 1)) * scale; // 70
       this.trainingData = addColumn(trainingData, toSize, toSize, band2);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
       this.radius = radius;
       this.history = new ArrayList<>();
       this.monitor = getMonitor(originalOut, history);
-      this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1, false).setWeights(()-> 0.01 * (Math.random() - 0.5));
+      this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1, false).setWeights(() -> 0.01 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band1);
       this.innerModel = buildNetwork();
       this.integrationModel = log.code(() -> {
@@ -202,17 +274,31 @@ public class ImageEncodingTest extends ImageEncodingUtil {
       });
     }
   
+    @Override
+    public String toString() {
+      return "AddLayerStep{" +
+        "toSize=" + toSize +
+        ", layerNumber=" + layerNumber +
+        ", pretrainMinutes=" + pretrainMinutes +
+        ", timeoutMinutes=" + timeoutMinutes +
+        ", radius=" + radius +
+        ", scale=" + scale +
+        ", band1=" + band1 +
+        ", band2=" + band2 +
+        '}';
+    }
   
     public AddLayerStep invoke() {
       dataPipeline.add(innerModel);
-      Tensor[] convolutionFeatures = convolutionFeatures(downExplodeTensors(Arrays.stream(trainingData).map(x -> x[layerNumber - 1]), scale), radius);
-      initViaPCA(log, monitor, convolutionFeatures, convolutionLayer, biasLayer);
+      Stream<Tensor> inputColumn = Arrays.stream(trainingData).map(x -> x[layerNumber - 1]);
+      Tensor[] convolutionFeatures = convolutionFeatures(downExplodeTensors(inputColumn, scale), radius);
+      initialize(log, convolutionFeatures, convolutionLayer, biasLayer);
       final boolean[] mask = getTrainingMask();
       
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModel.copy().freeze(), layerNumber-1, layerNumber, -1, 0, 0);
+        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModel.copy().freeze(), layerNumber - 1, layerNumber, 0, 0);
         train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, 0, mask);
         printHistory(log, history);
         log.h3("Results");
@@ -225,7 +311,7 @@ public class ImageEncodingTest extends ImageEncodingUtil {
       {
         log.h2("Tuning");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModel, layerNumber-1, layerNumber, -1, 0, 0);
+        DAGNetwork trainingModel0 = buildTrainingModel(log, innerModel, layerNumber - 1, layerNumber, 0, 0);
         train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, mask);
         printHistory(log, history);
         log.h3("Results");
@@ -238,7 +324,7 @@ public class ImageEncodingTest extends ImageEncodingUtil {
       {
         log.h2("Integration Training");
         log.h3("Training");
-        DAGNetwork trainingModel1 = buildTrainingModel(log, integrationModel, 0, layerNumber, -1, 0, 0);
+        DAGNetwork trainingModel1 = buildTrainingModel(log, integrationModel, 0, layerNumber, 0, 0);
         train(log, monitor, trainingModel1, trainingData, new QQN(), timeoutMinutes, 0, mask);
         printHistory(log, history);
         log.h3("Results");
@@ -249,17 +335,17 @@ public class ImageEncodingTest extends ImageEncodingUtil {
       }
       return this;
     }
-  
+    
     public boolean[] getTrainingMask() {
-      final boolean[] mask = new boolean[layerNumber+2];
+      final boolean[] mask = new boolean[layerNumber + 2];
       mask[layerNumber] = true;
       return mask;
     }
-  
+    
     public PipelineNetwork buildNetwork() {
       return log.code(() -> {
         return new PipelineNetwork(1,
-          new ResampledSubLayer(2,
+          new ResampledSubLayer(scale,
             new PipelineNetwork(1,
               convolutionLayer,
               biasLayer)
@@ -267,7 +353,7 @@ public class ImageEncodingTest extends ImageEncodingUtil {
         );
       });
     }
-  
+    
     public PipelineNetwork getIntegrationModel() {
       return integrationModel;
     }

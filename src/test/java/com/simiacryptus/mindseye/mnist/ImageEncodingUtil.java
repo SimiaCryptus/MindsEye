@@ -34,7 +34,6 @@ import com.simiacryptus.mindseye.layers.media.ImgBandScaleLayer;
 import com.simiacryptus.mindseye.layers.media.ImgBandSelectLayer;
 import com.simiacryptus.mindseye.layers.media.ImgReshapeLayer;
 import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
-import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
 import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
@@ -68,6 +67,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 class ImageEncodingUtil {
+  protected static PrintStream out = System.out;
   
   protected void printModel(NotebookOutput log, NNLayer network, final int modelNo) {
     log.out("Learned Model Statistics: ");
@@ -157,8 +157,8 @@ class ImageEncodingUtil {
       .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
-  protected void initViaPCA(NotebookOutput log, TrainingMonitor monitor, Tensor[] tensorStream, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
-    Tensor prototype = tensorStream[0];
+  protected void initialize(NotebookOutput log, Tensor[] features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
+    Tensor prototype = features[0];
     int[] dimensions = prototype.getDimensions();
     int[] filterDimensions = convolutionLayer.filter.getDimensions();
     assert filterDimensions[0] == dimensions[0];
@@ -167,7 +167,7 @@ class ImageEncodingUtil {
     assert outputBands == biasLayer.getBias().length;
     int inputBands = filterDimensions[2] / outputBands;
     double[] averages = IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
-      return Arrays.stream(tensorStream).mapToDouble(tensor -> {
+      return Arrays.stream(features).mapToDouble(tensor -> {
         return Arrays.stream(tensor.mapCoords((v, c) -> c.coords[2] == b ? v : Double.NaN).getData()).filter(Double::isFinite).average().getAsDouble();
       }).average().getAsDouble();
     }).toArray();
@@ -175,7 +175,7 @@ class ImageEncodingUtil {
       double v = averages[i];
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
-    double[][] data = Arrays.stream(tensorStream).map(tensor -> {
+    double[][] data = Arrays.stream(features).map(tensor -> {
       return tensor.mapCoords((v, c) -> v - averages[c.coords[2]]);
     }).map(x -> x.getData()).toArray(i -> new double[i][]);
     log.code(() -> {
@@ -254,9 +254,9 @@ class ImageEncodingUtil {
     }));
   }
   
-  protected DAGNetwork buildTrainingModel(NotebookOutput log, DAGNetwork innerModel, int reproducedColumn, int learnedColumn, int maskColumn, double factor_l1, double factor_entropy) {
-    PipelineNetwork network = new PipelineNetwork(Math.max(maskColumn, Math.max(learnedColumn, reproducedColumn)) + 1);
-    DAGNode input = 0 > maskColumn ? network.getInput(learnedColumn) : network.add(new ProductInputsLayer(), network.getInput(learnedColumn), network.getInput(maskColumn));
+  protected DAGNetwork buildTrainingModel(NotebookOutput log, NNLayer innerModel, int reproducedColumn, int learnedColumn, double factor_l1, double factor_entropy) {
+    PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
+    DAGNode input = network.getInput(learnedColumn);
     DAGNode output = network.add("image", innerModel, input);
     DAGNode rmsError = network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
       network.add(new MeanSqLossLayer(), output, network.getInput(reproducedColumn))
@@ -351,8 +351,8 @@ class ImageEncodingUtil {
   protected String render(NotebookOutput log, Tensor tensor, boolean normalize) {
     DoubleStatistics statistics = new DoubleStatistics();
     statistics.accept(tensor.getData());
-    //Tensor normal = tensor.map(x -> 0xFF * (x - statistics.getMin()) / (statistics.getMax() - statistics.getMin()));
-    Tensor normal = tensor.map(x -> 0x80 + 0x80 * (x - statistics.getAverage()) / (statistics.getStandardDeviation()))
+    Tensor normal = tensor.map(x -> 0xFF * (x - statistics.getMin()) / (statistics.getMax() - statistics.getMin()))
+    //Tensor normal = tensor.map(x -> 0x80 + 0x80 * (x - statistics.getAverage()) / (statistics.getStandardDeviation()))
       .map(v -> Math.min(0xFF, Math.max(0, v)));
     return (normalize ? normal : tensor).toImages().stream().map(image -> {
       try {
@@ -371,7 +371,7 @@ class ImageEncodingUtil {
     return image;
   }
   
-  protected Tensor[][] getImages(NotebookOutput log, int size, String... categories) {
+  protected Tensor[][] getImages(NotebookOutput log, int size, int maxImages, String... categories) {
     log.out("Available images and categories:");
     log.code(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
@@ -382,7 +382,7 @@ class ImageEncodingUtil {
         return Arrays.asList(categories).contains(x.label);
       }).map(labeledObj -> new Tensor[]{
         Tensor.fromRGB(resize(labeledObj.data.get(), size))
-      }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).toArray(i -> new Tensor[i][]);
+      }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
