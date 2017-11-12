@@ -210,7 +210,7 @@ public class MnistEncodingTest {
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork(2);
       DAGNode input = network.getInput(0);
-      //network.add(new ReLuActivationLayer());
+      //network.fn(new ReLuActivationLayer());
       network.add(new DenseSynapseLayer(new int[]{features}, new int[]{28, 28, 1})
                     .setWeights(() -> 0.25 * (Math.random() - 0.5)), input);
       network.add(new LinearActivationLayer());

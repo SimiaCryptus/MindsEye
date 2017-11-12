@@ -54,13 +54,13 @@ public class SimpleConvolutionTest extends LinearTest {
       network = new PipelineNetwork();
       double carryOver = 0.5;
       int carryoverDenominator = 100;
-      //network.add(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
+      //network.fn(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
       network.add(new ConvolutionLayer(3, 3, 5, false).setWeights(i->1e-8*(Math.random()-0.5)));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
-//      network.add(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
+//      network.fn(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
       network.add(new NormalizationMetaLayer());
       network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
-//      network.add(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
+//      network.fn(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
       network.add(new NormalizationMetaLayer());
       network.add(new LinearActivationLayer());
       network.add(new SoftmaxActivationLayer());

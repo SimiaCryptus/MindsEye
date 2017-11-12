@@ -60,13 +60,13 @@ public class PolynomialConvolutionTest extends LinearTest {
       network.add(new NormalizationMetaLayer());
       network.add(new ConvolutionLayer(3,3, 5, false)
                     .setWeights(i->1e-8*(Math.random()-0.5)));
-      //network.add(this.tree);
+      //network.fn(this.tree);
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
       network.add(new NormalizationMetaLayer());
       network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10})
                     .setWeights(()->1e-8*(Math.random()-0.5)));
-//      network.add(new NormalizationMetaLayer());
-//      network.add(new LinearActivationLayer());
+//      network.fn(new NormalizationMetaLayer());
+//      network.fn(new LinearActivationLayer());
       network.add(new SoftmaxActivationLayer());
       return network;
     });

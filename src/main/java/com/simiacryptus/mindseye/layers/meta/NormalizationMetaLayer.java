@@ -70,31 +70,31 @@ public class NormalizationMetaLayer extends DAGNetwork {
   public NormalizationMetaLayer() {
     super(1);
     DAGNode input = getInput(0);
-//    DAGNode mean = add(
+//    DAGNode mean = fn(
 //      new AvgMetaLayer(),
 //      input
 //    );
-//    DAGNode recentered = add(new SumInputsLayer(),
+//    DAGNode recentered = fn(new SumInputsLayer(),
 //      input,
-//      add(
+//      fn(
 //        new LinearActivationLayer().setScale(-1).freeze(),
 //        mean
 //      )
 //    );
-//    DAGNode variance = add(new AvgMetaLayer(),
-//      add(new AvgReducerLayer(),
-//        add(new SqActivationLayer(),
+//    DAGNode variance = fn(new AvgMetaLayer(),
+//      fn(new AvgReducerLayer(),
+//        fn(new SqActivationLayer(),
 //          recentered
 //        )
 //      )
 //    );
-//    DAGNode rescaled = add(new ProductInputsLayer(),
+//    DAGNode rescaled = fn(new ProductInputsLayer(),
 //      recentered,
-//      add(new NthPowerActivationLayer().setPower(-0.5),
+//      fn(new NthPowerActivationLayer().setPower(-0.5),
 //        variance
 //      )
 //    );
-//    DAGNode reoffset = add(new SumInputsLayer(),
+//    DAGNode reoffset = fn(new SumInputsLayer(),
 //      mean,
 //      rescaled
 //    );

@@ -44,8 +44,8 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    //json.add("forwardPerf",forwardPerf.getJson());
-    //json.add("backwardPerf",backwardPerf.getJson());
+    //json.fn("forwardPerf",forwardPerf.getJson());
+    //json.fn("backwardPerf",backwardPerf.getJson());
     json.add("inner", getInner().getJson());
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);
