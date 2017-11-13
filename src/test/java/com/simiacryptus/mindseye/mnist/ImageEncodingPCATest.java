@@ -43,9 +43,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class ImageEncodingTest extends ImageEncodingUtil {
+public class ImageEncodingPCATest extends ImageEncodingUtil {
   
-  int displayImage = 2;
+  int displayImage = 3;
   
   @Test
   @Category(TestCategories.Report.class)
@@ -53,31 +53,31 @@ public class ImageEncodingTest extends ImageEncodingUtil {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
       if (null != out) ((MarkdownNotebookOutput) log).addCopy(out);
       
-      int pretrainMinutes = 1;
-      int timeoutMinutes = 1;
+      int pretrainMinutes = 20;
+      int timeoutMinutes = 60;
       int size = 256;
-      int images = 10;
+      int images = 50;
       
       Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
       
       log.h1("First Layer");
       InitializationStep step0 = log.code(()->{
         return new InitializationStep(log, trainingImages,
-          images, size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
+          size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
       }).invoke();
       
       log.h1("Second Layer");
       AddLayerStep step1 = log.code(()->{
         return new AddLayerStep(log, step0.trainingData, step0.model,
           2, step0.toSize, pretrainMinutes, timeoutMinutes,
-          step0.band1, 11, 5, 4);
+          step0.band1, 11, 5, 2);
       }).invoke();
       
       log.h1("Third Layer");
       AddLayerStep step2 = log.code(()->{
         return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
           3, step1.toSize, pretrainMinutes, timeoutMinutes,
-          step1.band2, 17, 5, 2);
+          step1.band2, 17, 5, 4);
       }).invoke();
       
       log.h1("Transcoding Different Category");
@@ -146,21 +146,19 @@ public class ImageEncodingTest extends ImageEncodingUtil {
     public final TrainingMonitor monitor;
     public final int pretrainMinutes;
     public final int timeoutMinutes;
-    public final int images;
     public final int radius;
     public final DAGNetwork model;
     public final Tensor[][] trainingData;
     public final int band0;
     public final int band1;
     
-    public InitializationStep(NotebookOutput log, Tensor[][] originalTrainingData, int images, int fromSize, int pretrainMinutes, int timeoutMinutes, int band0, int band1, int radius) {
+    public InitializationStep(NotebookOutput log, Tensor[][] originalTrainingData, int fromSize, int pretrainMinutes, int timeoutMinutes, int band0, int band1, int radius) {
       this.band1 = band1;
       this.band0 = band0;
       this.log = log;
       this.monitor = getMonitor(out, history);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
-      this.images = images;
       this.fromSize = fromSize;
       this.toSize = (fromSize + (radius - 1));
       this.trainingData = addColumn(originalTrainingData, toSize, toSize, band1);
@@ -177,7 +175,6 @@ public class ImageEncodingTest extends ImageEncodingUtil {
         ", toSize=" + toSize +
         ", pretrainMinutes=" + pretrainMinutes +
         ", timeoutMinutes=" + timeoutMinutes +
-        ", images=" + images +
         ", radius=" + radius +
         ", band0=" + band0 +
         ", band1=" + band1 +

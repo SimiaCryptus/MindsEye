@@ -166,49 +166,30 @@ class ImageEncodingUtil {
     int outputBands = dimensions[2];
     assert outputBands == biasLayer.getBias().length;
     int inputBands = filterDimensions[2] / outputBands;
-    double[] averages = IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
-      return Arrays.stream(features).mapToDouble(tensor -> {
-        return Arrays.stream(tensor.mapCoords((v, c) -> c.coords[2] == b ? v : Double.NaN).getData()).filter(Double::isFinite).average().getAsDouble();
-      }).average().getAsDouble();
-    }).toArray();
+    FindFeatureSpace findFeatureSpace = findFeatureSpace(log, features, inputBands);
+    setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
+  }
+  
+  protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[] features, int inputBands) {
+    return new FindFeatureSpace(log, features, inputBands).invoke();
+  }
+  
+  protected void setInitialFeatureSpace(ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer, FindFeatureSpace featureSpace) {
+    int[] filterDimensions = convolutionLayer.filter.getDimensions();
+    int outputBands = biasLayer.getBias().length;
+    assert outputBands == biasLayer.getBias().length;
+    int inputBands = filterDimensions[2] / outputBands;
     biasLayer.setWeights(i -> {
-      double v = averages[i];
+      double v = featureSpace.getAverages()[i];
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
-    double[][] data = Arrays.stream(features).map(tensor -> {
-      return tensor.mapCoords((v, c) -> v - averages[c.coords[2]]);
-    }).map(x -> x.getData()).toArray(i -> new double[i][]);
-    log.code(() -> {
-      RealMatrix realMatrix = MatrixUtils.createRealMatrix(data);
-      Covariance covariance = new Covariance(realMatrix);
-      RealMatrix covarianceMatrix = covariance.getCovarianceMatrix();
-      EigenDecomposition decomposition = new EigenDecomposition(covarianceMatrix);
-      int[] orderedVectors = IntStream.range(0, inputBands).mapToObj(x -> x)
-        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
-      List<Tensor> rawComponents = IntStream.range(0, orderedVectors.length)
-        .mapToObj(i -> {
-            Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions[0], dimensions[1], outputBands).copy();
-            return src
-              .scale(1.0 / src.rms())
-              //.scale((decomposition.getRealEigenvalue(orderedVectors[inputBands-1])))
-              //.scale((decomposition.getRealEigenvalue(orderedVectors[i])))
-              //.scale((1.0 / decomposition.getRealEigenvalue(orderedVectors[0])))
-              .scale(Math.sqrt(6. / (inputBands + convolutionLayer.filter.dim() + 1)))
-              ;
-          }
-        )
-        .collect(Collectors.toList());
-      Tensor[] vectors = rawComponents.stream().toArray(i -> new Tensor[i]);
-      convolutionLayer.filter.fillByCoord(c -> {
-        int outband = c.coords[2] / inputBands;
-        int inband = c.coords[2] % inputBands;
-        assert c.coords[0] < dimensions[0];
-        assert c.coords[1] < dimensions[1];
-        assert outband < outputBands;
-        assert inband < inputBands;
-        double v = vectors[inband].get(dimensions[0] - (c.coords[0] + 1), dimensions[1] - (c.coords[1] + 1), outputBands - (outband + 1));
-        return Double.isFinite(v) ? v : convolutionLayer.filter.get(c);
-      });
+    convolutionLayer.filter.fillByCoord(c -> {
+      int outband = c.coords[2] / inputBands;
+      int inband = c.coords[2] % inputBands;
+      assert outband < outputBands;
+      assert inband < inputBands;
+      double v = featureSpace.getVectors()[inband].get(filterDimensions[0] - (c.coords[0] + 1), filterDimensions[1] - (c.coords[1] + 1), outputBands - (outband + 1));
+      return Double.isFinite(v) ? v : convolutionLayer.filter.get(c);
     });
   }
   
@@ -388,4 +369,71 @@ class ImageEncodingUtil {
     }
   }
   
+  protected class FindFeatureSpace {
+    protected final NotebookOutput log;
+    protected final Tensor[] features;
+    protected final int inputBands;
+    protected double[] averages;
+    protected Tensor[] vectors;
+    
+    public FindFeatureSpace(NotebookOutput log, Tensor[] features, int inputBands) {
+      this.log = log;
+      this.features = features;
+      this.inputBands = inputBands;
+    }
+    
+    public double[] getAverages() {
+      return averages;
+    }
+    
+    public Tensor[] getVectors() {
+      return vectors;
+    }
+    
+    public FindFeatureSpace invoke() {
+      averages = findBandBias(features);
+      Tensor[] featureVectors = Arrays.stream(features).map(tensor -> {
+        return tensor.mapCoords((v, c) -> v - averages[c.coords[2]]);
+      }).toArray(i -> new Tensor[i]);
+      vectors = findFeatureSpace(log, featureVectors, inputBands);
+      return this;
+    }
+  
+    protected double[] findBandBias(Tensor[] features) {
+      Tensor prototype = features[0];
+      int[] dimensions = prototype.getDimensions();
+      int outputBands = dimensions[2];
+      return IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
+        return Arrays.stream(features).mapToDouble(tensor -> {
+          return Arrays.stream(tensor.mapCoords((v, c) -> c.coords[2] == b ? v : Double.NaN).getData()).filter(Double::isFinite).average().getAsDouble();
+        }).average().getAsDouble();
+      }).toArray();
+    }
+  
+    protected Tensor[] findFeatureSpace(NotebookOutput log, Tensor[] featureVectors, int components) {
+      return log.code(() -> {
+        int[] dimensions = featureVectors[0].getDimensions();
+        double[][] data = Arrays.stream(featureVectors).map(x -> x.getData()).toArray(i -> new double[i][]);
+        RealMatrix realMatrix = MatrixUtils.createRealMatrix(data);
+        Covariance covariance = new Covariance(realMatrix);
+        RealMatrix covarianceMatrix = covariance.getCovarianceMatrix();
+        EigenDecomposition decomposition = new EigenDecomposition(covarianceMatrix);
+        int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
+          .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
+        return IntStream.range(0, orderedVectors.length)
+          .mapToObj(i -> {
+              Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
+              return src
+                .scale(1.0 / src.rms())
+                //.scale((decomposition.getRealEigenvalue(orderedVectors[inputBands-1])))
+                //.scale((decomposition.getRealEigenvalue(orderedVectors[i])))
+                //.scale((1.0 / decomposition.getRealEigenvalue(orderedVectors[0])))
+                .scale(Math.sqrt(6. / (components + featureVectors[0].dim() + 1)))
+                ;
+            }
+          ).toArray(i -> new Tensor[i]);
+      });
+    }
+  
+  }
 }
