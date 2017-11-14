@@ -87,12 +87,12 @@ class ImageEncodingUtil {
       TableOutput table = new TableOutput();
       Arrays.stream(data).limit(maxRows).map(tensorArray -> {
         LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
-        for (int col = 0; col < tensorArray.length; col++) {
+        for (int col = 1; col < tensorArray.length; col++) {
           Tensor tensor = tensorArray[col];
           row.put("Data_" + col, render(log, tensor, 0 < col));
           if (dataPipeline.size() >= col && 0 < col) {
             PipelineNetwork decoder = new PipelineNetwork();
-            for (int i = col - 1; i >= 0; i--) {
+            for (int i = col - 2; i >= 0; i--) {
               decoder.add(dataPipeline.get(i));
             }
             row.put("Decode_" + col, render(log, CudaExecutionContext.gpuContexts.run(ctx -> {
@@ -157,8 +157,8 @@ class ImageEncodingUtil {
       .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
-  protected void initialize(NotebookOutput log, Tensor[] features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
-    Tensor prototype = features[0];
+  protected void initialize(NotebookOutput log, Tensor[][] features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
+    Tensor prototype = features[0][1];
     int[] dimensions = prototype.getDimensions();
     int[] filterDimensions = convolutionLayer.filter.getDimensions();
     assert filterDimensions[0] == dimensions[0];
@@ -170,7 +170,7 @@ class ImageEncodingUtil {
     setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
   }
   
-  protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[] features, int inputBands) {
+  protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
     return new FindFeatureSpace(log, features, inputBands).invoke();
   }
   
@@ -193,19 +193,19 @@ class ImageEncodingUtil {
     });
   }
   
-  protected Tensor[] convolutionFeatures(Stream<Tensor> tensors, int radius) {
+  protected Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius) {
     int padding = (radius - 1);
     return tensors.parallel().flatMap(image -> {
-      return IntStream.range(0, image.getDimensions()[0] - padding).filter(x -> 1 == radius || 0 == x % (radius - 1)).mapToObj(x -> x).flatMap(x -> {
-        return IntStream.range(0, image.getDimensions()[1] - padding).filter(y -> 1 == radius || 0 == y % (radius - 1)).mapToObj(y -> {
-          Tensor region = new Tensor(radius, radius, image.getDimensions()[2]);
+      return IntStream.range(0, image[1].getDimensions()[0] - padding).filter(x -> 1 == radius || 0 == x % (radius - 1)).mapToObj(x -> x).flatMap(x -> {
+        return IntStream.range(0, image[1].getDimensions()[1] - padding).filter(y -> 1 == radius || 0 == y % (radius - 1)).mapToObj(y -> {
+          Tensor region = new Tensor(radius, radius, image[1].getDimensions()[2]);
           final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> {
-            return image.get(c.coords[0] + x, c.coords[1] + y, c.coords[2]);
+            return image[1].get(c.coords[0] + x, c.coords[1] + y, c.coords[2]);
           };
-          return region.mapCoords(f);
+          return new Tensor[]{image[0], region.mapCoords(f)};
         });
       });
-    }).toArray(i -> new Tensor[i]);
+    }).toArray(i -> new Tensor[i][]);
   }
   
   protected Stream<Tensor> downStackTensors(Stream<Tensor> stream, int factor) {
@@ -220,18 +220,19 @@ class ImageEncodingUtil {
     });
   }
   
-  protected Stream<Tensor> downExplodeTensors(Stream<Tensor> stream, int factor) {
+  protected Stream<Tensor[]> downExplodeTensors(Stream<Tensor[]> stream, int factor) {
     if (0 >= factor) throw new IllegalArgumentException();
     if (-1 == factor) throw new IllegalArgumentException();
     return 1 == factor ? stream : stream.flatMap(tensor -> IntStream.range(0, factor * factor).mapToObj(subband -> {
-      int[] select = new int[tensor.getDimensions()[2]];
+      int[] select = new int[tensor[1].getDimensions()[2]];
       int offset = subband * select.length;
       for (int i = 0; i < select.length; i++) select[i] = offset + i;
       PipelineNetwork network = new PipelineNetwork();
       network.add(new ImgReshapeLayer(factor, factor, false));
       network.add(new ImgBandSelectLayer(select));
-      return CudaExecutionContext.gpuContexts.run(ctx ->
-        network.eval(ctx, new Tensor[]{tensor})).getData().get(0);
+      Tensor result = CudaExecutionContext.gpuContexts.run(ctx ->
+        network.eval(ctx, new Tensor[]{tensor[1]})).getData().get(0);
+      return new Tensor[]{tensor[0],result};
     }));
   }
   
@@ -291,7 +292,7 @@ class ImageEncodingUtil {
   }
   
   protected void printDataStatistics(NotebookOutput log, Tensor[][] data) {
-    for (int col = 0; col < data[0].length; col++) {
+    for (int col = 1; col < data[0].length; col++) {
       int c = col;
       log.out("Learned Representation Statistics for Column " + col + " (all bands)");
       log.code(() -> {
@@ -362,6 +363,7 @@ class ImageEncodingUtil {
       return Caltech101.trainingDataStream().filter(x -> {
         return Arrays.asList(categories).contains(x.label);
       }).map(labeledObj -> new Tensor[]{
+        new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label),1.0),
         Tensor.fromRGB(resize(labeledObj.data.get(), size))
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (IOException e) {
@@ -371,12 +373,12 @@ class ImageEncodingUtil {
   
   protected class FindFeatureSpace {
     protected final NotebookOutput log;
-    protected final Tensor[] features;
+    protected final Tensor[][] features;
     protected final int inputBands;
     protected double[] averages;
     protected Tensor[] vectors;
     
-    public FindFeatureSpace(NotebookOutput log, Tensor[] features, int inputBands) {
+    public FindFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
       this.log = log;
       this.features = features;
       this.inputBands = inputBands;
@@ -392,28 +394,28 @@ class ImageEncodingUtil {
     
     public FindFeatureSpace invoke() {
       averages = findBandBias(features);
-      Tensor[] featureVectors = Arrays.stream(features).map(tensor -> {
-        return tensor.mapCoords((v, c) -> v - averages[c.coords[2]]);
-      }).toArray(i -> new Tensor[i]);
+      Tensor[][] featureVectors = Arrays.stream(features).map(tensor -> {
+        return new Tensor[]{tensor[0],tensor[1].mapCoords((v, c) -> v - averages[c.coords[2]])};
+      }).toArray(i -> new Tensor[i][]);
       vectors = findFeatureSpace(log, featureVectors, inputBands);
       return this;
     }
   
-    protected double[] findBandBias(Tensor[] features) {
-      Tensor prototype = features[0];
+    protected double[] findBandBias(Tensor[][] features) {
+      Tensor prototype = features[0][1];
       int[] dimensions = prototype.getDimensions();
       int outputBands = dimensions[2];
       return IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
         return Arrays.stream(features).mapToDouble(tensor -> {
-          return Arrays.stream(tensor.mapCoords((v, c) -> c.coords[2] == b ? v : Double.NaN).getData()).filter(Double::isFinite).average().getAsDouble();
+          return Arrays.stream(tensor[1].mapCoords((v, c) -> c.coords[2] == b ? v : Double.NaN).getData()).filter(Double::isFinite).average().getAsDouble();
         }).average().getAsDouble();
       }).toArray();
     }
   
-    protected Tensor[] findFeatureSpace(NotebookOutput log, Tensor[] featureVectors, int components) {
+    protected Tensor[] findFeatureSpace(NotebookOutput log, Tensor[][] featureVectors, int components) {
       return log.code(() -> {
-        int[] dimensions = featureVectors[0].getDimensions();
-        double[][] data = Arrays.stream(featureVectors).map(x -> x.getData()).toArray(i -> new double[i][]);
+        int[] dimensions = featureVectors[0][1].getDimensions();
+        double[][] data = Arrays.stream(featureVectors).map(x -> x[1].getData()).toArray(i -> new double[i][]);
         RealMatrix realMatrix = MatrixUtils.createRealMatrix(data);
         Covariance covariance = new Covariance(realMatrix);
         RealMatrix covarianceMatrix = covariance.getCovarianceMatrix();
@@ -428,7 +430,7 @@ class ImageEncodingUtil {
                 //.scale((decomposition.getRealEigenvalue(orderedVectors[inputBands-1])))
                 //.scale((decomposition.getRealEigenvalue(orderedVectors[i])))
                 //.scale((1.0 / decomposition.getRealEigenvalue(orderedVectors[0])))
-                .scale(Math.sqrt(6. / (components + featureVectors[0].dim() + 1)))
+                .scale(Math.sqrt(6. / (components + featureVectors[0][1].dim() + 1)))
                 ;
             }
           ).toArray(i -> new Tensor[i]);

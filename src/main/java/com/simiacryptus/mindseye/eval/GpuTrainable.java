@@ -62,7 +62,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     int cols = data.get(0).length;
     return IntStream.range(0, cols).parallel().mapToObj(col -> {
       Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
-      if (null == mask || !mask[col]) {
+      if (null == mask || col >= mask.length || !mask[col]) {
         return new ConstNNResult(tensors);
       }
       else {

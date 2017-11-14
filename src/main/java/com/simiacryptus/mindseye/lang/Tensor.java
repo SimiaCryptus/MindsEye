@@ -841,7 +841,7 @@ public class Tensor implements Serializable {
       }
     }
     else {
-      assert (2 == dims.length);
+      assert (2 == dims.length) : "order: " + dims.length;
       return Arrays.asList(toGrayImage());
     }
   }
