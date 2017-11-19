@@ -70,7 +70,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   @Category(TestCategories.Report.class)
   public void test() throws Exception {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != out) ((MarkdownNotebookOutput) log).addCopy(out);
+      if (null != rawOut) ((MarkdownNotebookOutput) log).addCopy(rawOut);
 
 //      int pretrainMinutes = 20;
 //      int timeoutMinutes = 60;
@@ -169,7 +169,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.size = size;
       this.model = model;
       this.trainingData = addColumn(getImages(log, size, imageCount, category), representationDims);
-      this.monitor = getMonitor(out, history);
+      this.monitor = getMonitor(history);
       this.trainMinutes = trainMinutes;
     }
     
@@ -277,7 +277,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.band1 = band1;
       this.band0 = band0;
       this.log = log;
-      this.monitor = getMonitor(out, history);
+      this.monitor = getMonitor(history);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
       this.fromSize = fromSize;
@@ -444,7 +444,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
      * @param scale           the scale
      */
     public AddLayerStep(NotebookOutput log, Tensor[][] trainingData, DAGNetwork priorModel, int layerNumber, int fromSize, int pretrainMinutes, int timeoutMinutes, int band1, int band2, int radius, int scale) {
-      this.originalOut = out;
+      this.originalOut = rawOut;
       this.log = log;
       this.band1 = band1;
       this.band2 = band2;
@@ -457,7 +457,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.timeoutMinutes = timeoutMinutes;
       this.radius = radius;
       this.history = new ArrayList<>();
-      this.monitor = getMonitor(originalOut, history);
+      this.monitor = getMonitor(history);
       this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1, false).setWeights(() -> 0.01 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band1);
       this.innerModel = buildNetwork();

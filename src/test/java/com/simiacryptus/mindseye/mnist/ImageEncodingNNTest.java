@@ -77,7 +77,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
   @Category(TestCategories.Report.class)
   public void test() throws Exception {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != out) ((MarkdownNotebookOutput) log).addCopy(out);
+      if (null != rawOut) ((MarkdownNotebookOutput) log).addCopy(rawOut);
       
       
       Tensor[][] trainingImages = getImages(log, size, 50, "kangaroo", "yin_yang");
@@ -111,7 +111,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
       @Override
       public FindFeatureSpace invoke() {
         ArrayList<Step> history = new ArrayList<>();
-        TrainingMonitor monitor = getMonitor(out, history);
+        TrainingMonitor monitor = getMonitor(history);
         int[] featureDimensions = features[0][1].getDimensions();
         FullyConnectedLayer synapseLayer = new FullyConnectedLayer(new int[]{inputBands}, featureDimensions);
         ImgBandBiasLayer bandBiasLayer = new ImgBandBiasLayer(featureDimensions[2]);

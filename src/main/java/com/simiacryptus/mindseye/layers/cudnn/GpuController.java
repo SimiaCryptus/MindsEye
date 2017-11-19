@@ -25,7 +25,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.lang.TensorMemory;
+import com.simiacryptus.util.test.SysOutInterceptor;
 
+import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -102,7 +104,14 @@ public final class GpuController {
       List<U> subList = data.subList(start, Math.min(end, data.size()));
       if (subList.isEmpty()) continue;
       try {
-        results.add(getGpuDriverThreads().get(dev).submit(() -> evaluate(dev, subList, mapper, reducer)));
+        PrintStream centralOut = SysOutInterceptor.INSTANCE.currentHandler();
+        results.add(getGpuDriverThreads().get(dev).submit(() -> {
+          PrintStream defaultOut = SysOutInterceptor.INSTANCE.currentHandler();
+          SysOutInterceptor.INSTANCE.setCurrentHandler(centralOut);
+          T result = evaluate(dev, subList, mapper, reducer);
+          SysOutInterceptor.INSTANCE.setCurrentHandler(defaultOut);
+          return result;
+        }));
       } catch (ExecutionException e) {
         throw new GpuError(e);
       }

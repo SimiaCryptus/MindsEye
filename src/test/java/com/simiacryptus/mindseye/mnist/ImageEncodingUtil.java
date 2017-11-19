@@ -40,6 +40,7 @@ import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.test.SysOutInterceptor;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -66,7 +67,7 @@ class ImageEncodingUtil {
   /**
    * The constant out.
    */
-  protected static PrintStream out = System.out;
+  protected static PrintStream rawOut = SysOutInterceptor.INSTANCE.getInner();
   
   /**
    * Print model.
@@ -360,23 +361,21 @@ class ImageEncodingUtil {
   /**
    * Gets monitor.
    *
-   * @param originalOut the original out
+   *
    * @param history     the history
    * @return the monitor
    */
-  protected TrainingMonitor getMonitor(PrintStream originalOut, List<Step> history) {
+  protected TrainingMonitor getMonitor(List<Step> history) {
     return new TrainingMonitor() {
       @Override
       public void log(String msg) {
-        System.out.println(msg);
-        if (null != originalOut && System.out != originalOut) originalOut.println(msg);
-        super.log(msg);
+        System.out.println(msg); // Logged Data
+        ImageEncodingUtil.rawOut.println(msg); // Realtime Data
       }
       
       @Override
       public void onStepComplete(Step currentPoint) {
         history.add(currentPoint);
-        super.onStepComplete(currentPoint);
       }
       
       @Override

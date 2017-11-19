@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.mindseye.eval.CachedTrainable;
 import com.simiacryptus.mindseye.eval.StochasticTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
@@ -30,6 +31,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.lang.TimedResult;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
@@ -39,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 /**
@@ -50,6 +53,8 @@ public class ValidatingTrainer {
   private final Trainable validationSubject;
   private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final AtomicInteger disappointments = new AtomicInteger(0);
+  private final AtomicLong trainingMeasurementTime = new AtomicLong(0);
+  private final AtomicLong validatingMeasurementTime = new AtomicLong(0);
   private Duration timeout;
   private double terminateThreshold;
   private OrientationStrategy orientation = new QQN();
@@ -78,8 +83,57 @@ public class ValidatingTrainer {
    * @param validationSubject the validation subject
    */
   public ValidatingTrainer(StochasticTrainable trainingSubject, Trainable validationSubject) {
-    this.trainingSubject = trainingSubject;
-    this.validationSubject = validationSubject;
+    this.trainingSubject = new StochasticTrainable() {
+      @Override
+      public int getTrainingSize() {
+        return trainingSubject.getTrainingSize();
+      }
+  
+      @Override
+      public StochasticTrainable setTrainingSize(int trainingSize) {
+        trainingSubject.setTrainingSize(trainingSize);
+        return this;
+      }
+  
+      @Override
+      public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+        TimedResult<PointSample> time = TimedResult.time(() ->
+          trainingSubject.measure(isStatic, monitor)
+        );
+        trainingMeasurementTime.addAndGet(time.timeNanos);
+        return time.result;
+      }
+  
+      @Override
+      public void resetToFull() {
+        trainingSubject.resetToFull();
+      }
+  
+      @Override
+      public boolean resetSampling() {
+        return trainingSubject.resetSampling();
+      }
+    };
+    this.validationSubject = new Trainable() {
+      @Override
+      public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+        TimedResult<PointSample> time = TimedResult.time(() ->
+          validationSubject.measure(isStatic, monitor)
+        );
+        validatingMeasurementTime.addAndGet(time.timeNanos);
+        return time.result;
+      }
+  
+      @Override
+      public void resetToFull() {
+        validationSubject.resetToFull();
+      }
+  
+      @Override
+      public boolean resetSampling() {
+        return validationSubject.resetSampling();
+      }
+    };
     this.trainingSize = trainingSubject.getTrainingSize();
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = Double.NEGATIVE_INFINITY;
@@ -134,10 +188,11 @@ public class ValidatingTrainer {
         lowestValidation = validationMean;
         lastImprovement = iterationNumber;
       }
-      monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement",
+      monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement; %.4f validation time",
         ++epochNumber, epochResult.iterations, epochParams.trainingSize, getMaxTrainingSize(),
         Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
-        epochResult.getOverTrainingCoeff(), adj1, adj2, (iterationNumber - lastImprovement)));
+        epochResult.getOverTrainingCoeff(), adj1, adj2, (iterationNumber - lastImprovement),
+        validatingMeasurementTime.getAndSet(0) / 1e9));
       if (!epochResult.continueTraining) {
         monitor.log(String.format("Training %d epoch halted", epochNumber));
         break;
@@ -202,7 +257,13 @@ public class ValidatingTrainer {
       StepResult epoch = step(currentPoint);
       long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       long endTime = System.nanoTime();
-      String performance = String.format("%s in %.3f seconds, %.3f in gc", epochParams.trainingSize, (endTime - startTime) / 1e9, (newGcTime - prevGcTime) / 1e3);
+      String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f eval time",
+        epochParams.trainingSize, (endTime - startTime) / 1e9,
+        epoch.performance[0],
+        (newGcTime - prevGcTime) / 1e3,
+        epoch.performance[1],
+        trainingMeasurementTime.getAndSet(0) / 1e9
+      );
       currentPoint = epoch.currentPoint.setRate(0.0);
       if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
         boolean reset = reset(epoch.currentPoint.getMean());
@@ -225,7 +286,8 @@ public class ValidatingTrainer {
    */
   protected StepResult step(PointSample previousPoint) {
     currentIteration.incrementAndGet();
-    LineSearchCursor direction = orientation.orient(trainingSubject, previousPoint, monitor);
+    TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(trainingSubject, previousPoint, monitor));
+    LineSearchCursor direction = timedOrientation.result;
     String directionType = direction.getDirectionType();
     LineSearchStrategy lineSearchStrategy;
     if (lineSearchStrategyMap.containsKey(directionType)) {
@@ -236,13 +298,16 @@ public class ValidatingTrainer {
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
-    FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
-    lineSearchStrategy.step(cursor, monitor);
-    PointSample bestPoint = cursor.getBest(monitor).reset();
+    TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> {
+      FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
+      lineSearchStrategy.step(cursor, monitor);
+      return cursor.getBest(monitor).reset();
+    });
+    PointSample bestPoint = timedLineSearch.result;
     if (bestPoint.getMean() > previousPoint.getMean()) {
       throw new IllegalStateException(bestPoint.getMean() + " > " + previousPoint.getMean());
     }
-    return new StepResult(previousPoint, bestPoint);
+    return new StepResult(previousPoint, bestPoint, new double[]{timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9});
   }
   
   private boolean reset(double value) {
@@ -807,24 +872,26 @@ public class ValidatingTrainer {
   }
   
   private class StepResult {
+    final double[] performance;
     /**
      * The Current point.
      */
-    PointSample currentPoint;
+    final PointSample currentPoint;
     /**
      * The Previous.
      */
-    PointSample previous;
+    final PointSample previous;
   
     /**
      * Instantiates a new Step result.
-     *
-     * @param previous     the previous
+     *  @param previous     the previous
      * @param currentPoint the current point
+     * @param performance
      */
-    public StepResult(PointSample previous, PointSample currentPoint) {
+    public StepResult(PointSample previous, PointSample currentPoint, double[] performance) {
       this.currentPoint = currentPoint;
       this.previous = previous;
+      this.performance = performance;
     }
     
   }

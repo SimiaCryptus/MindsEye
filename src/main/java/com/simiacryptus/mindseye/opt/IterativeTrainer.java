@@ -113,7 +113,8 @@ public class IterativeTrainer {
         TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
         currentPoint = timedLineSearch.result;
         long now = System.nanoTime();
-        String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f", now - lastIterationTime / 1e9);
+        String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
+          now - lastIterationTime / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
         lastIterationTime = now;
         if (previous.getMean() <= currentPoint.getMean()) {
           if (previous.getMean() < currentPoint.getMean()) {

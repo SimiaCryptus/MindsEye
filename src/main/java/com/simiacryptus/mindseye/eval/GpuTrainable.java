@@ -131,17 +131,18 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   public PointSample measure(int retries, boolean isStatic, TrainingMonitor monitor) {
     try {
       assert !data.isEmpty();
-      PointSample result = GpuController.INSTANCE.distribute(data,
+  
+      TimedResult<PointSample> timedResult = TimedResult.time(() -> GpuController.INSTANCE.distribute(data,
         (list, dev) -> eval(list, dev, isStatic, monitor),
         (a, b) -> a.add(b)
-      );
+      ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-      
-      assert (null != result);
+      monitor.log(String.format("Evaluated %s in %.4f", data.size(), timedResult.timeNanos / 1e9));
+      assert (null != timedResult.result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if (gcEachIteration) GpuController.INSTANCE.cleanMemory();
-      return result;
+      return timedResult.result;
     } catch (Exception e) {
       if (retries > 0) {
         GpuController.INSTANCE.cleanMemory();
@@ -202,7 +203,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
     });
     if (null != monitor) {
-      monitor.log(String.format("Device %s completed %s items in %s sec", nncontext.toString(), data.size(), timedResult.timeNanos / 1e9));
+      monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));
     }
     return timedResult.result;
   }
