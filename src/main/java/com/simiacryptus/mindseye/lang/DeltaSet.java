@@ -95,7 +95,9 @@ public class DeltaSet {
    * @return the delta set
    */
   public DeltaSet map(final Function<Delta, Delta> mapper) {
-    return new DeltaSet(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue()))));
+    Stream<Map.Entry<NNLayer, Delta>> stream = map.entrySet().stream();
+    if(map.size() > 100) stream = stream.parallel();
+    return new DeltaSet(stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue()))));
   }
   
   /**
@@ -147,7 +149,9 @@ public class DeltaSet {
    */
   public double dot(DeltaSet right) {
     ConcurrentHashMap<NNLayer, Delta> r = right.map;
-    return map.entrySet().stream().mapToDouble(entry -> {
+    Stream<Map.Entry<NNLayer, Delta>> stream = map.entrySet().stream();
+    if(100 < map.size()) stream = stream.parallel();
+    return stream.mapToDouble(entry -> {
       NNLayer key = entry.getKey();
       assert key.equals(key);
       if (r.containsKey(key)) {
@@ -177,11 +181,11 @@ public class DeltaSet {
    */
   public DeltaSet add(DeltaSet right) {
     DeltaSet returnValue = new DeltaSet();
-    map.forEach((layer, buffer) -> {
+    map.forEach(100, (layer, buffer) -> {
       returnValue.get(layer, buffer.target)
         .accumulate(buffer.getDelta());
     });
-    right.map.forEach((layer, buffer) -> {
+    right.map.forEach(100, (layer, buffer) -> {
       returnValue.get(layer, buffer.target)
         .accumulate(buffer.getDelta());
     });
