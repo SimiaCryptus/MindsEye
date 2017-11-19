@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SigmoidTreeNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
@@ -60,7 +60,7 @@ public class SigmoidTreeNetworkTest extends LinearTest {
       network.add(new ConvolutionLayer(3,3,5,false));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
       this.tree = new SigmoidTreeNetwork(
-                                          new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10}),
+                                          new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}),
                                           new BiasLayer(28, 28, 1)
       ).setSkipFuzzy(true).setSkipChildStage(true);
       network.add(tree);

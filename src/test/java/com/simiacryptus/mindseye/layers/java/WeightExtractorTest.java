@@ -21,8 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.WeightExtractor;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
 
 /**
  * The type Weight extractor test.
@@ -31,7 +29,7 @@ public class WeightExtractorTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new WeightExtractor(0, new DenseSynapseLayer(new int[]{3}, new int[]{3}));
+    return new WeightExtractor(0, new FullyConnectedLayer(new int[]{3}, new int[]{3}));
   }
   
   @Override

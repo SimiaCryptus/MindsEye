@@ -59,10 +59,6 @@ public class MeanSqLossLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = 7589211270512485408L;
   
   /**
    * Instantiates a new Mean sq loss layer.

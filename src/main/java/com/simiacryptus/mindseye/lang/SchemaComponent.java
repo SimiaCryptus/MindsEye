@@ -17,28 +17,17 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
-
-import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.OffsetMetaLayer;
-import org.junit.Ignore;
+package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Offset meta layer test.
+ * The interface Schema component.
  */
-@Ignore
-public class OffsetMetaLayerTest extends LayerTestBase {
-  
-  @Override
-  public NNLayer getLayer() {
-    return new OffsetMetaLayer();
-  }
-  
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}, {3}
-    };
-  }
+public interface SchemaComponent {
+  /**
+   * Sets schema.
+   *
+   * @param labels the labels
+   * @return the schema
+   */
+  SchemaComponent setSchema(String... labels);
 }

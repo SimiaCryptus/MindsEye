@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.PolynomialConvolutionNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
@@ -62,7 +62,7 @@ public class PolynomialConvolutionTest extends LinearTest {
       //network.fn(this.tree);
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
       network.add(new NormalizationMetaLayer());
-      network.add(new DenseSynapseLayer(new int[]{13, 13, 5}, new int[]{10})
+      network.add(new FullyConnectedLayer(new int[]{13, 13, 5}, new int[]{10})
                     .setWeights(()->1e-8*(Math.random()-0.5)));
 //      network.fn(new NormalizationMetaLayer());
 //      network.fn(new LinearActivationLayer());

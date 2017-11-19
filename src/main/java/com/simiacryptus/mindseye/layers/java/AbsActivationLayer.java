@@ -49,7 +49,6 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
     super(id);
   }
   
-  private static final long serialVersionUID = -5520500379591109767L;
   
   /**
    * Instantiates a new Abs activation layer.

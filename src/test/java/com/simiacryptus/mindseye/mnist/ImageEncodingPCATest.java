@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.java.ResampledSubLayer;
+import com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.opt.Step;
@@ -344,7 +344,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     public PipelineNetwork buildNetwork() {
       return log.code(() -> {
         return new PipelineNetwork(1,
-          new ResampledSubLayer(scale,
+          new RescaledSubnetLayer(scale,
             new PipelineNetwork(1,
               convolutionLayer,
               biasLayer)

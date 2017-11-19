@@ -272,5 +272,4 @@ public abstract class NNLayer implements Serializable {
     this.name = name;
     return this;
   }
-  
 }

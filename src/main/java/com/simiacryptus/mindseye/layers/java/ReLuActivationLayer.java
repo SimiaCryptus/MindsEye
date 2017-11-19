@@ -65,10 +65,7 @@ public class ReLuActivationLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ReLuActivationLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = -2105152439043901220L;
+
   private final Tensor weights;
   
   /**

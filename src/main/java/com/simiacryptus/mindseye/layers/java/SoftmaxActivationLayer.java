@@ -62,11 +62,6 @@ public class SoftmaxActivationLayer extends NNLayer {
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
   
   /**
-   *
-   */
-  private static final long serialVersionUID = 2373420906380031927L;
-  
-  /**
    * The Max input.
    */
   double maxInput = 50;

@@ -25,7 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.WeightExtractor;
-import com.simiacryptus.mindseye.layers.java.NNLayerWrapper;
+import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import org.slf4j.Logger;
@@ -248,8 +248,8 @@ public abstract class DAGNetwork extends NNLayer {
       if (layer instanceof DAGNetwork) {
         ((DAGNetwork) layer).visitLayers(visitor);
       }
-      if (layer instanceof NNLayerWrapper) {
-        visitor.accept(((NNLayerWrapper) layer).getInner());
+      if (layer instanceof WrapperLayer) {
+        visitor.accept(((WrapperLayer) layer).getInner());
       }
       visitor.accept(layer);
     });

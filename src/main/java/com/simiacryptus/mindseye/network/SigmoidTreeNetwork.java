@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 
@@ -195,18 +195,18 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
     switch (getMode()) {
       case Linear: {
         this.head = null;
-        DenseSynapseLayer alpha = (DenseSynapseLayer) this.alpha;
+        FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
         //alpha.weights.scale(2);
-        this.gate = new DenseSynapseLayer(alpha.inputDims, multigate?alpha.outputDims:new int[]{1});
+        this.gate = new FullyConnectedLayer(alpha.inputDims, multigate?alpha.outputDims:new int[]{1});
         this.gateBias = new BiasLayer(alpha.inputDims);
         this.mode = NodeMode.Fuzzy;
         break;
       }
       case Fuzzy: {
         this.head = null;
-        DenseSynapseLayer alpha = (DenseSynapseLayer) this.alpha;
+        FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
         BiasLayer alphaBias = (BiasLayer) this.alphaBias;
-        this.beta = new DenseSynapseLayer(alpha.inputDims, alpha.outputDims).setWeights(() -> {
+        this.beta = new FullyConnectedLayer(alpha.inputDims, alpha.outputDims).setWeights(() -> {
           return initialFuzzyCoeff * (Math.random() - 0.5);
         });
         this.betaBias = new BiasLayer(alphaBias.bias.length);

@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
 /**
  * The type Dense synapse layer.
  */
-public class DenseSynapseLayer extends NNLayer {
+public class FullyConnectedLayer extends NNLayer {
   
   
   public JsonObject getJson() {
@@ -55,8 +55,8 @@ public class DenseSynapseLayer extends NNLayer {
    * @param json the json
    * @return the dense synapse layer
    */
-  public static DenseSynapseLayer fromJson(JsonObject json) {
-    return new DenseSynapseLayer(json);
+  public static FullyConnectedLayer fromJson(JsonObject json) {
+    return new FullyConnectedLayer(json);
   }
   
   /**
@@ -64,7 +64,7 @@ public class DenseSynapseLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected DenseSynapseLayer(JsonObject json) {
+  protected FullyConnectedLayer(JsonObject json) {
     super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     this.inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
@@ -73,7 +73,7 @@ public class DenseSynapseLayer extends NNLayer {
   
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(DenseSynapseLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(FullyConnectedLayer.class);
   /**
    * The Output dims.
    */
@@ -90,7 +90,7 @@ public class DenseSynapseLayer extends NNLayer {
   /**
    * Instantiates a new Dense synapse layer.
    */
-  protected DenseSynapseLayer() {
+  protected FullyConnectedLayer() {
     super();
     this.outputDims = null;
     this.weights = null;
@@ -103,7 +103,7 @@ public class DenseSynapseLayer extends NNLayer {
    * @param inputDims  the input dims
    * @param outputDims the output dims
    */
-  public DenseSynapseLayer(final int[] inputDims, final int[] outputDims) {
+  public FullyConnectedLayer(final int[] inputDims, final int[] outputDims) {
     final int inputs = Tensor.dim(inputDims);
     this.inputDims = Arrays.copyOf(inputDims, inputDims.length);
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
@@ -211,7 +211,7 @@ public class DenseSynapseLayer extends NNLayer {
    * @param data the data
    * @return the weights
    */
-  public DenseSynapseLayer setWeights(final double[] data) {
+  public FullyConnectedLayer setWeights(final double[] data) {
     this.weights.set(data);
     return this;
   }
@@ -222,7 +222,7 @@ public class DenseSynapseLayer extends NNLayer {
    * @param value the value
    * @return the weights log
    */
-  public DenseSynapseLayer setWeightsLog(final double value) {
+  public FullyConnectedLayer setWeightsLog(final double value) {
     this.weights.coordStream().parallel().forEach(c -> {
       this.weights.set(c, (FastRandom.random() - 0.5) * Math.pow(10, value));
     });
@@ -235,7 +235,7 @@ public class DenseSynapseLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public DenseSynapseLayer setWeights(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
+  public FullyConnectedLayer setWeights(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
     new Tensor(inputDims).coordStream().parallel().forEach(in -> {
       new Tensor(outputDims).coordStream().parallel().forEach(out -> {
         weights.set(new int[]{in.index, out.index}, f.applyAsDouble(in, out));
@@ -250,7 +250,7 @@ public class DenseSynapseLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public DenseSynapseLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+  public FullyConnectedLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     weights.coordStream().parallel().forEach(c -> {
       weights.set(c, f.applyAsDouble(c));
     });
@@ -277,7 +277,7 @@ public class DenseSynapseLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public DenseSynapseLayer setWeights(final DoubleSupplier f) {
+  public FullyConnectedLayer setWeights(final DoubleSupplier f) {
     Arrays.parallelSetAll(this.weights.getData(), i -> f.getAsDouble());
     return this;
   }
@@ -292,8 +292,8 @@ public class DenseSynapseLayer extends NNLayer {
   public void initSpacial(double radius, double stiffness, double peak) {
     setWeights((Coordinate in, Coordinate out) -> {
       double[] doubleCoords = IntStream.range(0, in.coords.length).mapToDouble(d -> {
-        double from = in.coords[d] * 1.0 / DenseSynapseLayer.this.inputDims[d];
-        double to = out.coords[d] * 1.0 / DenseSynapseLayer.this.outputDims[d];
+        double from = in.coords[d] * 1.0 / FullyConnectedLayer.this.inputDims[d];
+        double to = out.coords[d] * 1.0 / FullyConnectedLayer.this.outputDims[d];
         return from - to;
       }).toArray();
       double dist = Math.sqrt(Arrays.stream(doubleCoords).map(x -> x * x).sum());
@@ -313,7 +313,7 @@ public class DenseSynapseLayer extends NNLayer {
     private void backprop(final TensorList delta, final DeltaSet buffer) {
       Tensor[] passbackA = IntStream.range(0, inObj.getData().length()).parallel().mapToObj(dataIndex -> {
         final double[] deltaData = delta.get(dataIndex).getData();
-        final Tensor r = DenseSynapseLayer.this.getWeights();
+        final Tensor r = FullyConnectedLayer.this.getWeights();
         final Tensor passback = new Tensor(this.inObj.getData().get(dataIndex).getDimensions());
         multiplyT(r.getData(), deltaData, passback.getData());
         return passback;
@@ -345,7 +345,7 @@ public class DenseSynapseLayer extends NNLayer {
     }
     
     private void learn(final TensorList delta, final DeltaSet buffer) {
-      Delta deltaBuffer = buffer.get(DenseSynapseLayer.this, DenseSynapseLayer.this.getWeights());
+      Delta deltaBuffer = buffer.get(FullyConnectedLayer.this, FullyConnectedLayer.this.getWeights());
       
       int threads = 4;
       IntStream.range(0, threads).parallel().forEach(thread -> {
@@ -364,6 +364,10 @@ public class DenseSynapseLayer extends NNLayer {
       });
     }
     
+  }
+  
+  public NNLayer getTranspose() {
+    throw new RuntimeException("Not Implemented");
   }
   
 }

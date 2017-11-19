@@ -21,8 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.MonitoringSynapse;
-import com.simiacryptus.mindseye.layers.java.MonitoringWrapper;
 
 /**
  * The type Monitoring wrapper test.
@@ -31,7 +29,7 @@ public class MonitoringWrapperTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new MonitoringWrapper(new MonitoringSynapse());
+    return new MonitoringWrapperLayer(new MonitoringSynapse());
   }
   
   @Override

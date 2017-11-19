@@ -23,9 +23,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.java.JavaDenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.java.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
@@ -138,9 +136,7 @@ public class OwlQn implements OrientationStrategy {
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
     return layers.stream()
              .filter(layer -> {
-               if (layer instanceof DenseSynapseLayer) return true;
-               if (layer instanceof ToeplitzSynapseLayer) return true;
-               return layer instanceof JavaDenseSynapseLayer;
+               return layer instanceof FullyConnectedLayer;
              })
              .collect(Collectors.toList());
   }

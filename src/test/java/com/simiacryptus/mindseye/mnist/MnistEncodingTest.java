@@ -31,7 +31,7 @@ import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
@@ -208,7 +208,7 @@ public class MnistEncodingTest {
       PipelineNetwork network = new PipelineNetwork(2);
       DAGNode input = network.getInput(0);
       //network.fn(new ReLuActivationLayer());
-      network.add(new DenseSynapseLayer(new int[]{features}, new int[]{28, 28, 1})
+      network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 1})
                     .setWeights(() -> 0.25 * (Math.random() - 0.5)), input);
       network.add(new LinearActivationLayer());
       DAGNode image = network.add("image", new BiasLayer(28, 28, 1), network.getHead());

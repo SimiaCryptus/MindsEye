@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class ResampledSubLayer extends NNLayer {
+public class RescaledSubnetLayer extends NNLayer {
   
   private final int scale;
   private final NNLayer subnetwork;
@@ -41,17 +41,17 @@ public class ResampledSubLayer extends NNLayer {
     return json;
   }
   
-  public static ResampledSubLayer fromJson(JsonObject json) {
-    return new ResampledSubLayer(json);
+  public static RescaledSubnetLayer fromJson(JsonObject json) {
+    return new RescaledSubnetLayer(json);
   }
   
-  protected ResampledSubLayer(JsonObject json) {
+  protected RescaledSubnetLayer(JsonObject json) {
     super(json);
     scale = json.getAsJsonPrimitive("scale").getAsInt();
     subnetwork = NNLayer.fromJson(json.getAsJsonObject("subnetwork"));
   }
   
-  public ResampledSubLayer(int scale, NNLayer subnetwork) {
+  public RescaledSubnetLayer(int scale, NNLayer subnetwork) {
     super();
     this.scale = scale;
     this.subnetwork = subnetwork;

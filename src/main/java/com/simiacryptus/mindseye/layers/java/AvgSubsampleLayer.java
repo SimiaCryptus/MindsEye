@@ -92,10 +92,7 @@ public class AvgSubsampleLayer extends NNLayer {
                                                                                                                   });
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgSubsampleLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = 7441695931197085499L;
+  
   private int[] kernelDims;
   
   /**

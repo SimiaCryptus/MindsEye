@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.eval.PlaceholderLayer;
+import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.Delta;
@@ -143,7 +143,7 @@ public class LBFGS implements OrientationStrategy {
       double magGrad = Math.sqrt(original.dot(original));
       double dot = result.dot(original) / (mag * magGrad);
       List<String> anglesPerLayer = measurement.delta.getMap().entrySet().stream()
-                                              .filter(e->!(e.getKey() instanceof PlaceholderLayer))
+                                              .filter(e->!(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
                                              .map((Map.Entry<NNLayer, Delta> e) -> {
                                                double[] lbfgsVector = result.getMap().get(e.getKey()).getDelta();
                                                for(int index=0;index<lbfgsVector.length;index++) lbfgsVector[index] = Double.isFinite(lbfgsVector[index])?lbfgsVector[index]:0;

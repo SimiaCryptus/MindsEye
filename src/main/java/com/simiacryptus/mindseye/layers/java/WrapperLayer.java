@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * The type Nn layer wrapper.
  */
-public abstract class NNLayerWrapper extends NNLayer {
+public abstract class WrapperLayer extends NNLayer {
   /**
    * The Inner.
    */
@@ -40,7 +40,7 @@ public abstract class NNLayerWrapper extends NNLayer {
    *
    * @param json the json
    */
-  public NNLayerWrapper(JsonObject json) {
+  public WrapperLayer(JsonObject json) {
     super(json);
     this.inner = fromJson(json.getAsJsonObject("inner"));
   }
@@ -50,14 +50,14 @@ public abstract class NNLayerWrapper extends NNLayer {
    *
    * @param inner the inner
    */
-  public NNLayerWrapper(NNLayer inner) {
+  public WrapperLayer(NNLayer inner) {
     this.inner = inner;
   }
   
   /**
    * Instantiates a new Nn layer wrapper.
    */
-  protected NNLayerWrapper() {
+  protected WrapperLayer() {
     this.inner = null;
   }
   

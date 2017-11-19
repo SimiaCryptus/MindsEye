@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.runtime.JCuda;

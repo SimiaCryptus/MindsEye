@@ -58,10 +58,6 @@ public class SumReducerLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = -5171545060770814729L;
   
   /**
    * Instantiates a new Sum reducer layer.

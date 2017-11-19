@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
@@ -171,7 +171,7 @@ public class LinearTest extends MnistTestBase {
     log.p("");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
-      network.add(new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
+      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });

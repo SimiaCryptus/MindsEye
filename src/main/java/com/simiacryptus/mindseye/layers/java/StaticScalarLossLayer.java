@@ -59,10 +59,6 @@ public class StaticScalarLossLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(StaticScalarLossLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = 7589211270512485408L;
   
   private double target = 0.0;
   

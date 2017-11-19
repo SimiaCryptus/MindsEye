@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * The type Monitoring wrapper.
  */
 @SuppressWarnings("serial")
-public final class MonitoringWrapper extends NNLayerWrapper implements MonitoredItem {
+public final class MonitoringWrapperLayer extends WrapperLayer implements MonitoredItem {
   
   private boolean verbose = false;
   
@@ -57,8 +57,8 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    * @param json the json
    * @return the monitoring wrapper
    */
-  public static MonitoringWrapper fromJson(JsonObject json) {
-    return new MonitoringWrapper(json);
+  public static MonitoringWrapperLayer fromJson(JsonObject json) {
+    return new MonitoringWrapperLayer(json);
   }
   
   /**
@@ -66,7 +66,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    *
    * @param json the json
    */
-  protected MonitoringWrapper(JsonObject json) {
+  protected MonitoringWrapperLayer(JsonObject json) {
     super(json);
     if (json.has("forwardPerf")) this.forwardPerformance.readJson(json.getAsJsonObject("forwardPerf"));
     if (json.has("backwardPerf")) this.backwardPerformance.readJson(json.getAsJsonObject("backwardPerf"));
@@ -90,7 +90,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    *
    * @param inner the inner
    */
-  public MonitoringWrapper(final NNLayer inner) {
+  public MonitoringWrapperLayer(final NNLayer inner) {
     super(inner);
   }
   
@@ -184,7 +184,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    * @param obj the obj
    * @return the monitoring wrapper
    */
-  public MonitoringWrapper addTo(MonitoredObject obj) {
+  public MonitoringWrapperLayer addTo(MonitoredObject obj) {
     return addTo(obj, getInner().getName());
   }
   
@@ -195,7 +195,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    * @param name the name
    * @return the monitoring wrapper
    */
-  public MonitoringWrapper addTo(MonitoredObject obj, String name) {
+  public MonitoringWrapperLayer addTo(MonitoredObject obj, String name) {
     setName(name);
     obj.addObj(getName(), this);
     return this;
@@ -227,7 +227,7 @@ public final class MonitoringWrapper extends NNLayerWrapper implements Monitored
    * @param recordSignalMetrics the activity stats
    * @return the activity stats
    */
-  public MonitoringWrapper shouldRecordSignalMetrics(boolean recordSignalMetrics) {
+  public MonitoringWrapperLayer shouldRecordSignalMetrics(boolean recordSignalMetrics) {
     this.recordSignalMetrics = recordSignalMetrics;
     return this;
   }

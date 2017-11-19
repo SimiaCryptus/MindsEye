@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -35,8 +35,8 @@ public class DualLinearTest extends LinearTest {
     return log.code(() -> {
       PipelineNetwork network = null;
       network = new PipelineNetwork();
-      network.add(new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
-      network.add(new DenseSynapseLayer(new int[]{10}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
+      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
+      network.add(new FullyConnectedLayer(new int[]{10}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });

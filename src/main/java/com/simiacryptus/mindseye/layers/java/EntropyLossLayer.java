@@ -58,10 +58,6 @@ public class EntropyLossLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = -6257785994031662519L;
   
   /**
    * Instantiates a new Entropy loss layer.

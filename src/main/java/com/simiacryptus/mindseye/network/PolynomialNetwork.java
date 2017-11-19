@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
 import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 
@@ -232,7 +232,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @return the nn layer
    */
   public NNLayer newSynapse(double weight) {
-    return new DenseSynapseLayer(inputDims, outputDims).setWeights(() -> weight * (Math.random() - 1));
+    return new FullyConnectedLayer(inputDims, outputDims).setWeights(() -> weight * (Math.random() - 1));
   }
   
   public synchronized DAGNode getHead() {

@@ -22,15 +22,9 @@ package com.simiacryptus.mindseye.mnist;
 import com.simiacryptus.mindseye.eval.*;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.java.MonitoringWrapper;
+import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
@@ -102,7 +96,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
         ArrayList<Step> history = new ArrayList<>();
         TrainingMonitor monitor = getMonitor(out, history);
         int[] featureDimensions = features[0][1].getDimensions();
-        DenseSynapseLayer synapseLayer = new DenseSynapseLayer(new int[]{inputBands}, featureDimensions);
+        FullyConnectedLayer synapseLayer = new FullyConnectedLayer(new int[]{inputBands}, featureDimensions);
         ImgBandBiasLayer bandBiasLayer = new ImgBandBiasLayer(featureDimensions[2]);
 
         PipelineNetwork network = log.code(()->{
@@ -112,7 +106,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
           DAGNode sqLoss = pipelineNetwork.add(new MeanSqLossLayer(), pipelineNetwork.getHead(), pipelineNetwork.getInput(1));
   
           int[] categoryDimensions = features[0][0].getDimensions();
-          pipelineNetwork.add(new DenseSynapseLayer(new int[]{inputBands}, categoryDimensions), pipelineNetwork.getInput(0));
+          pipelineNetwork.add(new FullyConnectedLayer(new int[]{inputBands}, categoryDimensions), pipelineNetwork.getInput(0));
           pipelineNetwork.add(new BiasLayer(categoryDimensions));
           pipelineNetwork.add(new SoftmaxActivationLayer());
           DAGNode entropy = pipelineNetwork.add(new EntropyLossLayer(), pipelineNetwork.getHead(), pipelineNetwork.getInput(2));
@@ -168,10 +162,10 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
     log.p("Adding performance wrappers");
     log.code(()->{
       network.visitNodes(node->{
-        if(!(node.getLayer() instanceof MonitoringWrapper)) {
-          node.setLayer(new MonitoringWrapper(node.getLayer()).shouldRecordSignalMetrics(false));
+        if(!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+          node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
         } else {
-          ((MonitoringWrapper)node.getLayer()).shouldRecordSignalMetrics(false);
+          ((MonitoringWrapperLayer)node.getLayer()).shouldRecordSignalMetrics(false);
         }
       });
     });
@@ -180,10 +174,10 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
   public void removePerformanceWrappers(NotebookOutput log, DAGNetwork network) {
     log.p("Per-layer Performance Metrics:");
     log.code(()->{
-      Map<NNLayer, MonitoringWrapper> metrics = new HashMap<>();
+      Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node->{
-        if((node.getLayer() instanceof MonitoringWrapper)) {
-          MonitoringWrapper layer = node.getLayer();
+        if((node.getLayer() instanceof MonitoringWrapperLayer)) {
+          MonitoringWrapperLayer layer = node.getLayer();
           metrics.put(layer.getInner(), layer);
         }
       });
@@ -199,8 +193,8 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
     log.p("Removing performance wrappers");
     log.code(()->{
       network.visitNodes(node->{
-        if(node.getLayer() instanceof MonitoringWrapper) {
-          node.setLayer(node.<MonitoringWrapper>getLayer().getInner());
+        if(node.getLayer() instanceof MonitoringWrapperLayer) {
+          node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
         }
       });
     });

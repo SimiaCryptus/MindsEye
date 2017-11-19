@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * The type Variable layer.
  */
-public class VariableLayer extends NNLayerWrapper {
+public class VariableLayer extends WrapperLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();

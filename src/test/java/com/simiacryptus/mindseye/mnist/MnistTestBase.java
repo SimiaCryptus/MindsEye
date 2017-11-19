@@ -22,11 +22,11 @@ package com.simiacryptus.mindseye.mnist;
 import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.java.MonitoringWrapper;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.InnerNode;
@@ -170,8 +170,8 @@ public abstract class MnistTestBase {
    */
   public void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
     network.visitNodes(node -> {
-      if (node instanceof InnerNode && !(node.getLayer() instanceof MonitoringWrapper)) {
-        ((InnerNode) node).setLayer(new MonitoringWrapper(node.getLayer()).addTo(monitoringRoot));
+      if (node instanceof InnerNode && !(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        ((InnerNode) node).setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
       }
     });
   }
@@ -183,8 +183,8 @@ public abstract class MnistTestBase {
    */
   public void removeMonitoring(DAGNetwork network) {
     network.visitNodes(node -> {
-      if (node instanceof InnerNode && (node.getLayer() instanceof MonitoringWrapper)) {
-        ((InnerNode) node).setLayer(((MonitoringWrapper)node.getLayer()).getInner());
+      if (node instanceof InnerNode && (node.getLayer() instanceof MonitoringWrapperLayer)) {
+        ((InnerNode) node).setLayer(((MonitoringWrapperLayer)node.getLayer()).getInner());
       }
     });
   }
@@ -283,7 +283,7 @@ public abstract class MnistTestBase {
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
-      network.add(new DenseSynapseLayer(new int[]{28, 28, 1}, new int[]{10})
+      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
                     .setWeights(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;

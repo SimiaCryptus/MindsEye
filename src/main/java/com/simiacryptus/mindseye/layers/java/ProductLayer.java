@@ -58,10 +58,6 @@ public class ProductLayer extends NNLayer {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
-  /**
-   *
-   */
-  private static final long serialVersionUID = -5171545060770814729L;
   
   /**
    * Instantiates a new Product layer.

@@ -49,8 +49,6 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
     super(id);
   }
   
-  private static final long serialVersionUID = -5520500379591109767L;
-  
   /**
    * Instantiates a new Log activation layer.
    */

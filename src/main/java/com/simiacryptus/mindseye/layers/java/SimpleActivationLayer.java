@@ -47,11 +47,6 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
   /**
-   *
-   */
-  private static final long serialVersionUID = -5439874559292833041L;
-  
-  /**
    * Instantiates a new Simple activation layer.
    */
   public SimpleActivationLayer() {

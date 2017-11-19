@@ -17,17 +17,25 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.layers.java;
+
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The interface Schema component.
+ * The type Dense synapse layer test.
  */
-public interface SchemaComponent {
-  /**
-   * Sets schema.
-   *
-   * @param labels the labels
-   * @return the schema
-   */
-  SchemaComponent setSchema(String... labels);
+public class FullyConnectedLayerTest extends LayerTestBase {
+  
+  @Override
+  public NNLayer getLayer() {
+    return new FullyConnectedLayer(new int[]{3}, new int[]{3});
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{
+      {3}
+    };
+  }
 }
