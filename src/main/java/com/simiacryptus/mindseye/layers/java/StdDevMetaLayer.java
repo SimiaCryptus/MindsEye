@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +34,9 @@ import java.util.UUID;
 @SuppressWarnings("serial")
 public class StdDevMetaLayer extends DAGNetwork {
   
-  /**
-   * From json nn layer.
-   *
-   * @param inner the inner
-   * @return the nn layer
-   */
-  public static NNLayer fromJson(JsonObject inner) {
-    return new StdDevMetaLayer(inner);
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);
+  private final DAGNode head;
   
   /**
    * Instantiates a new Std dev meta layer.
@@ -54,10 +48,6 @@ public class StdDevMetaLayer extends DAGNetwork {
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);
-  private final DAGNode head;
-  
   /**
    * Instantiates a new Std dev meta layer.
    */
@@ -68,6 +58,16 @@ public class StdDevMetaLayer extends DAGNetwork {
         add(new AvgMetaLayer(), add(new SqActivationLayer(), getInput(0))),
         add(new LinearActivationLayer().setScale(-1), add(new SqActivationLayer(), add(new AvgMetaLayer(), getInput(0))))
       ));
+  }
+  
+  /**
+   * From json nn layer.
+   *
+   * @param inner the inner
+   * @return the nn layer
+   */
+  public static NNLayer fromJson(JsonObject inner) {
+    return new StdDevMetaLayer(inner);
   }
   
   @Override

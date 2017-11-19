@@ -45,11 +45,11 @@ public class RoundRobinTrainer {
   
   
   private final Trainable subject;
+  private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private Duration timeout;
   private double terminateThreshold;
   private List<? extends OrientationStrategy> orientations = new ArrayList<>(Arrays.asList(new LBFGS()));
   private Function<String, ? extends LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
-  private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -295,8 +295,8 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = s -> lineSearchFactory.get();
+  public RoundRobinTrainer setLineSearchFactory(Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = lineSearchFactory;
     return this;
   }
   
@@ -306,8 +306,8 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = lineSearchFactory;
+  public RoundRobinTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = s -> lineSearchFactory.get();
     return this;
   }
   

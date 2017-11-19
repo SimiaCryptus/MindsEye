@@ -49,11 +49,11 @@ public class DeltaSet {
   }
   
   /**
-   * Get delta buffer.
+   * Get delta.
    *
    * @param layer the layer
    * @param ptr   the ptr
-   * @return the delta buffer
+   * @return the delta
    */
   public Delta get(final NNLayer layer, final double[] ptr) {
     Delta delta = get(layer, () -> new Delta(ptr, layer));
@@ -78,11 +78,11 @@ public class DeltaSet {
   }
   
   /**
-   * Get delta buffer.
+   * Get delta.
    *
    * @param layer the layer
    * @param ptr   the ptr
-   * @return the delta buffer
+   * @return the delta
    */
   public Delta get(final NNLayer layer, final Tensor ptr) {
     return get(layer, ptr.getData());
@@ -108,6 +108,11 @@ public class DeltaSet {
     return map(x -> x.scale(f));
   }
   
+  /**
+   * Stream stream.
+   *
+   * @return the stream
+   */
   public Stream<Delta> stream() {
     return map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId()));
   }
@@ -154,6 +159,12 @@ public class DeltaSet {
     }).sum();
   }
   
+  /**
+   * Subtract delta set.
+   *
+   * @param right the right
+   * @return the delta set
+   */
   public DeltaSet subtract(DeltaSet right) {
     return this.add(right.scale(-1));
   }
@@ -177,6 +188,12 @@ public class DeltaSet {
     return returnValue;
   }
   
+  /**
+   * Union delta set.
+   *
+   * @param right the right
+   * @return the delta set
+   */
   public DeltaSet union(DeltaSet right) {
     return new DeltaSet(Stream.concat(
       map.entrySet().stream(),
@@ -196,7 +213,7 @@ public class DeltaSet {
   }
   
   /**
-   * Write delta set.
+   * Accumulate delta set.
    *
    * @param alpha the alpha
    * @return the delta set
@@ -207,7 +224,7 @@ public class DeltaSet {
   }
   
   /**
-   * Write delta set.
+   * Accumulate delta set.
    *
    * @return the delta set
    */
@@ -225,6 +242,11 @@ public class DeltaSet {
     return stream().parallel().anyMatch(x -> !x.areEqual());
   }
   
+  /**
+   * Gets map.
+   *
+   * @return the map
+   */
   public ConcurrentHashMap<NNLayer, Delta> getMap() {
     return map;
   }

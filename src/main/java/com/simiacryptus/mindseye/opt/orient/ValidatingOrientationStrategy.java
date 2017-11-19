@@ -54,7 +54,7 @@ public class ValidatingOrientationStrategy implements OrientationStrategy {
   
   private static class ValidatingLineSearchCursor implements LineSearchCursor {
     private final LineSearchCursor cursor;
-
+  
     /**
      * Instantiates a new Validating line search cursor.
      *
@@ -78,7 +78,7 @@ public class ValidatingOrientationStrategy implements OrientationStrategy {
       test(monitor, primaryPoint, 1e-6);
       return primaryPoint;
     }
-
+  
     /**
      * Test.
      *
@@ -99,14 +99,14 @@ public class ValidatingOrientationStrategy implements OrientationStrategy {
       double measuredDerivative = dy / dx;
       monitor.log(String.format("%s vs (%s, %s); probe=%s", measuredDerivative, primaryPoint.derivative, probePoint.derivative, probeSize));
     }
-
+    
     private int compare(double a, double b, double tol) {
       double c = 2 * (a - b) / (a + b);
       if (c < -tol) return -1;
       if (c > tol) return 1;
       return 0;
     }
-
+    
     @Override
     public DeltaSet position(double alpha) {
       return cursor.position(alpha);

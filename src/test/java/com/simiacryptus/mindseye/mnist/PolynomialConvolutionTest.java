@@ -21,14 +21,14 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.PolynomialConvolutionNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
+import com.simiacryptus.mindseye.network.util.PolynomialConvolutionNetwork;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.MonitoredObject;
@@ -57,13 +57,13 @@ public class PolynomialConvolutionTest extends LinearTest {
       //this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
       network = new PipelineNetwork();
       network.add(new NormalizationMetaLayer());
-      network.add(new ConvolutionLayer(3,3, 5, false)
-                    .setWeights(i->1e-8*(Math.random()-0.5)));
+      network.add(new ConvolutionLayer(3, 3, 5, false)
+        .setWeights(i -> 1e-8 * (Math.random() - 0.5)));
       //network.fn(this.tree);
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
       network.add(new NormalizationMetaLayer());
       network.add(new FullyConnectedLayer(new int[]{13, 13, 5}, new int[]{10})
-                    .setWeights(()->1e-8*(Math.random()-0.5)));
+        .setWeights(() -> 1e-8 * (Math.random() - 0.5)));
 //      network.fn(new NormalizationMetaLayer());
 //      network.fn(new LinearActivationLayer());
       network.add(new SoftmaxActivationLayer());
@@ -76,11 +76,12 @@ public class PolynomialConvolutionTest extends LinearTest {
     log.p("This report trains a model using a recursive polynomial convolution layer.");
     DAGNetwork network = buildModel(log);
     run(log, monitoringRoot, monitor, trainingData, history, network);
-    network.visitNodes(node->{
+    network.visitNodes(node -> {
       NNLayer layer = node.getLayer();
-      if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
+      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
         node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer.class));
-      } else if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer) {
+      }
+      else if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer) {
         node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer.class));
       }
     });
@@ -88,18 +89,19 @@ public class PolynomialConvolutionTest extends LinearTest {
     testDataExpansion = data -> {
       Random random = new Random();
       return Stream.of(
-        new Tensor[]{ data[0], data[1] },
-        new Tensor[]{ addNoise(data[0]), data[1] },
-        new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] },
-        new Tensor[]{ translate(random.nextInt(5)-3, random.nextInt(5)-3, data[0]), data[1] }
+        new Tensor[]{data[0], data[1]},
+        new Tensor[]{addNoise(data[0]), data[1]},
+        new Tensor[]{translate(random.nextInt(5) - 3, random.nextInt(5) - 3, data[0]), data[1]},
+        new Tensor[]{translate(random.nextInt(5) - 3, random.nextInt(5) - 3, data[0]), data[1]}
       );
     };
     run(log, monitoringRoot, monitor, trainingData, history, network);
-    network.visitNodes(node->{
+    network.visitNodes(node -> {
       NNLayer layer = node.getLayer();
-      if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer) {
+      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer) {
         node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer.class));
-      } else if(layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer) {
+      }
+      else if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer) {
         node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer.class));
       }
     });

@@ -33,22 +33,6 @@ public final class NthPowerActivationLayer extends NNLayer {
   
   private double power = 1.0;
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("power", power);
-    return json;
-  }
-  
-  /**
-   * From json nth power activation layer.
-   *
-   * @param json the json
-   * @return the nth power activation layer
-   */
-  public static NthPowerActivationLayer fromJson(JsonObject json) {
-    return new NthPowerActivationLayer(json);
-  }
-  
   /**
    * Instantiates a new Nth power activation layer.
    *
@@ -63,6 +47,65 @@ public final class NthPowerActivationLayer extends NNLayer {
    * Instantiates a new Nth power activation layer.
    */
   public NthPowerActivationLayer() {
+  }
+  
+  /**
+   * From json nth power activation layer.
+   *
+   * @param json the json
+   * @return the nth power activation layer
+   */
+  public static NthPowerActivationLayer fromJson(JsonObject json) {
+    return new NthPowerActivationLayer(json);
+  }
+  
+  private static void nthPower(double power, Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
+    for (int i = 0; i < input.dim(); i++) {
+      final double x = inputData[i];
+      boolean isZero = Math.abs(x) < 1e-20;
+      double d = isZero ? 0.0 : (power * Math.pow(x, power - 1));
+      double f = isZero ? 0.0 : Math.pow(x, power);
+      if (!Double.isFinite(d)) d = 0.0;
+      if (!Double.isFinite(f)) f = 0.0;
+      gradientData[i] = d;
+      outputData[i] = f;
+    }
+  }
+  
+  private static void unity(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
+    for (int i = 0; i < input.dim(); i++) {
+      gradientData[i] = 0;
+      outputData[i] = 1;
+    }
+  }
+  
+  private static void squareRoot(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
+    for (int i = 0; i < input.dim(); i++) {
+      final double x = inputData[i];
+      boolean isZero = Math.abs(x) < 1e-20;
+      double power = 0.5;
+      double v = Math.pow(x, power);
+      double d = isZero ? 0.0 : (power / v);
+      double f = isZero ? 0.0 : v;
+      if (!Double.isFinite(d)) d = 0.0;
+      if (!Double.isFinite(f)) f = 0.0;
+      gradientData[i] = d;
+      outputData[i] = f;
+    }
+  }
+  
+  private static void square(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
+    for (int i = 0; i < input.dim(); i++) {
+      final double x = inputData[i];
+      gradientData[i] = 2 * x;
+      outputData[i] = x * x;
+    }
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("power", power);
+    return json;
   }
   
   /**
@@ -136,49 +179,6 @@ public final class NthPowerActivationLayer extends NNLayer {
         return (0.0 != power) && inObj[0].isAlive();
       }
     };
-  }
-  
-  private static void nthPower(double power, Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
-      final double x = inputData[i];
-      boolean isZero = Math.abs(x) < 1e-20;
-      double d = isZero ? 0.0 : (power * Math.pow(x, power - 1));
-      double f = isZero ? 0.0 : Math.pow(x, power);
-      if (!Double.isFinite(d)) d = 0.0;
-      if (!Double.isFinite(f)) f = 0.0;
-      gradientData[i] = d;
-      outputData[i] = f;
-    }
-  }
-  
-  private static void unity(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
-      gradientData[i] = 0;
-      outputData[i] = 1;
-    }
-  }
-  
-  private static void squareRoot(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
-      final double x = inputData[i];
-      boolean isZero = Math.abs(x) < 1e-20;
-      double power = 0.5;
-      double v = Math.pow(x, power);
-      double d = isZero ? 0.0 : (power / v);
-      double f = isZero ? 0.0 : v;
-      if (!Double.isFinite(d)) d = 0.0;
-      if (!Double.isFinite(f)) f = 0.0;
-      gradientData[i] = d;
-      outputData[i] = f;
-    }
-  }
-  
-  private static void square(Tensor input, double[] inputData, double[] gradientData, double[] outputData) {
-    for (int i = 0; i < input.dim(); i++) {
-      final double x = inputData[i];
-      gradientData[i] = 2 * x;
-      outputData[i] = x * x;
-    }
   }
   
   @Override

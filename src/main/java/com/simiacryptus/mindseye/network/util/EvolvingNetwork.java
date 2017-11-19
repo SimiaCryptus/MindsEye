@@ -17,20 +17,14 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network.graph;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+package com.simiacryptus.mindseye.network.util;
 
 /**
- * The type Evaluation context.
+ * The interface Evolving network.
  */
-public class EvaluationContext {
-  
+public interface EvolvingNetwork {
   /**
-   * The Cache.
+   * Next phase.
    */
-  public final Map<UUID, CountingNNResult> cache = new HashMap<>();
-  
+  void nextPhase();
 }

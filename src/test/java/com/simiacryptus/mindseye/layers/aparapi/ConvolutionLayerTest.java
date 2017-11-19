@@ -19,25 +19,13 @@
 
 package com.simiacryptus.mindseye.layers.aparapi;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Convolution layer test.
  */
 public class ConvolutionLayerTest extends LayerTestBase {
-  
-  /**
-   * The type Downsize test.
-   */
-  public static class DownsizeTest extends ConvolutionLayerTest {
-    
-    @Override
-    public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, 2, false);
-    }
-    
-  }
   
   @Override
   public NNLayer getLayer() {
@@ -49,5 +37,17 @@ public class ConvolutionLayerTest extends LayerTestBase {
     return new int[][]{
       {3, 3, 2}
     };
+  }
+  
+  /**
+   * The type Downsize test.
+   */
+  public static class DownsizeTest extends ConvolutionLayerTest {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new ConvolutionLayer(3, 3, 2, 2, false);
+    }
+    
   }
 }

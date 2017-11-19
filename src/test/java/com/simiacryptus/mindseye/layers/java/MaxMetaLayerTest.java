@@ -19,9 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.MaxMetaLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Max meta layer test.

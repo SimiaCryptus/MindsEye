@@ -35,32 +35,6 @@ import java.util.stream.IntStream;
 public class GaussianNoiseLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("value", value);
-    return json;
-  }
-  
-  /**
-   * From json gaussian noise layer.
-   *
-   * @param json the json
-   * @return the gaussian noise layer
-   */
-  public static GaussianNoiseLayer fromJson(JsonObject json) {
-    return new GaussianNoiseLayer(json);
-  }
-
-  /**
-   * Instantiates a new Gaussian noise layer.
-   *
-   * @param json the json
-   */
-  protected GaussianNoiseLayer(JsonObject json) {
-    super(json);
-    this.value = json.get("value").getAsDouble();
-  }
-  
   /**
    * The constant random.
    */
@@ -77,10 +51,36 @@ public class GaussianNoiseLayer extends NNLayer {
   
   /**
    * Instantiates a new Gaussian noise layer.
+   *
+   * @param json the json
+   */
+  protected GaussianNoiseLayer(JsonObject json) {
+    super(json);
+    this.value = json.get("value").getAsDouble();
+  }
+  
+  /**
+   * Instantiates a new Gaussian noise layer.
    */
   public GaussianNoiseLayer() {
     super();
     this.setValue(1.0);
+  }
+  
+  /**
+   * From json gaussian noise layer.
+   *
+   * @param json the json
+   * @return the gaussian noise layer
+   */
+  public static GaussianNoiseLayer fromJson(JsonObject json) {
+    return new GaussianNoiseLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
   }
   
   /**

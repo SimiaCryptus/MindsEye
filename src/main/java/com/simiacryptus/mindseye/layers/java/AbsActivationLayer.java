@@ -26,20 +26,6 @@ import com.google.gson.JsonObject;
  */
 public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivationLayer> {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-
-  /**
-   * From json abs activation layer.
-   *
-   * @param json the json
-   * @return the abs activation layer
-   */
-  public static AbsActivationLayer fromJson(JsonObject json) {
-    return new AbsActivationLayer(json);
-  }
-
   /**
    * Instantiates a new Abs activation layer.
    *
@@ -49,11 +35,24 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
     super(id);
   }
   
-  
   /**
    * Instantiates a new Abs activation layer.
    */
   public AbsActivationLayer() {
+  }
+  
+  /**
+   * From json abs activation layer.
+   *
+   * @param json the json
+   * @return the abs activation layer
+   */
+  public static AbsActivationLayer fromJson(JsonObject json) {
+    return new AbsActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

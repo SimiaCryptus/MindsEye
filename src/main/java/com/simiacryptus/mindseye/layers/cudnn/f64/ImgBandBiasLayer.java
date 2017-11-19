@@ -46,21 +46,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class ImgBandBiasLayer extends NNLayer {
   
-  /**
-   * From json img band bias layer.
-   *
-   * @param json the json
-   * @return the img band bias layer
-   */
-  public static ImgBandBiasLayer fromJson(JsonObject json) {
-    return new ImgBandBiasLayer(json);
-  }
-
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getBias()));
-    return json;
-  }
+  private final double[] bias;
   
   /**
    * Instantiates a new Img band bias layer.
@@ -72,8 +58,6 @@ public class ImgBandBiasLayer extends NNLayer {
     this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
-
-  private final double[] bias;
   
   /**
    * Instantiates a new Img band bias layer.
@@ -84,7 +68,23 @@ public class ImgBandBiasLayer extends NNLayer {
     this.bias = new double[bands];
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
-
+  
+  /**
+   * From json img band bias layer.
+   *
+   * @param json the json
+   * @return the img band bias layer
+   */
+  public static ImgBandBiasLayer fromJson(JsonObject json) {
+    return new ImgBandBiasLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("bias", JsonUtil.getJson(getBias()));
+    return json;
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
@@ -96,20 +96,20 @@ public class ImgBandBiasLayer extends NNLayer {
     assert (inputSize[2] == bias.length);
     int[] outputSize = inputSize;
     int length = batch.length();
-
+    
     try {
-
+      
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
-
+      
       assert (0 < this.bias.length);
       CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), this.bias);
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
-      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
+      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
         CuDNN.handle(cudnnAddTensor(cudnnHandle, alpha.getPtr(),
           filterDescriptor.getPtr(), filterPtr.getPtr(),
@@ -146,7 +146,7 @@ public class ImgBandBiasLayer extends NNLayer {
             input.accumulate(buffer, error);
           }
         }
-
+        
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();
@@ -225,7 +225,7 @@ public class ImgBandBiasLayer extends NNLayer {
     //assert Arrays.stream(bias).allMatch(v->Double.isFinite(v));
     return this;
   }
-
+  
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.getBias());

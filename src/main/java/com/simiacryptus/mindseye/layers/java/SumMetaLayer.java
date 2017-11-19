@@ -36,24 +36,10 @@ import java.util.stream.IntStream;
 public class SumMetaLayer extends NNLayer {
   
   
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(SumMetaLayer.class);
   private Tensor lastResult;
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("lastResult", lastResult.getJson());
-    return json;
-  }
-
-  /**
-   * From json sum meta layer.
-   *
-   * @param json the json
-   * @return the sum meta layer
-   */
-  public static SumMetaLayer fromJson(JsonObject json) {
-    return new SumMetaLayer(json);
-  }
-
   /**
    * Instantiates a new Sum meta layer.
    *
@@ -64,13 +50,26 @@ public class SumMetaLayer extends NNLayer {
     lastResult = Tensor.fromJson(id.getAsJsonObject("lastResult"));
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SumMetaLayer.class);
-  
   /**
    * Instantiates a new Sum meta layer.
    */
   public SumMetaLayer() {
+  }
+  
+  /**
+   * From json sum meta layer.
+   *
+   * @param json the json
+   * @return the sum meta layer
+   */
+  public static SumMetaLayer fromJson(JsonObject json) {
+    return new SumMetaLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("lastResult", lastResult.getJson());
+    return json;
   }
   
   @Override
@@ -79,9 +78,9 @@ public class SumMetaLayer extends NNLayer {
     int itemCnt = input.getData().length();
     if (1 < itemCnt) {
       final ToDoubleBiFunction<Double, Coordinate> f = (v, c) ->
-                                                        IntStream.range(0, itemCnt)
-                                                          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                          .sum();
+        IntStream.range(0, itemCnt)
+          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+          .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
     return new NNResult(lastResult) {
@@ -91,7 +90,7 @@ public class SumMetaLayer extends NNLayer {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          final ToDoubleBiFunction<Double,Coordinate> f = (rho, inputCoord) -> {
+          final ToDoubleBiFunction<Double, Coordinate> f = (rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, rho);
             }

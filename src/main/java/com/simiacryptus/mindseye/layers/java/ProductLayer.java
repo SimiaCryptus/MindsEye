@@ -33,8 +33,22 @@ import java.util.stream.IntStream;
  */
 public class ProductLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
+  
+  /**
+   * Instantiates a new Product layer.
+   *
+   * @param id the id
+   */
+  protected ProductLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Product layer.
+   */
+  public ProductLayer() {
   }
   
   /**
@@ -47,22 +61,8 @@ public class ProductLayer extends NNLayer {
     return new ProductLayer(json);
   }
   
-  /**
-   * Instantiates a new Product layer.
-   *
-   * @param id the id
-   */
-  protected ProductLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
-  
-  /**
-   * Instantiates a new Product layer.
-   */
-  public ProductLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -77,7 +77,7 @@ public class ProductLayer extends NNLayer {
         }
       }
       sum_A[dataIndex] = sum;
-      return new Tensor(new double[]{sum}, new int[]{1});
+      return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override

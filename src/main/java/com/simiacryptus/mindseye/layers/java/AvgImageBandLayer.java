@@ -34,8 +34,23 @@ import java.util.stream.IntStream;
  */
 public class AvgImageBandLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(AvgImageBandLayer.class);
+  
+  /**
+   * Instantiates a new Avg image band layer.
+   *
+   * @param id the id
+   */
+  protected AvgImageBandLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Avg image band layer.
+   */
+  public AvgImageBandLayer() {
+    super();
   }
   
   /**
@@ -48,37 +63,20 @@ public class AvgImageBandLayer extends NNLayer {
     return new AvgImageBandLayer(json);
   }
   
-  /**
-   * Instantiates a new Avg image band layer.
-   *
-   * @param id the id
-   */
-  protected AvgImageBandLayer(JsonObject id) {
-    super(id);
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
-  
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(AvgImageBandLayer.class);
-  
-  /**
-   * Instantiates a new Avg image band layer.
-   */
-  public AvgImageBandLayer() {
-    super();
-  }
-  
   
   @SuppressWarnings("unchecked")
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-
+    
     assert (1 == inObj.length);
     final NNResult in = inObj[0];
     int itemCnt = in.getData().length();
     final int[] inputDims = in.getData().get(0).getDimensions();
     assert (3 == inputDims.length);
-
+    
     Tensor[] results = in.getData().stream().map(data -> {
       DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
         int pixels = data.getDimensions()[0] * data.getDimensions()[1];
@@ -86,7 +84,7 @@ public class AvgImageBandLayer extends NNLayer {
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);
-
+    
     return new NNResult(results) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
@@ -102,7 +100,7 @@ public class AvgImageBandLayer extends NNLayer {
           in.accumulate(buffer, new TensorArray(data1));
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return in.isAlive();
@@ -116,7 +114,7 @@ public class AvgImageBandLayer extends NNLayer {
   }
   
   /**
-   * The type Index mapCoords key.
+   * The type Index map key.
    */
   public static final class IndexMapKey {
     /**
@@ -127,9 +125,9 @@ public class AvgImageBandLayer extends NNLayer {
      * The Output.
      */
     int[] output;
-
+  
     /**
-     * Instantiates a new Index mapCoords key.
+     * Instantiates a new Index map key.
      *
      * @param kernel the kernel
      * @param output the output
@@ -139,9 +137,9 @@ public class AvgImageBandLayer extends NNLayer {
       this.kernel = kernel;
       this.output = output;
     }
-
+  
     /**
-     * Instantiates a new Index mapCoords key.
+     * Instantiates a new Index map key.
      *
      * @param kernel the kernel
      * @param input  the input

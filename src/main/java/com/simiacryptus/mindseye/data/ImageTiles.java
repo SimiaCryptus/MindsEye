@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.data;
 
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.DataLoader;
 
 import javax.imageio.ImageIO;
@@ -40,76 +39,6 @@ import java.util.stream.Stream;
  * The type Image tiles.
  */
 public class ImageTiles {
-  
-  /**
-   * The type Image tensor loader.
-   */
-  public static class ImageTensorLoader extends DataLoader<Tensor> {
-  
-    /**
-     * The Parent directiory.
-     */
-    public final File parentDirectiory;
-    /**
-     * The Tile width.
-     */
-    public final int tileWidth;
-    /**
-     * The Tile height.
-     */
-    public final int tileHeight;
-    /**
-     * The Min spacing width.
-     */
-    public final int minSpacingWidth;
-    /**
-     * The Min spacing height.
-     */
-    public final int minSpacingHeight;
-    /**
-     * The Max tile rows.
-     */
-    public final int maxTileRows;
-    /**
-     * The Max tile cols.
-     */
-    public final int maxTileCols;
-  
-    /**
-     * Instantiates a new Image tensor loader.
-     *
-     * @param parentDirectiory the parent directiory
-     * @param tileWidth        the tile width
-     * @param tileHeight       the tile height
-     * @param minSpacingWidth  the min spacing width
-     * @param minSpacingHeight the min spacing height
-     * @param maxTileRows      the max tile rows
-     * @param maxTileCols      the max tile cols
-     */
-    public ImageTensorLoader(File parentDirectiory, int tileWidth, int tileHeight, int minSpacingWidth, int minSpacingHeight, int maxTileRows, int maxTileCols) {
-      this.parentDirectiory = parentDirectiory;
-      this.tileWidth = tileWidth;
-      this.tileHeight = tileHeight;
-      this.minSpacingWidth = minSpacingWidth;
-      this.minSpacingHeight = minSpacingHeight;
-      this.maxTileRows = maxTileRows;
-      this.maxTileCols = maxTileCols;
-    }
-    
-    @Override
-    protected void read(List<Tensor> queue) {
-      ArrayList<File> files = new ArrayList<>(readFiles(parentDirectiory).collect(Collectors.toList()));
-      Collections.shuffle(files);
-      for (File f : files) {
-        if (Thread.interrupted()) break;
-        try {
-          queue.addAll(toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows));
-        } catch (Throwable e) {
-          e.printStackTrace();
-        }
-      }
-    }
-  }
   
   /**
    * To tiles list.
@@ -242,5 +171,75 @@ public class ImageTiles {
       }
     }
     return tensor;
+  }
+  
+  /**
+   * The type Image tensor loader.
+   */
+  public static class ImageTensorLoader extends DataLoader<Tensor> {
+  
+    /**
+     * The Parent directiory.
+     */
+    public final File parentDirectiory;
+    /**
+     * The Tile width.
+     */
+    public final int tileWidth;
+    /**
+     * The Tile height.
+     */
+    public final int tileHeight;
+    /**
+     * The Min spacing width.
+     */
+    public final int minSpacingWidth;
+    /**
+     * The Min spacing height.
+     */
+    public final int minSpacingHeight;
+    /**
+     * The Max tile rows.
+     */
+    public final int maxTileRows;
+    /**
+     * The Max tile cols.
+     */
+    public final int maxTileCols;
+  
+    /**
+     * Instantiates a new Image tensor loader.
+     *
+     * @param parentDirectiory the parent directiory
+     * @param tileWidth        the tile width
+     * @param tileHeight       the tile height
+     * @param minSpacingWidth  the min spacing width
+     * @param minSpacingHeight the min spacing height
+     * @param maxTileRows      the max tile rows
+     * @param maxTileCols      the max tile cols
+     */
+    public ImageTensorLoader(File parentDirectiory, int tileWidth, int tileHeight, int minSpacingWidth, int minSpacingHeight, int maxTileRows, int maxTileCols) {
+      this.parentDirectiory = parentDirectiory;
+      this.tileWidth = tileWidth;
+      this.tileHeight = tileHeight;
+      this.minSpacingWidth = minSpacingWidth;
+      this.minSpacingHeight = minSpacingHeight;
+      this.maxTileRows = maxTileRows;
+      this.maxTileCols = maxTileCols;
+    }
+    
+    @Override
+    protected void read(List<Tensor> queue) {
+      ArrayList<File> files = new ArrayList<>(readFiles(parentDirectiory).collect(Collectors.toList()));
+      Collections.shuffle(files);
+      for (File f : files) {
+        if (Thread.interrupted()) break;
+        try {
+          queue.addAll(toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows));
+        } catch (Throwable e) {
+          e.printStackTrace();
+        }
+      }
+    }
   }
 }

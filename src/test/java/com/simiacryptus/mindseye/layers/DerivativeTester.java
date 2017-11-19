@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
- * Created by Andrew Charneski on 5/8/2017.
+ * The type Derivative tester.
  */
 public class DerivativeTester {
   
@@ -45,7 +45,7 @@ public class DerivativeTester {
   private boolean testFeedback = true;
   
   /**
-   * Instantiates a new Component test util.
+   * Instantiates a new Derivative tester.
    *
    * @param tolerance the tolerance
    * @param probeSize the probe size
@@ -61,7 +61,6 @@ public class DerivativeTester {
    * @param component       the component
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
-   * @throws Throwable the throwable
    */
   public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     if (isTestFeedback()) {
@@ -108,7 +107,7 @@ public class DerivativeTester {
           return true;
         }
       };
-      final Tensor[] data = new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
+      final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
       GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
         (d, exe) -> {
           NNResult eval = component.eval(exe, copyInput);
@@ -128,8 +127,8 @@ public class DerivativeTester {
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       final DeltaSet buffer = new DeltaSet();
-      final Tensor[] data = new Tensor[]{new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
-
+      final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
+      
       GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
         (d, exe) -> {
           NNResult eval = component.eval(exe, NNResult.batchResultArray(d.toArray(new Tensor[][]{})));
@@ -137,8 +136,8 @@ public class DerivativeTester {
           eval.accumulate(buffer, new TensorArray(data));
           return tensor;
         }, (a, b) -> a.add(b));
-  
-  
+      
+      
       final Delta deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
@@ -149,18 +148,18 @@ public class DerivativeTester {
   
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-
+    
     Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
       (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));
-
+    
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
       final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-
+      
       Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(copyInput),
         (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
         (a, b) -> a.add(b));
@@ -176,19 +175,19 @@ public class DerivativeTester {
   private Tensor measureLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-
+    
     Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
       (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));
-
+    
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += probeSize;
-
+      
       Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
         (data, exe) -> copy.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
         (a, b) -> a.add(b));
-
+      
       final Tensor delta = evalProbe.minus(baseOutput).scale(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);

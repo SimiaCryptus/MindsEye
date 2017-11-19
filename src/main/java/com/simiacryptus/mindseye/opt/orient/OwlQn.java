@@ -135,10 +135,10 @@ public class OwlQn implements OrientationStrategy {
    */
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
     return layers.stream()
-             .filter(layer -> {
-               return layer instanceof FullyConnectedLayer;
-             })
-             .collect(Collectors.toList());
+      .filter(layer -> {
+        return layer instanceof FullyConnectedLayer;
+      })
+      .collect(Collectors.toList());
   }
   
   /**

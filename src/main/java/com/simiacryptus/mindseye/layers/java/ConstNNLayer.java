@@ -30,11 +30,27 @@ import java.util.List;
  */
 public class ConstNNLayer extends NNLayer {
   
-  @Override
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("value", data.getJson());
-    return json;
+  private Tensor data;
+  
+  /**
+   * Instantiates a new Const nn layer.
+   *
+   * @param json the json
+   */
+  protected ConstNNLayer(JsonObject json) {
+    super(json);
+    this.data = Tensor.fromJson(json.getAsJsonObject("value"));
+  }
+  
+  /**
+   * Instantiates a new Const nn layer.
+   *
+   * @param data the data
+   */
+  public ConstNNLayer(Tensor data) {
+    super();
+    this.data = data;
+    setFrozen(true);
   }
   
   /**
@@ -47,27 +63,11 @@ public class ConstNNLayer extends NNLayer {
     return new ConstNNLayer(json);
   }
   
-  /**
-   * Instantiates a new Const nn layer.
-   *
-   * @param json the json
-   */
-  protected ConstNNLayer(JsonObject json) {
-    super(json);
-    this.data = Tensor.fromJson(json.getAsJsonObject("value"));
-  }
-  
-  private Tensor data;
-  
-  /**
-   * Instantiates a new Const nn layer.
-   *
-   * @param data the data
-   */
-  public ConstNNLayer(Tensor data) {
-    super();
-    this.data = data;
-    setFrozen(true);
+  @Override
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("value", data.getJson());
+    return json;
   }
   
   @Override
@@ -96,7 +96,7 @@ public class ConstNNLayer extends NNLayer {
   }
   
   /**
-   * The Tensor.
+   * Gets data.
    *
    * @return the data
    */

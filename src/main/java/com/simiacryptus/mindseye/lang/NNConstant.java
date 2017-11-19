@@ -20,12 +20,12 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Const nn result.
+ * The type Nn constant.
  */
 public final class NNConstant extends NNResult {
-
+  
   /**
-   * Instantiates a new Const nn result.
+   * Instantiates a new Nn constant.
    *
    * @param data the data
    */

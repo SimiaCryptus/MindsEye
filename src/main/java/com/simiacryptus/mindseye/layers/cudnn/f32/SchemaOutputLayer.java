@@ -24,7 +24,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.lang.SchemaComponent;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
@@ -47,37 +46,18 @@ import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
- * The type Convolution layer.
+ * The type Schema output layer.
  */
 public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
   
-  public JsonObject getJson() {
-    readFeatures();
-    JsonObject json = super.getJsonStub();
-    json.addProperty("inputBands", inputBands);
-    json.addProperty("logWeightInit", logWeightInit);
-    JsonArray jsonSelected = new JsonArray();
-    for (String s : selected) jsonSelected.add(new JsonPrimitive(s));
-    json.add("selected", jsonSelected);
-    JsonObject jsonObject = new JsonObject();
-    for (Map.Entry<String, double[]> e : features.entrySet()) {
-      JsonArray valueArray = new JsonArray();
-      for (double v : e.getValue()) valueArray.add(new JsonPrimitive(v));
-      jsonObject.add(e.getKey(), valueArray);
-    }
-    json.add("features", jsonObject);
-    return json;
-  }
-  
+  private final double logWeightInit;
+  private final int inputBands;
+  private final Map<String, double[]> features = new HashMap<>();
   /**
-   * From json schema output layer.
-   *
-   * @param json the json
-   * @return the schema output layer
+   * The Filter.
    */
-  public static SchemaOutputLayer fromJson(JsonObject json) {
-    return new SchemaOutputLayer(json);
-  }
+  public Tensor filter;
+  private String[] selected = {};
   
   /**
    * Instantiates a new Schema output layer.
@@ -97,16 +77,6 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
     setSchema(IntStream.range(0, selectedJson.size()).mapToObj(i -> selectedJson.get(i).getAsString()).toArray(i -> new String[i]));
   }
   
-  
-  /**
-   * The Filter.
-   */
-  public Tensor filter;
-  private final double logWeightInit;
-  private final int inputBands;
-  private String[] selected = new String[]{};
-  private Map<String, double[]> features = new HashMap<>();
-  
   /**
    * Instantiates a new Schema output layer.
    *
@@ -117,6 +87,34 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
     super();
     this.inputBands = inputBands;
     this.logWeightInit = logWeightInit;
+  }
+  
+  /**
+   * From json schema output layer.
+   *
+   * @param json the json
+   * @return the schema output layer
+   */
+  public static SchemaOutputLayer fromJson(JsonObject json) {
+    return new SchemaOutputLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    readFeatures();
+    JsonObject json = super.getJsonStub();
+    json.addProperty("inputBands", inputBands);
+    json.addProperty("logWeightInit", logWeightInit);
+    JsonArray jsonSelected = new JsonArray();
+    for (String s : selected) jsonSelected.add(new JsonPrimitive(s));
+    json.add("selected", jsonSelected);
+    JsonObject jsonObject = new JsonObject();
+    for (Map.Entry<String, double[]> e : features.entrySet()) {
+      JsonArray valueArray = new JsonArray();
+      for (double v : e.getValue()) valueArray.add(new JsonPrimitive(v));
+      jsonObject.add(e.getKey(), valueArray);
+    }
+    json.add("features", jsonObject);
+    return json;
   }
   
   @Override
@@ -159,9 +157,9 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
     int[] kernelSize = this.filter.getDimensions();
     int[] outputSize = getOutputSize(inputSize, kernelSize);
     int length = batch.length();
-
+    
     try {
-
+      
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
@@ -172,13 +170,13 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
         0, 0, 1, 1, CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
       final Pointer betaPtr = Pointer.to(new float[]{0.0f});
       final Pointer alphaPtr = Pointer.to(new float[]{1.0f});
-
+      
       final float[] filterData = this.filter.getDataAsFloats();
       CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), filterData);
       assert (0 < filterData.length);
       CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
-
+      
       CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputSize) * 1l * length * Sizeof.FLOAT);
       try {
         assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
@@ -186,7 +184,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
           inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
         CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateForwardWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
           inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-        CuDNN.handle(cudnnConvolutionForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alphaPtr,
+        CuDNN.handle(cudnnConvolutionForward(((CuDNN) nncontext).cudnnHandle, alphaPtr,
           inputDescriptor.getPtr(), inputData.getPtr(),
           filterDescriptor.getPtr(), filterPtr.getPtr(),
           convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, betaPtr,
@@ -195,8 +193,8 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
-      TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
-
+      TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
+      
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -212,7 +210,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
               CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateBackwardFilterWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-              CuDNN.handle(cudnnConvolutionBackwardFilter(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle,
+              CuDNN.handle(cudnnConvolutionBackwardFilter(((CuDNN) nncontext).cudnnHandle,
                 alphaPtr, inputDescriptor.getPtr(), inputData.getPtr(),
                 outputDescriptor.getPtr(), errorPtr.getPtr(),
                 convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size,
@@ -232,7 +230,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
               CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateBackwardDataWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-              CuDNN.handle(cudnnConvolutionBackwardData(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alphaPtr,
+              CuDNN.handle(cudnnConvolutionBackwardData(((CuDNN) nncontext).cudnnHandle, alphaPtr,
                 filterDescriptor.getPtr(), filterPtr.getPtr(),
                 outputDescriptor.getPtr(), errorPtr.getPtr(),
                 convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, betaPtr,
@@ -241,13 +239,13 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
-            TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
+            TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) nncontext).cudnnHandle);
             input.accumulate(buffer, inputBufferTensors);
             inputBuffer.finalize();
           }
           filterPtr.finalize();
         }
-
+        
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();
@@ -274,9 +272,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
       else {
         x = inputSize[i];
       }
-      if (0 >= x) {
-        assert false;
-      }
+      assert 0 < x;
       return x;
     }).toArray();
   }
@@ -302,10 +298,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
     if (outputSize[1] != outputDims[2]) {
       return false;
     }
-    if (outputSize[2] != outputDims[1]) {
-      return false;
-    }
-    return true;
+    return outputSize[2] == outputDims[1];
   }
   
   @Override

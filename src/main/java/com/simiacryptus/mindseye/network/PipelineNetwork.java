@@ -23,8 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.ConstNNLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -34,23 +32,7 @@ import java.util.UUID;
  */
 public class PipelineNetwork extends DAGNetwork {
   
-  public JsonObject getJson() {
-    assertConsistent();
-    JsonObject json = super.getJson();
-    json.addProperty("head", head.getId().toString());
-    assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
-    return json;
-  }
-  
-  /**
-   * From json pipeline network.
-   *
-   * @param json the json
-   * @return the pipeline network
-   */
-  public static PipelineNetwork fromJson(JsonObject json) {
-    return new PipelineNetwork(json);
-  }
+  private DAGNode head;
   
   /**
    * Instantiates a new Pipeline network.
@@ -70,8 +52,6 @@ public class PipelineNetwork extends DAGNetwork {
     if (null == this.head) throw new IllegalArgumentException();
   }
   
-  private DAGNode head;
-  
   /**
    * Instantiates a new Pipeline network.
    */
@@ -88,6 +68,36 @@ public class PipelineNetwork extends DAGNetwork {
   public PipelineNetwork(NNLayer... layers) {
     this();
     addAll(layers);
+  }
+  
+  /**
+   * Instantiates a new Pipeline network.
+   *
+   * @param inputs the inputs
+   * @param layers the layers
+   */
+  public PipelineNetwork(int inputs, NNLayer... layers) {
+    super(inputs);
+    head = 0 == inputs ? null : getInput().get(0);
+    for (NNLayer layer : layers) add(layer);
+  }
+  
+  /**
+   * From json pipeline network.
+   *
+   * @param json the json
+   * @return the pipeline network
+   */
+  public static PipelineNetwork fromJson(JsonObject json) {
+    return new PipelineNetwork(json);
+  }
+  
+  public JsonObject getJson() {
+    assertConsistent();
+    JsonObject json = super.getJson();
+    json.addProperty("head", head.getId().toString());
+    assert null != NNLayer.fromJson(json) : "Smoke test deserialization";
+    return json;
   }
   
   /**
@@ -110,17 +120,6 @@ public class PipelineNetwork extends DAGNetwork {
   public DAGNode addAll(DAGNode node, NNLayer... layers) {
     for (NNLayer l : layers) node = add(l, node);
     return node;
-  }
-  
-  /**
-   * Instantiates a new Pipeline network.
-   *
-   * @param inputs the inputs
-   */
-  public PipelineNetwork(int inputs, NNLayer... layers) {
-    super(inputs);
-    head = 0 == inputs ? null : getInput().get(0);
-    for(NNLayer layer : layers) add(layer);
   }
   
   @SafeVarargs
@@ -153,7 +152,6 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public DAGNode constValue(Tensor tensor) {
     DAGNode constNode = super.add(new ConstNNLayer(tensor));
-    ;
     return constNode;
   }
   

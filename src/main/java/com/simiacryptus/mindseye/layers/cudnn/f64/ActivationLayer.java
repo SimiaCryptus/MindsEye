@@ -46,43 +46,10 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class ActivationLayer extends NNLayer {
   /**
-   * From json activation layer.
-   *
-   * @param json the json
-   * @return the activation layer
+   * The Mode.
    */
-  public static ActivationLayer fromJson(JsonObject json) {
-    return new ActivationLayer(json);
-  }
+  final int mode;
   
-  
-  /**
-   * The enum Mode.
-   */
-  public enum Mode {
-    /**
-     * Relu mode.
-     */
-    RELU(CUDNN_ACTIVATION_RELU),
-    /**
-     * Sigmoid mode.
-     */
-    SIGMOID(CUDNN_ACTIVATION_SIGMOID);
-    /**
-     * The Id.
-     */
-    public final int id;
-    
-    private Mode(int id) {
-      this.id = id;
-    }
-  }
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode);
-    return json;
-  }
   
   /**
    * Instantiates a new Activation layer.
@@ -93,11 +60,6 @@ public class ActivationLayer extends NNLayer {
     super(json);
     mode = json.getAsJsonPrimitive("mode").getAsInt();
   }
-  
-  /**
-   * The Mode.
-   */
-  final int mode;
   
   /**
    * Instantiates a new Activation layer.
@@ -115,6 +77,22 @@ public class ActivationLayer extends NNLayer {
    */
   public ActivationLayer(int id) {
     this.mode = id;
+  }
+  
+  /**
+   * From json activation layer.
+   *
+   * @param json the json
+   * @return the activation layer
+   */
+  public static ActivationLayer fromJson(JsonObject json) {
+    return new ActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("mode", mode);
+    return json;
   }
   
   @Override
@@ -138,9 +116,9 @@ public class ActivationLayer extends NNLayer {
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.DOUBLE * 1l * inputDims * length);
       CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
-      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
+      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
-        CuDNN.handle(cudnnActivationForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, activationDesc.getPtr(),
+        CuDNN.handle(cudnnActivationForward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
           alpha.getPtr(),
           inputDescriptor.getPtr(), inputData.getPtr(),
           beta.getPtr(),
@@ -148,7 +126,7 @@ public class ActivationLayer extends NNLayer {
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
-      TensorList output = CudaPtr.fromDeviceDouble(outputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
+      TensorList output = CudaPtr.fromDeviceDouble(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       return new NNResult(output) {
         @Override
@@ -160,7 +138,7 @@ public class ActivationLayer extends NNLayer {
           if (input.isAlive()) {
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.DOUBLE * length);
             try {
-              CuDNN.handle(cudnnActivationBackward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, activationDesc.getPtr(),
+              CuDNN.handle(cudnnActivationBackward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
                 alpha.getPtr(),
                 inputDescriptor.getPtr(), outputData.getPtr(),
                 inputDescriptor.getPtr(), errorPtr.getPtr(),
@@ -184,10 +162,32 @@ public class ActivationLayer extends NNLayer {
     }
   }
   
-  
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  
+  /**
+   * The enum Mode.
+   */
+  public enum Mode {
+    /**
+     * Relu mode.
+     */
+    RELU(CUDNN_ACTIVATION_RELU),
+    /**
+     * Sigmoid mode.
+     */
+    SIGMOID(CUDNN_ACTIVATION_SIGMOID);
+    /**
+     * The Id.
+     */
+    public final int id;
+    
+    Mode(int id) {
+      this.id = id;
+    }
   }
   
 }

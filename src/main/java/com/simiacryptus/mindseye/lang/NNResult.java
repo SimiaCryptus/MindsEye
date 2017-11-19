@@ -35,6 +35,7 @@ public abstract class NNResult {
    * The Data.
    */
   protected final TensorList data;
+  private final Map<Integer, CudaPtr> stateCache = new HashMap<>();
   
   /**
    * Instantiates a new Nn result.
@@ -58,8 +59,8 @@ public abstract class NNResult {
   /**
    * Single result array nn result [ ].
    *
-   * @param input - An array of inputs, each one of which is a batch for a  given input
-   * @return nn result [ ]
+   * @param input the input
+   * @return the nn result [ ]
    */
   public static NNResult[] singleResultArray(Tensor[][] input) {
     return Arrays.stream(input).map((Tensor[] x) -> new NNConstant(x)).toArray(i -> new NNResult[i]);
@@ -78,14 +79,14 @@ public abstract class NNResult {
   /**
    * Batch result array nn result [ ].
    *
-   * @param batchData - a list examples, ie each sub-array is a single example
-   * @return - Returns a result array for NNLayer evaluation
+   * @param batchData the batch data
+   * @return the nn result [ ]
    */
   public static NNResult[] batchResultArray(Tensor[][] batchData) {
     return IntStream.range(0, batchData[0].length).mapToObj(inputIndex ->
       new NNConstant(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
         batchData[trainingExampleId][inputIndex]
-    ).toArray(i -> new Tensor[i]))).toArray(x -> new NNResult[x]);
+      ).toArray(i -> new Tensor[i]))).toArray(x -> new NNResult[x]);
   }
   
   /**
@@ -127,15 +128,13 @@ public abstract class NNResult {
   public abstract boolean isAlive();
   
   /**
-   * The Data.
+   * Gets data.
    *
    * @return the data
    */
   public TensorList getData() {
     return data;
   }
-  
-  private final Map<Integer, CudaPtr> stateCache = new HashMap<>();
   
   /**
    * Gets gpu floats.

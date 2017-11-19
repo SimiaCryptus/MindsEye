@@ -20,9 +20,11 @@
 package com.simiacryptus.mindseye.opt.region;
 
 /**
- * Created by Andrew Charneski on 5/23/2017.
+ * The type Single orthant.
  */
 public class SingleOrthant implements TrustRegion {
+  private final double zeroTol = 1e-20;
+  
   @Override
   public double[] project(double[] weights, double[] point) {
     double[] returnValue = new double[point.length];
@@ -69,7 +71,5 @@ public class SingleOrthant implements TrustRegion {
     }
     return 0;
   }
-  
-  private final double zeroTol = 1e-20;
   
 }

@@ -17,13 +17,16 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network.graph;
+package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.NNExecutionContext;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.WeightExtractor;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.util.MonitoredItem;
@@ -38,45 +41,33 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/***
- * Builds a network NNLayer components, assumed to form a directed acyclic graph
- * mapCoords a single output. Supplied builder methods designed to build linear
- * sequence of units acting on the current output node.
- *
- * @author Andrew Charneski
+/**
+ * The type Dag network.
  */
 public abstract class DAGNetwork extends NNLayer {
   
-  @Override
-  public JsonObject getJson() {
-    final JsonObject json = super.getJsonStub();
-    JsonArray inputs = new JsonArray();
-    json.add("inputs", inputs);
-    inputHandles.forEach(uuid -> inputs.add(new JsonPrimitive(uuid.toString())));
-    JsonObject layerMap = new JsonObject();
-    JsonObject nodeMap = new JsonObject();
-    JsonObject links = new JsonObject();
-    nodesById.values().forEach(node -> {
-      JsonArray linkArray = new JsonArray();
-      Arrays.stream(node.getInputs()).forEach((DAGNode input) -> linkArray.add(new JsonPrimitive(input.getId().toString())));
-      NNLayer layer = node.getLayer();
-      String nodeId = node.getId().toString();
-      String layerId = layer.getId();
-      nodeMap.addProperty(nodeId, layerId);
-      layerMap.add(layerId, layer.getJson());
-      links.add(nodeId, linkArray);
-    });
-    json.add("nodes", nodeMap);
-    json.add("layers", layerMap);
-    json.add("links", links);
-    JsonObject labels = new JsonObject();
-    this.labels.forEach((k, v) -> {
-      labels.addProperty(k.toString(), v.toString());
-    });
-    json.add("labels", labels);
-    json.addProperty("head", getHead().getId().toString());
-    return json;
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
+  /**
+   * The Input nodes.
+   */
+  public final LinkedHashMap<UUID, InputNode> inputNodes;
+  /**
+   * The Input handles.
+   */
+  public final List<UUID> inputHandles;
+  /**
+   * The Layers by id.
+   */
+  protected final LinkedHashMap<String, NNLayer> layersById = new LinkedHashMap<>();
+  /**
+   * The Nodes by id.
+   */
+  protected final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
+  /**
+   * The Labels.
+   */
+  protected final LinkedHashMap<String, UUID> labels = new LinkedHashMap<>();
   
   /**
    * Instantiates a new Dag network.
@@ -136,6 +127,50 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
+   * Instantiates a new Dag network.
+   *
+   * @param inputs the inputs
+   */
+  public DAGNetwork(int inputs) {
+    inputHandles = new ArrayList<>();
+    inputNodes = new LinkedHashMap<>();
+    for (int i = 0; i < inputs; i++) {
+      addInput();
+    }
+  }
+  
+  @Override
+  public JsonObject getJson() {
+    final JsonObject json = super.getJsonStub();
+    JsonArray inputs = new JsonArray();
+    json.add("inputs", inputs);
+    inputHandles.forEach(uuid -> inputs.add(new JsonPrimitive(uuid.toString())));
+    JsonObject layerMap = new JsonObject();
+    JsonObject nodeMap = new JsonObject();
+    JsonObject links = new JsonObject();
+    nodesById.values().forEach(node -> {
+      JsonArray linkArray = new JsonArray();
+      Arrays.stream(node.getInputs()).forEach((DAGNode input) -> linkArray.add(new JsonPrimitive(input.getId().toString())));
+      NNLayer layer = node.getLayer();
+      String nodeId = node.getId().toString();
+      String layerId = layer.getId();
+      nodeMap.addProperty(nodeId, layerId);
+      layerMap.add(layerId, layer.getJson());
+      links.add(nodeId, linkArray);
+    });
+    json.add("nodes", nodeMap);
+    json.add("layers", layerMap);
+    json.add("links", links);
+    JsonObject labels = new JsonObject();
+    this.labels.forEach((k, v) -> {
+      labels.addProperty(k.toString(), v.toString());
+    });
+    json.add("labels", labels);
+    json.addProperty("head", getHead().getId().toString());
+    return json;
+  }
+  
+  /**
    * Assert consistent boolean.
    *
    * @return the boolean
@@ -188,31 +223,6 @@ public abstract class DAGNetwork extends NNLayer {
     return returnValue;
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(DAGNetwork.class);
-  
-  /**
-   * The Input nodes.
-   */
-  public final LinkedHashMap<UUID, InputNode> inputNodes;
-  /**
-   * The Input handles.
-   */
-  public final List<UUID> inputHandles;
-  /**
-   * The Layers by id.
-   */
-  protected final LinkedHashMap<String, NNLayer> layersById = new LinkedHashMap<>();
-  /**
-   * The Nodes by id.
-   */
-  protected final LinkedHashMap<UUID, DAGNode> nodesById = new LinkedHashMap<>();
-  
-  /**
-   * Labeled nodes
-   */
-  protected final LinkedHashMap<String, UUID> labels = new LinkedHashMap<>();
-  
   /**
    * Reset.
    */
@@ -239,7 +249,7 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Visit.
+   * Visit layers.
    *
    * @param visitor the visitor
    */
@@ -256,7 +266,7 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Visit.
+   * Visit nodes.
    *
    * @param visitor the visitor
    */
@@ -283,22 +293,9 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Instantiates a new Dag network.
+   * Add input nn layer.
    *
-   * @param inputs the inputs
-   */
-  public DAGNetwork(int inputs) {
-    inputHandles = new ArrayList<>();
-    inputNodes = new LinkedHashMap<>();
-    for (int i = 0; i < inputs; i++) {
-      addInput();
-    }
-  }
-  
-  /**
-   * Add input dag network.
-   *
-   * @return the dag network
+   * @return the nn layer
    */
   public NNLayer addInput() {
     UUID key = UUID.randomUUID();
@@ -308,9 +305,9 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Remove last input dag network.
+   * Remove last input nn layer.
    *
-   * @return the dag network
+   * @return the nn layer
    */
   public NNLayer removeLastInput() {
     int index = inputHandles.size() - 1;
@@ -332,40 +329,46 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Single exe ctx evaluation context.
+   * Single exe ctx graph evaluation context.
    *
    * @param input the input
-   * @return the evaluation context
+   * @return the graph evaluation context
    */
-  public final EvaluationContext singleExeCtx(final Tensor... input) {
+  public final GraphEvaluationContext singleExeCtx(final Tensor... input) {
     return buildExeCtx(NNResult.singleResultArray(input));
   }
   
   /**
-   * Build exe ctx evaluation context.
+   * Build exe ctx graph evaluation context.
    *
    * @param inputs the inputs
-   * @return the evaluation context
+   * @return the graph evaluation context
    */
-  public EvaluationContext buildExeCtx(final NNResult... inputs) {
+  public GraphEvaluationContext buildExeCtx(final NNResult... inputs) {
     assert (inputs.length == inputHandles.size()) : inputs.length + " != " + inputHandles.size();
-    final EvaluationContext evaluationContext = new EvaluationContext();
+    final GraphEvaluationContext graphEvaluationContext = new GraphEvaluationContext();
     for (int i = 0; i < inputs.length; i++) {
-      evaluationContext.cache.put(this.inputHandles.get(i), new CountingNNResult(inputs[i]));
+      graphEvaluationContext.cache.put(this.inputHandles.get(i), new CountingNNResult(inputs[i]));
     }
-    return evaluationContext;
+    return graphEvaluationContext;
   }
   
   /**
-   * Batch exe context evaluation context.
+   * Batch exe context graph evaluation context.
    *
    * @param batchData the batch data
-   * @return the evaluation context
+   * @return the graph evaluation context
    */
-  public EvaluationContext batchExeContext(final Tensor[][] batchData) {
+  public GraphEvaluationContext batchExeContext(final Tensor[][] batchData) {
     return this.buildExeCtx(NNResult.batchResultArray(batchData));
   }
   
+  /**
+   * Gets child layer.
+   *
+   * @param id the id
+   * @return the child layer
+   */
   public NNLayer getChildLayer(final String id) {
     if (this.getId().equals(id)) {
       return this;
@@ -374,17 +377,23 @@ public abstract class DAGNetwork extends NNLayer {
       return this.layersById.get(id);
     }
     return this.layersById.values().stream()
-      .filter(x->x instanceof DAGNetwork)
-      .map(x->((DAGNetwork) x).getChildLayer(id)).findAny().orElse(null);
+      .filter(x -> x instanceof DAGNetwork)
+      .map(x -> ((DAGNetwork) x).getChildLayer(id)).findAny().orElse(null);
   }
   
+  /**
+   * Gets child node.
+   *
+   * @param id the id
+   * @return the child node
+   */
   public DAGNode getChildNode(final UUID id) {
     if (this.nodesById.containsKey(id)) {
       return this.nodesById.get(id);
     }
-    return this.nodesById.values().stream().map(x->x.getLayer())
-      .filter(x->x instanceof DAGNetwork)
-      .map(x->((DAGNetwork) x).getChildNode(id)).findAny().orElse(null);
+    return this.nodesById.values().stream().map(x -> x.getLayer())
+      .filter(x -> x instanceof DAGNetwork)
+      .map(x -> ((DAGNetwork) x).getChildNode(id)).findAny().orElse(null);
   }
   
   @Override
@@ -416,27 +425,33 @@ public abstract class DAGNetwork extends NNLayer {
   public abstract DAGNode getHead();
   
   /**
-   * Gets a labeled node
+   * Gets by label.
    *
    * @param key the key
-   * @return by label
+   * @return the by label
    */
   public DAGNode getByLabel(String key) {
     return nodesById.get(labels.get(key));
   }
   
+  /**
+   * Gets label network.
+   *
+   * @param key the key
+   * @return the label network
+   */
   public NNLayer getLabelNetwork(String key) {
     return new NNLayer() {
       @Override
       public NNResult eval(NNExecutionContext nncontext, NNResult[] array) {
         return nodesById.get(labels.get(key)).get(nncontext, buildExeCtx(array));
       }
-  
+      
       @Override
       public JsonObject getJson() {
         throw new UnsupportedOperationException();
       }
-  
+      
       @Override
       public List<double[]> state() {
         return DAGNetwork.this.state();
@@ -444,7 +459,14 @@ public abstract class DAGNetwork extends NNLayer {
     };
   }
   
-  public NNResult get(NNExecutionContext nncontext, EvaluationContext buildExeCtx) {
+  /**
+   * Get nn result.
+   *
+   * @param nncontext   the nncontext
+   * @param buildExeCtx the build exe ctx
+   * @return the nn result
+   */
+  public NNResult get(NNExecutionContext nncontext, GraphEvaluationContext buildExeCtx) {
     return getHead().get(nncontext, buildExeCtx);
   }
   
@@ -484,7 +506,7 @@ public abstract class DAGNetwork extends NNLayer {
    * Add dag node.
    *
    * @param label the label
-   * @param layer the next head
+   * @param layer the layer
    * @param head  the head
    * @return the dag node
    */
@@ -511,6 +533,11 @@ public abstract class DAGNetwork extends NNLayer {
     return input;
   }
   
+  /**
+   * Gets layer.
+   *
+   * @return the layer
+   */
   public NNLayer getLayer() {
     return this;
   }

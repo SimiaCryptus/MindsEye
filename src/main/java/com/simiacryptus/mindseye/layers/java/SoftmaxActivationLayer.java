@@ -35,8 +35,26 @@ import java.util.stream.IntStream;
  */
 public class SoftmaxActivationLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
+  /**
+   * The Max input.
+   */
+  double maxInput = 50;
+  
+  /**
+   * Instantiates a new Softmax activation layer.
+   *
+   * @param id the id
+   */
+  protected SoftmaxActivationLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Softmax activation layer.
+   */
+  public SoftmaxActivationLayer() {
   }
   
   /**
@@ -49,27 +67,8 @@ public class SoftmaxActivationLayer extends NNLayer {
     return new SoftmaxActivationLayer(json);
   }
   
-  /**
-   * Instantiates a new Softmax activation layer.
-   *
-   * @param id the id
-   */
-  protected SoftmaxActivationLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
-  
-  /**
-   * The Max input.
-   */
-  double maxInput = 50;
-  
-  /**
-   * Instantiates a new Softmax activation layer.
-   */
-  public SoftmaxActivationLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

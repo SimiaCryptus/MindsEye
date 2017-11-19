@@ -39,23 +39,18 @@ import static jcuda.runtime.JCuda.*;
  */
 public class CuDNN {
   
+  private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
+    @Override
+    protected Integer initialValue() {
+      return -1;
+    }
+  };
   /**
    * The Cudnn handle.
    */
   public final cudnnHandle cudnnHandle;
   private final int deviceNumber;
   private final String deviceName;
-  
-  /**
-   * Device count int.
-   *
-   * @return the int
-   */
-  public static int deviceCount() {
-    int[] deviceCount = new int[1];
-    handle(cudaGetDeviceCount(deviceCount));
-    return deviceCount[0];
-  }
   
   /**
    * Instantiates a new Cu dnn.
@@ -72,25 +67,36 @@ public class CuDNN {
   }
   
   /**
-   * Alloc cu dnn ptr.
+   * Device count int.
+   *
+   * @return the int
+   */
+  public static int deviceCount() {
+    int[] deviceCount = new int[1];
+    handle(cudaGetDeviceCount(deviceCount));
+    return deviceCount[0];
+  }
+  
+  /**
+   * Alloc cuda ptr.
    *
    * @param deviceId the device id
    * @param output   the output
-   * @return the cu dnn ptr
+   * @return the cuda ptr
    */
   public static CudaPtr alloc(int deviceId, double[] output) {
     return alloc(deviceId, Sizeof.DOUBLE * 1l * output.length);
   }
   
   /**
-   * Create pooling descriptor cu dnn resource.
+   * Create pooling descriptor cuda resource.
    *
    * @param mode       the mode
    * @param poolDims   the pool dims
    * @param windowSize the window size
    * @param padding    the padding
    * @param stride     the stride
-   * @return the cu dnn resource
+   * @return the cuda resource
    */
   public static CudaResource<cudnnPoolingDescriptor> createPoolingDescriptor(int mode, int poolDims, int[] windowSize, int[] padding, int[] stride) {
     cudnnPoolingDescriptor poolingDesc = new cudnnPoolingDescriptor();
@@ -149,7 +155,225 @@ public class CuDNN {
   }
   
   /**
-   * Allocate forward workspace cu dnn ptr.
+   * New convolution descriptor cuda resource.
+   *
+   * @param paddingX     the padding x
+   * @param paddingY     the padding y
+   * @param strideHeight the stride height
+   * @param strideWidth  the stride width
+   * @param mode         the mode
+   * @param dataType     the data type
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnConvolutionDescriptor> newConvolutionDescriptor(int paddingX, int paddingY, int strideHeight, int strideWidth, int mode, int dataType) {
+    cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
+    handle(cudnnCreateConvolutionDescriptor(convDesc));
+    handle(cudnnSetConvolution2dDescriptor(
+      convDesc,
+      paddingY, // zero-padding height
+      paddingX, // zero-padding width
+      strideHeight, // vertical filter stride
+      strideWidth, // horizontal filter stride
+      1, // upscale the input in x-direction
+      1, // upscale the input in y-direction
+      mode
+      //, dataType
+    ));
+    return new CudaResource<>(convDesc, JCudnn::cudnnDestroyConvolutionDescriptor);
+  }
+  
+  /**
+   * Get stride int [ ].
+   *
+   * @param array the array
+   * @return the int [ ]
+   */
+  public static int[] getStride(int[] array) {
+    return IntStream.range(0, array.length).map(i -> IntStream.range(i + 1, array.length).map(ii -> array[ii]).reduce((a, b) -> a * b).orElse(1)).toArray();
+  }
+  
+  /**
+   * New filter descriptor cuda resource.
+   *
+   * @param dataType       the data type
+   * @param tensorLayout   the tensor layout
+   * @param outputChannels the output channels
+   * @param inputChannels  the input channels
+   * @param height         the height
+   * @param width          the width
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int outputChannels, int inputChannels, int height, int width) {
+    cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
+    handle(cudnnCreateFilterDescriptor(filterDesc));
+    handle(cudnnSetFilter4dDescriptor(filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width));
+    return new CudaResource<>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor);
+  }
+  
+  /**
+   * New filter descriptor cuda resource.
+   *
+   * @param dataType     the data type
+   * @param tensorLayout the tensor layout
+   * @param dimensions   the dimensions
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int[] dimensions) {
+    cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
+    handle(cudnnCreateFilterDescriptor(filterDesc));
+    handle(cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions));
+    return new CudaResource<>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor);
+  }
+  
+  /**
+   * New tensor descriptor cuda resource.
+   *
+   * @param dataType     the data type
+   * @param tensorLayout the tensor layout
+   * @param batchCount   the batch count
+   * @param channels     the channels
+   * @param height       the height
+   * @param width        the width
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(int dataType, int tensorLayout,
+                                                                        int batchCount, int channels, int height, int width) {
+    cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
+    handle(cudnnCreateTensorDescriptor(desc));
+    handle(cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width));
+    return new CudaResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
+  }
+  
+  /**
+   * New tensor descriptor cuda resource.
+   *
+   * @param dataType   the data type
+   * @param batchCount the batch count
+   * @param channels   the channels
+   * @param height     the height
+   * @param width      the width
+   * @param nStride    the n stride
+   * @param cStride    the c stride
+   * @param hStride    the h stride
+   * @param wStride    the w stride
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(int dataType,
+                                                                        int batchCount, int channels, int height, int width,
+                                                                        int nStride, int cStride, int hStride, int wStride) {
+    cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
+    handle(cudnnCreateTensorDescriptor(desc));
+    handle(cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride));
+    return new CudaResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
+  }
+  
+  /**
+   * New activation descriptor cuda resource.
+   *
+   * @param mode     the mode
+   * @param reluNan  the relu nan
+   * @param reluCeil the relu ceil
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnActivationDescriptor> newActivationDescriptor(int mode, int reluNan, double reluCeil) {
+    cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
+    handle(cudnnCreateActivationDescriptor(desc));
+    handle(cudnnSetActivationDescriptor(desc, mode, reluNan, reluCeil));
+    return new CudaResource<>(desc, JCudnn::cudnnDestroyActivationDescriptor);
+  }
+  
+  /**
+   * Alloc cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param size     the size
+   * @return the cuda ptr
+   */
+  public static CudaPtr alloc(int deviceId, long size) {
+    return new CudaPtr(size, deviceId);
+  }
+  
+  /**
+   * Java ptr cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param data     the data
+   * @return the cuda ptr
+   */
+  public static CudaPtr javaPtr(int deviceId, double... data) {
+    return new CudaPtr(Pointer.to(data), data.length * Sizeof.DOUBLE, deviceId);
+  }
+  
+  /**
+   * Java ptr cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param data     the data
+   * @return the cuda ptr
+   */
+  public static CudaPtr javaPtr(int deviceId, float... data) {
+    return new CudaPtr(Pointer.to(data), data.length * Sizeof.FLOAT, deviceId);
+  }
+  
+  /**
+   * Write cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param data     the data
+   * @return the cuda ptr
+   */
+  public static CudaPtr write(int deviceId, double... data) {
+    return new CudaPtr(data.length * Sizeof.DOUBLE, deviceId).write(data);
+  }
+  
+  /**
+   * Write cuda ptr.
+   *
+   * @param deviceId the device id
+   * @param data     the data
+   * @return the cuda ptr
+   */
+  public static CudaPtr write(int deviceId, float... data) {
+    return new CudaPtr(data.length * Sizeof.FLOAT, deviceId).write(data);
+  }
+  
+  /**
+   * Gets device.
+   *
+   * @return the device
+   */
+  public static int getDevice() {
+    Integer integer = currentDevice.get();
+    return integer == null ? 0 : integer;
+  }
+  
+  /**
+   * Sets device.
+   *
+   * @param cudaDeviceId the cuda device id
+   */
+  public static void setDevice(int cudaDeviceId) {
+    CuDNN.handle(cudaSetDevice(cudaDeviceId));
+    currentDevice.set(cudaDeviceId);
+  }
+  
+  /**
+   * New op descriptor cuda resource.
+   *
+   * @param opType   the op type
+   * @param dataType the data type
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(int opType, int dataType) {
+    cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
+    cudnnCreateOpTensorDescriptor(opDesc);
+    CuDNN.handle(cudnnSetOpTensorDescriptor(opDesc, opType, dataType, CUDNN_NOT_PROPAGATE_NAN));
+    return new CudaResource<>(opDesc, JCudnn::cudnnDestroyOpTensorDescriptor);
+    
+  }
+  
+  /**
+   * Allocate forward workspace cuda ptr.
    *
    * @param deviceId      the device id
    * @param srcTensorDesc the src tensor desc
@@ -157,7 +381,7 @@ public class CuDNN {
    * @param convDesc      the conv desc
    * @param dstTensorDesc the dst tensor desc
    * @param algorithm     the algorithm
-   * @return the cu dnn ptr
+   * @return the cuda ptr
    */
   public CudaPtr allocateForwardWorkspace(int deviceId, cudnnTensorDescriptor srcTensorDesc, cudnnFilterDescriptor filterDesc, cudnnConvolutionDescriptor convDesc, cudnnTensorDescriptor dstTensorDesc, int algorithm) {
     long sizeInBytesArray[] = {0};
@@ -177,9 +401,8 @@ public class CuDNN {
     //CuDNN.handle(cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync));
   }
   
-  
   /**
-   * Allocate backward filter workspace cu dnn ptr.
+   * Allocate backward filter workspace cuda ptr.
    *
    * @param deviceId      the device id
    * @param srcTensorDesc the src tensor desc
@@ -187,7 +410,7 @@ public class CuDNN {
    * @param convDesc      the conv desc
    * @param dstTensorDesc the dst tensor desc
    * @param algorithm     the algorithm
-   * @return the cu dnn ptr
+   * @return the cuda ptr
    */
   public CudaPtr allocateBackwardFilterWorkspace(int deviceId, cudnnTensorDescriptor srcTensorDesc, cudnnFilterDescriptor filterDesc, cudnnConvolutionDescriptor convDesc, cudnnTensorDescriptor dstTensorDesc, int algorithm) {
     long sizeInBytesArray[] = {0};
@@ -199,7 +422,7 @@ public class CuDNN {
   }
   
   /**
-   * Allocate backward data workspace cu dnn ptr.
+   * Allocate backward data workspace cuda ptr.
    *
    * @param deviceId   the device id
    * @param inputDesc  the input desc
@@ -207,7 +430,7 @@ public class CuDNN {
    * @param convDesc   the conv desc
    * @param outputDesc the output desc
    * @param algorithm  the algorithm
-   * @return the cu dnn ptr
+   * @return the cuda ptr
    */
   public CudaPtr allocateBackwardDataWorkspace(int deviceId, cudnnTensorDescriptor inputDesc, cudnnFilterDescriptor filterDesc, cudnnConvolutionDescriptor convDesc, cudnnTensorDescriptor outputDesc, int algorithm) {
     long sizeInBytesArray[] = {0};
@@ -269,234 +492,9 @@ public class CuDNN {
     return algoArray[0];
   }
   
-  /**
-   * New convolution descriptor cu dnn resource.
-   *
-   * @param paddingX     the padding x
-   * @param paddingY     the padding y
-   * @param strideHeight the stride height
-   * @param strideWidth  the stride width
-   * @param mode         the mode
-   * @param dataType     the data type
-   * @return the cu dnn resource
-   */
-  public static CudaResource<cudnnConvolutionDescriptor> newConvolutionDescriptor(int paddingX, int paddingY, int strideHeight, int strideWidth, int mode, int dataType) {
-    cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
-    handle(cudnnCreateConvolutionDescriptor(convDesc));
-    handle(cudnnSetConvolution2dDescriptor(
-      convDesc,
-      paddingY, // zero-padding height
-      paddingX, // zero-padding width
-      strideHeight, // vertical filter stride
-      strideWidth, // horizontal filter stride
-      1, // upscale the input in x-direction
-      1, // upscale the input in y-direction
-      mode
-      //, dataType
-    ));
-    return new CudaResource<>(convDesc, JCudnn::cudnnDestroyConvolutionDescriptor);
-  }
-  
-  /**
-   * Get stride int [ ].
-   *
-   * @param array the array
-   * @return the int [ ]
-   */
-  public static int[] getStride(int[] array) {
-    return IntStream.range(0, array.length).map(i -> IntStream.range(i + 1, array.length).map(ii -> array[ii]).reduce((a, b) -> a * b).orElse(1)).toArray();
-  }
-  
-  /**
-   * New filter descriptor cu dnn resource.
-   *
-   * @param dataType       the data type
-   * @param tensorLayout   the tensor layout
-   * @param outputChannels the output channels
-   * @param inputChannels  the input channels
-   * @param height         the height
-   * @param width          the width
-   * @return the cu dnn resource
-   */
-  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int outputChannels, int inputChannels, int height, int width) {
-    cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
-    handle(cudnnCreateFilterDescriptor(filterDesc));
-    handle(cudnnSetFilter4dDescriptor(filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width));
-    return new CudaResource<>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor);
-  }
-  
-  /**
-   * New filter descriptor cu dnn resource.
-   *
-   * @param dataType     the data type
-   * @param tensorLayout the tensor layout
-   * @param dimensions   the dimensions
-   * @return the cu dnn resource
-   */
-  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int[] dimensions) {
-    cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
-    handle(cudnnCreateFilterDescriptor(filterDesc));
-    handle(cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions));
-    return new CudaResource<>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor);
-  }
-  
-  /**
-   * New tensor descriptor cu dnn resource.
-   *
-   * @param dataType     the data type
-   * @param tensorLayout the tensor layout
-   * @param batchCount   the batch count
-   * @param channels     the channels
-   * @param height       the height
-   * @param width        the width
-   * @return the cu dnn resource
-   */
-  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(int dataType, int tensorLayout,
-                                                                        int batchCount, int channels, int height, int width) {
-    cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
-    handle(cudnnCreateTensorDescriptor(desc));
-    handle(cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width));
-    return new CudaResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
-  }
-  
-  /**
-   * New tensor descriptor cuda resource.
-   *
-   * @param dataType   the data type
-   * @param batchCount the batch count
-   * @param channels   the channels
-   * @param height     the height
-   * @param width      the width
-   * @param nStride    the n stride
-   * @param cStride    the c stride
-   * @param hStride    the h stride
-   * @param wStride    the w stride
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnTensorDescriptor> newTensorDescriptor(int dataType,
-                                                                        int batchCount, int channels, int height, int width,
-                                                                        int nStride, int cStride, int hStride, int wStride) {
-    cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
-    handle(cudnnCreateTensorDescriptor(desc));
-    handle(cudnnSetTensor4dDescriptorEx(desc, dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride));
-    return new CudaResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
-  }
-  
-  /**
-   * New activation descriptor cu dnn resource.
-   *
-   * @param mode     the mode
-   * @param reluNan  the relu nan
-   * @param reluCeil the relu ceil
-   * @return the cu dnn resource
-   */
-  public static CudaResource<cudnnActivationDescriptor> newActivationDescriptor(int mode, int reluNan, double reluCeil) {
-    cudnnActivationDescriptor desc = new cudnnActivationDescriptor();
-    handle(cudnnCreateActivationDescriptor(desc));
-    handle(cudnnSetActivationDescriptor(desc, mode, reluNan, reluCeil));
-    return new CudaResource<>(desc, JCudnn::cudnnDestroyActivationDescriptor);
-  }
-  
-  /**
-   * Alloc cu dnn ptr.
-   *
-   * @param deviceId the device id
-   * @param size     the size
-   * @return the cu dnn ptr
-   */
-  public static CudaPtr alloc(int deviceId, long size) {
-    return new CudaPtr(size, deviceId);
-  }
-  
-  /**
-   * Java ptr cu dnn ptr.
-   *
-   * @param deviceId the device id
-   * @param data     the data
-   * @return the cu dnn ptr
-   */
-  public static CudaPtr javaPtr(int deviceId, double... data) {
-    return new CudaPtr(Pointer.to(data), data.length * Sizeof.DOUBLE, deviceId);
-  }
-  
-  /**
-   * Java ptr cu dnn ptr.
-   *
-   * @param deviceId the device id
-   * @param data     the data
-   * @return the cu dnn ptr
-   */
-  public static CudaPtr javaPtr(int deviceId, float... data) {
-    return new CudaPtr(Pointer.to(data), data.length * Sizeof.FLOAT, deviceId);
-  }
-  
-  /**
-   * Write cu dnn ptr.
-   *
-   * @param deviceId the device id
-   * @param data     the data
-   * @return the cu dnn ptr
-   */
-  public static CudaPtr write(int deviceId, double... data) {
-    return new CudaPtr(data.length * Sizeof.DOUBLE, deviceId).write(data);
-  }
-  
-  /**
-   * Write cu dnn ptr.
-   *
-   * @param deviceId the device id
-   * @param data     the data
-   * @return the cu dnn ptr
-   */
-  public static CudaPtr write(int deviceId, float... data) {
-    return new CudaPtr(data.length * Sizeof.FLOAT, deviceId).write(data);
-  }
-  
   @Override
   public void finalize() throws Throwable {
     handle(cudnnDestroy(cudnnHandle));
-  }
-  
-  private static final ThreadLocal<Integer> currentDevice = new ThreadLocal<Integer>() {
-    @Override
-    protected Integer initialValue() {
-      return -1;
-    }
-  };
-  
-  /**
-   * Sets device.
-   *
-   * @param cudaDeviceId the cuda device id
-   */
-  public static void setDevice(int cudaDeviceId) {
-    CuDNN.handle(cudaSetDevice(cudaDeviceId));
-    currentDevice.set(cudaDeviceId);
-  }
-  
-  /**
-   * Gets device.
-   *
-   * @return the device
-   */
-  public static int getDevice() {
-    Integer integer = currentDevice.get();
-    return integer == null ? 0 : integer;
-  }
-  
-  /**
-   * New op descriptor cuda resource.
-   *
-   * @param opType   the op type
-   * @param dataType the data type
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnOpTensorDescriptor> newOpDescriptor(int opType, int dataType) {
-    cudnnOpTensorDescriptor opDesc = new cudnnOpTensorDescriptor();
-    cudnnCreateOpTensorDescriptor(opDesc);
-    CuDNN.handle(cudnnSetOpTensorDescriptor(opDesc, opType, dataType, CUDNN_NOT_PROPAGATE_NAN));
-    return new CudaResource<>(opDesc, JCudnn::cudnnDestroyOpTensorDescriptor);
-    
   }
   
   /**

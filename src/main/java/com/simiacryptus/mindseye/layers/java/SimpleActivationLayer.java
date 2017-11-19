@@ -35,6 +35,9 @@ import java.util.stream.IntStream;
  */
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends NNLayer {
   
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
+  
   /**
    * Instantiates a new Simple activation layer.
    *
@@ -44,8 +47,6 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     super(id);
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
   /**
    * Instantiates a new Simple activation layer.
    */

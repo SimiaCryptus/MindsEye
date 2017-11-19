@@ -22,9 +22,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
@@ -35,6 +32,11 @@ import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
  */
 public class CudnnFloatDelta extends Delta {
   /**
+   * The Buffer.
+   */
+  CudaPtr buffer;
+  
+  /**
    * Instantiates a new Cudnn float delta.
    *
    * @param values the values
@@ -43,11 +45,6 @@ public class CudnnFloatDelta extends Delta {
   public CudnnFloatDelta(double[] values, NNLayer layer) {
     super(values, null, layer);
   }
-  
-  /**
-   * The Buffer.
-   */
-  CudaPtr buffer;
   
   /**
    * Accumulate.

@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The type Compression test.
+ * The type Tensor test.
  */
 public class TensorTest {
   /**
@@ -41,7 +41,7 @@ public class TensorTest {
   @Category(TestCategories.UnitTest.class)
   public void testCoordStream() throws Exception {
     List<String> coordinates = new Tensor(2, 2, 2).coordStream()
-                                 .map(c -> String.format("%s - %s", c.index, Arrays.toString(c.coords))).collect(Collectors.toList());
+      .map(c -> String.format("%s - %s", c.index, Arrays.toString(c.coords))).collect(Collectors.toList());
     for (String c : coordinates) {
       System.out.println(c);
     }

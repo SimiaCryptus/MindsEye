@@ -37,13 +37,27 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("totalBatches", totalBatches);
-    json.addProperty("totalItems", totalItems);
-    return json;
+  private final ScalarStatistics backpropStatistics = new PercentileStatistics();
+  private final ScalarStatistics forwardStatistics = new PercentileStatistics();
+  private int totalBatches = 0;
+  private int totalItems = 0;
+  
+  /**
+   * Instantiates a new Monitoring synapse.
+   *
+   * @param id the id
+   */
+  protected MonitoringSynapse(JsonObject id) {
+    super(id);
   }
-
+  
+  /**
+   * Instantiates a new Monitoring synapse.
+   */
+  public MonitoringSynapse() {
+    super();
+  }
+  
   /**
    * From json monitoring synapse.
    *
@@ -58,28 +72,13 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
     obj.forwardStatistics.readJson(json.getAsJsonObject("forwardStatistics"));
     return obj;
   }
-
-  /**
-   * Instantiates a new Monitoring synapse.
-   *
-   * @param id the id
-   */
-  protected MonitoringSynapse(JsonObject id) {
-    super(id);
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("totalBatches", totalBatches);
+    json.addProperty("totalItems", totalItems);
+    return json;
   }
-  
-  private int totalBatches = 0;
-  private int totalItems = 0;
-  private final ScalarStatistics backpropStatistics = new PercentileStatistics();
-  private final ScalarStatistics forwardStatistics = new PercentileStatistics();
-  
-  /**
-   * Instantiates a new Monitoring synapse.
-   */
-  public MonitoringSynapse() {
-    super();
-  }
-  
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
@@ -102,7 +101,7 @@ public final class MonitoringSynapse extends NNLayer implements MonitoredItem {
         });
         input.accumulate(buffer, data);
       }
-
+      
       @Override
       public boolean isAlive() {
         return input.isAlive();

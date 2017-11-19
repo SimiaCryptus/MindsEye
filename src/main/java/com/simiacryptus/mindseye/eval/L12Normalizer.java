@@ -65,9 +65,9 @@ public abstract class L12Normalizer implements Trainable {
       assert (null != gradientAdj);
     }
     return new Trainable.PointSample(
-                                      innerMeasure.delta.add(normalizationVector),
-                                      innerMeasure.weights,
-                                      innerMeasure.sum + (hideAdj ? 0 : valueAdj));
+      innerMeasure.delta.add(normalizationVector),
+      innerMeasure.weights,
+      innerMeasure.sum + (hideAdj ? 0 : valueAdj));
   }
   
   /**
@@ -104,10 +104,10 @@ public abstract class L12Normalizer implements Trainable {
    */
   public Collection<NNLayer> getLayers(Collection<NNLayer> layers) {
     return layers.stream()
-             .filter(layer -> {
-               return layer instanceof FullyConnectedLayer;
-             })
-             .collect(Collectors.toList());
+      .filter(layer -> {
+        return layer instanceof FullyConnectedLayer;
+      })
+      .collect(Collectors.toList());
   }
   
 }

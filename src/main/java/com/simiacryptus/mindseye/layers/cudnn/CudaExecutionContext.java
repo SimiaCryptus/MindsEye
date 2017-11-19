@@ -28,14 +28,35 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * CUDA GPU-aware execution context.
+ * The type Cuda execution context.
  */
 public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
   
   /**
-   * Concurrent resource pool of all system GPUs
+   * The constant gpuContexts.
    */
   public static StaticResourcePool<CudaExecutionContext> gpuContexts = new StaticResourcePool<CudaExecutionContext>(loadGpuContexts());
+  private boolean isStatic = false;
+  
+  /**
+   * Instantiates a new Cuda execution context.
+   *
+   * @param deviceNumber the device number
+   */
+  public CudaExecutionContext(int deviceNumber) {
+    this(deviceNumber, false);
+  }
+  
+  /**
+   * Instantiates a new Cuda execution context.
+   *
+   * @param deviceNumber the device number
+   * @param isStatic     the is static
+   */
+  public CudaExecutionContext(int deviceNumber, boolean isStatic) {
+    super(deviceNumber);
+    this.isStatic = isStatic;
+  }
   
   /**
    * Load gpu contexts list.
@@ -52,34 +73,24 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
     }
     if (System.getProperties().containsKey("gpus")) {
       devices = Arrays.stream(System.getProperty("gpus").split(","))
-                  .map(Integer::parseInt).collect(Collectors.toList());
+        .map(Integer::parseInt).collect(Collectors.toList());
       
     }
     System.out.println(String.format("Found %s devices; using devices %s", deviceCount, devices));
     return devices.stream()
-             .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
+      .map(i -> new CudaExecutionContext(i)).collect(Collectors.toList());
   }
-  
-  /**
-   * Instantiates a new Cuda execution context.
-   *
-   * @param deviceNumber the device number
-   */
-  public CudaExecutionContext(int deviceNumber) {
-    this(deviceNumber, false);
-  }
-  public CudaExecutionContext(int deviceNumber, boolean isStatic) {
-    super(deviceNumber);
-    this.isStatic = isStatic;
-  }
-  
-  private boolean isStatic = false;
   
   @Override
   public boolean staticEvaluation() {
     return isStatic;
   }
   
+  /**
+   * Sets static.
+   *
+   * @param aStatic the a static
+   */
   public void setStatic(boolean aStatic) {
     isStatic = aStatic;
   }

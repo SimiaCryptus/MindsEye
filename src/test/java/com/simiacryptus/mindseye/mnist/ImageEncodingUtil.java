@@ -28,16 +28,9 @@ import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.*;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
-import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
-import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
-import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
@@ -66,9 +59,22 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * The type Image encoding util.
+ */
 class ImageEncodingUtil {
+  /**
+   * The constant out.
+   */
   protected static PrintStream out = System.out;
   
+  /**
+   * Print model.
+   *
+   * @param log     the log
+   * @param network the network
+   * @param modelNo the model no
+   */
   protected void printModel(NotebookOutput log, NNLayer network, final int modelNo) {
     log.out("Learned Model Statistics: ");
     log.code(() -> {
@@ -81,6 +87,14 @@ class ImageEncodingUtil {
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   }
   
+  /**
+   * Validation report.
+   *
+   * @param log          the log
+   * @param data         the data
+   * @param dataPipeline the data pipeline
+   * @param maxRows      the max rows
+   */
   protected void validationReport(NotebookOutput log, Tensor[][] data, List<NNLayer> dataPipeline, int maxRows) {
     log.out("Current dataset and evaluation results: ");
     log.code(() -> {
@@ -90,13 +104,13 @@ class ImageEncodingUtil {
         for (int col = 1; col < tensorArray.length; col++) {
           Tensor tensor = tensorArray[col];
           row.put("Data_" + col, render(log, tensor, 0 < col));
-          if (dataPipeline.size() >= col-1 && 1 < col) {
+          if (dataPipeline.size() >= col - 1 && 1 < col) {
             PipelineNetwork decoder = new PipelineNetwork();
             for (int i = col - 2; i >= 0; i--) {
               decoder.add(dataPipeline.get(i));
             }
             row.put("Decode_" + col, render(log, CudaExecutionContext.gpuContexts.run(ctx -> {
-              return decoder.eval(ctx, new Tensor[]{tensor});
+              return decoder.eval(ctx, tensor);
             }).getData().get(0), false));
             int bands = tensor.getDimensions()[2];
             String render = IntStream.range(0, bands).mapToObj(band -> {
@@ -107,7 +121,7 @@ class ImageEncodingUtil {
               decoderBand.add(decoder);
               try {
                 Tensor t = CudaExecutionContext.gpuContexts.run(ctx -> {
-                  return decoderBand.eval(ctx, new Tensor[]{tensor});
+                  return decoderBand.eval(ctx, tensor);
                 }).getData().get(0);
                 return render(log, t, true);
                 //return log.image(t.toImage(), "");
@@ -125,6 +139,18 @@ class ImageEncodingUtil {
     });
   }
   
+  /**
+   * Train.
+   *
+   * @param log            the log
+   * @param monitor        the monitor
+   * @param network        the network
+   * @param data           the data
+   * @param orientation    the orientation
+   * @param timeoutMinutes the timeout minutes
+   * @param factor_l1      the factor l 1
+   * @param mask           the mask
+   */
   protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, double factor_l1, boolean... mask) {
     log.out("Training for %s minutes, l1=%s, mask=%s", timeoutMinutes, factor_l1, Arrays.toString(mask));
     log.code(() -> {
@@ -150,6 +176,13 @@ class ImageEncodingUtil {
     });
   }
   
+  /**
+   * Add column tensor [ ] [ ].
+   *
+   * @param trainingData the training data
+   * @param size         the size
+   * @return the tensor [ ] [ ]
+   */
   protected Tensor[][] addColumn(Tensor[][] trainingData, int... size) {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
       Arrays.stream(x),
@@ -157,6 +190,14 @@ class ImageEncodingUtil {
       .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
+  /**
+   * Initialize.
+   *
+   * @param log              the log
+   * @param features         the features
+   * @param convolutionLayer the convolution layer
+   * @param biasLayer        the bias layer
+   */
   protected void initialize(NotebookOutput log, Tensor[][] features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
     Tensor prototype = features[0][1];
     int[] dimensions = prototype.getDimensions();
@@ -170,10 +211,25 @@ class ImageEncodingUtil {
     setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
   }
   
+  /**
+   * Find feature space find feature space.
+   *
+   * @param log        the log
+   * @param features   the features
+   * @param inputBands the input bands
+   * @return the find feature space
+   */
   protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
     return new FindFeatureSpace(log, features, inputBands).invoke();
   }
   
+  /**
+   * Sets initial feature space.
+   *
+   * @param convolutionLayer the convolution layer
+   * @param biasLayer        the bias layer
+   * @param featureSpace     the feature space
+   */
   protected void setInitialFeatureSpace(ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer, FindFeatureSpace featureSpace) {
     int[] filterDimensions = convolutionLayer.filter.getDimensions();
     int outputBands = biasLayer.getBias().length;
@@ -193,6 +249,13 @@ class ImageEncodingUtil {
     });
   }
   
+  /**
+   * Convolution features tensor [ ] [ ].
+   *
+   * @param tensors the tensors
+   * @param radius  the radius
+   * @return the tensor [ ] [ ]
+   */
   protected Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius) {
     int padding = (radius - 1);
     return tensors.parallel().flatMap(image -> {
@@ -208,6 +271,13 @@ class ImageEncodingUtil {
     }).toArray(i -> new Tensor[i][]);
   }
   
+  /**
+   * Down stack tensors stream.
+   *
+   * @param stream the stream
+   * @param factor the factor
+   * @return the stream
+   */
   protected Stream<Tensor> downStackTensors(Stream<Tensor> stream, int factor) {
     if (0 == factor) throw new IllegalArgumentException();
     if (-1 == factor) throw new IllegalArgumentException();
@@ -215,11 +285,18 @@ class ImageEncodingUtil {
       return CudaExecutionContext.gpuContexts.run(ctx -> {
         boolean expand = factor < 0;
         int abs = expand ? -factor : factor;
-        return new ImgReshapeLayer(abs, abs, expand).eval(ctx, new Tensor[]{tensor});
+        return new ImgReshapeLayer(abs, abs, expand).eval(ctx, tensor);
       }).getData().get(0);
     });
   }
   
+  /**
+   * Down explode tensors stream.
+   *
+   * @param stream the stream
+   * @param factor the factor
+   * @return the stream
+   */
   protected Stream<Tensor[]> downExplodeTensors(Stream<Tensor[]> stream, int factor) {
     if (0 >= factor) throw new IllegalArgumentException();
     if (-1 == factor) throw new IllegalArgumentException();
@@ -232,10 +309,21 @@ class ImageEncodingUtil {
       network.add(new ImgBandSelectLayer(select));
       Tensor result = CudaExecutionContext.gpuContexts.run(ctx ->
         network.eval(ctx, new Tensor[]{tensor[1]})).getData().get(0);
-      return new Tensor[]{tensor[0],result};
+      return new Tensor[]{tensor[0], result};
     }));
   }
   
+  /**
+   * Build training model dag network.
+   *
+   * @param log              the log
+   * @param innerModel       the inner model
+   * @param reproducedColumn the reproduced column
+   * @param learnedColumn    the learned column
+   * @param factor_l1        the factor l 1
+   * @param factor_entropy   the factor entropy
+   * @return the dag network
+   */
   protected DAGNetwork buildTrainingModel(NotebookOutput log, NNLayer innerModel, int reproducedColumn, int learnedColumn, double factor_l1, double factor_entropy) {
     PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     DAGNode input = network.getInput(learnedColumn);
@@ -269,6 +357,13 @@ class ImageEncodingUtil {
     return network;
   }
   
+  /**
+   * Gets monitor.
+   *
+   * @param originalOut the original out
+   * @param history     the history
+   * @return the monitor
+   */
   protected TrainingMonitor getMonitor(PrintStream originalOut, List<Step> history) {
     return new TrainingMonitor() {
       @Override
@@ -291,6 +386,12 @@ class ImageEncodingUtil {
     };
   }
   
+  /**
+   * Print data statistics.
+   *
+   * @param log  the log
+   * @param data the data
+   */
   protected void printDataStatistics(NotebookOutput log, Tensor[][] data) {
     for (int col = 1; col < data[0].length; col++) {
       int c = col;
@@ -317,6 +418,12 @@ class ImageEncodingUtil {
     }
   }
   
+  /**
+   * Print history.
+   *
+   * @param log     the log
+   * @param history the history
+   */
   protected void printHistory(NotebookOutput log, List<Step> history) {
     if (!history.isEmpty()) {
       log.out("Convergence Plot: ");
@@ -330,11 +437,19 @@ class ImageEncodingUtil {
     }
   }
   
+  /**
+   * Render string.
+   *
+   * @param log       the log
+   * @param tensor    the tensor
+   * @param normalize the normalize
+   * @return the string
+   */
   protected String render(NotebookOutput log, Tensor tensor, boolean normalize) {
     DoubleStatistics statistics = new DoubleStatistics();
     statistics.accept(tensor.getData());
     Tensor normal = tensor.map(x -> 0xFF * (x - statistics.getMin()) / (statistics.getMax() - statistics.getMin()))
-    //Tensor normal = tensor.map(x -> 0x80 + 0x80 * (x - statistics.getAverage()) / (statistics.getStandardDeviation()))
+      //Tensor normal = tensor.map(x -> 0x80 + 0x80 * (x - statistics.getAverage()) / (statistics.getStandardDeviation()))
       .map(v -> Math.min(0xFF, Math.max(0, v)));
     return (normalize ? normal : tensor).toImages().stream().map(image -> {
       try {
@@ -345,6 +460,13 @@ class ImageEncodingUtil {
     }).reduce((a, b) -> a + b).get();
   }
   
+  /**
+   * Resize buffered image.
+   *
+   * @param source the source
+   * @param size   the size
+   * @return the buffered image
+   */
   protected BufferedImage resize(BufferedImage source, int size) {
     BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
     Graphics2D graphics = (Graphics2D) image.getGraphics();
@@ -353,6 +475,15 @@ class ImageEncodingUtil {
     return image;
   }
   
+  /**
+   * Get images tensor [ ] [ ].
+   *
+   * @param log        the log
+   * @param size       the size
+   * @param maxImages  the max images
+   * @param categories the categories
+   * @return the tensor [ ] [ ]
+   */
   protected Tensor[][] getImages(NotebookOutput log, int size, int maxImages, String... categories) {
     log.out("Available images and categories:");
     log.code(() -> {
@@ -363,7 +494,7 @@ class ImageEncodingUtil {
       return Caltech101.trainingDataStream().filter(x -> {
         return Arrays.asList(categories).contains(x.label);
       }).map(labeledObj -> new Tensor[]{
-        new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label),1.0),
+        new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label), 1.0),
         Tensor.fromRGB(resize(labeledObj.data.get(), size))
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (IOException e) {
@@ -371,36 +502,82 @@ class ImageEncodingUtil {
     }
   }
   
+  /**
+   * The type Find feature space.
+   */
   protected class FindFeatureSpace {
+    /**
+     * The Log.
+     */
     protected final NotebookOutput log;
+    /**
+     * The Features.
+     */
     protected final Tensor[][] features;
+    /**
+     * The Input bands.
+     */
     protected final int inputBands;
+    /**
+     * The Averages.
+     */
     protected double[] averages;
+    /**
+     * The Vectors.
+     */
     protected Tensor[] vectors;
-    
+  
+    /**
+     * Instantiates a new Find feature space.
+     *
+     * @param log        the log
+     * @param features   the features
+     * @param inputBands the input bands
+     */
     public FindFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
       this.log = log;
       this.features = features;
       this.inputBands = inputBands;
     }
-    
+  
+    /**
+     * Get averages double [ ].
+     *
+     * @return the double [ ]
+     */
     public double[] getAverages() {
       return averages;
     }
-    
+  
+    /**
+     * Get vectors tensor [ ].
+     *
+     * @return the tensor [ ]
+     */
     public Tensor[] getVectors() {
       return vectors;
     }
-    
+  
+    /**
+     * Invoke find feature space.
+     *
+     * @return the find feature space
+     */
     public FindFeatureSpace invoke() {
       averages = findBandBias(features);
       Tensor[][] featureVectors = Arrays.stream(features).map(tensor -> {
-        return new Tensor[]{tensor[0],tensor[1].mapCoords((v, c) -> v - averages[c.coords[2]])};
+        return new Tensor[]{tensor[0], tensor[1].mapCoords((v, c) -> v - averages[c.coords[2]])};
       }).toArray(i -> new Tensor[i][]);
       vectors = findFeatureSpace(log, featureVectors, inputBands);
       return this;
     }
   
+    /**
+     * Find band bias double [ ].
+     *
+     * @param features the features
+     * @return the double [ ]
+     */
     protected double[] findBandBias(Tensor[][] features) {
       Tensor prototype = features[0][1];
       int[] dimensions = prototype.getDimensions();
@@ -412,6 +589,14 @@ class ImageEncodingUtil {
       }).toArray();
     }
   
+    /**
+     * Find feature space tensor [ ].
+     *
+     * @param log            the log
+     * @param featureVectors the feature vectors
+     * @param components     the components
+     * @return the tensor [ ]
+     */
     protected Tensor[] findFeatureSpace(NotebookOutput log, Tensor[][] featureVectors, int components) {
       return log.code(() -> {
         int[] dimensions = featureVectors[0][1].getDimensions();
@@ -436,6 +621,6 @@ class ImageEncodingUtil {
           ).toArray(i -> new Tensor[i]);
       });
     }
-  
+    
   }
 }

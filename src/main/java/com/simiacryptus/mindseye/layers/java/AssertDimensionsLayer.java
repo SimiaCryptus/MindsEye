@@ -31,11 +31,42 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Variable layer.
+ * The type Assert dimensions layer.
  */
 public class AssertDimensionsLayer extends NNLayer {
   
   private final int[] dims;
+  
+  /**
+   * Instantiates a new Assert dimensions layer.
+   *
+   * @param json the json
+   */
+  protected AssertDimensionsLayer(JsonObject json) {
+    super(json);
+    JsonArray dimsJson = json.get("dims").getAsJsonArray();
+    this.dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
+  }
+  
+  /**
+   * Instantiates a new Assert dimensions layer.
+   *
+   * @param dims the dims
+   */
+  public AssertDimensionsLayer(final int... dims) {
+    super();
+    this.dims = dims;
+  }
+  
+  /**
+   * From json assert dimensions layer.
+   *
+   * @param json the json
+   * @return the assert dimensions layer
+   */
+  public static AssertDimensionsLayer fromJson(JsonObject json) {
+    return new AssertDimensionsLayer(json);
+  }
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
@@ -50,27 +81,6 @@ public class AssertDimensionsLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-  
-  /**
-   * From json variable layer.
-   *
-   * @param json the json
-   * @return the variable layer
-   */
-  public static AssertDimensionsLayer fromJson(JsonObject json) {
-    return new AssertDimensionsLayer(json);
-  }
-
-  /**
-   * Instantiates a new Variable layer.
-   *
-   * @param json the json
-   */
-  protected AssertDimensionsLayer(JsonObject json) {
-    super(json);
-    JsonArray dimsJson = json.get("dims").getAsJsonArray();
-    this.dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
   }
   
   @Override
@@ -88,19 +98,9 @@ public class AssertDimensionsLayer extends NNLayer {
     return array[0];
   }
   
-  /**
-   * Instantiates a new Variable layer.
-   *
-   * @param dims the dims
-   */
-  public AssertDimensionsLayer(final int... dims) {
-    super();
-    this.dims = dims;
-  }
-
   @Override
   public List<NNLayer> getChildren() {
     return super.getChildren();
   }
-
+  
 }

@@ -25,7 +25,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The type Tensor memory.
+ */
 public class TensorMemory {
+  
+  private static final ConcurrentHashMap<Integer, BlockingQueue<double[]>> recycling = new ConcurrentHashMap<>();
   
   static {
     java.util.concurrent.Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
@@ -37,8 +42,6 @@ public class TensorMemory {
       }
     }, 0, 10, TimeUnit.SECONDS);
   }
-  
-  private static ConcurrentHashMap<Integer, BlockingQueue<double[]>> recycling = new ConcurrentHashMap<>();
   
   private TensorMemory() {
     super();
@@ -56,7 +59,7 @@ public class TensorMemory {
     BlockingQueue<double[]> bin = recycling.get(data.length);
     if (null == bin) {
       //System.err.println("New Recycle Bin: " + data.length);
-      bin = new ArrayBlockingQueue<double[]>(Math.max(1,(int) (1e8 / data.length)));
+      bin = new ArrayBlockingQueue<double[]>(Math.max(1, (int) (1e8 / data.length)));
       recycling.put(data.length, bin);
     }
     bin.offer(data);

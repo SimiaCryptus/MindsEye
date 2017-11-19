@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import java.util.List;
 
 /**
- * The type Nn layer wrapper.
+ * The type Wrapper layer.
  */
 public abstract class WrapperLayer extends NNLayer {
   /**
@@ -36,7 +36,7 @@ public abstract class WrapperLayer extends NNLayer {
   protected NNLayer inner;
   
   /**
-   * Instantiates a new Nn layer wrapper.
+   * Instantiates a new Wrapper layer.
    *
    * @param json the json
    */
@@ -46,7 +46,7 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   /**
-   * Instantiates a new Nn layer wrapper.
+   * Instantiates a new Wrapper layer.
    *
    * @param inner the inner
    */
@@ -55,7 +55,7 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   /**
-   * Instantiates a new Nn layer wrapper.
+   * Instantiates a new Wrapper layer.
    */
   protected WrapperLayer() {
     this.inner = null;

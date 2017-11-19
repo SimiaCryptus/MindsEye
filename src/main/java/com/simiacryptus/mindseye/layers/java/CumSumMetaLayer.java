@@ -30,34 +30,20 @@ import java.util.function.ToDoubleBiFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Sum meta layer.
+ * The type Cum sum meta layer.
  */
 @SuppressWarnings("serial")
 public class CumSumMetaLayer extends NNLayer implements CumSum {
   
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(CumSumMetaLayer.class);
   private Tensor accumulation;
   private Tensor priorAccumulation;
   private double carryOver = 0.5;
   private int carryoverDenominator = 1000;
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    if(null != accumulation) json.add("state", accumulation.getJson());
-    return json;
-  }
-
   /**
-   * From json sum meta layer.
-   *
-   * @param json the json
-   * @return the sum meta layer
-   */
-  public static CumSumMetaLayer fromJson(JsonObject json) {
-    return new CumSumMetaLayer(json);
-  }
-
-  /**
-   * Instantiates a new Sum meta layer.
+   * Instantiates a new Cum sum meta layer.
    *
    * @param id the id
    */
@@ -66,13 +52,26 @@ public class CumSumMetaLayer extends NNLayer implements CumSum {
     accumulation = Tensor.fromJson(id.getAsJsonObject("state"));
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(CumSumMetaLayer.class);
-  
   /**
-   * Instantiates a new Sum meta layer.
+   * Instantiates a new Cum sum meta layer.
    */
   public CumSumMetaLayer() {
+  }
+  
+  /**
+   * From json cum sum meta layer.
+   *
+   * @param json the json
+   * @return the cum sum meta layer
+   */
+  public static CumSumMetaLayer fromJson(JsonObject json) {
+    return new CumSumMetaLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    if (null != accumulation) json.add("state", accumulation.getJson());
+    return json;
   }
   
   @Override
@@ -80,23 +79,25 @@ public class CumSumMetaLayer extends NNLayer implements CumSum {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
     final ToDoubleBiFunction<Double, Coordinate> f = (v, c) ->
-                                                                   IntStream.range(0, itemCnt)
-                                                                     .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                                     .sum();
+      IntStream.range(0, itemCnt)
+        .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+        .sum();
     Tensor thisSum = input.getData().get(0).mapCoords(f);
     Tensor prior;
-    if(null != this.priorAccumulation && nncontext.staticEvaluation()) {
+    if (null != this.priorAccumulation && nncontext.staticEvaluation()) {
       prior = this.priorAccumulation;
-    } else {
+    }
+    else {
       prior = this.accumulation;
     }
     Tensor returnValue;
-    if(null != prior) {
+    if (null != prior) {
       returnValue = prior.scale(Math.pow(carryOver, itemCnt / carryoverDenominator)).add(thisSum);
-    } else {
+    }
+    else {
       returnValue = thisSum;
     }
-    if(!isFrozen() && !nncontext.staticEvaluation()) {
+    if (!isFrozen() && !nncontext.staticEvaluation()) {
       this.priorAccumulation = this.accumulation;
       this.accumulation = returnValue;
     }
@@ -107,7 +108,7 @@ public class CumSumMetaLayer extends NNLayer implements CumSum {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          final ToDoubleBiFunction<Double,Coordinate> f = (rho, inputCoord) -> {
+          final ToDoubleBiFunction<Double, Coordinate> f = (rho, inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
               feedback[inputItem].add(inputCoord, rho);
             }

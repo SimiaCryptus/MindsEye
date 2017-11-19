@@ -23,8 +23,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,24 +33,18 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The type Std dev meta layer.
+ * The type Cum avg meta layer.
  */
 @SuppressWarnings("serial")
 public class CumAvgMetaLayer extends DAGNetwork implements CumSum {
   
-  /**
-   * From json nn layer.
-   *
-   * @param inner the inner
-   * @return the nn layer
-   */
-  public static NNLayer fromJson(JsonObject inner) {
-    return new CumAvgMetaLayer(inner);
-  }
-  
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(CumAvgMetaLayer.class);
+  private final DAGNode head;
+  private final List<CumSum> cumsumChildren = new ArrayList<>();
   
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Cum avg meta layer.
    *
    * @param json the json
    */
@@ -58,17 +52,13 @@ public class CumAvgMetaLayer extends DAGNetwork implements CumSum {
     super(json);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
     JsonArray children = json.getAsJsonArray("children");
-    for(int i=0;i<children.size();i++) {
+    for (int i = 0; i < children.size(); i++) {
       cumsumChildren.add((CumSum) layersById.get(UUID.fromString(children.get(i).getAsString())));
     }
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(CumAvgMetaLayer.class);
-  private final DAGNode head;
-  
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Cum avg meta layer.
    */
   public CumAvgMetaLayer() {
     super(1);
@@ -81,12 +71,20 @@ public class CumAvgMetaLayer extends DAGNetwork implements CumSum {
     );
   }
   
+  /**
+   * From json nn layer.
+   *
+   * @param inner the inner
+   * @return the nn layer
+   */
+  public static NNLayer fromJson(JsonObject inner) {
+    return new CumAvgMetaLayer(inner);
+  }
+  
   @Override
   public DAGNode getHead() {
     return head;
   }
-  
-  private final List<CumSum> cumsumChildren = new ArrayList<>();
   
   private <T extends CumSum> T add(T obj) {
     cumsumChildren.add(obj);
@@ -111,7 +109,7 @@ public class CumAvgMetaLayer extends DAGNetwork implements CumSum {
   
   @Override
   public CumAvgMetaLayer setCarryOver(double carryOver) {
-    cumsumChildren.forEach(x->x.setCarryOver(carryOver));
+    cumsumChildren.forEach(x -> x.setCarryOver(carryOver));
     return this;
   }
   
@@ -122,7 +120,7 @@ public class CumAvgMetaLayer extends DAGNetwork implements CumSum {
   
   @Override
   public CumAvgMetaLayer setCarryoverDenominator(int carryoverDenominator) {
-    cumsumChildren.forEach(x->x.setCarryoverDenominator(carryoverDenominator));
+    cumsumChildren.forEach(x -> x.setCarryoverDenominator(carryoverDenominator));
     return this;
   }
 }

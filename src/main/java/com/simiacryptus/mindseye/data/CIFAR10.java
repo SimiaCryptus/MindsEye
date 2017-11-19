@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
@@ -47,7 +46,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class CIFAR10 {
   
-  private final static URI source = URI.create("https://www.cs.toronto.edu/~kriz/");
+  private static final URI source = URI.create("https://www.cs.toronto.edu/~kriz/");
   
   private static final DataLoader training = new DataLoader<LabeledObject<Tensor>>() {
     @Override

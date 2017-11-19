@@ -22,29 +22,19 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The type Sigmoid activation layer.
+ * The type Gaussian activation layer.
  */
 public final class GaussianActivationLayer extends SimpleActivationLayer<GaussianActivationLayer> {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mean", mean);
-    json.addProperty("stddev", stddev);
-    return json;
-  }
-
+  private static final double MIN_X = -20;
+  private static final double MAX_X = -MIN_X;
+  private static final double MAX_F = Math.exp(MAX_X);
+  private static final double MIN_F = Math.exp(MIN_X);
+  private final double mean;
+  private final double stddev;
+  
   /**
-   * From json sigmoid activation layer.
-   *
-   * @param json the json
-   * @return the sigmoid activation layer
-   */
-  public static GaussianActivationLayer fromJson(JsonObject json) {
-    return new GaussianActivationLayer(json);
-  }
-
-  /**
-   * Instantiates a new Sigmoid activation layer.
+   * Instantiates a new Gaussian activation layer.
    *
    * @param id the id
    */
@@ -54,20 +44,32 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     stddev = id.get("stddev").getAsDouble();
   }
   
-  private static final double MIN_X = -20;
-  private static final double MAX_X = -MIN_X;
-  private static final double MAX_F = Math.exp(MAX_X);
-  private static final double MIN_F = Math.exp(MIN_X);
-  
-  private double mean;
-  private double stddev;
-  
   /**
-   * Instantiates a new Sigmoid activation layer.
+   * Instantiates a new Gaussian activation layer.
+   *
+   * @param mean   the mean
+   * @param stddev the stddev
    */
   public GaussianActivationLayer(double mean, double stddev) {
     this.mean = mean;
     this.stddev = stddev;
+  }
+  
+  /**
+   * From json gaussian activation layer.
+   *
+   * @param json the json
+   * @return the gaussian activation layer
+   */
+  public static GaussianActivationLayer fromJson(JsonObject json) {
+    return new GaussianActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("mean", mean);
+    json.addProperty("stddev", stddev);
+    return json;
   }
   
   @Override

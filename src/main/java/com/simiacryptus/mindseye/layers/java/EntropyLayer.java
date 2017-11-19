@@ -27,10 +27,22 @@ import com.google.gson.JsonObject;
 @SuppressWarnings("serial")
 public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  /**
+   * Instantiates a new Entropy layer.
+   *
+   * @param id the id
+   */
+  protected EntropyLayer(JsonObject id) {
+    super(id);
   }
-
+  
+  /**
+   * Instantiates a new Entropy layer.
+   */
+  public EntropyLayer() {
+    super();
+  }
+  
   /**
    * From json entropy layer.
    *
@@ -40,21 +52,9 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   public static EntropyLayer fromJson(JsonObject json) {
     return new EntropyLayer(json);
   }
-
-  /**
-   * Instantiates a new Entropy layer.
-   *
-   * @param id the id
-   */
-  protected EntropyLayer(JsonObject id) {
-    super(id);
-  }
-
-  /**
-   * Instantiates a new Entropy layer.
-   */
-  public EntropyLayer() {
-    super();
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

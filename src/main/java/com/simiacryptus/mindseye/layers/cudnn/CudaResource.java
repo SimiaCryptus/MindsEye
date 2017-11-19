@@ -25,20 +25,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToIntFunction;
 
 /**
- * The type Cu dnn resource.
+ * The type Cuda resource.
  *
  * @param <T> the type parameter
  */
 public class CudaResource<T> {
   
+  /**
+   * The constant gpuGeneration.
+   */
+  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
+  /**
+   * The Obj generation.
+   */
+  public final int objGeneration = gpuGeneration.get();
   private final T ptr;
   private final ToIntFunction<T> destructor;
-  private volatile boolean finalized = false;
   //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
   private final int device = CuDNN.getDevice();
+  private volatile boolean finalized = false;
   
   /**
-   * Instantiates a new Cu dnn resource.
+   * Instantiates a new Cuda resource.
    *
    * @param obj        the obj
    * @param destructor the destructor
@@ -57,9 +65,6 @@ public class CudaResource<T> {
     return finalized;
   }
   
-  public static AtomicInteger gpuGeneration = new AtomicInteger(0);
-  public final int objGeneration = gpuGeneration.get();
-  
   @Override
   public synchronized void finalize() {
     try {
@@ -73,6 +78,11 @@ public class CudaResource<T> {
     }
   }
   
+  /**
+   * Is active obj boolean.
+   *
+   * @return the boolean
+   */
   public boolean isActiveObj() {
     return objGeneration == gpuGeneration.get();
   }
@@ -82,7 +92,7 @@ public class CudaResource<T> {
    */
   protected void free() {
     try {
-      if(isActiveObj()) {
+      if (isActiveObj()) {
         CuDNN.handle(this.destructor.applyAsInt(ptr));
       }
     } catch (Throwable e) {

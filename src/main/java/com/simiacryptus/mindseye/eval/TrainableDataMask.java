@@ -19,8 +19,22 @@
 
 package com.simiacryptus.mindseye.eval;
 
+/**
+ * The interface Trainable data mask.
+ */
 public interface TrainableDataMask extends Trainable {
+  /**
+   * Get mask boolean [ ].
+   *
+   * @return the boolean [ ]
+   */
   boolean[] getMask();
   
+  /**
+   * Sets mask.
+   *
+   * @param mask the mask
+   * @return the mask
+   */
   TrainableDataMask setMask(boolean... mask);
 }

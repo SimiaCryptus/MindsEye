@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-
 /**
  * The type Supervised network.
  */

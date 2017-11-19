@@ -47,39 +47,6 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  * The type Convolution layer.
  */
 public class ConvolutionLayer extends NNLayer {
-
-
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("filter", filter.getJson());
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
-    json.addProperty("simple", simple);
-    return json;
-  }
-  
-  /**
-   * From json convolution layer.
-   *
-   * @param json the json
-   * @return the convolution layer
-   */
-  public static ConvolutionLayer fromJson(JsonObject json) {
-    return new ConvolutionLayer(json);
-  }
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param json the json
-   */
-  protected ConvolutionLayer(JsonObject json) {
-    super(json);
-    this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
-    this.strideX = json.get("strideX").getAsInt();
-    this.strideY = json.get("strideY").getAsInt();
-    this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
-  }
   
   
   /**
@@ -101,9 +68,22 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
+   *
+   * @param json the json
+   */
+  protected ConvolutionLayer(JsonObject json) {
+    super(json);
+    this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
+    this.strideX = json.get("strideX").getAsInt();
+    this.strideY = json.get("strideY").getAsInt();
+    this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
+  }
+  
+  /**
+   * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this((Tensor) null, true);
+    this(null, true);
   }
   
   /**
@@ -173,6 +153,25 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   /**
+   * From json convolution layer.
+   *
+   * @param json the json
+   * @return the convolution layer
+   */
+  public static ConvolutionLayer fromJson(JsonObject json) {
+    return new ConvolutionLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("filter", filter.getJson());
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
+    json.addProperty("simple", simple);
+    return json;
+  }
+  
+  /**
    * Add weights convolution layer.
    *
    * @param f the f
@@ -193,9 +192,9 @@ public class ConvolutionLayer extends NNLayer {
     int[] kernelSize = this.filter.getDimensions();
     int[] outputSize = getOutputSize(inputSize, kernelSize);
     int length = batch.length();
-
+    
     try {
-
+      
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
@@ -208,15 +207,15 @@ public class ConvolutionLayer extends NNLayer {
         CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
-
+      
       final double[] filterData = this.filter.getData();
       CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), filterData);
       assert (0 < filterData.length);
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
-
+      
       CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputSize) * 1l * length * Sizeof.DOUBLE);
-      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
+      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
         assert verifyOutputDims(inputDescriptor, filterDescriptor, convolutionDescriptor, outputSize);
         int algorithm = ((CudaExecutionContext) nncontext).getForwardAlgorithm(
@@ -233,7 +232,7 @@ public class ConvolutionLayer extends NNLayer {
         throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
       TensorList output = CudaPtr.fromDeviceDouble(outputBuffer, length, outputSize, cudnnHandle);
-
+      
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -280,7 +279,7 @@ public class ConvolutionLayer extends NNLayer {
             input.accumulate(buffer, inputBufferTensors);
           }
         }
-
+        
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();
@@ -310,9 +309,7 @@ public class ConvolutionLayer extends NNLayer {
       else {
         x = 1 + inputSize[i] - kernelSize[i];
       }
-      if (0 >= x) {
-        assert false;
-      }
+      assert 0 < x;
       return x;
     }).toArray();
   }
@@ -332,8 +329,7 @@ public class ConvolutionLayer extends NNLayer {
     if (4 != outputDims.length) return false;
     if (outputSize[0] != outputDims[3]) return false;
     if (outputSize[1] != outputDims[2]) return false;
-    if (outputSize[2] != outputDims[1]) return false;
-    return true;
+    return outputSize[2] == outputDims[1];
   }
   
   /**
@@ -366,5 +362,5 @@ public class ConvolutionLayer extends NNLayer {
   public List<double[]> state() {
     return Arrays.asList(this.filter.getData());
   }
-
+  
 }

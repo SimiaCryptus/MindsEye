@@ -25,25 +25,25 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * The Basic test optimizer.
+ * The type L 2 normalization test.
  */
 public class L2NormalizationTest extends MnistTestBase {
   
   @Override
   public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
-            "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
-            "Finally, we use a simple iterative scheme to refine the weights of our model. " +
-            "The final output is the last output value of the loss function when evaluating the last batch.");
+      "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
+      "Finally, we use a simple iterative scheme to refine the weights of our model. " +
+      "The final output is the last output value of the loss function when evaluating the last batch.");
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       Trainable trainable = new L12Normalizer(new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000)) {
@@ -58,10 +58,10 @@ public class L2NormalizationTest extends MnistTestBase {
         }
       };
       return new IterativeTrainer(trainable)
-               .setMonitor(monitor)
-               .setTimeout(3, TimeUnit.MINUTES)
-               .setMaxIterations(500)
-               .run();
+        .setMonitor(monitor)
+        .setTimeout(3, TimeUnit.MINUTES)
+        .setMaxIterations(500)
+        .run();
     });
   }
   

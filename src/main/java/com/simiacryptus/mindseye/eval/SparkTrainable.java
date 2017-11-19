@@ -43,9 +43,92 @@ public class SparkTrainable implements Trainable {
    */
   protected final int sampleSize;
   /**
+   * The Data rdd.
+   */
+  protected final RDD<Tensor[]> dataRDD;
+  /**
+   * The Network.
+   */
+  protected final NNLayer network;
+  /**
    * The Partitions.
    */
   protected int partitions;
+  /**
+   * The Sampled rdd.
+   */
+  protected RDD<Tensor[]> sampledRDD;
+  /**
+   * The Verbose.
+   */
+  protected boolean verbose = true;
+  /**
+   * The Storage level.
+   */
+  protected StorageLevel storageLevel = StorageLevel.MEMORY_AND_DISK();
+  
+  /**
+   * Instantiates a new Spark trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   */
+  public SparkTrainable(RDD<Tensor[]> trainingData, NNLayer network) {
+    this(trainingData, network, -1);
+  }
+  
+  /**
+   * Instantiates a new Spark trainable.
+   *
+   * @param trainingData the training data
+   * @param network      the network
+   * @param sampleSize   the sample size
+   */
+  public SparkTrainable(RDD<Tensor[]> trainingData, NNLayer network, int sampleSize) {
+    this.dataRDD = trainingData;
+    this.network = network;
+    this.sampleSize = sampleSize;
+    this.setPartitions(Math.max(1, dataRDD.sparkContext().executorEnvs().size()));
+    resetSampling();
+  }
+  
+  /**
+   * Debug.
+   *
+   * @param msg  the msg
+   * @param args the args
+   */
+  protected static void debug(String msg, Object... args) {
+    String format = String.format(msg, args);
+    System.out.println(format);
+  }
+  
+  /**
+   * Gets result.
+   *
+   * @param delta  the delta
+   * @param values the values
+   * @return the result
+   */
+  protected static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
+    Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
+      e -> e.getKey().getId(), e -> e.getValue().getDelta()
+    ));
+    return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum());
+  }
+  
+  /**
+   * Gets stream.
+   *
+   * @param partition the partition
+   * @return the stream
+   */
+  protected static Stream<Tensor[]> getStream(Iterator<Tensor[]> partition) {
+    int characteristics = Spliterator.ORDERED;
+    boolean parallel = false;
+    Spliterator<Tensor[]> spliterator = Spliterators.spliteratorUnknownSize(partition, characteristics);
+    return StreamSupport.stream(spliterator, parallel);
+  }
   
   /**
    * Gets storage level.
@@ -74,7 +157,7 @@ public class SparkTrainable implements Trainable {
    * @return the partitions
    */
   public int getPartitions() {
-    return Math.max(1,partitions);
+    return Math.max(1, partitions);
   }
   
   /**
@@ -84,7 +167,7 @@ public class SparkTrainable implements Trainable {
    * @return the partitions
    */
   public SparkTrainable setPartitions(int partitions) {
-    if(1 > partitions) throw new IllegalArgumentException();
+    if (1 > partitions) throw new IllegalArgumentException();
     this.partitions = partitions;
     return this;
   }
@@ -105,6 +188,82 @@ public class SparkTrainable implements Trainable {
    */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
+  }
+  
+  /**
+   * Eval point sample.
+   *
+   * @param input     the input
+   * @param nncontext the nncontext
+   * @return the point sample
+   */
+  protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
+    NNResult result = network.eval(nncontext, input);
+    DeltaSet deltaSet = new DeltaSet();
+    result.accumulate(deltaSet);
+    assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    DeltaSet stateBackup = new DeltaSet();
+    deltaSet.getMap().forEach((layer, layerDelta) -> {
+      stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
+    });
+    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    TensorList resultData = result.getData();
+    assert (resultData.stream().allMatch(x -> x.dim() == 1));
+    assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
+    double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
+    return new PointSample(deltaSet, stateBackup, sum);
+  }
+  
+  /**
+   * Gets delta.
+   *
+   * @param reduce the reduce
+   * @return the delta
+   */
+  protected DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
+    DeltaSet deltaSet = new DeltaSet();
+    Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
+    NNResult result = CudaExecutionContext.gpuContexts.run(exe -> network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
+    result.accumulate(deltaSet, 0);
+    reduce.accumulate(deltaSet);
+    return deltaSet;
+  }
+  
+  @Override
+  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+    long time1 = System.nanoTime();
+    JavaRDD<ReducableResult> mapPartitions = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
+    long time2 = System.nanoTime();
+    SparkTrainable.ReducableResult result = mapPartitions.reduce(SparkTrainable.ReducableResult::add);
+    if (isVerbose()) {
+      System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
+    }
+    DeltaSet deltaSet = getDelta(result);
+    DeltaSet stateSet = new DeltaSet();
+    deltaSet.getMap().forEach((layer, layerDelta) -> {
+      stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
+    });
+    return new Trainable.PointSample(deltaSet, stateSet, result.sum);
+  }
+  
+  @Override
+  public boolean resetSampling() {
+    assert (0 < sampleSize);
+    long count = dataRDD.count();
+    assert !this.dataRDD.isEmpty();
+    if (null != this.sampledRDD) this.sampledRDD.unpersist(false);
+    this.sampledRDD = dataRDD.sample(false, sampleSize * 1.0 / count, System.currentTimeMillis())
+      .repartition(getPartitions(), null)
+      .persist(getStorageLevel());
+    assert !this.sampledRDD.isEmpty();
+    System.out.println(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
+    return true;
+  }
+  
+  @Override
+  public void resetToFull() {
+    this.sampledRDD = this.dataRDD.repartition(dataRDD.sparkContext().executorEnvs().size(), null).persist(getStorageLevel());
+    System.out.println(String.format("Reset sample size to %s", sampledRDD.count()));
   }
   
   /**
@@ -173,18 +332,7 @@ public class SparkTrainable implements Trainable {
       }
       return new SparkTrainable.ReducableResult(map, sum + right.sum);
     }
-  
-  }
-  
-  /**
-   * Debug.
-   *
-   * @param msg  the msg
-   * @param args the args
-   */
-  protected static void debug(String msg, Object... args) {
-    String format = String.format(msg, args);
-    System.out.println(format);
+    
   }
   
   /**
@@ -214,8 +362,8 @@ public class SparkTrainable implements Trainable {
       long startTime = System.nanoTime();
       GpuTrainable trainable = new GpuTrainable(network);
       Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
-      if(verbose) debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
-      PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(false, new TrainingMonitor(){
+      if (verbose) debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
+      PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(false, new TrainingMonitor() {
         @Override
         public void log(String msg) {
           debug(msg);
@@ -224,154 +372,6 @@ public class SparkTrainable implements Trainable {
       assert (measure != null);
       return Arrays.asList(SparkTrainable.getResult(measure.delta, new double[]{measure.sum})).iterator();
     }
-  }
-  
-  /**
-   * Gets result.
-   *
-   * @param delta  the delta
-   * @param values the values
-   * @return the result
-   */
-  protected static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
-    Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
-      e -> e.getKey().getId(), e -> e.getValue().getDelta()
-    ));
-    return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum());
-  }
-  
-  /**
-   * Eval point sample.
-   *
-   * @param input     the input
-   * @param nncontext the nncontext
-   * @return the point sample
-   */
-  protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
-    NNResult result = network.eval(nncontext, input);
-    DeltaSet deltaSet = new DeltaSet();
-    result.accumulate(deltaSet);
-    assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    DeltaSet stateBackup = new DeltaSet();
-    deltaSet.getMap().forEach((layer, layerDelta) -> {
-      stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
-    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    TensorList resultData = result.getData();
-    assert (resultData.stream().allMatch(x -> x.dim() == 1));
-    assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-    double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
-    return new PointSample(deltaSet, stateBackup, sum);
-  }
-  
-  /**
-   * Gets delta.
-   *
-   * @param reduce the reduce
-   * @return the delta
-   */
-  protected DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
-    DeltaSet deltaSet = new DeltaSet();
-    Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
-    NNResult result = CudaExecutionContext.gpuContexts.run(exe->network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
-    result.accumulate(deltaSet, 0);
-    reduce.accumulate(deltaSet);
-    return deltaSet;
-  }
-  
-  /**
-   * The Data rdd.
-   */
-  protected final RDD<Tensor[]> dataRDD;
-  /**
-   * The Sampled rdd.
-   */
-  protected RDD<Tensor[]> sampledRDD;
-  /**
-   * The Network.
-   */
-  protected final NNLayer network;
-  /**
-   * The Verbose.
-   */
-  protected boolean verbose = true;
-  
-  /**
-   * Instantiates a new Spark trainable.
-   *
-   * @param trainingData the training data
-   * @param network      the network
-   */
-  public SparkTrainable(RDD<Tensor[]> trainingData, NNLayer network) {
-    this(trainingData, network, -1);
-  }
-  
-  /**
-   * Instantiates a new Spark trainable.
-   *
-   * @param trainingData the training data
-   * @param network      the network
-   * @param sampleSize   the sample size
-   */
-  public SparkTrainable(RDD<Tensor[]> trainingData, NNLayer network, int sampleSize) {
-    this.dataRDD = trainingData;
-    this.network = network;
-    this.sampleSize = sampleSize;
-    this.setPartitions(Math.max(1,dataRDD.sparkContext().executorEnvs().size()));
-    resetSampling();
-  }
-  
-  @Override
-  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-    long time1 = System.nanoTime();
-    JavaRDD<ReducableResult> mapPartitions = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
-    long time2 = System.nanoTime();
-    SparkTrainable.ReducableResult result = mapPartitions.reduce(SparkTrainable.ReducableResult::add);
-    if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
-    DeltaSet deltaSet = getDelta(result);
-    DeltaSet stateSet = new DeltaSet();
-    deltaSet.getMap().forEach((layer, layerDelta) -> {
-      stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
-    return new Trainable.PointSample(deltaSet, stateSet, result.sum);
-  }
-  
-  @Override
-  public boolean resetSampling() {
-    assert (0 < sampleSize);
-    long count = dataRDD.count();
-    assert !this.dataRDD.isEmpty();
-    if(null != this.sampledRDD) this.sampledRDD.unpersist(false);
-    this.sampledRDD = dataRDD.sample(false, sampleSize * 1.0 / count, System.currentTimeMillis())
-      .repartition(getPartitions(), null)
-      .persist(getStorageLevel());
-    assert !this.sampledRDD.isEmpty();
-    System.out.println(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
-    return true;
-  }
-  
-  /**
-   * The Storage level.
-   */
-  protected StorageLevel storageLevel = StorageLevel.MEMORY_AND_DISK();
-  
-  @Override
-  public void resetToFull() {
-    this.sampledRDD = this.dataRDD.repartition(dataRDD.sparkContext().executorEnvs().size(), null).persist(getStorageLevel());
-    System.out.println(String.format("Reset sample size to %s", sampledRDD.count()));
-  }
-  
-  /**
-   * Gets stream.
-   *
-   * @param partition the partition
-   * @return the stream
-   */
-  protected static Stream<Tensor[]> getStream(Iterator<Tensor[]> partition) {
-    int characteristics = Spliterator.ORDERED;
-    boolean parallel = false;
-    Spliterator<Tensor[]> spliterator = Spliterators.spliteratorUnknownSize(partition, characteristics);
-    return StreamSupport.stream(spliterator, parallel);
   }
   
   

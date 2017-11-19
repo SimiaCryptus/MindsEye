@@ -26,7 +26,7 @@ import com.aparapi.device.Device;
  * The type Backprop kernel.
  */
 public final class BackpropKernel extends Kernel {
-
+  
   /**
    * The Input.
    */

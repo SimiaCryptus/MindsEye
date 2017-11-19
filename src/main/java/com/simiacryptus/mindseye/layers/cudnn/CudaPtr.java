@@ -37,16 +37,85 @@ import static jcuda.runtime.JCuda.*;
 import static jcuda.runtime.cudaMemcpyKind.*;
 
 /**
- * The type Cu dnn ptr.
+ * The type Cuda ptr.
  */
 public class CudaPtr extends CudaResource<Pointer> {
   
   /**
+   * The constant METRICS.
+   */
+  public static final LoadingCache<Integer, GpuStats> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, GpuStats>() {
+    @Override
+    public GpuStats load(Integer integer) throws Exception {
+      return new GpuStats();
+    }
+  });
+  private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));
+  private static final long MAX = 4l * 1024 * 1024 * 1024;
+  private static Object pciBusLock = new Object();
+  /**
+   * The Size.
+   */
+  public final long size;
+  private final int deviceId;
+  
+  /**
+   * Instantiates a new Cuda ptr.
+   *
+   * @param size     the size
+   * @param deviceId the device id
+   */
+  protected CudaPtr(long size, int deviceId) {
+    super(new Pointer(), JCuda::cudaFree);
+    this.size = size;
+    this.deviceId = deviceId;
+    GpuStats metrics = getGpuStats(deviceId);
+    if (size < 0) {
+      throw new OutOfMemoryError("Allocated block is too large: " + size);
+    }
+    if (size > MAX) {
+      throw new OutOfMemoryError("Allocated block is too large: " + size);
+    }
+    try {
+      CuDNN.handle(cudaMalloc(this.getPtr(), size));
+    } catch (Exception e) {
+      try {
+        long startMemory = metrics.usedMemory.get();
+        System.gc(); // Force any dead objects to be finalized
+        System.runFinalization();
+        long freedMemory = startMemory - metrics.usedMemory.get();
+        CuDNN.handle(cudaMalloc(this.getPtr(), size));
+        System.err.println(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
+          size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
+      } catch (Exception e2) {
+        throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId), e2);
+      }
+    }
+    long finalMemory = metrics.usedMemory.addAndGet(size);
+    metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
+    CuDNN.handle(cudaMemset(this.getPtr(), 0, size));
+  }
+  
+  /**
+   * Instantiates a new Cuda ptr.
+   *
+   * @param ptr      the ptr
+   * @param size     the size
+   * @param deviceId the device id
+   */
+  protected CudaPtr(Pointer ptr, long size, int deviceId) {
+    super(ptr, x -> 0);
+    this.size = size;
+    this.deviceId = deviceId;
+  }
+  
+  /**
    * From device double tensor list.
    *
-   * @param ptr        the ptr
-   * @param length     the length
-   * @param dimensions the dimensions
+   * @param ptr         the ptr
+   * @param length      the length
+   * @param dimensions  the dimensions
+   * @param cudnnHandle the cudnn handle
    * @return the tensor list
    */
   public static TensorList fromDeviceDouble(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
@@ -67,11 +136,11 @@ public class CudaPtr extends CudaResource<Pointer> {
   }
   
   /**
-   * To device as double cu dnn . cu dnn ptr.
+   * To device as double cuda ptr.
    *
    * @param deviceId the device id
    * @param data     the data
-   * @return the cu dnn . cu dnn ptr
+   * @return the cuda ptr
    */
   public static CudaPtr toDeviceAsDouble(int deviceId, TensorList data) {
     if (data instanceof CuDNNDoubleTensorList) {
@@ -107,11 +176,11 @@ public class CudaPtr extends CudaResource<Pointer> {
   }
   
   /**
-   * To device as float cu dnn . cu dnn ptr.
+   * To device as float cuda ptr.
    *
    * @param deviceId the device id
    * @param data     the data
-   * @return the cu dnn . cu dnn ptr
+   * @return the cuda ptr
    */
   public static CudaPtr toDeviceAsFloat(int deviceId, TensorList data) {
     if (data instanceof CuDNNFloatTensorList) {
@@ -203,14 +272,111 @@ public class CudaPtr extends CudaResource<Pointer> {
     }
   }
   
-  private static final boolean lockPci = Boolean.parseBoolean(System.getProperty("lockPci", "true"));
-
   private static Object getPciBusLock() {
     return lockPci ? pciBusLock : new Object();
   }
   
   private static void setPciBusLock(Object pciBusLock) {
     CudaPtr.pciBusLock = pciBusLock;
+  }
+  
+  /**
+   * Gets gpu stats.
+   *
+   * @param deviceId the device id
+   * @return the gpu stats
+   */
+  public static GpuStats getGpuStats(int deviceId) {
+    GpuStats devivceMemCtr;
+    try {
+      devivceMemCtr = METRICS.get(deviceId);
+    } catch (ExecutionException e) {
+      throw new RuntimeException(e.getCause());
+    }
+    return devivceMemCtr;
+  }
+  
+  @Override
+  protected void free() {
+    if (isActiveObj()) {
+      super.free();
+      getGpuStats(deviceId).usedMemory.addAndGet(-size);
+    }
+  }
+  
+  /**
+   * Copy cuda ptr.
+   *
+   * @return the cuda ptr
+   */
+  public CudaPtr copy() {
+    CudaPtr copy = new CudaPtr(size, deviceId);
+    CuDNN.handle(cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyDeviceToDevice));
+    return copy;
+  }
+  
+  /**
+   * Write cuda ptr.
+   *
+   * @param data the data
+   * @return the cuda ptr
+   */
+  public CudaPtr write(float[] data) {
+    synchronized (getPciBusLock()) {
+      if (this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
+      CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
+      getGpuStats(deviceId).memoryWrites.addAndGet(size);
+      return this;
+    }
+  }
+  
+  /**
+   * Write cuda ptr.
+   *
+   * @param data the data
+   * @return the cuda ptr
+   */
+  public CudaPtr write(double[] data) {
+    synchronized (getPciBusLock()) {
+      if (this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException();
+      CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
+      getGpuStats(deviceId).memoryWrites.addAndGet(size);
+      return this;
+    }
+  }
+  
+  /**
+   * Read cuda ptr.
+   *
+   * @param data the data
+   * @return the cuda ptr
+   */
+  public CudaPtr read(double[] data) {
+    synchronized (getPciBusLock()) {
+      if (this.size != data.length * Sizeof.DOUBLE) {
+        throw new IllegalArgumentException(this.size + " != " + data.length * Sizeof.DOUBLE);
+      }
+      CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
+      getGpuStats(deviceId).memoryReads.addAndGet(size);
+      return this;
+    }
+  }
+  
+  /**
+   * Read cuda ptr.
+   *
+   * @param data the data
+   * @return the cuda ptr
+   */
+  public CudaPtr read(float[] data) {
+    synchronized (getPciBusLock()) {
+      if (this.size != data.length * 1l * Sizeof.FLOAT) {
+        throw new IllegalArgumentException(this.size + " != " + (data.length * 1l * Sizeof.FLOAT));
+      }
+      CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
+      getGpuStats(deviceId).memoryReads.addAndGet(size);
+      return this;
+    }
   }
   
   /**
@@ -233,166 +399,5 @@ public class CudaPtr extends CudaResource<Pointer> {
      * The Memory reads.
      */
     public final AtomicLong memoryReads = new AtomicLong(0);
-  }
-
-
-  private static final long MAX = 4l * 1024 * 1024 * 1024;
-  /**
-   * The constant METRICS.
-   */
-  public static final LoadingCache<Integer, GpuStats> METRICS = CacheBuilder.newBuilder().build(new CacheLoader<Integer, GpuStats>() {
-    @Override
-    public GpuStats load(Integer integer) throws Exception {
-      return new GpuStats();
-    }
-  });
-  
-  /**
-   * The Size.
-   */
-  public final long size;
-  private final int deviceId;
-  
-  /**
-   * Instantiates a new Cu dnn ptr.
-   *
-   * @param size     the size
-   * @param deviceId the device id
-   */
-  protected CudaPtr(long size, int deviceId) {
-    super(new Pointer(), JCuda::cudaFree);
-    this.size = size;
-    this.deviceId = deviceId;
-    GpuStats metrics = getGpuStats(deviceId);
-    if (size < 0) {
-      throw new OutOfMemoryError("Allocated block is too large: " + size);
-    }
-    if (size > MAX) {
-      throw new OutOfMemoryError("Allocated block is too large: " + size);
-    }
-    try {
-      CuDNN.handle(cudaMalloc(this.getPtr(), size));
-    } catch (Exception e) {
-      try {
-        long startMemory = metrics.usedMemory.get();
-        System.gc(); // Force any dead objects to be finalized
-        System.runFinalization();
-        long freedMemory = startMemory - metrics.usedMemory.get();
-        CuDNN.handle(cudaMalloc(this.getPtr(), size));
-        System.err.println(String.format("Low GPU Memory while allocating %s bytes; %s freed resulting in %s total (triggered by %s)",
-          size, freedMemory, metrics.usedMemory.get() + size, e.getMessage()));
-      } catch (Exception e2) {
-        throw new com.simiacryptus.mindseye.lang.OutOfMemoryError(String.format("Error allocating %s bytes; %s currently allocated to device %s", size, metrics.usedMemory.get(), deviceId), e2);
-      }
-    }
-    long finalMemory = metrics.usedMemory.addAndGet(size);
-    metrics.peakMemory.updateAndGet(l -> Math.max(finalMemory, l));
-    CuDNN.handle(cudaMemset(this.getPtr(), 0, size));
-  }
-
-  public static GpuStats getGpuStats(int deviceId) {
-    GpuStats devivceMemCtr;
-    try {
-      devivceMemCtr = METRICS.get(deviceId);
-    } catch (ExecutionException e) {
-      throw new RuntimeException(e.getCause());
-    }
-    return devivceMemCtr;
-  }
-  
-  @Override
-  protected void free() {
-    if(isActiveObj()) {
-      super.free();
-      getGpuStats(deviceId).usedMemory.addAndGet(-size);
-    }
-  }
-  
-  /**
-   * Instantiates a new Cu dnn ptr.
-   *
-   * @param ptr      the ptr
-   * @param size     the size
-   * @param deviceId the device id
-   */
-  protected CudaPtr(Pointer ptr, long size, int deviceId) {
-    super(ptr, x -> 0);
-    this.size = size;
-    this.deviceId = deviceId;
-  }
-  
-  /**
-   * Copy cuda ptr.
-   *
-   * @return the cuda ptr
-   */
-  public CudaPtr copy() {
-    CudaPtr copy = new CudaPtr(size, deviceId);
-    CuDNN.handle(cudaMemcpy(getPtr(), copy.getPtr(), size, cudaMemcpyDeviceToDevice));
-    return copy;
-  }
-  
-  private static Object pciBusLock = new Object();
-  
-  /**
-   * Write cu dnn ptr.
-   *
-   * @param data the data
-   * @return the cu dnn ptr
-   */
-  public CudaPtr write(float[] data) {
-    synchronized (getPciBusLock()) {
-      if (this.size != data.length * Sizeof.FLOAT) throw new IllegalArgumentException();
-      CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
-      getGpuStats(deviceId).memoryWrites.addAndGet(size);
-      return this;
-    }
-  }
-  
-  /**
-   * Write cu dnn ptr.
-   *
-   * @param data the data
-   * @return the cu dnn ptr
-   */
-  public CudaPtr write(double[] data) {
-    synchronized (getPciBusLock()) {
-      if (this.size != data.length * Sizeof.DOUBLE) throw new IllegalArgumentException();
-      CuDNN.handle(cudaMemcpy(getPtr(), Pointer.to(data), size, cudaMemcpyHostToDevice));
-      getGpuStats(deviceId).memoryWrites.addAndGet(size);
-      return this;
-    }
-  }
-  
-  /**
-   * Read cu dnn ptr.
-   *
-   * @param data the data
-   * @return the cu dnn ptr
-   */
-  public CudaPtr read(double[] data) {
-    synchronized (getPciBusLock()) {
-      if (this.size != data.length * Sizeof.DOUBLE) {
-        throw new IllegalArgumentException(this.size + " != " + data.length * Sizeof.DOUBLE);
-      }
-      CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
-      getGpuStats(deviceId).memoryReads.addAndGet(size);
-      return this;
-    }
-  }
-  
-  /**
-   * Read cu dnn ptr.
-   *
-   * @param data the data
-   * @return the cu dnn ptr
-   */
-  public CudaPtr read(float[] data) {
-    synchronized (getPciBusLock()) {
-      if (this.size != data.length * 1l * Sizeof.FLOAT) throw new IllegalArgumentException(this.size + " != " + (data.length * 1l * Sizeof.FLOAT));
-      CuDNN.handle(cudaMemcpy(Pointer.to(data), getPtr(), size, cudaMemcpyDeviceToHost));
-      getGpuStats(deviceId).memoryReads.addAndGet(size);
-      return this;
-    }
   }
 }

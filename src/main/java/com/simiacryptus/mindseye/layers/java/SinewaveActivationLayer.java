@@ -22,28 +22,14 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The type Sigmoid activation layer.
+ * The type Sinewave activation layer.
  */
 public final class SinewaveActivationLayer extends SimpleActivationLayer<SinewaveActivationLayer> {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("balanced",balanced);
-    return json;
-  }
-
+  private boolean balanced = true;
+  
   /**
-   * From json sigmoid activation layer.
-   *
-   * @param json the json
-   * @return the sigmoid activation layer
-   */
-  public static SinewaveActivationLayer fromJson(JsonObject json) {
-    return new SinewaveActivationLayer(json);
-  }
-
-  /**
-   * Instantiates a new Sigmoid activation layer.
+   * Instantiates a new Sinewave activation layer.
    *
    * @param id the id
    */
@@ -52,12 +38,26 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
     balanced = id.get("balanced").getAsBoolean();
   }
   
-  private boolean balanced = true;
-  
   /**
-   * Instantiates a new Sigmoid activation layer.
+   * Instantiates a new Sinewave activation layer.
    */
   public SinewaveActivationLayer() {
+  }
+  
+  /**
+   * From json sinewave activation layer.
+   *
+   * @param json the json
+   * @return the sinewave activation layer
+   */
+  public static SinewaveActivationLayer fromJson(JsonObject json) {
+    return new SinewaveActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("balanced", balanced);
+    return json;
   }
   
   @Override

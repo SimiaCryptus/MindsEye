@@ -33,28 +33,16 @@ import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Img band bias layer.
+ * The type Img band scale layer.
  */
 public class ImgBandScaleLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getWieghts()));
-    return json;
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(ImgBandScaleLayer.class);
+  private final double[] wieghts;
   
   /**
-   * From json img band bias layer.
-   *
-   * @param json the json
-   * @return the img band bias layer
-   */
-  public static ImgBandScaleLayer fromJson(JsonObject json) {
-    return new ImgBandScaleLayer(json);
-  }
-  
-  /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img band scale layer.
    *
    * @param json the json
    */
@@ -63,22 +51,17 @@ public class ImgBandScaleLayer extends NNLayer {
     this.wieghts = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ImgBandScaleLayer.class);
-  
-  
-  private final double[] wieghts;
-  
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img band scale layer.
    */
   protected ImgBandScaleLayer() {
     super();
     this.wieghts = null;
   }
   
+  
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img band scale layer.
    *
    * @param bands the bands
    */
@@ -88,11 +71,21 @@ public class ImgBandScaleLayer extends NNLayer {
   }
   
   /**
-   * Add double [ ].
+   * From json img band scale layer.
    *
-   * @param input the input
-   * @return the double [ ]
+   * @param json the json
+   * @return the img band scale layer
    */
+  public static ImgBandScaleLayer fromJson(JsonObject json) {
+    return new ImgBandScaleLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("bias", JsonUtil.getJson(getWieghts()));
+    return json;
+  }
+  
   private double[] fn(final double[] input) {
     assert Arrays.stream(input).allMatch(v -> Double.isFinite(v));
     assert (null != input);
@@ -109,10 +102,10 @@ public class ImgBandScaleLayer extends NNLayer {
   }
   
   /**
-   * Add weights img band bias layer.
+   * Add weights img band scale layer.
    *
    * @param f the f
-   * @return the img band bias layer
+   * @return the img band scale layer
    */
   public ImgBandScaleLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.getWieghts());
@@ -134,17 +127,17 @@ public class ImgBandScaleLayer extends NNLayer {
     final double[] bias = getWieghts();
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     Tensor[] outputA = input.getData().stream().parallel()
-                         .map(r -> {
-                           if (r.getDimensions().length != 3) {
-                             throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
-                           }
-                           if (r.getDimensions()[2] != bias.length) {
-                             throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-                               getName(), Arrays.toString(r.getDimensions()), bias.length));
-                           }
-                           return new Tensor(fn(r.getData()), r.getDimensions());
-                         })
-                         .toArray(i -> new Tensor[i]);
+      .map(r -> {
+        if (r.getDimensions().length != 3) {
+          throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
+        }
+        if (r.getDimensions()[2] != bias.length) {
+          throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
+            getName(), Arrays.toString(r.getDimensions()), bias.length));
+        }
+        return new Tensor(fn(r.getData()), r.getDimensions());
+      })
+      .toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
@@ -152,7 +145,7 @@ public class ImgBandScaleLayer extends NNLayer {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           Delta deltaBuffer = buffer.get(ImgBandScaleLayer.this, bias);
-          IntStream.range(0,data.length()).forEach(index->{
+          IntStream.range(0, data.length()).forEach(index -> {
             final double[] array = TensorMemory.obtain(bias.length);
             double[] signal = data.get(index).getData();
             double[] in = input.getData().get(index).getData();
@@ -168,8 +161,8 @@ public class ImgBandScaleLayer extends NNLayer {
         }
         if (input.isAlive()) {
           input.accumulate(buffer, new TensorArray(data.stream().map(
-            t->t.mapCoords((v,c)->v * bias[c.coords[2]])
-          ).toArray(i->new Tensor[i])));
+            t -> t.mapCoords((v, c) -> v * bias[c.coords[2]])
+          ).toArray(i -> new Tensor[i])));
         }
       }
       
@@ -216,7 +209,7 @@ public class ImgBandScaleLayer extends NNLayer {
   }
   
   /**
-   * Get bias double [ ].
+   * Get wieghts double [ ].
    *
    * @return the double [ ]
    */

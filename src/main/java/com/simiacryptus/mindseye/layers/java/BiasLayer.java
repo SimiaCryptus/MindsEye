@@ -37,10 +37,39 @@ import java.util.function.IntToDoubleFunction;
  */
 public class BiasLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(bias));
-    return json;
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
+  /**
+   * The Bias.
+   */
+  public final double[] bias;
+  
+  /**
+   * Instantiates a new Bias layer.
+   *
+   * @param json the json
+   */
+  protected BiasLayer(JsonObject json) {
+    super(json);
+    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
+  }
+  
+  /**
+   * Instantiates a new Bias layer.
+   */
+  protected BiasLayer() {
+    super();
+    this.bias = null;
+  }
+  
+  
+  /**
+   * Instantiates a new Bias layer.
+   *
+   * @param dims the dims
+   */
+  public BiasLayer(final int... dims) {
+    this.bias = new double[Tensor.dim(dims)];
   }
   
   /**
@@ -53,40 +82,10 @@ public class BiasLayer extends NNLayer {
     return new BiasLayer(json);
   }
   
-  /**
-   * Instantiates a new Bias layer.
-   *
-   * @param json the json
-   */
-  protected BiasLayer(JsonObject json) {
-    super(json);
-    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(BiasLayer.class);
-  
-  
-  /**
-   * The Bias.
-   */
-  public final double[] bias;
-  
-  /**
-   * Instantiates a new Bias layer.
-   */
-  protected BiasLayer() {
-    super();
-    this.bias = null;
-  }
-  
-  /**
-   * Instantiates a new Bias layer.
-   *
-   * @param dims the output dims
-   */
-  public BiasLayer(final int... dims) {
-    this.bias = new double[Tensor.dim(dims)];
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("bias", JsonUtil.getJson(bias));
+    return json;
   }
   
   /**
@@ -97,11 +96,12 @@ public class BiasLayer extends NNLayer {
    */
   public double[] add(final double[] input) {
     final double[] array = TensorMemory.obtain(input.length);
-    if(1 == this.bias.length) {
+    if (1 == this.bias.length) {
       for (int i = 0; i < array.length; i++) {
         array[i] = input[i] + this.bias[0];
       }
-    } else {
+    }
+    else {
       for (int i = 0; i < array.length; i++) {
         array[i] = input[i] + this.bias[i];
       }
@@ -131,20 +131,21 @@ public class BiasLayer extends NNLayer {
       input = inObj[0].getData();
     }
     Tensor[] outputA = input.stream().parallel()
-                         .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
-                         .toArray(i -> new Tensor[i]);
+      .map(r -> new Tensor(add(r.getData()), r.getDimensions()))
+      .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           Delta deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
-          if(1 == BiasLayer.this.bias.length) {
+          if (1 == BiasLayer.this.bias.length) {
             data.stream().parallel().forEach(d -> {
               double[] array = d.getData();
-              deltaBuffer.accumulate(1==array.length?array:new double[]{Arrays.stream(array).sum()});
+              deltaBuffer.accumulate(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
             });
-          } else {
+          }
+          else {
             data.stream().parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
           }
         }

@@ -32,20 +32,8 @@ import org.slf4j.LoggerFactory;
 public class DropoutNoiseLayer extends PipelineNetwork implements StochasticComponent {
   
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJson();
-    return json;
-  }
-  
-  /**
-   * From json dropout noise layer.
-   *
-   * @param json the json
-   * @return the dropout noise layer
-   */
-  public static DropoutNoiseLayer fromJson(JsonObject json) {
-    return new DropoutNoiseLayer(json);
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(DropoutNoiseLayer.class);
   
   /**
    * Instantiates a new Dropout noise layer.
@@ -55,9 +43,6 @@ public class DropoutNoiseLayer extends PipelineNetwork implements StochasticComp
   protected DropoutNoiseLayer(JsonObject json) {
     super(json);
   }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(DropoutNoiseLayer.class);
   
   /**
    * Instantiates a new Dropout noise layer.
@@ -80,6 +65,21 @@ public class DropoutNoiseLayer extends PipelineNetwork implements StochasticComp
   }
   
   /**
+   * From json dropout noise layer.
+   *
+   * @param json the json
+   * @return the dropout noise layer
+   */
+  public static DropoutNoiseLayer fromJson(JsonObject json) {
+    return new DropoutNoiseLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJson();
+    return json;
+  }
+  
+  /**
    * Gets value.
    *
    * @return the value
@@ -99,9 +99,6 @@ public class DropoutNoiseLayer extends PipelineNetwork implements StochasticComp
     return this;
   }
   
-  /**
-   * Shuffle.
-   */
   @Override
   public void shuffle() {
     visitLayers(layer -> {

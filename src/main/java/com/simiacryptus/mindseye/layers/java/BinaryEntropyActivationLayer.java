@@ -22,26 +22,12 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 
 /**
- * The type Log activation layer.
+ * The type Binary entropy activation layer.
  */
 public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<BinaryEntropyActivationLayer> {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-
   /**
-   * From json log activation layer.
-   *
-   * @param json the json
-   * @return the log activation layer
-   */
-  public static BinaryEntropyActivationLayer fromJson(JsonObject json) {
-    return new BinaryEntropyActivationLayer(json);
-  }
-
-  /**
-   * Instantiates a new Log activation layer.
+   * Instantiates a new Binary entropy activation layer.
    *
    * @param id the id
    */
@@ -50,16 +36,30 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
   }
   
   /**
-   * Instantiates a new Log activation layer.
+   * Instantiates a new Binary entropy activation layer.
    */
   public BinaryEntropyActivationLayer() {
+  }
+  
+  /**
+   * From json binary entropy activation layer.
+   *
+   * @param json the json
+   * @return the binary entropy activation layer
+   */
+  public static BinaryEntropyActivationLayer fromJson(JsonObject json) {
+    return new BinaryEntropyActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
-    final double d = 0 == x ? Double.NaN : (Math.log(x) - Math.log(1-x));
-    final double f = (0 >= x || 1 <= x) ? Double.POSITIVE_INFINITY : (x * Math.log(x) + (1-x) * Math.log(1-x));
+    final double d = 0 == x ? Double.NaN : (Math.log(x) - Math.log(1 - x));
+    final double f = (0 >= x || 1 <= x) ? Double.POSITIVE_INFINITY : (x * Math.log(x) + (1 - x) * Math.log(1 - x));
     assert Double.isFinite(d);
     assert minDeriv <= Math.abs(d);
     results[0] = f;

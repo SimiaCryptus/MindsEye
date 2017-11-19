@@ -27,18 +27,13 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
 /**
- * The type Delta buffer.
+ * The type Delta.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Delta {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(Delta.class);
-  
-  /**
-   * The Delta.
-   */
-  protected double[] delta;
   /**
    * The Layer.
    */
@@ -47,12 +42,16 @@ public class Delta {
    * The Target.
    */
   public final double[] target;
+  /**
+   * The Delta.
+   */
+  protected double[] delta;
   
   /**
-   * Instantiates a new Delta buffer.
+   * Instantiates a new Delta.
    *
-   * @param target the values
-   * @param delta  the array
+   * @param target the target
+   * @param delta  the delta
    * @param layer  the layer
    */
   public Delta(final double[] target, final double[] delta, final NNLayer layer) {
@@ -64,7 +63,7 @@ public class Delta {
   }
   
   /**
-   * Instantiates a new Delta buffer.
+   * Instantiates a new Delta.
    *
    * @param values the values
    * @param layer  the layer
@@ -78,10 +77,35 @@ public class Delta {
   }
   
   /**
-   * Accumulate delta buffer.
+   * Accumulate.
+   *
+   * @param data  the data
+   * @param delta the delta
+   */
+  public static void accumulate(double[] data, double[] delta) {
+    Arrays.parallelSetAll(data, i -> data[i] + delta[i]);
+  }
+  
+  /**
+   * Are equal boolean.
+   *
+   * @param l the l
+   * @param r the r
+   * @return the boolean
+   */
+  public static boolean areEqual(double[] l, double[] r) {
+    assert (r.length == l.length);
+    for (int i = 0; i < r.length; i++) {
+      if (r[i] != l[i]) return false;
+    }
+    return true;
+  }
+  
+  /**
+   * Accumulate delta.
    *
    * @param data the data
-   * @return the delta buffer
+   * @return the delta
    */
   public Delta accumulate(final double[] data) {
     //assert Arrays.stream(data).allMatch(Double::isFinite);
@@ -91,10 +115,12 @@ public class Delta {
     return this;
   }
   
-  public static void accumulate(double[] data, double[] delta) {
-    Arrays.parallelSetAll(data, i -> data[i] + delta[i]);
-  }
-  
+  /**
+   * Set delta.
+   *
+   * @param data the data
+   * @return the delta
+   */
   public Delta set(final double[] data) {
     assert Arrays.stream(data).allMatch(Double::isFinite);
     Arrays.parallelSetAll(this.getDelta(), i -> data[i]);
@@ -139,20 +165,20 @@ public class Delta {
   }
   
   /**
-   * Map delta buffer.
+   * Map delta.
    *
    * @param mapper the mapper
-   * @return the delta buffer
+   * @return the delta
    */
   public Delta map(final DoubleUnaryOperator mapper) {
     return new Delta(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
   }
   
   /**
-   * Scale delta buffer.
+   * Scale delta.
    *
    * @param f the f
-   * @return the delta buffer
+   * @return the delta
    */
   public Delta scale(final double f) {
     return map(x -> x * f);
@@ -170,11 +196,11 @@ public class Delta {
   }
   
   /**
-   * Write.
+   * Accumulate.
    *
    * @param factor the factor
    */
-  public synchronized final void accumulate(final double factor) {
+  public final synchronized void accumulate(final double factor) {
     assert Arrays.stream(target).allMatch(Double::isFinite);
     double[] calcVector = this.getDelta();
     if (null == calcVector) {
@@ -194,7 +220,7 @@ public class Delta {
   /**
    * Overwrite.
    */
-  public synchronized final void overwrite() {
+  public final synchronized void overwrite() {
     final int dim = length();
     for (int i = 0; i < dim; i++) {
       this.target[i] = this.getDelta()[i];
@@ -237,16 +263,16 @@ public class Delta {
   }
   
   /**
-   * Copy delta buffer.
+   * Copy delta.
    *
-   * @return the delta buffer
+   * @return the delta
    */
   public Delta copy() {
     return new Delta(target, copyDelta(), layer);
   }
   
   /**
-   * The Delta.
+   * Get delta double [ ].
    *
    * @return the double [ ]
    */
@@ -261,21 +287,6 @@ public class Delta {
    */
   public boolean areEqual() {
     return areEqual(getDelta(), target);
-  }
-  
-  /**
-   * Are equal boolean.
-   *
-   * @param l the l
-   * @param r the r
-   * @return the boolean
-   */
-  public static boolean areEqual(double[] l, double[] r) {
-    assert (r.length == l.length);
-    for (int i = 0; i < r.length; i++) {
-      if (r[i] != l[i]) return false;
-    }
-    return true;
   }
   
 }

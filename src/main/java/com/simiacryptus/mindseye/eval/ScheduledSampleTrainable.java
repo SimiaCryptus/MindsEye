@@ -21,9 +21,9 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
-import com.simiacryptus.util.Util;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -33,33 +33,6 @@ import java.util.stream.Stream;
  * The type Scheduled sample trainable.
  */
 public class ScheduledSampleTrainable implements Trainable {
-  
-  /**
-   * Sqrt scheduled sample trainable.
-   *
-   * @param trainingData    the training data
-   * @param network         the network
-   * @param trainingSize    the training size
-   * @param initialIncrease the initial increase
-   * @return the scheduled sample trainable
-   */
-  public static ScheduledSampleTrainable Sqrt(Tensor[][] trainingData, NNLayer network, int trainingSize, double initialIncrease) {
-    return Pow(trainingData, network, trainingSize, initialIncrease, -0.5);
-  }
-  
-  /**
-   * Pow scheduled sample trainable.
-   *
-   * @param trainingData    the training data
-   * @param network         the network
-   * @param trainingSize    the training size
-   * @param initialIncrease the initial increase
-   * @param pow             the pow
-   * @return the scheduled sample trainable
-   */
-  public static ScheduledSampleTrainable Pow(Tensor[][] trainingData, NNLayer network, int trainingSize, double initialIncrease, double pow) {
-    return new ScheduledSampleTrainable(trainingData, network, trainingSize, initialIncrease / Math.pow(trainingSize, pow)).setIncreasePower(pow);
-  }
   
   private final Tensor[][] trainingData;
   private final NNLayer network;
@@ -86,6 +59,33 @@ public class ScheduledSampleTrainable implements Trainable {
     this.trainingSize = trainingSize;
     this.increaseMultiplier = increaseMultiplier;
     resetSampling();
+  }
+  
+  /**
+   * Sqrt scheduled sample trainable.
+   *
+   * @param trainingData    the training data
+   * @param network         the network
+   * @param trainingSize    the training size
+   * @param initialIncrease the initial increase
+   * @return the scheduled sample trainable
+   */
+  public static ScheduledSampleTrainable Sqrt(Tensor[][] trainingData, NNLayer network, int trainingSize, double initialIncrease) {
+    return Pow(trainingData, network, trainingSize, initialIncrease, -0.5);
+  }
+  
+  /**
+   * Pow scheduled sample trainable.
+   *
+   * @param trainingData    the training data
+   * @param network         the network
+   * @param trainingSize    the training size
+   * @param initialIncrease the initial increase
+   * @param pow             the pow
+   * @return the scheduled sample trainable
+   */
+  public static ScheduledSampleTrainable Pow(Tensor[][] trainingData, NNLayer network, int trainingSize, double initialIncrease, double pow) {
+    return new ScheduledSampleTrainable(trainingData, network, trainingSize, initialIncrease / Math.pow(trainingSize, pow)).setIncreasePower(pow);
   }
   
   @Override
@@ -131,6 +131,17 @@ public class ScheduledSampleTrainable implements Trainable {
    * @param trainingSize the training size
    * @return the training size
    */
+  public ScheduledSampleTrainable setTrainingSize(double trainingSize) {
+    this.trainingSize = trainingSize;
+    return this;
+  }
+  
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
   public ScheduledSampleTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
     refreshSampledData();
@@ -153,18 +164,7 @@ public class ScheduledSampleTrainable implements Trainable {
       stream = stream.sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash));
     }
     this.sampledData = stream.limit((long) Math.min(Math.max(getTrainingSize(), trainingSizeMin), trainingSizeMax)) //
-                         .toArray(i -> new Tensor[i][]);
-  }
-  
-  /**
-   * Sets training size.
-   *
-   * @param trainingSize the training size
-   * @return the training size
-   */
-  public ScheduledSampleTrainable setTrainingSize(double trainingSize) {
-    this.trainingSize = trainingSize;
-    return this;
+      .toArray(i -> new Tensor[i][]);
   }
   
   /**

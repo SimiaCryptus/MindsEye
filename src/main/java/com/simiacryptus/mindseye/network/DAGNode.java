@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network.graph;
+package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
@@ -42,9 +42,16 @@ public interface DAGNode extends Serializable {
   /**
    * Gets layer.
    *
+   * @param <T> the type parameter
    * @return the layer
    */
   <T extends NNLayer> T getLayer();
+  
+  /**
+   * Sets layer.
+   *
+   * @param layer the layer
+   */
   void setLayer(NNLayer layer);
   
   /**
@@ -54,7 +61,7 @@ public interface DAGNode extends Serializable {
    * @param buildExeCtx the build exe ctx
    * @return the nn result
    */
-  NNResult get(NNExecutionContext nncontext, EvaluationContext buildExeCtx);
+  NNResult get(NNExecutionContext nncontext, GraphEvaluationContext buildExeCtx);
   
   
   /**

@@ -47,6 +47,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
    * The Inner.
    */
   public final OrientationStrategy inner;
+  private final List<PointSample> history = new LinkedList<>();
   private int maxHistory = 10;
   
   /**
@@ -65,12 +66,22 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
     this.inner = inner;
   }
   
+  /**
+   * Dot double.
+   *
+   * @param a the a
+   * @param b the b
+   * @return the double
+   */
+  public static double dot(List<Delta> a, List<Delta> b) {
+    assert (a.size() == b.size());
+    return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
+  }
+  
   @Override
   public void reset() {
     inner.reset();
   }
-  
-  private final List<PointSample> history = new LinkedList<>();
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
@@ -82,7 +93,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
       public String getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
       }
-
+      
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
         cursor.reset();
@@ -92,7 +103,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
         PointSample sample = subject.measure(true, monitor).setRate(alpha);
         return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));
       }
-
+      
       @Override
       public DeltaSet position(double alpha) {
         reset();
@@ -100,7 +111,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
         project(adjustedPosVector, new TrainingMonitor());
         return adjustedPosVector;
       }
-
+      
       public DeltaSet project(DeltaSet deltaSet, TrainingMonitor monitor) {
         DeltaSet originalAlphaDerivative = cursor.direction;
         DeltaSet newAlphaDerivative = originalAlphaDerivative.copy();
@@ -141,14 +152,14 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
 //                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
                 }
               }
-
-
+              
+              
             }
           }
         });
         return newAlphaDerivative;
       }
-
+      
       @Override
       public void reset() {
         cursor.reset();
@@ -163,18 +174,6 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
    * @return the region policy
    */
   public abstract TrustRegion getRegionPolicy(NNLayer layer);
-  
-  /**
-   * Dot double.
-   *
-   * @param a the a
-   * @param b the b
-   * @return the double
-   */
-  public static double dot(List<Delta> a, List<Delta> b) {
-    assert (a.size() == b.size());
-    return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
-  }
   
   /**
    * Gets max history.

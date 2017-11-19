@@ -21,31 +21,25 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
 /**
- * The type Std dev meta layer.
+ * The type Normalization meta layer.
  */
 @SuppressWarnings("serial")
 public class NormalizationMetaLayer extends DAGNetwork {
   
-  /**
-   * From json nn layer.
-   *
-   * @param inner the inner
-   * @return the nn layer
-   */
-  public static NNLayer fromJson(JsonObject inner) {
-    return new NormalizationMetaLayer(inner);
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(NormalizationMetaLayer.class);
+  private final DAGNode head;
   
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Normalization meta layer.
    *
    * @param json the json
    */
@@ -54,12 +48,8 @@ public class NormalizationMetaLayer extends DAGNetwork {
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(NormalizationMetaLayer.class);
-  private final DAGNode head;
-  
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Normalization meta layer.
    */
   public NormalizationMetaLayer() {
     super(1);
@@ -105,8 +95,18 @@ public class NormalizationMetaLayer extends DAGNetwork {
         )
       )
     );
-  
+    
     this.head = rescaled1;
+  }
+  
+  /**
+   * From json nn layer.
+   *
+   * @param inner the inner
+   * @return the nn layer
+   */
+  public static NNLayer fromJson(JsonObject inner) {
+    return new NormalizationMetaLayer(inner);
   }
   
   @Override

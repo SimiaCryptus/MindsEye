@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Array trainable.
+ * The type Batched trainable.
  */
 public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> implements DataTrainable {
   
@@ -38,7 +38,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   protected final int batchSize;
   
   /**
-   * Instantiates a new Array trainable.
+   * Instantiates a new Batched trainable.
    *
    * @param network   the network
    * @param batchSize the batch size
@@ -47,6 +47,12 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
     this(new GpuTrainable(network), batchSize);
   }
   
+  /**
+   * Instantiates a new Batched trainable.
+   *
+   * @param inner     the inner
+   * @param batchSize the batch size
+   */
   public BatchedTrainable(DataTrainable inner, int batchSize) {
     super(inner);
     this.batchSize = batchSize;
@@ -55,18 +61,19 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   @Override
   public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     List<Tensor[]> tensors = Arrays.asList(getData());
-    if(batchSize < tensors.size()) {
+    if (batchSize < tensors.size()) {
       int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
       int evenBatchSize = (int) Math.ceil(tensors.size() * 1.0 / batches);
       List<List<Tensor[]>> collection = Lists.partition(tensors, evenBatchSize);
       return collection.stream().map(trainingData -> {
-        if(batchSize < trainingData.size()) {
+        if (batchSize < trainingData.size()) {
           throw new RuntimeException();
         }
         getInner().setData(trainingData);
         return super.measure(isStatic, monitor);
       }).reduce((a, b) -> a.add(b)).get();
-    } else {
+    }
+    else {
       getInner().setData(tensors);
       return super.measure(isStatic, monitor);
     }

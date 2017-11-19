@@ -19,14 +19,16 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Bias layer test.
  */
 public class BiasLayerTest {
+  /**
+   * The type Normal.
+   */
   public static class Normal extends LayerTestBase {
     
     @Override
@@ -42,6 +44,9 @@ public class BiasLayerTest {
     }
   }
   
+  /**
+   * The type Reducing.
+   */
   public static class Reducing extends LayerTestBase {
     
     @Override

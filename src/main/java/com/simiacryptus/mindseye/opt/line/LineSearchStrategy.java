@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * Created by Andrew Charneski on 5/6/2017.
+ * The interface Line search strategy.
  */
 public interface LineSearchStrategy {
   

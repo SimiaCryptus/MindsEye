@@ -33,20 +33,9 @@ import java.util.List;
 @SuppressWarnings("serial")
 public class CrossDotMetaLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-
-  /**
-   * From json cross dot meta layer.
-   *
-   * @param json the json
-   * @return the cross dot meta layer
-   */
-  public static CrossDotMetaLayer fromJson(JsonObject json) {
-    return new CrossDotMetaLayer(json);
-  }
-
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);
+  
   /**
    * Instantiates a new Cross dot meta layer.
    *
@@ -56,13 +45,24 @@ public class CrossDotMetaLayer extends NNLayer {
     super(id);
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);
-  
   /**
    * Instantiates a new Cross dot meta layer.
    */
   public CrossDotMetaLayer() {
+  }
+  
+  /**
+   * From json cross dot meta layer.
+   *
+   * @param json the json
+   * @return the cross dot meta layer
+   */
+  public static CrossDotMetaLayer fromJson(JsonObject json) {
+    return new CrossDotMetaLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -101,8 +101,8 @@ public class CrossDotMetaLayer extends NNLayer {
               }
             }
           }
-
-
+          
+          
           input.accumulate(buffer, new TensorArray(feedback));
         }
       }

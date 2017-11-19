@@ -29,22 +29,6 @@ import java.util.List;
  */
 public class VariableLayer extends WrapperLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("inner", getInner().getJson());
-    return json;
-  }
-
-  /**
-   * From json variable layer.
-   *
-   * @param json the json
-   * @return the variable layer
-   */
-  public static VariableLayer fromJson(JsonObject json) {
-    return new VariableLayer(json);
-  }
-
   /**
    * Instantiates a new Variable layer.
    *
@@ -63,12 +47,28 @@ public class VariableLayer extends WrapperLayer {
     super();
     setInner(inner);
   }
-
+  
+  /**
+   * From json variable layer.
+   *
+   * @param json the json
+   * @return the variable layer
+   */
+  public static VariableLayer fromJson(JsonObject json) {
+    return new VariableLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("inner", getInner().getJson());
+    return json;
+  }
+  
   @Override
   public List<NNLayer> getChildren() {
     return super.getChildren();
   }
-
+  
   /**
    * Sets inner.
    *
@@ -77,5 +77,5 @@ public class VariableLayer extends WrapperLayer {
   public final void setInner(final NNLayer inner) {
     this.inner = inner;
   }
-
+  
 }

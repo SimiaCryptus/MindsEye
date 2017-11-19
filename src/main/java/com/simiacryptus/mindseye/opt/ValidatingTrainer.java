@@ -42,17 +42,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * The type Iterative trainer.
+ * The type Validating trainer.
  */
 public class ValidatingTrainer {
   
   private final StochasticTrainable trainingSubject;
   private final Trainable validationSubject;
+  private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
+  private final AtomicInteger disappointments = new AtomicInteger(0);
   private Duration timeout;
   private double terminateThreshold;
   private OrientationStrategy orientation = new QQN();
   private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
-  private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -68,13 +69,12 @@ public class ValidatingTrainer {
   private double adjustmentFactor = 0.5;
   private int disappointmentThreshold = 0;
   private double pessimism = 10;
-  private final AtomicInteger disappointments = new AtomicInteger(0);
   private int improvmentStaleThreshold = 3;
   
   /**
-   * Instantiates a new Iterative trainer.
+   * Instantiates a new Validating trainer.
    *
-   * @param trainingSubject   the subject
+   * @param trainingSubject   the training subject
    * @param validationSubject the validation subject
    */
   public ValidatingTrainer(StochasticTrainable trainingSubject, Trainable validationSubject) {
@@ -130,32 +130,35 @@ public class ValidatingTrainer {
       double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(validationDelta), adjustmentFactor);
       double adj2 = Math.pow(epochResult.getOverTrainingCoeff() / getOvertrainingTarget(), adjustmentFactor);
       double validationMean = epochResult.currentValidation.getMean();
-      if(validationMean < lowestValidation) {
+      if (validationMean < lowestValidation) {
         lowestValidation = validationMean;
         lastImprovement = iterationNumber;
       }
       monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement",
         ++epochNumber, epochResult.iterations, epochParams.trainingSize, getMaxTrainingSize(),
-        Math.log(validationDelta)/Math.log(2), Math.log(trainingDelta)/Math.log(2),
+        Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
         epochResult.getOverTrainingCoeff(), adj1, adj2, (iterationNumber - lastImprovement)));
       if (!epochResult.continueTraining) {
         monitor.log(String.format("Training %d epoch halted", epochNumber));
         break;
       }
-      if(epochParams.trainingSize >= getMaxTrainingSize()) {
+      if (epochParams.trainingSize >= getMaxTrainingSize()) {
         double roll = Math.random();
         if (roll > Math.pow((2 - validationDelta), pessimism)) {
           monitor.log(String.format("Training randomly converged: %3f", roll));
           break;
-        } else {
+        }
+        else {
           if ((iterationNumber - lastImprovement) > improvmentStaleThreshold) {
-            if(disappointments.incrementAndGet() > getDisappointmentThreshold()) {
+            if (disappointments.incrementAndGet() > getDisappointmentThreshold()) {
               monitor.log(String.format("Training converged after %s iterations", (iterationNumber - lastImprovement)));
               break;
-            } else {
+            }
+            else {
               monitor.log(String.format("Training failed to converged on %s attempt after %s iterations", disappointments.get(), (iterationNumber - lastImprovement)));
             }
-          } else {
+          }
+          else {
             disappointments.set(0);
           }
         }
@@ -205,7 +208,8 @@ public class ValidatingTrainer {
         boolean reset = reset(epoch.currentPoint.getMean());
         monitor.log(String.format("Training shuffle: %s (%s)", reset, performance));
         return new EpochResult(reset, epochParams.validation, priorPoint, validationSubject.measure(true, monitor), currentPoint, step);
-      } else {
+      }
+      else {
         monitor.log(String.format("Iteration %s complete. Error: %s (%s)", currentIteration.get(), epoch.currentPoint.getMean(), performance));
       }
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
@@ -235,7 +239,9 @@ public class ValidatingTrainer {
     FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
     lineSearchStrategy.step(cursor, monitor);
     PointSample bestPoint = cursor.getBest(monitor).reset();
-    if(bestPoint.getMean() > previousPoint.getMean()) throw new IllegalStateException(bestPoint.getMean() +" > "+previousPoint.getMean());
+    if (bestPoint.getMean() > previousPoint.getMean()) {
+      throw new IllegalStateException(bestPoint.getMean() + " > " + previousPoint.getMean());
+    }
     return new StepResult(previousPoint, bestPoint);
   }
   
@@ -253,20 +259,21 @@ public class ValidatingTrainer {
   /**
    * Should halt boolean.
    *
-   *
-   * @param monitor
+   * @param monitor   the monitor
    * @param timeoutMs the timeout ms
    * @return the boolean
    */
   protected boolean shouldHalt(TrainingMonitor monitor, long timeoutMs) {
     boolean stopTraining = timeoutMs < System.currentTimeMillis();
-    if(timeoutMs < System.currentTimeMillis()) {
+    if (timeoutMs < System.currentTimeMillis()) {
       monitor.log("Training timeout");
       return true;
-    } else if(currentIteration.get() > maxIterations) {
+    }
+    else if (currentIteration.get() > maxIterations) {
       monitor.log("Training iteration overflow");
       return true;
-    } else {
+    }
+    else {
       return false;
     }
   }
@@ -433,19 +440,19 @@ public class ValidatingTrainer {
   }
   
   /**
-   * Gets iterations per sample.
+   * Gets epoch iterations.
    *
-   * @return the iterations per sample
+   * @return the epoch iterations
    */
   public int getEpochIterations() {
     return epochIterations;
   }
   
   /**
-   * Sets iterations per sample.
+   * Sets epoch iterations.
    *
-   * @param epochIterations the iterations per sample
-   * @return the iterations per sample
+   * @param epochIterations the epoch iterations
+   * @return the epoch iterations
    */
   public ValidatingTrainer setEpochIterations(int epochIterations) {
     this.epochIterations = epochIterations;
@@ -641,52 +648,60 @@ public class ValidatingTrainer {
     return this;
   }
   
+  /**
+   * Gets disappointment threshold.
+   *
+   * @return the disappointment threshold
+   */
   public int getDisappointmentThreshold() {
     return disappointmentThreshold;
   }
   
+  /**
+   * Sets disappointment threshold.
+   *
+   * @param disappointmentThreshold the disappointment threshold
+   */
   public void setDisappointmentThreshold(int disappointmentThreshold) {
     this.disappointmentThreshold = disappointmentThreshold;
   }
   
+  /**
+   * Gets pessimism.
+   *
+   * @return the pessimism
+   */
   public double getPessimism() {
     return pessimism;
   }
   
+  /**
+   * Sets pessimism.
+   *
+   * @param pessimism the pessimism
+   * @return the pessimism
+   */
   public ValidatingTrainer setPessimism(double pessimism) {
     this.pessimism = pessimism;
     return this;
   }
   
+  /**
+   * Gets improvment stale threshold.
+   *
+   * @return the improvment stale threshold
+   */
   public int getImprovmentStaleThreshold() {
     return improvmentStaleThreshold;
   }
   
+  /**
+   * Sets improvment stale threshold.
+   *
+   * @param improvmentStaleThreshold the improvment stale threshold
+   */
   public void setImprovmentStaleThreshold(int improvmentStaleThreshold) {
     this.improvmentStaleThreshold = improvmentStaleThreshold;
-  }
-  
-  private class StepResult {
-    /**
-     * The Current point.
-     */
-    PointSample currentPoint;
-    /**
-     * The Previous.
-     */
-    PointSample previous;
-
-    /**
-     * Instantiates a new Step result.
-     *
-     * @param previous     the previous
-     * @param currentPoint the current point
-     */
-    public StepResult(PointSample previous, PointSample currentPoint) {
-      this.currentPoint = currentPoint;
-      this.previous = previous;
-    }
-    
   }
   
   private static class EpochParams {
@@ -703,7 +718,7 @@ public class ValidatingTrainer {
      */
     int trainingSize;
     /**
-     * The Prior validation.
+     * The Validation.
      */
     PointSample validation;
     
@@ -717,7 +732,7 @@ public class ValidatingTrainer {
   }
   
   private static class EpochResult {
-
+  
     /**
      * The Continue training.
      */
@@ -742,7 +757,7 @@ public class ValidatingTrainer {
      * The Iterations.
      */
     int iterations;
-
+  
     /**
      * Instantiates a new Epoch result.
      *
@@ -761,7 +776,7 @@ public class ValidatingTrainer {
       this.continueTraining = continueTraining;
       this.iterations = iterations;
     }
-
+  
     /**
      * Gets over training coeff.
      *
@@ -770,7 +785,7 @@ public class ValidatingTrainer {
     public double getOverTrainingCoeff() {
       return (Math.log(getTrainingDelta()) / Math.log(getValidationDelta()));
     }
-
+  
     /**
      * Gets validation delta.
      *
@@ -779,7 +794,7 @@ public class ValidatingTrainer {
     public double getValidationDelta() {
       return (currentValidation.getMean() / priorValidation.getMean());
     }
-
+  
     /**
      * Gets training delta.
      *
@@ -787,6 +802,29 @@ public class ValidatingTrainer {
      */
     public double getTrainingDelta() {
       return (currentPoint.getMean() / priorPoint.getMean());
+    }
+    
+  }
+  
+  private class StepResult {
+    /**
+     * The Current point.
+     */
+    PointSample currentPoint;
+    /**
+     * The Previous.
+     */
+    PointSample previous;
+  
+    /**
+     * Instantiates a new Step result.
+     *
+     * @param previous     the previous
+     * @param currentPoint the current point
+     */
+    public StepResult(PointSample previous, PointSample currentPoint) {
+      this.currentPoint = currentPoint;
+      this.previous = previous;
     }
     
   }

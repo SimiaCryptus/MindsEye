@@ -45,27 +45,18 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  * The type Convolution layer.
  */
 public class ConvolutionLayer extends NNLayer {
-
-  private transient Map<Integer, GPUDataMirror> stateCache = new HashMap<>();
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("filter", filter.getJson());
-    json.addProperty("simple", simple);
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
-    return json;
-  }
   
   /**
-   * From json convolution layer.
-   *
-   * @param json the json
-   * @return the convolution layer
+   * The Filter.
    */
-  public static ConvolutionLayer fromJson(JsonObject json) {
-    return new ConvolutionLayer(json);
-  }
+  public final Tensor filter;
+  /**
+   * The Simple.
+   */
+  public final boolean simple;
+  private transient Map<Integer, GPUDataMirror> stateCache = new HashMap<>();
+  private int strideX = 1;
+  private int strideY = 1;
   
   /**
    * Instantiates a new Convolution layer.
@@ -80,23 +71,11 @@ public class ConvolutionLayer extends NNLayer {
     this.strideY = json.get("strideY").getAsInt();
   }
   
-  
-  /**
-   * The Filter.
-   */
-  public final Tensor filter;
-  /**
-   * The Simple.
-   */
-  public final boolean simple;
-  private int strideX = 1;
-  private int strideY = 1;
-  
   /**
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this((Tensor) null, true);
+    this(null, true);
   }
   
   /**
@@ -166,6 +145,25 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   /**
+   * From json convolution layer.
+   *
+   * @param json the json
+   * @return the convolution layer
+   */
+  public static ConvolutionLayer fromJson(JsonObject json) {
+    return new ConvolutionLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("filter", filter.getJson());
+    json.addProperty("simple", simple);
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
+    return json;
+  }
+  
+  /**
    * Add weights convolution layer.
    *
    * @param f the f
@@ -183,9 +181,9 @@ public class ConvolutionLayer extends NNLayer {
     final int[] inputSize = input.getDimensions();
     int[] kernelSize = this.filter.getDimensions();
     int length = input.length();
-
+    
     try {
-
+      
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
@@ -194,14 +192,14 @@ public class ConvolutionLayer extends NNLayer {
         simple ? ((kernelSize[1] - 1) / 2) : 0, simple ? ((kernelSize[0] - 1) / 2) : 0,
         strideX, strideY, CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
       int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
-      int[] outputSize = new int[]{outputDims[3], outputDims[2], outputDims[1]};
+      int[] outputSize = {outputDims[3], outputDims[2], outputDims[1]};
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0f);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0f);
-
+      
       CudaPtr filterPtr = getStateCache().computeIfAbsent(((CudaExecutionContext) nncontext).getDeviceNumber(), i -> new GPUDataMirror(filter.dim()))
-                            .uploadAsFloats(((CudaExecutionContext) nncontext).getDeviceNumber(), filter.getData());
+        .uploadAsFloats(((CudaExecutionContext) nncontext).getDeviceNumber(), filter.getData());
       CudaPtr inputData = inObj[0].getGpuFloats(((CudaExecutionContext) nncontext).getDeviceNumber());
       CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputSize) * 1l * length * Sizeof.FLOAT);
       try {
@@ -209,7 +207,7 @@ public class ConvolutionLayer extends NNLayer {
           inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
         CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateForwardWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
           inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-        CuDNN.handle(cudnnConvolutionForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+        CuDNN.handle(cudnnConvolutionForward(((CuDNN) nncontext).cudnnHandle, alpha.getPtr(),
           inputDescriptor.getPtr(), inputData.getPtr(),
           filterDescriptor.getPtr(), filterPtr.getPtr(),
           convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
@@ -219,7 +217,7 @@ public class ConvolutionLayer extends NNLayer {
         throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
       }
       TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
-
+      
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -235,7 +233,7 @@ public class ConvolutionLayer extends NNLayer {
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
               CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateBackwardFilterWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-              CuDNN.handle(cudnnConvolutionBackwardFilter(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+              CuDNN.handle(cudnnConvolutionBackwardFilter(((CuDNN) nncontext).cudnnHandle, alpha.getPtr(),
                 inputDescriptor.getPtr(), inputData.getPtr(),
                 outputDescriptor.getPtr(), errorPtr.getPtr(),
                 convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
@@ -254,7 +252,7 @@ public class ConvolutionLayer extends NNLayer {
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
               CudaPtr workSpace = ((CudaExecutionContext) nncontext).allocateBackwardDataWorkspace(((CudaExecutionContext) nncontext).getDeviceNumber(),
                 inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), algorithm);
-              CuDNN.handle(cudnnConvolutionBackwardData(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, alpha.getPtr(),
+              CuDNN.handle(cudnnConvolutionBackwardData(((CuDNN) nncontext).cudnnHandle, alpha.getPtr(),
                 filterDescriptor.getPtr(), filterPtr.getPtr(),
                 outputDescriptor.getPtr(), errorPtr.getPtr(),
                 convolutionDescriptor.getPtr(), algorithm, workSpace.getPtr(), workSpace.size, beta.getPtr(),
@@ -263,12 +261,12 @@ public class ConvolutionLayer extends NNLayer {
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
-            TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
+            TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) nncontext).cudnnHandle);
             inObj[0].accumulate(buffer, inputBufferTensors);
             inputBuffer.finalize();
           }
         }
-
+        
         @Override
         public boolean isAlive() {
           return inObj[0].isAlive() || !isFrozen();

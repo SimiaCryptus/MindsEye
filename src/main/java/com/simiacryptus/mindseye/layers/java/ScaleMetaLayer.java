@@ -35,20 +35,9 @@ import java.util.stream.IntStream;
 public class ScaleMetaLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-
-  /**
-   * From json scale meta layer.
-   *
-   * @param json the json
-   * @return the scale meta layer
-   */
-  public static ScaleMetaLayer fromJson(JsonObject json) {
-    return new ScaleMetaLayer(json);
-  }
-
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(ScaleMetaLayer.class);
+  
   /**
    * Instantiates a new Scale meta layer.
    *
@@ -58,13 +47,24 @@ public class ScaleMetaLayer extends NNLayer {
     super(id);
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ScaleMetaLayer.class);
-  
   /**
    * Instantiates a new Scale meta layer.
    */
   public ScaleMetaLayer() {
+  }
+  
+  /**
+   * From json scale meta layer.
+   *
+   * @param json the json
+   * @return the scale meta layer
+   */
+  public static ScaleMetaLayer fromJson(JsonObject json) {
+    return new ScaleMetaLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

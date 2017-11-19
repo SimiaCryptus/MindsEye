@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * Created by Andrew Charneski on 5/9/2017.
+ * The interface Line search cursor.
  */
 public interface LineSearchCursor {
   

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 
 /**
- * Created by Andrew Charneski on 5/6/2017.
+ * The interface Orientation strategy.
  */
 public interface OrientationStrategy {
   

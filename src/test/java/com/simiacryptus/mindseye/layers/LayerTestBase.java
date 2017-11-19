@@ -22,8 +22,8 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
 import com.simiacryptus.util.Util;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public abstract class LayerTestBase {
   @Test
   public void testDerivatives() throws Throwable {
     Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> Util.R.get().nextDouble()))
-                                .toArray(i -> new Tensor[i]);
+      .toArray(i -> new Tensor[i]);
     Tensor outputPrototype = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
       (data, exe) -> getLayer().eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));

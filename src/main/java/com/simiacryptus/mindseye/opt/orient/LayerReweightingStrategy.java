@@ -38,46 +38,10 @@ import static com.simiacryptus.util.ArrayUtil.multiply;
 public abstract class LayerReweightingStrategy implements OrientationStrategy {
   
   /**
-   * The type Hash mapCoords layer reweighting strategy.
-   */
-  public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
-
-    private final HashMap<NNLayer, Double> map = new HashMap<>();
-
-    /**
-     * Instantiates a new Hash mapCoords layer reweighting strategy.
-     *
-     * @param inner the inner
-     */
-    public HashMapLayerReweightingStrategy(OrientationStrategy inner) {
-      super(inner);
-    }
-
-    @Override
-    public Double getRegionPolicy(NNLayer layer) {
-      return getMap().get(layer);
-    }
-
-    /**
-     * Gets mapCoords.
-     *
-     * @return the mapCoords
-     */
-    public HashMap<NNLayer, Double> getMap() {
-      return map;
-    }
-
-    @Override
-    public void reset() {
-      inner.reset();
-    }
-  }
-  
-  
-  /**
    * The Inner.
    */
   public final OrientationStrategy inner;
+  
   
   /**
    * Instantiates a new Layer reweighting strategy.
@@ -113,5 +77,41 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
    * @return the region policy
    */
   public abstract Double getRegionPolicy(NNLayer layer);
+  
+  /**
+   * The type Hash map layer reweighting strategy.
+   */
+  public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
+    
+    private final HashMap<NNLayer, Double> map = new HashMap<>();
+  
+    /**
+     * Instantiates a new Hash map layer reweighting strategy.
+     *
+     * @param inner the inner
+     */
+    public HashMapLayerReweightingStrategy(OrientationStrategy inner) {
+      super(inner);
+    }
+    
+    @Override
+    public Double getRegionPolicy(NNLayer layer) {
+      return getMap().get(layer);
+    }
+  
+    /**
+     * Gets map.
+     *
+     * @return the map
+     */
+    public HashMap<NNLayer, Double> getMap() {
+      return map;
+    }
+    
+    @Override
+    public void reset() {
+      inner.reset();
+    }
+  }
   
 }

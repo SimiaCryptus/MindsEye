@@ -33,23 +33,14 @@ import java.util.List;
 @SuppressWarnings("serial")
 public final class WeightExtractor extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("innerId", getInner().getId());
-    json.addProperty("index", index);
-    return json;
-  }
-
   /**
-   * From json weight extractor.
-   *
-   * @param json the json
-   * @return the weight extractor
+   * The Log.
    */
-  public static WeightExtractor fromJson(JsonObject json) {
-    return new WeightExtractor(json);
-  }
-
+  static final Logger log = LoggerFactory.getLogger(WeightExtractor.class);
+  private final int index;
+  private NNLayer inner;
+  private String innerId;
+  
   /**
    * Instantiates a new Weight extractor.
    *
@@ -63,15 +54,6 @@ public final class WeightExtractor extends NNLayer {
   }
   
   /**
-   * The Log.
-   */
-  static final Logger log = LoggerFactory.getLogger(WeightExtractor.class);
-  
-  private NNLayer inner;
-  private String innerId;
-  private final int index;
-
-  /**
    * Instantiates a new Weight extractor.
    *
    * @param index the index
@@ -82,7 +64,24 @@ public final class WeightExtractor extends NNLayer {
     this.index = index;
     this.innerId = inner.getId();
   }
-
+  
+  /**
+   * From json weight extractor.
+   *
+   * @param json the json
+   * @return the weight extractor
+   */
+  public static WeightExtractor fromJson(JsonObject json) {
+    return new WeightExtractor(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("innerId", getInner().getId());
+    json.addProperty("index", index);
+    return json;
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     double[] doubles = getInner().state().get(index);
@@ -100,7 +99,7 @@ public final class WeightExtractor extends NNLayer {
       }
     };
   }
-
+  
   @Override
   public List<double[]> state() {
     return new ArrayList<>();

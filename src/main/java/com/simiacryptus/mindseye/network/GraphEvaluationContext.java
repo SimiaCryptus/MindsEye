@@ -19,12 +19,18 @@
 
 package com.simiacryptus.mindseye.network;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 /**
- * The interface Evolving network.
+ * The type Graph evaluation context.
  */
-public interface EvolvingNetwork {
+class GraphEvaluationContext {
+  
   /**
-   * Next phase.
+   * The Cache.
    */
-  void nextPhase();
+  public final Map<UUID, CountingNNResult> cache = new HashMap<>();
+  
 }

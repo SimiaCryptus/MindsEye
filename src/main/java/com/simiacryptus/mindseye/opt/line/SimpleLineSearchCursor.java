@@ -79,6 +79,17 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     return type;
   }
   
+  /**
+   * Sets direction type.
+   *
+   * @param type the type
+   * @return the direction type
+   */
+  public SimpleLineSearchCursor setDirectionType(String type) {
+    this.type = type;
+    return this;
+  }
+  
   @Override
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
@@ -99,16 +110,5 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   @Override
   public void reset() {
     origin.reset();
-  }
-  
-  /**
-   * Sets direction type.
-   *
-   * @param type the type
-   * @return the direction type
-   */
-  public SimpleLineSearchCursor setDirectionType(String type) {
-    this.type = type;
-    return this;
   }
 }

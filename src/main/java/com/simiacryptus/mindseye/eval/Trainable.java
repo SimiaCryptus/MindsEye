@@ -29,12 +29,17 @@ public interface Trainable {
   /**
    * Measure trainable . point sample.
    *
+   * @param isStatic the is static
+   * @param monitor  the monitor
    * @return the trainable . point sample
-   * @param isStatic
-   * @param monitor
    */
   Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor);
   
+  /**
+   * Cached cached trainable.
+   *
+   * @return the cached trainable
+   */
   default CachedTrainable<? extends Trainable> cached() {
     return new CachedTrainable<>(this);
   }
@@ -57,7 +62,7 @@ public interface Trainable {
   /**
    * The type Point sample.
    */
-  public final class PointSample {
+  final class PointSample {
     /**
      * The Delta.
      */
@@ -67,12 +72,13 @@ public interface Trainable {
      */
     public final DeltaSet weights;
     /**
-     * The Value.
+     * The Sum.
      */
     public final double sum;
+    /**
+     * The Count.
+     */
     public final int count;
-    
-    public double getMean() { return sum / count; }
     /**
      * The Rate.
      */
@@ -83,32 +89,77 @@ public interface Trainable {
      *
      * @param delta   the delta
      * @param weights the weights
-     * @param sum   the value
+     * @param sum     the sum
+     * @param count   the count
      */
     public PointSample(DeltaSet delta, DeltaSet weights, double sum, int count) {
       this(delta, weights, sum, 0.0, count);
     }
-    public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate) {
-      this(delta, weights, sum, rate, 1);
-    }
-    public PointSample(DeltaSet delta, DeltaSet weights, double sum) {
-      this(delta, weights, sum, 1);
-    }
+  
     /**
      * Instantiates a new Point sample.
      *
      * @param delta   the delta
      * @param weights the weights
-     * @param sum   the value
+     * @param sum     the sum
      * @param rate    the rate
      */
+    public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate) {
+      this(delta, weights, sum, rate, 1);
+    }
+  
+    /**
+     * Instantiates a new Point sample.
+     *
+     * @param delta   the delta
+     * @param weights the weights
+     * @param sum     the sum
+     */
+    public PointSample(DeltaSet delta, DeltaSet weights, double sum) {
+      this(delta, weights, sum, 1);
+    }
+  
+    /**
+     * Instantiates a new Point sample.
+     *
+     * @param delta   the delta
+     * @param weights the weights
+     * @param sum     the sum
+     * @param rate    the rate
+     * @param count   the count
+     */
     public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate, int count) {
-      assert(delta.getMap().size() == weights.getMap().size());
+      assert (delta.getMap().size() == weights.getMap().size());
       this.delta = delta;
       this.weights = weights;
       this.sum = sum;
       this.count = count;
       this.setRate(rate);
+    }
+  
+    /**
+     * Add point sample.
+     *
+     * @param left  the left
+     * @param right the right
+     * @return the point sample
+     */
+    public static PointSample add(PointSample left, PointSample right) {
+      assert (left.delta.getMap().size() == left.weights.getMap().size());
+      assert (right.delta.getMap().size() == right.weights.getMap().size());
+      return new PointSample(left.delta.add(right.delta),
+        left.weights.union(right.weights),
+        left.sum + right.sum,
+        left.count + right.count);
+    }
+  
+    /**
+     * Gets mean.
+     *
+     * @return the mean
+     */
+    public double getMean() {
+      return sum / count;
     }
     
     @Override
@@ -139,7 +190,6 @@ public interface Trainable {
       return this;
     }
   
-  
     /**
      * Copy delta point sample.
      *
@@ -159,7 +209,9 @@ public interface Trainable {
     }
   
     /**
-     * Reset.
+     * Reset point sample.
+     *
+     * @return the point sample
      */
     public PointSample reset() {
       weights.stream().forEach(d -> d.overwrite());
@@ -174,15 +226,6 @@ public interface Trainable {
      */
     public PointSample add(PointSample right) {
       return add(this, right);
-    }
-  
-    public static PointSample add(PointSample left, PointSample right) {
-      assert(left.delta.getMap().size() == left.weights.getMap().size());
-      assert(right.delta.getMap().size() == right.weights.getMap().size());
-      return new PointSample(left.delta.add(right.delta),
-                             left.weights.union(right.weights),
-                              left.sum + right.sum,
-                              left.count + right.count);
     }
   }
 }

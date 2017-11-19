@@ -20,8 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -30,8 +28,8 @@ import java.util.stream.IntStream;
  * The type Gpu data mirror.
  */
 public class GPUDataMirror {
+  private final int[] indicies;
   private long fingerprint;
-  private int[] indicies;
   private volatile CudaPtr ptr;
   
   /**
@@ -93,8 +91,8 @@ public class GPUDataMirror {
    */
   public long hashFunction(float[] data) {
     return IntStream.of(indicies).mapToObj(i -> data[i])
-             .mapToInt(Float::floatToIntBits)
-             .reduce((a, b) -> a ^ b).getAsInt();
+      .mapToInt(Float::floatToIntBits)
+      .reduce((a, b) -> a ^ b).getAsInt();
   }
   
   /**
@@ -105,7 +103,7 @@ public class GPUDataMirror {
    */
   public long hashFunction(double[] data) {
     return IntStream.of(indicies).mapToDouble(i -> data[i])
-             .mapToLong(Double::doubleToLongBits)
-             .reduce((a, b) -> a ^ b).getAsLong();
+      .mapToLong(Double::doubleToLongBits)
+      .reduce((a, b) -> a ^ b).getAsLong();
   }
 }

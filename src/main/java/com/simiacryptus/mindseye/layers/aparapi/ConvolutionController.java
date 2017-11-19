@@ -38,20 +38,14 @@ public final class ConvolutionController {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
-  
+  /**
+   * The constant MAX_BUFFER_SIZE.
+   */
+  public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
   private final int[] inputSize;
   private final int[] kernelSize;
   private final int[] outputSize;
   private final boolean simple;
-  
-  /**
-   * Get output dims int [ ].
-   *
-   * @return the int [ ]
-   */
-  public int[] getOutputDims() {
-    return outputSize;
-  }
   
   /**
    * Instantiates a new Convolution controller.
@@ -75,9 +69,7 @@ public final class ConvolutionController {
       else {
         x = 1 + inputSize[i] - kernelSize[i];
       }
-      if (0 >= x) {
-        assert false;
-      }
+      assert 0 < x;
       return x;
     }).toArray();
     assert this.outputSize.length == 3;
@@ -86,9 +78,13 @@ public final class ConvolutionController {
   }
   
   /**
-   * The constant MAX_BUFFER_SIZE.
+   * Get output dims int [ ].
+   *
+   * @return the int [ ]
    */
-  public static int MAX_BUFFER_SIZE = 1 * 1024 * 1024 / 2;
+  public int[] getOutputDims() {
+    return outputSize;
+  }
   
   /**
    * Backprop.
@@ -166,7 +162,7 @@ public final class ConvolutionController {
         throw new ComponentException("Error with " + this, e);
       }
     });
-
+    
   }
   
   /**
@@ -296,7 +292,7 @@ public final class ConvolutionController {
     TensorMemory.recycle(inputBuffer);
     TensorMemory.recycle(outputBuffer);
   }
-
+  
   private void gradient(final double[] input, final double[] weights, int weightSize, final double[] output) {
     assert (0 < input.length);
     assert (0 < weights.length);

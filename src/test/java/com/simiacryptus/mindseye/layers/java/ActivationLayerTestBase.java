@@ -19,13 +19,15 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Activation layer test base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
+  
+  private final NNLayer layer;
   
   /**
    * Instantiates a new Activation layer test base.
@@ -35,8 +37,6 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   public ActivationLayerTestBase(NNLayer layer) {
     this.layer = layer;
   }
-  
-  private final NNLayer layer;
   
   @Override
   public NNLayer getLayer() {

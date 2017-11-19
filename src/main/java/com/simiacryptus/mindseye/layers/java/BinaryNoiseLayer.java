@@ -31,39 +31,10 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * The type Dropout noise layer.
+ * The type Binary noise layer.
  */
 public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   
-  
-  private int[] lastDim = new int[]{};
-  private int lastLength = 0;
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("value", value);
-    return json;
-  }
-  
-  /**
-   * From json dropout noise layer.
-   *
-   * @param json the json
-   * @return the dropout noise layer
-   */
-  public static BinaryNoiseLayer fromJson(JsonObject json) {
-    return new BinaryNoiseLayer(json);
-  }
-
-  /**
-   * Instantiates a new Dropout noise layer.
-   *
-   * @param json the json
-   */
-  protected BinaryNoiseLayer(JsonObject json) {
-    super(json);
-    this.value = json.get("value").getAsDouble();
-  }
   
   /**
    * The constant random.
@@ -74,17 +45,28 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
       return new Random();
     }
   };
-  
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BinaryNoiseLayer.class);
-  
+  private final int[] lastDim = {};
+  private final int lastLength = 0;
   /**
-   * The Seed.
+   * The Mask list.
    */
+  List<Tensor> maskList = new ArrayList<>();
   private double value;
   
   /**
-   * Instantiates a new Dropout noise layer.
+   * Instantiates a new Binary noise layer.
+   *
+   * @param json the json
+   */
+  protected BinaryNoiseLayer(JsonObject json) {
+    super(json);
+    this.value = json.get("value").getAsDouble();
+  }
+  
+  /**
+   * Instantiates a new Binary noise layer.
    *
    * @param value the value
    */
@@ -94,10 +76,26 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   }
   
   /**
-   * Instantiates a new Dropout noise layer.
+   * Instantiates a new Binary noise layer.
    */
   public BinaryNoiseLayer() {
     this(0.5);
+  }
+  
+  /**
+   * From json binary noise layer.
+   *
+   * @param json the json
+   * @return the binary noise layer
+   */
+  public static BinaryNoiseLayer fromJson(JsonObject json) {
+    return new BinaryNoiseLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
   }
   
   /**
@@ -121,19 +119,11 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     return this;
   }
   
-  /**
-   * The Mask list.
-   */
-  List<Tensor> maskList = new ArrayList<>();
-
-  /**
-   * Shuffle.
-   */
   @Override
   public void shuffle() {
     maskList.clear();
   }
-
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     final NNResult input = inObj[0];
@@ -150,7 +140,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
       public void accumulate(DeltaSet buffer, TensorList data) {
         input.accumulate(buffer, new TensorArray());
       }
-
+      
       @Override
       public boolean isAlive() {
         return input.isAlive();

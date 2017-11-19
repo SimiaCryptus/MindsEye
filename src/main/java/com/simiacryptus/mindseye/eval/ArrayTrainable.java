@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.Tensor;
 
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   }
   
   /**
-   * Instantiates a new Static array trainable.
+   * Instantiates a new Array trainable.
    *
    * @param network   the network
    * @param batchSize the batch size

@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;
@@ -43,25 +42,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class MNIST {
   
-  private final static URI source = URI.create("http://yann.lecun.com/exdb/mnist/");
-  
-  private static Stream<byte[]> binaryStream(final String name, final int skip, final int recordSize) throws IOException {
-    InputStream stream = null;
-    try {
-      stream = Util.cache(source.resolve(name));
-    } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-      throw new RuntimeException(e);
-    }
-    byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new java.io.BufferedInputStream(new GZIPInputStream(new java.io.BufferedInputStream(stream))));
-    final DataInputStream in = new DataInputStream(new java.io.ByteArrayInputStream(fileData));
-    in.skip(skip);
-    return toIterator(new BinaryChunkIterator(in, recordSize));
-  }
-  
-  private static <T> Stream<T> toIterator(final Iterator<T> iterator) {
-    return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
-  }
-  
+  private static final URI source = URI.create("http://yann.lecun.com/exdb/mnist/");
   /**
    * The constant training.
    */
@@ -94,7 +75,6 @@ public class MNIST {
       }
     }
   };
-  
   /**
    * The constant validation.
    */
@@ -127,6 +107,23 @@ public class MNIST {
       }
     }
   };
+  
+  private static Stream<byte[]> binaryStream(final String name, final int skip, final int recordSize) throws IOException {
+    InputStream stream = null;
+    try {
+      stream = Util.cache(source.resolve(name));
+    } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+      throw new RuntimeException(e);
+    }
+    byte[] fileData = org.apache.commons.io.IOUtils.toByteArray(new java.io.BufferedInputStream(new GZIPInputStream(new java.io.BufferedInputStream(stream))));
+    final DataInputStream in = new DataInputStream(new java.io.ByteArrayInputStream(fileData));
+    in.skip(skip);
+    return toIterator(new BinaryChunkIterator(in, recordSize));
+  }
+  
+  private static <T> Stream<T> toIterator(final Iterator<T> iterator) {
+    return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
+  }
   
   /**
    * Training data stream stream.

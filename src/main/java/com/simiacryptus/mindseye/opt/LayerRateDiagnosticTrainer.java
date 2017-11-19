@@ -47,41 +47,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LayerRateDiagnosticTrainer {
   
   
-  /**
-   * The type Layer stats.
-   */
-  public static class LayerStats {
-    /**
-     * The Rate.
-     */
-    public final double rate;
-    /**
-     * The Delta.
-     */
-    public final double delta;
-
-    /**
-     * Instantiates a new Layer stats.
-     *
-     * @param rate  the rate
-     * @param delta the delta
-     */
-    public LayerStats(double rate, double delta) {
-      this.rate = rate;
-      this.delta = delta;
-    }
-    
-    @Override
-    public String toString() {
-      final StringBuffer sb = new StringBuffer("{");
-      sb.append("rate=").append(rate);
-      sb.append(", delta=").append(delta);
-      sb.append('}');
-      return sb.toString();
-    }
-  }
-  
   private final Trainable subject;
+  private final Map<NNLayer, LayerStats> layerRates = new HashMap<>();
   private OrientationStrategy orientation;
   private Duration timeout;
   private double terminateThreshold;
@@ -90,7 +57,6 @@ public class LayerRateDiagnosticTrainer {
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
   private boolean strict = false;
-  private final Map<NNLayer, LayerStats> layerRates = new HashMap<>();
   
   /**
    * Instantiates a new Layer rate diagnostic trainer.
@@ -125,9 +91,9 @@ public class LayerRateDiagnosticTrainer {
   }
   
   /**
-   * Run mapCoords.
+   * Run map.
    *
-   * @return the mapCoords
+   * @return the map
    */
   public Map<NNLayer, LayerStats> run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
@@ -412,5 +378,39 @@ public class LayerRateDiagnosticTrainer {
    */
   public Map<NNLayer, LayerStats> getLayerRates() {
     return layerRates;
+  }
+  
+  /**
+   * The type Layer stats.
+   */
+  public static class LayerStats {
+    /**
+     * The Rate.
+     */
+    public final double rate;
+    /**
+     * The Delta.
+     */
+    public final double delta;
+  
+    /**
+     * Instantiates a new Layer stats.
+     *
+     * @param rate  the rate
+     * @param delta the delta
+     */
+    public LayerStats(double rate, double delta) {
+      this.rate = rate;
+      this.delta = delta;
+    }
+    
+    @Override
+    public String toString() {
+      final StringBuffer sb = new StringBuffer("{");
+      sb.append("rate=").append(rate);
+      sb.append(", delta=").append(delta);
+      sb.append('}');
+      return sb.toString();
+    }
   }
 }

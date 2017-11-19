@@ -20,28 +20,23 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SinewaveActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.mnist.MnistTestBase;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * The Basic test optimizer.
+ * The type Lbfgs test.
  */
 public class LBFGSTest extends MnistTestBase {
   
@@ -50,7 +45,7 @@ public class LBFGSTest extends MnistTestBase {
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
-      network.add(new LinearActivationLayer().setScale(1.0/1000));
+      network.add(new LinearActivationLayer().setScale(1.0 / 1000));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{100}));
       network.add(new SinewaveActivationLayer());
       network.add(new FullyConnectedLayer(new int[]{100}, new int[]{10}));
@@ -65,16 +60,16 @@ public class LBFGSTest extends MnistTestBase {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       return new ValidatingTrainer(
-        new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000,10000),
+        new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
         new ArrayTrainable(trainingData, supervisedNetwork).cached()
       )
-               .setMonitor(monitor)
-               //.setOrientation(new ValidatingOrientationStrategy(new LBFGS()))
-               .setOrientation(new LBFGS())
-               .setLineSearchFactory(name -> name.contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch())
-               .setTimeout(30, TimeUnit.MINUTES)
-               .setMaxIterations(500)
-               .run();
+        .setMonitor(monitor)
+        //.setOrientation(new ValidatingOrientationStrategy(new LBFGS()))
+        .setOrientation(new LBFGS())
+        .setLineSearchFactory(name -> name.contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch())
+        .setTimeout(30, TimeUnit.MINUTES)
+        .setMaxIterations(500)
+        .run();
     });
   }
   

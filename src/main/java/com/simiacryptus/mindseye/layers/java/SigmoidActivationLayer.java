@@ -26,22 +26,12 @@ import com.google.gson.JsonObject;
  */
 public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("balanced",balanced);
-    return json;
-  }
-
-  /**
-   * From json sigmoid activation layer.
-   *
-   * @param json the json
-   * @return the sigmoid activation layer
-   */
-  public static SigmoidActivationLayer fromJson(JsonObject json) {
-    return new SigmoidActivationLayer(json);
-  }
-
+  private static final double MIN_X = -20;
+  private static final double MAX_X = -MIN_X;
+  private static final double MAX_F = Math.exp(MAX_X);
+  private static final double MIN_F = Math.exp(MIN_X);
+  private boolean balanced = true;
+  
   /**
    * Instantiates a new Sigmoid activation layer.
    *
@@ -52,16 +42,26 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     balanced = id.get("balanced").getAsBoolean();
   }
   
-  private static final double MIN_X = -20;
-  private static final double MAX_X = -MIN_X;
-  private static final double MAX_F = Math.exp(MAX_X);
-  private static final double MIN_F = Math.exp(MIN_X);
-  private boolean balanced = true;
-  
   /**
    * Instantiates a new Sigmoid activation layer.
    */
   public SigmoidActivationLayer() {
+  }
+  
+  /**
+   * From json sigmoid activation layer.
+   *
+   * @param json the json
+   * @return the sigmoid activation layer
+   */
+  public static SigmoidActivationLayer fromJson(JsonObject json) {
+    return new SigmoidActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("balanced", balanced);
+    return json;
   }
   
   @Override

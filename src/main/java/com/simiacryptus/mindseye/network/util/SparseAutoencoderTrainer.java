@@ -17,14 +17,15 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network;
+package com.simiacryptus.mindseye.network.util;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.java.Sparse01MetaLayer;
 import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.SupervisedNetwork;
 
 /**
  * The type Sparse autoencoder trainer.

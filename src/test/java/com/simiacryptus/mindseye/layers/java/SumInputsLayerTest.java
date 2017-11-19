@@ -19,9 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Sum inputs layer test.
@@ -44,7 +43,7 @@ public class SumInputsLayerTest {
       };
     }
   }
-
+  
   /**
    * The type N 1 test.
    */

@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 /**
- * Quadratic Quasi-Newton strategy
+ * The type Qqn.
  */
 public class QQN extends LBFGS {
   
@@ -44,12 +44,12 @@ public class QQN extends LBFGS {
       DeltaSet scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor"));
       return new LineSearchCursor() {
-
+        
         @Override
         public String getDirectionType() {
           return "QQN";
         }
-
+        
         @Override
         public LineSearchPoint step(double t, TrainingMonitor monitor) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
@@ -61,7 +61,7 @@ public class QQN extends LBFGS {
           DeltaSet tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
-
+        
         @Override
         public DeltaSet position(double t) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();

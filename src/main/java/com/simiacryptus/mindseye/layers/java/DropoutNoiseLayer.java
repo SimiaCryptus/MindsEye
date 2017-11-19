@@ -35,32 +35,6 @@ import java.util.stream.IntStream;
 public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("value", value);
-    return json;
-  }
-  
-  /**
-   * From json dropout noise layer.
-   *
-   * @param json the json
-   * @return the dropout noise layer
-   */
-  public static DropoutNoiseLayer fromJson(JsonObject json) {
-    return new DropoutNoiseLayer(json);
-  }
-  
-  /**
-   * Instantiates a new Dropout noise layer.
-   *
-   * @param json the json
-   */
-  protected DropoutNoiseLayer(JsonObject json) {
-    super(json);
-    this.value = json.get("value").getAsDouble();
-  }
-  
   /**
    * The constant random.
    */
@@ -72,12 +46,21 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   };
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DropoutNoiseLayer.class);
-  
   /**
    * The Seed.
    */
   long seed = random.get().nextLong();
   private double value;
+  
+  /**
+   * Instantiates a new Dropout noise layer.
+   *
+   * @param json the json
+   */
+  protected DropoutNoiseLayer(JsonObject json) {
+    super(json);
+    this.value = json.get("value").getAsDouble();
+  }
   
   /**
    * Instantiates a new Dropout noise layer.
@@ -94,6 +77,22 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
    */
   public DropoutNoiseLayer() {
     this(0.5);
+  }
+  
+  /**
+   * From json dropout noise layer.
+   *
+   * @param json the json
+   * @return the dropout noise layer
+   */
+  public static DropoutNoiseLayer fromJson(JsonObject json) {
+    return new DropoutNoiseLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
   }
   
   /**
@@ -116,9 +115,6 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
     return this;
   }
   
-  /**
-   * Shuffle.
-   */
   @Override
   public void shuffle() {
     seed = random.get().nextLong();

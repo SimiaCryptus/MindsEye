@@ -26,20 +26,6 @@ import com.google.gson.JsonObject;
  */
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-
-  /**
-   * From json sq activation layer.
-   *
-   * @param json the json
-   * @return the sq activation layer
-   */
-  public static SqActivationLayer fromJson(JsonObject json) {
-    return new SqActivationLayer(json);
-  }
-
   /**
    * Instantiates a new Sq activation layer.
    *
@@ -53,6 +39,20 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
    * Instantiates a new Sq activation layer.
    */
   public SqActivationLayer() {
+  }
+  
+  /**
+   * From json sq activation layer.
+   *
+   * @param json the json
+   * @return the sq activation layer
+   */
+  public static SqActivationLayer fromJson(JsonObject json) {
+    return new SqActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

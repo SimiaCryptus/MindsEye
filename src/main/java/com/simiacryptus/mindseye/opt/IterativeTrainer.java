@@ -46,11 +46,11 @@ import java.util.function.Function;
 public class IterativeTrainer {
   
   private final Trainable subject;
+  private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private Duration timeout;
   private double terminateThreshold;
   private OrientationStrategy orientation = new LBFGS();
   private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
-  private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private TrainingMonitor monitor = new TrainingMonitor();
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -130,7 +130,7 @@ public class IterativeTrainer {
           }
         }
         else {
-          monitor.log(String.format("Iteration %s complete. Error: %s " +  perfString, currentIteration.get(), currentPoint.getMean()));
+          monitor.log(String.format("Iteration %s complete. Error: %s " + perfString, currentIteration.get(), currentPoint.getMean()));
         }
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
       }
@@ -139,8 +139,17 @@ public class IterativeTrainer {
     return null == currentPoint ? Double.NaN : currentPoint.getMean();
   }
   
+  /**
+   * Step point sample.
+   *
+   * @param direction     the direction
+   * @param directionType the direction type
+   * @param previous      the previous
+   * @return the point sample
+   */
   public PointSample step(LineSearchCursor direction, String directionType, PointSample previous) {
-    PointSample currentPoint;LineSearchStrategy lineSearchStrategy;
+    PointSample currentPoint;
+    LineSearchStrategy lineSearchStrategy;
     if (lineSearchStrategyMap.containsKey(directionType)) {
       lineSearchStrategy = lineSearchStrategyMap.get(directionType);
     }

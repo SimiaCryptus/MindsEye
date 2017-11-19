@@ -33,8 +33,22 @@ import java.util.stream.IntStream;
  */
 public class MeanSqLossLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
+  
+  /**
+   * Instantiates a new Mean sq loss layer.
+   *
+   * @param id the id
+   */
+  protected MeanSqLossLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Mean sq loss layer.
+   */
+  public MeanSqLossLayer() {
   }
   
   /**
@@ -47,23 +61,8 @@ public class MeanSqLossLayer extends NNLayer {
     return new MeanSqLossLayer(json);
   }
   
-  /**
-   * Instantiates a new Mean sq loss layer.
-   *
-   * @param id the id
-   */
-  protected MeanSqLossLayer(JsonObject id) {
-    super(id);
-  }
-  
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
-  
-  /**
-   * Instantiates a new Mean sq loss layer.
-   */
-  public MeanSqLossLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -87,7 +86,7 @@ public class MeanSqLossLayer extends NNLayer {
       }
       rA[dataIndex] = r;
       final double rms = total / a.dim();
-      return new Tensor(new double[]{rms}, new int[]{1});
+      return new Tensor(new double[]{rms}, 1);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override

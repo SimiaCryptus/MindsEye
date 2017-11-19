@@ -43,27 +43,13 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class PoolingLayer extends NNLayer {
   
-  /**
-   * From json pooling layer.
-   *
-   * @param json the json
-   * @return the pooling layer
-   */
-  public static PoolingLayer fromJson(JsonObject json) {
-    return new PoolingLayer(json);
-  }
-
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode);
-    json.addProperty("windowX", windowX);
-    json.addProperty("windowY", windowY);
-    json.addProperty("paddingX", paddingX);
-    json.addProperty("paddingY", paddingY);
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
-    return json;
-  }
+  private int mode = CUDNN_POOLING_MAX;
+  private int windowX = 2;
+  private int windowY = 2;
+  private int paddingX = 0;
+  private int paddingY = 0;
+  private int strideX = 2;
+  private int strideY = 2;
   
   /**
    * Instantiates a new Pooling layer.
@@ -88,14 +74,28 @@ public class PoolingLayer extends NNLayer {
     super();
   }
   
-  private int mode = CUDNN_POOLING_MAX;
-  private int windowX = 2;
-  private int windowY = 2;
-  private int paddingX = 0;
-  private int paddingY = 0;
-  private int strideX = 2;
-  private int strideY = 2;
+  /**
+   * From json pooling layer.
+   *
+   * @param json the json
+   * @return the pooling layer
+   */
+  public static PoolingLayer fromJson(JsonObject json) {
+    return new PoolingLayer(json);
+  }
 
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("mode", mode);
+    json.addProperty("windowX", windowX);
+    json.addProperty("windowY", windowY);
+    json.addProperty("paddingX", paddingX);
+    json.addProperty("paddingY", paddingY);
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
+    return json;
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     final int poolDims = 2;
@@ -123,7 +123,7 @@ public class PoolingLayer extends NNLayer {
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
       CudaPtr inputData = CudaPtr.toDeviceAsDouble(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.DOUBLE * 1l * Tensor.dim(outputSize));
-      final cudnnHandle cudnnHandle = ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle;
+      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       CuDNN.handle(cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
         alpha.getPtr(),
         inputDescriptor.getPtr(), inputData.getPtr(),
@@ -149,7 +149,7 @@ public class PoolingLayer extends NNLayer {
             input.accumulate(buffer, CudaPtr.fromDeviceDouble(passbackBuffer, length, inputSize, cudnnHandle));
           }
         }
-
+        
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();
@@ -159,8 +159,8 @@ public class PoolingLayer extends NNLayer {
       throw new ComponentException("Error", e);
     }
   }
-
-
+  
+  
   @Override
   public List<double[]> state() {
     return Arrays.asList();

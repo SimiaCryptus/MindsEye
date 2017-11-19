@@ -36,20 +36,9 @@ import java.util.stream.IntStream;
 public class BiasMetaLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-
-  /**
-   * From json bias meta layer.
-   *
-   * @param json the json
-   * @return the bias meta layer
-   */
-  public static BiasMetaLayer fromJson(JsonObject json) {
-    return new BiasMetaLayer(json);
-  }
-
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(BiasMetaLayer.class);
+  
   /**
    * Instantiates a new Bias meta layer.
    *
@@ -59,22 +48,33 @@ public class BiasMetaLayer extends NNLayer {
     super(id);
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(BiasMetaLayer.class);
-  
   /**
    * Instantiates a new Bias meta layer.
    */
   public BiasMetaLayer() {
   }
   
+  /**
+   * From json bias meta layer.
+   *
+   * @param json the json
+   * @return the bias meta layer
+   */
+  public static BiasMetaLayer fromJson(JsonObject json) {
+    return new BiasMetaLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
     Tensor[] tensors = IntStream.range(0, itemCnt)
-                         .parallel()
-                         .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
-                         .toArray(i -> new Tensor[i]);
+      .parallel()
+      .mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v + inObj[1].getData().get(0).get(c)))
+      .toArray(i -> new Tensor[i]);
     return new NNResult(tensors) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
@@ -82,7 +82,7 @@ public class BiasMetaLayer extends NNLayer {
           inObj[0].accumulate(buffer, new TensorArray(data.stream().map(t -> t.mapParallel(v -> v)).toArray(i -> new Tensor[i])));
         }
         if (inObj[1].isAlive()) {
-          final ToDoubleBiFunction<Double,Coordinate> f = (v, c) -> {
+          final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> {
             return IntStream.range(0, itemCnt).mapToDouble(i -> data.get(i).get(c)).sum();
           };
           Tensor passback = tensors[0].mapCoords(f);

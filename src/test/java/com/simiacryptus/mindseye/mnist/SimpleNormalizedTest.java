@@ -19,14 +19,17 @@
 
 package com.simiacryptus.mindseye.mnist;
 
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 
+/**
+ * The type Simple normalized test.
+ */
 public class SimpleNormalizedTest extends LinearTest {
   
   @Override
@@ -36,7 +39,7 @@ public class SimpleNormalizedTest extends LinearTest {
       PipelineNetwork network = null;
       network = new PipelineNetwork();
       network.add(new NormalizationMetaLayer());
-      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(()->1e-8*(Math.random()-0.5)));
+      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}).setWeights(() -> 1e-8 * (Math.random() - 0.5)));
       network.add(new NormalizationMetaLayer());
       network.add(new LinearActivationLayer());
       network.add(new SoftmaxActivationLayer());

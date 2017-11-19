@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Spark trainable. Calculation happens locally without Spark serialization overhead or multi-node compute capability
+ * The type Local spark trainable.
  */
 public class LocalSparkTrainable extends SparkTrainable {
   
@@ -68,20 +68,22 @@ public class LocalSparkTrainable extends SparkTrainable {
       try {
         List<Tensor[]>[] array = javaRDD.collectPartitions(new int[]{partition.index()});
         assert 0 < array.length;
-        if(0 == Arrays.stream(array).mapToInt((List<Tensor[]> x) ->x.size()).sum()) {
+        if (0 == Arrays.stream(array).mapToInt((List<Tensor[]> x) -> x.size()).sum()) {
           return null;
         }
-        assert 0 < Arrays.stream(array).mapToInt(x->x.stream().mapToInt(y->y.length).sum()).sum();
+        assert 0 < Arrays.stream(array).mapToInt(x -> x.stream().mapToInt(y -> y.length).sum()).sum();
         Stream<Tensor[]> stream = Arrays.stream(array).flatMap(i -> i.stream());
         Iterator<Tensor[]> iterator = stream.iterator();
         return new PartitionTask(network).call(iterator).next();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }).filter(x->null!=x).collect(Collectors.toList());
+    }).filter(x -> null != x).collect(Collectors.toList());
     long time2 = System.nanoTime();
     SparkTrainable.ReducableResult result = mapPartitions.stream().reduce(SparkTrainable.ReducableResult::add).get();
-    if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
+    if (isVerbose()) {
+      System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
+    }
     DeltaSet deltaSet = getDelta(result);
     DeltaSet stateSet = new DeltaSet();
     deltaSet.getMap().forEach((layer, layerDelta) -> {

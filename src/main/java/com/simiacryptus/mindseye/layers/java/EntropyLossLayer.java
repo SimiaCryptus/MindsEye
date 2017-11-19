@@ -33,8 +33,22 @@ import java.util.stream.IntStream;
  */
 public class EntropyLossLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
+  
+  /**
+   * Instantiates a new Entropy loss layer.
+   *
+   * @param id the id
+   */
+  protected EntropyLossLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Entropy loss layer.
+   */
+  public EntropyLossLayer() {
   }
   
   /**
@@ -47,22 +61,8 @@ public class EntropyLossLayer extends NNLayer {
     return new EntropyLossLayer(json);
   }
   
-  /**
-   * Instantiates a new Entropy loss layer.
-   *
-   * @param id the id
-   */
-  protected EntropyLossLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
-  
-  /**
-   * Instantiates a new Entropy loss layer.
-   */
-  public EntropyLossLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -92,7 +92,7 @@ public class EntropyLossLayer extends NNLayer {
       assert (total >= 0);
       descriptiveNats = total;
       gradientA[dataIndex] = gradient;
-      return new Tensor(new double[]{descriptiveNats}, new int[]{1});
+      return new Tensor(new double[]{descriptiveNats}, 1);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
@@ -104,7 +104,7 @@ public class EntropyLossLayer extends NNLayer {
             final Tensor l = inObj[0].getData().get(dataIndex);
             final Tensor passback = new Tensor(gradientA[dataIndex].getDimensions());
             for (int i = 0; i < a.getData().get(0).dim(); i++) {
-              passback.set(i, - data.get(dataIndex).get(0) * l.get(i));
+              passback.set(i, -data.get(dataIndex).get(0) * l.get(i));
             }
             return passback;
           }).toArray(i -> new Tensor[i])));

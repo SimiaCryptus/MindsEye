@@ -19,8 +19,10 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.TensorMemory;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -49,14 +51,19 @@ public class CuDNNDoubleTensorList implements TensorList {
    * The Dimensions.
    */
   public final int[] dimensions;
+  /**
+   * The Cudnn handle.
+   */
   protected final jcuda.jcudnn.cudnnHandle cudnnHandle;
+  private volatile TensorList _inner = null;
   
   /**
    * Instantiates a new Cu dnn double tensor list.
    *
-   * @param ptr        the ptr
-   * @param length     the length
-   * @param dimensions the dimensions
+   * @param ptr         the ptr
+   * @param length      the length
+   * @param dimensions  the dimensions
+   * @param cudnnHandle the cudnn handle
    */
   public CuDNNDoubleTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
     this.ptr = ptr;
@@ -67,9 +74,7 @@ public class CuDNNDoubleTensorList implements TensorList {
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
   }
-
-  private volatile TensorList _inner = null;
-
+  
   /**
    * Inner tensor list.
    *
@@ -83,8 +88,8 @@ public class CuDNNDoubleTensorList implements TensorList {
           final double[] outputBuffer = TensorMemory.obtain(itemLength * length);
           assert (0 < outputBuffer.length);
           Tensor[] output = IntStream.range(0, length)
-                              .mapToObj(dataIndex -> new Tensor(dimensions))
-                              .toArray(i -> new Tensor[i]);
+            .mapToObj(dataIndex -> new Tensor(dimensions))
+            .toArray(i -> new Tensor[i]);
           double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
           assert (length == outputBuffers.length);
           ptr.read(outputBuffer);
@@ -116,9 +121,9 @@ public class CuDNNDoubleTensorList implements TensorList {
       return this;
     }
     return new TensorArray(
-                            IntStream.range(0, length()).mapToObj(i -> {
-                              return get(i).add(right.get(i));
-                            }).toArray(i -> new Tensor[i])
+      IntStream.range(0, length()).mapToObj(i -> {
+        return get(i).add(right.get(i));
+      }).toArray(i -> new Tensor[i])
     );
   }
   
@@ -146,12 +151,12 @@ public class CuDNNDoubleTensorList implements TensorList {
   public Tensor get(int i) {
     return inner().get(i);
   }
-
+  
   @Override
   public int length() {
     return length;
   }
-
+  
   @Override
   public Stream<Tensor> stream() {
     return inner().stream();

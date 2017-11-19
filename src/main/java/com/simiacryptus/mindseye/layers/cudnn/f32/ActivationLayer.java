@@ -46,6 +46,40 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class ActivationLayer extends NNLayer {
   /**
+   * The Mode.
+   */
+  final int mode;
+  
+  
+  /**
+   * Instantiates a new Activation layer.
+   *
+   * @param json the json
+   */
+  protected ActivationLayer(JsonObject json) {
+    super(json);
+    mode = json.getAsJsonPrimitive("mode").getAsInt();
+  }
+  
+  /**
+   * Instantiates a new Activation layer.
+   *
+   * @param mode the mode
+   */
+  public ActivationLayer(Mode mode) {
+    this(mode.id);
+  }
+  
+  /**
+   * Instantiates a new Activation layer.
+   *
+   * @param id the id
+   */
+  public ActivationLayer(int id) {
+    this.mode = id;
+  }
+  
+  /**
    * From json activation layer.
    *
    * @param json the json
@@ -53,6 +87,83 @@ public class ActivationLayer extends NNLayer {
    */
   public static ActivationLayer fromJson(JsonObject json) {
     return new ActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("mode", mode);
+    return json;
+  }
+  
+  @Override
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+    ((CudaExecutionContext) nncontext).initThread();
+    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
+    final NNResult input = inObj[0];
+    final TensorList batch = input.getData();
+    final int[] inputSize = batch.getDimensions();
+    int[] outputSize = inputSize;
+    int length = batch.length();
+    int inputDims = Tensor.dim(inputSize);
+    
+    try {
+      
+      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
+        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      
+      CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
+      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.FLOAT * 1l * inputDims * length);
+      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
+      try {
+        CuDNN.handle(cudnnActivationForward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
+          Pointer.to(new float[]{1.0f}),
+          inputDescriptor.getPtr(), inputData.getPtr(),
+          Pointer.to(new float[]{0.0f}),
+          inputDescriptor.getPtr(), outputData.getPtr()));
+      } catch (Throwable e) {
+        throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+      }
+      TensorList output = CudaPtr.fromDeviceFloat(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
+      //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+      return new NNResult(output) {
+        @Override
+        public void accumulate(final DeltaSet buffer, final TensorList error) {
+          //assert (error.length() == batch.length());
+          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
+          ((CudaExecutionContext) nncontext).initThread();
+          CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
+          if (input.isAlive()) {
+            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.FLOAT * length);
+            try {
+              CuDNN.handle(cudnnActivationBackward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
+                Pointer.to(new float[]{1.0f}),
+                inputDescriptor.getPtr(), outputData.getPtr(),
+                inputDescriptor.getPtr(), errorPtr.getPtr(),
+                inputDescriptor.getPtr(), inputData.getPtr(),
+                Pointer.to(new float[]{0.0f}),
+                inputDescriptor.getPtr(), passbackBuffer.getPtr()));
+            } catch (Throwable e) {
+              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
+            }
+            input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize, ((CuDNN) nncontext).cudnnHandle));
+            passbackBuffer.finalize();
+          }
+          outputData.finalize();
+        }
+        
+        @Override
+        public boolean isAlive() {
+          return input.isAlive() || !isFrozen();
+        }
+      };
+    } catch (Throwable e) {
+      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
+    }
+  }
+  
+  @Override
+  public List<double[]> state() {
+    return Arrays.asList();
   }
   
   
@@ -72,121 +183,10 @@ public class ActivationLayer extends NNLayer {
      * The Id.
      */
     public final int id;
-
-    private Mode(int id) {
+    
+    Mode(int id) {
       this.id = id;
     }
   }
-
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode);
-    return json;
-  }
   
-  /**
-   * Instantiates a new Activation layer.
-   *
-   * @param json the json
-   */
-  protected ActivationLayer(JsonObject json) {
-    super(json);
-    mode = json.getAsJsonPrimitive("mode").getAsInt();
-  }
-  
-  /**
-   * The Mode.
-   */
-  final int mode;
-  
-  /**
-   * Instantiates a new Activation layer.
-   *
-   * @param mode the mode
-   */
-  public ActivationLayer(Mode mode) {
-    this(mode.id);
-  }
-  
-  /**
-   * Instantiates a new Activation layer.
-   *
-   * @param id the id
-   */
-  public ActivationLayer(int id) {
-    this.mode = id;
-  }
-
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    ((CudaExecutionContext) nncontext).initThread();
-    //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
-    final NNResult input = inObj[0];
-    final TensorList batch = input.getData();
-    final int[] inputSize = batch.getDimensions();
-    int[] outputSize = inputSize;
-    int length = batch.length();
-    int inputDims = Tensor.dim(inputSize);
-
-    try {
-
-      CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-
-      CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
-      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.FLOAT * 1l * inputDims * length);
-      CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
-      try {
-        CuDNN.handle(cudnnActivationForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, activationDesc.getPtr(),
-          Pointer.to(new float[]{1.0f}),
-          inputDescriptor.getPtr(), inputData.getPtr(),
-          Pointer.to(new float[]{0.0f}),
-          inputDescriptor.getPtr(), outputData.getPtr()));
-      } catch (Throwable e) {
-        throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
-      }
-      TensorList output = CudaPtr.fromDeviceFloat(outputData, length, outputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
-      //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-      return new NNResult(output) {
-        @Override
-        public void accumulate(final DeltaSet buffer, final TensorList error) {
-          //assert (error.length() == batch.length());
-          //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          ((CudaExecutionContext) nncontext).initThread();
-          CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
-          if (input.isAlive()) {
-            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.FLOAT * length);
-            try {
-              CuDNN.handle(cudnnActivationBackward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, activationDesc.getPtr(),
-                Pointer.to(new float[]{1.0f}),
-                inputDescriptor.getPtr(), outputData.getPtr(),
-                inputDescriptor.getPtr(), errorPtr.getPtr(),
-                inputDescriptor.getPtr(), inputData.getPtr(),
-                Pointer.to(new float[]{0.0f}),
-                inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            } catch (Throwable e) {
-              throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
-            }
-            input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle));
-            passbackBuffer.finalize();
-          }
-          outputData.finalize();
-        }
-
-        @Override
-        public boolean isAlive() {
-          return input.isAlive() || !isFrozen();
-        }
-      };
-    } catch (Throwable e) {
-      throw new ComponentException("Error with image res " + Arrays.toString(inputSize), e);
-    }
-  }
-
-
-  @Override
-  public List<double[]> state() {
-    return Arrays.asList();
-  }
-
 }

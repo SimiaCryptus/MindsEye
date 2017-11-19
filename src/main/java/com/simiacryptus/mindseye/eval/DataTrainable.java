@@ -20,15 +20,23 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.Tensor;
 
 import java.util.List;
 
+/**
+ * The interface Data trainable.
+ */
 public interface DataTrainable extends Trainable {
+  /**
+   * Sets data.
+   *
+   * @param tensors the tensors
+   * @return the data
+   */
   Trainable setData(List<Tensor[]> tensors);
   
   /**
-   * Get training data tensor [ ] [ ].
+   * Get data tensor [ ] [ ].
    *
    * @return the tensor [ ] [ ]
    */

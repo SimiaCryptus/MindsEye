@@ -39,22 +39,11 @@ import java.util.stream.IntStream;
  */
 public class MaxSubsampleLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("inner", JsonUtil.getJson(kernelDims));
-    return json;
-  }
+  private static final Function<MaxSubsampleLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxSubsampleLayer::calcRegions);
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
+  private int[] kernelDims;
   
-  /**
-   * From json max subsample layer.
-   *
-   * @param json the json
-   * @return the max subsample layer
-   */
-  public static MaxSubsampleLayer fromJson(JsonObject json) {
-    return new MaxSubsampleLayer(json,
-                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
-  }
   
   /**
    * Instantiates a new Max subsample layer.
@@ -66,12 +55,6 @@ public class MaxSubsampleLayer extends NNLayer {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
-  
-  
-  private static final Function<MaxSubsampleLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxSubsampleLayer::calcRegions);
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(MaxSubsampleLayer.class);
-  private int[] kernelDims;
   
   /**
    * Instantiates a new Max subsample layer.
@@ -88,6 +71,17 @@ public class MaxSubsampleLayer extends NNLayer {
   public MaxSubsampleLayer(final int... kernelDims) {
     
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
+  }
+  
+  /**
+   * From json max subsample layer.
+   *
+   * @param json the json
+   * @return the max subsample layer
+   */
+  public static MaxSubsampleLayer fromJson(JsonObject json) {
+    return new MaxSubsampleLayer(json,
+      JsonUtil.getIntArray(json.getAsJsonArray("inner")));
   }
   
   private static List<Tuple2<Integer, int[]>> calcRegions(final MaxSubsampleLayer.CalcRegionsParameter p) {
@@ -112,6 +106,12 @@ public class MaxSubsampleLayer extends NNLayer {
       }).toArray();
       return new Tuple2<>(o.index, inCoords);
     }).collect(Collectors.toList());
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("inner", JsonUtil.getJson(kernelDims));
+    return json;
   }
   
   @Override
@@ -194,7 +194,7 @@ public class MaxSubsampleLayer extends NNLayer {
      * The Kernel dims.
      */
     public int[] kernelDims;
-
+  
     /**
      * Instantiates a new Calc regions parameter.
      *

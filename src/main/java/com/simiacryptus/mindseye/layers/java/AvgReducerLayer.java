@@ -33,8 +33,22 @@ import java.util.stream.IntStream;
  */
 public class AvgReducerLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
+  
+  /**
+   * Instantiates a new Avg reducer layer.
+   *
+   * @param id the id
+   */
+  protected AvgReducerLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Avg reducer layer.
+   */
+  public AvgReducerLayer() {
   }
   
   /**
@@ -47,22 +61,8 @@ public class AvgReducerLayer extends NNLayer {
     return new AvgReducerLayer(json);
   }
   
-  /**
-   * Instantiates a new Avg reducer layer.
-   *
-   * @param id the id
-   */
-  protected AvgReducerLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
-  
-  /**
-   * Instantiates a new Avg reducer layer.
-   */
-  public AvgReducerLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -91,7 +91,7 @@ public class AvgReducerLayer extends NNLayer {
               return passback;
             }).toArray(i -> new Tensor[i]);
             in_l.accumulate(buffer, new TensorArray(data1));
-            for(Tensor t : data1) t.release();
+            for (Tensor t : data1) t.release();
           }
         }
       }

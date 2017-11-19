@@ -36,10 +36,37 @@ import java.util.function.IntToDoubleFunction;
  */
 public class ImgBandBiasLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("bias", JsonUtil.getJson(getBias()));
-    return json;
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(ImgBandBiasLayer.class);
+  private final double[] bias;
+  
+  /**
+   * Instantiates a new Img band bias layer.
+   *
+   * @param json the json
+   */
+  protected ImgBandBiasLayer(JsonObject json) {
+    super(json);
+    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
+  }
+  
+  /**
+   * Instantiates a new Img band bias layer.
+   */
+  protected ImgBandBiasLayer() {
+    super();
+    this.bias = null;
+  }
+  
+  
+  /**
+   * Instantiates a new Img band bias layer.
+   *
+   * @param bands the bands
+   */
+  public ImgBandBiasLayer(final int bands) {
+    super();
+    this.bias = new double[bands];
   }
   
   /**
@@ -52,38 +79,10 @@ public class ImgBandBiasLayer extends NNLayer {
     return new ImgBandBiasLayer(json);
   }
   
-  /**
-   * Instantiates a new Img band bias layer.
-   *
-   * @param json the json
-   */
-  protected ImgBandBiasLayer(JsonObject json) {
-    super(json);
-    this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ImgBandBiasLayer.class);
-  
-  
-  private final double[] bias;
-  
-  /**
-   * Instantiates a new Img band bias layer.
-   */
-  protected ImgBandBiasLayer() {
-    super();
-    this.bias = null;
-  }
-  
-  /**
-   * Instantiates a new Img band bias layer.
-   *
-   * @param bands the bands
-   */
-  public ImgBandBiasLayer(final int bands) {
-    super();
-    this.bias = new double[bands];
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("bias", JsonUtil.getJson(getBias()));
+    return json;
   }
   
   /**
@@ -133,17 +132,17 @@ public class ImgBandBiasLayer extends NNLayer {
     final double[] bias = getBias();
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     Tensor[] outputA = input.getData().stream().parallel()
-                         .map(r -> {
-                           if (r.getDimensions().length != 3) {
-                             throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
-                           }
-                           if (r.getDimensions()[2] != bias.length) {
-                             throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-                               getName(), Arrays.toString(r.getDimensions()), bias.length));
-                           }
-                           return new Tensor(add(r.getData()), r.getDimensions());
-                         })
-                         .toArray(i -> new Tensor[i]);
+      .map(r -> {
+        if (r.getDimensions().length != 3) {
+          throw new IllegalArgumentException(Arrays.toString(r.getDimensions()));
+        }
+        if (r.getDimensions()[2] != bias.length) {
+          throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
+            getName(), Arrays.toString(r.getDimensions()), bias.length));
+        }
+        return new Tensor(add(r.getData()), r.getDimensions());
+      })
+      .toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override

@@ -31,20 +31,6 @@ import java.util.stream.IntStream;
  */
 public class SumInputsLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
-  /**
-   * From json sum inputs layer.
-   *
-   * @param json the json
-   * @return the sum inputs layer
-   */
-  public static SumInputsLayer fromJson(JsonObject json) {
-    return new SumInputsLayer(json);
-  }
-  
   /**
    * Instantiates a new Sum inputs layer.
    *
@@ -60,21 +46,36 @@ public class SumInputsLayer extends NNLayer {
   public SumInputsLayer() {
   }
   
+  /**
+   * From json sum inputs layer.
+   *
+   * @param json the json
+   * @return the sum inputs layer
+   */
+  public static SumInputsLayer fromJson(JsonObject json) {
+    return new SumInputsLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     TensorList data = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
       assert l.length() == r.length() || 1 == l.length() || 1 == r.length();
       return new TensorArray(IntStream.range(0, l.length()).parallel()
-                               .mapToObj(i -> {
-                                 Tensor left = l.get(1 == l.length() ? 0 : i);
-                                 Tensor right = r.get(1 == r.length() ? 0 : i);
-                                 if(right.dim() == 1) {
-                                   return left.mapParallel(v-> v + (right.get(0)));
-                                 } else {
-                                   return left.reduceParallel(right, (v1,v2)-> v1 + v2);
-                                 }
-                               })
-                               .toArray(i -> new Tensor[i]));
+        .mapToObj(i -> {
+          Tensor left = l.get(1 == l.length() ? 0 : i);
+          Tensor right = r.get(1 == r.length() ? 0 : i);
+          if (right.dim() == 1) {
+            return left.mapParallel(v -> v + (right.get(0)));
+          }
+          else {
+            return left.reduceParallel(right, (v1, v2) -> v1 + v2);
+          }
+        })
+        .toArray(i -> new Tensor[i]));
     }).get();
     return new NNResult(data) {
       @Override
@@ -87,7 +88,7 @@ public class SumInputsLayer extends NNLayer {
               data1 = new TensorArray(data1.stream().parallel().reduce((a, b) -> a.add(b)).get());
             }
             if (1 < data1.get(0).dim() && input.getData().get(0).dim() == 1) {
-              data1 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i->new Tensor[i]));
+              data1 = new TensorArray(data1.stream().map(t -> new Tensor(new double[]{t.sum()})).toArray(i -> new Tensor[i]));
             }
             input.accumulate(buffer, data1);
           }

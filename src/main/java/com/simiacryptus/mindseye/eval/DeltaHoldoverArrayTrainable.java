@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.NNExecutionContext;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 
@@ -33,21 +36,19 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Stochastic array trainable.
- * <p>
- * TODO: Redesign this package. This class is absorbing too many features.
+ * The type Delta holdover array trainable.
  */
 public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   
   private static final int LOW_MEM_USE = 4 * 1024 * 1024 * 1024;
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private final WrappingLayer wrappingLayer;
+  private final double holdoverFraction = 0.5;
   private int trainingSize;
   private long hash = Util.R.get().nextLong();
-  private double holdoverFraction = 0.5;
   
   /**
-   * Instantiates a new Stochastic array trainable.
+   * Instantiates a new Delta holdover array trainable.
    *
    * @param trainingData the training data
    * @param network      the network
@@ -63,7 +64,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   }
   
   /**
-   * Instantiates a new Stochastic array trainable.
+   * Instantiates a new Delta holdover array trainable.
    *
    * @param trainingData the training data
    * @param network      the network
@@ -74,7 +75,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   }
   
   /**
-   * Instantiates a new Stochastic array trainable.
+   * Instantiates a new Delta holdover array trainable.
    *
    * @param trainingData the training data
    * @param network      the network
@@ -133,31 +134,33 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
    */
   protected void refreshSampledData() {
     assert 0 < trainingData.size();
-    if(0 >= getTrainingSize()) {
+    if (0 >= getTrainingSize()) {
       setDataSupplier(trainingData);
-    } else {
+    }
+    else {
       List<Tensor[]> holdover;
-      if(wrappingLayer.firstResult != null && wrappingLayer.lastResult != null && wrappingLayer.firstResult != wrappingLayer.lastResult) {
+      if (wrappingLayer.firstResult != null && wrappingLayer.lastResult != null && wrappingLayer.firstResult != wrappingLayer.lastResult) {
         holdover = IntStream.range(0, data.size()).mapToObj(x -> x)
-                                    .sorted(Comparator.comparingDouble(x -> {
-                                      double currentData = Arrays.stream(wrappingLayer.firstResult.getData().get((int) x).getData()).sum();
-                                      double latestData = Arrays.stream(wrappingLayer.lastResult.getData().get((int) x).getData()).sum();
-                                      return (latestData - currentData);
-                                    }))
-                                    .map(i -> data.get(i))
-                                    .limit((long)(getTrainingSize() * holdoverFraction))
-                                    .collect(Collectors.toList());
+          .sorted(Comparator.comparingDouble(x -> {
+            double currentData = Arrays.stream(wrappingLayer.firstResult.getData().get(x).getData()).sum();
+            double latestData = Arrays.stream(wrappingLayer.lastResult.getData().get(x).getData()).sum();
+            return (latestData - currentData);
+          }))
+          .map(i -> data.get(i))
+          .limit((long) (getTrainingSize() * holdoverFraction))
+          .collect(Collectors.toList());
         
-      } else {
+      }
+      else {
         holdover = new ArrayList<>();
       }
       List<Tensor[]> extra = trainingData.stream().filter(x -> x != null)
-                               .map(x -> x.get())
-                               .filter(x -> x != null)
-                               .filter(x -> !holdover.contains(x))
-                               .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
-                               .limit(getTrainingSize() - holdover.size()) //
-                               .collect(Collectors.toList());
+        .map(x -> x.get())
+        .filter(x -> x != null)
+        .filter(x -> !holdover.contains(x))
+        .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+        .limit(getTrainingSize() - holdover.size()) //
+        .collect(Collectors.toList());
       ArrayList<Tensor[]> concat = new ArrayList<>();
       concat.addAll(holdover);
       concat.addAll(extra);
@@ -178,7 +181,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
      * The First result.
      */
     NNResult firstResult;
-
+  
     /**
      * Instantiates a new Wrapping layer.
      *

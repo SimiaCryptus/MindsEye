@@ -34,23 +34,11 @@ import java.util.stream.IntStream;
 public class HyperbolicActivationLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("weights", weights.getJson());
-    json.addProperty("negativeMode", negativeMode);
-    return json;
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(HyperbolicActivationLayer.class);
+  private final Tensor weights;
+  private int negativeMode = 1;
   
-  /**
-   * From json hyperbolic activation layer.
-   *
-   * @param json the json
-   * @return the hyperbolic activation layer
-   */
-  public static HyperbolicActivationLayer fromJson(JsonObject json) {
-    return new HyperbolicActivationLayer(json);
-  }
-
   /**
    * Instantiates a new Hyperbolic activation layer.
    *
@@ -62,10 +50,32 @@ public class HyperbolicActivationLayer extends NNLayer {
     this.negativeMode = json.getAsJsonPrimitive("negativeMode").getAsInt();
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(HyperbolicActivationLayer.class);
-  private final Tensor weights;
-  private int negativeMode = 1;
+  /**
+   * Instantiates a new Hyperbolic activation layer.
+   */
+  public HyperbolicActivationLayer() {
+    super();
+    this.weights = new Tensor(2);
+    this.weights.set(0, 1.);
+    this.weights.set(1, 1.);
+  }
+  
+  /**
+   * From json hyperbolic activation layer.
+   *
+   * @param json the json
+   * @return the hyperbolic activation layer
+   */
+  public static HyperbolicActivationLayer fromJson(JsonObject json) {
+    return new HyperbolicActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("weights", weights.getJson());
+    json.addProperty("negativeMode", negativeMode);
+    return json;
+  }
   
   /**
    * Sets mode even.
@@ -97,16 +107,6 @@ public class HyperbolicActivationLayer extends NNLayer {
     return this;
   }
   
-  /**
-   * Instantiates a new Hyperbolic activation layer.
-   */
-  public HyperbolicActivationLayer() {
-    super();
-    this.weights = new Tensor(2);
-    this.weights.set(0, 1.);
-    this.weights.set(1, 1.);
-  }
-  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
@@ -134,7 +134,7 @@ public class HyperbolicActivationLayer extends NNLayer {
   public double getScaleR() {
     return 1 / this.weights.get(0);
   }
-
+  
   /**
    * Gets scale l.
    *
@@ -166,7 +166,7 @@ public class HyperbolicActivationLayer extends NNLayer {
     
     @Override
     public void accumulate(final DeltaSet buffer, final TensorList delta) {
-
+      
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           final double[] deltaData = delta.get(dataIndex).getData();

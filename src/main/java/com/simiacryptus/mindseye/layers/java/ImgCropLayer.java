@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Img reshape layer.
+ * The type Img crop layer.
  */
 public class ImgCropLayer extends NNLayer {
   
@@ -36,25 +36,8 @@ public class ImgCropLayer extends NNLayer {
   private final int sizeX;
   private final int sizeY;
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("sizeX", sizeX);
-    json.addProperty("sizeY", sizeX);
-    return json;
-  }
-  
   /**
-   * From json img reshape layer.
-   *
-   * @param json the json
-   * @return the img reshape layer
-   */
-  public static ImgCropLayer fromJson(JsonObject json) {
-    return new ImgCropLayer(json);
-  }
-  
-  /**
-   * Instantiates a new Img reshape layer.
+   * Instantiates a new Img crop layer.
    *
    * @param json the json
    */
@@ -65,10 +48,10 @@ public class ImgCropLayer extends NNLayer {
   }
   
   /**
-   * Instantiates a new image cropping layer.
+   * Instantiates a new Img crop layer.
    *
-   * @param sizeX the kernel size x
-   * @param sizeY the kernel size y
+   * @param sizeX the size x
+   * @param sizeY the size y
    */
   public ImgCropLayer(int sizeX, int sizeY) {
     super();
@@ -76,40 +59,14 @@ public class ImgCropLayer extends NNLayer {
     this.sizeY = sizeY;
   }
   
-  @Override
-  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
-    
-    final NNResult input = inObj[0];
-    final TensorList batch = input.getData();
-    final int[] inputDims = batch.get(0).getDimensions();
-    assert (3 == inputDims.length);
-    assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    Tensor outputDims = new Tensor(inputDims[0] - sizeX,
-                                    inputDims[1] - sizeY,
-                                    inputDims[2]);
-    return new NNResult(IntStream.range(0, batch.length()).parallel()
-                          .mapToObj(dataIndex -> copyCondense(batch.get(dataIndex), outputDims))
-                          .toArray(i -> new Tensor[i])) {
-      @Override
-      public void accumulate(final DeltaSet buffer, final TensorList error) {
-        assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-        if (input.isAlive()) {
-          final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
-                                   .mapToObj(dataIndex -> {
-                                     Tensor passback = new Tensor(inputDims);
-                                     Tensor err = error.get(dataIndex);
-                                     return copyExpand(err, passback);
-                                   }).toArray(i -> new Tensor[i]);
-          input.accumulate(buffer, new TensorArray(data1));
-        }
-      }
-      
-      @Override
-      public boolean isAlive() {
-        return input.isAlive() || !isFrozen();
-      }
-    };
+  /**
+   * From json img crop layer.
+   *
+   * @param json the json
+   * @return the img crop layer
+   */
+  public static ImgCropLayer fromJson(JsonObject json) {
+    return new ImgCropLayer(json);
   }
   
   /**
@@ -160,6 +117,48 @@ public class ImgCropLayer extends NNLayer {
     return outputData;
   }
   
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("sizeX", sizeX);
+    json.addProperty("sizeY", sizeX);
+    return json;
+  }
+  
+  @Override
+  public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
+    assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
+    
+    final NNResult input = inObj[0];
+    final TensorList batch = input.getData();
+    final int[] inputDims = batch.get(0).getDimensions();
+    assert (3 == inputDims.length);
+    assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+    Tensor outputDims = new Tensor(inputDims[0] - sizeX,
+      inputDims[1] - sizeY,
+      inputDims[2]);
+    return new NNResult(IntStream.range(0, batch.length()).parallel()
+      .mapToObj(dataIndex -> copyCondense(batch.get(dataIndex), outputDims))
+      .toArray(i -> new Tensor[i])) {
+      @Override
+      public void accumulate(final DeltaSet buffer, final TensorList error) {
+        assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
+        if (input.isAlive()) {
+          final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
+            .mapToObj(dataIndex -> {
+              Tensor passback = new Tensor(inputDims);
+              Tensor err = error.get(dataIndex);
+              return copyExpand(err, passback);
+            }).toArray(i -> new Tensor[i]);
+          input.accumulate(buffer, new TensorArray(data1));
+        }
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return input.isAlive() || !isFrozen();
+      }
+    };
+  }
   
   @Override
   public List<double[]> state() {

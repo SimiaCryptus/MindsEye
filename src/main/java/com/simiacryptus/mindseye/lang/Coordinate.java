@@ -73,10 +73,7 @@ public final class Coordinate {
       return false;
     }
     final Coordinate other = (Coordinate) obj;
-    if (!Arrays.equals(this.coords, other.coords)) {
-      return false;
-    }
-    return true;
+    return Arrays.equals(this.coords, other.coords);
   }
   
   @Override

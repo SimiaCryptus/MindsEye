@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network.graph;
+package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNResult;
@@ -27,7 +27,19 @@ import com.simiacryptus.mindseye.layers.cudnn.CuDNNFloatTensorList;
 /**
  * The type Counting nn result.
  */
-public class CountingNNResult extends NNResult {
+class CountingNNResult extends NNResult {
+  /**
+   * The Inner.
+   */
+  final NNResult inner;
+  /**
+   * The Passback buffer.
+   */
+  TensorList passbackBuffer = null;
+  /**
+   * The Queued.
+   */
+  int queued = 0;
   private int count = 0;
   
   /**
@@ -71,23 +83,9 @@ public class CountingNNResult extends NNResult {
     return this.count;
   }
   
-  /**
-   * The Inner.
-   */
-  final NNResult inner;
-  /**
-   * The Passback buffer.
-   */
-  TensorList passbackBuffer = null;
-  /**
-   * The Queued.
-   */
-  int queued = 0;
-  
-  
   @Override
   public void accumulate(DeltaSet buffer, TensorList data) {
-    if (data instanceof CuDNNFloatTensorList) assert null != ((CuDNNFloatTensorList) data).ptr.getPtr();
+    assert !(data instanceof CuDNNFloatTensorList) || null != ((CuDNNFloatTensorList) data).ptr.getPtr();
     if (null == passbackBuffer) {
       if (1 == getCount()) {
         passbackBuffer = data;

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network.graph;
+package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
@@ -29,9 +29,6 @@ import java.util.UUID;
  * The type Input node.
  */
 final class InputNode extends LazyResult {
-  /**
-   * The Handle.
-   */
   private final DAGNetwork dagNetwork;
   
   /**
@@ -47,7 +44,7 @@ final class InputNode extends LazyResult {
    * Instantiates a new Input node.
    *
    * @param dagNetwork the dag network
-   * @param key     the handle
+   * @param key        the key
    */
   public InputNode(DAGNetwork dagNetwork, final UUID key) {
     super(key);
@@ -55,7 +52,7 @@ final class InputNode extends LazyResult {
   }
   
   @Override
-  protected NNResult eval(final EvaluationContext t, NNExecutionContext nncontext) {
+  protected NNResult eval(final GraphEvaluationContext t, NNExecutionContext nncontext) {
     return t.cache.get(this.id);
   }
   
@@ -63,6 +60,7 @@ final class InputNode extends LazyResult {
   public NNLayer getLayer() {
     return null;
   }
+  
   @Override
   public void setLayer(NNLayer layer) {
     throw new IllegalStateException();

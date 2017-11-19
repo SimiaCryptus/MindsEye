@@ -19,10 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.MonitoringSynapse;
-import com.simiacryptus.mindseye.layers.java.VariableLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Variable layer test.

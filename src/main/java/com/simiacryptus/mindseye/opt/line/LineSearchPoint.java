@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt.line;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 
 /**
- * Created by Andrew Charneski on 5/9/2017.
+ * The type Line search point.
  */
 public class LineSearchPoint {
   /**

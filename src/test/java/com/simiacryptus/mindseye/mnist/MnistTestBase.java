@@ -22,22 +22,21 @@ package com.simiacryptus.mindseye.mnist;
 import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.InnerNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
-import com.simiacryptus.text.TableOutput;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import smile.plot.PlotCanvas;
@@ -57,9 +56,13 @@ public abstract class MnistTestBase {
    * The Iterations.
    */
   public int iterations = 1;
-
   /**
-   * Basic.
+   * The Model no.
+   */
+  int modelNo = 0;
+  
+  /**
+   * Test.
    *
    * @throws IOException the io exception
    */
@@ -73,7 +76,7 @@ public abstract class MnistTestBase {
       MonitoredObject monitoringRoot = new MonitoredObject();
       TrainingMonitor monitor = getMonitor(originalOut, history);
       Tensor[][] trainingData = getTrainingData(log);
-      for(int i = 0; i< iterations; i++) {
+      for (int i = 0; i < iterations; i++) {
         NNLayer network = _test(log, monitoringRoot, monitor, trainingData, history);
         report(log, monitoringRoot, history, network);
       }
@@ -81,14 +84,14 @@ public abstract class MnistTestBase {
   }
   
   /**
-   * Test pipeline network.
+   * Test nn layer.
    *
    * @param log            the log
    * @param monitoringRoot the monitoring root
    * @param monitor        the monitor
    * @param trainingData   the training data
    * @param history        the history
-   * @return the pipeline network
+   * @return the nn layer
    */
   protected NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("First, define a model:");
@@ -129,11 +132,6 @@ public abstract class MnistTestBase {
   }
   
   /**
-   * The Model no.
-   */
-  int modelNo = 0;
-
-  /**
    * Report.
    *
    * @param log            the log
@@ -152,14 +150,16 @@ public abstract class MnistTestBase {
       }
     });
     String modelName = "model" + modelNo++ + ".json";
-    log.p("Saved model as " + log.file(network.getJson().toString(), modelName,modelName));
-    if(!history.isEmpty()) log.code(() -> {
-      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
-      plot.setTitle("Convergence Plot");
-      plot.setAxisLabels("Iteration", "log10(Fitness)");
-      plot.setSize(600, 400);
-      return plot;
-    });
+    log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
+    if (!history.isEmpty()) {
+      log.code(() -> {
+        PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
+        plot.setTitle("Convergence Plot");
+        plot.setAxisLabels("Iteration", "log10(Fitness)");
+        plot.setSize(600, 400);
+        return plot;
+      });
+    }
   }
   
   /**
@@ -170,12 +170,12 @@ public abstract class MnistTestBase {
    */
   public void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
     network.visitNodes(node -> {
-      if (node instanceof InnerNode && !(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        ((InnerNode) node).setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
+      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
       }
     });
   }
-
+  
   /**
    * Remove monitoring.
    *
@@ -183,8 +183,8 @@ public abstract class MnistTestBase {
    */
   public void removeMonitoring(DAGNetwork network) {
     network.visitNodes(node -> {
-      if (node instanceof InnerNode && (node.getLayer() instanceof MonitoringWrapperLayer)) {
-        ((InnerNode) node).setLayer(((MonitoringWrapperLayer)node.getLayer()).getInner());
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
       }
     });
   }
@@ -211,7 +211,7 @@ public abstract class MnistTestBase {
       try {
         return MNIST.validationDataStream().mapToDouble(labeledObject -> {
           int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-          double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx->network.eval(ctx, labeledObject.data).getData().get(0).getData());
+          double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
           int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
           return predictionList[0] == actualCategory ? 1 : 0;
         }).average().getAsDouble() * 100;
@@ -227,14 +227,14 @@ public abstract class MnistTestBase {
         MNIST.validationDataStream().map(labeledObject -> {
           try {
             int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-            double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx->network.eval(ctx, labeledObject.data).getData().get(0).getData());
+            double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
             int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
             LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
             row.put("Image", log.image(labeledObject.data.toGrayImage(), labeledObject.label));
             row.put("Prediction", Arrays.stream(predictionList).limit(3)
-                                    .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-                                    .reduce((a, b) -> a + ", " + b).get());
+              .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+              .reduce((a, b) -> a + ", " + b).get());
             return row;
           } catch (IOException e) {
             throw new RuntimeException(e);
@@ -255,8 +255,8 @@ public abstract class MnistTestBase {
    */
   public Tensor[][] getTrainingData(NotebookOutput log) {
     log.p("We use the standard MNIST dataset, made available by a helper function. " +
-            "In order to use data, we convert it into data tensors; helper functions are defined to " +
-            "work mapCoords images.");
+      "In order to use data, we convert it into data tensors; helper functions are defined to " +
+      "work mapCoords images.");
     return log.code(() -> {
       try {
         return MNIST.trainingDataStream().map(labeledObject -> {
@@ -272,19 +272,19 @@ public abstract class MnistTestBase {
   }
   
   /**
-   * Build model pipeline network.
+   * Build model dag network.
    *
    * @param log the log
-   * @return the pipeline network
+   * @return the dag network
    */
   public DAGNetwork buildModel(NotebookOutput log) {
     log.p("This is a very simple model that performs basic logistic regression. " +
-            "It is expected to be trainable to about 91% accuracy on MNIST.");
+      "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
-                    .setWeights(() -> 0.001 * (Math.random() - 0.45)));
+        .setWeights(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });

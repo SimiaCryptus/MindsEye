@@ -19,21 +19,21 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * The Basic test optimizer.
+ * The type Gd test.
  */
 public class GDTest extends MnistTestBase {
   
@@ -49,11 +49,11 @@ public class GDTest extends MnistTestBase {
 //      }.test(supervisedNetwork, new Tensor(1), trainingData[0]);
       Trainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
-               .setMonitor(monitor)
-               .setOrientation(new ValidatingOrientationStrategy(new GradientDescent()))
-               .setTimeout(3, TimeUnit.MINUTES)
-               .setMaxIterations(500)
-               .run();
+        .setMonitor(monitor)
+        .setOrientation(new ValidatingOrientationStrategy(new GradientDescent()))
+        .setTimeout(3, TimeUnit.MINUTES)
+        .setMaxIterations(500)
+        .run();
     });
   }
   

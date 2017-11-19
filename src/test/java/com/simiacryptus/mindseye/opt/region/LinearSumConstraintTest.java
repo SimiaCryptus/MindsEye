@@ -19,22 +19,22 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
+import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * The Basic test optimizer.
+ * The type Linear sum constraint test.
  */
 public class LinearSumConstraintTest extends MnistTestBase {
   
@@ -50,13 +50,13 @@ public class LinearSumConstraintTest extends MnistTestBase {
         }
       };
       return new IterativeTrainer(trainable)
-               .setIterationsPerSample(100)
-               .setMonitor(monitor)
-               //.setOrientation(new ValidatingOrientationStrategy(trustRegionStrategy))
-               .setOrientation(trustRegionStrategy)
-               .setTimeout(3, TimeUnit.MINUTES)
-               .setMaxIterations(500)
-               .run();
+        .setIterationsPerSample(100)
+        .setMonitor(monitor)
+        //.setOrientation(new ValidatingOrientationStrategy(trustRegionStrategy))
+        .setOrientation(trustRegionStrategy)
+        .setTimeout(3, TimeUnit.MINUTES)
+        .setMaxIterations(500)
+        .run();
     });
   }
   

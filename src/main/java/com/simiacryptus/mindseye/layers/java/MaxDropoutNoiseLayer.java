@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.util.data.IntArray;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.data.IntArray;
 import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,22 +40,11 @@ import java.util.stream.IntStream;
  */
 public class MaxDropoutNoiseLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("kernelSize", JsonUtil.getJson(kernelSize));
-    return json;
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(MaxDropoutNoiseLayer.class);
+  private final int[] kernelSize;
+  private final Function<IntArray, List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
   
-  /**
-   * From json max dropout noise layer.
-   *
-   * @param json the json
-   * @return the max dropout noise layer
-   */
-  public static MaxDropoutNoiseLayer fromJson(JsonObject json) {
-    return new MaxDropoutNoiseLayer(json);
-  }
-
   /**
    * Instantiates a new Max dropout noise layer.
    *
@@ -65,11 +54,6 @@ public class MaxDropoutNoiseLayer extends NNLayer {
     super(json);
     this.kernelSize = JsonUtil.getIntArray(json.getAsJsonArray("kernelSize"));
   }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(MaxDropoutNoiseLayer.class);
-
-  private final int[] kernelSize;
   
   /**
    * Instantiates a new Max dropout noise layer.
@@ -86,6 +70,22 @@ public class MaxDropoutNoiseLayer extends NNLayer {
   public MaxDropoutNoiseLayer(int... dims) {
     super();
     this.kernelSize = dims;
+  }
+  
+  /**
+   * From json max dropout noise layer.
+   *
+   * @param json the json
+   * @return the max dropout noise layer
+   */
+  public static MaxDropoutNoiseLayer fromJson(JsonObject json) {
+    return new MaxDropoutNoiseLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("kernelSize", JsonUtil.getJson(kernelSize));
+    return json;
   }
   
   @Override
@@ -125,9 +125,6 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       return cellId;
     })).values());
   }
-
-  private final Function<IntArray, List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
-  
   
   @Override
   public List<double[]> state() {

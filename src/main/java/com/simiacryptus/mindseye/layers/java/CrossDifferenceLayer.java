@@ -31,10 +31,21 @@ import java.util.stream.IntStream;
  */
 public class CrossDifferenceLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  /**
+   * Instantiates a new Cross difference layer.
+   *
+   * @param id the id
+   */
+  protected CrossDifferenceLayer(JsonObject id) {
+    super(id);
   }
-
+  
+  /**
+   * Instantiates a new Cross difference layer.
+   */
+  public CrossDifferenceLayer() {
+  }
+  
   /**
    * From json cross difference layer.
    *
@@ -44,20 +55,21 @@ public class CrossDifferenceLayer extends NNLayer {
   public static CrossDifferenceLayer fromJson(JsonObject json) {
     return new CrossDifferenceLayer(json);
   }
-
+  
   /**
-   * Instantiates a new Cross difference layer.
+   * Index int.
    *
-   * @param id the id
+   * @param x   the x
+   * @param y   the y
+   * @param max the max
+   * @return the int
    */
-  protected CrossDifferenceLayer(JsonObject id) {
-    super(id);
+  public static int index(int x, int y, int max) {
+    return (max * (max - 1) / 2) - (max - x) * ((max - x) - 1) / 2 + y - x - 1;
   }
-
-  /**
-   * Instantiates a new Cross difference layer.
-   */
-  public CrossDifferenceLayer() {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -112,18 +124,6 @@ public class CrossDifferenceLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-  
-  /**
-   * Index int.
-   *
-   * @param x   the x
-   * @param y   the y
-   * @param max the max
-   * @return the int
-   */
-  public static int index(int x, int y, int max) {
-    return (max * (max - 1) / 2) - (max - x) * ((max - x) - 1) / 2 + y - x - 1;
   }
   
 }

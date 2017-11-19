@@ -30,26 +30,19 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Softmax activation layer.
+ * The type L 1 normalization layer.
  */
 public class L1NormalizationLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-  
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
   /**
-   * From json softmax activation layer.
-   *
-   * @param json the json
-   * @return the softmax activation layer
+   * The Max input.
    */
-  public static L1NormalizationLayer fromJson(JsonObject json) {
-    return new L1NormalizationLayer(json);
-  }
+  double maxInput = 50;
   
   /**
-   * Instantiates a new Softmax activation layer.
+   * Instantiates a new L 1 normalization layer.
    *
    * @param id the id
    */
@@ -57,18 +50,24 @@ public class L1NormalizationLayer extends NNLayer {
     super(id);
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
-
   /**
-   * The Max input.
-   */
-  double maxInput = 50;
-  
-  /**
-   * Instantiates a new Softmax activation layer.
+   * Instantiates a new L 1 normalization layer.
    */
   public L1NormalizationLayer() {
+  }
+  
+  /**
+   * From json l 1 normalization layer.
+   *
+   * @param json the json
+   * @return the l 1 normalization layer
+   */
+  public static L1NormalizationLayer fromJson(JsonObject json) {
+    return new L1NormalizationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -78,7 +77,7 @@ public class L1NormalizationLayer extends NNLayer {
     Tensor[] output = IntStream.range(0, inData.length()).mapToObj(dataIndex -> {
       final Tensor value = inData.get(dataIndex);
       double sum = value.sum();
-      if(!Double.isFinite(sum) || 0 == sum) return value;
+      if (!Double.isFinite(sum) || 0 == sum) return value;
       return value.scale(1.0 / sum);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(output) {
@@ -92,8 +91,10 @@ public class L1NormalizationLayer extends NNLayer {
             double sum = Arrays.stream(value).sum();
             final Tensor passback = new Tensor(outDelta.get(dataIndex).getDimensions());
             double[] passbackData = passback.getData();
-            if(0 != sum || Double.isFinite(sum)) for (int i = 0; i < value.length; i++) {
-              passbackData[i] = (delta[i] - dot / sum) / sum;
+            if (0 != sum || Double.isFinite(sum)) {
+              for (int i = 0; i < value.length; i++) {
+                passbackData[i] = (delta[i] - dot / sum) / sum;
+              }
             }
             return passback;
           }).toArray(i -> new Tensor[i]);

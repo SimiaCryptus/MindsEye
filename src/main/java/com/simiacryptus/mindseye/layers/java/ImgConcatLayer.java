@@ -33,8 +33,22 @@ import java.util.List;
  */
 public class ImgConcatLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);
+  
+  /**
+   * Instantiates a new Img concat layer.
+   *
+   * @param id the id
+   */
+  protected ImgConcatLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Img concat layer.
+   */
+  public ImgConcatLayer() {
   }
   
   /**
@@ -47,22 +61,8 @@ public class ImgConcatLayer extends NNLayer {
     return new ImgConcatLayer(json);
   }
   
-  /**
-   * Instantiates a new Img concat layer.
-   *
-   * @param id the id
-   */
-  protected ImgConcatLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);
-  
-  /**
-   * Instantiates a new Img concat layer.
-   */
-  public ImgConcatLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

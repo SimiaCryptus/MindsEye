@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
  * The type Activation layer re lu test.

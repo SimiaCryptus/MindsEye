@@ -28,31 +28,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * The type Img band select layer.
+ */
 public class ImgBandSelectLayer extends NNLayer {
   
   
   private final int[] bands;
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    JsonArray array = new JsonArray();
-    for(int b : bands) array.add(new JsonPrimitive(b));
-    json.add("bands", array);
-    return json;
-  }
-  
   /**
-   * From json img reshape layer.
-   *
-   * @param json the json
-   * @return the img reshape layer
-   */
-  public static ImgBandSelectLayer fromJson(JsonObject json) {
-    return new ImgBandSelectLayer(json);
-  }
-  
-  /**
-   * Instantiates a new Img reshape layer.
+   * Instantiates a new Img band select layer.
    *
    * @param json the json
    */
@@ -60,16 +45,35 @@ public class ImgBandSelectLayer extends NNLayer {
     super(json);
     JsonArray jsonArray = json.getAsJsonArray("bands");
     this.bands = new int[jsonArray.size()];
-    for(int i=0;i<bands.length;i++) bands[i] = jsonArray.get(i).getAsInt();
+    for (int i = 0; i < bands.length; i++) bands[i] = jsonArray.get(i).getAsInt();
   }
   
   /**
-   * Instantiates a new Img reshape layer.
+   * Instantiates a new Img band select layer.
    *
+   * @param bands the bands
    */
   public ImgBandSelectLayer(int... bands) {
     super();
     this.bands = bands;
+  }
+  
+  /**
+   * From json img band select layer.
+   *
+   * @param json the json
+   * @return the img band select layer
+   */
+  public static ImgBandSelectLayer fromJson(JsonObject json) {
+    return new ImgBandSelectLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    JsonArray array = new JsonArray();
+    for (int b : bands) array.add(new JsonPrimitive(b));
+    json.add("bands", array);
+    return json;
   }
   
   @Override
@@ -80,20 +84,20 @@ public class ImgBandSelectLayer extends NNLayer {
     assert (3 == inputDims.length);
     Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     return new NNResult(IntStream.range(0, batch.length()).parallel()
-                          .mapToObj(dataIndex -> outputDims.mapCoords((v,c)-> batch.get(dataIndex).get(c.coords[0],c.coords[1],bands[c.coords[2]])))
-                          .toArray(i -> new Tensor[i])) {
+      .mapToObj(dataIndex -> outputDims.mapCoords((v, c) -> batch.get(dataIndex).get(c.coords[0], c.coords[1], bands[c.coords[2]])))
+      .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
-                                   .mapToObj(dataIndex -> {
-                                     Tensor passback = new Tensor(inputDims);
-                                     Tensor err = error.get(dataIndex);
-                                     err.coordStream().forEach(c->{
-                                       passback.set(c.coords[0],c.coords[1],bands[c.coords[2]], err.get(c));
-                                     });
-                                     return passback;
-                                   }).toArray(i -> new Tensor[i]);
+            .mapToObj(dataIndex -> {
+              Tensor passback = new Tensor(inputDims);
+              Tensor err = error.get(dataIndex);
+              err.coordStream().forEach(c -> {
+                passback.set(c.coords[0], c.coords[1], bands[c.coords[2]], err.get(c));
+              });
+              return passback;
+            }).toArray(i -> new Tensor[i]);
           input.accumulate(buffer, new TensorArray(data1));
         }
       }

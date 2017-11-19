@@ -28,17 +28,30 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The type Placeholder layer.
+ */
 public final class PlaceholderLayer extends NNLayer {
   
   private final Tensor key;
   
+  /**
+   * Instantiates a new Placeholder layer.
+   *
+   * @param json the json
+   */
   public PlaceholderLayer(JsonObject json) {
     super(json);
     throw new RuntimeException();
   }
   
+  /**
+   * Instantiates a new Placeholder layer.
+   *
+   * @param key the key
+   */
   public PlaceholderLayer(Tensor key) {
-    if(null == key) throw new UnsupportedOperationException();
+    if (null == key) throw new UnsupportedOperationException();
     this.key = key;
     setName(getClass().getSimpleName() + "/" + getId());
   }

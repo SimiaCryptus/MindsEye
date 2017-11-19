@@ -27,16 +27,17 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  */
 public class QuadraticSearch implements LineSearchStrategy {
   
+  private final double initialDerivFactor = 0.95;
+  private final int maxIterations = 100;
   private double absoluteTolerance = 1e-12;
   private double relativeTolerance = 1e-2;
-  private double initialDerivFactor = 0.95;
   private double currentRate = 0.0;
   private double minRate = 1e-10;
-  private int maxIterations = 100;
+  private double stepSize = 1.0;
   
   @Override
   public PointSample step(LineSearchCursor cursor, TrainingMonitor monitor) {
-    if(currentRate < getMinRate()) currentRate = getMinRate();
+    if (currentRate < getMinRate()) currentRate = getMinRate();
     PointSample pointSample = _step(cursor, monitor);
     setCurrentRate(pointSample.rate);
     return pointSample;
@@ -120,8 +121,6 @@ public class QuadraticSearch implements LineSearchStrategy {
       }
     }
   }
-  
-  private double stepSize = 1.0;
   
   private PointSample filter(LineSearchCursor cursor, PointSample point, TrainingMonitor monitor) {
     if (stepSize == 1.0) return point;
@@ -240,12 +239,12 @@ public class QuadraticSearch implements LineSearchStrategy {
   }
   
   private class LocateInitialRightPoint {
-    private LineSearchCursor cursor;
-    private TrainingMonitor monitor;
-    private LineSearchPoint initialPoint;
+    private final LineSearchCursor cursor;
+    private final TrainingMonitor monitor;
+    private final LineSearchPoint initialPoint;
     private double thisX;
     private LineSearchPoint thisPoint;
-
+  
     /**
      * Instantiates a new Locate initial right point.
      *
@@ -261,7 +260,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       thisPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
     }
-
+  
     /**
      * Gets right x.
      *
@@ -270,7 +269,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     public double getRightX() {
       return thisX;
     }
-
+  
     /**
      * Gets right point.
      *
@@ -279,7 +278,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     public LineSearchPoint getRightPoint() {
       return thisPoint;
     }
-
+  
     /**
      * Apply locate initial right point.
      *

@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Log activation layer test.
+ * The type Binary entropy activation layer test.
  */
 public class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Log activation layer test.
+   * Instantiates a new Binary entropy activation layer test.
    */
   public BinaryEntropyActivationLayerTest() {
     super(new BinaryEntropyActivationLayer());

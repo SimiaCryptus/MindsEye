@@ -26,18 +26,6 @@ import com.simiacryptus.mindseye.lang.NNLayer;
  */
 public class ConvolutionLayerTest extends F32LayerTestBase {
   
-  /**
-   * The type Downsize test.
-   */
-  public static class DownsizeTest extends ConvolutionLayerTest {
-    
-    @Override
-    public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, 2, false);
-    }
-    
-  }
-  
   @Override
   public NNLayer getLayer() {
     return new ConvolutionLayer(3, 3, 2, 2, true);
@@ -48,5 +36,17 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     return new int[][]{
       {3, 3, 2}
     };
+  }
+  
+  /**
+   * The type Downsize test.
+   */
+  public static class DownsizeTest extends ConvolutionLayerTest {
+
+    @Override
+    public NNLayer getLayer() {
+      return new ConvolutionLayer(3, 3, 2, 2, false);
+    }
+
   }
 }

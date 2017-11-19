@@ -49,9 +49,9 @@ public interface TensorList {
   Stream<Tensor> stream();
   
   /**
-   * Length int.
+   * Get dimensions int [ ].
    *
-   * @return the int
+   * @return the int [ ]
    */
   int[] getDimensions();
   
@@ -64,9 +64,9 @@ public interface TensorList {
   default TensorList add(TensorList right) {
     assert (length() == right.length());
     return new TensorArray(
-                            IntStream.range(0, length()).mapToObj(i -> {
-                              return get(i).add(right.get(i));
-                            }).toArray(i -> new Tensor[i])
+      IntStream.range(0, length()).mapToObj(i -> {
+        return get(i).add(right.get(i));
+      }).toArray(i -> new Tensor[i])
     );
   }
   
@@ -91,7 +91,7 @@ public interface TensorList {
    */
   default TensorList copy() {
     return new TensorArray(
-                            IntStream.range(0, length()).mapToObj(i -> get(i).copy()).toArray(i -> new Tensor[i])
+      IntStream.range(0, length()).mapToObj(i -> get(i).copy()).toArray(i -> new Tensor[i])
     );
   }
   

@@ -36,27 +36,12 @@ import static jcuda.jcudnn.JCudnn.cudnnTransformTensor;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 
 /**
- * The type Img band bias layer.
+ * The type Img concat layer.
  */
 public class ImgConcatLayer extends NNLayer {
   
   /**
-   * From json img band bias layer.
-   *
-   * @param json the json
-   * @return the img band bias layer
-   */
-  public static ImgConcatLayer fromJson(JsonObject json) {
-    return new ImgConcatLayer(json);
-  }
-
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    return json;
-  }
-  
-  /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img concat layer.
    *
    * @param json the json
    */
@@ -65,11 +50,26 @@ public class ImgConcatLayer extends NNLayer {
   }
   
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img concat layer.
    */
   public ImgConcatLayer() {
   }
-
+  
+  /**
+   * From json img concat layer.
+   *
+   * @param json the json
+   * @return the img concat layer
+   */
+  public static ImgConcatLayer fromJson(JsonObject json) {
+    return new ImgConcatLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    return json;
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
@@ -92,13 +92,13 @@ public class ImgConcatLayer extends NNLayer {
         CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
         dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
       CudaPtr cudaPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), data);
-      cudnnTransformTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle,
+      cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
         Pointer.to(new float[]{1.0f}), inputDescriptor.getPtr(), cudaPtr.getPtr(),
         Pointer.to(new float[]{0.0f}), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * Sizeof.FLOAT)
       );
       bandOffset += dimensions[2];
     }
-    TensorList outputData = CudaPtr.fromDeviceFloat(outputBuffer, length, dimOut, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
+    TensorList outputData = CudaPtr.fromDeviceFloat(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle);
     //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new NNResult(outputData) {
       @Override
@@ -121,11 +121,11 @@ public class ImgConcatLayer extends NNLayer {
             CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
               CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
               dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
-            cudnnTransformTensor(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle,
+            cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
               Pointer.to(new float[]{1.0f}), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * Sizeof.FLOAT),
               Pointer.to(new float[]{0.0f}), inputDescriptor.getPtr(), passbackBuffer.getPtr()
             );
-            TensorList passbackTensorList = CudaPtr.fromDeviceFloat(passbackBuffer, length, dimensions, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
+            TensorList passbackTensorList = CudaPtr.fromDeviceFloat(passbackBuffer, length, dimensions, ((CuDNN) nncontext).cudnnHandle);
             //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             input.accumulate(buffer, passbackTensorList);
             passbackBuffer.finalize();
@@ -133,7 +133,7 @@ public class ImgConcatLayer extends NNLayer {
           bandOffset += dimensions[2];
         }
       }
-
+      
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());

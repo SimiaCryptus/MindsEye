@@ -31,10 +31,21 @@ import java.util.stream.IntStream;
  */
 public class CrossProductLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  /**
+   * Instantiates a new Cross product layer.
+   *
+   * @param id the id
+   */
+  protected CrossProductLayer(JsonObject id) {
+    super(id);
   }
-
+  
+  /**
+   * Instantiates a new Cross product layer.
+   */
+  public CrossProductLayer() {
+  }
+  
   /**
    * From json cross product layer.
    *
@@ -44,20 +55,21 @@ public class CrossProductLayer extends NNLayer {
   public static CrossProductLayer fromJson(JsonObject json) {
     return new CrossProductLayer(json);
   }
-
+  
   /**
-   * Instantiates a new Cross product layer.
+   * Index int.
    *
-   * @param id the id
+   * @param x   the x
+   * @param y   the y
+   * @param max the max
+   * @return the int
    */
-  protected CrossProductLayer(JsonObject id) {
-    super(id);
+  public static int index(int x, int y, int max) {
+    return (max * (max - 1) / 2) - (max - x) * ((max - x) - 1) / 2 + y - x - 1;
   }
-
-  /**
-   * Instantiates a new Cross product layer.
-   */
-  public CrossProductLayer() {
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -116,18 +128,6 @@ public class CrossProductLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
-  }
-  
-  /**
-   * Index int.
-   *
-   * @param x   the x
-   * @param y   the y
-   * @param max the max
-   * @return the int
-   */
-  public static int index(int x, int y, int max) {
-    return (max * (max - 1) / 2) - (max - x) * ((max - x) - 1) / 2 + y - x - 1;
   }
   
 }

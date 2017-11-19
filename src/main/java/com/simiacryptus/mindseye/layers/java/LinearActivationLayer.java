@@ -34,10 +34,28 @@ import java.util.stream.IntStream;
 public class LinearActivationLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("weights", weights.getJson());
-    return json;
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
+  private final Tensor weights;
+  
+  /**
+   * Instantiates a new Linear activation layer.
+   *
+   * @param json the json
+   */
+  protected LinearActivationLayer(JsonObject json) {
+    super(json);
+    this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
+  }
+  
+  /**
+   * Instantiates a new Linear activation layer.
+   */
+  public LinearActivationLayer() {
+    super();
+    this.weights = new Tensor(2);
+    this.weights.set(0, 1.);
+    this.weights.set(1, 0.);
   }
   
   /**
@@ -50,28 +68,10 @@ public class LinearActivationLayer extends NNLayer {
     return new LinearActivationLayer(json);
   }
   
-  /**
-   * Instantiates a new Linear activation layer.
-   *
-   * @param json the json
-   */
-  protected LinearActivationLayer(JsonObject json) {
-    super(json);
-    this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
-  private final Tensor weights;
-  
-  /**
-   * Instantiates a new Linear activation layer.
-   */
-  public LinearActivationLayer() {
-    super();
-    this.weights = new Tensor(2);
-    this.weights.set(0, 1.);
-    this.weights.set(1, 0.);
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("weights", weights.getJson());
+    return json;
   }
   
   @Override
@@ -147,7 +147,7 @@ public class LinearActivationLayer extends NNLayer {
           final double[] inputData = this.inObj.getData().get(dataIndex).getData();
           final Tensor weightDelta = new Tensor(LinearActivationLayer.this.weights.getDimensions());
           for (int i = 0; i < deltaData.length; i++) {
-            weightDelta.add(0, deltaData[i] * inputData[inputData.length==1?0:i]);
+            weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
           }
           buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).accumulate(weightDelta.getData());
@@ -164,7 +164,7 @@ public class LinearActivationLayer extends NNLayer {
           return passback;
         }).toArray(i -> new Tensor[i]);
         this.inObj.accumulate(buffer, new TensorArray(passbackA));
-        for(Tensor t : passbackA) t.release();
+        for (Tensor t : passbackA) t.release();
       }
     }
     

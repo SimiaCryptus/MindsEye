@@ -24,8 +24,11 @@ package com.simiacryptus.mindseye.lang;
  */
 public interface NNExecutionContext {
   /**
-   * If true, prevent state changes as a result of evaluation.
-   * (Used mainly to control meta layers.)
+   * Static evaluation boolean.
+   *
+   * @return the boolean
    */
-  default boolean staticEvaluation() { return false; }
+  default boolean staticEvaluation() {
+    return false;
+  }
 }

@@ -35,8 +35,22 @@ import java.util.stream.IntStream;
 public class ScaleUniformMetaLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(ScaleUniformMetaLayer.class);
+  
+  /**
+   * Instantiates a new Scale uniform meta layer.
+   *
+   * @param id the id
+   */
+  protected ScaleUniformMetaLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Scale uniform meta layer.
+   */
+  public ScaleUniformMetaLayer() {
   }
   
   /**
@@ -49,22 +63,8 @@ public class ScaleUniformMetaLayer extends NNLayer {
     return new ScaleUniformMetaLayer(json);
   }
   
-  /**
-   * Instantiates a new Scale uniform meta layer.
-   *
-   * @param id the id
-   */
-  protected ScaleUniformMetaLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ScaleUniformMetaLayer.class);
-  
-  /**
-   * Instantiates a new Scale uniform meta layer.
-   */
-  public ScaleUniformMetaLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

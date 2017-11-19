@@ -34,10 +34,26 @@ import java.util.stream.IntStream;
 @SuppressWarnings("serial")
 public class Sparse01MetaLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("sparsity", sparsity);
-    return json;
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(Sparse01MetaLayer.class);
+  /**
+   * The Sparsity.
+   */
+  double sparsity = 0.05;
+  
+  /**
+   * Instantiates a new Sparse 01 meta layer.
+   *
+   * @param id the id
+   */
+  protected Sparse01MetaLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Sparse 01 meta layer.
+   */
+  public Sparse01MetaLayer() {
   }
   
   /**
@@ -52,27 +68,10 @@ public class Sparse01MetaLayer extends NNLayer {
     return obj;
   }
   
-  /**
-   * Instantiates a new Sparse 01 meta layer.
-   *
-   * @param id the id
-   */
-  protected Sparse01MetaLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(Sparse01MetaLayer.class);
-  
-  /**
-   * The Sparsity.
-   */
-  double sparsity = 0.05;
-  
-  /**
-   * Instantiates a new Sparse 01 meta layer.
-   */
-  public Sparse01MetaLayer() {
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("sparsity", sparsity);
+    return json;
   }
   
   @Override
@@ -80,9 +79,9 @@ public class Sparse01MetaLayer extends NNLayer {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
     Tensor avgActivationArray = input.getData().get(0).mapIndex((v, c) ->
-                                                             IntStream.range(0, itemCnt)
-                                                               .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                               .average().getAsDouble());
+      IntStream.range(0, itemCnt)
+        .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+        .average().getAsDouble());
     Tensor divergenceArray = avgActivationArray.mapIndex((avgActivation, c) -> {
       assert (Double.isFinite(avgActivation));
       if (avgActivation > 0 && avgActivation < 1) {

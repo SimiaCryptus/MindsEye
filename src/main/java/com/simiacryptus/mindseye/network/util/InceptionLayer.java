@@ -17,20 +17,21 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network;
+package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.ImgConcatLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 
 /**
- * See Also http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Szegedy_Going_Deeper_With_2015_CVPR_paper.pdf
+ * The type Inception layer.
  */
 public class InceptionLayer extends DAGNetwork {
   

@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Img band bias layer test.

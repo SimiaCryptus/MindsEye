@@ -20,13 +20,19 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
 import jcuda.runtime.JCuda;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.DoubleSummaryStatistics;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
@@ -48,20 +54,35 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    */
   protected boolean gcEachIteration = true;
   /**
-   * The Sampled data.
+   * The Data.
    */
   protected List<Tensor[]> data;
-  
+  /**
+   * The Mask.
+   */
+  boolean[] mask = null;
   private boolean verbose = false;
   
+  /**
+   * Instantiates a new Gpu trainable.
+   *
+   * @param network the network
+   */
   public GpuTrainable(NNLayer network) {
     this.network = network;
     this.data = null;
   }
   
+  /**
+   * Get nn context nn result [ ].
+   *
+   * @param data the data
+   * @param mask the mask
+   * @return the nn result [ ]
+   */
   protected static NNResult[] getNNContext(List<Tensor[]> data, boolean[] mask) {
-    if(null == data) throw new IllegalArgumentException();
-    if(0 >= data.size()) throw new IllegalArgumentException();
+    if (null == data) throw new IllegalArgumentException();
+    if (0 >= data.size()) throw new IllegalArgumentException();
     int cols = data.get(0).length;
     return IntStream.range(0, cols).parallel().mapToObj(col -> {
       Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
@@ -70,10 +91,10 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       }
       else {
         return new NNResult(tensors) {
-          PlaceholderLayer[] layer = IntStream.range(0,tensors.length)
-                                                               .mapToObj(i->new PlaceholderLayer(tensors[i]))
-                                                               .toArray(i->new PlaceholderLayer[i]);
-        
+          PlaceholderLayer[] layer = IntStream.range(0, tensors.length)
+            .mapToObj(i -> new PlaceholderLayer(tensors[i]))
+            .toArray(i -> new PlaceholderLayer[i]);
+          
           @Override
           public void accumulate(DeltaSet buffer, TensorList delta) {
             //System.out.println("Accumulating data");
@@ -84,7 +105,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
               deltaObj.accumulate(doubles);
             }
           }
-        
+          
           @Override
           public boolean isAlive() {
             return true;
@@ -102,8 +123,9 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   /**
    * Measure point sample.
    *
-   * @param retries the retries
-   * @param monitor
+   * @param retries  the retries
+   * @param isStatic the is static
+   * @param monitor  the monitor
    * @return the point sample
    */
   public PointSample measure(int retries, boolean isStatic, TrainingMonitor monitor) {
@@ -114,20 +136,20 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         (a, b) -> a.add(b)
       );
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-  
+      
       assert (null != result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
       if (gcEachIteration) GpuController.INSTANCE.cleanMemory();
       return result;
     } catch (Exception e) {
-      if(retries > 0) {
+      if (retries > 0) {
         GpuController.INSTANCE.cleanMemory();
         synchronized (CudaResource.gpuGeneration) {
-          for(Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
+          for (Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
             CudaResource.gpuGeneration.incrementAndGet();
             try {
-              entry.getValue().submit(()->{
+              entry.getValue().submit(() -> {
                 CudaPtr.getGpuStats(entry.getKey().getDeviceNumber()).usedMemory.set(0);
                 return JCuda.cudaDeviceReset();
               }).get();
@@ -140,8 +162,9 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         }
         CudaPtr.METRICS.invalidateAll();
         GpuController.INSTANCE.cleanMemory();
-        return measure(retries-1, isStatic, monitor);
-      } else {
+        return measure(retries - 1, isStatic, monitor);
+      }
+      else {
         throw e;
       }
     }
@@ -150,10 +173,10 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   /**
    * Eval point sample.
    *
-   * @param list the input
+   * @param list      the list
    * @param nncontext the nncontext
-   * @param isStatic
-   * @param monitor
+   * @param isStatic  the is static
+   * @param monitor   the monitor
    * @return the point sample
    */
   protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, boolean isStatic, TrainingMonitor monitor) {
@@ -178,10 +201,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
       return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
     });
-    if (null != monitor) monitor.log(String.format("Device %s completed %s items in %s sec", nncontext.toString(), data.size(), timedResult.timeNanos / 1e9));
+    if (null != monitor) {
+      monitor.log(String.format("Device %s completed %s items in %s sec", nncontext.toString(), data.size(), timedResult.timeNanos / 1e9));
+    }
     return timedResult.result;
   }
-  
   
   /**
    * Is gc each iteration boolean.
@@ -202,20 +226,14 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   }
   
   /**
-   * Sets sampled data.
+   * Sets data supplier.
    *
-   * @param data the sampled data
+   * @param data the data
    */
   protected void setDataSupplier(List<? extends Supplier<Tensor[]>> data) {
     setData(data.stream().parallel().map(x -> x.get()).collect(Collectors.toList()));
   }
   
-  /**
-   * Sets data.
-   *
-   * @param sampledData the sampled data
-   * @return the data
-   */
   public Trainable setData(List<Tensor[]> sampledData) {
     assert !sampledData.isEmpty();
     this.data = sampledData;
@@ -240,13 +258,13 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * Sets verbose.
    *
    * @param verbose the verbose
+   * @return the verbose
    */
   public GpuTrainable setVerbose(boolean verbose) {
     this.verbose = verbose;
     return this;
   }
   
-  boolean[] mask = null;
   @Override
   public boolean[] getMask() {
     return mask;

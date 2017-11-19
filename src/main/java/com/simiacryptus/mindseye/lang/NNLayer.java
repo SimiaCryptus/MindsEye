@@ -31,15 +31,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Nonlinear Network Layer (aka Neural Network Layer)
- *
- * @author Andrew Charneski
+ * The type Nn layer.
  */
 public abstract class NNLayer implements Serializable {
-  
-  public NNLayer copy() {
-    return NNLayer.fromJson(getJson());
-  }
   
   private final UUID id;
   private boolean frozen = false;
@@ -59,19 +53,56 @@ public abstract class NNLayer implements Serializable {
     if (json.has("name")) setName(json.get("name").getAsString());
   }
   
-  public <T extends NNLayer> T as(Class<T> targetClass) {
-    JsonObject json = getJson();
-    json.remove("class");
-    json.addProperty("class", targetClass.getCanonicalName());
-    return (T) fromJson(json);
-  }
-  
   /**
    * Instantiates a new Nn layer.
    */
   protected NNLayer() {
     this.id = Util.uuid();
     this.name = getClass().getSimpleName() + "/" + getId();
+  }
+  
+  /**
+   * From json nn layer.
+   *
+   * @param inner the inner
+   * @return the nn layer
+   */
+  public static NNLayer fromJson(JsonObject inner) {
+    String className = inner.get("class").getAsString();
+    try {
+      Class<?> clazz = Class.forName(className);
+      if (null == clazz) throw new ClassNotFoundException(className);
+      Method method = clazz.getMethod("fromJson", JsonObject.class);
+      if (method.getDeclaringClass() == NNLayer.class) {
+        throw new IllegalArgumentException("Cannot find deserialization method for " + className);
+      }
+      return (NNLayer) method.invoke(null, inner);
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Copy nn layer.
+   *
+   * @return the nn layer
+   */
+  public NNLayer copy() {
+    return NNLayer.fromJson(getJson());
+  }
+  
+  /**
+   * As t.
+   *
+   * @param <T>         the type parameter
+   * @param targetClass the target class
+   * @return the t
+   */
+  public <T extends NNLayer> T as(Class<T> targetClass) {
+    JsonObject json = getJson();
+    json.remove("class");
+    json.addProperty("class", targetClass.getCanonicalName());
+    return (T) fromJson(json);
   }
   
   @Override
@@ -138,7 +169,7 @@ public abstract class NNLayer implements Serializable {
   }
   
   /**
-   * Gets children.
+   * The Id.
    *
    * @return the children
    */
@@ -147,33 +178,12 @@ public abstract class NNLayer implements Serializable {
   }
   
   /**
-   * The Id.
-   */ /**
    * Gets id.
    *
    * @return the id
    */
   public String getId() {
     return this.id.toString();
-  }
-  
-  /**
-   * From json nn layer.
-   *
-   * @param inner the inner
-   * @return the nn layer
-   */
-  public static NNLayer fromJson(JsonObject inner) {
-    String className = inner.get("class").getAsString();
-    try {
-      Class<?> clazz = Class.forName(className);
-      if (null == clazz) throw new ClassNotFoundException(className);
-      Method method = clazz.getMethod("fromJson", JsonObject.class);
-      if (method.getDeclaringClass() == NNLayer.class) throw new IllegalArgumentException("Cannot find deserialization method for " + className);
-      return (NNLayer) method.invoke(null, inner);
-    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
-      throw new RuntimeException(e);
-    }
   }
   
   /**

@@ -43,27 +43,13 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class PoolingLayer extends NNLayer {
   
-  /**
-   * From json pooling layer.
-   *
-   * @param json the json
-   * @return the pooling layer
-   */
-  public static PoolingLayer fromJson(JsonObject json) {
-    return new PoolingLayer(json);
-  }
-
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode);
-    json.addProperty("windowX", windowX);
-    json.addProperty("windowY", windowY);
-    json.addProperty("paddingX", paddingX);
-    json.addProperty("paddingY", paddingY);
-    json.addProperty("strideX", strideX);
-    json.addProperty("strideY", strideY);
-    return json;
-  }
+  private int mode = CUDNN_POOLING_MAX;
+  private int windowX = 2;
+  private int windowY = 2;
+  private int paddingX = 0;
+  private int paddingY = 0;
+  private int strideX = 2;
+  private int strideY = 2;
   
   /**
    * Instantiates a new Pooling layer.
@@ -89,34 +75,26 @@ public class PoolingLayer extends NNLayer {
   }
   
   /**
-   * The enum Pooling mode.
+   * From json pooling layer.
+   *
+   * @param json the json
+   * @return the pooling layer
    */
-  public enum PoolingMode {
-    /**
-     * Max pooling mode.
-     */
-    Max(CUDNN_POOLING_MAX),
-    /**
-     * Avg pooling mode.
-     */
-    Avg(CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
-    /**
-     * The Id.
-     */
-    final int id;
-
-    PoolingMode(int id) {
-      this.id = id;
-    }
+  public static PoolingLayer fromJson(JsonObject json) {
+    return new PoolingLayer(json);
   }
-  
-  private int mode = CUDNN_POOLING_MAX;
-  private int windowX = 2;
-  private int windowY = 2;
-  private int paddingX = 0;
-  private int paddingY = 0;
-  private int strideX = 2;
-  private int strideY = 2;
+
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("mode", mode);
+    json.addProperty("windowX", windowX);
+    json.addProperty("windowY", windowY);
+    json.addProperty("paddingX", paddingX);
+    json.addProperty("paddingY", paddingY);
+    json.addProperty("strideX", strideX);
+    json.addProperty("strideY", strideY);
+    return json;
+  }
 
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
@@ -145,12 +123,12 @@ public class PoolingLayer extends NNLayer {
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0f);
       CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
       CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.FLOAT * 1l * Tensor.dim(outputSize));
-      CuDNN.handle(cudnnPoolingForward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, poolingDesc.getPtr(),
+      CuDNN.handle(cudnnPoolingForward(((CuDNN) nncontext).cudnnHandle, poolingDesc.getPtr(),
         alpha.getPtr(),
         inputDescriptor.getPtr(), inputData.getPtr(),
         beta.getPtr(),
         outputDescriptor.getPtr(), outputData.getPtr()));
-      TensorList output = CudaPtr.fromDeviceFloat(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle);
+      TensorList output = CudaPtr.fromDeviceFloat(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, ((CuDNN) nncontext).cudnnHandle);
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -160,19 +138,19 @@ public class PoolingLayer extends NNLayer {
           CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
           if (input.isAlive()) {
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.FLOAT * length);
-            CuDNN.handle(cudnnPoolingBackward(((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle, poolingDesc.getPtr(),
+            CuDNN.handle(cudnnPoolingBackward(((CuDNN) nncontext).cudnnHandle, poolingDesc.getPtr(),
               alpha.getPtr(),
               outputDescriptor.getPtr(), outputData.getPtr(),
               outputDescriptor.getPtr(), errorPtr.getPtr(),
               inputDescriptor.getPtr(), inputData.getPtr(),
               beta.getPtr(),
               inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize, ((CuDNN) ((CudaExecutionContext) nncontext)).cudnnHandle));
+            input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize, ((CuDNN) nncontext).cudnnHandle));
             outputData.finalize();
             passbackBuffer.finalize();
           }
         }
-
+        
         @Override
         public boolean isAlive() {
           return input.isAlive() || !isFrozen();
@@ -182,8 +160,7 @@ public class PoolingLayer extends NNLayer {
       throw new ComponentException("Error", e);
     }
   }
-
-
+  
   @Override
   public List<double[]> state() {
     return Arrays.asList();
@@ -366,5 +343,27 @@ public class PoolingLayer extends NNLayer {
     this.strideX = strideX;
     this.strideY = strideY;
     return this;
+  }
+  
+  /**
+   * The enum Pooling mode.
+   */
+  public enum PoolingMode {
+    /**
+     * Max pooling mode.
+     */
+    Max(CUDNN_POOLING_MAX),
+    /**
+     * Avg pooling mode.
+     */
+    Avg(CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+    /**
+     * The Id.
+     */
+    final int id;
+    
+    PoolingMode(int id) {
+      this.id = id;
+    }
   }
 }

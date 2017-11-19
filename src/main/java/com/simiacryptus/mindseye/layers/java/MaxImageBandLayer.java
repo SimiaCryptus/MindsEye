@@ -36,21 +36,8 @@ import java.util.stream.IntStream;
  */
 public class MaxImageBandLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    return json;
-  }
-  
-  /**
-   * From json max image band layer.
-   *
-   * @param json the json
-   * @return the max image band layer
-   */
-  public static MaxImageBandLayer fromJson(JsonObject json) {
-    return new MaxImageBandLayer(json,
-                                  JsonUtil.getIntArray(json.getAsJsonArray("inner")));
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
   
   /**
    * Instantiates a new Max image band layer.
@@ -62,10 +49,6 @@ public class MaxImageBandLayer extends NNLayer {
     super(id);
   }
   
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
-  
   /**
    * Instantiates a new Max image band layer.
    */
@@ -73,21 +56,37 @@ public class MaxImageBandLayer extends NNLayer {
     super();
   }
   
+  /**
+   * From json max image band layer.
+   *
+   * @param json the json
+   * @return the max image band layer
+   */
+  public static MaxImageBandLayer fromJson(JsonObject json) {
+    return new MaxImageBandLayer(json,
+      JsonUtil.getIntArray(json.getAsJsonArray("inner")));
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    return json;
+  }
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-
+    
     assert (1 == inObj.length);
     final NNResult in = inObj[0];
     int itemCnt = in.getData().length();
     final int[] inputDims = in.getData().get(0).getDimensions();
     assert (3 == inputDims.length);
-
+    
     Coordinate[][] maxCoords = in.getData().stream().map(data -> {
       return IntStream.range(0, inputDims[2]).mapToObj(band -> {
         return data.coordStream().filter(e -> e.coords[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
     }).toArray(i -> new Coordinate[i][]);
-
+    
     Tensor[] results = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
         int[] maxCoord = maxCoords[dataIndex][band].coords;
@@ -95,7 +94,7 @@ public class MaxImageBandLayer extends NNLayer {
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);
-
+    
     return new NNResult(results) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
@@ -136,7 +135,7 @@ public class MaxImageBandLayer extends NNLayer {
      * The Kernel dims.
      */
     public int[] kernelDims;
-
+  
     /**
      * Instantiates a new Calc regions parameter.
      *

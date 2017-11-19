@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network.graph;
+package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
@@ -30,8 +30,7 @@ import java.util.UUID;
 /**
  * The type Inner node.
  */
-public final class InnerNode extends LazyResult {
-  private NNLayer layer;
+final class InnerNode extends LazyResult {
   /**
    * The Created by.
    */
@@ -39,12 +38,13 @@ public final class InnerNode extends LazyResult {
   public final String[] createdBy = Util.currentStack();
   private final DAGNetwork dagNetwork;
   private final DAGNode[] inputNodes;
+  private NNLayer layer;
   
   /**
    * Instantiates a new Inner node.
    *
    * @param dagNetwork the dag network
-   * @param key         the id
+   * @param key        the key
    * @param inputNodes the input nodes
    */
   @SafeVarargs
@@ -56,7 +56,8 @@ public final class InnerNode extends LazyResult {
    * Instantiates a new Inner node.
    *
    * @param dagNetwork the dag network
-   * @param key         the id
+   * @param layer      the layer
+   * @param key        the key
    * @param inputNodes the input nodes
    */
   @SafeVarargs
@@ -74,7 +75,7 @@ public final class InnerNode extends LazyResult {
   }
   
   @Override
-  protected NNResult eval(final EvaluationContext ctx, NNExecutionContext nncontext) {
+  protected NNResult eval(final GraphEvaluationContext ctx, NNExecutionContext nncontext) {
     NNLayer innerLayer = getLayer();
     if (1 == this.inputNodes.length) {
       DAGNode inputNode = this.inputNodes[0];
@@ -89,12 +90,15 @@ public final class InnerNode extends LazyResult {
     }
   }
   
-  /**
-   * The Layer.
-   */
   @Override
   public NNLayer getLayer() {
     return layer;
+  }
+  
+  public void setLayer(NNLayer layer) {
+    this.dagNetwork.layersById.put(layer.getId(), layer);
+    this.layer = layer;
+    this.dagNetwork.assertConsistent();
   }
   
   /**
@@ -105,16 +109,5 @@ public final class InnerNode extends LazyResult {
    */
   public DAGNode add(NNLayer nextHead) {
     return dagNetwork.add(nextHead, InnerNode.this);
-  }
-  
-  /**
-   * Sets layer.
-   *
-   * @param layer the layer
-   */
-  public void setLayer(NNLayer layer) {
-    this.dagNetwork.layersById.put(layer.getId(), layer);
-    this.layer = layer;
-    this.dagNetwork.assertConsistent();
   }
 }

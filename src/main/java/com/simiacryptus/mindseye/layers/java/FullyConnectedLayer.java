@@ -36,40 +36,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Dense synapse layer.
+ * The type Fully connected layer.
  */
 public class FullyConnectedLayer extends NNLayer {
-  
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("outputDims", JsonUtil.getJson(outputDims));
-    json.add("inputDims", JsonUtil.getJson(inputDims));
-    json.add("weights", weights.getJson());
-    return json;
-  }
-  
-  /**
-   * From json dense synapse layer.
-   *
-   * @param json the json
-   * @return the dense synapse layer
-   */
-  public static FullyConnectedLayer fromJson(JsonObject json) {
-    return new FullyConnectedLayer(json);
-  }
-  
-  /**
-   * Instantiates a new Dense synapse layer.
-   *
-   * @param json the json
-   */
-  protected FullyConnectedLayer(JsonObject json) {
-    super(json);
-    this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
-    this.inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
-    this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
-  }
   
   
   @SuppressWarnings("unused")
@@ -88,7 +57,19 @@ public class FullyConnectedLayer extends NNLayer {
   public final Tensor weights;
   
   /**
-   * Instantiates a new Dense synapse layer.
+   * Instantiates a new Fully connected layer.
+   *
+   * @param json the json
+   */
+  protected FullyConnectedLayer(JsonObject json) {
+    super(json);
+    this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
+    this.inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
+    this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
+  }
+  
+  /**
+   * Instantiates a new Fully connected layer.
    */
   protected FullyConnectedLayer() {
     super();
@@ -98,7 +79,7 @@ public class FullyConnectedLayer extends NNLayer {
   }
   
   /**
-   * Instantiates a new Dense synapse layer.
+   * Instantiates a new Fully connected layer.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims
@@ -115,6 +96,16 @@ public class FullyConnectedLayer extends NNLayer {
       double v = (1 - 2 * fate) * ratio;
       return v;
     });
+  }
+  
+  /**
+   * From json fully connected layer.
+   *
+   * @param json the json
+   * @return the fully connected layer
+   */
+  public static FullyConnectedLayer fromJson(JsonObject json) {
+    return new FullyConnectedLayer(json);
   }
   
   /**
@@ -144,6 +135,19 @@ public class FullyConnectedLayer extends NNLayer {
     DoubleMatrix matrixObj = new DoubleMatrix(out.length, in.length, matrix);
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
   }
+  
+  /**
+   * Multiply t.
+   *
+   * @param matrix the matrix
+   * @param in     the in
+   * @param out    the out
+   */
+  public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
+    DoubleMatrix matrixObj = transpose(new DoubleMatrix(in.length, out.length, matrix));
+    matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
+    TensorMemory.recycle(matrixObj.data);
+  }
 
 //  public static void multiplyT(final double[] data, final double[] in, double[] out) {
 //    DoubleMatrix matrix = new DoubleMatrix(in.length, out.length, data);
@@ -159,20 +163,6 @@ public class FullyConnectedLayer extends NNLayer {
 //    for (int o = 0; o < out.length; o++) out[o] = r[o];
 //  }
   
-  
-  /**
-   * Multiply t.
-   *
-   * @param matrix the matrix
-   * @param in     the in
-   * @param out    the out
-   */
-  public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
-    DoubleMatrix matrixObj = transpose(new DoubleMatrix(in.length, out.length, matrix));
-    matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
-    TensorMemory.recycle(matrixObj.data);
-  }
-  
   /**
    * Transpose double matrix.
    *
@@ -187,6 +177,14 @@ public class FullyConnectedLayer extends NNLayer {
       }
     }
     return result;
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("outputDims", JsonUtil.getJson(outputDims));
+    json.add("inputDims", JsonUtil.getJson(inputDims));
+    json.add("weights", weights.getJson());
+    return json;
   }
   
   @Override
@@ -302,6 +300,15 @@ public class FullyConnectedLayer extends NNLayer {
     });
   }
   
+  /**
+   * Gets transpose.
+   *
+   * @return the transpose
+   */
+  public NNLayer getTranspose() {
+    throw new RuntimeException("Not Implemented");
+  }
+  
   private final class Result extends NNResult {
     private final NNResult inObj;
     
@@ -364,10 +371,6 @@ public class FullyConnectedLayer extends NNLayer {
       });
     }
     
-  }
-  
-  public NNLayer getTranspose() {
-    throw new RuntimeException("Not Implemented");
   }
   
 }

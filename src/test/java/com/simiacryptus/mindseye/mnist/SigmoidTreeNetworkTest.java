@@ -21,14 +21,14 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.SigmoidTreeNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
+import com.simiacryptus.mindseye.network.util.SigmoidTreeNetwork;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.MonitoredObject;
@@ -40,35 +40,35 @@ import java.util.List;
  * The type Sigmoid tree network test.
  */
 public class SigmoidTreeNetworkTest extends LinearTest {
-
+  
   /**
    * The Description.
    */
   protected String description = "This report demonstrates a basic linear model fit against the MNIST dataset. " +
-                                   "It serves as a reference report to compare algorithm variants.";
+    "It serves as a reference report to compare algorithm variants.";
   /**
    * The Tree.
    */
   protected SigmoidTreeNetwork tree;
-
+  
   @Override
   public DAGNetwork buildModel(NotebookOutput log) {
     log.p("This is a very simple model that performs basic logistic regression. " +
-            "It is expected to be trainable to about 91% accuracy on MNIST.");
+      "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
-      network.add(new ConvolutionLayer(3,3,5,false));
+      network.add(new ConvolutionLayer(3, 3, 5, false));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
       this.tree = new SigmoidTreeNetwork(
-                                          new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}),
-                                          new BiasLayer(28, 28, 1)
+        new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}),
+        new BiasLayer(28, 28, 1)
       ).setSkipFuzzy(true).setSkipChildStage(true);
       network.add(tree);
       network.add(new SoftmaxActivationLayer());
       return network;
     });
   }
-
+  
   @Override
   public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p(description);

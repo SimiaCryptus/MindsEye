@@ -21,10 +21,9 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
 
 /**
- * The type Img band bias layer test.
+ * The type Img band scale layer test.
  */
 public class ImgBandScaleLayerTest extends LayerTestBase {
   

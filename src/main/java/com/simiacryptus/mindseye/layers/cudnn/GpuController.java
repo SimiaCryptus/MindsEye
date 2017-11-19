@@ -24,7 +24,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.GpuError;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorMemory;
 
 import java.util.*;
@@ -83,8 +82,8 @@ public final class GpuController {
    *
    * @param <T>     the type parameter
    * @param <U>     the type parameter
-   * @param data    the sampled data
-   * @param mapper  the function
+   * @param data    the data
+   * @param mapper  the mapper
    * @param reducer the reducer
    * @return the t
    */
@@ -99,7 +98,7 @@ public final class GpuController {
       CudaExecutionContext dev = devices.get(i);
       int sampleSize = (int) Math.max(1, ((data.size() / weightSum) * getDeviceWeight(dev)));
       int end = start + sampleSize;
-      if(i == devices.size()-1) end = data.size();
+      if (i == devices.size() - 1) end = data.size();
       List<U> subList = data.subList(start, Math.min(end, data.size()));
       if (subList.isEmpty()) continue;
       try {
@@ -123,6 +122,12 @@ public final class GpuController {
     }).reduce(reducer).orElse(null);
   }
   
+  /**
+   * Gets device weight.
+   *
+   * @param d the d
+   * @return the device weight
+   */
   public double getDeviceWeight(CudaExecutionContext d) {
     return 1.0;
     //return deviceWeight.getOrDefault(d.toString(), 1.0);
@@ -163,7 +168,7 @@ public final class GpuController {
   }
   
   /**
-   * The Gpu driver threads.
+   * Gets gpu driver threads.
    *
    * @return the gpu driver threads
    */

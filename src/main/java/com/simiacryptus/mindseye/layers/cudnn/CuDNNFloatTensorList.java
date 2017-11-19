@@ -51,6 +51,7 @@ public class CuDNNFloatTensorList implements TensorList {
    */
   public final int[] dimensions;
   private final jcuda.jcudnn.cudnnHandle cudnnHandle;
+  private volatile TensorList _inner = null;
   
   /**
    * Instantiates a new Cu dnn float tensor list.
@@ -68,8 +69,6 @@ public class CuDNNFloatTensorList implements TensorList {
     assert (ptr.size == this.length * 1l * Tensor.dim(this.dimensions) * Sizeof.FLOAT);
     assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
   }
-  
-  private volatile TensorList _inner = null;
   
   /**
    * Inner tensor list.
@@ -89,8 +88,8 @@ public class CuDNNFloatTensorList implements TensorList {
           ptr.read(buffer);
           //assert IntStream.range(0,buffer.length).mapToDouble(ii->buffer[ii]).allMatch(Double::isFinite);
           float[][] floats = IntStream.range(0, length)
-                               .mapToObj(dataIndex -> new float[itemLength])
-                               .toArray(i -> new float[i][]);
+            .mapToObj(dataIndex -> new float[itemLength])
+            .toArray(i -> new float[i][]);
           for (int i = 0; i < length; i++) {
             assert itemLength == floats[0 + i].length;
             System.arraycopy(buffer, i * itemLength, floats[0 + i], 0, itemLength);
@@ -141,9 +140,9 @@ public class CuDNNFloatTensorList implements TensorList {
       return this;
     }
     return new TensorArray(
-                            IntStream.range(0, length()).mapToObj(i -> {
-                              return get(i).add(right.get(i));
-                            }).toArray(i -> new Tensor[i])
+      IntStream.range(0, length()).mapToObj(i -> {
+        return get(i).add(right.get(i));
+      }).toArray(i -> new Tensor[i])
     );
   }
   

@@ -36,20 +36,9 @@ import java.util.stream.IntStream;
 public class MaxMetaLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
-  }
-
-  /**
-   * From json max meta layer.
-   *
-   * @param json the json
-   * @return the max meta layer
-   */
-  public static MaxMetaLayer fromJson(JsonObject json) {
-    return new MaxMetaLayer(json);
-  }
-
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(MaxMetaLayer.class);
+  
   /**
    * Instantiates a new Max meta layer.
    *
@@ -59,13 +48,24 @@ public class MaxMetaLayer extends NNLayer {
     super(id);
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(MaxMetaLayer.class);
-  
   /**
    * Instantiates a new Max meta layer.
    */
   public MaxMetaLayer() {
+  }
+  
+  /**
+   * From json max meta layer.
+   *
+   * @param json the json
+   * @return the max meta layer
+   */
+  public static MaxMetaLayer fromJson(JsonObject json) {
+    return new MaxMetaLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -77,7 +77,7 @@ public class MaxMetaLayer extends NNLayer {
     for (int i = 0; i < vectorSize; i++) {
       int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
-                      .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
+        .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> input.getData().get(dataIndex).getData()[itemNumber])).get();
     }
     return new NNResult(input.getData().get(0).mapIndex((v, c) -> {
       return input.getData().get(indicies[c]).getData()[c];

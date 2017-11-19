@@ -37,6 +37,10 @@ public class MomentumStrategy implements OrientationStrategy {
    * The Inner.
    */
   public final OrientationStrategy inner;
+  /**
+   * The Prev delta.
+   */
+  DeltaSet prevDelta = new DeltaSet();
   private double carryOver = 0.1;
   
   /**
@@ -47,11 +51,6 @@ public class MomentumStrategy implements OrientationStrategy {
   public MomentumStrategy(OrientationStrategy inner) {
     this.inner = inner;
   }
-  
-  /**
-   * The Prev delta.
-   */
-  DeltaSet prevDelta = new DeltaSet();
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {

@@ -33,9 +33,10 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
   
   /**
    * Instantiates a new Failsafe line search cursor.
-   *  @param direction     the direction
+   *
+   * @param direction     the direction
    * @param previousPoint the previous point
-   * @param monitor
+   * @param monitor       the monitor
    */
   public FailsafeLineSearchCursor(LineSearchCursor direction, Trainable.PointSample previousPoint, TrainingMonitor monitor) {
     this.direction = direction;

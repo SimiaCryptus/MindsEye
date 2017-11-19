@@ -28,7 +28,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
   
   private int lookback = 10;
   private int divisor = 5;
-
+  
   @Override
   public double[] project(double[][] history, double[] point) {
     double[] weights = history[0];

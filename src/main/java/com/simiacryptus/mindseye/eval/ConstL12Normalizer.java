@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
 
 /**
- * Created by Andrew Charneski on 5/26/2017.
+ * The type Const l 12 normalizer.
  */
 public class ConstL12Normalizer extends L12Normalizer implements StochasticTrainable, TrainableDataMask {
   private double factor_L1 = 0.0;
@@ -98,23 +98,23 @@ public class ConstL12Normalizer extends L12Normalizer implements StochasticTrain
   
   @Override
   public int getTrainingSize() {
-    return ((StochasticTrainable)inner).getTrainingSize();
+    return ((StochasticTrainable) inner).getTrainingSize();
   }
   
   @Override
   public ConstL12Normalizer setTrainingSize(int trainingSize) {
-    ((StochasticTrainable)inner).setTrainingSize(trainingSize);
+    ((StochasticTrainable) inner).setTrainingSize(trainingSize);
     return this;
   }
   
   @Override
   public boolean[] getMask() {
-    return ((TrainableDataMask)inner).getMask();
+    return ((TrainableDataMask) inner).getMask();
   }
   
   @Override
   public TrainableDataMask setMask(boolean... mask) {
-    ((TrainableDataMask)inner).setMask(mask);
+    ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
 }

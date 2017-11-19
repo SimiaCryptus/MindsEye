@@ -44,7 +44,7 @@ import java.util.zip.ZipInputStream;
  */
 public class Caltech101 {
   
-  private final static URI source = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
+  private static final URI source = URI.create("https://s3-us-west-2.amazonaws.com/simiacryptus/");
   
   private static final DataLoader training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override

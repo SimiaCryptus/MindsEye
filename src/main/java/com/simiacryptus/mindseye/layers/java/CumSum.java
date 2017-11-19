@@ -19,12 +19,37 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+/**
+ * The interface Cum sum.
+ */
 public interface CumSum {
+  /**
+   * Gets carry over.
+   *
+   * @return the carry over
+   */
   double getCarryOver();
   
+  /**
+   * Sets carry over.
+   *
+   * @param carryOver the carry over
+   * @return the carry over
+   */
   CumSum setCarryOver(double carryOver);
   
+  /**
+   * Gets carryover denominator.
+   *
+   * @return the carryover denominator
+   */
   int getCarryoverDenominator();
   
+  /**
+   * Sets carryover denominator.
+   *
+   * @param carryoverDenominator the carryover denominator
+   * @return the carryover denominator
+   */
   CumSum setCarryoverDenominator(int carryoverDenominator);
 }

@@ -33,8 +33,22 @@ import java.util.stream.IntStream;
  */
 public class SumReducerLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
+  
+  /**
+   * Instantiates a new Sum reducer layer.
+   *
+   * @param id the id
+   */
+  protected SumReducerLayer(JsonObject id) {
+    super(id);
+  }
+  
+  /**
+   * Instantiates a new Sum reducer layer.
+   */
+  public SumReducerLayer() {
   }
   
   /**
@@ -47,22 +61,8 @@ public class SumReducerLayer extends NNLayer {
     return new SumReducerLayer(json);
   }
   
-  /**
-   * Instantiates a new Sum reducer layer.
-   *
-   * @param id the id
-   */
-  protected SumReducerLayer(JsonObject id) {
-    super(id);
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
-  
-  /**
-   * Instantiates a new Sum reducer layer.
-   */
-  public SumReducerLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override

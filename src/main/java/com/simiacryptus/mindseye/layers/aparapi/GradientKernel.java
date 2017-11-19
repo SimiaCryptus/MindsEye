@@ -26,7 +26,7 @@ import com.aparapi.device.Device;
  * The type Gradient kernel.
  */
 public final class GradientKernel extends Kernel {
-
+  
   /**
    * The Input.
    */
@@ -91,7 +91,7 @@ public final class GradientKernel extends Kernel {
     final int k2 = k / ks1;
     final int k1 = k % ks1 / ks0;
     final int k0 = k % ks0;
-
+    
     double accum = 0.;
     for (int i = threadNumber; i < this.input.length; i += paralellism) {
       if (0. != this.input[i]) {
@@ -102,7 +102,7 @@ public final class GradientKernel extends Kernel {
         final int i2 = i % is2 / is1;
         final int i1 = i % is1 / is0;
         final int i0 = i % is0;
-
+        
         final int o2 = k2 - i2 * this.outputSize[2];
         if (o2 >= 0 && o2 < this.outputSize[2]) {
           final int o1 = i1 + k1 - kernelOffset[1];

@@ -108,9 +108,9 @@ public class LinkedExampleArrayTrainable implements Trainable {
   private void refreshSampledData() {
     assert 0 < getTrainingSize();
     this.sampledData = Arrays.stream(trainingData).parallel() //
-                         .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
-                         .flatMap(x -> Arrays.stream(x)) //
-                         .limit(getTrainingSize()) //
-                         .toArray(i -> new Tensor[i][]);
+      .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+      .flatMap(x -> Arrays.stream(x)) //
+      .limit(getTrainingSize()) //
+      .toArray(i -> new Tensor[i][]);
   }
 }

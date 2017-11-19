@@ -36,21 +36,9 @@ import java.util.stream.IntStream;
 public class ReLuActivationLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.add("weights", weights.getJson());
-    return json;
-  }
-  
-  /**
-   * From json re lu activation layer.
-   *
-   * @param json the json
-   * @return the re lu activation layer
-   */
-  public static ReLuActivationLayer fromJson(JsonObject json) {
-    return new ReLuActivationLayer(json);
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(ReLuActivationLayer.class);
+  private final Tensor weights;
   
   /**
    * Instantiates a new Re lu activation layer.
@@ -63,11 +51,6 @@ public class ReLuActivationLayer extends NNLayer {
   }
   
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ReLuActivationLayer.class);
-
-  private final Tensor weights;
-  
   /**
    * Instantiates a new Re lu activation layer.
    */
@@ -76,6 +59,22 @@ public class ReLuActivationLayer extends NNLayer {
     this.weights = new Tensor(1);
     this.weights.set(0, 1.);
     setFrozen(true);
+  }
+  
+  /**
+   * From json re lu activation layer.
+   *
+   * @param json the json
+   * @return the re lu activation layer
+   */
+  public static ReLuActivationLayer fromJson(JsonObject json) {
+    return new ReLuActivationLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("weights", weights.getJson());
+    return json;
   }
   
   /**
@@ -144,6 +143,11 @@ public class ReLuActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
   
+  @Override
+  public ReLuActivationLayer freeze() {
+    return (ReLuActivationLayer) super.freeze();
+  }
+  
   private final class Result extends NNResult {
     private final NNResult inObj;
     
@@ -188,10 +192,5 @@ public class ReLuActivationLayer extends NNLayer {
       return this.inObj.isAlive() || !isFrozen();
     }
     
-  }
-  
-  @Override
-  public ReLuActivationLayer freeze() {
-    return (ReLuActivationLayer) super.freeze();
   }
 }

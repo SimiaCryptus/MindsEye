@@ -42,7 +42,7 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   @Override
   public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     return inner.measure(isStatic, monitor);
-  };
+  }
   
   /**
    * Gets inner.
@@ -65,12 +65,12 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   
   @Override
   public boolean[] getMask() {
-    return ((TrainableDataMask)inner).getMask();
+    return ((TrainableDataMask) inner).getMask();
   }
   
   @Override
   public TrainableDataMask setMask(boolean... mask) {
-    ((TrainableDataMask)inner).setMask(mask);
+    ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
 }

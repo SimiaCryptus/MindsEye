@@ -22,24 +22,44 @@ package com.simiacryptus.mindseye.layers.java;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
 /**
- * This node computes an L2 error function with a given constant value
+ * The type Target value layer.
  */
 @SuppressWarnings("serial")
 public class TargetValueLayer extends DAGNetwork {
   
-  @Override
-  public JsonObject getJson() {
-    JsonObject json = super.getJson();
-    json.addProperty("target", target.toString());
-    return json;
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(TargetValueLayer.class);
+  private final DAGNode head;
+  private final DAGNode target;
+  
+  /**
+   * Instantiates a new Target value layer.
+   *
+   * @param json the json
+   */
+  protected TargetValueLayer(JsonObject json) {
+    super(json);
+    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
+    target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
+  }
+  
+  /**
+   * Instantiates a new Target value layer.
+   *
+   * @param values the values
+   */
+  public TargetValueLayer(double... values) {
+    super(1);
+    this.target = add(new ConstNNLayer(new Tensor(values)));
+    this.head = add(new MeanSqLossLayer(), getInput(0), target);
   }
   
   /**
@@ -52,29 +72,11 @@ public class TargetValueLayer extends DAGNetwork {
     return new TargetValueLayer(inner);
   }
   
-  /**
-   * Instantiates a new Std dev meta layer.
-   *
-   * @param json the json
-   */
-  protected TargetValueLayer(JsonObject json) {
-    super(json);
-    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
-    target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
-  }
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(TargetValueLayer.class);
-  private final DAGNode head;
-  private final DAGNode target;
-  
-  /**
-   * Instantiates a new Std dev meta layer.
-   */
-  public TargetValueLayer(double... values) {
-    super(1);
-    this.target = add(new ConstNNLayer(new Tensor(values)));
-    this.head = add(new MeanSqLossLayer(), getInput(0), target);
+  @Override
+  public JsonObject getJson() {
+    JsonObject json = super.getJson();
+    json.addProperty("target", target.toString());
+    return json;
   }
   
   @Override
@@ -82,6 +84,12 @@ public class TargetValueLayer extends DAGNetwork {
     return head;
   }
   
+  /**
+   * Sets target.
+   *
+   * @param value the value
+   * @return the target
+   */
   public TargetValueLayer setTarget(double... value) {
     target.<ConstNNLayer>getLayer().setData(new Tensor(value));
     return this;

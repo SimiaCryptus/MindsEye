@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
 
 /**
  * The type Stochastic array trainable.
- * <p>
  */
 public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> implements StochasticTrainable, TrainableDataMask {
   
@@ -68,11 +66,6 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
     this(trainingData, network, trainingSize, trainingSize);
   }
   
-  @Override
-  public CachedTrainable<? extends Trainable> cached() {
-    return this;
-  }
-  
   /**
    * Instantiates a new Stochastic array trainable.
    *
@@ -101,8 +94,13 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
   }
   
   @Override
+  public CachedTrainable<? extends Trainable> cached() {
+    return this;
+  }
+  
+  @Override
   public void resetToFull() {
-    getInner().setTrainingData(trainingData.stream().toArray(i->new Tensor[i][]));
+    getInner().setTrainingData(trainingData.stream().toArray(i -> new Tensor[i][]));
   }
   
   @Override
@@ -111,22 +109,11 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
     return true;
   }
   
-  /**
-   * Gets training size.
-   *
-   * @return the training size
-   */
   @Override
   public int getTrainingSize() {
     return this.trainingSize;
   }
   
-  /**
-   * Sets training size.
-   *
-   * @param trainingSize the training size
-   * @return the training size
-   */
   @Override
   public StochasticTrainable setTrainingSize(final int trainingSize) {
     this.trainingSize = trainingSize;
@@ -146,10 +133,10 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
   protected void refreshSampledData() {
     assert 0 < trainingData.size();
     getInner().setTrainingData(0 < getTrainingSize() ? (trainingData.stream().parallel() //
-                           .filter(x -> x != null && x.get() != null)
-                           .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
-                           .limit(getTrainingSize()).map(x->x.get())
-                           .toArray(i->new Tensor[i][])) : trainingData.stream().toArray(i->new Tensor[i][]));
+      .filter(x -> x != null && x.get() != null)
+      .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
+      .limit(getTrainingSize()).map(x -> x.get())
+      .toArray(i -> new Tensor[i][])) : trainingData.stream().toArray(i -> new Tensor[i][]));
   }
   
 }

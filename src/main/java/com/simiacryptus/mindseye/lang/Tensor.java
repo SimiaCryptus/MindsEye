@@ -47,7 +47,7 @@ public class Tensor implements Serializable {
    * The Data.
    */
   protected volatile double[] data;
-  
+  private byte references = 1;
   
   /**
    * Instantiates a new Tensor.
@@ -105,26 +105,26 @@ public class Tensor implements Serializable {
     //assert (null == data || Tensor.dim(dims) == data.length);
   }
   
-  private static int[] getSkips(int[] dims) {
-    int[] skips = new int[dims.length];
-    for (int i = 0; i < skips.length; i++) {
-      if (i == 0) {
-        skips[i] = 1;
-      }
-      else {
-        skips[i] = skips[i - 1] * dims[i - 1];
-      }
-    }
-    return skips;
-  }
-  
   /**
    * Instantiates a new Tensor.
    *
    * @param ds the ds
    */
   public Tensor(double[] ds) {
-    this(ds, new int[]{ds.length});
+    this(ds, ds.length);
+  }
+  
+  private static int[] getSkips(int[] dims) {
+    int[] skips = new int[dims.length];
+    for (int i = 0; i < skips.length; i++) {
+      if (i == 0) {
+        skips[0] = 1;
+      }
+      else {
+        skips[i] = skips[i - 1] * dims[i - 1];
+      }
+    }
+    return skips;
   }
   
   /**
@@ -179,13 +179,109 @@ public class Tensor implements Serializable {
     return (value < min) ? min : ((value > max) ? max : value);
   }
   
+  /**
+   * Get doubles double [ ].
+   *
+   * @param stream the stream
+   * @param dim    the dim
+   * @return the double [ ]
+   */
+  public static double[] getDoubles(DoubleStream stream, int dim) {
+    final double[] doubles = TensorMemory.obtain(dim);
+    AtomicInteger j = new AtomicInteger();
+    stream.forEach(v -> doubles[j.getAndIncrement()] = v);
+    return doubles;
+  }
+  
+  /**
+   * From json tensor.
+   *
+   * @param json the json
+   * @return the tensor
+   */
+  public static Tensor fromJson(JsonObject json) {
+    if (null == json) return null;
+    int[] dims = JsonUtil.getIntArray(json.getAsJsonArray("dimensions"));
+    double[] data = json.has("data") ? JsonUtil.getDoubleArray(json.getAsJsonArray("data")) : null;
+    return new Tensor(data, dims);
+  }
+  
+  /**
+   * Add tensor.
+   *
+   * @param left  the left
+   * @param right the right
+   * @return the tensor
+   */
+  public static Tensor add(Tensor left, Tensor right) {
+    assert Arrays.equals(left.getDimensions(), right.getDimensions());
+    Tensor result = new Tensor(left.getDimensions());
+    double[] resultData = result.getData();
+    double[] leftData = left.getData();
+    double[] rightData = right.getData();
+    for (int i = 0; i < resultData.length; i++) {
+      double l = leftData[i];
+      double r = rightData[i];
+      resultData[i] = l + r;
+    }
+    return result;
+  }
+  
+  /**
+   * Product tensor.
+   *
+   * @param left  the left
+   * @param right the right
+   * @return the tensor
+   */
+  public static Tensor product(Tensor left, Tensor right) {
+    if (left.dim() == 1 && right.dim() != 1) return product(right, left);
+    assert left.dim() == right.dim() || 1 == right.dim();
+    Tensor result = new Tensor(left.getDimensions());
+    double[] resultData = result.getData();
+    double[] leftData = left.getData();
+    double[] rightData = right.getData();
+    for (int i = 0; i < resultData.length; i++) {
+      double l = leftData[i];
+      double r = rightData[1 == rightData.length ? rightData.length - 1 : i];
+      resultData[i] = l * r;
+    }
+    return result;
+  }
+  
+  /**
+   * To floats float [ ].
+   *
+   * @param data the data
+   * @return the float [ ]
+   */
+  public static float[] toFloats(double[] data) {
+    float[] buffer = new float[data.length];
+    for (int i = 0; i < data.length; i++) {
+      buffer[i] = (float) data[i];
+    }
+    return buffer;
+  }
+  
+  /**
+   * To doubles double [ ].
+   *
+   * @param data the data
+   * @return the double [ ]
+   */
+  public static double[] toDoubles(float[] data) {
+    double[] buffer = new double[data.length];
+    for (int i = 0; i < data.length; i++) {
+      buffer[i] = data[i];
+    }
+    return buffer;
+  }
+  
   @Override
   public void finalize() throws Throwable {
     release();
     super.finalize();
   }
-  
-  private byte references = 1;
   
   /**
    * Acquire reference short.
@@ -202,7 +298,7 @@ public class Tensor implements Serializable {
    * @return the boolean
    */
   public boolean release() {
-    if(--references <= 0) {
+    if (--references <= 0) {
       if (null != data) {
         TensorMemory.recycle(data);
         data = null;
@@ -324,10 +420,7 @@ public class Tensor implements Serializable {
     if (!Arrays.equals(getData(), other.getData())) {
       return false;
     }
-    if (!Arrays.equals(this.dimensions, other.dimensions)) {
-      return false;
-    }
-    return true;
+    return Arrays.equals(this.dimensions, other.dimensions);
   }
   
   /**
@@ -510,8 +603,10 @@ public class Tensor implements Serializable {
     v += this.strides[0] * c1;
     v += this.strides[1] * c2;
     v += this.strides[2] * c3;
-    if(null != coords && 0 < coords.length) for (int i = 0; (3+i) < this.strides.length && i < coords.length; i++) {
-      v += this.strides[3+i] * coords[3+i];
+    if (null != coords && 0 < coords.length) {
+      for (int i = 0; (3 + i) < this.strides.length && i < coords.length; i++) {
+        v += this.strides[3 + i] * coords[3 + i];
+      }
     }
     return v;
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
@@ -550,36 +645,21 @@ public class Tensor implements Serializable {
       // assert Double.isFinite(v);
       cpy[i] = v;
     }
-    ;
     return new Tensor(cpy, this.dimensions);
   }
   
   /**
-   * The interface Tuple operator.
-   */
-  public interface TupleOperator {
-    /**
-     * Eval double.
-     *
-     * @param value the value
-     * @param index the index
-     * @return the double
-     */
-    double eval(double value, int index);
-  }
-  
-  /**
-   * Map tensor.
+   * Map index tensor.
    *
    * @param f the f
    * @return the tensor
    */
   public Tensor mapIndex(final TupleOperator f) {
-    return new Tensor(getDoubles(IntStream.range(0,dim()).mapToDouble(i -> f.eval(get(i), i)), dim()), this.dimensions);
+    return new Tensor(getDoubles(IntStream.range(0, dim()).mapToDouble(i -> f.eval(get(i), i)), dim()), this.dimensions);
   }
   
   /**
-   * Map tensor.
+   * Map coords tensor.
    *
    * @param f the f
    * @return the tensor
@@ -589,7 +669,7 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * Map parallel tensor.
+   * Reduce parallel tensor.
    *
    * @param right the right
    * @param f     the f
@@ -598,7 +678,7 @@ public class Tensor implements Serializable {
   public Tensor reduceParallel(Tensor right, final DoubleBinaryOperator f) {
     double[] dataL = getData();
     double[] dataR = right.getData();
-    return new Tensor(getDoubles(IntStream.range(0, dim()).mapToDouble(i->f.applyAsDouble(dataL[i],dataR[i])), dim()), this.dimensions);
+    return new Tensor(getDoubles(IntStream.range(0, dim()).mapToDouble(i -> f.applyAsDouble(dataL[i], dataR[i])), dim()), this.dimensions);
   }
   
   /**
@@ -609,27 +689,14 @@ public class Tensor implements Serializable {
    */
   public Tensor mapParallel(final DoubleUnaryOperator f) {
     double[] data = getData();
-    return new Tensor(getDoubles(IntStream.range(0, dim()).mapToDouble(i->f.applyAsDouble(data[i])), dim()), this.dimensions);
+    return new Tensor(getDoubles(IntStream.range(0, dim()).mapToDouble(i -> f.applyAsDouble(data[i])), dim()), this.dimensions);
   }
   
   /**
-   * Get doubles double [ ].
-   *
-   * @param stream the stream
-   * @param dim    the dim
-   * @return the double [ ]
-   */
-  public static double[] getDoubles(DoubleStream stream, int dim) {
-    final double[] doubles = TensorMemory.obtain(dim);
-    AtomicInteger j = new AtomicInteger();
-    stream.forEach(v->doubles[j.getAndIncrement()] = v);
-    return doubles;
-  }
-  
-  /**
-   * Sets parallel.
+   * Fill by coord tensor.
    *
    * @param f the f
+   * @return the tensor
    */
   public Tensor fillByCoord(final ToDoubleFunction<Coordinate> f) {
     coordStream().forEach(c -> set(c, f.applyAsDouble(c)));
@@ -637,7 +704,7 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * Sets parallel.
+   * Sets parallel by index.
    *
    * @param f the f
    */
@@ -687,7 +754,7 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * Scale tensor (in-place)
+   * Scale tensor.
    *
    * @param d the d
    * @return the tensor
@@ -746,6 +813,11 @@ public class Tensor implements Serializable {
     }
   }
   
+  /**
+   * To images list.
+   *
+   * @return the list
+   */
   public List<BufferedImage> toImages() {
     int[] dims = getDimensions();
     if (3 == dims.length) {
@@ -754,8 +826,8 @@ public class Tensor implements Serializable {
       }
       else if (0 == dims[2] % 3) {
         ArrayList<BufferedImage> list = new ArrayList<>();
-        for(int i=0;i<dims[2];i+=3) {
-          list.add(toRgbImage(i,i+1,i+2));
+        for (int i = 0; i < dims[2]; i += 3) {
+          list.add(toRgbImage(i, i + 1, i + 2));
         }
         return list;
       }
@@ -764,7 +836,7 @@ public class Tensor implements Serializable {
       }
       else {
         ArrayList<BufferedImage> list = new ArrayList<>();
-        for(int i=0;i<dims[2];i++) {
+        for (int i = 0; i < dims[2]; i++) {
           list.add(toGrayImage(i));
         }
         return list;
@@ -785,6 +857,12 @@ public class Tensor implements Serializable {
     return toGrayImage(0);
   }
   
+  /**
+   * To gray image buffered image.
+   *
+   * @param band the band
+   * @return the buffered image
+   */
   public BufferedImage toGrayImage(int band) {
     int width = getDimensions()[0];
     int height = getDimensions()[1];
@@ -809,10 +887,10 @@ public class Tensor implements Serializable {
   /**
    * To rgb image buffered image.
    *
+   * @param redBand   the red band
+   * @param greenBand the green band
+   * @param blueBand  the blue band
    * @return the buffered image
-   * @param redBand
-   * @param greenBand
-   * @param blueBand
    */
   public BufferedImage toRgbImage(int redBand, int greenBand, int blueBand) {
     final int[] dims = this.getDimensions();
@@ -858,11 +936,26 @@ public class Tensor implements Serializable {
     set(index(coords), value);
   }
   
+  /**
+   * Set.
+   *
+   * @param coord1 the coord 1
+   * @param coord2 the coord 2
+   * @param value  the value
+   */
   public void set(final int coord1, final int coord2, final double value) {
     assert Double.isFinite(value);
     set(index(coord1, coord2), value);
   }
   
+  /**
+   * Set.
+   *
+   * @param coord1 the coord 1
+   * @param coord2 the coord 2
+   * @param coord3 the coord 3
+   * @param value  the value
+   */
   public void set(final int coord1, final int coord2, final int coord3, final double value) {
     assert Double.isFinite(value);
     set(index(coord1, coord2, coord3), value);
@@ -892,13 +985,34 @@ public class Tensor implements Serializable {
     // assert Double.isFinite(v);
     return v;
   }
-  public double mean() { return sum() / dim();}
-  public double rms() { return Math.sqrt(sumSq() / dim());}
   
+  /**
+   * Mean double.
+   *
+   * @return the double
+   */
+  public double mean() {
+    return sum() / dim();
+  }
+  
+  /**
+   * Rms double.
+   *
+   * @return the double
+   */
+  public double rms() {
+    return Math.sqrt(sumSq() / dim());
+  }
+  
+  /**
+   * Sum sq double.
+   *
+   * @return the double
+   */
   public double sumSq() {
     double v = 0;
     for (final double element : getData()) {
-      v += element*element;
+      v += element * element;
     }
     // assert Double.isFinite(v);
     return v;
@@ -916,7 +1030,7 @@ public class Tensor implements Serializable {
     else {
       List<String> list = IntStream.range(0, this.dimensions[coords.length]).mapToObj(i -> {
         return toString(_add(coords, i));
-      }).collect(Collectors.<String>toList());
+      }).collect(Collectors.toList());
       if (list.size() > 10) {
         list = list.subList(0, 8);
         list.add("...");
@@ -960,96 +1074,12 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * From json tensor.
-   *
-   * @param json the json
-   * @return the tensor
-   */
-  public static Tensor fromJson(JsonObject json) {
-    if (null == json) return null;
-    int[] dims = JsonUtil.getIntArray(json.getAsJsonArray("dimensions"));
-    double[] data = json.has("data") ? JsonUtil.getDoubleArray(json.getAsJsonArray("data")) : null;
-    return new Tensor(data, dims);
-  }
-  
-  /**
-   * Add tensor.
-   *
-   * @param left  the left
-   * @param right the right
-   * @return the tensor
-   */
-  public static Tensor add(Tensor left, Tensor right) {
-    assert Arrays.equals(left.getDimensions(), right.getDimensions());
-    Tensor result = new Tensor(left.getDimensions());
-    double[] resultData = result.getData();
-    double[] leftData = left.getData();
-    double[] rightData = right.getData();
-    for (int i = 0; i < resultData.length; i++) {
-      double l = leftData[i];
-      double r = rightData[i];
-      resultData[i] = l + r;
-    }
-    return result;
-  }
-  
-  /**
-   * Product tensor.
-   *
-   * @param left  the left
-   * @param right the right
-   * @return the tensor
-   */
-  public static Tensor product(Tensor left, Tensor right) {
-    if(left.dim() == 1 && right.dim() != 1) return product(right, left);
-    assert left.dim() == right.dim() || 1 == right.dim();
-    Tensor result = new Tensor(left.getDimensions());
-    double[] resultData = result.getData();
-    double[] leftData = left.getData();
-    double[] rightData = right.getData();
-    for (int i = 0; i < resultData.length; i++) {
-      double l = leftData[i];
-      double r = rightData[1==rightData.length?rightData.length-1:i];
-      resultData[i] = l * r;
-    }
-    return result;
-  }
-  
-  /**
    * Get data as floats float [ ].
    *
    * @return the float [ ]
    */
   public float[] getDataAsFloats() {
     return toFloats(getData());
-  }
-  
-  /**
-   * To floats float [ ].
-   *
-   * @param data the data
-   * @return the float [ ]
-   */
-  public static float[] toFloats(double[] data) {
-    float[] buffer = new float[data.length];
-    for (int i = 0; i < data.length; i++) {
-      buffer[i] = (float) data[i];
-    }
-    return buffer;
-  }
-  
-  /**
-   * To doubles double [ ].
-   *
-   * @param data the data
-   * @return the double [ ]
-   */
-  public static double[] toDoubles(float[] data) {
-    double[] buffer = new double[data.length];
-    for (int i = 0; i < data.length; i++) {
-      buffer[i] = data[i];
-    }
-    return buffer;
   }
   
   /**
@@ -1072,5 +1102,19 @@ public class Tensor implements Serializable {
   public void accum(Tensor tensor) {
     assert (Arrays.equals(getDimensions(), tensor.getDimensions()));
     setParallelByIndex(c -> get(c) + tensor.get(c));
+  }
+  
+  /**
+   * The interface Tuple operator.
+   */
+  public interface TupleOperator {
+    /**
+     * Eval double.
+     *
+     * @param value the value
+     * @param index the index
+     * @return the double
+     */
+    double eval(double value, int index);
   }
 }

@@ -21,32 +21,25 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.network.graph.DAGNode;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
 /**
- * Using a gaussian model based on mean/stddev metrics, calculates the fraction of positive values.
- * Operates per-element, reducing the data to a single batch. Statistics and models are calculated per-element.
+ * The type Sign reducer layer.
  */
 @SuppressWarnings("serial")
 public class SignReducerLayer extends DAGNetwork {
   
-  /**
-   * From json nn layer.
-   *
-   * @param inner the inner
-   * @return the nn layer
-   */
-  public static NNLayer fromJson(JsonObject inner) {
-    return new SignReducerLayer(inner);
-  }
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(SignReducerLayer.class);
+  private final DAGNode head;
   
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Sign reducer layer.
    *
    * @param json the json
    */
@@ -55,12 +48,8 @@ public class SignReducerLayer extends DAGNetwork {
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(SignReducerLayer.class);
-  private final DAGNode head;
-  
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Sign reducer layer.
    */
   public SignReducerLayer() {
     super(1);
@@ -74,6 +63,16 @@ public class SignReducerLayer extends DAGNetwork {
       add(new ProductInputsLayer(),
         avgInput,
         add(new NthPowerActivationLayer().setPower(-1), stdDevInput)));
+  }
+  
+  /**
+   * From json nn layer.
+   *
+   * @param inner the inner
+   * @return the nn layer
+   */
+  public static NNLayer fromJson(JsonObject inner) {
+    return new SignReducerLayer(inner);
   }
   
   @Override

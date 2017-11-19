@@ -31,8 +31,8 @@ import java.util.List;
  */
 public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   
+  private final List<PointSample> history = new ArrayList<>();
   private boolean verbose = false;
-  private List<PointSample> history = new ArrayList<>();
   private int historySize = 3;
   
   /**

@@ -36,21 +36,16 @@ import java.util.stream.IntStream;
 public class AvgMetaLayer extends NNLayer {
   
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    if(null != lastResult) json.add("lastResult", lastResult.getJson());
-    return json;
-  }
-  
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(AvgMetaLayer.class);
   /**
-   * From json avg meta layer.
-   *
-   * @param json the json
-   * @return the avg meta layer
+   * The Last result.
    */
-  public static AvgMetaLayer fromJson(JsonObject json) {
-    return new AvgMetaLayer(json);
-  }
+  public Tensor lastResult;
+  /**
+   * The Min batch count.
+   */
+  int minBatchCount = 1;
   
   /**
    * Instantiates a new Avg meta layer.
@@ -62,9 +57,6 @@ public class AvgMetaLayer extends NNLayer {
     this.lastResult = Tensor.fromJson(json.getAsJsonObject("lastResult"));
   }
   
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(AvgMetaLayer.class);
-  
   /**
    * Instantiates a new Avg meta layer.
    */
@@ -72,13 +64,20 @@ public class AvgMetaLayer extends NNLayer {
   }
   
   /**
-   * The Last result.
+   * From json avg meta layer.
+   *
+   * @param json the json
+   * @return the avg meta layer
    */
-  public Tensor lastResult;
-  /**
-   * The Min batch count.
-   */
-  int minBatchCount = 1;
+  public static AvgMetaLayer fromJson(JsonObject json) {
+    return new AvgMetaLayer(json);
+  }
+
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    if (null != lastResult) json.add("lastResult", lastResult.getJson());
+    return json;
+  }
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
@@ -86,15 +85,16 @@ public class AvgMetaLayer extends NNLayer {
     int itemCnt = input.getData().length();
     Tensor thisResult;
     boolean passback;
-    if(null == lastResult || input.getData().length() > minBatchCount) {
-      final ToDoubleBiFunction<Double,Coordinate> f = (v, c) ->
-                                                              IntStream.range(0, itemCnt)
-                                                                .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-                                                                .sum() / itemCnt;
+    if (null == lastResult || input.getData().length() > minBatchCount) {
+      final ToDoubleBiFunction<Double, Coordinate> f = (v, c) ->
+        IntStream.range(0, itemCnt)
+          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+          .sum() / itemCnt;
       thisResult = input.getData().get(0).mapCoords(f);
       passback = true;
       this.lastResult = thisResult;
-    } else {
+    }
+    else {
       passback = false;
       thisResult = this.lastResult;
     }

@@ -33,8 +33,24 @@ import java.util.stream.IntStream;
  */
 public class StaticScalarLossLayer extends NNLayer {
   
-  public JsonObject getJson() {
-    return super.getJsonStub();
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(StaticScalarLossLayer.class);
+  private double target = 0.0;
+  
+  /**
+   * Instantiates a new Static scalar loss layer.
+   *
+   * @param id the id
+   */
+  protected StaticScalarLossLayer(JsonObject id) {
+    super(id);
+  }
+  
+  
+  /**
+   * Instantiates a new Static scalar loss layer.
+   */
+  public StaticScalarLossLayer() {
   }
   
   /**
@@ -47,25 +63,8 @@ public class StaticScalarLossLayer extends NNLayer {
     return new StaticScalarLossLayer(json);
   }
   
-  /**
-   * Instantiates a new Static scalar loss layer.
-   *
-   * @param id the id
-   */
-  protected StaticScalarLossLayer(JsonObject id) {
-    super(id);
-  }
-  
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(StaticScalarLossLayer.class);
-  
-  private double target = 0.0;
-  
-  /**
-   * Instantiates a new Static scalar loss layer.
-   */
-  public StaticScalarLossLayer() {
+  public JsonObject getJson() {
+    return super.getJsonStub();
   }
   
   @Override
@@ -76,7 +75,7 @@ public class StaticScalarLossLayer extends NNLayer {
     Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(dataIndex);
       final double diff = Math.abs(a.get(0) - getTarget());
-      return new Tensor(new double[]{diff}, new int[]{1});
+      return new Tensor(new double[]{diff}, 1);
     }).toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
@@ -86,7 +85,7 @@ public class StaticScalarLossLayer extends NNLayer {
           Tensor[] passbackA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
             final Tensor a = inObj[0].getData().get(dataIndex);
             final double deriv = data.get(dataIndex).get(0) * ((a.get(0) - getTarget()) < 0 ? -1 : 1);
-            return new Tensor(new double[]{deriv}, new int[]{1});
+            return new Tensor(new double[]{deriv}, 1);
           }).toArray(i -> new Tensor[i]);
           inObj[0].accumulate(buffer, new TensorArray(passbackA));
         }

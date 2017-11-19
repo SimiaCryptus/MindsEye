@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.network;
+package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
@@ -28,16 +28,6 @@ import com.simiacryptus.mindseye.layers.cudnn.f32.ImgBandBiasLayer;
  * The type Polynomial convolution network.
  */
 public class PolynomialConvolutionNetwork extends PolynomialNetwork {
-  
-  /**
-   * From json polynomial convolution network.
-   *
-   * @param json the json
-   * @return the polynomial convolution network
-   */
-  public static PolynomialConvolutionNetwork fromJson(JsonObject json) {
-    return new PolynomialConvolutionNetwork(json);
-  }
   
   private final int radius;
   private final boolean simple;
@@ -67,18 +57,28 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
     this.simple = simple;
   }
   
+  /**
+   * From json polynomial convolution network.
+   *
+   * @param json the json
+   * @return the polynomial convolution network
+   */
+  public static PolynomialConvolutionNetwork fromJson(JsonObject json) {
+    return new PolynomialConvolutionNetwork(json);
+  }
+  
   @Override
   public NNLayer newBias(int[] dims, double weight) {
-    return new ImgBandBiasLayer(dims[2]).setWeights(i->weight);
+    return new ImgBandBiasLayer(dims[2]).setWeights(i -> weight);
   }
-
+  
   @Override
   public NNLayer newProductLayer() {
     return new com.simiacryptus.mindseye.layers.cudnn.f32.ProductInputsLayer();
   }
-
+  
   @Override
   public NNLayer newSynapse(double weight) {
-    return new ConvolutionLayer(radius, radius, inputDims[2]*outputDims[2], simple).setWeights(i->weight*(Math.random()-0.5));
+    return new ConvolutionLayer(radius, radius, inputDims[2] * outputDims[2], simple).setWeights(i -> weight * (Math.random() - 0.5));
   }
 }

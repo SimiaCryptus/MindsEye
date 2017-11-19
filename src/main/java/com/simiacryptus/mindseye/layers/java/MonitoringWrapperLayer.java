@@ -33,36 +33,22 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * The type Monitoring wrapper.
+ * The type Monitoring wrapper layer.
  */
 @SuppressWarnings("serial")
 public final class MonitoringWrapperLayer extends WrapperLayer implements MonitoredItem {
   
-  private boolean verbose = false;
-  
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    //json.fn("forwardPerf",forwardPerf.getJson());
-    //json.fn("backwardPerf",backwardPerf.getJson());
-    json.add("inner", getInner().getJson());
-    json.addProperty("totalBatches", totalBatches);
-    json.addProperty("totalItems", totalItems);
-    json.addProperty("recordSignalMetrics", recordSignalMetrics);
-    return json;
-  }
+  private final boolean verbose = false;
+  private final PercentileStatistics forwardPerformance = new PercentileStatistics();
+  private final PercentileStatistics backwardPerformance = new PercentileStatistics();
+  private final ScalarStatistics backwardSignal = new PercentileStatistics();
+  private final ScalarStatistics forwardSignal = new PercentileStatistics();
+  private int totalBatches = 0;
+  private int totalItems = 0;
+  private boolean recordSignalMetrics = true;
   
   /**
-   * From json monitoring wrapper.
-   *
-   * @param json the json
-   * @return the monitoring wrapper
-   */
-  public static MonitoringWrapperLayer fromJson(JsonObject json) {
-    return new MonitoringWrapperLayer(json);
-  }
-  
-  /**
-   * Instantiates a new Monitoring wrapper.
+   * Instantiates a new Monitoring wrapper layer.
    *
    * @param json the json
    */
@@ -77,21 +63,34 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     this.totalItems = json.get("totalItems").getAsInt();
   }
   
-  private final PercentileStatistics forwardPerformance = new PercentileStatistics();
-  private final PercentileStatistics backwardPerformance = new PercentileStatistics();
-  private final ScalarStatistics backwardSignal = new PercentileStatistics();
-  private final ScalarStatistics forwardSignal = new PercentileStatistics();
-  private int totalBatches = 0;
-  private int totalItems = 0;
-  private boolean recordSignalMetrics = true;
-  
   /**
-   * Instantiates a new Monitoring wrapper.
+   * Instantiates a new Monitoring wrapper layer.
    *
    * @param inner the inner
    */
   public MonitoringWrapperLayer(final NNLayer inner) {
     super(inner);
+  }
+  
+  /**
+   * From json monitoring wrapper layer.
+   *
+   * @param json the json
+   * @return the monitoring wrapper layer
+   */
+  public static MonitoringWrapperLayer fromJson(JsonObject json) {
+    return new MonitoringWrapperLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    //json.fn("forwardPerf",forwardPerf.getJson());
+    //json.fn("backwardPerf",backwardPerf.getJson());
+    json.add("inner", getInner().getJson());
+    json.addProperty("totalBatches", totalBatches);
+    json.addProperty("totalItems", totalItems);
+    json.addProperty("recordSignalMetrics", recordSignalMetrics);
+    return json;
   }
   
   public Map<String, Object> getMetrics() {
@@ -150,8 +149,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     forwardPerformance.add(((System.nanoTime() - start) / 1000000000.0));
     totalBatches++;
     int items = Arrays.stream(inObj).mapToInt(x -> x.getData().length()).max().orElse(1);
-    totalItems +=  items;
-    if(recordSignalMetrics) {
+    totalItems += items;
+    if (recordSignalMetrics) {
       forwardSignal.clear();
       output.getData().stream().parallel().forEach(t -> {
         forwardSignal.add(t.getData());
@@ -160,7 +159,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     return new NNResult(output.getData()) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
-        if(recordSignalMetrics) {
+        if (recordSignalMetrics) {
           backwardSignal.clear();
           data.stream().parallel().forEach(t -> {
             backwardSignal.add(t.getData());
@@ -168,7 +167,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         }
         long start = System.nanoTime();
         output.accumulate(buffer, data);
-        backwardPerformance.add(((System.nanoTime() - start)  - passback.getAndSet(0)) / (items*1e9));
+        backwardPerformance.add(((System.nanoTime() - start) - passback.getAndSet(0)) / (items * 1e9));
       }
       
       @Override
@@ -179,21 +178,21 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   /**
-   * Add to monitoring wrapper.
+   * Add to monitoring wrapper layer.
    *
    * @param obj the obj
-   * @return the monitoring wrapper
+   * @return the monitoring wrapper layer
    */
   public MonitoringWrapperLayer addTo(MonitoredObject obj) {
     return addTo(obj, getInner().getName());
   }
   
   /**
-   * Add to monitoring wrapper.
+   * Add to monitoring wrapper layer.
    *
    * @param obj  the obj
    * @param name the name
-   * @return the monitoring wrapper
+   * @return the monitoring wrapper layer
    */
   public MonitoringWrapperLayer addTo(MonitoredObject obj, String name) {
     setName(name);
@@ -213,7 +212,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   /**
-   * Is activity stats boolean.
+   * Record signal metrics boolean.
    *
    * @return the boolean
    */
@@ -222,28 +221,48 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
   
   /**
-   * Sets activity stats.
+   * Should record signal metrics monitoring wrapper layer.
    *
-   * @param recordSignalMetrics the activity stats
-   * @return the activity stats
+   * @param recordSignalMetrics the record signal metrics
+   * @return the monitoring wrapper layer
    */
   public MonitoringWrapperLayer shouldRecordSignalMetrics(boolean recordSignalMetrics) {
     this.recordSignalMetrics = recordSignalMetrics;
     return this;
   }
   
+  /**
+   * Gets forward performance.
+   *
+   * @return the forward performance
+   */
   public PercentileStatistics getForwardPerformance() {
     return forwardPerformance;
   }
   
+  /**
+   * Gets backward performance.
+   *
+   * @return the backward performance
+   */
   public PercentileStatistics getBackwardPerformance() {
     return backwardPerformance;
   }
   
+  /**
+   * Gets backward signal.
+   *
+   * @return the backward signal
+   */
   public ScalarStatistics getBackwardSignal() {
     return backwardSignal;
   }
   
+  /**
+   * Gets forward signal.
+   *
+   * @return the forward signal
+   */
   public ScalarStatistics getForwardSignal() {
     return forwardSignal;
   }

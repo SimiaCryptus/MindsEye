@@ -21,11 +21,10 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.java.CumAvgMetaLayer;
 import org.junit.Ignore;
 
 /**
- * The type Sum meta layer test.
+ * The type Cum avg meta layer test.
  */
 @Ignore
 public class CumAvgMetaLayerTest extends LayerTestBase {

@@ -21,16 +21,15 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
 
 /**
- * The type Img reshape layer test.
+ * The type Img band select layer test.
  */
 public class ImgBandSelectLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ImgBandSelectLayer(0,2);
+    return new ImgBandSelectLayer(0, 2);
   }
   
   @Override

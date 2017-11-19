@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt;
 import com.simiacryptus.mindseye.eval.Trainable;
 
 /**
- * Created by Andrew Charneski on 7/2/2017.
+ * The type Step.
  */
 public class Step {
   /**

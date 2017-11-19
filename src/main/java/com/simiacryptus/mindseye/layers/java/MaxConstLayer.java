@@ -27,24 +27,8 @@ import com.google.gson.JsonObject;
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   
-  public JsonObject getJson() {
-    JsonObject json = super.getJsonStub();
-    json.addProperty("value", value);
-    return json;
-  }
+  private double value = 0;
   
-  /**
-   * From json max const layer.
-   *
-   * @param json the json
-   * @return the max const layer
-   */
-  public static MaxConstLayer fromJson(JsonObject json) {
-    MaxConstLayer obj = new MaxConstLayer(json);
-    obj.value = json.get("value").getAsDouble();
-    return obj;
-  }
-
   /**
    * Instantiates a new Max const layer.
    *
@@ -61,8 +45,23 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
     super();
   }
   
+  /**
+   * From json max const layer.
+   *
+   * @param json the json
+   * @return the max const layer
+   */
+  public static MaxConstLayer fromJson(JsonObject json) {
+    MaxConstLayer obj = new MaxConstLayer(json);
+    obj.value = json.get("value").getAsDouble();
+    return obj;
+  }
   
-  private double value = 0;
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.addProperty("value", value);
+    return json;
+  }
   
   @Override
   protected void eval(final double x, final double[] results) {

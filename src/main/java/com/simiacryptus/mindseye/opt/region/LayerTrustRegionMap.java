@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Andrew Charneski on 5/23/2017.
+ * The type Layer trust region map.
  */
 public class LayerTrustRegionMap extends TrustRegionStrategy {
   private final Map<NNLayer, TrustRegion> regionPolicies = new HashMap<>();
