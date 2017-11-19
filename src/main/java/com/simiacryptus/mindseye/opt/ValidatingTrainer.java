@@ -31,6 +31,7 @@ import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.Util;
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -111,13 +112,13 @@ public class ValidatingTrainer {
    */
   public double run() {
     long timeoutAt = System.currentTimeMillis() + timeout.toMillis();
-    EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(true));
+    EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(true, monitor));
     int epochNumber = 0;
     int iterationNumber = 0;
     int lastImprovement = 0;
     double lowestValidation = Double.POSITIVE_INFINITY;
     while (true) {
-      if (shouldHalt(timeoutAt)) {
+      if (shouldHalt(monitor, timeoutAt)) {
         monitor.log("Training halted");
         break;
       }
@@ -183,25 +184,33 @@ public class ValidatingTrainer {
    * @return the epoch result
    */
   protected EpochResult epoch(EpochParams epochParams) {
+    
     trainingSubject.setTrainingSize(epochParams.trainingSize);
     PointSample currentPoint = resetAndMeasure();
     PointSample priorPoint = currentPoint.copyDelta();
-    assert (0 < currentPoint.delta.map.size()) : "Nothing to optimize";
+    assert (0 < currentPoint.delta.getMap().size()) : "Nothing to optimize";
     int step = 1;
     for (; step <= epochParams.iterations || epochParams.iterations <= 0; step++) {
-      if (shouldHalt(epochParams.timeoutMs)) {
-        return new EpochResult(false, epochParams.validation, priorPoint, validationSubject.measure(true), currentPoint, step);
+      if (shouldHalt(monitor, epochParams.timeoutMs)) {
+        return new EpochResult(false, epochParams.validation, priorPoint, validationSubject.measure(true, monitor), currentPoint, step);
       }
+      long startTime = System.nanoTime();
+      long prevGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       StepResult epoch = step(currentPoint);
+      long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
+      long endTime = System.nanoTime();
+      String performance = String.format("%s in %.3f seconds, %.3f in gc", epochParams.trainingSize, (endTime - startTime) / 1e9, (newGcTime - prevGcTime) / 1e3);
       currentPoint = epoch.currentPoint.setRate(0.0);
       if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
-        return new EpochResult(reset(epoch.currentPoint.getMean()), epochParams.validation, priorPoint, validationSubject.measure(true), currentPoint, step);
+        boolean reset = reset(epoch.currentPoint.getMean());
+        monitor.log(String.format("Training shuffle: %s (%s)", reset, performance));
+        return new EpochResult(reset, epochParams.validation, priorPoint, validationSubject.measure(true, monitor), currentPoint, step);
       } else {
-        monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), epoch.currentPoint.getMean()));
+        monitor.log(String.format("Iteration %s complete. Error: %s (%s)", currentIteration.get(), epoch.currentPoint.getMean(), performance));
       }
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
-    return new EpochResult(true, epochParams.validation, priorPoint, validationSubject.measure(true), currentPoint, step);
+    return new EpochResult(true, epochParams.validation, priorPoint, validationSubject.measure(true, monitor), currentPoint, step);
   }
   
   /**
@@ -244,13 +253,22 @@ public class ValidatingTrainer {
   /**
    * Should halt boolean.
    *
+   *
+   * @param monitor
    * @param timeoutMs the timeout ms
    * @return the boolean
    */
-  protected boolean shouldHalt(long timeoutMs) {
+  protected boolean shouldHalt(TrainingMonitor monitor, long timeoutMs) {
     boolean stopTraining = timeoutMs < System.currentTimeMillis();
-    stopTraining |= currentIteration.get() > maxIterations;
-    return stopTraining;
+    if(timeoutMs < System.currentTimeMillis()) {
+      monitor.log("Training timeout");
+      return true;
+    } else if(currentIteration.get() > maxIterations) {
+      monitor.log("Training iteration overflow");
+      return true;
+    } else {
+      return false;
+    }
   }
   
   
@@ -266,7 +284,7 @@ public class ValidatingTrainer {
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
-      PointSample currentPoint = trainingSubject.measure(false);
+      PointSample currentPoint = trainingSubject.measure(false, monitor);
       if (Double.isFinite(currentPoint.getMean())) return currentPoint;
     } while (true);
   }

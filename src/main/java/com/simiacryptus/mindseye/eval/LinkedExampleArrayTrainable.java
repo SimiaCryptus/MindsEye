@@ -19,10 +19,8 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.Util;
 
 import java.util.Arrays;
@@ -54,14 +52,14 @@ public class LinkedExampleArrayTrainable implements Trainable {
   }
   
   @Override
-  public PointSample measure(boolean isStatic) {
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     NNResult[] input = NNResult.batchResultArray(sampledData);
-    NNResult result = network.eval(new NNLayer.NNExecutionContext() {
+    NNResult result = network.eval(new NNExecutionContext() {
     }, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     DeltaSet stateSet = new DeltaSet();
-    deltaSet.map.forEach((layer, layerDelta) -> {
+    deltaSet.getMap().forEach((layer, layerDelta) -> {
       stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
     assert (result.getData().stream().allMatch(x -> x.dim() == 1));

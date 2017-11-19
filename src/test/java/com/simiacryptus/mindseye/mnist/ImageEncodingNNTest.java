@@ -20,22 +20,27 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.eval.*;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.MonitoringWrapper;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
+import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
@@ -44,14 +49,16 @@ import org.junit.experimental.categories.Category;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 public class ImageEncodingNNTest extends ImageEncodingPCATest {
 
-  int pretrainMinutes = 1;
-  int timeoutMinutes = 1;
-  int spaceTrainingMinutes = 1;
+  int pretrainMinutes = 60;
+  int timeoutMinutes = 60;
+  int spaceTrainingMinutes = 120;
   int size = 256;
 
   @Override
@@ -60,9 +67,9 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
   public void test() throws Exception {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
       if (null != out) ((MarkdownNotebookOutput) log).addCopy(out);
-      
-      
-      Tensor[][] trainingImages = getImages(log, size, 10, "kangaroo", "yin_yang");
+  
+  
+      Tensor[][] trainingImages = getImages(log, size, 50, "kangaroo", "yin_yang");
       
       log.h1("First Layer");
       InitializationStep step0 = log.code(()->{
@@ -77,6 +84,13 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
           step0.band1, 11, 5, 2);
       }).invoke();
   
+      log.h1("Third Layer");
+      AddLayerStep step2 = log.code(()->{
+        return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
+          3, step1.toSize, pretrainMinutes, timeoutMinutes,
+          step1.band2, 11, 5, 4);
+      }).invoke();
+  
     }
   }
   
@@ -87,30 +101,37 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
       public FindFeatureSpace invoke() {
         ArrayList<Step> history = new ArrayList<>();
         TrainingMonitor monitor = getMonitor(out, history);
-        log.code(() -> {
-          int[] featureDimensions = features[0][1].getDimensions();
-          PipelineNetwork network = new PipelineNetwork(3);
-          DenseSynapseLayer synapseLayer = new DenseSynapseLayer(new int[]{inputBands}, featureDimensions);
-          network.add(synapseLayer);
-          ImgBandBiasLayer bandBiasLayer = new ImgBandBiasLayer(featureDimensions[2]);
-          network.add(bandBiasLayer);
-          DAGNode sqLoss = network.add(new MeanSqLossLayer(), network.getHead(), network.getInput(1));
+        int[] featureDimensions = features[0][1].getDimensions();
+        DenseSynapseLayer synapseLayer = new DenseSynapseLayer(new int[]{inputBands}, featureDimensions);
+        ImgBandBiasLayer bandBiasLayer = new ImgBandBiasLayer(featureDimensions[2]);
+
+        PipelineNetwork network = log.code(()->{
+          PipelineNetwork pipelineNetwork = new PipelineNetwork(3);
+          pipelineNetwork.add(synapseLayer);
+          pipelineNetwork.add(bandBiasLayer);
+          DAGNode sqLoss = pipelineNetwork.add(new MeanSqLossLayer(), pipelineNetwork.getHead(), pipelineNetwork.getInput(1));
   
           int[] categoryDimensions = features[0][0].getDimensions();
-          network.add(new DenseSynapseLayer(new int[]{inputBands}, categoryDimensions), network.getInput(0));
-          network.add(new BiasLayer(categoryDimensions));
-          network.add(new SoftmaxActivationLayer());
-          DAGNode entropy = network.add(new EntropyLossLayer(), network.getHead(), network.getInput(2));
-          
-          network.add(new SumInputsLayer(),
-            network.add(new LinearActivationLayer().freeze(), sqLoss),
-            network.add(new LinearActivationLayer().freeze(), entropy));
-          
-          Tensor[][] trainingData = Arrays.stream(features).map(tensor -> new Tensor[]{
-            new Tensor(inputBands), tensor[1], tensor[0]
+          pipelineNetwork.add(new DenseSynapseLayer(new int[]{inputBands}, categoryDimensions), pipelineNetwork.getInput(0));
+          pipelineNetwork.add(new BiasLayer(categoryDimensions));
+          pipelineNetwork.add(new SoftmaxActivationLayer());
+          DAGNode entropy = pipelineNetwork.add(new EntropyLossLayer(), pipelineNetwork.getHead(), pipelineNetwork.getInput(2));
+  
+          pipelineNetwork.add(new SumInputsLayer(),
+            pipelineNetwork.add(new LinearActivationLayer().freeze(), sqLoss),
+            pipelineNetwork.add(new LinearActivationLayer().freeze(), entropy));
+          return pipelineNetwork;
+        });
+  
+        addPerformanceWrappers(log, network);
+        log.p("Training feature network");
+        Tensor[][] trainingData = log.code(() -> {
+          return Arrays.stream(features).map(tensor -> new Tensor[]{
+            new Tensor(inputBands).fill(()->0.01 * (Math.random()-0.5)), tensor[1], tensor[0]
           }).toArray(i -> new Tensor[i][]);
-    
-          StochasticTrainable trainingSubject = new StochasticArrayTrainable(trainingData, network, trainingData.length);
+        });
+        log.code(() -> {
+          StochasticTrainable trainingSubject = new StochasticArrayTrainable(trainingData, network, trainingData.length/5, trainingData.length);
           trainingSubject = (StochasticTrainable) ((TrainableDataMask) trainingSubject).setMask(true, false, false);
           new ValidatingTrainer(trainingSubject, new ArrayTrainable(trainingData, network))
             .setMaxTrainingSize(trainingData.length)
@@ -136,10 +157,59 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
             return to;
           }).toArray(i->new Tensor[i]);
         });
+        removePerformanceWrappers(log, network);
         printHistory(log, history);
         return this;
       }
     }.invoke();
   }
+
+  public void addPerformanceWrappers(NotebookOutput log, DAGNetwork network) {
+    log.p("Adding performance wrappers");
+    log.code(()->{
+      network.visitNodes(node->{
+        if(!(node.getLayer() instanceof MonitoringWrapper)) {
+          node.setLayer(new MonitoringWrapper(node.getLayer()).shouldRecordSignalMetrics(false));
+        } else {
+          ((MonitoringWrapper)node.getLayer()).shouldRecordSignalMetrics(false);
+        }
+      });
+    });
+  }
+
+  public void removePerformanceWrappers(NotebookOutput log, DAGNetwork network) {
+    log.p("Per-layer Performance Metrics:");
+    log.code(()->{
+      Map<NNLayer, MonitoringWrapper> metrics = new HashMap<>();
+      network.visitNodes(node->{
+        if((node.getLayer() instanceof MonitoringWrapper)) {
+          MonitoringWrapper layer = node.getLayer();
+          metrics.put(layer.getInner(), layer);
+        }
+      });
+      System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e->{
+        PercentileStatistics performance = e.getValue().getForwardPerformance();
+        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+      }).reduce((a,b)->a+"\n\t"+b));
+      System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e->{
+        PercentileStatistics performance = e.getValue().getBackwardPerformance();
+        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+      }).reduce((a,b)->a+"\n\t"+b));
+    });
+    log.p("Removing performance wrappers");
+    log.code(()->{
+      network.visitNodes(node->{
+        if(node.getLayer() instanceof MonitoringWrapper) {
+          node.setLayer(node.<MonitoringWrapper>getLayer().getInner());
+        }
+      });
+    });
+  }
   
+  @Override
+  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, double factor_l1, boolean... mask) {
+    if(network instanceof DAGNetwork) addPerformanceWrappers(log, (DAGNetwork) network);
+    super.train(log, monitor, network, data, orientation, timeoutMinutes, factor_l1, mask);
+    if(network instanceof DAGNetwork) removePerformanceWrappers(log, (DAGNetwork) network);
+  }
 }

@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.network.graph;
 
+import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 
@@ -53,7 +54,7 @@ public interface DAGNode extends Serializable {
    * @param buildExeCtx the build exe ctx
    * @return the nn result
    */
-  NNResult get(NNLayer.NNExecutionContext nncontext, EvaluationContext buildExeCtx);
+  NNResult get(NNExecutionContext nncontext, EvaluationContext buildExeCtx);
   
   
   /**

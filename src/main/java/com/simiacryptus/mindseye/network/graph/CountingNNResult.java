@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.network.graph;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.layers.cudnn.f32.CuDNNFloatTensorList;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNNFloatTensorList;
 
 /**
  * The type Counting nn result.

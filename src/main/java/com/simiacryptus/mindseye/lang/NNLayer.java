@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.util.Util;
 
 import java.io.Serializable;
@@ -40,17 +39,6 @@ public abstract class NNLayer implements Serializable {
   
   public NNLayer copy() {
     return NNLayer.fromJson(getJson());
-  }
-  
-  /**
-   * The interface Nn execution context.
-   */
-  public interface NNExecutionContext {
-    /**
-     * If true, prevent state changes as a result of evaluation.
-     * (Used mainly to control meta layers.)
-     */
-    default boolean staticEvaluation() { return false; }
   }
   
   private final UUID id;
@@ -87,7 +75,7 @@ public abstract class NNLayer implements Serializable {
   }
   
   @Override
-  public final boolean equals(final Object obj) {
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
@@ -147,19 +135,6 @@ public abstract class NNLayer implements Serializable {
    */
   public NNLayer freeze() {
     return setFrozen(true);
-  }
-  
-  /**
-   * Gets child.
-   *
-   * @param id the id
-   * @return the child
-   */
-  public NNLayer getChild(final String id) {
-    if (this.getId().equals(id)) {
-      return this;
-    }
-    return null;
   }
   
   /**
@@ -232,7 +207,7 @@ public abstract class NNLayer implements Serializable {
   }
   
   @Override
-  public final int hashCode() {
+  public int hashCode() {
     return this.getId().hashCode();
   }
   

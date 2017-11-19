@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.network.graph;
 
 import com.simiacryptus.mindseye.lang.ComponentException;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNResult;
 
 import java.util.UUID;
@@ -65,10 +65,10 @@ abstract class LazyResult implements DAGNode {
    * @param nncontext the nncontext
    * @return the nn result
    */
-  protected abstract NNResult eval(EvaluationContext t, NNLayer.NNExecutionContext nncontext);
+  protected abstract NNResult eval(EvaluationContext t, NNExecutionContext nncontext);
   
   @Override
-  public synchronized CountingNNResult get(NNLayer.NNExecutionContext nncontext, final EvaluationContext t) {
+  public synchronized CountingNNResult get(NNExecutionContext nncontext, final EvaluationContext t) {
     return t.cache.computeIfAbsent(this.id, k -> {
       try {
         return new CountingNNResult(eval(t, nncontext));

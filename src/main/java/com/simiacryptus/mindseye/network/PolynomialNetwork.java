@@ -24,9 +24,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.activation.NthPowerActivationLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
+import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 
@@ -272,7 +273,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @return the nn layer
    */
   public NNLayer newProductLayer() {
-    return new com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer();
+    return new ProductInputsLayer();
   }
   
   /**

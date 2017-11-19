@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.meta.Sparse01MetaLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumReducerLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.java.Sparse01MetaLayer;
+import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 
 /**

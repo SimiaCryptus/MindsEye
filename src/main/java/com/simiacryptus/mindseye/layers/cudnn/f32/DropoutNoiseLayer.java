@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.layers.stochastic.BinaryNoiseLayer;
-import com.simiacryptus.mindseye.layers.stochastic.StochasticComponent;
+import com.simiacryptus.mindseye.layers.java.BinaryNoiseLayer;
+import com.simiacryptus.mindseye.layers.java.StochasticComponent;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

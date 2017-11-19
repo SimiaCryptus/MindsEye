@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.ArrayUtil;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -85,7 +84,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
     reset();
     direction.accumulate(alpha);
-    PointSample sample = subject.measure(true).setRate(alpha);
+    PointSample sample = subject.measure(true, monitor).setRate(alpha);
     double deltaMagnitude = sample.delta.getMagnitude();
     if (deltaMagnitude <= 0) deltaMagnitude = 1;
     

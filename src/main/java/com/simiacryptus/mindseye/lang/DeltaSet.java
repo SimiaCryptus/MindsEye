@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.lang;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -32,10 +31,7 @@ import java.util.stream.Stream;
  * The type Delta set.
  */
 public class DeltaSet {
-  /**
-   * The Map.
-   */
-  public final ConcurrentHashMap<NNLayer, Delta> map = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<NNLayer, Delta> map = new ConcurrentHashMap<>();
   
   /**
    * Instantiates a new Delta set.
@@ -49,19 +45,7 @@ public class DeltaSet {
    * @param collect the collect
    */
   public DeltaSet(final Map<NNLayer, Delta> collect) {
-    this.map.putAll(collect);
-  }
-  
-  /**
-   * From list delta set.
-   *
-   * @param descent the descent
-   * @return the delta set
-   */
-  public static DeltaSet fromList(List<Delta> descent) {
-    DeltaSet deltaSet = new DeltaSet();
-    descent.forEach(buffer -> deltaSet.get(buffer.layer, buffer.target).accumulate(buffer.getDelta()));
-    return deltaSet;
+    map.putAll(collect);
   }
   
   /**
@@ -87,10 +71,10 @@ public class DeltaSet {
    * @return the t
    */
   public <T extends Delta> T get(final NNLayer layer, Supplier<T> factory) {
-    if (null == this.map) throw new IllegalArgumentException();
+    if (null == map) throw new IllegalArgumentException();
     if (null == factory) throw new IllegalArgumentException();
     if (null == layer) throw new IllegalArgumentException();
-    return (T) this.map.computeIfAbsent(layer, l -> factory.get());
+    return (T) map.computeIfAbsent(layer, l -> factory.get());
   }
   
   /**
@@ -111,7 +95,7 @@ public class DeltaSet {
    * @return the delta set
    */
   public DeltaSet map(final Function<Delta, Delta> mapper) {
-    return new DeltaSet(this.map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue()))));
+    return new DeltaSet(map.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue()))));
   }
   
   /**
@@ -125,7 +109,7 @@ public class DeltaSet {
   }
   
   public Stream<Delta> stream() {
-    return this.map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId()));
+    return map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId()));
   }
   
   /**
@@ -147,10 +131,6 @@ public class DeltaSet {
       Delta value = entry.getValue();
       return value.sumSq();
     }).sum();
-//    double sumCnt = mapCoords.entrySet().stream().mapToDouble(entry -> {
-//      Delta value = entry.getValue();
-//      return value.length();
-//    }).sum();
     return Math.sqrt(sumSq);
   }
   
@@ -177,6 +157,7 @@ public class DeltaSet {
   public DeltaSet subtract(DeltaSet right) {
     return this.add(right.scale(-1));
   }
+  
   /**
    * Add delta set.
    *
@@ -197,14 +178,12 @@ public class DeltaSet {
   }
   
   public DeltaSet union(DeltaSet right) {
-    DeltaSet returnValue = new DeltaSet();
-    map.forEach((layer, buffer) -> {
-      returnValue.get(layer, buffer.target).set(buffer.delta);
-    });
-    right.map.forEach((layer, buffer) -> {
-      returnValue.get(layer, buffer.target).set(buffer.delta);
-    });
-    return returnValue;
+    return new DeltaSet(Stream.concat(
+      map.entrySet().stream(),
+      right.map.entrySet().stream()
+    ).collect(Collectors.groupingBy(e1 -> e1.getKey(),
+      Collectors.mapping(x -> x.getValue(), Collectors.collectingAndThen(
+        Collectors.reducing((a, b) -> a.accumulate(b.getDelta())), x -> x.get())))));
   }
   
   /**
@@ -244,5 +223,9 @@ public class DeltaSet {
    */
   public boolean isDifferent() {
     return stream().parallel().anyMatch(x -> !x.areEqual());
+  }
+  
+  public ConcurrentHashMap<NNLayer, Delta> getMap() {
+    return map;
   }
 }

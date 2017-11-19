@@ -89,7 +89,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
         DeltaSet adjustedPosVector = cursor.position(alpha);
         DeltaSet adjustedGradient = project(adjustedPosVector, monitor);
         adjustedPosVector.accumulate();
-        PointSample sample = subject.measure(true).setRate(alpha);
+        PointSample sample = subject.measure(true, monitor).setRate(alpha);
         return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));
       }
 
@@ -104,7 +104,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
       public DeltaSet project(DeltaSet deltaSet, TrainingMonitor monitor) {
         DeltaSet originalAlphaDerivative = cursor.direction;
         DeltaSet newAlphaDerivative = originalAlphaDerivative.copy();
-        deltaSet.map.forEach((layer, buffer) -> {
+        deltaSet.getMap().forEach((layer, buffer) -> {
           double[] delta = buffer.getDelta();
           if (null == delta) return;
           double[] currentPosition = buffer.target;
@@ -113,7 +113,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
           double[] proposedPosition = add(currentPosition, delta);
           TrustRegion region = getRegionPolicy(layer);
           if (null != region) {
-            double[][] historyData = history.stream().map((PointSample x) -> x.weights.map.get(layer).getDelta()).toArray(i -> new double[i][]);
+            double[][] historyData = history.stream().map((PointSample x) -> x.weights.getMap().get(layer).getDelta()).toArray(i -> new double[i][]);
             double[] projectedPosition = region.project(historyData, proposedPosition);
             if (projectedPosition != proposedPosition) {
               for (int i = 0; i < projectedPosition.length; i++) {

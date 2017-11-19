@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.util.lang.StaticResourcePool;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * CUDA GPU-aware execution context.
  */
-public class CudaExecutionContext extends CuDNN implements NNLayer.NNExecutionContext {
+public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
   
   /**
    * Concurrent resource pool of all system GPUs

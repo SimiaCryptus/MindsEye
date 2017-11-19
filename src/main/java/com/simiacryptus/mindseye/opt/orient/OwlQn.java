@@ -23,9 +23,9 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.synapse.JavaDenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.synapse.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.JavaDenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.ToeplitzSynapseLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
@@ -66,9 +66,9 @@ public class OwlQn implements OrientationStrategy {
     SimpleLineSearchCursor gradient = (SimpleLineSearchCursor) inner.orient(subject, measurement, monitor);
     DeltaSet searchDirection = gradient.direction.copy();
     DeltaSet orthant = new DeltaSet();
-    for (NNLayer layer : getLayers(gradient.direction.map.keySet())) {
-      double[] weights = gradient.direction.map.get(layer).target;
-      double[] delta = gradient.direction.map.get(layer).getDelta();
+    for (NNLayer layer : getLayers(gradient.direction.getMap().keySet())) {
+      double[] weights = gradient.direction.getMap().get(layer).target;
+      double[] delta = gradient.direction.getMap().get(layer).getDelta();
       double[] searchDir = searchDirection.get(layer, weights).getDelta();
       double[] suborthant = orthant.get(layer, weights).getDelta();
       for (int i = 0; i < searchDir.length; i++) {
@@ -85,7 +85,7 @@ public class OwlQn implements OrientationStrategy {
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
         origin.weights.stream().forEach(d -> d.overwrite());
         DeltaSet currentDirection = direction.copy();
-        direction.map.forEach((layer, buffer) -> {
+        direction.getMap().forEach((layer, buffer) -> {
           if (null == buffer.getDelta()) return;
           double[] currentDelta = currentDirection.get(layer, buffer.target).getDelta();
           for (int i = 0; i < buffer.getDelta().length; i++) {
@@ -100,7 +100,7 @@ public class OwlQn implements OrientationStrategy {
             }
           }
         });
-        PointSample measure = subject.measure(true).setRate(alpha);
+        PointSample measure = subject.measure(true, monitor).setRate(alpha);
         return new LineSearchPoint(measure, currentDirection.dot(measure.delta));
       }
     }.setDirectionType("OWL/QN");

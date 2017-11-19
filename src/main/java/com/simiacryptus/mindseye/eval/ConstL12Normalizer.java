@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.media.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
 
 /**
  * Created by Andrew Charneski on 5/26/2017.

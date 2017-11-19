@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.eval;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +53,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   }
   
   @Override
-  public PointSample measure(boolean isStatic) {
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     List<Tensor[]> tensors = Arrays.asList(getData());
     if(batchSize < tensors.size()) {
       int batches = (int) Math.ceil(tensors.size() * 1.0 / batchSize);
@@ -63,11 +64,11 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
           throw new RuntimeException();
         }
         getInner().setData(trainingData);
-        return super.measure(isStatic);
+        return super.measure(isStatic, monitor);
       }).reduce((a, b) -> a.add(b)).get();
     } else {
       getInner().setData(tensors);
-      return super.measure(isStatic);
+      return super.measure(isStatic, monitor);
     }
   }
   

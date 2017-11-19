@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
  * The interface Trainable.
@@ -30,8 +31,9 @@ public interface Trainable {
    *
    * @return the trainable . point sample
    * @param isStatic
+   * @param monitor
    */
-  Trainable.PointSample measure(boolean isStatic);
+  Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor);
   
   default CachedTrainable<? extends Trainable> cached() {
     return new CachedTrainable<>(this);
@@ -101,7 +103,7 @@ public interface Trainable {
      * @param rate    the rate
      */
     public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate, int count) {
-      assert(delta.map.size() == weights.map.size());
+      assert(delta.getMap().size() == weights.getMap().size());
       this.delta = delta;
       this.weights = weights;
       this.sum = sum;
@@ -175,8 +177,8 @@ public interface Trainable {
     }
   
     public static PointSample add(PointSample left, PointSample right) {
-      assert(left.delta.map.size() == left.weights.map.size());
-      assert(right.delta.map.size() == right.weights.map.size());
+      assert(left.delta.getMap().size() == left.weights.getMap().size());
+      assert(right.delta.getMap().size() == right.weights.getMap().size());
       return new PointSample(left.delta.add(right.delta),
                              left.weights.union(right.weights),
                               left.sum + right.sum,

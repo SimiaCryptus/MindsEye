@@ -20,13 +20,13 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.WeakHashMap;
 
 public final class PlaceholderLayer extends NNLayer {
   
@@ -63,4 +63,19 @@ public final class PlaceholderLayer extends NNLayer {
     return Integer.toHexString(System.identityHashCode(this.key));
   }
   
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof PlaceholderLayer)) return false;
+    if (!super.equals(o)) return false;
+    PlaceholderLayer that = (PlaceholderLayer) o;
+    return key != null ? key == that.key : that.key == null;
+  }
+  
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (key != null ? key.hashCode() : 0);
+    return result;
+  }
 }

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.data;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.BinaryChunkIterator;
 import com.simiacryptus.util.io.DataLoader;

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.eval;
 
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
+
 /**
  * The type Trainable wrapper.
  *
@@ -38,8 +40,8 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   }
   
   @Override
-  public PointSample measure(boolean isStatic) {
-    return inner.measure(isStatic);
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+    return inner.measure(isStatic, monitor);
   };
   
   /**

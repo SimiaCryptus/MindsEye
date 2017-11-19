@@ -20,19 +20,17 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.activation.SinewaveActivationLayer;
-import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SinewaveActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.mnist.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;

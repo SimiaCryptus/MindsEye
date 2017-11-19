@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.rdd.RDD;
@@ -136,7 +137,7 @@ public class SparkTrainable implements Trainable {
      * @param source the source
      */
     public void accumulate(DeltaSet source) {
-      Map<String, NNLayer> idIndex = source.map.entrySet().stream().collect(Collectors.toMap(
+      Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId(), e -> e.getKey()
       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).accumulate(v));
@@ -214,7 +215,12 @@ public class SparkTrainable implements Trainable {
       GpuTrainable trainable = new GpuTrainable(network);
       Tensor[][] tensors = SparkTrainable.getStream(partition).toArray(i -> new Tensor[i][]);
       if(verbose) debug("Materialized %s records in %4f sec", tensors.length, (System.nanoTime() - startTime) * 1e-9);
-      PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(false);
+      PointSample measure = trainable.setData(Arrays.asList(tensors)).measure(false, new TrainingMonitor(){
+        @Override
+        public void log(String msg) {
+          debug(msg);
+        }
+      });
       assert (measure != null);
       return Arrays.asList(SparkTrainable.getResult(measure.delta, new double[]{measure.sum})).iterator();
     }
@@ -228,7 +234,7 @@ public class SparkTrainable implements Trainable {
    * @return the result
    */
   protected static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
-    Map<String, double[]> deltas = delta.map.entrySet().stream().collect(Collectors.toMap(
+    Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId(), e -> e.getValue().getDelta()
     ));
     return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum());
@@ -247,7 +253,7 @@ public class SparkTrainable implements Trainable {
     result.accumulate(deltaSet);
     assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DeltaSet stateBackup = new DeltaSet();
-    deltaSet.map.forEach((layer, layerDelta) -> {
+    deltaSet.getMap().forEach((layer, layerDelta) -> {
       stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
     assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
@@ -316,7 +322,7 @@ public class SparkTrainable implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure(boolean isStatic) {
+  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     long time1 = System.nanoTime();
     JavaRDD<ReducableResult> mapPartitions = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
     long time2 = System.nanoTime();
@@ -324,7 +330,7 @@ public class SparkTrainable implements Trainable {
     if(isVerbose()) System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     DeltaSet deltaSet = getDelta(result);
     DeltaSet stateSet = new DeltaSet();
-    deltaSet.map.forEach((layer, layerDelta) -> {
+    deltaSet.getMap().forEach((layer, layerDelta) -> {
       stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
     });
     return new Trainable.PointSample(deltaSet, stateSet, result.sum);

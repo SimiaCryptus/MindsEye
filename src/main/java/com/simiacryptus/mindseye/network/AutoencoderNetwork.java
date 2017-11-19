@@ -24,14 +24,14 @@ import com.simiacryptus.mindseye.eval.L12Normalizer;
 import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.activation.GaussianNoiseLayer;
-import com.simiacryptus.mindseye.layers.activation.ReLuActivationLayer;
-import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.stochastic.DropoutNoiseLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.synapse.TransposedSynapseLayer;
-import com.simiacryptus.mindseye.layers.util.VariableLayer;
+import com.simiacryptus.mindseye.layers.java.GaussianNoiseLayer;
+import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.java.DropoutNoiseLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.TransposedSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.VariableLayer;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -330,7 +330,7 @@ public class AutoencoderNetwork {
    */
   public TensorList encode(TensorList data) {
     return encoder.getLayer()
-             .eval(new NNLayer.NNExecutionContext() {
+             .eval(new NNExecutionContext() {
              }, NNResult.batchResultArray(data.stream().map(x -> new Tensor[]{x}).toArray(i -> new Tensor[i][])))
              .getData();
   }

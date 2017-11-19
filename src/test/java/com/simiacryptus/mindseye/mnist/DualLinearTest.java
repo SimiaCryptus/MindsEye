@@ -19,24 +19,11 @@
 
 package com.simiacryptus.mindseye.mnist;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
-import com.simiacryptus.mindseye.layers.meta.NormalizationMetaLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.network.PolynomialConvolutionNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
-import com.simiacryptus.mindseye.opt.Step;
-import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.NotebookOutput;
-
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Stream;
 
 /**
  * The type Polynomial convolution test.

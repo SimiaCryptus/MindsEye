@@ -21,11 +21,11 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.activation.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.SigmoidTreeNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;

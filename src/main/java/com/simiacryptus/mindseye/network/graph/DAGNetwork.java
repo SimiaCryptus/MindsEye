@@ -23,11 +23,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.meta.WeightExtractor;
-import com.simiacryptus.mindseye.layers.util.NNLayerWrapper;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.java.WeightExtractor;
+import com.simiacryptus.mindseye.layers.java.NNLayerWrapper;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import org.slf4j.Logger;
@@ -368,15 +366,25 @@ public abstract class DAGNetwork extends NNLayer {
     return this.buildExeCtx(NNResult.batchResultArray(batchData));
   }
   
-  @Override
-  public NNLayer getChild(final String id) {
+  public NNLayer getChildLayer(final String id) {
     if (this.getId().equals(id)) {
       return this;
     }
     if (this.layersById.containsKey(id)) {
       return this.layersById.get(id);
     }
-    return this.layersById.values().stream().map(x -> x.getChild(id)).findAny().orElse(null);
+    return this.layersById.values().stream()
+      .filter(x->x instanceof DAGNetwork)
+      .map(x->((DAGNetwork) x).getChildLayer(id)).findAny().orElse(null);
+  }
+  
+  public DAGNode getChildNode(final UUID id) {
+    if (this.nodesById.containsKey(id)) {
+      return this.nodesById.get(id);
+    }
+    return this.nodesById.values().stream().map(x->x.getLayer())
+      .filter(x->x instanceof DAGNetwork)
+      .map(x->((DAGNetwork) x).getChildNode(id)).findAny().orElse(null);
   }
   
   @Override

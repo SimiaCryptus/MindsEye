@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.util.ConstNNLayer;
+import com.simiacryptus.mindseye.layers.java.ConstNNLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 

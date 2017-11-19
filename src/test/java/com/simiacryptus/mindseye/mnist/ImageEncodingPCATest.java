@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.media.ResampledSubLayer;
+import com.simiacryptus.mindseye.layers.java.ResampledSubLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.opt.Step;
@@ -59,7 +59,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       int timeoutMinutes = 1;
       int size = 256;
       int images = 50;
-      
+  
       Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
       
       log.h1("First Layer");
@@ -74,18 +74,18 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
           2, step0.toSize, pretrainMinutes, timeoutMinutes,
           step0.band1, 11, 5, 2);
       }).invoke();
-      
-      log.h1("Third Layer");
-      AddLayerStep step2 = log.code(()->{
-        return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
-          3, step1.toSize, pretrainMinutes, timeoutMinutes,
-          step1.band2, 17, 5, 4);
-      }).invoke();
-      
+//
+//      log.h1("Third Layer");
+//      AddLayerStep step2 = log.code(()->{
+//        return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
+//          3, step1.toSize, pretrainMinutes, timeoutMinutes,
+//          step1.band2, 17, 5, 4);
+//      }).invoke();
+//
       log.h1("Transcoding Different Category");
       TranscodeStep step3 = log.code(()->{
         return new TranscodeStep(log, "yin_yang",
-          images, size, timeoutMinutes, step2.integrationModel, step2.toSize, step2.toSize, step2.band2);
+          images, size, timeoutMinutes, step1.integrationModel, step1.toSize, step1.toSize, step1.band2);
       }).invoke();
       
     }

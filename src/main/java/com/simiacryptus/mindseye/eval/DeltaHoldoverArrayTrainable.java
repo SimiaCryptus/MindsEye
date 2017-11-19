@@ -20,9 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.function.WeakCachedSupplier;
 

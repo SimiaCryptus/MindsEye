@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.util.lang.TimedResult;
 import jcuda.runtime.JCuda;
 
 import java.util.*;
@@ -63,7 +65,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     return IntStream.range(0, cols).parallel().mapToObj(col -> {
       Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
       if (null == mask || col >= mask.length || !mask[col]) {
-        return new ConstNNResult(tensors);
+        return new NNConstant(tensors);
       }
       else {
         return new NNResult(tensors) {
@@ -92,21 +94,22 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   }
   
   @Override
-  public PointSample measure(boolean isStatic) {
-    return measure(3, isStatic);
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+    return measure(3, isStatic, monitor);
   }
   
   /**
    * Measure point sample.
    *
    * @param retries the retries
+   * @param monitor
    * @return the point sample
    */
-  public PointSample measure(int retries, boolean isStatic) {
+  public PointSample measure(int retries, boolean isStatic, TrainingMonitor monitor) {
     try {
       assert !data.isEmpty();
       PointSample result = GpuController.INSTANCE.distribute(data,
-        (list, dev) -> eval(list, dev, isStatic),
+        (list, dev) -> eval(list, dev, isStatic, monitor),
         (a, b) -> a.add(b)
       );
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
@@ -136,7 +139,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         }
         CudaPtr.METRICS.invalidateAll();
         GpuController.INSTANCE.cleanMemory();
-        return measure(retries-1, isStatic);
+        return measure(retries-1, isStatic, monitor);
       } else {
         throw e;
       }
@@ -149,28 +152,33 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * @param list the input
    * @param nncontext the nncontext
    * @param isStatic
+   * @param monitor
    * @return the point sample
    */
-  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, boolean isStatic) {
-    nncontext.setStatic(isStatic);
-    NNResult[] nnContext = getNNContext(list, mask);
-    NNResult result = network.eval(nncontext, nnContext);
-    TensorList resultData = result.getData();
-    assert (resultData.stream().allMatch(x -> x.dim() == 1));
-    assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-    DoubleStream stream = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData()));
-    DoubleSummaryStatistics statistics = stream.summaryStatistics();
-    double sum = statistics.getAverage();
-    DeltaSet deltaSet = new DeltaSet();
-    result.accumulate(deltaSet, 1.0 / statistics.getCount());
-    //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-    assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    DeltaSet stateBackup = new DeltaSet();
-    deltaSet.map.forEach((layer, layerDelta) -> {
-      stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
+  protected PointSample eval(List<Tensor[]> list, CudaExecutionContext nncontext, boolean isStatic, TrainingMonitor monitor) {
+    TimedResult<PointSample> timedResult = TimedResult.time(() -> {
+      nncontext.setStatic(isStatic);
+      NNResult[] nnContext = getNNContext(list, mask);
+      NNResult result = network.eval(nncontext, nnContext);
+      TensorList resultData = result.getData();
+      assert (resultData.stream().allMatch(x -> x.dim() == 1));
+      assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
+      DoubleStream stream = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData()));
+      DoubleSummaryStatistics statistics = stream.summaryStatistics();
+      double sum = statistics.getAverage();
+      DeltaSet deltaSet = new DeltaSet();
+      result.accumulate(deltaSet, 1.0 / statistics.getCount());
+      //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
+      assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+      DeltaSet stateBackup = new DeltaSet();
+      deltaSet.getMap().forEach((layer, layerDelta) -> {
+        stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
+      });
+      assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+      return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
     });
-    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    return new PointSample(deltaSet, stateBackup, sum, statistics.getCount());
+    if (null != monitor) monitor.log(String.format("Device %s completed %s items in %s sec", nncontext.toString(), data.size(), timedResult.timeNanos / 1e9));
+    return timedResult.result;
   }
   
   

@@ -25,6 +25,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorMemory;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -44,10 +45,6 @@ public final class GpuController {
    */
   public static final GpuController INSTANCE = new GpuController();
   
-  /**
-   * The Verbose.
-   */
-  protected boolean verbose = true;
   /**
    * The Device weight.
    */
@@ -138,7 +135,6 @@ public final class GpuController {
       List<List<U>> batches = (data.size() > batchSize) ? Lists.partition(data, batchSize) : Arrays.asList(data);
       T deviceResult = batches.stream().map(x -> mapper.apply(x, gpu)).filter(x -> null != x).reduce(reducer).get();
       double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
-      if (verbose) log("Device %s completed %s items in %s sec", gpu, data.size(), time);
       deviceWeight.put(gpu.toString(), data.size() / time);
       return deviceResult;
     } catch (Throwable t) {
@@ -157,16 +153,11 @@ public final class GpuController {
     }
   }
   
-  private void log(String msg, Object... args) {
-    String format = String.format(msg, args);
-    System.out.println(format);
-  }
-  
   /**
    * Clean memory.
    */
   public void cleanMemory() {
-    Tensor.clear();
+    TensorMemory.clear();
     System.gc();
     System.runFinalization();
   }

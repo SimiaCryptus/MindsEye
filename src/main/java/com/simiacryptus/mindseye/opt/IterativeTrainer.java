@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.lang.TimedResult;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -93,53 +94,65 @@ public class IterativeTrainer {
    */
   public double run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
+    long lastIterationTime = System.nanoTime();
     PointSample currentPoint = measure();
     mainLoop:
     while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
       if (currentIteration.get() > maxIterations) break;
       currentPoint = measure();
-      assert (0 < currentPoint.delta.map.size()) : "Nothing to optimize";
+      assert (0 < currentPoint.delta.getMap().size()) : "Nothing to optimize";
       subiterationLoop:
       for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
         if (timeoutMs < System.currentTimeMillis()) break mainLoop;
         if (currentIteration.incrementAndGet() > maxIterations) break mainLoop;
-        LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
+        PointSample _currentPoint = currentPoint;
+        TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
+        LineSearchCursor direction = timedOrientation.result;
         String directionType = direction.getDirectionType();
-        LineSearchStrategy lineSearchStrategy;
-        if (lineSearchStrategyMap.containsKey(directionType)) {
-          lineSearchStrategy = lineSearchStrategyMap.get(directionType);
-        }
-        else {
-          System.out.println(String.format("Constructing line search parameters: %s", directionType));
-          lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
-          lineSearchStrategyMap.put(directionType, lineSearchStrategy);
-        }
         PointSample previous = currentPoint;
-        FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
-        lineSearchStrategy.step(wrapped, monitor);
-        currentPoint = wrapped.getBest(monitor);
+        TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
+        currentPoint = timedLineSearch.result;
+        long now = System.nanoTime();
+        String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f", now - lastIterationTime / 1e9);
+        lastIterationTime = now;
         if (previous.getMean() <= currentPoint.getMean()) {
           if (previous.getMean() < currentPoint.getMean()) {
-            monitor.log(String.format("Resetting Iteration"));
+            monitor.log(String.format("Resetting Iteration " + perfString));
             currentPoint = direction.step(0, monitor).point;
           }
           if (subject.resetSampling()) {
-            monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.getMean()));
+            monitor.log(String.format("Iteration %s failed, retrying. Error: %s " + perfString, currentIteration.get(), currentPoint.getMean()));
             break subiterationLoop;
           }
           else {
-            monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), currentPoint.getMean()));
+            monitor.log(String.format("Iteration %s failed, aborting. Error: %s " + perfString, currentIteration.get(), currentPoint.getMean()));
             break mainLoop;
           }
         }
         else {
-          monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), currentPoint.getMean()));
+          monitor.log(String.format("Iteration %s complete. Error: %s " +  perfString, currentIteration.get(), currentPoint.getMean()));
         }
         monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
       }
       orientation.reset();
     }
     return null == currentPoint ? Double.NaN : currentPoint.getMean();
+  }
+  
+  public PointSample step(LineSearchCursor direction, String directionType, PointSample previous) {
+    PointSample currentPoint;LineSearchStrategy lineSearchStrategy;
+    if (lineSearchStrategyMap.containsKey(directionType)) {
+      lineSearchStrategy = lineSearchStrategyMap.get(directionType);
+    }
+    else {
+      System.out.println(String.format("Constructing line search parameters: %s", directionType));
+      lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
+      lineSearchStrategyMap.put(directionType, lineSearchStrategy);
+    }
+    FailsafeLineSearchCursor wrapped = new FailsafeLineSearchCursor(direction, previous, monitor);
+    lineSearchStrategy.step(wrapped, monitor);
+    currentPoint = wrapped.getBest(monitor);
+    return currentPoint;
   }
   
   /**
@@ -153,7 +166,7 @@ public class IterativeTrainer {
     do {
       if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
-      currentPoint = subject.measure(false);
+      currentPoint = subject.measure(false, monitor);
     } while (!Double.isFinite(currentPoint.getMean()));
     assert (Double.isFinite(currentPoint.getMean()));
     return currentPoint;

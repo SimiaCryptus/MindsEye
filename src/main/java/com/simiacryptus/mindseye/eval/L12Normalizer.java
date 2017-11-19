@@ -21,9 +21,10 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.synapse.JavaDenseSynapseLayer;
-import com.simiacryptus.mindseye.layers.synapse.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.JavaDenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.ToeplitzSynapseLayer;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -49,12 +50,12 @@ public abstract class L12Normalizer implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure(boolean isStatic) {
-    Trainable.PointSample innerMeasure = inner.measure(isStatic);
+  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+    Trainable.PointSample innerMeasure = inner.measure(isStatic, monitor);
     DeltaSet normalizationVector = new DeltaSet();
     double valueAdj = 0;
-    for (NNLayer layer : getLayers(innerMeasure.delta.map.keySet())) {
-      double[] weights = innerMeasure.delta.map.get(layer).target;
+    for (NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
+      double[] weights = innerMeasure.delta.getMap().get(layer).target;
       double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
       double factor_L1 = getL1(layer);
       double factor_L2 = getL2(layer);

@@ -24,17 +24,17 @@ import com.simiacryptus.mindseye.eval.*;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.activation.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.loss.EntropyLossLayer;
-import com.simiacryptus.mindseye.layers.loss.MeanSqLossLayer;
-import com.simiacryptus.mindseye.layers.media.ImgBandScaleLayer;
-import com.simiacryptus.mindseye.layers.media.ImgBandSelectLayer;
-import com.simiacryptus.mindseye.layers.media.ImgReshapeLayer;
-import com.simiacryptus.mindseye.layers.reducers.AvgReducerLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
+import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
+import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
+import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
@@ -90,7 +90,7 @@ class ImageEncodingUtil {
         for (int col = 1; col < tensorArray.length; col++) {
           Tensor tensor = tensorArray[col];
           row.put("Data_" + col, render(log, tensor, 0 < col));
-          if (dataPipeline.size() >= col && 0 < col) {
+          if (dataPipeline.size() >= col-1 && 1 < col) {
             PipelineNetwork decoder = new PipelineNetwork();
             for (int i = col - 2; i >= 0; i--) {
               decoder.add(dataPipeline.get(i));

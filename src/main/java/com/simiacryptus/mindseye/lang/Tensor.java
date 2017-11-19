@@ -26,10 +26,6 @@ import com.simiacryptus.util.io.JsonUtil;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
 import java.util.stream.*;
@@ -38,19 +34,6 @@ import java.util.stream.*;
  * The type Tensor.
  */
 public class Tensor implements Serializable {
-  
-  private static ConcurrentHashMap<Integer, BlockingQueue<double[]>> recycling = new ConcurrentHashMap<>();
-  
-  static {
-    java.util.concurrent.Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        recycling.forEach((k, v) -> {
-          v.clear();
-        });
-      }
-    }, 0, 10, TimeUnit.SECONDS);
-  }
   
   /**
    * The Dimensions.
@@ -96,7 +79,7 @@ public class Tensor implements Serializable {
     this.strides = getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
     if (null != data) {
-      this.data = obtain(data.length);// Arrays.copyOf(data, data.length);
+      this.data = TensorMemory.obtain(data.length);// Arrays.copyOf(data, data.length);
       System.arraycopy(data, 0, this.data, 0, data.length);
     }
     //assert (null == data || Tensor.dim(dims) == data.length);
@@ -112,7 +95,7 @@ public class Tensor implements Serializable {
     this.dimensions = Arrays.copyOf(dims, dims.length);
     this.strides = getSkips(dims);
     if (null != data) {
-      this.data = obtain(data.length);// Arrays.copyOf(data, data.length);
+      this.data = TensorMemory.obtain(data.length);// Arrays.copyOf(data, data.length);
       Arrays.parallelSetAll(this.data, i -> {
         double v = data[i];
         return Double.isFinite(v) ? v : 0;
@@ -156,59 +139,6 @@ public class Tensor implements Serializable {
       total *= dim;
     }
     return total;
-  }
-  
-  /**
-   * Recycle.
-   *
-   * @param data the data
-   */
-  public static void recycle(double[] data) {
-    if (null == data) return;
-    //if(null != data) return;
-    if (data.length < 256) return;
-    BlockingQueue<double[]> bin = recycling.get(data.length);
-    if (null == bin) {
-      //System.err.println("New Recycle Bin: " + data.length);
-      bin = new ArrayBlockingQueue<double[]>(Math.max(1,(int) (1e8 / data.length)));
-      recycling.put(data.length, bin);
-    }
-    bin.offer(data);
-  }
-  
-  /**
-   * Obtain double [ ].
-   *
-   * @param length the length
-   * @return the double [ ]
-   */
-  public static double[] obtain(int length) {
-    BlockingQueue<double[]> bin = recycling.get(length);
-    if (null != bin) {
-      double[] data = bin.poll();
-      if (null != data) {
-        Arrays.fill(data, 0);
-        return data;
-      }
-    }
-    try {
-      return new double[length];
-    } catch (java.lang.OutOfMemoryError e) {
-      try {
-        clear();
-        System.gc();
-        return new double[length];
-      } catch (java.lang.OutOfMemoryError e2) {
-        throw new com.simiacryptus.mindseye.lang.OutOfMemoryError("Could not allocate " + length + " bytes", e2);
-      }
-    }
-  }
-  
-  /**
-   * Clear.
-   */
-  public static void clear() {
-    recycling.clear();
   }
   
   /**
@@ -274,7 +204,7 @@ public class Tensor implements Serializable {
   public boolean release() {
     if(--references <= 0) {
       if (null != data) {
-        recycle(data);
+        TensorMemory.recycle(data);
         data = null;
         return true;
       }
@@ -487,7 +417,7 @@ public class Tensor implements Serializable {
       synchronized (this) {
         if (null == this.data) {
           int length = Tensor.dim(this.dimensions);
-          this.data = obtain(length);
+          this.data = TensorMemory.obtain(length);
         }
       }
     }
@@ -690,7 +620,7 @@ public class Tensor implements Serializable {
    * @return the double [ ]
    */
   public static double[] getDoubles(DoubleStream stream, int dim) {
-    final double[] doubles = obtain(dim);
+    final double[] doubles = TensorMemory.obtain(dim);
     AtomicInteger j = new AtomicInteger();
     stream.forEach(v->doubles[j.getAndIncrement()] = v);
     return doubles;

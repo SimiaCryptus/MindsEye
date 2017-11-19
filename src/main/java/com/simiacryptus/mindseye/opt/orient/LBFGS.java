@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.simiacryptus.mindseye.eval.PlaceholderLayer;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
 import com.simiacryptus.mindseye.lang.Delta;
@@ -87,13 +88,12 @@ public class LBFGS implements OrientationStrategy {
    */
   public void addToHistory(PointSample measurement, TrainingMonitor monitor) {
     PointSample copyFull = measurement.copyFull();
-    if (!copyFull.delta.stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
+    if (!isFinite(copyFull.delta)) {
       if (verbose) monitor.log("Corrupt measurement");
     }
-    else if (!copyFull.weights.stream().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d))) {
+    else if (!isFinite(copyFull.weights)) {
       if (verbose) monitor.log("Corrupt measurement");
-    }
-    else if (history.isEmpty() || !history.stream().filter(x -> x.sum <= copyFull.sum).findAny().isPresent()) {
+    } else if (history.isEmpty() || !history.stream().filter(x -> x.sum <= copyFull.sum).findAny().isPresent()) {
       if (verbose) {
         monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(copyFull)), history.size()));
       }
@@ -101,12 +101,16 @@ public class LBFGS implements OrientationStrategy {
     }
   }
   
+  private static boolean isFinite(DeltaSet delta) {
+    return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
+  }
+  
   protected DeltaSet lbfgs(PointSample measurement, TrainingMonitor monitor, List<PointSample> history) {
     DeltaSet result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       DeltaSet original = result.copy();
       DeltaSet p = measurement.delta.copy();
-      assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+      //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
         DeltaSet sd = history.get(i + 1).weights.subtract(history.get(i).weights);
@@ -118,46 +122,46 @@ public class LBFGS implements OrientationStrategy {
         }
         alphas[i] = p.dot(sd) / denominator;
         p = p.subtract(yd.scale(alphas[i]));
-        assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+        //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       }
       DeltaSet sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
       DeltaSet yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
       p = p.scale(sk.dot(yk) / yk.dot(yk));
-      assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+      //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       for (int i = 0; i < history.size() - 1; i++) {
         DeltaSet sd = history.get(i + 1).weights.subtract(history.get(i).weights);
         DeltaSet yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         double beta = p.dot(yd) / sd.dot(yd);
         p = p.add(sd.scale(alphas[i] - beta));
-        assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
+        //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       }
-      for (Map.Entry<NNLayer, Delta> e : result.map.entrySet()) {
-        double[] delta = p.map.get(e.getKey()).getDelta();
+      for (Map.Entry<NNLayer, Delta> e : result.getMap().entrySet()) {
+        double[] delta = p.getMap().get(e.getKey()).getDelta();
         Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
       }
       double mag = Math.sqrt(result.dot(result));
       double magGrad = Math.sqrt(original.dot(original));
       double dot = result.dot(original) / (mag * magGrad);
-      Map<String, String> anglesPerLayer = measurement.delta.map.entrySet().stream()
-                                             .collect(Collectors.toMap((Map.Entry<NNLayer, Delta> e) -> {
-                                               return measurement.delta.map.get(e.getKey()).layer.getName();
-                                             }, (Map.Entry<NNLayer, Delta> e) -> {
-                                               double[] lbfgsVector = result.map.get(e.getKey()).getDelta();
+      List<String> anglesPerLayer = measurement.delta.getMap().entrySet().stream()
+                                              .filter(e->!(e.getKey() instanceof PlaceholderLayer))
+                                             .map((Map.Entry<NNLayer, Delta> e) -> {
+                                               double[] lbfgsVector = result.getMap().get(e.getKey()).getDelta();
                                                for(int index=0;index<lbfgsVector.length;index++) lbfgsVector[index] = Double.isFinite(lbfgsVector[index])?lbfgsVector[index]:0;
-                                               double[] gradientVector = original.map.get(e.getKey()).getDelta();
+                                               double[] gradientVector = original.getMap().get(e.getKey()).getDelta();
                                                for(int index=0;index<gradientVector.length;index++) gradientVector[index] = Double.isFinite(gradientVector[index])?gradientVector[index]:0;
                                                double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
                                                double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
                                                assert Double.isFinite(gradientMagnitude);
                                                //assert Double.isFinite(lbfgsMagnitude);
+                                               String layerName = measurement.delta.getMap().get(e.getKey()).layer.getName();
                                                if (gradientMagnitude == 0.0) {
-                                                 return String.format("%.3e", lbfgsMagnitude);
+                                                 return String.format("%s = %.3e", layerName, lbfgsMagnitude);
                                                }
                                                else {
                                                  double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
-                                                 return String.format("%.3f/%.3e", dotP, lbfgsMagnitude / gradientMagnitude);
+                                                 return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
                                                }
-                                             }));
+                                             }).collect(Collectors.toList());
       monitor.log(String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s", mag, magGrad, dot, anglesPerLayer));
     }
     else {

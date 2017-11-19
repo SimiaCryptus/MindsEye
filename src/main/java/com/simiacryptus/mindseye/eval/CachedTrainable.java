@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.eval;
 
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,14 +50,14 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   }
   
   @Override
-  public PointSample measure(boolean isStatic) {
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     for (PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) System.out.println(String.format("Returning cached value"));
         return result;
       }
     }
-    PointSample result = super.measure(isStatic);
+    PointSample result = super.measure(isStatic, monitor);
     history.add(result.copyFull());
     while (getHistorySize() < history.size()) history.remove(0);
     return result;

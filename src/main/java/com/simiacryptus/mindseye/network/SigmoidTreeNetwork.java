@@ -21,12 +21,12 @@ package com.simiacryptus.mindseye.network;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.activation.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.activation.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.layers.reducers.ProductInputsLayer;
-import com.simiacryptus.mindseye.layers.reducers.SumInputsLayer;
-import com.simiacryptus.mindseye.layers.synapse.BiasLayer;
-import com.simiacryptus.mindseye.layers.synapse.DenseSynapseLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
+import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
+import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.DenseSynapseLayer;
 import com.simiacryptus.mindseye.network.graph.DAGNetwork;
 import com.simiacryptus.mindseye.network.graph.DAGNode;
 

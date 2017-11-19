@@ -132,7 +132,7 @@ public class LayerRateDiagnosticTrainer {
   public Map<NNLayer, LayerStats> run() {
     long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
-    ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.map.keySet());
+    ArrayList<NNLayer> layers = new ArrayList<>(measure.weights.getMap().keySet());
     mainLoop:
     while (timeoutMs > System.currentTimeMillis() && measure.sum > terminateThreshold) {
       if (currentIteration.get() > maxIterations) break;
@@ -220,7 +220,7 @@ public class LayerRateDiagnosticTrainer {
   
   private DeltaSet filterDirection(DeltaSet direction, NNLayer layer) {
     DeltaSet maskedDelta = new DeltaSet();
-    direction.map.forEach((layer2, delta) -> maskedDelta.get(layer2, delta.target));
+    direction.getMap().forEach((layer2, delta) -> maskedDelta.get(layer2, delta.target));
     maskedDelta.get(layer, layer.state().get(0)).accumulate(direction.get(layer, (double[]) null).getDelta());
     return maskedDelta;
   }
@@ -236,7 +236,7 @@ public class LayerRateDiagnosticTrainer {
     do {
       if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
-      currentPoint = subject.measure(false);
+      currentPoint = subject.measure(false, monitor);
     } while (!Double.isFinite(currentPoint.sum));
     assert (Double.isFinite(currentPoint.sum));
     return currentPoint;
