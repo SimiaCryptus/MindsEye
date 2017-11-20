@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Tensor memory.
  */
-public class TensorMemory {
+public class DoubleArrays {
   
   private static final ConcurrentHashMap<Integer, BlockingQueue<double[]>> recycling = new ConcurrentHashMap<>();
   
@@ -43,7 +43,7 @@ public class TensorMemory {
     }, 0, 10, TimeUnit.SECONDS);
   }
   
-  private TensorMemory() {
+  private DoubleArrays() {
     super();
   }
   
@@ -98,5 +98,11 @@ public class TensorMemory {
    */
   public static void clear() {
     recycling.clear();
+  }
+  
+  public static double[] copyOf(double[] delta) {
+    double[] obtain = obtain(delta.length);
+    System.arraycopy(delta,0,obtain,0,delta.length);
+    return obtain;
   }
 }

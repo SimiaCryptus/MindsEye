@@ -37,6 +37,8 @@ import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.text.TableOutput;
+import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -158,12 +160,14 @@ class ImageEncodingUtil {
       StochasticTrainable trainingSubject = new StochasticArrayTrainable(data, network, data.length);
       if (0 < factor_l1) trainingSubject = new ConstL12Normalizer(trainingSubject).setFactor_L1(factor_l1);
       trainingSubject = (StochasticTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
-      new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
+      ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
         .setMaxTrainingSize(data.length)
         .setMinTrainingSize(1)
         .setMonitor(monitor)
-        .setOrientation(orientation)
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
+        .setMaxIterations(1000);
+      validatingTrainer.getRegimen().get(0)
+        .setOrientation(orientation)
         .setLineSearchFactory(name -> {
           if (name.contains("LBFGS") || name.contains("QQN")) {
             return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
@@ -171,8 +175,8 @@ class ImageEncodingUtil {
           else {
             return new ArmijoWolfeSearch().setMaxAlpha(1e6);
           }
-        })
-        .setMaxIterations(1000)
+        });
+      validatingTrainer
         .run();
     });
   }
@@ -187,7 +191,7 @@ class ImageEncodingUtil {
   protected Tensor[][] addColumn(Tensor[][] trainingData, int... size) {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
       Arrays.stream(x),
-      Stream.of(new Tensor(size).fill(() -> 0 * (Math.random() - 0.5))))
+      Stream.of(new Tensor(size).fill(() -> 0 * (FastRandom.random() - 0.5))))
       .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
@@ -258,10 +262,13 @@ class ImageEncodingUtil {
    * @return the tensor [ ] [ ]
    */
   protected Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius) {
-    int padding = (radius - 1);
+    return convolutionFeatures(tensors, radius, Math.max(3, radius));
+  }
+  
+  protected Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius, int padding) {
     return tensors.parallel().flatMap(image -> {
-      return IntStream.range(0, image[1].getDimensions()[0] - padding).filter(x -> 1 == radius || 0 == x % (radius - 1)).mapToObj(x -> x).flatMap(x -> {
-        return IntStream.range(0, image[1].getDimensions()[1] - padding).filter(y -> 1 == radius || 0 == y % (radius - 1)).mapToObj(y -> {
+      return IntStream.range(0, image[1].getDimensions()[0] - (radius - 1)).filter(x -> 1 == radius || 0 == x % padding).mapToObj(x -> x).flatMap(x -> {
+        return IntStream.range(0, image[1].getDimensions()[1] - (radius - 1)).filter(y -> 1 == radius || 0 == y % padding).mapToObj(y -> {
           Tensor region = new Tensor(radius, radius, image[1].getDimensions()[2]);
           final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> {
             return image[1].get(c.coords[0] + x, c.coords[1] + y, c.coords[2]);

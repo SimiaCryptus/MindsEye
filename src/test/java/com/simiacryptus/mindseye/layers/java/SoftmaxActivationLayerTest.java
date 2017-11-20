@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Softmax activation layer test.
+ * The type Softmax activation layer run.
  */
 public class SoftmaxActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Softmax activation layer test.
+   * Instantiates a new Softmax activation layer run.
    */
   public SoftmaxActivationLayerTest() {
     super(new SoftmaxActivationLayer());

@@ -33,7 +33,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Momentum test.
+ * The type Momentum run.
  */
 public class MomentumTest extends MnistTestBase {
   
@@ -44,7 +44,7 @@ public class MomentumTest extends MnistTestBase {
       Trainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
-        .setOrientation(new ValidatingOrientationStrategy(new MomentumStrategy(new GradientDescent()).setCarryOver(0.8)))
+        .setOrientation(new ValidatingOrientationWrapper(new MomentumStrategy(new GradientDescent()).setCarryOver(0.8)))
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

@@ -117,4 +117,9 @@ public class ConstL12Normalizer extends L12Normalizer implements StochasticTrain
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
+  
+  @Override
+  public StochasticCachedTrainable<? extends StochasticTrainable> cached() {
+    return new StochasticCachedTrainable<>(this);
+  }
 }

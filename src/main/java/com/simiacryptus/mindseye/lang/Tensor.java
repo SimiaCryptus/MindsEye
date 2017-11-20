@@ -79,7 +79,7 @@ public class Tensor implements Serializable {
     this.strides = getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
     if (null != data) {
-      this.data = TensorMemory.obtain(data.length);// Arrays.copyOf(data, data.length);
+      this.data = DoubleArrays.obtain(data.length);// Arrays.copyOf(data, data.length);
       System.arraycopy(data, 0, this.data, 0, data.length);
     }
     //assert (null == data || Tensor.dim(dims) == data.length);
@@ -95,7 +95,7 @@ public class Tensor implements Serializable {
     this.dimensions = Arrays.copyOf(dims, dims.length);
     this.strides = getSkips(dims);
     if (null != data) {
-      this.data = TensorMemory.obtain(data.length);// Arrays.copyOf(data, data.length);
+      this.data = DoubleArrays.obtain(data.length);// Arrays.copyOf(data, data.length);
       Arrays.parallelSetAll(this.data, i -> {
         double v = data[i];
         return Double.isFinite(v) ? v : 0;
@@ -187,7 +187,7 @@ public class Tensor implements Serializable {
    * @return the double [ ]
    */
   public static double[] getDoubles(DoubleStream stream, int dim) {
-    final double[] doubles = TensorMemory.obtain(dim);
+    final double[] doubles = DoubleArrays.obtain(dim);
     AtomicInteger j = new AtomicInteger();
     stream.forEach(v -> doubles[j.getAndIncrement()] = v);
     return doubles;
@@ -270,7 +270,7 @@ public class Tensor implements Serializable {
    * @return the double [ ]
    */
   public static double[] toDoubles(float[] data) {
-    double[] buffer = new double[data.length];
+    double[] buffer = DoubleArrays.obtain(data.length);
     for (int i = 0; i < data.length; i++) {
       buffer[i] = data[i];
     }
@@ -300,7 +300,7 @@ public class Tensor implements Serializable {
   public boolean release() {
     if (--references <= 0) {
       if (null != data) {
-        TensorMemory.recycle(data);
+        DoubleArrays.recycle(data);
         data = null;
         return true;
       }
@@ -510,7 +510,7 @@ public class Tensor implements Serializable {
       synchronized (this) {
         if (null == this.data) {
           int length = Tensor.dim(this.dimensions);
-          this.data = TensorMemory.obtain(length);
+          this.data = DoubleArrays.obtain(length);
         }
       }
     }

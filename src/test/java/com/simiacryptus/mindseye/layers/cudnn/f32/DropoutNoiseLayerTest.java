@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Dropout noise layer test.
+ * The type Dropout noise layer run.
  */
 public class DropoutNoiseLayerTest extends F32LayerTestBase {
   

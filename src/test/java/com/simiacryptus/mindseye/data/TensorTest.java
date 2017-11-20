@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The type Tensor test.
+ * The type Tensor run.
  */
 public class TensorTest {
   /**

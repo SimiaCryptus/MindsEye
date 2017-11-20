@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Convolution layer test.
+ * The type Convolution layer run.
  */
 public class ConvolutionLayerTest extends F32LayerTestBase {
   
@@ -39,7 +39,7 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
   }
   
   /**
-   * The type Downsize test.
+   * The type Downsize run.
    */
   public static class DownsizeTest extends ConvolutionLayerTest {
 

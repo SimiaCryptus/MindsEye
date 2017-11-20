@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Max subsample layer test.
+ * The type Max subsample layer run.
  */
 public class MaxSubsampleLayerTest extends LayerTestBase {
   

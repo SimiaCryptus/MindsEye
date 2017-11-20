@@ -37,7 +37,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.List;
 
 /**
- * The type Sigmoid tree network test.
+ * The type Sigmoid tree network run.
  */
 public class SigmoidTreeNetworkTest extends LinearTest {
   

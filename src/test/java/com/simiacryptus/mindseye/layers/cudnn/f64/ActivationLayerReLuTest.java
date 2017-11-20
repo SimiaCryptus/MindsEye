@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Activation layer re lu test.
+ * The type Activation layer re lu run.
  */
 public class ActivationLayerReLuTest extends LayerTestBase {
   

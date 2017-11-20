@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Img concat layer test.
+ * The type Img concat layer run.
  */
 public class ImgConcatLayerTest extends F32LayerTestBase {
   

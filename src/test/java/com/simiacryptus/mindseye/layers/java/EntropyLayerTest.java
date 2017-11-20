@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Entropy layer test.
+ * The type Entropy layer run.
  */
 public class EntropyLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Entropy layer test.
+   * Instantiates a new Entropy layer run.
    */
   public EntropyLayerTest() {
     super(new EntropyLayer());

@@ -39,7 +39,7 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 /**
- * The type Simple convolution test.
+ * The type Simple convolution run.
  */
 public class SimpleConvolutionTest extends LinearTest {
   

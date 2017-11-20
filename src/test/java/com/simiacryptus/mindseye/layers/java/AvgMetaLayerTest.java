@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Avg meta layer test.
+ * The type Avg meta layer run.
  */
 public class AvgMetaLayerTest extends LayerTestBase {
   

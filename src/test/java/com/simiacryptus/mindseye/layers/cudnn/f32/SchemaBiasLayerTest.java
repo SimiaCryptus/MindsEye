@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Schema bias layer test.
+ * The type Schema bias layer run.
  */
 public class SchemaBiasLayerTest extends F32LayerTestBase {
   

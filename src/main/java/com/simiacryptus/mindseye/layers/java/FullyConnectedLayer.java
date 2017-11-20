@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.util.ArrayUtil;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.JsonUtil;
@@ -146,7 +147,7 @@ public class FullyConnectedLayer extends NNLayer {
   public static void multiplyT(final double[] matrix, final double[] in, double[] out) {
     DoubleMatrix matrixObj = transpose(new DoubleMatrix(in.length, out.length, matrix));
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
-    TensorMemory.recycle(matrixObj.data);
+    DoubleArrays.recycle(matrixObj.data);
   }
 
 //  public static void multiplyT(final double[] data, final double[] in, double[] out) {
@@ -170,7 +171,7 @@ public class FullyConnectedLayer extends NNLayer {
    * @return the double matrix
    */
   public static DoubleMatrix transpose(DoubleMatrix doubleMatrix) {
-    DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, TensorMemory.obtain(doubleMatrix.length));
+    DoubleMatrix result = new DoubleMatrix(doubleMatrix.columns, doubleMatrix.rows, DoubleArrays.obtain(doubleMatrix.length));
     for (int i = 0; i < doubleMatrix.rows; ++i) {
       for (int j = 0; j < doubleMatrix.columns; ++j) {
         result.put(j, i, doubleMatrix.get(i, j));
@@ -353,22 +354,22 @@ public class FullyConnectedLayer extends NNLayer {
     
     private void learn(final TensorList delta, final DeltaSet buffer) {
       Delta deltaBuffer = buffer.get(FullyConnectedLayer.this, FullyConnectedLayer.this.getWeights());
-      
       int threads = 4;
-      IntStream.range(0, threads).parallel().forEach(thread -> {
+      IntStream.range(0, threads).parallel().mapToObj(x->x).flatMap(thread -> {
         final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
-        IntStream.range(0, inObj.getData().length()).filter(i -> thread == (i % threads)).forEach(dataIndex -> {
-          final double[] deltaData = delta.get(dataIndex).getData();
-          final double[] inputData = this.inObj.getData().get(dataIndex).getData();
-          crossMultiply(deltaData, inputData, weightDelta.getData());
-          deltaBuffer.accumulate(weightDelta.getData());
-        });
         try {
-          weightDelta.release();
+          return IntStream.range(0, inObj.getData().length()).filter(i -> thread == (i % threads)).mapToObj(dataIndex -> {
+            final double[] deltaData = delta.get(dataIndex).getData();
+            final double[] inputData = this.inObj.getData().get(dataIndex).getData();
+            crossMultiply(deltaData, inputData, weightDelta.getData());
+            return weightDelta.getData();
+          });
         } catch (Throwable throwable) {
           throw new RuntimeException(throwable);
+        } finally {
+          weightDelta.release();
         }
-      });
+      }).reduce((a,b)-> ArrayUtil.add(a,b)).map(data->deltaBuffer.accumulate(data));
     }
     
   }

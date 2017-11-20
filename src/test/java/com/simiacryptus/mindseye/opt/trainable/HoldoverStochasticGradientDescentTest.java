@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Holdover stochastic gradient descent test.
+ * The type Holdover stochastic gradient descent run.
  */
 public class HoldoverStochasticGradientDescentTest extends MnistTestBase {
   

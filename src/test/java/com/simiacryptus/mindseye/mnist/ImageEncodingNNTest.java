@@ -27,31 +27,36 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.*;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.mindseye.opt.orient.QuantifyOrientationWrapper;
+import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.StreamNanoHTTPD;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.PercentileStatistics;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
+import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 /**
- * The type Image encoding nn test.
+ * The type Image encoding nn run.
  */
 public class ImageEncodingNNTest extends ImageEncodingPCATest {
   
@@ -73,35 +78,43 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
   int size = 256;
   
   @Override
-  @Test
-  @Category(TestCategories.Report.class)
-  public void test() throws Exception {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != rawOut) ((MarkdownNotebookOutput) log).addCopy(rawOut);
-      
-      
-      Tensor[][] trainingImages = getImages(log, size, 50, "kangaroo", "yin_yang");
-      
-      log.h1("First Layer");
-      InitializationStep step0 = log.code(() -> {
-        return new InitializationStep(log, trainingImages,
-          size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
-      }).invoke();
-      
-      log.h1("Second Layer");
-      AddLayerStep step1 = log.code(() -> {
-        return new AddLayerStep(log, step0.trainingData, step0.model,
-          2, step0.toSize, pretrainMinutes, timeoutMinutes,
-          step0.band1, 11, 5, 2);
-      }).invoke();
-      
-      log.h1("Third Layer");
-      AddLayerStep step2 = log.code(() -> {
-        return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
-          3, step1.toSize, pretrainMinutes, timeoutMinutes,
-          step1.band2, 11, 5, 4);
-      }).invoke();
-      
+  public void run(NotebookOutput log) {
+    Tensor[][] trainingImages = getImages(log, size, 50, "kangaroo", "yin_yang");
+    
+    log.h1("First Layer");
+    InitializationStep step0 = log.code(() -> {
+      return new InitializationStep(log, trainingImages,
+        size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
+    }).invoke();
+    
+    log.h1("Second Layer");
+    AddLayerStep step1 = log.code(() -> {
+      return new AddLayerStep(log, step0.trainingData, step0.model,
+        2, step0.toSize, pretrainMinutes, timeoutMinutes,
+        step0.band1, 11, 5, 2);
+    }).invoke();
+    
+    log.h1("Third Layer");
+    AddLayerStep step2 = log.code(() -> {
+      return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
+        3, step1.toSize, pretrainMinutes, timeoutMinutes,
+        step1.band2, 11, 5, 4);
+    }).invoke();
+  }
+  
+  @Override
+  public HtmlNotebookOutput getLog() {
+    try {
+      String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+      File path = new File(Util.mkString(File.separator, "www", directoryName));
+      path.mkdirs();
+      File logFile = new File(path, "index.html");
+      StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
+      HtmlNotebookOutput log = new HtmlNotebookOutput(path, server.dataReciever);
+      log.addCopy(rawOut);
+      return log;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
   
@@ -138,18 +151,20 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
         log.p("Training feature network");
         Tensor[][] trainingData = log.code(() -> {
           return Arrays.stream(features).map(tensor -> new Tensor[]{
-            new Tensor(inputBands).fill(() -> 0.01 * (Math.random() - 0.5)), tensor[1], tensor[0]
+            new Tensor(inputBands).fill(() -> 1 * (FastRandom.random() - 0.5)), tensor[1], tensor[0]
           }).toArray(i -> new Tensor[i][]);
         });
         log.code(() -> {
           StochasticTrainable trainingSubject = new StochasticArrayTrainable(trainingData, network, trainingData.length / 5, trainingData.length);
           trainingSubject = (StochasticTrainable) ((TrainableDataMask) trainingSubject).setMask(true, false, false);
-          new ValidatingTrainer(trainingSubject, new ArrayTrainable(trainingData, network))
+          ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(trainingData, network))
             .setMaxTrainingSize(trainingData.length)
             .setMinTrainingSize(1)
             .setMonitor(monitor)
-            .setOrientation(new QQN())
             .setTimeout(spaceTrainingMinutes, TimeUnit.MINUTES)
+            .setMaxIterations(1000);
+          validatingTrainer.getRegimen().get(0)
+            .setOrientation(new QuantifyOrientationWrapper(new QQN()))
             .setLineSearchFactory(name -> {
               if (name.contains("LBFGS") || name.contains("QQN")) {
                 return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
@@ -157,8 +172,8 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
               else {
                 return new ArmijoWolfeSearch().setMaxAlpha(1e6);
               }
-            })
-            .setMaxIterations(1000)
+            });
+          validatingTrainer
             .run();
           
           averages = Arrays.copyOf(bandBiasLayer.getBias(), bandBiasLayer.getBias().length);

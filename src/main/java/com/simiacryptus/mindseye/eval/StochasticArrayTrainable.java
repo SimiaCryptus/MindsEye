@@ -94,11 +94,6 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
   }
   
   @Override
-  public CachedTrainable<? extends Trainable> cached() {
-    return this;
-  }
-  
-  @Override
   public void resetToFull() {
     getInner().setTrainingData(trainingData.stream().toArray(i -> new Tensor[i][]));
   }
@@ -137,6 +132,11 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
       .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
       .limit(getTrainingSize()).map(x -> x.get())
       .toArray(i -> new Tensor[i][])) : trainingData.stream().toArray(i -> new Tensor[i][]));
+  }
+  
+  @Override
+  public StochasticCachedTrainable<? extends StochasticTrainable> cached() {
+    return new StochasticCachedTrainable<>(this);
   }
   
 }

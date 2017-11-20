@@ -24,7 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.TensorMemory;
+import com.simiacryptus.mindseye.lang.DoubleArrays;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnHandle;
@@ -163,14 +163,14 @@ public class CudaPtr extends CudaResource<Pointer> {
       int listLength = data.length();
       int elementLength = data.get(0).dim();
       double[][] inputBuffers = data.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-      final double[] inputBuffer = TensorMemory.obtain(elementLength * listLength);
+      final double[] inputBuffer = DoubleArrays.obtain(elementLength * listLength);
       for (int i = 0; i < listLength; i++) {
         assert elementLength == inputBuffers[0 + i].length;
         System.arraycopy(inputBuffers[0 + i], 0, inputBuffer, i * elementLength, elementLength);
       }
       //assert(0 < inputBuffer.length);
       CudaPtr ptr = CuDNN.write(deviceId, inputBuffer);
-      TensorMemory.recycle(inputBuffer);
+      DoubleArrays.recycle(inputBuffer);
       return ptr;
     }
   }

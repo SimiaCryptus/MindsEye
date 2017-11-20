@@ -146,7 +146,7 @@ public class ImgBandScaleLayer extends NNLayer {
         if (!isFrozen()) {
           Delta deltaBuffer = buffer.get(ImgBandScaleLayer.this, bias);
           IntStream.range(0, data.length()).forEach(index -> {
-            final double[] array = TensorMemory.obtain(bias.length);
+            final double[] array = DoubleArrays.obtain(bias.length);
             double[] signal = data.get(index).getData();
             double[] in = input.getData().get(index).getData();
             int size = signal.length / bias.length;
@@ -156,7 +156,7 @@ public class ImgBandScaleLayer extends NNLayer {
             }
             assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
             deltaBuffer.accumulate(array);
-            TensorMemory.recycle(array);
+            DoubleArrays.recycle(array);
           });
         }
         if (input.isAlive()) {

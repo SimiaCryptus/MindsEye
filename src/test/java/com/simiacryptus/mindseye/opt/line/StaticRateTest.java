@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Static rate test.
+ * The type Static rate run.
  */
 public class StaticRateTest extends MnistTestBase {
   

@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Max image band layer test.
+ * The type Max image band layer run.
  */
 public class MaxImageBandLayerTest extends LayerTestBase {
   

@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Avg image band layer test.
+ * The type Avg image band layer run.
  */
 public class AvgImageBandLayerTest extends LayerTestBase {
   

@@ -20,16 +20,16 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Nth power activation layer test.
+ * The type Nth power activation layer run.
  */
 public class NthPowerActivationLayerTest {
   
   /**
-   * The type Nth power test.
+   * The type Nth power run.
    */
   public static class NthPowerTest extends ActivationLayerTestBase {
     /**
-     * Instantiates a new Nth power test.
+     * Instantiates a new Nth power run.
      */
     public NthPowerTest() {
       super(new NthPowerActivationLayer().setPower(2.5));
@@ -37,11 +37,11 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Square power test.
+   * The type Square power run.
    */
   public static class SquarePowerTest extends ActivationLayerTestBase {
     /**
-     * Instantiates a new Square power test.
+     * Instantiates a new Square power run.
      */
     public SquarePowerTest() {
       super(new NthPowerActivationLayer().setPower(2));
@@ -49,11 +49,11 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Sqrt power test.
+   * The type Sqrt power run.
    */
   public static class SqrtPowerTest extends ActivationLayerTestBase {
     /**
-     * Instantiates a new Sqrt power test.
+     * Instantiates a new Sqrt power run.
      */
     public SqrtPowerTest() {
       super(new NthPowerActivationLayer().setPower(0.5));
@@ -61,11 +61,11 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Inv power test.
+   * The type Inv power run.
    */
   public static class InvPowerTest extends ActivationLayerTestBase {
     /**
-     * Instantiates a new Inv power test.
+     * Instantiates a new Inv power run.
      */
     public InvPowerTest() {
       super(new NthPowerActivationLayer().setPower(-1));
@@ -73,11 +73,11 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Inv sqrt power test.
+   * The type Inv sqrt power run.
    */
   public static class InvSqrtPowerTest extends ActivationLayerTestBase {
     /**
-     * Instantiates a new Inv sqrt power test.
+     * Instantiates a new Inv sqrt power run.
      */
     public InvSqrtPowerTest() {
       super(new NthPowerActivationLayer().setPower(-0.5));
@@ -85,11 +85,11 @@ public class NthPowerActivationLayerTest {
   }
   
   /**
-   * The type Zero power test.
+   * The type Zero power run.
    */
   public static class ZeroPowerTest extends ActivationLayerTestBase {
     /**
-     * Instantiates a new Zero power test.
+     * Instantiates a new Zero power run.
      */
     public ZeroPowerTest() {
       super(new NthPowerActivationLayer().setPower(0));

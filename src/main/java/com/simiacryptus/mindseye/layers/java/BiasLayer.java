@@ -95,7 +95,7 @@ public class BiasLayer extends NNLayer {
    * @return the double [ ]
    */
   public double[] add(final double[] input) {
-    final double[] array = TensorMemory.obtain(input.length);
+    final double[] array = DoubleArrays.obtain(input.length);
     if (1 == this.bias.length) {
       for (int i = 0; i < array.length; i++) {
         array[i] = input[i] + this.bias[0];

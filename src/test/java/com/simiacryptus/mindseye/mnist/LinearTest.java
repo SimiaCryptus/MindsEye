@@ -50,7 +50,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * The type Linear test.
+ * The type Linear run.
  */
 public class LinearTest extends MnistTestBase {
   

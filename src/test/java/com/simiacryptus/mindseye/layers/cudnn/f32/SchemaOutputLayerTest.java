@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Schema output layer test.
+ * The type Schema output layer run.
  */
 public class SchemaOutputLayerTest extends F32LayerTestBase {
   

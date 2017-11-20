@@ -39,7 +39,7 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 /**
- * The type Polynomial convolution test.
+ * The type Polynomial convolution run.
  */
 public class PolynomialConvolutionTest extends LinearTest {
   

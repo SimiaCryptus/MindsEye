@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Mnist encoding test.
+ * The type Mnist encoding run.
  */
 public class MnistEncodingTest {
   

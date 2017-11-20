@@ -24,7 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.GpuError;
-import com.simiacryptus.mindseye.lang.TensorMemory;
+import com.simiacryptus.mindseye.lang.DoubleArrays;
 import com.simiacryptus.util.test.SysOutInterceptor;
 
 import java.io.PrintStream;
@@ -171,7 +171,7 @@ public final class GpuController {
    * Clean memory.
    */
   public void cleanMemory() {
-    TensorMemory.clear();
+    DoubleArrays.clear();
     System.gc();
     System.runFinalization();
   }

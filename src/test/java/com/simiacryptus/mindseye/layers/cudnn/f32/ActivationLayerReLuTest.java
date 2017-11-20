@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 
 /**
- * The type Activation layer re lu test.
+ * The type Activation layer re lu run.
  */
 public class ActivationLayerReLuTest extends F32LayerTestBase {
   

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Pooling layer test.
+ * The type Pooling layer run.
  */
 public class PoolingLayerTest extends F32LayerTestBase {
   

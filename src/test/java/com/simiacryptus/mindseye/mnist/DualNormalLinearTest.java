@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 
 /**
- * The type Dual normal linear test.
+ * The type Dual normal linear run.
  */
 public class DualNormalLinearTest extends LinearTest {
   

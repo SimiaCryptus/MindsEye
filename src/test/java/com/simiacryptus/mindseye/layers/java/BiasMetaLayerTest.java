@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Bias meta layer test.
+ * The type Bias meta layer run.
  */
 public class BiasMetaLayerTest extends LayerTestBase {
   

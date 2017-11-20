@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Pooling layer test.
+ * The type Pooling layer run.
  */
 public class PoolingLayerTest extends LayerTestBase {
   

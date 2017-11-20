@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.TensorMemory;
+import com.simiacryptus.mindseye.lang.DoubleArrays;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -85,7 +85,7 @@ public class CuDNNDoubleTensorList implements TensorList {
       synchronized (this) {
         if (null == _inner) {
           int itemLength = Tensor.dim(dimensions);
-          final double[] outputBuffer = TensorMemory.obtain(itemLength * length);
+          final double[] outputBuffer = DoubleArrays.obtain(itemLength * length);
           assert (0 < outputBuffer.length);
           Tensor[] output = IntStream.range(0, length)
             .mapToObj(dataIndex -> new Tensor(dimensions))
@@ -98,7 +98,7 @@ public class CuDNNDoubleTensorList implements TensorList {
             System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          TensorMemory.recycle(outputBuffer);
+          DoubleArrays.recycle(outputBuffer);
           _inner = new TensorArray(output);
         }
       }

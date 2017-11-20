@@ -249,7 +249,7 @@ public class DerivativeTester {
   }
   
   /**
-   * Is test learning boolean.
+   * Is run learning boolean.
    *
    * @return the boolean
    */
@@ -258,10 +258,10 @@ public class DerivativeTester {
   }
   
   /**
-   * Sets test learning.
+   * Sets run learning.
    *
-   * @param testLearning the test learning
-   * @return the test learning
+   * @param testLearning the run learning
+   * @return the run learning
    */
   public DerivativeTester setTestLearning(boolean testLearning) {
     this.testLearning = testLearning;
@@ -269,7 +269,7 @@ public class DerivativeTester {
   }
   
   /**
-   * Is test feedback boolean.
+   * Is run feedback boolean.
    *
    * @return the boolean
    */
@@ -278,10 +278,10 @@ public class DerivativeTester {
   }
   
   /**
-   * Sets test feedback.
+   * Sets run feedback.
    *
-   * @param testFeedback the test feedback
-   * @return the test feedback
+   * @param testFeedback the run feedback
+   * @return the run feedback
    */
   public DerivativeTester setTestFeedback(boolean testFeedback) {
     this.testFeedback = testFeedback;

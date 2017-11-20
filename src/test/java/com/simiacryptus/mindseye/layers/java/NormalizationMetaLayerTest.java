@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Normalization meta layer test.
+ * The type Normalization meta layer run.
  */
 public class NormalizationMetaLayerTest extends LayerTestBase {
   

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Band pooling layer test.
+ * The type Band pooling layer run.
  */
 public class BandPoolingLayerTest extends F32LayerTestBase {
   

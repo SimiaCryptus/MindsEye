@@ -33,7 +33,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Owlqn test.
+ * The type Owlqn run.
  */
 public class OWLQNTest extends MnistTestBase {
   
@@ -45,7 +45,7 @@ public class OWLQNTest extends MnistTestBase {
       return new IterativeTrainer(trainable)
         .setIterationsPerSample(100)
         .setMonitor(monitor)
-        .setOrientation(new ValidatingOrientationStrategy(new OwlQn()))
+        .setOrientation(new ValidatingOrientationWrapper(new OwlQn()))
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

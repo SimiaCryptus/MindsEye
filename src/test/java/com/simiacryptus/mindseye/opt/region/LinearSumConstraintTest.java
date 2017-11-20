@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Linear sum constraint test.
+ * The type Linear sum constraint run.
  */
 public class LinearSumConstraintTest extends MnistTestBase {
   
@@ -52,7 +52,7 @@ public class LinearSumConstraintTest extends MnistTestBase {
       return new IterativeTrainer(trainable)
         .setIterationsPerSample(100)
         .setMonitor(monitor)
-        //.setOrientation(new ValidatingOrientationStrategy(trustRegionStrategy))
+        //.setOrientation(new ValidatingOrientationWrapper(trustRegionStrategy))
         .setOrientation(trustRegionStrategy)
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)

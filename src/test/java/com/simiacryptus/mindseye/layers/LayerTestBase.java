@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
 /**
- * The type Layer test base.
+ * The type Layer run base.
  */
 public abstract class LayerTestBase {
   private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);

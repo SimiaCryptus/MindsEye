@@ -23,14 +23,14 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Activation layer test base.
+ * The type Activation layer run base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
   
   private final NNLayer layer;
   
   /**
-   * Instantiates a new Activation layer test base.
+   * Instantiates a new Activation layer run base.
    *
    * @param layer the layer
    */

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Product inputs layer test.
+ * The type Product inputs layer run.
  */
 public class ProductInputsLayerTest extends F32LayerTestBase {
   

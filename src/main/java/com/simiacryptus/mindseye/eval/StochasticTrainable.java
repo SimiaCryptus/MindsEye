@@ -37,4 +37,5 @@ public interface StochasticTrainable extends Trainable {
    * @return the training size
    */
   StochasticTrainable setTrainingSize(int trainingSize);
+  StochasticCachedTrainable<? extends StochasticTrainable> cached();
 }

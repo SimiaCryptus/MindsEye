@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type L 1 normalization layer test.
+ * The type L 1 normalization layer run.
  */
 public class L1NormalizationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new L 1 normalization layer test.
+   * Instantiates a new L 1 normalization layer run.
    */
   public L1NormalizationLayerTest() {
     super(new L1NormalizationLayer());

@@ -36,7 +36,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Lbfgs test.
+ * The type Lbfgs run.
  */
 public class LBFGSTest extends MnistTestBase {
   
@@ -64,7 +64,7 @@ public class LBFGSTest extends MnistTestBase {
         new ArrayTrainable(trainingData, supervisedNetwork).cached()
       )
         .setMonitor(monitor)
-        //.setOrientation(new ValidatingOrientationStrategy(new LBFGS()))
+        //.setOrientation(new ValidatingOrientationWrapper(new LBFGS()))
         .setOrientation(new LBFGS())
         .setLineSearchFactory(name -> name.contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch())
         .setTimeout(30, TimeUnit.MINUTES)

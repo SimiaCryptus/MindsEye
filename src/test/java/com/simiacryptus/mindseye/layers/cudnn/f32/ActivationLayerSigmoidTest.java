@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Activation layer sigmoid test.
+ * The type Activation layer sigmoid run.
  */
 public class ActivationLayerSigmoidTest extends F32LayerTestBase {
   

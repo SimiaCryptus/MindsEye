@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import org.junit.Ignore;
 
 /**
- * The type Cum std dev meta layer test.
+ * The type Cum std dev meta layer run.
  */
 @Ignore
 public class CumStdDevMetaLayerTest extends LayerTestBase {

@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Cross product layer test.
+ * The type Cross product layer run.
  */
 public class CrossProductLayerTest extends LayerTestBase {
   

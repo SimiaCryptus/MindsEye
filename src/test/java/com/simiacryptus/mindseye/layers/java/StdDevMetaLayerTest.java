@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Std dev meta layer test.
+ * The type Std dev meta layer run.
  */
 public class StdDevMetaLayerTest extends LayerTestBase {
   

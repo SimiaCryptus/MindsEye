@@ -35,7 +35,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Qqn test.
+ * The type Qqn run.
  */
 public class QQNTest extends MnistTestBase {
   
@@ -64,7 +64,7 @@ public class QQNTest extends MnistTestBase {
         new ArrayTrainable(trainingData, supervisedNetwork)
       )
         .setMonitor(monitor)
-        //.setOrientation(new ValidatingOrientationStrategy(new QQN()))
+        //.setOrientation(new ValidatingOrientationWrapper(new QQN()))
         .setOrientation(new QQN())
         //.setLineSearchFactory(name->name.contains("QQN") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch().setCurrentRate(1e-6))
         .setTimeout(30, TimeUnit.MINUTES)

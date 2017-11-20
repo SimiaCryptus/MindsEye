@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.util.io.NotebookOutput;
 
 /**
- * The type Simple normalized test.
+ * The type Simple normalized run.
  */
 public class SimpleNormalizedTest extends LinearTest {
   

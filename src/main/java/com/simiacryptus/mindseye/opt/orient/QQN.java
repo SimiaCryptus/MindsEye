@@ -37,12 +37,12 @@ public class QQN extends LBFGS {
     addToHistory(origin, monitor);
     SimpleLineSearchCursor lbfgsCursor = (SimpleLineSearchCursor) super.orient(subject, origin, monitor);
     final DeltaSet lbfgs = lbfgsCursor.direction;
-    DeltaSet gd = origin.delta.scale(-1.0 / origin.count);
+    DeltaSet gd = origin.delta.scale(-1.0);
     double lbfgsMag = lbfgs.getMagnitude();
     double gdMag = gd.getMagnitude();
     if ((Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag)) > 1e-2) {
       DeltaSet scaledGradient = gd.scale(lbfgsMag / gdMag);
-      monitor.log(String.format("Returning Quadratic Cursor"));
+      monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
       return new LineSearchCursor() {
         
         @Override

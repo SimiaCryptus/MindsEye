@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.lang.NNLayer;
 
 /**
- * The type Img band bias layer test.
+ * The type Img band bias layer run.
  */
 public class ImgBandBiasLayerTest extends F32LayerTestBase {
   

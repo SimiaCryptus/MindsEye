@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Cross difference layer test.
+ * The type Cross difference layer run.
  */
 public class CrossDifferenceLayerTest extends LayerTestBase {
   

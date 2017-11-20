@@ -34,7 +34,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Simple stochastic gradient descent test.
+ * The type Simple stochastic gradient descent run.
  */
 public class SimpleStochasticGradientDescentTest extends MnistTestBase {
   

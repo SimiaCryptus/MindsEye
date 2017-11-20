@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Cross dot meta layer test.
+ * The type Cross dot meta layer run.
  */
 public class CrossDotMetaLayerTest extends LayerTestBase {
   

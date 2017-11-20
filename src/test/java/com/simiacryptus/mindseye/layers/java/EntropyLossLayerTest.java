@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Entropy loss layer test.
+ * The type Entropy loss layer run.
  */
 public class EntropyLossLayerTest extends LayerTestBase {
   

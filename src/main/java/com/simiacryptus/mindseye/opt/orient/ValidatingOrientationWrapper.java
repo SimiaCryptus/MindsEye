@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 /**
  * The type Validating orientation strategy.
  */
-public class ValidatingOrientationStrategy implements OrientationStrategy {
+public class ValidatingOrientationWrapper implements OrientationStrategy {
   
   private final OrientationStrategy inner;
   
@@ -37,7 +37,7 @@ public class ValidatingOrientationStrategy implements OrientationStrategy {
    *
    * @param inner the inner
    */
-  public ValidatingOrientationStrategy(OrientationStrategy inner) {
+  public ValidatingOrientationWrapper(OrientationStrategy inner) {
     this.inner = inner;
   }
   

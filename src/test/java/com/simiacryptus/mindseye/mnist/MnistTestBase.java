@@ -49,7 +49,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 /**
- * The type Mnist test base.
+ * The type Mnist run base.
  */
 public abstract class MnistTestBase {
   /**
@@ -206,7 +206,7 @@ public abstract class MnistTestBase {
    * @param network the network
    */
   public void validate(NotebookOutput log, NNLayer network) {
-    log.p("If we test our model against the entire validation dataset, we get this accuracy:");
+    log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
       try {
         return MNIST.validationDataStream().mapToDouble(labeledObject -> {

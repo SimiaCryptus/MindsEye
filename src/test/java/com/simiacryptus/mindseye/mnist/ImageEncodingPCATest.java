@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * The type Image encoding pca test.
+ * The type Image encoding pca run.
  */
 public class ImageEncodingPCATest extends ImageEncodingUtil {
   
@@ -69,30 +69,39 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   @Test
   @Category(TestCategories.Report.class)
   public void test() throws Exception {
-    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != rawOut) ((MarkdownNotebookOutput) log).addCopy(rawOut);
-
-//      int pretrainMinutes = 20;
+    try (NotebookOutput log = getLog()) {
+      run(log);
+    }
+  }
+  
+  public NotebookOutput getLog() {
+    MarkdownNotebookOutput log = MarkdownNotebookOutput.get(this);
+    log.addCopy(rawOut);
+    return log;
+  }
+  
+  public void run(NotebookOutput log) {
+    //      int pretrainMinutes = 20;
 //      int timeoutMinutes = 60;
-      int pretrainMinutes = 1;
-      int timeoutMinutes = 1;
-      int size = 256;
-      int images = 50;
-      
-      Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
-      
-      log.h1("First Layer");
-      InitializationStep step0 = log.code(() -> {
-        return new InitializationStep(log, trainingImages,
-          size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
-      }).invoke();
-      
-      log.h1("Second Layer");
-      AddLayerStep step1 = log.code(() -> {
-        return new AddLayerStep(log, step0.trainingData, step0.model,
-          2, step0.toSize, pretrainMinutes, timeoutMinutes,
-          step0.band1, 11, 5, 2);
-      }).invoke();
+    int pretrainMinutes = 1;
+    int timeoutMinutes = 1;
+    int size = 256;
+    int images = 50;
+    
+    Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
+    
+    log.h1("First Layer");
+    InitializationStep step0 = log.code(() -> {
+      return new InitializationStep(log, trainingImages,
+        size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
+    }).invoke();
+    
+    log.h1("Second Layer");
+    AddLayerStep step1 = log.code(() -> {
+      return new AddLayerStep(log, step0.trainingData, step0.model,
+        2, step0.toSize, pretrainMinutes, timeoutMinutes,
+        step0.band1, 11, 5, 2);
+    }).invoke();
 //
 //      log.h1("Third Layer");
 //      AddLayerStep step2 = log.code(()->{
@@ -101,13 +110,11 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
 //          step1.band2, 17, 5, 4);
 //      }).invoke();
 //
-      log.h1("Transcoding Different Category");
-      TranscodeStep step3 = log.code(() -> {
-        return new TranscodeStep(log, "yin_yang",
-          images, size, timeoutMinutes, step1.integrationModel, step1.toSize, step1.toSize, step1.band2);
-      }).invoke();
-      
-    }
+    log.h1("Transcoding Different Category");
+    TranscodeStep step3 = log.code(() -> {
+      return new TranscodeStep(log, "yin_yang",
+        images, size, timeoutMinutes, step1.integrationModel, step1.toSize, step1.toSize, step1.band2);
+    }).invoke();
   }
   
   /**

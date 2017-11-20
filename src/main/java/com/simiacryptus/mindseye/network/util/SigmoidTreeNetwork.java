@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.util.FastRandom;
 
 import java.util.List;
 import java.util.UUID;
@@ -180,7 +181,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
         FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
         BiasLayer alphaBias = (BiasLayer) this.alphaBias;
         this.beta = new FullyConnectedLayer(alpha.inputDims, alpha.outputDims).setWeights(() -> {
-          return initialFuzzyCoeff * (Math.random() - 0.5);
+          return initialFuzzyCoeff * (FastRandom.random() - 0.5);
         });
         this.betaBias = new BiasLayer(alphaBias.bias.length);
         copyState(alpha, beta);

@@ -72,7 +72,7 @@ public class Delta {
     if (null == values) throw new IllegalArgumentException();
     this.target = values;
     this.layer = layer;
-    this.delta = new double[values.length];
+    this.delta = DoubleArrays.obtain(values.length);
     Arrays.fill(this.getDelta(), 0);
   }
   
@@ -134,7 +134,7 @@ public class Delta {
    * @return the double [ ]
    */
   public double[] copyDelta() {
-    return null == getDelta() ? null : Arrays.copyOf(getDelta(), getDelta().length);
+    return null == getDelta() ? null : DoubleArrays.copyOf(getDelta());
   }
   
   /**
@@ -289,4 +289,16 @@ public class Delta {
     return areEqual(getDelta(), target);
   }
   
+  @Override
+  protected void finalize() throws Throwable {
+    if(null != delta) {
+      DoubleArrays.recycle(delta);
+      delta = null;
+    }
+    super.finalize();
+  }
+  
+  public double rms() {
+    return Math.sqrt(sumSq() / length());
+  }
 }

@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Img band bias layer test.
+ * The type Img band bias layer run.
  */
 public class ImgBandBiasLayerTest extends LayerTestBase {
   

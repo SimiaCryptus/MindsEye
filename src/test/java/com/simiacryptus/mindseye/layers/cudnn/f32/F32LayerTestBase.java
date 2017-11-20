@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 
 /**
- * The type F 32 layer test base.
+ * The type F 32 layer run base.
  */
 public abstract class F32LayerTestBase extends com.simiacryptus.mindseye.layers.LayerTestBase {
   @Override

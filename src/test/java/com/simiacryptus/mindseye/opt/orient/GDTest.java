@@ -33,7 +33,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Gd test.
+ * The type Gd run.
  */
 public class GDTest extends MnistTestBase {
   
@@ -46,11 +46,11 @@ public class GDTest extends MnistTestBase {
 //        protected void testFeedback(NNLayer component, int i, Tensor outputPrototype, Tensor... inputPrototype) {
 //          if (i == 0) super.testFeedback(component, i, outputPrototype, inputPrototype);
 //        }
-//      }.test(supervisedNetwork, new Tensor(1), trainingData[0]);
+//      }.run(supervisedNetwork, new Tensor(1), trainingData[0]);
       Trainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
-        .setOrientation(new ValidatingOrientationStrategy(new GradientDescent()))
+        .setOrientation(new ValidatingOrientationWrapper(new GradientDescent()))
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

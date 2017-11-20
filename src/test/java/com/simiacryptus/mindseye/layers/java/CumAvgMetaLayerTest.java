@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import org.junit.Ignore;
 
 /**
- * The type Cum avg meta layer test.
+ * The type Cum avg meta layer run.
  */
 @Ignore
 public class CumAvgMetaLayerTest extends LayerTestBase {

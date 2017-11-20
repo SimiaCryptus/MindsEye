@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Activation layer sigmoid test.
+ * The type Activation layer sigmoid run.
  */
 public class ActivationLayerSigmoidTest extends LayerTestBase {
   

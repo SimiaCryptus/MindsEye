@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
+import com.simiacryptus.util.FastRandom;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
@@ -123,7 +124,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
     readFeatures();
     selected = labels;
     filter = new Tensor(1, 1, labels.length * inputBands);
-    filter.fill(() -> (Math.random() - 0.5) * Math.pow(10, logWeightInit));
+    filter.fill(() -> (FastRandom.random() - 0.5) * Math.pow(10, logWeightInit));
     for (int i = 0; i < labels.length; i++) {
       double[] feature = features.get(labels[i]);
       if (null == feature) continue;
