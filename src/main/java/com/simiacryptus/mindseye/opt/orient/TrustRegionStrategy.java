@@ -124,7 +124,10 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
           double[] proposedPosition = add(currentPosition, delta);
           TrustRegion region = getRegionPolicy(layer);
           if (null != region) {
-            double[][] historyData = history.stream().map((PointSample x) -> x.weights.getMap().get(layer).getDelta()).toArray(i -> new double[i][]);
+            double[][] historyData = history.stream().map((PointSample x) -> {
+              Delta d = x.weights.getMap().get(layer);
+              return null==d?null:d.getDelta();
+            }).filter(x->null!=x).toArray(i -> new double[i][]);
             double[] projectedPosition = region.project(historyData, proposedPosition);
             if (projectedPosition != proposedPosition) {
               for (int i = 0; i < projectedPosition.length; i++) {

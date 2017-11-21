@@ -58,13 +58,8 @@ public class LinkedExampleArrayTrainable implements Trainable {
     }, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
-    DeltaSet stateSet = new DeltaSet();
-    deltaSet.getMap().forEach((layer, layerDelta) -> {
-      stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
-    assert (result.getData().stream().allMatch(x -> x.dim() == 1));
     double meanValue = result.getData().stream().mapToDouble(x -> x.getData()[0]).average().getAsDouble();
-    return new PointSample(deltaSet, stateSet, meanValue);
+    return new PointSample(deltaSet, deltaSet.stateBackup(), meanValue);
   }
   
   @Override

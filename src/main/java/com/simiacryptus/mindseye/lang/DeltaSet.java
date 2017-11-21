@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -136,7 +137,7 @@ public class DeltaSet {
   public double getMagnitude() {
     double sumSq = map.entrySet().stream().mapToDouble(entry -> {
       Delta value = entry.getValue();
-      return value.sumSq();
+      return value.deltaStatistics().sumSq();
     }).sum();
     return Math.sqrt(sumSq);
   }
@@ -253,5 +254,15 @@ public class DeltaSet {
    */
   public ConcurrentHashMap<NNLayer, Delta> getMap() {
     return map;
+  }
+  
+  public DeltaSet stateBackup() {
+    assert (this.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    DeltaSet stateBackup = new DeltaSet();
+    this.getMap().forEach((layer, layerDelta) -> {
+      stateBackup.get(layer, layerDelta.target).backup();
+    });
+    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    return stateBackup;
   }
 }

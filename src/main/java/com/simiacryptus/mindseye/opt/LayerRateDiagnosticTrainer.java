@@ -121,8 +121,8 @@ public class LayerRateDiagnosticTrainer {
           for (NNLayer layer : layers) {
             Delta a = d2.get(layer, (double[]) null);
             Delta b = d1.get(layer, (double[]) null);
-            double bmag = Math.sqrt(b.sumSq());
-            double amag = Math.sqrt(a.sumSq());
+            double bmag = Math.sqrt(b.deltaStatistics().sumSq());
+            double amag = Math.sqrt(a.deltaStatistics().sumSq());
             double dot = a.dot(b) / (amag * bmag);
             double idealSize = bmag / (amag * dot);
             steps.put(layer, idealSize);

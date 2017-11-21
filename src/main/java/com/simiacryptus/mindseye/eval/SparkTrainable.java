@@ -202,16 +202,11 @@ public class SparkTrainable implements Trainable {
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    DeltaSet stateBackup = new DeltaSet();
-    deltaSet.getMap().forEach((layer, layerDelta) -> {
-      stateBackup.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
-    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     TensorList resultData = result.getData();
     assert (resultData.stream().allMatch(x -> x.dim() == 1));
     assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
     double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
-    return new PointSample(deltaSet, stateBackup, sum);
+    return new PointSample(deltaSet, deltaSet.stateBackup(), sum);
   }
   
   /**
@@ -239,11 +234,7 @@ public class SparkTrainable implements Trainable {
       System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     DeltaSet deltaSet = getDelta(result);
-    DeltaSet stateSet = new DeltaSet();
-    deltaSet.getMap().forEach((layer, layerDelta) -> {
-      stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
-    return new Trainable.PointSample(deltaSet, stateSet, result.sum);
+    return new Trainable.PointSample(deltaSet, deltaSet.stateBackup(), result.sum);
   }
   
   @Override

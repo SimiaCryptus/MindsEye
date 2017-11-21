@@ -46,6 +46,52 @@ public class Delta {
    * The Delta.
    */
   protected double[] delta;
+  protected double[] deltaCompensation;
+  
+  
+  public static class DoubleArrayStatsFacade {
+    public final double[] data;
+  
+    public DoubleArrayStatsFacade(double[] data) {
+      this.data = data;
+    }
+  
+  
+    /**
+     * Sum double.
+     *
+     * @return the double
+     */
+    public double sum() {
+      return Arrays.stream(data).sum();
+    }
+  
+    /**
+     * Sum sq double.
+     *
+     * @return the double
+     */
+    public double sumSq() {
+      return Arrays.stream(data).map(x -> x * x).sum();
+    }
+  
+    public double rms() {
+      return Math.sqrt(sumSq() / length());
+    }
+  
+    public int length() {
+      return data.length;
+    }
+  }
+  
+  public DoubleArrayStatsFacade deltaStatistics() {
+    return new DoubleArrayStatsFacade(delta);
+  }
+  
+  public DoubleArrayStatsFacade targetStatistics() {
+    return new DoubleArrayStatsFacade(target);
+  }
+  
   
   /**
    * Instantiates a new Delta.
@@ -60,6 +106,7 @@ public class Delta {
     this.target = target;
     this.layer = layer;
     this.delta = delta;
+    this.deltaCompensation = DoubleArrays.obtain(delta.length);
   }
   
   /**
@@ -73,7 +120,7 @@ public class Delta {
     this.target = values;
     this.layer = layer;
     this.delta = DoubleArrays.obtain(values.length);
-    Arrays.fill(this.getDelta(), 0);
+    this.deltaCompensation = DoubleArrays.obtain(delta.length);
   }
   
   /**
@@ -82,8 +129,25 @@ public class Delta {
    * @param data  the data
    * @param delta the delta
    */
-  public static void accumulate(double[] data, double[] delta) {
-    Arrays.parallelSetAll(data, i -> data[i] + delta[i]);
+  public static void accumulate(double[] data, double[] delta, double[] dataCompensation) {
+    for (int i = 0; i < data.length; i++) {
+      double sum = data[i];
+      double input = delta[i];
+      double c = dataCompensation[i];
+      if(Math.abs(sum) >= Math.abs(input)) {
+        double y = sum - c;
+        double t = input + y;
+        c = (t-input) - y;
+        data[i] = t;
+        dataCompensation[i] = c;
+      } else {
+        double y = input - c;
+        double t = sum + y;
+        c = (t-sum) - y;
+        data[i] = t;
+        dataCompensation[i] = c;
+      }
+    }
   }
   
   /**
@@ -109,8 +173,7 @@ public class Delta {
    */
   public Delta accumulate(final double[] data) {
     //assert Arrays.stream(data).allMatch(Double::isFinite);
-    double[] delta = this.getDelta();
-    accumulate(delta, data);
+    accumulate(delta, data, deltaCompensation);
     //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
     return this;
   }
@@ -218,16 +281,6 @@ public class Delta {
   }
   
   /**
-   * Overwrite.
-   */
-  public final synchronized void overwrite() {
-    final int dim = length();
-    for (int i = 0; i < dim; i++) {
-      this.target[i] = this.getDelta()[i];
-    }
-  }
-  
-  /**
    * Dot double.
    *
    * @param right the right
@@ -242,24 +295,6 @@ public class Delta {
     }
     assert (this.getDelta().length == right.getDelta().length);
     return IntStream.range(0, this.getDelta().length).mapToDouble(i -> getDelta()[i] * right.getDelta()[i]).sum();
-  }
-  
-  /**
-   * Sum double.
-   *
-   * @return the double
-   */
-  public double sum() {
-    return Arrays.stream(this.getDelta()).sum();
-  }
-  
-  /**
-   * Sum sq double.
-   *
-   * @return the double
-   */
-  public double sumSq() {
-    return Arrays.stream(this.getDelta()).map(x -> x * x).sum();
   }
   
   /**
@@ -295,10 +330,23 @@ public class Delta {
       DoubleArrays.recycle(delta);
       delta = null;
     }
+    if(null != deltaCompensation) {
+      DoubleArrays.recycle(deltaCompensation);
+      deltaCompensation = null;
+    }
     super.finalize();
   }
   
-  public double rms() {
-    return Math.sqrt(sumSq() / length());
+  public final synchronized Delta backup() {
+    System.arraycopy(target,0,delta,0,target.length);
+    return this;
+  }
+  
+  /**
+   * Overwrite.
+   */
+  public final synchronized Delta restore() {
+    System.arraycopy(delta,0,target,0,target.length);
+    return this;
   }
 }

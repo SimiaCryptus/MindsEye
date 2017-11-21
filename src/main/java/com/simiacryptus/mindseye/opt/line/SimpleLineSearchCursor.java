@@ -109,6 +109,6 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   
   @Override
   public void reset() {
-    origin.reset();
+    origin.restore();
   }
 }

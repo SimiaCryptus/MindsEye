@@ -213,8 +213,8 @@ public interface Trainable {
      *
      * @return the point sample
      */
-    public PointSample reset() {
-      weights.stream().forEach(d -> d.overwrite());
+    public PointSample restore() {
+      weights.stream().forEach(d -> d.restore());
       return this;
     }
   

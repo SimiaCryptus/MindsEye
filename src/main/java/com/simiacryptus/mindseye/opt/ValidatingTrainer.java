@@ -23,15 +23,15 @@ import com.simiacryptus.mindseye.eval.StochasticCachedTrainable;
 import com.simiacryptus.mindseye.eval.StochasticTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
+import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
-import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
-import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
-import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
+import com.simiacryptus.mindseye.opt.line.*;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.TimedResult;
 
 import java.lang.management.ManagementFactory;
@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The type Validating trainer.
@@ -182,7 +183,11 @@ public class ValidatingTrainer {
         break;
       }
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
-      List<EpochResult> epochResults = getRegimen().stream().map(x -> epoch(epochParams, x)).collect(Collectors.toList());
+      List<TrainingPhase> regimen = getRegimen();
+      List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i->{
+        if(1 < regimen.size()) monitor.log("Phase " + i);
+        return epoch(epochParams, getRegimen().get(i));
+      }).collect(Collectors.toList());
       EpochResult primaryPhase = epochResults.get(0);
       iterationNumber += primaryPhase.iterations;
       double trainingDelta = (primaryPhase.currentPoint.getMean() / primaryPhase.priorPoint.getMean());
@@ -310,13 +315,36 @@ public class ValidatingTrainer {
     TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> {
       FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
       lineSearchStrategy.step(cursor, monitor);
-      return cursor.getBest(monitor).reset();
+      return cursor.getBest(monitor).restore();
     });
     PointSample bestPoint = timedLineSearch.result;
     if (bestPoint.getMean() > previousPoint.getMean()) {
       throw new IllegalStateException(bestPoint.getMean() + " > " + previousPoint.getMean());
     }
+    monitor.log(compare(previousPoint, bestPoint));
     return new StepResult(previousPoint, bestPoint, new double[]{timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9});
+  }
+  
+  private String compare(PointSample previousPoint, PointSample nextPoint) {
+    DeltaSet nextWeights = nextPoint.weights;
+    DeltaSet prevWeights = previousPoint.weights;
+    return String.format("Overall network state change: %s", prevWeights.stream()
+      .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
+      .collect(Collectors.toMap(x -> x.getKey(), list -> {
+        List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
+          Delta dirDelta = nextWeights.getMap().get(prevWeight.layer);
+          double wrms = prevWeight.deltaStatistics().rms();
+          return 0==wrms? dirDelta.deltaStatistics().rms() :(dirDelta.deltaStatistics().rms() / wrms);
+        }).collect(Collectors.toList());
+        if(1 == doubleList.size()) return Double.toString(doubleList.get(0));
+        return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x->x).toArray()).toString();
+      })));
+  }
+  
+  private static String getId(Delta x) {
+    String name = x.layer.getName();
+    String className = x.layer.getClass().getSimpleName();
+    return name.contains(className)?className:name;
   }
   
   private boolean reset(double value, TrainingPhase phase) {

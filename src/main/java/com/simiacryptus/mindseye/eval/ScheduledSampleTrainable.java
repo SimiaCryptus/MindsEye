@@ -95,14 +95,10 @@ public class ScheduledSampleTrainable implements Trainable {
     }, input);
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
-    DeltaSet stateSet = new DeltaSet();
-    deltaSet.getMap().forEach((layer, layerDelta) -> {
-      stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
     assert (result.getData().stream().allMatch(x -> x.dim() == 1));
     ScalarStatistics statistics = new PercentileStatistics();
     result.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).forEach(x -> statistics.add(x));
-    return new Trainable.PointSample(deltaSet, stateSet, statistics.getMean());
+    return new Trainable.PointSample(deltaSet, deltaSet.stateBackup(), statistics.getMean());
   }
   
   @Override

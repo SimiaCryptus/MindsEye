@@ -81,7 +81,7 @@ public class OwlQn implements OrientationStrategy {
     return new SimpleLineSearchCursor(subject, measurement, searchDirection) {
       @Override
       public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
-        origin.weights.stream().forEach(d -> d.overwrite());
+        origin.weights.stream().forEach(d -> d.restore());
         DeltaSet currentDirection = direction.copy();
         direction.getMap().forEach((layer, buffer) -> {
           if (null == buffer.getDelta()) return;

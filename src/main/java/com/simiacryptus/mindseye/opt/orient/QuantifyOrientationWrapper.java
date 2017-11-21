@@ -22,16 +22,12 @@ package com.simiacryptus.mindseye.opt.orient;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
-import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.data.DoubleStatistics;
 
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class QuantifyOrientationWrapper implements OrientationStrategy {
@@ -53,7 +49,8 @@ public class QuantifyOrientationWrapper implements OrientationStrategy {
         .collect(Collectors.toMap(x -> x.getKey(), list -> {
           List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
             Delta dirDelta = direction.getMap().get(weightDelta.layer);
-            return dirDelta.rms() / weightDelta.rms();
+            double wrms = weightDelta.deltaStatistics().rms();
+            return 0==wrms? dirDelta.deltaStatistics().rms() :(dirDelta.deltaStatistics().rms() / wrms);
           }).collect(Collectors.toList());
           if(1 == doubleList.size()) return Double.toString(doubleList.get(0));
           return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x->x).toArray()).toString();
@@ -65,7 +62,9 @@ public class QuantifyOrientationWrapper implements OrientationStrategy {
   }
   
   public String getId(Delta x) {
-    return x.layer.getClass().getSimpleName();
+    String name = x.layer.getName();
+    String className = x.layer.getClass().getSimpleName();
+    return name.contains(className)?className:name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
 //    }

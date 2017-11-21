@@ -85,11 +85,7 @@ public class LocalSparkTrainable extends SparkTrainable {
       System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     DeltaSet deltaSet = getDelta(result);
-    DeltaSet stateSet = new DeltaSet();
-    deltaSet.getMap().forEach((layer, layerDelta) -> {
-      stateSet.get(layer, layerDelta.target).accumulate(layerDelta.target);
-    });
-    return new Trainable.PointSample(deltaSet, stateSet, result.sum);
+    return new Trainable.PointSample(deltaSet, deltaSet.stateBackup(), result.sum);
   }
   
 }
