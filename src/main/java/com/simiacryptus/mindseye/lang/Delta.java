@@ -192,15 +192,6 @@ public class Delta {
   }
   
   /**
-   * Copy delta double [ ].
-   *
-   * @return the double [ ]
-   */
-  public double[] copyDelta() {
-    return null == getDelta() ? null : DoubleArrays.copyOf(getDelta());
-  }
-  
-  /**
    * Gets id.
    *
    * @return the id
@@ -303,7 +294,7 @@ public class Delta {
    * @return the delta
    */
   public Delta copy() {
-    return new Delta(target, copyDelta(), layer);
+    return new Delta(target, DoubleArrays.copyOf(delta), layer);
   }
   
   /**
@@ -338,7 +329,9 @@ public class Delta {
   }
   
   public final synchronized Delta backup() {
+    double[] delta = getDelta();
     System.arraycopy(target,0,delta,0,target.length);
+    Arrays.fill(deltaCompensation, 0);
     return this;
   }
   

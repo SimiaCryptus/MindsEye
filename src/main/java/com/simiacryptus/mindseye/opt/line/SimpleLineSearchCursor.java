@@ -44,7 +44,6 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * The Subject.
    */
   public final Trainable subject;
-  private final double directionMagnitude;
   private String type = "";
   
   /**
@@ -55,11 +54,9 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param direction the direction
    */
   public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSet direction) {
-    this.origin = origin;
+    this.origin = origin.copyFull();
     this.direction = direction;
     this.subject = subject;
-    double magnitude = direction.getMagnitude();
-    this.directionMagnitude = magnitude > 0 ? magnitude : 1;
   }
   
   /**
@@ -94,11 +91,8 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
     reset();
-    direction.accumulate(alpha);
+    if(0.0 != alpha) direction.accumulate(alpha);
     PointSample sample = subject.measure(true, monitor).setRate(alpha);
-    double deltaMagnitude = sample.delta.getMagnitude();
-    if (deltaMagnitude <= 0) deltaMagnitude = 1;
-    
     return new LineSearchPoint(sample, direction.dot(sample.delta));
   }
   

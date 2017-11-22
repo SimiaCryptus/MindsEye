@@ -137,7 +137,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         (a, b) -> a.add(b)
       ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-      monitor.log(String.format("Evaluated %s in %.4f", data.size(), timedResult.timeNanos / 1e9));
+      monitor.log(String.format("Evaluated %s items in %.4fs (%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean()));
       assert (null != timedResult.result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC

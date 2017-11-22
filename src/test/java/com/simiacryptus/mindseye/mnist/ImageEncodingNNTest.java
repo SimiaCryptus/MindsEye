@@ -34,10 +34,9 @@ import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.opt.orient.QuantifyOrientationWrapper;
-import com.simiacryptus.mindseye.opt.orient.ValidatingOrientationWrapper;
+import com.simiacryptus.mindseye.opt.orient.*;
+import com.simiacryptus.mindseye.opt.region.StaticConstraint;
+import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.Util;
@@ -163,54 +162,75 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
             .setMonitor(monitor)
             .setTimeout(spaceTrainingMinutes, TimeUnit.MINUTES)
             .setMaxIterations(1000);
+//          validatingTrainer.getRegimen().get(0)
+//            //.setOrientation(new ValidatingOrientationWrapper(new QuantifyOrientationWrapper(new QQN())))
+//            .setOrientation(new DescribeOrientationWrapper(new QuantifyOrientationWrapper(new QQN())))
+//            .setLineSearchFactory(name -> {
+//              if (name.contains("LBFGS") || name.contains("QQN")) {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
+//              }
+//              else {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
+//              }
+//            });
+
           validatingTrainer.getRegimen().get(0)
-            .setOrientation(new ValidatingOrientationWrapper(new QuantifyOrientationWrapper(new QQN())))
+            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
+              @Override
+              public TrustRegion getRegionPolicy(NNLayer layer) {
+                if(layer instanceof BiasLayer) return null;
+                if(layer instanceof ImgBandBiasLayer) return null;
+                return new StaticConstraint();
+              }
+            })
             .setLineSearchFactory(name -> {
               if (name.contains("LBFGS") || name.contains("QQN")) {
                 return new QuadraticSearch().setCurrentRate(1.0);
                 //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
               }
               else {
-                return new QuadraticSearch();
+                return new QuadraticSearch().setCurrentRate(1.0);
                 //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
               }
             });
-//          validatingTrainer.getRegimen().get(0)
-//            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
-//              @Override
-//              public TrustRegion getRegionPolicy(NNLayer layer) {
-//                if(layer instanceof FullyConnectedLayer) return null;
-//                return new StaticConstraint();
-//              }
-//            })
-//            .setLineSearchFactory(name -> {
-//              if (name.contains("LBFGS") || name.contains("QQN")) {
-//                return new QuadraticSearch().setCurrentRate(1.0);
-//                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
-//              }
-//              else {
-//                return new QuadraticSearch();
-//                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
-//              }
-//            });
-//          validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
-//            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
-//              @Override
-//              public TrustRegion getRegionPolicy(NNLayer layer) {
-//                if(layer instanceof PlaceholderLayer) return null;
-//                return new StaticConstraint();
-//              }
-//            })
-//            .setLineSearchFactory(name -> {
-//              if (name.contains("LBFGS") || name.contains("QQN")) {
-//                return new QuadraticSearch().setCurrentRate(1.0);
-//                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
-//              }
-//              else {
-//                return new QuadraticSearch();
-//                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
-//              }
-//            }));
+          validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
+            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
+              @Override
+              public TrustRegion getRegionPolicy(NNLayer layer) {
+                if(layer instanceof PlaceholderLayer) return null;
+                return new StaticConstraint();
+              }
+            })
+            .setLineSearchFactory(name -> {
+              if (name.contains("LBFGS") || name.contains("QQN")) {
+                return new QuadraticSearch().setCurrentRate(1.0);
+                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
+              }
+              else {
+                return new QuadraticSearch().setCurrentRate(1.0);
+                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
+              }
+            }));
+          validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
+            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
+              @Override
+              public TrustRegion getRegionPolicy(NNLayer layer) {
+                if(layer instanceof FullyConnectedLayer) return null;
+                return new StaticConstraint();
+              }
+            })
+            .setLineSearchFactory(name -> {
+              if (name.contains("LBFGS") || name.contains("QQN")) {
+                return new QuadraticSearch().setCurrentRate(1.0);
+                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
+              }
+              else {
+                return new QuadraticSearch().setCurrentRate(1.0);
+                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
+              }
+            }));
           validatingTrainer
             .run();
           

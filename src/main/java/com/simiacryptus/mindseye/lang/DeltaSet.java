@@ -205,7 +205,7 @@ public class DeltaSet {
       right.map.entrySet().stream()
     ).collect(Collectors.groupingBy(e1 -> e1.getKey(),
       Collectors.mapping(x -> x.getValue(), Collectors.collectingAndThen(
-        Collectors.reducing((a, b) -> a.accumulate(b.getDelta())), x -> x.get())))));
+        Collectors.reducing((a, b) -> a), x -> x.get())))));
   }
   
   /**

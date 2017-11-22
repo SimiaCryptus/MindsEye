@@ -27,8 +27,10 @@ import com.simiacryptus.util.function.WeakCachedSupplier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The type Stochastic array trainable.
@@ -37,7 +39,7 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
   
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private int trainingSize;
-  private long hash = Util.R.get().nextLong();
+  private int hash = Util.R.get().nextInt();
   
   /**
    * Instantiates a new Stochastic array trainable.
@@ -100,7 +102,9 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
   
   @Override
   public boolean resetSampling() {
-    setHash(Util.R.get().nextLong());
+    setHash(Util.R.get().nextInt());
+    getInner().resetSampling();
+    super.resetSampling();
     return true;
   }
   
@@ -116,7 +120,7 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
     return this;
   }
   
-  private void setHash(long newValue) {
+  private void setHash(int newValue) {
     if (this.hash == newValue) return;
     this.hash = newValue;
     refreshSampledData();
@@ -127,11 +131,21 @@ public class StochasticArrayTrainable extends CachedTrainable<ArrayTrainable> im
    */
   protected void refreshSampledData() {
     assert 0 < trainingData.size();
-    getInner().setTrainingData(0 < getTrainingSize() ? (trainingData.stream().parallel() //
-      .filter(x -> x != null && x.get() != null)
-      .sorted(Comparator.comparingLong(y -> System.identityHashCode(y) ^ this.hash)) //
-      .limit(getTrainingSize()).map(x -> x.get())
-      .toArray(i -> new Tensor[i][])) : trainingData.stream().toArray(i -> new Tensor[i][]));
+    Tensor[][] trainingData;
+    if (0 < getTrainingSize() && getTrainingSize() < (this.trainingData.size()-1)) {
+      trainingData = IntStream.generate(()->new Random().nextInt(this.trainingData.size())).distinct()
+        .mapToObj(i->this.trainingData.get(i))
+        .filter(x -> x != null && x.get() != null)
+        .limit(getTrainingSize()).map(x -> x.get())
+        .toArray(i -> new Tensor[i][]);
+    }
+    else {
+      trainingData = this.trainingData.stream()
+        .filter(x -> x != null && x.get() != null)
+        .limit(getTrainingSize()).map(x -> x.get())
+        .toArray(i -> new Tensor[i][]);
+    }
+    getInner().setTrainingData(trainingData);
   }
   
   @Override

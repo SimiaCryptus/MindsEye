@@ -100,9 +100,10 @@ public class DoubleArrays {
     recycling.clear();
   }
   
-  public static double[] copyOf(double[] delta) {
-    double[] obtain = obtain(delta.length);
-    System.arraycopy(delta,0,obtain,0,delta.length);
-    return obtain;
+  public static double[] copyOf(double[] original) {
+    if(null == original) return null;
+    double[] copy = obtain(original.length);
+    System.arraycopy(original,0,copy,0,original.length);
+    return copy;
   }
 }

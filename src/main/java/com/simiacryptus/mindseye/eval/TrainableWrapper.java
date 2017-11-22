@@ -73,4 +73,11 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "{" +
+      "inner=" + inner +
+      '}';
+  }
 }

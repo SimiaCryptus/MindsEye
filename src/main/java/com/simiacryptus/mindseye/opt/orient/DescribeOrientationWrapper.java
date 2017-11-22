@@ -25,17 +25,17 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
-import com.simiacryptus.util.data.DoubleStatistics;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class QuantifyOrientationWrapper implements OrientationStrategy {
+public class DescribeOrientationWrapper implements OrientationStrategy {
   
   private final OrientationStrategy inner;
   
-  public QuantifyOrientationWrapper(OrientationStrategy inner) {
+  public DescribeOrientationWrapper(OrientationStrategy inner) {
     this.inner = inner;
   }
   
@@ -45,26 +45,41 @@ public class QuantifyOrientationWrapper implements OrientationStrategy {
     if(cursor instanceof SimpleLineSearchCursor) {
       DeltaSet direction = ((SimpleLineSearchCursor) cursor).direction;
       DeltaSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
-      Map<String, String> dataMap = weights.stream()
-        .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
-        .collect(Collectors.toMap(x -> x.getKey(), list -> {
-          List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
-            Delta dirDelta = direction.getMap().get(weightDelta.layer);
-            double denominator = weightDelta.deltaStatistics().rms();
-            double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
-            return (numerator / (0 == denominator ? 1 : denominator));
-          }).collect(Collectors.toList());
-          if (1 == doubleList.size()) return Double.toString(doubleList.get(0));
-          return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
-        }));
-      monitor.log(String.format("Line search stats: %s", dataMap));
+      String asString = render(weights, direction);
+      monitor.log(String.format("Orientation Details: %s", asString));
     } else {
       monitor.log(String.format("Non-simple cursor: %s", cursor));
     }
     return cursor;
   }
   
-  public String getId(Delta x) {
+  public static String render(DeltaSet weights, DeltaSet direction) {
+    Map<String, String> data = weights.stream()
+      .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
+      .collect(Collectors.toMap(x -> x.getKey(), (Map.Entry<String, List<Delta>> list) -> {
+        List<Delta> deltaList = list.getValue();
+        if (1 == deltaList.size()) {
+          Delta weightDelta = deltaList.get(0);
+          return render(weightDelta, direction.getMap().get(weightDelta.layer));
+        } else {
+          return deltaList.stream().map(weightDelta -> {
+            return render(weightDelta, direction.getMap().get(weightDelta.layer));
+          }).limit(10)
+            .reduce((a, b) -> a + "\n" + b).orElse("");
+        }
+      }));
+    return data.entrySet().stream().map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
+      .map(str->str.replaceAll("\n","\n\t"))
+      .reduce((a, b) -> a + "\n" + b).orElse("");
+  }
+  
+  public static String render(Delta weightDelta, Delta dirDelta) {
+    String weightString = Arrays.toString(weightDelta.getDelta());
+    String deltaString = Arrays.toString(dirDelta.getDelta());
+    return String.format("pos: %s\nvec: %s", weightString, deltaString);
+  }
+  
+  public static String getId(Delta x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
     return name.contains(className)?className:name;

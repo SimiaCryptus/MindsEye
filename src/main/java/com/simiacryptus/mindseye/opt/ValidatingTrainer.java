@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.eval.StochasticCachedTrainable;
 import com.simiacryptus.mindseye.eval.StochasticTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
+import com.simiacryptus.mindseye.eval.TrainableWrapper;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
@@ -84,42 +85,7 @@ public class ValidatingTrainer {
    * @param validationSubject the validation subject
    */
   public ValidatingTrainer(StochasticTrainable trainingSubject, Trainable validationSubject) {
-    this.regimen = new ArrayList(Arrays.asList(new TrainingPhase(new StochasticTrainable() {
-      @Override
-      public int getTrainingSize() {
-        return trainingSubject.getTrainingSize();
-      }
-  
-      @Override
-      public StochasticTrainable setTrainingSize(int trainingSize) {
-        trainingSubject.setTrainingSize(trainingSize);
-        return this;
-      }
-  
-      @Override
-      public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-        TimedResult<PointSample> time = TimedResult.time(() ->
-          trainingSubject.measure(isStatic, monitor)
-        );
-        trainingMeasurementTime.addAndGet(time.timeNanos);
-        return time.result;
-      }
-  
-      @Override
-      public void resetToFull() {
-        trainingSubject.resetToFull();
-      }
-  
-      @Override
-      public boolean resetSampling() {
-        return trainingSubject.resetSampling();
-      }
-  
-      @Override
-      public StochasticCachedTrainable<? extends StochasticTrainable> cached() {
-        return new StochasticCachedTrainable<>(this);
-      }
-    }.cached())));
+    this.regimen = new ArrayList(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject).cached())));
     this.validationSubject = new Trainable() {
       @Override
       public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
@@ -185,8 +151,9 @@ public class ValidatingTrainer {
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       List<TrainingPhase> regimen = getRegimen();
       List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i->{
-        if(1 < regimen.size()) monitor.log("Phase " + i);
-        return epoch(epochParams, getRegimen().get(i));
+        TrainingPhase phase = getRegimen().get(i);
+        monitor.log(String.format("Phase %d: %s", i, phase));
+        return epoch(epochParams, phase);
       }).collect(Collectors.toList());
       EpochResult primaryPhase = epochResults.get(0);
       iterationNumber += primaryPhase.iterations;
@@ -238,8 +205,7 @@ public class ValidatingTrainer {
         if (adj2 < (1 + adjustmentTolerance) || adj2 > (1 - adjustmentTolerance)) {
           epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2)));
         }
-      }
-      else {
+      } else {
         epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 5));
         epochParams.iterations = 1;
       }
@@ -257,6 +223,7 @@ public class ValidatingTrainer {
    */
   protected EpochResult epoch(EpochParams epochParams, TrainingPhase phase) {
     phase.trainingSubject.setTrainingSize(epochParams.trainingSize);
+    monitor.log(String.format("resetAndMeasure; trainingSize=%s",epochParams.trainingSize));
     PointSample currentPoint = resetAndMeasure(phase);
     PointSample priorPoint = currentPoint.copyDelta();
     assert (0 < currentPoint.delta.getMap().size()) : "Nothing to optimize";
@@ -306,16 +273,17 @@ public class ValidatingTrainer {
     LineSearchStrategy lineSearchStrategy;
     if (phase.lineSearchStrategyMap.containsKey(directionType)) {
       lineSearchStrategy = phase.lineSearchStrategyMap.get(directionType);
-    }
-    else {
-      System.out.println(String.format("Constructing line search parameters: %s", directionType));
+    } else {
+      monitor.log(String.format("Constructing line search parameters: %s", directionType));
       lineSearchStrategy = phase.lineSearchFactory.apply(direction.getDirectionType());
       phase.lineSearchStrategyMap.put(directionType, lineSearchStrategy);
     }
     TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> {
       FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
       lineSearchStrategy.step(cursor, monitor);
-      return cursor.getBest(monitor).restore();
+      PointSample restore = cursor.getBest(monitor).restore();
+      cursor.step(restore.rate, monitor);
+      return restore;
     });
     PointSample bestPoint = timedLineSearch.result;
     if (bestPoint.getMean() > previousPoint.getMean()) {
@@ -333,8 +301,9 @@ public class ValidatingTrainer {
       .collect(Collectors.toMap(x -> x.getKey(), list -> {
         List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
           Delta dirDelta = nextWeights.getMap().get(prevWeight.layer);
-          double wrms = prevWeight.deltaStatistics().rms();
-          return 0==wrms? dirDelta.deltaStatistics().rms() :(dirDelta.deltaStatistics().rms() / wrms);
+          double numerator = prevWeight.deltaStatistics().rms();
+          double denominator = null==dirDelta?0:dirDelta.deltaStatistics().rms();
+          return (numerator / (0==denominator?1:denominator));
         }).collect(Collectors.toList());
         if(1 == doubleList.size()) return Double.toString(doubleList.get(0));
         return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x->x).toArray()).toString();
@@ -391,6 +360,7 @@ public class ValidatingTrainer {
     //currentIteration.incrementAndGet();
     if (!phase.trainingSubject.resetSampling()) throw new IterativeStopException();
     phase.orientation.reset();
+    phase.trainingSubject.resetSampling();
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
@@ -929,9 +899,48 @@ public class ValidatingTrainer {
       this.lineSearchStrategyMap = lineSearchStrategyMap;
       return this;
     }
+  
+    @Override
+    public String toString() {
+      return "TrainingPhase{" +
+        "trainingSubject=" + trainingSubject +
+        ", orientation=" + orientation +
+        '}';
+    }
   }
   
   
+  private class PerformanceWrapper extends TrainableWrapper<StochasticTrainable> implements StochasticTrainable {
   
+    public PerformanceWrapper(StochasticTrainable trainingSubject) {
+      super(trainingSubject);
+    }
+    
+    @Override
+    public int getTrainingSize() {
+      return getInner().getTrainingSize();
+    }
+    
+    @Override
+    public StochasticTrainable setTrainingSize(int trainingSize) {
+      getInner().setTrainingSize(trainingSize);
+      return this;
+    }
+  
+    @Override
+    public StochasticCachedTrainable<? extends StochasticTrainable> cached() {
+      return new StochasticCachedTrainable<>(this);
+    }
+  
+    @Override
+    public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+      TimedResult<PointSample> time = TimedResult.time(() ->
+        getInner().measure(isStatic, monitor)
+      );
+      trainingMeasurementTime.addAndGet(time.timeNanos);
+      return time.result;
+    }
+    
+  }
 }
 
