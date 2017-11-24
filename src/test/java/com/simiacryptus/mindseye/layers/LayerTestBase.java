@@ -50,6 +50,16 @@ public abstract class LayerTestBase {
       (data, exe) -> getLayer().eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));
     getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+    getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
+    getEquivalencyTester().test(getReferenceLayer(), getLayer(), outputPrototype, inputPrototype);
+  }
+  
+  public EquivalencyTester getEquivalencyTester() {
+    return new EquivalencyTester(1e-5);
+  }
+  
+  public PerformanceTester getPerformanceTester() {
+    return new PerformanceTester();
   }
   
   /**
@@ -70,7 +80,7 @@ public abstract class LayerTestBase {
    * @return the derivative tester
    */
   public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-4, 1e-8);
+    return new DerivativeTester(1e-10, 1e-8);
   }
   
   /**
@@ -79,6 +89,10 @@ public abstract class LayerTestBase {
    * @return the layer
    */
   public abstract NNLayer getLayer();
+  
+  public NNLayer getReferenceLayer() {
+    return null;
+  }
   
   /**
    * Get input dims int [ ] [ ].

@@ -140,19 +140,6 @@ public class SimpleConvolutionLayer extends NNLayer {
   }
   
   /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param width       the width
-   * @param height      the height
-   * @param inputBands  the input bands
-   * @param outputBands the output bands
-   * @param simple      the simple
-   */
-  public SimpleConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
-    this(width, height, inputBands * outputBands, simple);
-  }
-  
-  /**
    * From json convolution layer.
    *
    * @param json the json
@@ -301,7 +288,8 @@ public class SimpleConvolutionLayer extends NNLayer {
     return IntStream.range(0, kernelSize.length).map(i -> {
       int x;
       if (i == kernelSize.length - 1) {
-        x = kernelSize[i] / inputSize[i];
+        assert kernelSize[i] == inputSize[i];
+        x = inputSize[i];
       }
       else if (simple) {
         x = inputSize[i];

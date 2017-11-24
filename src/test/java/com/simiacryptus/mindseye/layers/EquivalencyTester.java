@@ -32,14 +32,13 @@ import java.util.stream.IntStream;
 /**
  * The type Derivative tester.
  */
-public class DerivativeTester {
+public class EquivalencyTester {
   
-  private static final Logger log = LoggerFactory.getLogger(DerivativeTester.class);
+  private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
   
   /**
    * The Probe size.
    */
-  public final double probeSize;
   private final double tolerance;
   private boolean testLearning = true;
   private boolean testFeedback = true;
@@ -48,36 +47,35 @@ public class DerivativeTester {
    * Instantiates a new Derivative tester.
    *
    * @param tolerance the tolerance
-   * @param probeSize the probe size
    */
-  public DerivativeTester(double tolerance, double probeSize) {
+  public EquivalencyTester(double tolerance) {
     this.tolerance = tolerance;
-    this.probeSize = probeSize;
   }
   
   /**
    * Test.
    *
-   * @param component       the component
+   * @param reference       the component
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    */
-  public ToleranceStatistics test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  public ToleranceStatistics test(final NNLayer reference, final NNLayer subject, final Tensor outputPrototype, final Tensor... inputPrototype) {
+    if(null == reference || null == subject) return new ToleranceStatistics();
     ToleranceStatistics statistics = new ToleranceStatistics();
     if (isTestFeedback()) {
       statistics = statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-        return testFeedback(component, i, outputPrototype, inputPrototype);
+        return testFeedback(reference, subject, i, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get());
     }
     if (isTestLearning()) {
       statistics = statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-        return testLearning(component, i, outputPrototype, inputPrototype);
+        return testLearning(reference, subject, i, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get());
     }
-    log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
-    log.debug(String.format("Finite-Difference Derivative Accuracy:"));
-    log.debug(String.format("absoluteTol: mean=%s, max=%s", statistics.absoluteTol.getAverage(), statistics.absoluteTol.getMax()));
-    log.debug(String.format("relativeTol: mean=%s, max=%s", statistics.relativeTol.getAverage(), statistics.relativeTol.getMax()));
+    log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", reference, Arrays.toString(inputPrototype), outputPrototype));
+    log.debug(String.format("Reference Layer Accuracy:"));
+    log.debug(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
+    log.debug(String.format("relativeTol: %s", statistics.relativeTol.toString()));
     return statistics;
   }
   
@@ -151,107 +149,57 @@ public class DerivativeTester {
     return gradient;
   }
   
-  private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    
-    Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-      (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-      (a, b) -> a.add(b));
-    
-    outputPrototype.set(baseOutput);
-    for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
-      final Tensor inputProbe = inputPrototype[inputIndex].copy();
-      inputProbe.add(i, probeSize * 1);
-      final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
-      copyInput[inputIndex] = inputProbe;
-      
-      Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(copyInput),
-        (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-        (a, b) -> a.add(b));
-      
-      final Tensor delta = evalProbe.minus(baseOutput).scale(1. / probeSize);
-      for (int j = 0; j < delta.dim(); j++) {
-        measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
-      }
-    }
-    return measuredGradient;
-  }
-  
-  private Tensor measureLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final int stateLen = component.state().get(layerNum).length;
-    final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-    
-    Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-      (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-      (a, b) -> a.add(b));
-    
-    for (int i = 0; i < stateLen; i++) {
-      final NNLayer copy = KryoUtil.kryo().copy(component);
-      copy.state().get(layerNum)[i] += probeSize;
-      
-      Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (data, exe) -> copy.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-        (a, b) -> a.add(b));
-      
-      final Tensor delta = evalProbe.minus(baseOutput).scale(1. / probeSize);
-      for (int j = 0; j < delta.dim(); j++) {
-        gradient.set(new int[]{i, j}, delta.getData()[j]);
-      }
-    }
-    return gradient;
-  }
-  
   /**
    * Test feedback.
-   *
-   * @param component       the component
+   *  @param reference       the reference
+   * @param subject
    * @param i               the
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    */
-  protected ToleranceStatistics testFeedback(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
-    final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
+  protected ToleranceStatistics testFeedback(final NNLayer reference, NNLayer subject, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
+    final Tensor subjectGradient = getFeedbackGradient(subject, i, outputPrototype, inputPrototype);
+    final Tensor referenceGradient = getFeedbackGradient(reference, i, outputPrototype, inputPrototype);
     try {
-      ToleranceStatistics result = IntStream.range(0, measuredGradient.dim()).mapToObj(i1 -> {
-        return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
+      ToleranceStatistics result = IntStream.range(0, subjectGradient.dim()).mapToObj(i1 -> {
+        return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
       assert result.absoluteTol.getMax() < tolerance;
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
-      log.debug(String.format("measured/actual: %s", measuredGradient));
-      log.debug(String.format("implemented/expected: %s", implementedGradient));
-      log.debug(String.format("error: %s", measuredGradient.minus(implementedGradient)));
+      log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", reference, Arrays.toString(inputPrototype), outputPrototype));
+      log.debug(String.format("measured/actual: %s", subjectGradient));
+      log.debug(String.format("implemented/expected: %s", referenceGradient));
+      log.debug(String.format("error: %s", subjectGradient.minus(referenceGradient)));
       throw e;
     }
   }
   
   /**
    * Test learning.
-   *
-   * @param component       the component
+   *  @param reference       the component
+   * @param subject
    * @param i               the
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    */
-  protected ToleranceStatistics testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
-    final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
+  protected ToleranceStatistics testLearning(final NNLayer reference, NNLayer subject, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
+    final Tensor subjectGradient = getLearningGradient(subject, i, outputPrototype, inputPrototype);
+    final Tensor referenceGradient = getLearningGradient(reference, i, outputPrototype, inputPrototype);
   
     try {
-      ToleranceStatistics result = IntStream.range(0, measuredGradient.dim()).mapToObj(i1 -> {
-        return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
+      ToleranceStatistics result = IntStream.range(0, subjectGradient.dim()).mapToObj(i1 -> {
+        return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
       assert result.absoluteTol.getMax() < tolerance;
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component: %s", component));
+      log.debug(String.format("Component: %s", reference));
       log.debug(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
       log.debug(String.format("Outputs: %s", outputPrototype));
-      log.debug(String.format("Measured Gradient: %s", measuredGradient));
-      log.debug(String.format("Implemented Gradient: %s", implementedGradient));
-      log.debug(String.format("%s", measuredGradient.minus(implementedGradient)));
+      log.debug(String.format("Measured Gradient: %s", subjectGradient));
+      log.debug(String.format("Implemented Gradient: %s", referenceGradient));
+      log.debug(String.format("%s", subjectGradient.minus(referenceGradient)));
       throw e;
     }
     
@@ -272,7 +220,7 @@ public class DerivativeTester {
    * @param testLearning the run learning
    * @return the run learning
    */
-  public DerivativeTester setTestLearning(boolean testLearning) {
+  public EquivalencyTester setTestLearning(boolean testLearning) {
     this.testLearning = testLearning;
     return this;
   }
@@ -292,7 +240,7 @@ public class DerivativeTester {
    * @param testFeedback the run feedback
    * @return the run feedback
    */
-  public DerivativeTester setTestFeedback(boolean testFeedback) {
+  public EquivalencyTester setTestFeedback(boolean testFeedback) {
     this.testFeedback = testFeedback;
     return this;
   }

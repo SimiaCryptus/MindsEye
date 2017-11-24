@@ -29,13 +29,18 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new SimpleConvolutionLayer(3, 3, 2, 2, true);
+    return new SimpleConvolutionLayer(3, 3, 1, true);
+  }
+  
+  @Override
+  public NNLayer getReferenceLayer() {
+    return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 1, 1, true);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 2}
+      {3, 3, 1}
     };
   }
   
@@ -46,8 +51,20 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
 
     @Override
     public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, 2, false);
+      return new SimpleConvolutionLayer(3, 3, 2, false);
     }
-
+  
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 2, true);
+    }
+  
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 2}
+      };
+    }
+  
   }
 }
