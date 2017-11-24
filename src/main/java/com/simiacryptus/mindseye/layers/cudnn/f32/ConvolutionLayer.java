@@ -20,8 +20,20 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.lang.ComponentException;
+import com.simiacryptus.mindseye.lang.Coordinate;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNExecutionContext;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
+import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
+import com.simiacryptus.mindseye.layers.cudnn.CudnnFloatDelta;
+import com.simiacryptus.mindseye.layers.cudnn.GPUDataMirror;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import jcuda.Sizeof;
@@ -242,8 +254,8 @@ public class ConvolutionLayer extends NNLayer {
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
-            buffer.get(ConvolutionLayer.this, () -> new CudnnFloatDelta(filter.getData(), ConvolutionLayer.this))
-              .accumulate(CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, 1, kernelSize[2], kernelSize[1], kernelSize[0]), filterBuffer, (CudaExecutionContext) nncontext);
+            final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
+            buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
           }
           if (inObj[0].isAlive()) {
             CudaPtr inputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(input.getDimensions()) * 1l * length * Sizeof.FLOAT);

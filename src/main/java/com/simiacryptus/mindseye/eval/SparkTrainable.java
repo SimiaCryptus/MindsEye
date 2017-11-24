@@ -207,7 +207,7 @@ public class SparkTrainable implements Trainable {
     assert (resultData.stream().allMatch(x -> x.dim() == 1));
     assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
     double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
-    return new PointSample(deltaSet, deltaSet.stateBackup(), sum);
+    return new PointSample(deltaSet, new StateSet(deltaSet), sum);
   }
   
   /**
@@ -226,7 +226,7 @@ public class SparkTrainable implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     long time1 = System.nanoTime();
     JavaRDD<ReducableResult> mapPartitions = this.sampledRDD.toJavaRDD().mapPartitions(new PartitionTask(network));
     long time2 = System.nanoTime();
@@ -235,7 +235,7 @@ public class SparkTrainable implements Trainable {
       System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     DeltaSet deltaSet = getDelta(result);
-    return new Trainable.PointSample(deltaSet, deltaSet.stateBackup(), result.sum);
+    return new PointSample(deltaSet, new StateSet(deltaSet), result.sum);
   }
   
   @Override

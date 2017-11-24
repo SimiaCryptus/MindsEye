@@ -20,9 +20,9 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
-import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -60,7 +60,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
       if (null == buffer.getDelta()) return;
       Double weight = getRegionPolicy(layer);
       if (null != weight && 0 < weight) {
-        Delta deltaBuffer = direction.get(layer, buffer.target);
+        DoubleBuffer deltaBuffer = direction.get(layer, buffer.target);
         double[] adjusted = multiply(deltaBuffer.getDelta(), weight);
         for (int i = 0; i < adjusted.length; i++) {
           deltaBuffer.getDelta()[i] = adjusted[i];

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.PointSample;
 
 /**
  * The type Step.
@@ -28,7 +28,7 @@ public class Step {
   /**
    * The Point.
    */
-  public final Trainable.PointSample point;
+  public final PointSample point;
   /**
    * The Time.
    */
@@ -44,7 +44,7 @@ public class Step {
    * @param point     the point
    * @param iteration the iteration
    */
-  Step(Trainable.PointSample point, long iteration) {
+  Step(PointSample point, long iteration) {
     this.point = point;
     this.iteration = iteration;
   }

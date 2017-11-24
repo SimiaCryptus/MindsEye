@@ -20,9 +20,11 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DeltaSetBase;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 import java.util.List;
@@ -53,9 +55,9 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSet direction) {
+  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSetBase<Delta> direction) {
     this.origin = origin.copyFull();
-    this.direction = direction;
+    this.direction = new DeltaSet(direction);
     this.subject = subject;
   }
   
@@ -66,7 +68,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param b the b
    * @return the double
    */
-  public static double dot(List<Delta> a, List<Delta> b) {
+  public static double dot(List<DoubleBuffer> a, List<DoubleBuffer> b) {
     if (a.size() != b.size()) throw new IllegalArgumentException(String.format("%s != %s", a.size(), b.size()));
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
@@ -98,7 +100,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   
   @Override
   public DeltaSet position(double alpha) {
-    return direction.scale(alpha);
+    return new DeltaSet(direction.scale(alpha));
   }
   
   @Override

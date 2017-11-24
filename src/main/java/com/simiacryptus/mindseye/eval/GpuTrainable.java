@@ -196,7 +196,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       DeltaSet deltaSet = new DeltaSet();
       result.accumulate(deltaSet, 1.0 / statistics.getCount());
       //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-      return new PointSample(deltaSet, deltaSet.stateBackup(), sum, statistics.getCount());
+      return new PointSample(deltaSet, new StateSet(deltaSet), sum, statistics.getCount());
     });
     if (null != monitor && verbosity() > 0) {
       monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));

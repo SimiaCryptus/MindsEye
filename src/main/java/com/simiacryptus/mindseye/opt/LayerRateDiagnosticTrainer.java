@@ -20,11 +20,8 @@
 package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.IterativeStopException;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -119,8 +116,8 @@ public class LayerRateDiagnosticTrainer {
           Map<NNLayer, Double> steps = new HashMap<>();
           double overallStepEstimate = d1.getMagnitude() / d2.getMagnitude();
           for (NNLayer layer : layers) {
-            Delta a = d2.get(layer, (double[]) null);
-            Delta b = d1.get(layer, (double[]) null);
+            DoubleBuffer a = d2.get(layer, (double[]) null);
+            DoubleBuffer b = d1.get(layer, (double[]) null);
             double bmag = Math.sqrt(b.deltaStatistics().sumSq());
             double amag = Math.sqrt(a.deltaStatistics().sumSq());
             double dot = a.dot(b) / (amag * bmag);

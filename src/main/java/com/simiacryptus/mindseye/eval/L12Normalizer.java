@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -48,8 +49,8 @@ public abstract class L12Normalizer implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
-    Trainable.PointSample innerMeasure = inner.measure(isStatic, monitor);
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+    PointSample innerMeasure = inner.measure(isStatic, monitor);
     DeltaSet normalizationVector = new DeltaSet();
     double valueAdj = 0;
     for (NNLayer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
@@ -64,7 +65,7 @@ public abstract class L12Normalizer implements Trainable {
       }
       assert (null != gradientAdj);
     }
-    return new Trainable.PointSample(
+    return new PointSample(
       innerMeasure.delta.add(normalizationVector),
       innerMeasure.weights,
       innerMeasure.sum + (hideAdj ? 0 : valueAdj));

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 public class FailsafeLineSearchCursor implements LineSearchCursor {
   private final LineSearchCursor direction;
   private final TrainingMonitor monitor;
-  private Trainable.PointSample best;
+  private PointSample best;
   
   /**
    * Instantiates a new Failsafe line search cursor.
@@ -38,7 +38,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * @param previousPoint the previous point
    * @param monitor       the monitor
    */
-  public FailsafeLineSearchCursor(LineSearchCursor direction, Trainable.PointSample previousPoint, TrainingMonitor monitor) {
+  public FailsafeLineSearchCursor(LineSearchCursor direction, PointSample previousPoint, TrainingMonitor monitor) {
     this.direction = direction;
     this.best = previousPoint.copyFull();
     this.monitor = monitor;
@@ -62,7 +62,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    *
    * @param step the runStep
    */
-  public void accumulate(Trainable.PointSample step) {
+  public void accumulate(PointSample step) {
     if (null == this.best || this.best.getMean() > step.getMean()) {
       monitor.log(String.format("New Minimum: %s > %s", this.best.getMean(), step.getMean()));
       this.best = step.copyFull();
@@ -85,7 +85,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
    * @param monitor the monitor
    * @return the best
    */
-  public Trainable.PointSample getBest(TrainingMonitor monitor) {
+  public PointSample getBest(TrainingMonitor monitor) {
     return best;
   }
   

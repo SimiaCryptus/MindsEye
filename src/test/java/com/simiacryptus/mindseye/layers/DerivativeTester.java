@@ -138,7 +138,7 @@ public class DerivativeTester {
         }, (a, b) -> a.add(b));
       
       
-      final Delta deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().get();
+      final DoubleBuffer deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
       }

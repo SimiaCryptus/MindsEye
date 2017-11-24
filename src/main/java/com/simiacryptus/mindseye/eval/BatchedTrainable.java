@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.eval;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 

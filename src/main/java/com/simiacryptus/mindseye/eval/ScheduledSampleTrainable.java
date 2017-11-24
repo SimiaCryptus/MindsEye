@@ -89,7 +89,7 @@ public class ScheduledSampleTrainable implements Trainable {
   }
   
   @Override
-  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     NNResult[] input = NNResult.batchResultArray(sampledData);
     NNResult result = network.eval(new NNExecutionContext() {
     }, input);
@@ -98,7 +98,7 @@ public class ScheduledSampleTrainable implements Trainable {
     assert (result.getData().stream().allMatch(x -> x.dim() == 1));
     ScalarStatistics statistics = new PercentileStatistics();
     result.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).forEach(x -> statistics.add(x));
-    return new Trainable.PointSample(deltaSet, deltaSet.stateBackup(), statistics.getMean());
+    return new PointSample(deltaSet, new StateSet(deltaSet), statistics.getMean());
   }
   
   @Override

@@ -19,9 +19,11 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.StateSet;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -40,16 +42,16 @@ public class QuantifyOrientationWrapper implements OrientationStrategy {
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if(cursor instanceof SimpleLineSearchCursor) {
       DeltaSet direction = ((SimpleLineSearchCursor) cursor).direction;
-      DeltaSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      StateSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       Map<String, String> dataMap = weights.stream()
         .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
         .collect(Collectors.toMap(x -> x.getKey(), list -> {
           List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
-            Delta dirDelta = direction.getMap().get(weightDelta.layer);
+            DoubleBuffer dirDelta = direction.getMap().get(weightDelta.layer);
             double denominator = weightDelta.deltaStatistics().rms();
             double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
             return (numerator / (0 == denominator ? 1 : denominator));
@@ -64,7 +66,7 @@ public class QuantifyOrientationWrapper implements OrientationStrategy {
     return cursor;
   }
   
-  public String getId(Delta x) {
+  public String getId(DoubleBuffer x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
     return name.contains(className)?className:name;

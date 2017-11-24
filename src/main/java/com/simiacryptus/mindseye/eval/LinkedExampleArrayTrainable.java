@@ -59,7 +59,7 @@ public class LinkedExampleArrayTrainable implements Trainable {
     DeltaSet deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     double meanValue = result.getData().stream().mapToDouble(x -> x.getData()[0]).average().getAsDouble();
-    return new PointSample(deltaSet, deltaSet.stateBackup(), meanValue);
+    return new PointSample(deltaSet, new StateSet(deltaSet), meanValue);
   }
   
   @Override

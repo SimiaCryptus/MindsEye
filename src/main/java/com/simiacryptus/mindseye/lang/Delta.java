@@ -19,79 +19,11 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
-import java.util.stream.IntStream;
 
-/**
- * The type Delta.
- */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class Delta {
-  
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(Delta.class);
-  /**
-   * The Layer.
-   */
-  public final NNLayer layer;
-  /**
-   * The Target.
-   */
-  public final double[] target;
-  /**
-   * The Delta.
-   */
-  protected double[] delta;
+public class Delta extends DoubleBuffer {
   protected double[] deltaCompensation;
-  
-  
-  public static class DoubleArrayStatsFacade {
-    public final double[] data;
-  
-    public DoubleArrayStatsFacade(double[] data) {
-      this.data = data;
-    }
-  
-  
-    /**
-     * Sum double.
-     *
-     * @return the double
-     */
-    public double sum() {
-      return Arrays.stream(data).sum();
-    }
-  
-    /**
-     * Sum sq double.
-     *
-     * @return the double
-     */
-    public double sumSq() {
-      return Arrays.stream(data).map(x -> x * x).sum();
-    }
-  
-    public double rms() {
-      return Math.sqrt(sumSq() / length());
-    }
-  
-    public int length() {
-      return data.length;
-    }
-  }
-  
-  public DoubleArrayStatsFacade deltaStatistics() {
-    return new DoubleArrayStatsFacade(delta);
-  }
-  
-  public DoubleArrayStatsFacade targetStatistics() {
-    return new DoubleArrayStatsFacade(target);
-  }
-  
   
   /**
    * Instantiates a new Delta.
@@ -101,26 +33,20 @@ public class Delta {
    * @param layer  the layer
    */
   public Delta(final double[] target, final double[] delta, final NNLayer layer) {
+    super(layer, target, delta);
     if (null == target) throw new IllegalArgumentException();
     //if(null == array) throw new IllegalArgumentException();
-    this.target = target;
-    this.layer = layer;
-    this.delta = delta;
     this.deltaCompensation = DoubleArrays.obtain(delta.length);
   }
   
   /**
    * Instantiates a new Delta.
    *
-   * @param values the values
+   * @param target the target
    * @param layer  the layer
    */
-  public Delta(final double[] values, final NNLayer layer) {
-    if (null == values) throw new IllegalArgumentException();
-    this.target = values;
-    this.layer = layer;
-    this.delta = DoubleArrays.obtain(values.length);
-    this.deltaCompensation = DoubleArrays.obtain(delta.length);
+  public Delta(final double[] target, final NNLayer layer) {
+    this(target,DoubleArrays.obtain(target.length),layer);
   }
   
   /**
@@ -133,36 +59,21 @@ public class Delta {
     for (int i = 0; i < data.length; i++) {
       double sum = data[i];
       double input = delta[i];
-      double c = dataCompensation[i];
+      double c = null==dataCompensation?0:dataCompensation[i];
       if(Math.abs(sum) >= Math.abs(input)) {
         double y = sum - c;
         double t = input + y;
         c = (t-input) - y;
         data[i] = t;
-        dataCompensation[i] = c;
+        if(null != dataCompensation) dataCompensation[i] = c;
       } else {
         double y = input - c;
         double t = sum + y;
         c = (t-sum) - y;
         data[i] = t;
-        dataCompensation[i] = c;
+        if(null != dataCompensation) dataCompensation[i] = c;
       }
     }
-  }
-  
-  /**
-   * Are equal boolean.
-   *
-   * @param l the l
-   * @param r the r
-   * @return the boolean
-   */
-  public static boolean areEqual(double[] l, double[] r) {
-    assert (r.length == l.length);
-    for (int i = 0; i < r.length; i++) {
-      if (r[i] != l[i]) return false;
-    }
-    return true;
   }
   
   /**
@@ -171,33 +82,11 @@ public class Delta {
    * @param data the data
    * @return the delta
    */
-  public Delta accumulate(final double[] data) {
+  public DoubleBuffer accumulate(final double[] data) {
     //assert Arrays.stream(data).allMatch(Double::isFinite);
     accumulate(delta, data, deltaCompensation);
     //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
     return this;
-  }
-  
-  /**
-   * Set delta.
-   *
-   * @param data the data
-   * @return the delta
-   */
-  public Delta set(final double[] data) {
-    assert Arrays.stream(data).allMatch(Double::isFinite);
-    Arrays.parallelSetAll(this.getDelta(), i -> data[i]);
-    assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
-    return this;
-  }
-  
-  /**
-   * Gets id.
-   *
-   * @return the id
-   */
-  public String getId() {
-    return this.layer.getId();
   }
   
   /**
@@ -210,25 +99,6 @@ public class Delta {
   }
   
   /**
-   * Length int.
-   *
-   * @return the int
-   */
-  public int length() {
-    return this.target.length;
-  }
-  
-  /**
-   * Map delta.
-   *
-   * @param mapper the mapper
-   * @return the delta
-   */
-  public Delta map(final DoubleUnaryOperator mapper) {
-    return new Delta(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
-  }
-  
-  /**
    * Scale delta.
    *
    * @param f the f
@@ -238,16 +108,10 @@ public class Delta {
     return map(x -> x * f);
   }
   
-  @Override
-  public String toString() {
-    final StringBuilder builder = new StringBuilder();
-    builder.append(getClass().getSimpleName());
-    builder.append("/");
-    builder.append(this.layer.getClass().getSimpleName());
-    builder.append("/");
-    builder.append(this.layer.getId());
-    return builder.toString();
+  public Delta map(final DoubleUnaryOperator mapper) {
+    return new Delta(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
   }
+  
   
   /**
    * Accumulate.
@@ -271,50 +135,6 @@ public class Delta {
     assert Arrays.stream(target).allMatch(Double::isFinite);
   }
   
-  /**
-   * Dot double.
-   *
-   * @param right the right
-   * @return the double
-   */
-  public double dot(Delta right) {
-    if (this.target != right.target) {
-      throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
-    }
-    if (!this.layer.equals(right.layer)) {
-      throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
-    }
-    assert (this.getDelta().length == right.getDelta().length);
-    return IntStream.range(0, this.getDelta().length).mapToDouble(i -> getDelta()[i] * right.getDelta()[i]).sum();
-  }
-  
-  /**
-   * Copy delta.
-   *
-   * @return the delta
-   */
-  public Delta copy() {
-    return new Delta(target, DoubleArrays.copyOf(delta), layer);
-  }
-  
-  /**
-   * Get delta double [ ].
-   *
-   * @return the double [ ]
-   */
-  public double[] getDelta() {
-    return delta;
-  }
-  
-  /**
-   * Are equal boolean.
-   *
-   * @return the boolean
-   */
-  public boolean areEqual() {
-    return areEqual(getDelta(), target);
-  }
-  
   @Override
   protected void finalize() throws Throwable {
     if(null != delta) {
@@ -328,18 +148,4 @@ public class Delta {
     super.finalize();
   }
   
-  public final synchronized Delta backup() {
-    double[] delta = getDelta();
-    System.arraycopy(target,0,delta,0,target.length);
-    Arrays.fill(deltaCompensation, 0);
-    return this;
-  }
-  
-  /**
-   * Overwrite.
-   */
-  public final synchronized Delta restore() {
-    System.arraycopy(delta,0,target,0,target.length);
-    return this;
-  }
 }

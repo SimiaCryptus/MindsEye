@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
+import com.simiacryptus.mindseye.lang.PointSample;
 
 /**
  * The type Line search point.

@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -40,11 +40,11 @@ public class DescribeOrientationWrapper implements OrientationStrategy {
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if(cursor instanceof SimpleLineSearchCursor) {
       DeltaSet direction = ((SimpleLineSearchCursor) cursor).direction;
-      DeltaSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      StateSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       String asString = render(weights, direction);
       monitor.log(String.format("Orientation Details: %s", asString));
     } else {
@@ -53,13 +53,13 @@ public class DescribeOrientationWrapper implements OrientationStrategy {
     return cursor;
   }
   
-  public static String render(DeltaSet weights, DeltaSet direction) {
+  public static String render(StateSet weights, DeltaSet direction) {
     Map<String, String> data = weights.stream()
       .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), (Map.Entry<String, List<Delta>> list) -> {
-        List<Delta> deltaList = list.getValue();
+      .collect(Collectors.toMap(x -> x.getKey(), (Map.Entry<String, List<State>> list) -> {
+        List<State> deltaList = list.getValue();
         if (1 == deltaList.size()) {
-          Delta weightDelta = deltaList.get(0);
+          State weightDelta = deltaList.get(0);
           return render(weightDelta, direction.getMap().get(weightDelta.layer));
         } else {
           return deltaList.stream().map(weightDelta -> {
@@ -73,13 +73,13 @@ public class DescribeOrientationWrapper implements OrientationStrategy {
       .reduce((a, b) -> a + "\n" + b).orElse("");
   }
   
-  public static String render(Delta weightDelta, Delta dirDelta) {
+  public static String render(DoubleBuffer weightDelta, DoubleBuffer dirDelta) {
     String weightString = Arrays.toString(weightDelta.getDelta());
     String deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
   }
   
-  public static String getId(Delta x) {
+  public static String getId(DoubleBuffer x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
     return name.contains(className)?className:name;

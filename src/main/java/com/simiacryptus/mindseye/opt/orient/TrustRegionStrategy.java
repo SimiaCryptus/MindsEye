@@ -20,9 +20,9 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
-import com.simiacryptus.mindseye.lang.Delta;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -73,7 +73,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
    * @param b the b
    * @return the double
    */
-  public static double dot(List<Delta> a, List<Delta> b) {
+  public static double dot(List<DoubleBuffer> a, List<DoubleBuffer> b) {
     assert (a.size() == b.size());
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
@@ -125,7 +125,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
           TrustRegion region = getRegionPolicy(layer);
           if (null != region) {
             double[][] historyData = history.stream().map((PointSample x) -> {
-              Delta d = x.weights.getMap().get(layer);
+              DoubleBuffer d = x.weights.getMap().get(layer);
               return null==d?null:d.getDelta();
             }).filter(x->null!=x).toArray(i -> new double[i][]);
             double[] projectedPosition = region.project(historyData, proposedPosition);

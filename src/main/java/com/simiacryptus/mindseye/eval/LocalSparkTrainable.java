@@ -19,9 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.rdd.RDD;
@@ -60,7 +58,7 @@ public class LocalSparkTrainable extends SparkTrainable {
   
   
   @Override
-  public Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor) {
+  public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     long time1 = System.nanoTime();
     JavaRDD<Tensor[]> javaRDD = this.sampledRDD.toJavaRDD();
     assert !javaRDD.isEmpty();
@@ -85,7 +83,7 @@ public class LocalSparkTrainable extends SparkTrainable {
       System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     DeltaSet deltaSet = getDelta(result);
-    return new Trainable.PointSample(deltaSet, deltaSet.stateBackup(), result.sum);
+    return new PointSample(deltaSet, new StateSet(deltaSet), result.sum);
   }
   
 }

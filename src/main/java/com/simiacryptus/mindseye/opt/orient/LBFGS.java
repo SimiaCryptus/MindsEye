@@ -20,10 +20,8 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -50,7 +48,7 @@ public class LBFGS implements OrientationStrategy {
   private int minHistory = 3;
   private int maxHistory = 30;
   
-  private static boolean isFinite(DeltaSet delta) {
+  private static boolean isFinite(DeltaSetBase<?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
   
@@ -208,13 +206,13 @@ public class LBFGS implements OrientationStrategy {
     return gradient.dot(direction) < 0;
   }
   
-  private List<double[]> minus(List<Delta> a, List<Delta> b) {
+  private List<double[]> minus(List<DoubleBuffer> a, List<DoubleBuffer> b) {
     assert (a.size() == b.size());
     for (int i = 0; i < a.size(); i++) assert a.get(i).layer.equals(b.get(i).layer);
     return ArrayUtil.minus(cvt(a), cvt(b));
   }
   
-  private List<double[]> cvt(List<Delta> vector) {
+  private List<double[]> cvt(List<DoubleBuffer> vector) {
     return vector.stream().map(x -> x.getDelta()).collect(Collectors.toList());
   }
   

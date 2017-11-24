@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**

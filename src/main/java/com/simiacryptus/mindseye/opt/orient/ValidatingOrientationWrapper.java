@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -42,7 +43,7 @@ public class ValidatingOrientationWrapper implements OrientationStrategy {
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, Trainable.PointSample measurement, TrainingMonitor monitor) {
+  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     return new ValidatingLineSearchCursor(cursor);
   }

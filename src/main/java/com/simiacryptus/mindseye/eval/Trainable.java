@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
@@ -33,7 +33,7 @@ public interface Trainable {
    * @param monitor  the monitor
    * @return the trainable . point sample
    */
-  Trainable.PointSample measure(boolean isStatic, TrainingMonitor monitor);
+  PointSample measure(boolean isStatic, TrainingMonitor monitor);
   
   /**
    * Cached cached trainable.
@@ -54,173 +54,4 @@ public interface Trainable {
     return false;
   }
   
-  /**
-   * The type Point sample.
-   */
-  final class PointSample {
-    /**
-     * The Delta.
-     */
-    public final DeltaSet delta;
-    /**
-     * The Weights.
-     */
-    public final DeltaSet weights;
-    /**
-     * The Sum.
-     */
-    public final double sum;
-    /**
-     * The Count.
-     */
-    public final int count;
-    /**
-     * The Rate.
-     */
-    public double rate;
-  
-    /**
-     * Instantiates a new Point sample.
-     *
-     * @param delta   the delta
-     * @param weights the weights
-     * @param sum     the sum
-     * @param count   the count
-     */
-    public PointSample(DeltaSet delta, DeltaSet weights, double sum, int count) {
-      this(delta, weights, sum, 0.0, count);
-    }
-  
-    /**
-     * Instantiates a new Point sample.
-     *
-     * @param delta   the delta
-     * @param weights the weights
-     * @param sum     the sum
-     * @param rate    the rate
-     */
-    public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate) {
-      this(delta, weights, sum, rate, 1);
-    }
-  
-    /**
-     * Instantiates a new Point sample.
-     *
-     * @param delta   the delta
-     * @param weights the weights
-     * @param sum     the sum
-     */
-    public PointSample(DeltaSet delta, DeltaSet weights, double sum) {
-      this(delta, weights, sum, 1);
-    }
-  
-    /**
-     * Instantiates a new Point sample.
-     *
-     * @param delta   the delta
-     * @param weights the weights
-     * @param sum     the sum
-     * @param rate    the rate
-     * @param count   the count
-     */
-    public PointSample(DeltaSet delta, DeltaSet weights, double sum, double rate, int count) {
-      assert (delta.getMap().size() == weights.getMap().size());
-      this.delta = delta;
-      this.weights = weights;
-      this.sum = sum;
-      this.count = count;
-      this.setRate(rate);
-    }
-  
-    /**
-     * Add point sample.
-     *
-     * @param left  the left
-     * @param right the right
-     * @return the point sample
-     */
-    public static PointSample add(PointSample left, PointSample right) {
-      assert (left.delta.getMap().size() == left.weights.getMap().size());
-      assert (right.delta.getMap().size() == right.weights.getMap().size());
-      return new PointSample(left.delta.add(right.delta),
-        left.weights.union(right.weights),
-        left.sum + right.sum,
-        left.count + right.count);
-    }
-  
-    /**
-     * Gets mean.
-     *
-     * @return the mean
-     */
-    public double getMean() {
-      return sum / count;
-    }
-    
-    @Override
-    public String toString() {
-      final StringBuffer sb = new StringBuffer("PointSample{");
-      sb.append("avg=").append(getMean());
-      sb.append('}');
-      return sb.toString();
-    }
-  
-    /**
-     * Gets rate.
-     *
-     * @return the rate
-     */
-    public double getRate() {
-      return rate;
-    }
-  
-    /**
-     * Sets rate.
-     *
-     * @param rate the rate
-     * @return the rate
-     */
-    public PointSample setRate(double rate) {
-      this.rate = rate;
-      return this;
-    }
-  
-    /**
-     * Copy delta point sample.
-     *
-     * @return the point sample
-     */
-    public PointSample copyDelta() {
-      return new PointSample(delta.copy(), weights, sum, rate, count);
-    }
-  
-    /**
-     * Copy full point sample.
-     *
-     * @return the point sample
-     */
-    public PointSample copyFull() {
-      return new PointSample(delta.copy(), weights.copy(), sum, rate, count);
-    }
-  
-    /**
-     * Reset point sample.
-     *
-     * @return the point sample
-     */
-    public PointSample restore() {
-      weights.stream().forEach(d -> d.restore());
-      return this;
-    }
-  
-    /**
-     * Add point sample.
-     *
-     * @param right the right
-     * @return the point sample
-     */
-    public PointSample add(PointSample right) {
-      return add(this, right);
-    }
-  }
 }

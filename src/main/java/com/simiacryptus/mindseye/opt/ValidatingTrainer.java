@@ -22,10 +22,8 @@ package com.simiacryptus.mindseye.opt;
 import com.simiacryptus.mindseye.eval.*;
 import com.simiacryptus.mindseye.eval.SampledCachedTrainable;
 import com.simiacryptus.mindseye.eval.SampledTrainable;
-import com.simiacryptus.mindseye.eval.Trainable.PointSample;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.IterativeStopException;
+import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.line.*;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
@@ -290,13 +288,13 @@ public class ValidatingTrainer {
   }
   
   private String compare(PointSample previousPoint, PointSample nextPoint) {
-    DeltaSet nextWeights = nextPoint.weights;
-    DeltaSet prevWeights = previousPoint.weights;
+    StateSet nextWeights = nextPoint.weights;
+    StateSet prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
       .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
       .collect(Collectors.toMap(x -> x.getKey(), list -> {
         List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
-          Delta dirDelta = nextWeights.getMap().get(prevWeight.layer);
+          DoubleBuffer dirDelta = nextWeights.getMap().get(prevWeight.layer);
           double numerator = prevWeight.deltaStatistics().rms();
           double denominator = null==dirDelta?0:dirDelta.deltaStatistics().rms();
           return (numerator / (0==denominator?1:denominator));
@@ -306,7 +304,7 @@ public class ValidatingTrainer {
       })));
   }
   
-  private static String getId(Delta x) {
+  private static String getId(DoubleBuffer x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
     return name.contains(className)?className:name;
