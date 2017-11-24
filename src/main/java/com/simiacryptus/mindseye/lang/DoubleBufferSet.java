@@ -28,19 +28,19 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class DeltaSetBase<T extends DoubleBuffer> {
+public abstract class DoubleBufferSet<T extends DoubleBuffer> {
   protected final ConcurrentHashMap<NNLayer, T> map = new ConcurrentHashMap<>();
   
   /**
    * Instantiates a new Delta set.
    */
-  public DeltaSetBase() {
+  public DoubleBufferSet() {
   }
   
   /**
    * Instantiates a new Delta set.
    */
-  public DeltaSetBase(DeltaSetBase<T> toCopy) {
+  public DoubleBufferSet(DoubleBufferSet<T> toCopy) {
     this(toCopy.map);
   }
   
@@ -49,7 +49,7 @@ public abstract class DeltaSetBase<T extends DoubleBuffer> {
    *
    * @param collect the collect
    */
-  public DeltaSetBase(final Map<NNLayer, ? extends T> collect) {
+  public DoubleBufferSet(final Map<NNLayer, ? extends T> collect) {
     map.putAll(collect);
   }
   
@@ -100,8 +100,8 @@ public abstract class DeltaSetBase<T extends DoubleBuffer> {
    * @param mapper the mapper
    * @return the delta set
    */
-  public DeltaSetBase<T> map(final Function<T, T> mapper) {
-    DeltaSetBase<T> parent = this;
+  public DoubleBufferSet<T> map(final Function<T, T> mapper) {
+    DoubleBufferSet<T> parent = this;
     Stream<Map.Entry<NNLayer, T>> stream = map.entrySet().stream();
     if(map.size() > 100) stream = stream.parallel();
     Map<NNLayer, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
@@ -137,7 +137,7 @@ public abstract class DeltaSetBase<T extends DoubleBuffer> {
    * @param right the right
    * @return the double
    */
-  public <U extends Delta> double dot(DeltaSetBase<U> right) {
+  public <U extends Delta> double dot(DoubleBufferSet<U> right) {
     ConcurrentHashMap<NNLayer, U> r = right.map;
     Stream<Map.Entry<NNLayer, T>> stream = map.entrySet().stream();
     if(100 < map.size()) stream = stream.parallel();
@@ -158,7 +158,7 @@ public abstract class DeltaSetBase<T extends DoubleBuffer> {
    *
    * @return the delta set
    */
-  public DeltaSetBase<T> copy() {
+  public DoubleBufferSet<T> copy() {
     return map(x -> (T) x.copy());
   }
   
@@ -180,15 +180,15 @@ public abstract class DeltaSetBase<T extends DoubleBuffer> {
     return map;
   }
   
-  protected class Delegate extends DeltaSetBase<T> {
-    private final DeltaSetBase<T> parent;
+  protected class Delegate extends DoubleBufferSet<T> {
+    private final DoubleBufferSet<T> parent;
   
-    public Delegate(DeltaSetBase<T> parent, Map<NNLayer, T> newMap) {
+    public Delegate(DoubleBufferSet<T> parent, Map<NNLayer, T> newMap) {
       super(newMap);
       this.parent = parent;
     }
   
-    public Delegate(DeltaSetBase<T> parent) {
+    public Delegate(DoubleBufferSet<T> parent) {
       this(parent, new HashMap<>());
     }
   

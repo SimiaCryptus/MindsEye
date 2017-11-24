@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.DeltaSetBase;
+import com.simiacryptus.mindseye.lang.DoubleBufferSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
@@ -55,7 +55,7 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSetBase<Delta> direction) {
+  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DoubleBufferSet<Delta> direction) {
     this.origin = origin.copyFull();
     this.direction = new DeltaSet(direction);
     this.subject = subject;

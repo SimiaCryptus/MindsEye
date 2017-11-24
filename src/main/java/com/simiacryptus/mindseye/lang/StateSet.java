@@ -22,36 +22,39 @@ package com.simiacryptus.mindseye.lang;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * The type Delta set.
  */
-public class StateSet extends DeltaSetBase<State> {
+public class StateSet extends DoubleBufferSet<State> {
   
   public StateSet() {
   }
   
-  public StateSet(DeltaSetBase<State> toCopy) {
+  public StateSet(DoubleBufferSet<State> toCopy) {
     super(toCopy);
+    assert stream().allMatch(x->x instanceof State);
   }
   
   public StateSet(DeltaSet toCopy) {
-    assert (this.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    this.getMap().forEach((layer, layerDelta) -> {
+    assert (toCopy.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    toCopy.getMap().forEach((layer, layerDelta) -> {
       this.get(layer, layerDelta.target).backup();
     });
     assert (this.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
+    assert stream().allMatch(x->x instanceof State);
   }
   
   public StateSet(Map<NNLayer, State> collect) {
     super(collect);
   }
   
-  public DeltaSetBase<State> stateBackup() {
+  public DoubleBufferSet<State> stateBackup() {
     assert (this.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    DeltaSetBase<State> stateBackup = new Delegate(this);
+    DoubleBufferSet<State> stateBackup = new Delegate(this);
     this.getMap().forEach((layer, layerDelta) -> {
       stateBackup.get(layer, layerDelta.target).backup();
     });
@@ -71,12 +74,12 @@ public class StateSet extends DeltaSetBase<State> {
    * @param right the right
    * @return the delta set
    */
-  public DeltaSetBase<State> union(DeltaSetBase<State> right) {
-    DeltaSetBase<State> left = this;
+  public DoubleBufferSet<State> union(DoubleBufferSet<State> right) {
+    DoubleBufferSet<State> left = this;
     return union(left, right);
   }
   
-  public static StateSet union(DeltaSetBase<State> left, DeltaSetBase<State> right) {
+  public static StateSet union(DoubleBufferSet<State> left, DoubleBufferSet<State> right) {
     return new StateSet(Stream.concat(
       left.map.entrySet().stream(),
       right.map.entrySet().stream()
@@ -131,4 +134,13 @@ public class StateSet extends DeltaSetBase<State> {
     return returnValue;
   }
   
+  @Override
+  public DoubleBufferSet<State> map(Function<State, State> mapper) {
+    return new StateSet(super.map(mapper));
+  }
+  
+  @Override
+  public DoubleBufferSet<State> copy() {
+    return new StateSet(super.copy());
+  }
 }

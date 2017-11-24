@@ -25,17 +25,19 @@ import java.util.function.Function;
 /**
  * The type Delta set.
  */
-public class DeltaSet extends DeltaSetBase<Delta> {
+public class DeltaSet extends DoubleBufferSet<Delta> {
   
   public DeltaSet() {
   }
   
-  public DeltaSet(DeltaSetBase<Delta> toCopy) {
+  public DeltaSet(DoubleBufferSet<Delta> toCopy) {
     super(toCopy);
+    assert stream().allMatch(x->x instanceof Delta);
   }
   
   public DeltaSet(Map<NNLayer, ? extends Delta> collect) {
     super(collect);
+    assert stream().allMatch(x->x instanceof Delta);
   }
   
   @Override

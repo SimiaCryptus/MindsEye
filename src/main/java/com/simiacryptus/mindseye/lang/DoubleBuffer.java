@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 
 public class DoubleBuffer {
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(Delta.class);
+  private static final Logger log = LoggerFactory.getLogger(DoubleBuffer.class);
   /**
    * The Layer.
    */
@@ -158,7 +158,7 @@ public class DoubleBuffer {
    * @return the delta
    */
   public DoubleBuffer copy() {
-    return new Delta(target, DoubleArrays.copyOf(delta), layer);
+    return new DoubleBuffer(target, DoubleArrays.copyOf(delta), layer);
   }
   
   /**
@@ -167,6 +167,13 @@ public class DoubleBuffer {
    * @return the double [ ]
    */
   public double[] getDelta() {
+    if(null == delta) {
+      synchronized (this) {
+        if(null == delta) {
+          delta = DoubleArrays.obtain(target.length);
+        }
+      }
+    }
     return delta;
   }
   

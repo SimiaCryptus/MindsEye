@@ -48,7 +48,7 @@ public class LBFGS implements OrientationStrategy {
   private int minHistory = 3;
   private int maxHistory = 30;
   
-  private static boolean isFinite(DeltaSetBase<?> delta) {
+  private static boolean isFinite(DoubleBufferSet<?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
   

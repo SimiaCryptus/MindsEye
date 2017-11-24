@@ -148,4 +148,14 @@ public class Delta extends DoubleBuffer {
     super.finalize();
   }
   
+  @Override
+  public Delta set(double[] data) {
+    super.set(data);
+    return this;
+  }
+  
+  @Override
+  public Delta copy() {
+    return new Delta(target, DoubleArrays.copyOf(delta), layer);
+  }
 }

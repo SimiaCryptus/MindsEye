@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import java.util.Arrays;
+import java.util.function.DoubleUnaryOperator;
+
 /**
  * The type Delta.
  */
@@ -58,5 +61,19 @@ public class State extends DoubleBuffer {
   public State accumulate(double[] delta) {
     Delta.accumulate(this.delta, delta, null);
     return this;
+  }
+  
+  public State(NNLayer layer, double[] target, double[] delta) {
+    super(layer, target, delta);
+  }
+  
+  @Override
+  public DoubleBuffer map(DoubleUnaryOperator mapper) {
+    return new State(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
+  }
+  
+  @Override
+  public DoubleBuffer copy() {
+    return new State(target, DoubleArrays.copyOf(delta), layer);
   }
 }
