@@ -45,17 +45,12 @@ public interface Trainable {
   }
   
   /**
-   * Reset to full.
-   */
-  default void resetToFull() {
-  }
-  
-  /**
    * Reset sampling boolean.
    *
    * @return the boolean
+   * @param seed
    */
-  default boolean resetSampling() {
+  default boolean reseed(long seed) {
     return false;
   }
   

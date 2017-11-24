@@ -126,7 +126,7 @@ public class RoundRobinTrainer {
           }
         }
         if (previousOrientations.sum <= currentPoint.sum) {
-          if (subject.resetSampling()) {
+          if (subject.reseed(System.nanoTime())) {
             monitor.log(String.format("MacroIteration %s failed, retrying. Error: %s", currentIteration.get(), currentPoint.sum));
             break subiterationLoop;
           }
@@ -149,7 +149,7 @@ public class RoundRobinTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
+      if (!subject.reseed(System.nanoTime()) && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
       currentPoint = subject.measure(false, monitor);
     } while (!Double.isFinite(currentPoint.sum));

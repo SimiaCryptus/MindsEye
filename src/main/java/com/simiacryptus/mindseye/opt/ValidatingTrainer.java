@@ -19,11 +19,10 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.eval.StochasticCachedTrainable;
-import com.simiacryptus.mindseye.eval.StochasticTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.*;
+import com.simiacryptus.mindseye.eval.SampledCachedTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.eval.Trainable.PointSample;
-import com.simiacryptus.mindseye.eval.TrainableWrapper;
 import com.simiacryptus.mindseye.lang.Delta;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
@@ -84,7 +83,7 @@ public class ValidatingTrainer {
    * @param trainingSubject   the training subject
    * @param validationSubject the validation subject
    */
-  public ValidatingTrainer(StochasticTrainable trainingSubject, Trainable validationSubject) {
+  public ValidatingTrainer(SampledTrainable trainingSubject, Trainable validationSubject) {
     this.regimen = new ArrayList(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject).cached())));
     this.validationSubject = new Trainable() {
       @Override
@@ -97,13 +96,8 @@ public class ValidatingTrainer {
       }
   
       @Override
-      public void resetToFull() {
-        validationSubject.resetToFull();
-      }
-  
-      @Override
-      public boolean resetSampling() {
-        return validationSubject.resetSampling();
+      public boolean reseed(long seed) {
+        return validationSubject.reseed(seed);
       }
     }.cached();
     this.trainingSize = trainingSubject.getTrainingSize();
@@ -150,10 +144,10 @@ public class ValidatingTrainer {
       }
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       List<TrainingPhase> regimen = getRegimen();
+      long seed = System.nanoTime();
       List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i->{
         TrainingPhase phase = getRegimen().get(i);
-        monitor.log(String.format("Phase %d: %s", i, phase));
-        return epoch(epochParams, phase);
+        return runPhase(epochParams, phase, i, seed);
       }).collect(Collectors.toList());
       EpochResult primaryPhase = epochResults.get(0);
       iterationNumber += primaryPhase.iterations;
@@ -174,7 +168,7 @@ public class ValidatingTrainer {
         overtraining, adj1, adj2, (iterationNumber - lastImprovement),
         validatingMeasurementTime.getAndSet(0) / 1e9));
       if (!primaryPhase.continueTraining) {
-        monitor.log(String.format("Training %d epoch halted", epochNumber));
+        monitor.log(String.format("Training %d runPhase halted", epochNumber));
         break;
       }
       if (epochParams.trainingSize >= getMaxTrainingSize()) {
@@ -215,16 +209,18 @@ public class ValidatingTrainer {
   }
   
   /**
-   * Epoch epoch result.
+   * Epoch runPhase result.
    *
-   * @param epochParams the epoch params
+   * @param epochParams the runPhase params
    * @param phase
-   * @return the epoch result
+   * @param i
+   * @return the runPhase result
    */
-  protected EpochResult epoch(EpochParams epochParams, TrainingPhase phase) {
+  protected EpochResult runPhase(EpochParams epochParams, TrainingPhase phase, int i, long seed) {
+    monitor.log(String.format("Phase %d: %s", i, phase));
     phase.trainingSubject.setTrainingSize(epochParams.trainingSize);
     monitor.log(String.format("resetAndMeasure; trainingSize=%s",epochParams.trainingSize));
-    PointSample currentPoint = resetAndMeasure(phase);
+    PointSample currentPoint = reset(phase, seed).measure(phase);
     PointSample priorPoint = currentPoint.copyDelta();
     assert (0 < currentPoint.delta.getMap().size()) : "Nothing to optimize";
     int step = 1;
@@ -234,7 +230,7 @@ public class ValidatingTrainer {
       }
       long startTime = System.nanoTime();
       long prevGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
-      StepResult epoch = step(currentPoint, phase);
+      StepResult epoch = runStep(currentPoint, phase);
       long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       long endTime = System.nanoTime();
       String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f eval time",
@@ -246,9 +242,9 @@ public class ValidatingTrainer {
       );
       currentPoint = epoch.currentPoint.setRate(0.0);
       if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
-        boolean reset = reset(epoch.currentPoint.getMean(), phase);
-        monitor.log(String.format("Training shuffle: %s (%s)", reset, performance));
-        return new EpochResult(reset, priorPoint, currentPoint, step);
+        monitor.log(String.format("Iteration %s failed, aborting. Error: %s (%s)",
+          currentIteration.get(), epoch.currentPoint.getMean(), performance));
+        return new EpochResult(false, priorPoint, currentPoint, step);
       }
       else {
         monitor.log(String.format("Iteration %s complete. Error: %s (%s)", currentIteration.get(), epoch.currentPoint.getMean(), performance));
@@ -259,13 +255,13 @@ public class ValidatingTrainer {
   }
   
   /**
-   * Step step result.
+   * Step runStep result.
    *
    * @param previousPoint the previous point
    * @param phase
-   * @return the step result
+   * @return the runStep result
    */
-  protected StepResult step(PointSample previousPoint, TrainingPhase phase) {
+  protected StepResult runStep(PointSample previousPoint, TrainingPhase phase) {
     currentIteration.incrementAndGet();
     TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> phase.orientation.orient(phase.trainingSubject, previousPoint, monitor));
     LineSearchCursor direction = timedOrientation.result;
@@ -316,17 +312,6 @@ public class ValidatingTrainer {
     return name.contains(className)?className:name;
   }
   
-  private boolean reset(double value, TrainingPhase phase) {
-    if (phase.trainingSubject.resetSampling()) {
-      monitor.log(String.format("Iteration %s failed, retrying. Error: %s", currentIteration.get(), value));
-      return true;
-    }
-    else {
-      monitor.log(String.format("Iteration %s failed, aborting. Error: %s", currentIteration.get(), value));
-      return false;
-    }
-  }
-  
   /**
    * Should halt boolean.
    *
@@ -350,21 +335,19 @@ public class ValidatingTrainer {
   }
   
   
-  /**
-   * Reset and measure point sample.
-   *
-   * @return the point sample
-   * @param phase
-   */
-  protected PointSample resetAndMeasure(TrainingPhase phase) {
-    //currentIteration.incrementAndGet();
-    if (!phase.trainingSubject.resetSampling()) throw new IterativeStopException();
+  private ValidatingTrainer reset(TrainingPhase phase, long seed) {
+    if (!phase.trainingSubject.reseed(seed)) throw new IterativeStopException();
     phase.orientation.reset();
-    phase.trainingSubject.resetSampling();
+    phase.trainingSubject.reseed(seed);
+    return this;
+  }
+  
+  private PointSample measure(TrainingPhase phase) {
     int retries = 0;
     do {
       if (10 < retries++) throw new IterativeStopException();
       PointSample currentPoint = phase.trainingSubject.measure(false, monitor);
+      phase.orientation.reset();
       if (Double.isFinite(currentPoint.getMean())) return currentPoint;
     } while (true);
   }
@@ -497,19 +480,19 @@ public class ValidatingTrainer {
   }
   
   /**
-   * Gets epoch iterations.
+   * Gets runPhase iterations.
    *
-   * @return the epoch iterations
+   * @return the runPhase iterations
    */
   public int getEpochIterations() {
     return epochIterations;
   }
   
   /**
-   * Sets epoch iterations.
+   * Sets runPhase iterations.
    *
-   * @param epochIterations the epoch iterations
-   * @return the epoch iterations
+   * @param epochIterations the runPhase iterations
+   * @return the runPhase iterations
    */
   public ValidatingTrainer setEpochIterations(int epochIterations) {
     this.epochIterations = epochIterations;
@@ -586,19 +569,19 @@ public class ValidatingTrainer {
   }
   
   /**
-   * Gets min epoch iterations.
+   * Gets min runPhase iterations.
    *
-   * @return the min epoch iterations
+   * @return the min runPhase iterations
    */
   public int getMinEpochIterations() {
     return minEpochIterations;
   }
   
   /**
-   * Sets min epoch iterations.
+   * Sets min runPhase iterations.
    *
-   * @param minEpochIterations the min epoch iterations
-   * @return the min epoch iterations
+   * @param minEpochIterations the min runPhase iterations
+   * @return the min runPhase iterations
    */
   public ValidatingTrainer setMinEpochIterations(int minEpochIterations) {
     this.minEpochIterations = minEpochIterations;
@@ -606,19 +589,19 @@ public class ValidatingTrainer {
   }
   
   /**
-   * Gets max epoch iterations.
+   * Gets max runPhase iterations.
    *
-   * @return the max epoch iterations
+   * @return the max runPhase iterations
    */
   public int getMaxEpochIterations() {
     return maxEpochIterations;
   }
   
   /**
-   * Sets max epoch iterations.
+   * Sets max runPhase iterations.
    *
-   * @param maxEpochIterations the max epoch iterations
-   * @return the max epoch iterations
+   * @param maxEpochIterations the max runPhase iterations
+   * @return the max runPhase iterations
    */
   public ValidatingTrainer setMaxEpochIterations(int maxEpochIterations) {
     this.maxEpochIterations = maxEpochIterations;
@@ -854,21 +837,21 @@ public class ValidatingTrainer {
   
   
   public static class TrainingPhase {
-    private StochasticTrainable trainingSubject;
+    private SampledTrainable trainingSubject;
     private OrientationStrategy orientation = new QQN();
     private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
     private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   
-    public TrainingPhase(StochasticTrainable trainingSubject) {
+    public TrainingPhase(SampledTrainable trainingSubject) {
       this.setTrainingSubject(trainingSubject);
     }
   
   
-    public StochasticTrainable getTrainingSubject() {
+    public SampledTrainable getTrainingSubject() {
       return trainingSubject;
     }
   
-    public TrainingPhase setTrainingSubject(StochasticTrainable trainingSubject) {
+    public TrainingPhase setTrainingSubject(SampledTrainable trainingSubject) {
       this.trainingSubject = trainingSubject;
       return this;
     }
@@ -910,9 +893,9 @@ public class ValidatingTrainer {
   }
   
   
-  private class PerformanceWrapper extends TrainableWrapper<StochasticTrainable> implements StochasticTrainable {
+  private class PerformanceWrapper extends TrainableWrapper<SampledTrainable> implements SampledTrainable {
   
-    public PerformanceWrapper(StochasticTrainable trainingSubject) {
+    public PerformanceWrapper(SampledTrainable trainingSubject) {
       super(trainingSubject);
     }
     
@@ -922,14 +905,14 @@ public class ValidatingTrainer {
     }
     
     @Override
-    public StochasticTrainable setTrainingSize(int trainingSize) {
+    public SampledTrainable setTrainingSize(int trainingSize) {
       getInner().setTrainingSize(trainingSize);
       return this;
     }
   
     @Override
-    public StochasticCachedTrainable<? extends StochasticTrainable> cached() {
-      return new StochasticCachedTrainable<>(this);
+    public SampledCachedTrainable<? extends SampledTrainable> cached() {
+      return new SampledCachedTrainable<>(this);
     }
   
     @Override

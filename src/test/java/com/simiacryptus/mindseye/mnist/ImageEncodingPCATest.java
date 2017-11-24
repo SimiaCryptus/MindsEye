@@ -118,7 +118,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   }
   
   /**
-   * The type Transcode step.
+   * The type Transcode runStep.
    */
   protected class TranscodeStep {
     /**
@@ -159,7 +159,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     public final List<Step> history = new ArrayList<>();
   
     /**
-     * Instantiates a new Transcode step.
+     * Instantiates a new Transcode runStep.
      *
      * @param log                the log
      * @param category           the category
@@ -190,9 +190,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     }
   
     /**
-     * Invoke transcode step.
+     * Invoke transcode runStep.
      *
-     * @return the transcode step
+     * @return the transcode runStep
      */
     public TranscodeStep invoke() {
       log.h3("Training");
@@ -208,7 +208,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   }
   
   /**
-   * The type Initialization step.
+   * The type Initialization runStep.
    */
   protected class InitializationStep {
     /**
@@ -269,7 +269,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     public final int band1;
   
     /**
-     * Instantiates a new Initialization step.
+     * Instantiates a new Initialization runStep.
      *
      * @param log                  the log
      * @param originalTrainingData the original training data
@@ -325,9 +325,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     }
   
     /**
-     * Invoke initialization step.
+     * Invoke initialization runStep.
      *
-     * @return the initialization step
+     * @return the initialization runStep
      */
     public InitializationStep invoke() {
       dataPipeline.add(model);
@@ -363,7 +363,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   }
   
   /**
-   * The type Add layer step.
+   * The type Add layer runStep.
    */
   protected class AddLayerStep {
     /**
@@ -436,7 +436,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     public final int band2;
   
     /**
-     * Instantiates a new Add layer step.
+     * Instantiates a new Add layer runStep.
      *
      * @param log             the log
      * @param trainingData    the training data
@@ -491,9 +491,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     }
   
     /**
-     * Invoke add layer step.
+     * Invoke add layer runStep.
      *
-     * @return the add layer step
+     * @return the add layer runStep
      */
     public AddLayerStep invoke() {
       dataPipeline.add(innerModel);

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.eval;
 /**
  * The interface Stochastic trainable.
  */
-public interface StochasticTrainable extends Trainable {
+public interface SampledTrainable extends Trainable {
   /**
    * Gets training size.
    *
@@ -36,6 +36,6 @@ public interface StochasticTrainable extends Trainable {
    * @param trainingSize the training size
    * @return the training size
    */
-  StochasticTrainable setTrainingSize(int trainingSize);
-  StochasticCachedTrainable<? extends StochasticTrainable> cached();
+  SampledTrainable setTrainingSize(int trainingSize);
+  SampledCachedTrainable<? extends SampledTrainable> cached();
 }

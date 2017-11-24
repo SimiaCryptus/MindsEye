@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -47,7 +47,7 @@ public class GDTest extends MnistTestBase {
 //          if (i == 0) super.testFeedback(component, i, outputPrototype, inputPrototype);
 //        }
 //      }.run(supervisedNetwork, new Tensor(1), trainingData[0]);
-      Trainable trainable = new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000);
+      Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new ValidatingOrientationWrapper(new GradientDescent()))

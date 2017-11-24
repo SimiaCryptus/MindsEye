@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.opt.trainable;
 
 import com.simiacryptus.mindseye.eval.L12Normalizer;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -46,7 +46,7 @@ public class L2NormalizationTest extends MnistTestBase {
       "The final output is the last output value of the loss function when evaluating the last batch.");
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-      Trainable trainable = new L12Normalizer(new StochasticArrayTrainable(trainingData, supervisedNetwork, 1000)) {
+      Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
         @Override
         protected double getL1(NNLayer layer) {
           return 0.0;

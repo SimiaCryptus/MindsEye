@@ -38,7 +38,6 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -157,9 +156,9 @@ class ImageEncodingUtil {
   protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, double factor_l1, boolean... mask) {
     log.out("Training for %s minutes, l1=%s, mask=%s", timeoutMinutes, factor_l1, Arrays.toString(mask));
     log.code(() -> {
-      StochasticTrainable trainingSubject = new StochasticArrayTrainable(data, network, data.length);
+      SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
       if (0 < factor_l1) trainingSubject = new ConstL12Normalizer(trainingSubject).setFactor_L1(factor_l1);
-      trainingSubject = (StochasticTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
+      trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
       ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
         .setMaxTrainingSize(data.length)
         .setMinTrainingSize(1)

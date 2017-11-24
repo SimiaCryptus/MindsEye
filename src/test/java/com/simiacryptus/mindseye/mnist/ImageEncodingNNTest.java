@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
-import com.simiacryptus.mindseye.eval.StochasticTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.TrainableDataMask;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -59,15 +59,15 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
   /**
    * The Pretrain minutes.
    */
-  int pretrainMinutes = 60;
+  int pretrainMinutes = 5;
   /**
    * The Timeout minutes.
    */
-  int timeoutMinutes = 60;
+  int timeoutMinutes = 5;
   /**
    * The Space training minutes.
    */
-  int spaceTrainingMinutes = 120;
+  int spaceTrainingMinutes = 5;
   /**
    * The Size.
    */
@@ -136,11 +136,17 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
           pipelineNetwork.add(new FullyConnectedLayer(new int[]{inputBands}, categoryDimensions)
             .setWeights(()->0.00001*(FastRandom.random()-0.5))
             .setName("categoryMatrix"), pipelineNetwork.getInput(0));
-          pipelineNetwork.add(new BiasLayer(categoryDimensions));
+          DAGNode predictionVector = pipelineNetwork.add(new BiasLayer(categoryDimensions));
           pipelineNetwork.add(new SoftmaxActivationLayer());
           DAGNode entropy = pipelineNetwork.add(new EntropyLossLayer(), pipelineNetwork.getHead(), pipelineNetwork.getInput(2));
           
           pipelineNetwork.add(new SumInputsLayer(),
+            pipelineNetwork.add(new LinearActivationLayer().setScale(0.1).freeze(),
+              pipelineNetwork.add(new SumReducerLayer(),
+                pipelineNetwork.add(new AbsActivationLayer(), pipelineNetwork.getInput(0)))),
+            pipelineNetwork.add(new LinearActivationLayer().setScale(0.001).freeze(),
+              pipelineNetwork.add(new SumReducerLayer(),
+                pipelineNetwork.add(new AbsActivationLayer(), predictionVector))),
             pipelineNetwork.add(new LinearActivationLayer().freeze(), sqLoss),
             pipelineNetwork.add(new LinearActivationLayer().freeze(), entropy));
           return pipelineNetwork;
@@ -154,8 +160,8 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
           }).toArray(i -> new Tensor[i][]);
         });
         log.code(() -> {
-          StochasticTrainable trainingSubject = new StochasticArrayTrainable(trainingData, network, trainingData.length / 1, trainingData.length);
-          trainingSubject = (StochasticTrainable) ((TrainableDataMask) trainingSubject).setMask(true, false, false);
+          SampledTrainable trainingSubject = new SampledArrayTrainable(trainingData, network, trainingData.length / 1, trainingData.length);
+          trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(true, false, false);
           ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(trainingData, network))
             .setMaxTrainingSize(trainingData.length)
             .setMinTrainingSize(1)

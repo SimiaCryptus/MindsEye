@@ -17,31 +17,37 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.opt;
+package com.simiacryptus.mindseye.layers.cudnn.f64;
+
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Training monitor.
+ * The type Convolution layer run.
  */
-public class TrainingMonitor {
-  /**
-   * Log.
-   *
-   * @param msg the msg
-   */
-  public void log(String msg) {
+public class SimpleConvolutionLayerTest extends LayerTestBase {
+  
+  @Override
+  public NNLayer getLayer() {
+    return new SimpleConvolutionLayer(3, 3, 2, 2, true);
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{
+      {3, 3, 2}
+    };
   }
   
   /**
-   * On runStep complete.
-   *
-   * @param currentPoint the current point
+   * The type Downsize run.
    */
-  public void onStepComplete(Step currentPoint) {
-  }
-  
-  /**
-   * Clear.
-   */
-  public void clear() {
+  public static class DownsizeTest extends SimpleConvolutionLayerTest {
+
+    @Override
+    public NNLayer getLayer() {
+      return new ConvolutionLayer(3, 3, 2, 2, false);
+    }
+
   }
 }

@@ -105,14 +105,8 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   }
   
   @Override
-  public void resetToFull() {
+  public boolean reseed(long seed) {
     history.clear();
-    super.resetToFull();
-  }
-  
-  @Override
-  public boolean resetSampling() {
-    history.clear();
-    return super.resetSampling();
+    return super.reseed(seed);
   }
 }

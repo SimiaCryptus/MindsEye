@@ -22,8 +22,8 @@ package com.simiacryptus.mindseye.mnist;
 import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.ConstL12Normalizer;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
-import com.simiacryptus.mindseye.eval.StochasticTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
@@ -245,7 +245,7 @@ public class MnistEncodingTest {
    */
   public void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data) {
     log.code(() -> {
-      StochasticTrainable trainingSubject = (StochasticTrainable) new ConstL12Normalizer(new StochasticArrayTrainable(data, network, 1000)).setFactor_L1(0.000001).setMask(true, false);
+      SampledTrainable trainingSubject = (SampledTrainable) new ConstL12Normalizer(new SampledArrayTrainable(data, network, 1000)).setFactor_L1(0.000001).setMask(true, false);
       new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
         .setMaxTrainingSize(data.length)
         .setMonitor(monitor)

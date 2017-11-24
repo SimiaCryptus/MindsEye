@@ -48,7 +48,7 @@ public class LinkedExampleArrayTrainable implements Trainable {
     this.trainingData = trainingData;
     this.network = network;
     this.trainingSize = trainingSize;
-    resetSampling();
+    reseed(System.nanoTime());
   }
   
   @Override
@@ -63,12 +63,7 @@ public class LinkedExampleArrayTrainable implements Trainable {
   }
   
   @Override
-  public void resetToFull() {
-    sampledData = Arrays.stream(trainingData).parallel().flatMap(x -> Arrays.stream(x)).toArray(i -> new Tensor[i][]);
-  }
-  
-  @Override
-  public boolean resetSampling() {
+  public boolean reseed(long seed) {
     setHash(Util.R.get().nextLong());
     return true;
   }

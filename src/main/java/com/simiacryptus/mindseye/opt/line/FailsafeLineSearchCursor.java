@@ -60,7 +60,7 @@ public class FailsafeLineSearchCursor implements LineSearchCursor {
   /**
    * Accumulate.
    *
-   * @param step the step
+   * @param step the runStep
    */
   public void accumulate(Trainable.PointSample step) {
     if (null == this.best || this.best.getMean() > step.getMean()) {

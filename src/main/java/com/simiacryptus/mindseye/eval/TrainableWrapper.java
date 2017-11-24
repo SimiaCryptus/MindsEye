@@ -54,13 +54,8 @@ public class TrainableWrapper<T extends Trainable> implements TrainableDataMask 
   }
   
   @Override
-  public void resetToFull() {
-    getInner().resetToFull();
-  }
-  
-  @Override
-  public boolean resetSampling() {
-    return getInner().resetSampling();
+  public boolean reseed(long seed) {
+    return getInner().reseed(seed);
   }
   
   @Override

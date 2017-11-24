@@ -200,7 +200,7 @@ public class LayerRateDiagnosticTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
+      if (!subject.reseed(System.nanoTime()) && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
       currentPoint = subject.measure(false, monitor);
     } while (!Double.isFinite(currentPoint.sum));

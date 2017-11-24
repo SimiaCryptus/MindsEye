@@ -61,7 +61,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * The Mask.
    */
   boolean[] mask = null;
-  private boolean verbose = false;
+  private int verbose = 0;
   
   /**
    * Instantiates a new Gpu trainable.
@@ -137,7 +137,9 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         (a, b) -> a.add(b)
       ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-      monitor.log(String.format("Evaluated %s items in %.4fs (%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean()));
+      if(null != monitor && verbosity() > 1) {
+        monitor.log(String.format("Evaluated %s items in %.4fs (%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean()));
+      }
       assert (null != timedResult.result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
@@ -196,7 +198,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
       return new PointSample(deltaSet, deltaSet.stateBackup(), sum, statistics.getCount());
     });
-    if (null != monitor) {
+    if (null != monitor && verbosity() > 0) {
       monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));
     }
     return timedResult.result;
@@ -245,7 +247,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    *
    * @return the boolean
    */
-  public boolean isVerbose() {
+  public int verbosity() {
     return verbose;
   }
   
@@ -255,7 +257,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * @param verbose the verbose
    * @return the verbose
    */
-  public GpuTrainable setVerbose(boolean verbose) {
+  public GpuTrainable setVerbosity(int verbose) {
     this.verbose = verbose;
     return this;
   }

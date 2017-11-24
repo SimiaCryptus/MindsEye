@@ -86,14 +86,10 @@ public abstract class L12Normalizer implements Trainable {
    */
   protected abstract double getL2(NNLayer layer);
   
-  @Override
-  public void resetToFull() {
-    inner.resetToFull();
-  }
   
   @Override
-  public boolean resetSampling() {
-    return inner.resetSampling();
+  public boolean reseed(long seed) {
+    return inner.reseed(seed);
   }
   
   /**

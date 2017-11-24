@@ -131,8 +131,8 @@ public class ImageTiles {
    * @param image  the image
    * @param width  the width
    * @param height the height
-   * @param xStep  the x step
-   * @param yStep  the y step
+   * @param xStep  the x runStep
+   * @param yStep  the y runStep
    * @return the tensor [ ]
    */
   public static Tensor[] tilesRgb(BufferedImage image, int width, int height, int xStep, int yStep) {

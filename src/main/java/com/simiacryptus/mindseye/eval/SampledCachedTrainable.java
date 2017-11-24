@@ -19,14 +19,16 @@
 
 package com.simiacryptus.mindseye.eval;
 
-public class StochasticCachedTrainable<T extends StochasticTrainable> extends CachedTrainable<T> implements StochasticTrainable {
-
+public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTrainable<T> implements SampledTrainable {
+  
+  private long seed;
+  
   /**
    * Instantiates a new Cached trainable.
    *
    * @param inner the inner
    */
-  public StochasticCachedTrainable(T inner) {
+  public SampledCachedTrainable(T inner) {
     super(inner);
   }
 
@@ -36,17 +38,23 @@ public class StochasticCachedTrainable<T extends StochasticTrainable> extends Ca
   }
 
   @Override
-  public StochasticTrainable setTrainingSize(int trainingSize) {
+  public SampledTrainable setTrainingSize(int trainingSize) {
     if(trainingSize != getTrainingSize()) {
       getInner().setTrainingSize(trainingSize);
-      resetSampling();
+      reseed(seed);
     }
     return this;
   }
   
   @Override
-  public StochasticCachedTrainable<? extends StochasticTrainable> cached() {
-    return new StochasticCachedTrainable<>(this);
+  public boolean reseed(long seed) {
+    this.seed = seed;
+    return super.reseed(seed);
+  }
+  
+  @Override
+  public SampledCachedTrainable<? extends SampledTrainable> cached() {
+    return new SampledCachedTrainable<>(this);
   }
   
 }

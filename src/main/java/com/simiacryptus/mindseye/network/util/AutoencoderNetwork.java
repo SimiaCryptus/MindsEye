@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.network.util;
 
 import com.simiacryptus.mindseye.eval.ConstL12Normalizer;
 import com.simiacryptus.mindseye.eval.L12Normalizer;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.*;
@@ -475,7 +475,7 @@ public class AutoencoderNetwork {
      */
     public void run(TensorList data) {
       SimpleLossNetwork trainingNetwork = getTrainingNetwork();
-      Trainable trainable = new StochasticArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
+      Trainable trainable = new SampledArrayTrainable(data.stream().map(x -> new Tensor[]{x, x}).toArray(i -> new Tensor[i][]), trainingNetwork, getSampleSize());
       L12Normalizer normalized = new ConstL12Normalizer(trainable).setFactor_L1(getL1normalization()).setFactor_L2(getL2normalization());
       IterativeTrainer trainer = new IterativeTrainer(normalized);
       trainer.setOrientation(getOrient());
@@ -584,19 +584,19 @@ public class AutoencoderNetwork {
     }
   
     /**
-     * Gets step.
+     * Gets runStep.
      *
-     * @return the step
+     * @return the runStep
      */
     public LineSearchStrategy getStep() {
       return step;
     }
   
     /**
-     * Sets step.
+     * Sets runStep.
      *
-     * @param step the step
-     * @return the step
+     * @param step the runStep
+     * @return the runStep
      */
     public AutoencoderNetwork.TrainingParameters setStep(LineSearchStrategy step) {
       this.step = step;

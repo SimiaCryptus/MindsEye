@@ -58,7 +58,7 @@ public class ScheduledSampleTrainable implements Trainable {
     this.network = network;
     this.trainingSize = trainingSize;
     this.increaseMultiplier = increaseMultiplier;
-    resetSampling();
+    reseed(System.nanoTime());
   }
   
   /**
@@ -102,12 +102,7 @@ public class ScheduledSampleTrainable implements Trainable {
   }
   
   @Override
-  public void resetToFull() {
-    sampledData = trainingData;
-  }
-  
-  @Override
-  public boolean resetSampling() {
+  public boolean reseed(long seed) {
     setHash(Util.R.get().nextLong());
     return true;
   }

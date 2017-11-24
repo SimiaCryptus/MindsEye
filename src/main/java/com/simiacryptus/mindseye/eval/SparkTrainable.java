@@ -66,6 +66,7 @@ public class SparkTrainable implements Trainable {
    * The Storage level.
    */
   protected StorageLevel storageLevel = StorageLevel.MEMORY_AND_DISK();
+  private long seed;
   
   /**
    * Instantiates a new Spark trainable.
@@ -89,7 +90,7 @@ public class SparkTrainable implements Trainable {
     this.network = network;
     this.sampleSize = sampleSize;
     this.setPartitions(Math.max(1, dataRDD.sparkContext().executorEnvs().size()));
-    resetSampling();
+    reseed(seed);
   }
   
   /**
@@ -147,7 +148,7 @@ public class SparkTrainable implements Trainable {
    */
   public SparkTrainable setStorageLevel(StorageLevel storageLevel) {
     this.storageLevel = storageLevel;
-    resetSampling();
+    reseed(seed);
     return this;
   }
   
@@ -238,7 +239,8 @@ public class SparkTrainable implements Trainable {
   }
   
   @Override
-  public boolean resetSampling() {
+  public boolean reseed(long seed) {
+    this.seed = seed;
     assert (0 < sampleSize);
     long count = dataRDD.count();
     assert !this.dataRDD.isEmpty();
@@ -249,12 +251,6 @@ public class SparkTrainable implements Trainable {
     assert !this.sampledRDD.isEmpty();
     System.out.println(String.format("Sampled %s items from main dataset of %s (%s) items", sampledRDD.count(), count, sampleSize));
     return true;
-  }
-  
-  @Override
-  public void resetToFull() {
-    this.sampledRDD = this.dataRDD.repartition(dataRDD.sparkContext().executorEnvs().size(), null).persist(getStorageLevel());
-    System.out.println(String.format("Reset sample size to %s", sampledRDD.count()));
   }
   
   /**

@@ -60,7 +60,7 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
     if (0 == trainingData.length) throw new IllegalArgumentException();
     this.trainingData = Arrays.stream(trainingData).map(obj -> new WeakCachedSupplier<Tensor[]>(() -> obj)).collect(Collectors.toList());
     this.trainingSize = trainingSize;
-    resetSampling();
+    reseed(System.nanoTime());
   }
   
   /**
@@ -88,16 +88,11 @@ public class DeltaHoldoverArrayTrainable extends GpuTrainable {
     if (0 == trainingData.size()) throw new IllegalArgumentException();
     this.trainingData = trainingData;
     this.trainingSize = trainingSize;
-    resetSampling();
+    reseed(System.nanoTime());
   }
   
   @Override
-  public void resetToFull() {
-    this.setDataSupplier(trainingData);
-  }
-  
-  @Override
-  public boolean resetSampling() {
+  public boolean reseed(long seed) {
     setHash(Util.R.get().nextLong());
     return true;
   }

@@ -79,9 +79,6 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
     }
   }
   
-  @Override
-  public void resetToFull() {
-  }
   
   /**
    * Gets batch size.

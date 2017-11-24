@@ -235,19 +235,19 @@ public class QuadraticSearch implements LineSearchStrategy {
   }
   
   /**
-   * Gets step size.
+   * Gets runStep size.
    *
-   * @return the step size
+   * @return the runStep size
    */
   public double getStepSize() {
     return stepSize;
   }
   
   /**
-   * Sets step size.
+   * Sets runStep size.
    *
-   * @param stepSize the step size
-   * @return the step size
+   * @param stepSize the runStep size
+   * @return the runStep size
    */
   public QuadraticSearch setStepSize(double stepSize) {
     this.stepSize = stepSize;
@@ -346,9 +346,9 @@ public class QuadraticSearch implements LineSearchStrategy {
           monitor.log(String.format("%s ~= %s", initialPoint.point.rate, thisX));
           return this;
         } else if (thisPoint.point.getMean() > initialPoint.point.getMean()) {
-          thisX = thisX / 5;
+          thisX = thisX / 100;
         } else if (thisPoint.derivative < initialDerivFactor * thisPoint.derivative) {
-          thisX = thisX * 3;
+          thisX = thisX * 7;
         } else {
           monitor.log(String.format("%s <= %s", thisPoint.point.getMean(), initialPoint.point.getMean()));
           return this;

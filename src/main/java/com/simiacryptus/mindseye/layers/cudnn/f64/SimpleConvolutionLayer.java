@@ -46,7 +46,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 /**
  * The type Convolution layer.
  */
-public class ConvolutionLayer extends NNLayer {
+public class SimpleConvolutionLayer extends NNLayer {
   
   
   /**
@@ -71,7 +71,7 @@ public class ConvolutionLayer extends NNLayer {
    *
    * @param json the json
    */
-  protected ConvolutionLayer(JsonObject json) {
+  protected SimpleConvolutionLayer(JsonObject json) {
     super(json);
     this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
     this.strideX = json.get("strideX").getAsInt();
@@ -82,7 +82,7 @@ public class ConvolutionLayer extends NNLayer {
   /**
    * Instantiates a new Convolution layer.
    */
-  protected ConvolutionLayer() {
+  protected SimpleConvolutionLayer() {
     this(null, true);
   }
   
@@ -92,7 +92,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param filter the filter
    * @param simple the simple
    */
-  protected ConvolutionLayer(Tensor filter, boolean simple) {
+  protected SimpleConvolutionLayer(Tensor filter, boolean simple) {
     super();
     this.simple = simple;
     if (filter.getDimensions().length != 3) throw new IllegalArgumentException();
@@ -110,7 +110,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param inputBands  the input bands
    * @param outputBands the output bands
    */
-  public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
+  public SimpleConvolutionLayer(final int width, int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
   
@@ -122,7 +122,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param bands  the bands
    * @param simple the simple
    */
-  public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
+  public SimpleConvolutionLayer(final int width, int height, final int bands, boolean simple) {
     this(new Tensor(width, height, bands), simple);
     assert (!simple || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
     assert (!simple || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
@@ -135,7 +135,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param height the height
    * @param bands  the bands
    */
-  public ConvolutionLayer(final int width, int height, final int bands) {
+  public SimpleConvolutionLayer(final int width, int height, final int bands) {
     this(width, height, bands, true);
   }
   
@@ -148,7 +148,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param outputBands the output bands
    * @param simple      the simple
    */
-  public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
+  public SimpleConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
     this(width, height, inputBands * outputBands, simple);
   }
   
@@ -158,8 +158,8 @@ public class ConvolutionLayer extends NNLayer {
    * @param json the json
    * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(JsonObject json) {
-    return new ConvolutionLayer(json);
+  public static SimpleConvolutionLayer fromJson(JsonObject json) {
+    return new SimpleConvolutionLayer(json);
   }
   
   public JsonObject getJson() {
@@ -177,7 +177,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param f the f
    * @return the convolution layer
    */
-  public ConvolutionLayer addWeights(final DoubleSupplier f) {
+  public SimpleConvolutionLayer addWeights(final DoubleSupplier f) {
     Util.add(f, this.filter.getData());
     return this;
   }
@@ -257,8 +257,8 @@ public class ConvolutionLayer extends NNLayer {
             } catch (Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
-            final Tensor weightGradient = CudaPtr.fromDeviceDouble(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
-            buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
+            final Tensor weightGradient = CudaPtr.fromDeviceDouble(filterBuffer, SimpleConvolutionLayer.this.filter.getDimensions());
+            buffer.get(SimpleConvolutionLayer.this, SimpleConvolutionLayer.this.filter).accumulate(weightGradient.getData());
           }
           if (input.isAlive()) {
             CudaPtr inputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), batch.get(0).dim() * 1l * length * Sizeof.DOUBLE);
@@ -338,7 +338,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
+  public SimpleConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
     this.filter.coordStream().parallel().forEach(c -> {
       this.filter.set(c, f.applyAsDouble(c));
     });
@@ -351,7 +351,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param f the f
    * @return the weights
    */
-  public ConvolutionLayer setWeights(final DoubleSupplier f) {
+  public SimpleConvolutionLayer setWeights(final DoubleSupplier f) {
     this.filter.coordStream().parallel().forEach(c -> {
       this.filter.set(c, f.getAsDouble());
     });

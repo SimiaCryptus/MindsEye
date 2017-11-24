@@ -20,10 +20,9 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.MNIST;
-import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.StochasticArrayTrainable;
-import com.simiacryptus.mindseye.eval.StochasticTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.*;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
@@ -144,11 +143,11 @@ public class LinearTest extends MnistTestBase {
    * @param supervisedNetwork the supervised network
    * @return the training trainable
    */
-  public StochasticTrainable getTrainingTrainable(NotebookOutput log, Tensor[][] trainingData, SimpleLossNetwork supervisedNetwork) {
+  public SampledTrainable getTrainingTrainable(NotebookOutput log, Tensor[][] trainingData, SimpleLossNetwork supervisedNetwork) {
     //Trainable trainable = new DeltaHoldoverArrayTrainable(trainingData, supervisedNetwork, trainingSize);
     Tensor[][] expanded = Arrays.stream(trainingData).flatMap(row -> testDataExpansion.apply(row)).toArray(i -> new Tensor[i][]);
     printSample(log, expanded, 100);
-    return new StochasticArrayTrainable(expanded, supervisedNetwork, 10000, 50000);
+    return new SampledArrayTrainable(expanded, supervisedNetwork, 10000, 50000);
   }
   
   /**
@@ -170,7 +169,7 @@ public class LinearTest extends MnistTestBase {
       throw new RuntimeException(e);
     }
     return new ArrayTrainable(validationData, supervisedNetwork, 50000);
-    //return new StochasticArrayTrainable(validationData, supervisedNetwork, 50000);
+    //return new SampledArrayTrainable(validationData, supervisedNetwork, 50000);
   }
   
   @Override

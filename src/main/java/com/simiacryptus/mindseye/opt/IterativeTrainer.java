@@ -121,7 +121,7 @@ public class IterativeTrainer {
             monitor.log(String.format("Resetting Iteration " + perfString));
             currentPoint = direction.step(0, monitor).point;
           }
-          if (subject.resetSampling()) {
+          if (subject.reseed(System.nanoTime())) {
             monitor.log(String.format("Iteration %s failed, retrying. Error: %s " + perfString, currentIteration.get(), currentPoint.getMean()));
             break subiterationLoop;
           }
@@ -174,7 +174,7 @@ public class IterativeTrainer {
     PointSample currentPoint;
     int retries = 0;
     do {
-      if (!subject.resetSampling() && retries > 0) throw new IterativeStopException();
+      if (!subject.reseed(System.nanoTime()) && retries > 0) throw new IterativeStopException();
       if (10 < retries++) throw new IterativeStopException();
       currentPoint = subject.measure(false, monitor);
     } while (!Double.isFinite(currentPoint.getMean()));
