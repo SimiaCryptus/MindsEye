@@ -226,7 +226,7 @@ public class ConvolutionLayer extends NNLayer {
           outputDescriptor.getPtr(), outputBuffer.getPtr()));
         workSpace.finalize();
       } catch (Throwable e) {
-        throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
+        throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
       }
       TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
       
@@ -252,7 +252,7 @@ public class ConvolutionLayer extends NNLayer {
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
+              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
             buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
@@ -271,7 +271,7 @@ public class ConvolutionLayer extends NNLayer {
                 inputDescriptor.getPtr(), inputBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
+              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
             TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) nncontext).cudnnHandle);
             inObj[0].accumulate(buffer, inputBufferTensors);
