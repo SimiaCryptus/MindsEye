@@ -17,16 +17,15 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f64;
+package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.EquivalencyTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Convolution layer run.
  */
-public class SimpleConvolutionLayerTest extends LayerTestBase {
+public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   
   @Override
   public NNLayer getLayer() {

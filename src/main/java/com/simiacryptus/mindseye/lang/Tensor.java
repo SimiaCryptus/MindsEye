@@ -1104,6 +1104,10 @@ public class Tensor implements Serializable {
     setParallelByIndex(c -> get(c) + tensor.get(c));
   }
   
+  public void get(double[] bufferArray) {
+    System.arraycopy(getData(), 0, bufferArray, 0, dim());
+  }
+  
   /**
    * The interface Tuple operator.
    */

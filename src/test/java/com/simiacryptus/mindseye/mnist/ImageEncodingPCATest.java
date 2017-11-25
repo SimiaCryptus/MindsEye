@@ -291,7 +291,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.toSize = (fromSize + (radius - 1));
       this.trainingData = addColumn(originalTrainingData, toSize, toSize, band1);
       this.radius = radius;
-      this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0, false).setWeights(() -> 0.1 * (Math.random() - 0.5));
+      this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0).setWeights(() -> 0.1 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band0);
       this.model = buildModel();
     }
@@ -465,7 +465,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.radius = radius;
       this.history = new ArrayList<>();
       this.monitor = getMonitor(history);
-      this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1, false).setWeights(() -> 0.01 * (Math.random() - 0.5));
+      this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1).setWeights(() -> 0.01 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band1);
       this.innerModel = buildNetwork();
       this.integrationModel = log.code(() -> {

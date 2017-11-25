@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.EquivalencyTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
@@ -29,7 +30,16 @@ public class ConvolutionLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ConvolutionLayer(3, 3, 2, 2, true);
+    return new ConvolutionLayer(3, 3, 2, 2);
+  }
+  
+  @Override
+  public NNLayer getReferenceLayer() {
+    return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 2, true);
+  }
+  
+  public EquivalencyTester getEquivalencyTester() {
+    return new EquivalencyTester(2);
   }
   
   @Override
@@ -39,15 +49,53 @@ public class ConvolutionLayerTest extends LayerTestBase {
     };
   }
   
-  /**
-   * The type Downsize run.
-   */
-  public static class DownsizeTest extends ConvolutionLayerTest {
-
+  public static class AsymmetricTest extends ConvolutionLayerTest {
+    
     @Override
     public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, 2, false);
+      return new ConvolutionLayer(3, 3, 2, 4);
     }
-
+    
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 4, true);
+    }
+    
+    public EquivalencyTester getEquivalencyTester() {
+      return new EquivalencyTester(2);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 2}
+      };
+    }
+    
+  }
+  
+  public static class IrregularTest extends ConvolutionLayerTest {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new ConvolutionLayer(3, 3, 2, 5);
+    }
+    
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 5, true);
+    }
+    
+    public EquivalencyTester getEquivalencyTester() {
+      return new EquivalencyTester(2);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 2}
+      };
+    }
+    
   }
 }
