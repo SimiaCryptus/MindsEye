@@ -26,6 +26,7 @@ import jcuda.jcudnn.*;
 import jcuda.runtime.cudaDeviceProp;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.*;
@@ -154,18 +155,29 @@ public class CuDNN {
     return deviceProp;
   }
   
-  /**
-   * New convolution descriptor cuda resource.
-   *
-   * @param paddingX     the padding x
-   * @param paddingY     the padding y
-   * @param strideHeight the stride height
-   * @param strideWidth  the stride width
-   * @param mode         the mode
-   * @param dataType     the data type
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnConvolutionDescriptor> newConvolutionDescriptor(int paddingX, int paddingY, int strideHeight, int strideWidth, int mode, int dataType) {
+  public static CudaResource<cudnnConvolutionDescriptor> newConvolutionNdDescriptor(int mode, int dataType, int[] padding, int[] stride, int[] dilation) {
+    cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
+    handle(cudnnCreateConvolutionDescriptor(convDesc));
+    handle(cudnnSetConvolutionNdDescriptor(convDesc, padding.length,
+      padding,
+      stride,
+      dilation,
+      mode,
+      dataType
+    ));
+    return new CudaResource<cudnnConvolutionDescriptor>(convDesc, JCudnn::cudnnDestroyConvolutionDescriptor) {
+      @Override
+      public String toString() {
+        return "cudnnSetConvolutionNdDescriptor(padding=" + Arrays.toString(padding) +
+          ";stride=" + Arrays.toString(stride) +
+          ";dilation=" + Arrays.toString(dilation) +
+          ";mode=" + mode +
+          ";dataType=" + dataType + ")";
+      }
+    };
+  }
+  
+  public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(int paddingX, int paddingY, int strideHeight, int strideWidth, int mode, int dataType) {
     cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     handle(cudnnCreateConvolutionDescriptor(convDesc));
     handle(cudnnSetConvolution2dDescriptor(
@@ -180,6 +192,28 @@ public class CuDNN {
       dataType
     ));
     return new CudaResource<>(convDesc, JCudnn::cudnnDestroyConvolutionDescriptor);
+  }
+  
+  /**
+   * New filter descriptor cuda resource.
+   *
+   * @param dataType     the data type
+   * @param tensorLayout the tensor layout
+   * @param dimensions   the dimensions
+   * @return the cuda resource
+   */
+  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int[] dimensions) {
+    cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
+    handle(cudnnCreateFilterDescriptor(filterDesc));
+    handle(cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions));
+    return new CudaResource<cudnnFilterDescriptor>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor) {
+      @Override
+      public String toString() {
+        return "cudnnSetFilterNdDescriptor(dataType=" + dataType +
+          ";tensorLayout=" + tensorLayout +
+          ";dimensions=" + Arrays.toString(dimensions) + ")";
+      }
+    };
   }
   
   /**
@@ -207,22 +241,17 @@ public class CuDNN {
     cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
     handle(cudnnCreateFilterDescriptor(filterDesc));
     handle(cudnnSetFilter4dDescriptor(filterDesc, dataType, tensorLayout, outputChannels, inputChannels, height, width));
-    return new CudaResource<>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor);
-  }
-  
-  /**
-   * New filter descriptor cuda resource.
-   *
-   * @param dataType     the data type
-   * @param tensorLayout the tensor layout
-   * @param dimensions   the dimensions
-   * @return the cuda resource
-   */
-  public static CudaResource<cudnnFilterDescriptor> newFilterDescriptor(int dataType, int tensorLayout, int[] dimensions) {
-    cudnnFilterDescriptor filterDesc = new cudnnFilterDescriptor();
-    handle(cudnnCreateFilterDescriptor(filterDesc));
-    handle(cudnnSetFilterNdDescriptor(filterDesc, dataType, tensorLayout, dimensions.length, dimensions));
-    return new CudaResource<>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor);
+    return new CudaResource<cudnnFilterDescriptor>(filterDesc, JCudnn::cudnnDestroyFilterDescriptor) {
+      @Override
+      public String toString() {
+        return "cudnnSetFilter4dDescriptor(dataType=" + dataType +
+          ";tensorLayout=" + tensorLayout +
+          ";outputChannels=" + outputChannels +
+          ";inputChannels=" + inputChannels +
+          ";height=" + height +
+          ";=width" + width + ")";
+      }
+    };
   }
   
   /**
@@ -241,7 +270,17 @@ public class CuDNN {
     cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     handle(cudnnCreateTensorDescriptor(desc));
     handle(cudnnSetTensor4dDescriptor(desc, tensorLayout, dataType, batchCount, channels, height, width));
-    return new CudaResource<>(desc, JCudnn::cudnnDestroyTensorDescriptor);
+    return new CudaResource<cudnnTensorDescriptor>(desc, JCudnn::cudnnDestroyTensorDescriptor) {
+      @Override
+      public String toString() {
+        return "cudnnSetTensor4dDescriptor(dataType=" + dataType +
+          ";tensorLayout=" + tensorLayout +
+          ";batchCount=" + batchCount +
+          ";channels=" + channels +
+          ";height=" + height +
+          ";=width" + width + ")";
+      }
+    };
   }
   
   /**

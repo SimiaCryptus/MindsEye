@@ -55,7 +55,7 @@ public abstract class LayerTestBase {
   }
   
   public EquivalencyTester getEquivalencyTester() {
-    return new EquivalencyTester(1e-5);
+    return new EquivalencyTester(1e-2);
   }
   
   public PerformanceTester getPerformanceTester() {

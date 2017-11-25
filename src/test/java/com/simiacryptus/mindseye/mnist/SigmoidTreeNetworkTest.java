@@ -57,7 +57,7 @@ public class SigmoidTreeNetworkTest extends LinearTest {
       "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
-      network.add(new ConvolutionLayer(3, 3, 5, false));
+      network.add(new ConvolutionLayer(3, 3, 5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
       this.tree = new SigmoidTreeNetwork(
         new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10}),

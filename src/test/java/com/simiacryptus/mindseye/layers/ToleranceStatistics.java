@@ -46,4 +46,12 @@ public class ToleranceStatistics {
       relativeTol.combine(right.relativeTol)
     );
   }
+  
+  @Override
+  public String toString() {
+    return "ToleranceStatistics{" +
+      "absoluteTol=" + absoluteTol +
+      ", relativeTol=" + relativeTol +
+      '}';
+  }
 }

@@ -165,12 +165,17 @@ public class EquivalencyTester {
         return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
       assert result.absoluteTol.getMax() < tolerance;
+      log.debug(String.format("Component Output: %s\nInputs: %s", reference, Arrays.toString(inputPrototype), outputPrototype));
+      log.debug(String.format("Subject Output: %s", subjectGradient));
+      log.debug(String.format("Reference Output: %s", referenceGradient));
+      log.debug(String.format("Error: %s", subjectGradient.minus(referenceGradient)));
+      log.debug(String.format("Error Stats: %s", result));
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", reference, Arrays.toString(inputPrototype), outputPrototype));
-      log.debug(String.format("measured/actual: %s", subjectGradient));
-      log.debug(String.format("implemented/expected: %s", referenceGradient));
-      log.debug(String.format("error: %s", subjectGradient.minus(referenceGradient)));
+      log.debug(String.format("Component Output: %s\nInputs: %s", reference, Arrays.toString(inputPrototype), outputPrototype));
+      log.debug(String.format("Subject Output: %s", subjectGradient));
+      log.debug(String.format("Reference Output: %s", referenceGradient));
+      log.debug(String.format("Error: %s", subjectGradient.minus(referenceGradient)));
       throw e;
     }
   }
@@ -187,19 +192,23 @@ public class EquivalencyTester {
     final Tensor subjectGradient = getLearningGradient(subject, i, outputPrototype, inputPrototype);
     final Tensor referenceGradient = getLearningGradient(reference, i, outputPrototype, inputPrototype);
   
+    Tensor error = subjectGradient.minus(referenceGradient);
     try {
       ToleranceStatistics result = IntStream.range(0, subjectGradient.dim()).mapToObj(i1 -> {
         return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
       assert result.absoluteTol.getMax() < tolerance;
+      log.debug(String.format("Component Gradient: %s", reference));
+      log.debug(String.format("Subject Gradient: %s", subjectGradient));
+      log.debug(String.format("Reference Gradient: %s", referenceGradient));
+      log.debug(String.format("Error: %s", error));
+      log.debug(String.format("Error Stats: %s", result));
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component: %s", reference));
-      log.debug(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
-      log.debug(String.format("Outputs: %s", outputPrototype));
-      log.debug(String.format("Measured Gradient: %s", subjectGradient));
-      log.debug(String.format("Implemented Gradient: %s", referenceGradient));
-      log.debug(String.format("%s", subjectGradient.minus(referenceGradient)));
+      log.debug(String.format("Component Gradient: %s", reference));
+      log.debug(String.format("Subject Gradient: %s", subjectGradient));
+      log.debug(String.format("Reference Gradient: %s", referenceGradient));
+      log.debug(String.format("Error: %s", error));
       throw e;
     }
     

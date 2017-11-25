@@ -54,10 +54,6 @@ public class SimpleConvolutionLayer extends NNLayer {
    */
   public final Tensor filter;
   /**
-   * The Simple.
-   */
-  public final boolean simple;
-  /**
    * The Stride x.
    */
   int strideX = 1;
@@ -76,25 +72,22 @@ public class SimpleConvolutionLayer extends NNLayer {
     this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
     this.strideX = json.get("strideX").getAsInt();
     this.strideY = json.get("strideY").getAsInt();
-    this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
   
   /**
    * Instantiates a new Convolution layer.
    */
   protected SimpleConvolutionLayer() {
-    this(null, true);
+    this((Tensor)null);
   }
   
   /**
    * Instantiates a new Convolution layer.
+   *  @param filter the filter
    *
-   * @param filter the filter
-   * @param simple the simple
    */
-  protected SimpleConvolutionLayer(Tensor filter, boolean simple) {
+  protected SimpleConvolutionLayer(Tensor filter) {
     super();
-    this.simple = simple;
     if (filter.getDimensions().length != 3) throw new IllegalArgumentException();
     if (filter.getDimensions()[0] <= 0) throw new IllegalArgumentException();
     if (filter.getDimensions()[1] <= 0) throw new IllegalArgumentException();
@@ -116,27 +109,14 @@ public class SimpleConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *
-   * @param width  the width
-   * @param height the height
-   * @param bands  the bands
-   * @param simple the simple
-   */
-  public SimpleConvolutionLayer(final int width, int height, final int bands, boolean simple) {
-    this(new Tensor(width, height, bands), simple);
-    assert (!simple || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
-    assert (!simple || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
-  }
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param width  the width
+   *  @param width  the width
    * @param height the height
    * @param bands  the bands
    */
   public SimpleConvolutionLayer(final int width, int height, final int bands) {
-    this(width, height, bands, true);
+    this(new Tensor(width, height, bands));
+    assert (!false || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
+    assert (!false || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
   }
   
   /**
@@ -154,7 +134,7 @@ public class SimpleConvolutionLayer extends NNLayer {
     json.add("filter", filter.getJson());
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
-    json.addProperty("simple", simple);
+    json.addProperty("simple", false);
     return json;
   }
   
@@ -186,12 +166,16 @@ public class SimpleConvolutionLayer extends NNLayer {
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+//      CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
+//        CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, new int[]{1, inputSize[2], kernelSize[1], kernelSize[0]});
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
-      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-        simple ? ((kernelSize[1] - 1) / 2) : 0, simple ? ((kernelSize[0] - 1) / 2) : 0,
-        strideX, strideY,
-        CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
+      int paddingX = ((kernelSize[0] - 1) / 2);
+      int paddingY = ((kernelSize[1] - 1) / 2);
+      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionNdDescriptor(CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE,
+        new int[]{paddingX, paddingY},
+        new int[]{strideY, strideX},
+        new int[]{1, 1});
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
       
@@ -288,14 +272,11 @@ public class SimpleConvolutionLayer extends NNLayer {
     return IntStream.range(0, kernelSize.length).map(i -> {
       int x;
       if (i == kernelSize.length - 1) {
-        assert kernelSize[i] == inputSize[i];
-        x = inputSize[i];
-      }
-      else if (simple) {
-        x = inputSize[i];
+        //assert kernelSize[i] == inputSize[i];
+        x = kernelSize[i] / inputSize[i];
       }
       else {
-        x = 1 + inputSize[i] - kernelSize[i];
+        x = inputSize[i];
       }
       assert 0 < x;
       return x;
@@ -314,6 +295,15 @@ public class SimpleConvolutionLayer extends NNLayer {
    */
   protected boolean verifyOutputDims(CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
+    boolean cmp = cmp(outputSize, outputDims);
+    if(cmp) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  private boolean cmp(int[] outputSize, int[] outputDims) {
     if (4 != outputDims.length) return false;
     if (outputSize[0] != outputDims[3]) return false;
     if (outputSize[1] != outputDims[2]) return false;

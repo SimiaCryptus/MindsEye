@@ -167,8 +167,10 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
-      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-        0, 0, 1, 1, CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
+      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionNdDescriptor(CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT,
+        new int[]{0, 0, 0, 0},
+        new int[]{1, 1, 1, 1},
+        new int[]{1, 1, 1, 1});
       final Pointer betaPtr = Pointer.to(new float[]{0.0f});
       final Pointer alphaPtr = Pointer.to(new float[]{1.0f});
       

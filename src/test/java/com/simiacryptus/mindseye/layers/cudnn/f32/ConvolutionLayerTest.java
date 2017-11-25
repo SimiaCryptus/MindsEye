@@ -28,7 +28,12 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ConvolutionLayer(3, 3, 1, true);
+    return new ConvolutionLayer(3, 3, 1);
+  }
+  
+  @Override
+  public NNLayer getReferenceLayer() {
+    return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 1, 1, true);
   }
   
   @Override
@@ -38,27 +43,44 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     };
   }
   
-  /**
-   * The type Downsize run.
-   */
   public static class DownsizeTest extends ConvolutionLayerTest {
-
+    
     @Override
     public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, true);
+      return new ConvolutionLayer(3, 3, 1);
     }
-  
+    
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 1, 1, false);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 1}
+      };
+    }
+    
+  }
+  public static class MultiBandTest extends ConvolutionLayerTest {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new ConvolutionLayer(3, 3, 2);
+    }
+    
     @Override
     public NNLayer getReferenceLayer() {
       return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 2, true);
     }
-  
+    
     @Override
     public int[][] getInputDims() {
       return new int[][]{
         {3, 3, 2}
       };
     }
-  
+    
   }
 }

@@ -53,7 +53,7 @@ public class SimpleConvolutionTest extends LinearTest {
       double carryOver = 0.5;
       int carryoverDenominator = 100;
       //network.fn(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
-      network.add(new ConvolutionLayer(3, 3, 5, false).setWeights(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new ConvolutionLayer(3, 3, 5).setWeights(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));
 //      network.fn(new CumNormalizationMetaLayer().setCarryOver(carryOver).setCarryoverDenominator(carryoverDenominator));
       network.add(new NormalizationMetaLayer());

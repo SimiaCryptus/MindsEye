@@ -76,8 +76,8 @@ public class DerivativeTester {
     }
     log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
     log.debug(String.format("Finite-Difference Derivative Accuracy:"));
-    log.debug(String.format("absoluteTol: mean=%s, max=%s", statistics.absoluteTol.getAverage(), statistics.absoluteTol.getMax()));
-    log.debug(String.format("relativeTol: mean=%s, max=%s", statistics.relativeTol.getAverage(), statistics.relativeTol.getMax()));
+    log.debug(String.format("absoluteTol: %s", statistics.absoluteTol));
+    log.debug(String.format("relativeTol: %s", statistics.relativeTol));
     return statistics;
   }
   

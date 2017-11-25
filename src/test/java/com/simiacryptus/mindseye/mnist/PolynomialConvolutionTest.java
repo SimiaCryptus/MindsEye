@@ -57,7 +57,7 @@ public class PolynomialConvolutionTest extends LinearTest {
       //this.tree = new PolynomialConvolutionNetwork(new int[]{28, 28, 1}, new int[]{26, 26, 5}, 3, false);
       network = new PipelineNetwork();
       network.add(new NormalizationMetaLayer());
-      network.add(new ConvolutionLayer(3, 3, 5, false)
+      network.add(new ConvolutionLayer(3, 3, 5)
         .setWeights(i -> 1e-8 * (Math.random() - 0.5)));
       //network.fn(this.tree);
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Avg));

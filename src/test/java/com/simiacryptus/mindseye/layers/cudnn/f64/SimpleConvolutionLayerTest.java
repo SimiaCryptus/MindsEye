@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.EquivalencyTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
@@ -29,7 +30,7 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new SimpleConvolutionLayer(3, 3, 1, true);
+    return new SimpleConvolutionLayer(3, 3, 1);
   }
   
   @Override
@@ -47,16 +48,20 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
   /**
    * The type Downsize run.
    */
-  public static class DownsizeTest extends SimpleConvolutionLayerTest {
-
+  public static class MultibandTest extends SimpleConvolutionLayerTest {
+    
     @Override
     public NNLayer getLayer() {
-      return new SimpleConvolutionLayer(3, 3, 2, false);
+      return new SimpleConvolutionLayer(3, 3, 2, 2);
     }
-  
+    
     @Override
     public NNLayer getReferenceLayer() {
       return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 2, true);
+    }
+  
+    public EquivalencyTester getEquivalencyTester() {
+      return new EquivalencyTester(1);
     }
   
     @Override
@@ -65,6 +70,6 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
         {3, 3, 2}
       };
     }
-  
+    
   }
 }

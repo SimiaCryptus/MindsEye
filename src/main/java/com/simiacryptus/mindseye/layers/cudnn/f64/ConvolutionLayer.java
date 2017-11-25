@@ -54,10 +54,6 @@ public class ConvolutionLayer extends NNLayer {
    */
   public final Tensor filter;
   /**
-   * The Simple.
-   */
-  public final boolean simple;
-  /**
    * The Stride x.
    */
   int strideX = 1;
@@ -76,25 +72,22 @@ public class ConvolutionLayer extends NNLayer {
     this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
     this.strideX = json.get("strideX").getAsInt();
     this.strideY = json.get("strideY").getAsInt();
-    this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
   
   /**
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this(null, true);
+    this((Tensor)null);
   }
   
   /**
    * Instantiates a new Convolution layer.
+   *  @param filter the filter
    *
-   * @param filter the filter
-   * @param simple the simple
    */
-  protected ConvolutionLayer(Tensor filter, boolean simple) {
+  protected ConvolutionLayer(Tensor filter) {
     super();
-    this.simple = simple;
     if (filter.getDimensions().length != 3) throw new IllegalArgumentException();
     if (filter.getDimensions()[0] <= 0) throw new IllegalArgumentException();
     if (filter.getDimensions()[1] <= 0) throw new IllegalArgumentException();
@@ -116,27 +109,12 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *
-   * @param width  the width
-   * @param height the height
-   * @param bands  the bands
-   * @param simple the simple
-   */
-  public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
-    this(new Tensor(width, height, bands), simple);
-    assert (!simple || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
-    assert (!simple || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
-  }
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param width  the width
+   *  @param width  the width
    * @param height the height
    * @param bands  the bands
    */
   public ConvolutionLayer(final int width, int height, final int bands) {
-    this(width, height, bands, true);
+    this(new Tensor(width, height, bands));
   }
   
   /**
@@ -149,7 +127,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param simple      the simple
    */
   public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
-    this(width, height, inputBands * outputBands, simple);
+    this(width, height, inputBands * outputBands);
   }
   
   /**
@@ -167,7 +145,7 @@ public class ConvolutionLayer extends NNLayer {
     json.add("filter", filter.getJson());
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
-    json.addProperty("simple", simple);
+    json.addProperty("simple", false);
     return json;
   }
   
@@ -201,10 +179,12 @@ public class ConvolutionLayer extends NNLayer {
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
-      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-        simple ? ((kernelSize[1] - 1) / 2) : 0, simple ? ((kernelSize[0] - 1) / 2) : 0,
-        strideX, strideY,
-        CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE);
+      int paddingX = ((kernelSize[1] - 1) / 2);
+      int paddingY = ((kernelSize[0] - 1) / 2);
+      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionNdDescriptor(CUDNN_CONVOLUTION, CUDNN_DATA_DOUBLE,
+        new int[]{0, 0, paddingX, paddingY},
+        new int[]{1, 1, strideY, strideX},
+        new int[]{1, 1, 1, 1});
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
       
@@ -303,7 +283,7 @@ public class ConvolutionLayer extends NNLayer {
       if (i == kernelSize.length - 1) {
         x = kernelSize[i] / inputSize[i];
       }
-      else if (simple) {
+      else if (false) {
         x = inputSize[i];
       }
       else {

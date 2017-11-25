@@ -32,7 +32,6 @@ import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
 import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.mindseye.layers.cudnn.CudnnFloatDelta;
 import com.simiacryptus.mindseye.layers.cudnn.GPUDataMirror;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
@@ -62,10 +61,6 @@ public class ConvolutionLayer extends NNLayer {
    * The Filter.
    */
   public final Tensor filter;
-  /**
-   * The Simple.
-   */
-  public final boolean simple;
   private transient Map<Integer, GPUDataMirror> stateCache = new HashMap<>();
   private int strideX = 1;
   private int strideY = 1;
@@ -78,7 +73,6 @@ public class ConvolutionLayer extends NNLayer {
   protected ConvolutionLayer(JsonObject json) {
     super(json);
     this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
-    this.simple = json.get("simple").getAsBoolean();
     this.strideX = json.get("strideX").getAsInt();
     this.strideY = json.get("strideY").getAsInt();
   }
@@ -87,18 +81,16 @@ public class ConvolutionLayer extends NNLayer {
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this(null, true);
+    this((Tensor)null);
   }
   
   /**
    * Instantiates a new Convolution layer.
+   *  @param filter the filter
    *
-   * @param filter the filter
-   * @param simple the simple
    */
-  protected ConvolutionLayer(Tensor filter, boolean simple) {
+  protected ConvolutionLayer(Tensor filter) {
     super();
-    this.simple = simple;
     if (filter.getDimensions().length != 3) throw new IllegalArgumentException();
     if (filter.getDimensions()[0] <= 0) throw new IllegalArgumentException();
     if (filter.getDimensions()[1] <= 0) throw new IllegalArgumentException();
@@ -120,27 +112,12 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *
-   * @param width  the width
-   * @param height the height
-   * @param bands  the bands
-   * @param simple the simple
-   */
-  public ConvolutionLayer(final int width, int height, final int bands, boolean simple) {
-    this(new Tensor(width, height, bands), simple);
-    assert (!simple || 0 == (width - 1) % 2) : "Simple kernels must have odd width";
-    assert (!simple || 0 == (height - 1) % 2) : "Simple kernels must have odd height";
-  }
-  
-  /**
-   * Instantiates a new Convolution layer.
-   *
-   * @param width  the width
+   *  @param width  the width
    * @param height the height
    * @param bands  the bands
    */
   public ConvolutionLayer(final int width, int height, final int bands) {
-    this(width, height, bands, true);
+    this(new Tensor(width, height, bands));
   }
   
   /**
@@ -153,7 +130,7 @@ public class ConvolutionLayer extends NNLayer {
    * @param simple      the simple
    */
   public ConvolutionLayer(final int width, int height, final int inputBands, final int outputBands, boolean simple) {
-    this(width, height, inputBands * outputBands, simple);
+    this(width, height, inputBands * outputBands);
   }
   
   /**
@@ -169,7 +146,7 @@ public class ConvolutionLayer extends NNLayer {
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.add("filter", filter.getJson());
-    json.addProperty("simple", simple);
+    json.addProperty("simple", false);
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     return json;
@@ -200,9 +177,12 @@ public class ConvolutionLayer extends NNLayer {
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnFilterDescriptor> filterDescriptor = CuDNN.newFilterDescriptor(
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, kernelSize[2] / inputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
-      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionDescriptor(
-        simple ? ((kernelSize[1] - 1) / 2) : 0, simple ? ((kernelSize[0] - 1) / 2) : 0,
-        strideX, strideY, CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
+      int paddingX = ((kernelSize[1] - 1) / 2);
+      int paddingY = ((kernelSize[0] - 1) / 2);
+      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionNdDescriptor(CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT,
+        new int[]{0, 0, paddingX, paddingY},
+        new int[]{1, 1, strideY, strideX},
+        new int[]{1, 1, 1, 1});
       int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
       int[] outputSize = {outputDims[3], outputDims[2], outputDims[1]};
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
