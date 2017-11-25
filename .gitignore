@@ -6,6 +6,5 @@ target/
 logs/
 .*
 *.iml
-reports/
 *.gz
 *.zip

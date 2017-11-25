@@ -62,14 +62,14 @@ public class PerformanceTester {
       DoubleStatistics statistics = IntStream.range(0, inputPrototype.length).mapToObj(i -> {
         return testFeedback(component, i, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
-      log.debug(String.format("Forward performance: %.4f +- %.4f [%.4f - %.4f]",
+      System.out.println(String.format("Forward performance: %.4f +- %.4f [%.4f - %.4f]",
         statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
     }
     if (isTestLearning()) {
       DoubleStatistics statistics = IntStream.range(0, inputPrototype.length).mapToObj(i -> {
         return testLearning(component, i, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
-      log.debug(String.format("Backward performance: %.4f +- %.4f [%.4f - %.4f]",
+      System.out.println(String.format("Backward performance: %.4f +- %.4f [%.4f - %.4f]",
         statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
     }
   }
@@ -158,7 +158,7 @@ public class PerformanceTester {
         TimedResult.time(()->getFeedbackGradient(component, i, outputPrototype, inputPrototype)).timeNanos
       ).mapToDouble(x->x/1e9).toArray());
     } catch (final Throwable e) {
-      log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
+      System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
       throw e;
     }
   }
@@ -177,9 +177,9 @@ public class PerformanceTester {
         TimedResult.time(()->getLearningGradient(component, i, outputPrototype, inputPrototype)).timeNanos
       ).mapToDouble(x->x/1e9).toArray());
   } catch (final Throwable e) {
-      log.debug(String.format("Component: %s", component));
-      log.debug(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
-      log.debug(String.format("Outputs: %s", outputPrototype));
+      System.out.println(String.format("Component: %s", component));
+      System.out.println(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
+      System.out.println(String.format("Outputs: %s", outputPrototype));
       throw e;
     }
     

@@ -74,10 +74,10 @@ public class DerivativeTester {
         return testLearning(component, i, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get());
     }
-    log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
-    log.debug(String.format("Finite-Difference Derivative Accuracy:"));
-    log.debug(String.format("absoluteTol: %s", statistics.absoluteTol));
-    log.debug(String.format("relativeTol: %s", statistics.relativeTol));
+    //System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
+    System.out.println(String.format("Finite-Difference Derivative Accuracy:"));
+    System.out.println(String.format("absoluteTol: %s", statistics.absoluteTol));
+    System.out.println(String.format("relativeTol: %s", statistics.relativeTol));
     return statistics;
   }
   
@@ -219,10 +219,10 @@ public class DerivativeTester {
       assert result.absoluteTol.getMax() < tolerance;
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
-      log.debug(String.format("measured/actual: %s", measuredGradient));
-      log.debug(String.format("implemented/expected: %s", implementedGradient));
-      log.debug(String.format("error: %s", measuredGradient.minus(implementedGradient)));
+      System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
+      System.out.println(String.format("measured/actual: %s", measuredGradient));
+      System.out.println(String.format("implemented/expected: %s", implementedGradient));
+      System.out.println(String.format("error: %s", measuredGradient.minus(implementedGradient)));
       throw e;
     }
   }
@@ -246,12 +246,12 @@ public class DerivativeTester {
       assert result.absoluteTol.getMax() < tolerance;
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component: %s", component));
-      log.debug(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
-      log.debug(String.format("Outputs: %s", outputPrototype));
-      log.debug(String.format("Measured Gradient: %s", measuredGradient));
-      log.debug(String.format("Implemented Gradient: %s", implementedGradient));
-      log.debug(String.format("%s", measuredGradient.minus(implementedGradient)));
+      System.out.println(String.format("Component: %s", component));
+      System.out.println(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
+      System.out.println(String.format("Outputs: %s", outputPrototype));
+      System.out.println(String.format("Measured Gradient: %s", measuredGradient));
+      System.out.println(String.format("Implemented Gradient: %s", implementedGradient));
+      System.out.println(String.format("%s", measuredGradient.minus(implementedGradient)));
       throw e;
     }
     

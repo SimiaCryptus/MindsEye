@@ -72,10 +72,10 @@ public class EquivalencyTester {
         return testLearning(reference, subject, i, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get());
     }
-    log.debug(String.format("Component: %s\nInputs: %s\noutput=%s", reference, Arrays.toString(inputPrototype), outputPrototype));
-    log.debug(String.format("Reference Layer Accuracy:"));
-    log.debug(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
-    log.debug(String.format("relativeTol: %s", statistics.relativeTol.toString()));
+    //System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", reference, Arrays.toString(inputPrototype), outputPrototype));
+    System.out.println(String.format("Reference Layer Accuracy:"));
+    System.out.println(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));
+    System.out.println(String.format("relativeTol: %s", statistics.relativeTol.toString()));
     return statistics;
   }
   
@@ -165,17 +165,17 @@ public class EquivalencyTester {
         return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
       assert result.absoluteTol.getMax() < tolerance;
-      log.debug(String.format("Component Output: %s\nInputs: %s", reference, Arrays.toString(inputPrototype), outputPrototype));
-      log.debug(String.format("Subject Output: %s", subjectGradient));
-      log.debug(String.format("Reference Output: %s", referenceGradient));
-      log.debug(String.format("Error: %s", subjectGradient.minus(referenceGradient)));
-      log.debug(String.format("Error Stats: %s", result));
+//      System.out.println(String.format("Output Dims: %s\nInputs: %s", Arrays.toString(outputPrototype.getDimensions()), Arrays.toString(inputPrototype)));
+//      System.out.println(String.format("Subject Output: %s", subjectGradient));
+//      System.out.println(String.format("Reference Output: %s", referenceGradient));
+//      System.out.println(String.format("Error: %s", subjectGradient.minus(referenceGradient)));
+//      System.out.println(String.format("Error Stats: %s", result));
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component Output: %s\nInputs: %s", reference, Arrays.toString(inputPrototype), outputPrototype));
-      log.debug(String.format("Subject Output: %s", subjectGradient));
-      log.debug(String.format("Reference Output: %s", referenceGradient));
-      log.debug(String.format("Error: %s", subjectGradient.minus(referenceGradient)));
+      System.out.println(String.format("Output Dims: %s\nInputs: %s", Arrays.toString(outputPrototype.getDimensions()), Arrays.toString(inputPrototype)));
+      System.out.println(String.format("Subject Output: %s", subjectGradient));
+      System.out.println(String.format("Reference Output: %s", referenceGradient));
+      System.out.println(String.format("Error: %s", subjectGradient.minus(referenceGradient)));
       throw e;
     }
   }
@@ -198,17 +198,15 @@ public class EquivalencyTester {
         return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
       assert result.absoluteTol.getMax() < tolerance;
-      log.debug(String.format("Component Gradient: %s", reference));
-      log.debug(String.format("Subject Gradient: %s", subjectGradient));
-      log.debug(String.format("Reference Gradient: %s", referenceGradient));
-      log.debug(String.format("Error: %s", error));
-      log.debug(String.format("Error Stats: %s", result));
+//      System.out.println(String.format("Subject Gradient: %s", subjectGradient));
+//      System.out.println(String.format("Reference Gradient: %s", referenceGradient));
+//      System.out.println(String.format("Error: %s", error));
+//      System.out.println(String.format("Error Stats: %s", result));
       return result;
     } catch (final Throwable e) {
-      log.debug(String.format("Component Gradient: %s", reference));
-      log.debug(String.format("Subject Gradient: %s", subjectGradient));
-      log.debug(String.format("Reference Gradient: %s", referenceGradient));
-      log.debug(String.format("Error: %s", error));
+      System.out.println(String.format("Subject Gradient: %s", subjectGradient));
+      System.out.println(String.format("Reference Gradient: %s", referenceGradient));
+      System.out.println(String.format("Error: %s", error));
       throw e;
     }
     

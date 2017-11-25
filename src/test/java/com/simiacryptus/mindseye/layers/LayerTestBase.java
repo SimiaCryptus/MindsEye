@@ -19,16 +19,22 @@
 
 package com.simiacryptus.mindseye.layers;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.MarkdownNotebookOutput;
+import com.simiacryptus.util.io.NotebookOutput;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 
 /**
@@ -43,15 +49,47 @@ public abstract class LayerTestBase {
    * @throws Throwable the throwable
    */
   @Test
-  public void testDerivatives() throws Throwable {
-    Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> Util.R.get().nextDouble()))
-      .toArray(i -> new Tensor[i]);
-    Tensor outputPrototype = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-      (data, exe) -> getLayer().eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-      (a, b) -> a.add(b));
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
-    getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
-    getEquivalencyTester().test(getReferenceLayer(), getLayer(), outputPrototype, inputPrototype);
+  public void test() throws Throwable {
+    PrintStream originalOut = System.out;
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
+      log.h3("Json Serialization");
+      log.code(() -> {
+        NNLayer layer = getLayer();
+        JsonObject json = layer.getJson();
+        NNLayer echo = NNLayer.fromJson(json);
+        assert (echo != null) : "Failed to deserialize";
+        assert (layer != echo) : "Serialization did not copy";
+        Assert.assertEquals("Serialization not equal", layer, echo);
+        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+      });
+  
+      Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> Util.R.get().nextDouble()))
+        .toArray(i -> new Tensor[i]);
+      Tensor outputPrototype = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
+        (data, exe) -> getLayer().eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
+        (a, b) -> a.add(b));
+  
+      log.h3("Differential Validation");
+      log.code(() -> {
+        getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+      });
+  
+      log.h3("Performance");
+      log.code(() -> {
+        getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
+      });
+  
+      log.h3("Reference Implementation");
+      NNLayer referenceLayer = getReferenceLayer();
+      if(null != referenceLayer) {
+        log.code(() -> {
+          System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
+          getEquivalencyTester().test(referenceLayer, getLayer(), outputPrototype, inputPrototype);
+        });
+      }
+      
+    }
   }
   
   public EquivalencyTester getEquivalencyTester() {
@@ -60,18 +98,6 @@ public abstract class LayerTestBase {
   
   public PerformanceTester getPerformanceTester() {
     return new PerformanceTester();
-  }
-  
-  /**
-   * Test json.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void testJson() throws Throwable {
-    NNLayer layer = getLayer();
-    NNLayer echo = NNLayer.fromJson(layer.getJson());
-    assert (echo != null && layer != echo);
   }
   
   /**
