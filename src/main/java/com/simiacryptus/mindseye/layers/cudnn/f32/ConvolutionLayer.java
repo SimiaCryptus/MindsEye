@@ -180,20 +180,19 @@ public class ConvolutionLayer extends NNLayer {
       int paddingX = ((kernelSize[1] - 1) / 2);
       int paddingY = ((kernelSize[0] - 1) / 2);
       CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionNdDescriptor(CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT,
-        new int[]{0, 0, paddingX, paddingY},
-        new int[]{1, 1, strideY, strideX},
-        new int[]{1, 1, 1, 1});
+        new int[]{paddingX, paddingY},
+        new int[]{strideY, strideX},
+        new int[]{1, 1});
       int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
-      int[] outputSize = {outputDims[3], outputDims[2], outputDims[1]};
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
-        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputSize[2], outputSize[1], outputSize[0]);
+        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputDims[1], outputDims[2], outputDims[3]);
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0f);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0f);
       
       CudaPtr filterPtr = getStateCache().computeIfAbsent(((CudaExecutionContext) nncontext).getDeviceNumber(), i -> new GPUDataMirror(filter.dim()))
         .uploadAsFloats(((CudaExecutionContext) nncontext).getDeviceNumber(), filter.getData());
       CudaPtr inputData = inObj[0].getGpuFloats(((CudaExecutionContext) nncontext).getDeviceNumber());
-      CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputSize) * 1l * length * Sizeof.FLOAT);
+      CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputDims) * 1l * Sizeof.FLOAT);
       try {
         int forwardAlgorithm = ((CudaExecutionContext) nncontext).getForwardAlgorithm(
           inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr());
@@ -206,9 +205,9 @@ public class ConvolutionLayer extends NNLayer {
           outputDescriptor.getPtr(), outputBuffer.getPtr()));
         workSpace.finalize();
       } catch (Throwable e) {
-        throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
+        throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputDims)), e);
       }
-      TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
+      TensorList output = CudaPtr.fromDeviceFloat(outputBuffer, length, new int[]{outputDims[3], outputDims[2], outputDims[1]}, ((CuDNN) nncontext).cudnnHandle);
       
       return new NNResult(output) {
         @Override
@@ -232,7 +231,7 @@ public class ConvolutionLayer extends NNLayer {
                 filterDescriptor.getPtr(), filterBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
+              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputDims)), e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, ConvolutionLayer.this.filter.getDimensions());
             buffer.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(weightGradient.getData());
@@ -251,7 +250,7 @@ public class ConvolutionLayer extends NNLayer {
                 inputDescriptor.getPtr(), inputBuffer.getPtr()));
               workSpace.finalize();
             } catch (Throwable e) {
-              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
+              throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(new int[]{outputDims[3], outputDims[2], outputDims[1]})), e);
             }
             TensorList inputBufferTensors = CudaPtr.fromDeviceFloat(inputBuffer, length, inputSize, ((CuDNN) nncontext).cudnnHandle);
             inObj[0].accumulate(buffer, inputBufferTensors);

@@ -52,12 +52,12 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
     
     @Override
     public NNLayer getLayer() {
-      return new SimpleConvolutionLayer(3, 3, 2, 2);
+      return new SimpleConvolutionLayer(3, 3, 2, 1);
     }
     
     @Override
     public NNLayer getReferenceLayer() {
-      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 2, true);
+      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 1, true);
     }
   
     public EquivalencyTester getEquivalencyTester() {
