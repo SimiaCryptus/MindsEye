@@ -108,7 +108,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
 //        return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
 //          3, step1.toSize, pretrainMinutes, timeoutMinutes,
 //          step1.band2, 17, 5, 4);
-//      }).invoke();
+//      }).call();
 //
     log.h1("Transcoding Different Category");
     TranscodeStep step3 = log.code(() -> {

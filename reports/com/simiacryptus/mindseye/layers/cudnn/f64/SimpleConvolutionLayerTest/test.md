@@ -1,13 +1,7 @@
 ### Json Serialization
-Code from [LayerTestBase.java:57](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L57) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
 ```java
-    NNLayer layer = getLayer();
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+  
 ```
 
 Returns: 
@@ -15,9 +9,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f64.SimpleConvolutionLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dcea",
+      "id": "bdd6bbba-380b-47fe-a761-c2410002dca7",
       "isFrozen": false,
-      "name": "SimpleConvolutionLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dcea",
+      "name": "SimpleConvolutionLayer/bdd6bbba-380b-47fe-a761-c2410002dca7",
       "filter": {
         "dimensions": [
           3,
@@ -34,43 +28,42 @@ Returns:
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.03 seconds: 
+Code from [LayerTestBase.java:98](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 0.13 seconds: 
 ```java
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 4.1119e-18 +- 2.0967e-17 [0.0000e+00 - 1.1102e-16] (162#)
-    relativeTol: 1.4852e-17 +- 3.9759e-17 [0.0000e+00 - 1.2129e-16] (49#)
+    absoluteTol: 1.2336e-17 +- 5.0862e-17 [0.0000e+00 - 2.2204e-16] (162#)
+    relativeTol: 3.7991e-17 +- 8.0092e-17 [0.0000e+00 - 2.0684e-16] (49#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:79](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L79) executed in 1.66 seconds: 
+Code from [LayerTestBase.java:103](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 8.21 seconds: 
 ```java
-    getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
-    Forward performance: 94.2608 +- 7.1889 [81.3984 - 117.9582]
-    Backward performance: 71.8277 +- 5.6247 [62.6183 - 87.7961]
+    Forward performance: 458.9104 +- 29.2025 [385.3791 - 564.2772]
+    Backward performance: 361.8256 +- 21.2405 [300.8602 - 430.1948]
     
 ```
 
 ### Reference Implementation
-Code from [LayerTestBase.java:86](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L86) executed in 0.13 seconds: 
+Code from [LayerTestBase.java:122](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L122) executed in 0.49 seconds: 
 ```java
-    System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
-    getEquivalencyTester().test(referenceLayer, getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dcee",
+      "id": "bdd6bbba-380b-47fe-a761-c2410002dca8",
       "isFrozen": false,
-      "name": "ConvolutionLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dcee",
+      "name": "ConvolutionLayer/bdd6bbba-380b-47fe-a761-c2410002dca8",
       "filter": {
         "dimensions": [
           3,

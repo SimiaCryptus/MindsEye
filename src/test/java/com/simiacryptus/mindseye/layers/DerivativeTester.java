@@ -70,9 +70,10 @@ public class DerivativeTester {
       }).reduce((a, b) -> a.combine(b)).get());
     }
     if (isTestLearning()) {
-      statistics = statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
+      ToleranceStatistics prev = statistics;
+      statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
         return testLearning(component, i, outputPrototype, inputPrototype);
-      }).reduce((a, b) -> a.combine(b)).get());
+      }).reduce((a, b) -> a.combine(b)).map(x->x.combine(prev)).orElseGet(()->prev);
     }
     //System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
     System.out.println(String.format("Finite-Difference Derivative Accuracy:"));

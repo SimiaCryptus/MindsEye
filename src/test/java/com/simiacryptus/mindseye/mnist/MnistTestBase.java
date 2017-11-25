@@ -36,6 +36,7 @@ import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -52,10 +53,7 @@ import java.util.stream.IntStream;
  * The type Mnist run base.
  */
 public abstract class MnistTestBase {
-  /**
-   * The Iterations.
-   */
-  public int iterations = 1;
+  
   /**
    * The Model no.
    */
@@ -76,28 +74,16 @@ public abstract class MnistTestBase {
       MonitoredObject monitoringRoot = new MonitoredObject();
       TrainingMonitor monitor = getMonitor(originalOut, history);
       Tensor[][] trainingData = getTrainingData(log);
-      for (int i = 0; i < iterations; i++) {
-        NNLayer network = _test(log, monitoringRoot, monitor, trainingData, history);
-        report(log, monitoringRoot, history, network);
-      }
+      _test(log, monitoringRoot, monitor, trainingData, history);
     }
   }
   
-  /**
-   * Test nn layer.
-   *
-   * @param log            the log
-   * @param monitoringRoot the monitoring root
-   * @param monitor        the monitor
-   * @param trainingData   the training data
-   * @param history        the history
-   * @return the nn layer
-   */
-  protected NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
-    log.p("First, define a model:");
+  public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     DAGNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
+    log.h3("Training");
     train(log, network, trainingData, monitor);
+    report(log, monitoringRoot, history, network);
     validate(log, network);
     return network;
   }
@@ -140,17 +126,7 @@ public abstract class MnistTestBase {
    * @param network        the network
    */
   public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history, NNLayer network) {
-    log.code(() -> {
-      try {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JsonUtil.writeJson(out, monitoringRoot.getMetrics());
-        return out.toString();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
-    String modelName = "model" + modelNo++ + ".json";
-    log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
+
     if (!history.isEmpty()) {
       log.code(() -> {
         PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
@@ -160,6 +136,20 @@ public abstract class MnistTestBase {
         return plot;
       });
     }
+  
+    String modelName = "model" + modelNo++ + ".json";
+    log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
+  
+    log.h3("Metrics");
+    log.code(() -> {
+      try {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        JsonUtil.writeJson(out, monitoringRoot.getMetrics());
+        return out.toString();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
   
   /**
@@ -206,18 +196,12 @@ public abstract class MnistTestBase {
    * @param network the network
    */
   public void validate(NotebookOutput log, NNLayer network) {
+    log.h3("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");
     log.code(() -> {
-      try {
-        return MNIST.validationDataStream().mapToDouble(labeledObject -> {
-          int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-          double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
-          int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-          return predictionList[0] == actualCategory ? 1 : 0;
-        }).average().getAsDouble() * 100;
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      return MNIST.validationDataStream().mapToDouble(labeledObject ->
+        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+        .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
@@ -226,7 +210,7 @@ public abstract class MnistTestBase {
         TableOutput table = new TableOutput();
         MNIST.validationDataStream().map(labeledObject -> {
           try {
-            int actualCategory = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
+            int actualCategory = parse(labeledObject.label);
             double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
             int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
             if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
@@ -247,6 +231,15 @@ public abstract class MnistTestBase {
     });
   }
   
+  public int parse(String label) {
+    return Integer.parseInt(label.replaceAll("[^\\d]", ""));
+  }
+  
+  public int[] predict(NNLayer network, LabeledObject<Tensor> labeledObject) {
+    double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
+    return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+  }
+  
   /**
    * Get training data tensor [ ] [ ].
    *
@@ -254,21 +247,16 @@ public abstract class MnistTestBase {
    * @return the tensor [ ] [ ]
    */
   public Tensor[][] getTrainingData(NotebookOutput log) {
-    log.p("We use the standard MNIST dataset, made available by a helper function. " +
-      "In order to use data, we convert it into data tensors; helper functions are defined to " +
-      "work mapCoords images.");
-    return log.code(() -> {
-      try {
-        return MNIST.trainingDataStream().map(labeledObject -> {
-          Tensor categoryTensor = new Tensor(10);
-          int category = Integer.parseInt(labeledObject.label.replaceAll("[^\\d]", ""));
-          categoryTensor.set(category, 1);
-          return new Tensor[]{labeledObject.data, categoryTensor};
-        }).toArray(i -> new Tensor[i][]);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try {
+      return MNIST.trainingDataStream().map(labeledObject -> {
+        Tensor categoryTensor = new Tensor(10);
+        int category = parse(labeledObject.label);
+        categoryTensor.set(category, 1);
+        return new Tensor[]{labeledObject.data, categoryTensor};
+      }).toArray(i -> new Tensor[i][]);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   /**
@@ -278,6 +266,7 @@ public abstract class MnistTestBase {
    * @return the dag network
    */
   public DAGNetwork buildModel(NotebookOutput log) {
+    log.h3("Model");
     log.p("This is a very simple model that performs basic logistic regression. " +
       "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.code(() -> {

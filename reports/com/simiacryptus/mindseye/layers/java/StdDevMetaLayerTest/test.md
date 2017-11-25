@@ -1,13 +1,7 @@
 ### Json Serialization
-Code from [LayerTestBase.java:57](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L57) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
 ```java
-    NNLayer layer = getLayer();
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+  
 ```
 
 Returns: 
@@ -15,51 +9,51 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StdDevMetaLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd73",
+      "id": "bdd6bbba-380b-47fe-a761-c2410002dce8",
       "isFrozen": false,
-      "name": "StdDevMetaLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd73",
+      "name": "StdDevMetaLayer/bdd6bbba-380b-47fe-a761-c2410002dce8",
       "inputs": [
-        "a4af45a6-95fa-47cb-9c15-932f54e8083f"
+        "a4e1db25-b1f6-4060-9517-040f0aaf6019"
       ],
       "nodes": {
-        "288444eb-6e9a-42de-a3cf-aeedf8d4eabf": "9d13704a-9a5a-4ecb-a687-5c7c0002dd77",
-        "4348e0ed-c4c3-4c3b-9a0f-a63e5757c6a2": "9d13704a-9a5a-4ecb-a687-5c7c0002dd76",
-        "3673e6fc-f265-4c68-9f3f-2e4f2b6b1108": "9d13704a-9a5a-4ecb-a687-5c7c0002dd7a",
-        "b36a19d7-92e4-49b5-85a5-319380a9055e": "9d13704a-9a5a-4ecb-a687-5c7c0002dd79",
-        "a11afba6-d8f9-4c62-9c08-d43c4a1329bf": "9d13704a-9a5a-4ecb-a687-5c7c0002dd78",
-        "a98bde4c-4ad3-4008-a417-341a86128a8c": "9d13704a-9a5a-4ecb-a687-5c7c0002dd75",
-        "2faeb5ab-ab3a-4098-a06f-cc692f338afd": "9d13704a-9a5a-4ecb-a687-5c7c0002dd74"
+        "d431d8cd-b62d-4080-aee0-ec3c7a87e8a6": "bdd6bbba-380b-47fe-a761-c2410002dcec",
+        "385a1b11-b601-447d-86a8-7e92566a885b": "bdd6bbba-380b-47fe-a761-c2410002dceb",
+        "25f1f384-70d8-4369-89b4-d4ba62b93923": "bdd6bbba-380b-47fe-a761-c2410002dcef",
+        "9207dba0-338b-4243-9869-7165e6c9da0b": "bdd6bbba-380b-47fe-a761-c2410002dcee",
+        "51c46703-71b0-42ab-b946-87adee5f8ef4": "bdd6bbba-380b-47fe-a761-c2410002dced",
+        "edb67603-5c0c-47ef-aace-1d774c9de84f": "bdd6bbba-380b-47fe-a761-c2410002dcea",
+        "7d7e4491-b6d7-45e4-a9dd-e36e54f93358": "bdd6bbba-380b-47fe-a761-c2410002dce9"
       },
       "layers": {
-        "9d13704a-9a5a-4ecb-a687-5c7c0002dd77": {
+        "bdd6bbba-380b-47fe-a761-c2410002dcec": {
           "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd77",
+          "id": "bdd6bbba-380b-47fe-a761-c2410002dcec",
           "isFrozen": true,
-          "name": "SqActivationLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd77"
+          "name": "SqActivationLayer/bdd6bbba-380b-47fe-a761-c2410002dcec"
         },
-        "9d13704a-9a5a-4ecb-a687-5c7c0002dd76": {
+        "bdd6bbba-380b-47fe-a761-c2410002dceb": {
           "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd76",
+          "id": "bdd6bbba-380b-47fe-a761-c2410002dceb",
           "isFrozen": false,
-          "name": "AvgMetaLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd76"
+          "name": "AvgMetaLayer/bdd6bbba-380b-47fe-a761-c2410002dceb"
         },
-        "9d13704a-9a5a-4ecb-a687-5c7c0002dd7a": {
+        "bdd6bbba-380b-47fe-a761-c2410002dcef": {
           "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd7a",
+          "id": "bdd6bbba-380b-47fe-a761-c2410002dcef",
           "isFrozen": false,
-          "name": "AvgMetaLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd7a"
+          "name": "AvgMetaLayer/bdd6bbba-380b-47fe-a761-c2410002dcef"
         },
-        "9d13704a-9a5a-4ecb-a687-5c7c0002dd79": {
+        "bdd6bbba-380b-47fe-a761-c2410002dcee": {
           "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd79",
+          "id": "bdd6bbba-380b-47fe-a761-c2410002dcee",
           "isFrozen": true,
-          "name": "SqActivationLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd79"
+          "name": "SqActivationLayer/bdd6bbba-380b-47fe-a761-c2410002dcee"
         },
-        "9d13704a-9a5a-4ecb-a687-5c7c0002dd78": {
+        "bdd6bbba-380b-47fe-a761-c2410002dced": {
           "class": "com.simiacryptus.mindseye.layers.java.LinearActivationLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd78",
+          "id": "bdd6bbba-380b-47fe-a761-c2410002dced",
           "isFrozen": false,
-          "name": "LinearActivationLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd78",
+          "name": "LinearActivationLayer/bdd6bbba-380b-47fe-a761-c2410002dced",
           "weights": {
             "dimensions": [
               2
@@ -70,55 +64,71 @@ Returns:
             ]
           }
         },
-        "9d13704a-9a5a-4ecb-a687-5c7c0002dd75": {
+        "bdd6bbba-380b-47fe-a761-c2410002dcea": {
           "class": "com.simiacryptus.mindseye.layers.java.SumInputsLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd75",
+          "id": "bdd6bbba-380b-47fe-a761-c2410002dcea",
           "isFrozen": false,
-          "name": "SumInputsLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd75"
+          "name": "SumInputsLayer/bdd6bbba-380b-47fe-a761-c2410002dcea"
         },
-        "9d13704a-9a5a-4ecb-a687-5c7c0002dd74": {
+        "bdd6bbba-380b-47fe-a761-c2410002dce9": {
           "class": "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd74",
+          "id": "bdd6bbba-380b-47fe-a761-c2410002dce9",
           "isFrozen": false,
-          "name": "NthPowerActivationLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd74",
+          "name": "NthPowerActivationLayer/bdd6bbba-380b-47fe-a761-c2410002dce9",
           "power": 0.5
         }
       },
       "links": {
-        "288444eb-6e9a-42de-a3cf-aeedf8d4eabf": [
-          "a4af45a6-95fa-47cb-9c15-932f54e8083f"
+        "d431d8cd-b62d-4080-aee0-ec3c7a87e8a6": [
+          "a4e1db25-b1f6-4060-9517-040f0aaf6019"
         ],
-        "4348e0ed-c4c3-4c3b-9a0f-a63e5757c6a2": [
-          "288444eb-6e9a-42de-a3cf-aeedf8d4eabf"
+        "385a1b11-b601-447d-86a8-7e92566a885b": [
+          "d431d8cd-b62d-4080-aee0-ec3c7a87e8a6"
         ],
-        "3673e6fc-f265-4c68-9f3f-2e4f2b6b1108": [
-          "a4af45a6-95fa-47cb-9c15-932f54e8083f"
+        "25f1f384-70d8-4369-89b4-d4ba62b93923": [
+          "a4e1db25-b1f6-4060-9517-040f0aaf6019"
         ],
-        "b36a19d7-92e4-49b5-85a5-319380a9055e": [
-          "3673e6fc-f265-4c68-9f3f-2e4f2b6b1108"
+        "9207dba0-338b-4243-9869-7165e6c9da0b": [
+          "25f1f384-70d8-4369-89b4-d4ba62b93923"
         ],
-        "a11afba6-d8f9-4c62-9c08-d43c4a1329bf": [
-          "b36a19d7-92e4-49b5-85a5-319380a9055e"
+        "51c46703-71b0-42ab-b946-87adee5f8ef4": [
+          "9207dba0-338b-4243-9869-7165e6c9da0b"
         ],
-        "a98bde4c-4ad3-4008-a417-341a86128a8c": [
-          "4348e0ed-c4c3-4c3b-9a0f-a63e5757c6a2",
-          "a11afba6-d8f9-4c62-9c08-d43c4a1329bf"
+        "edb67603-5c0c-47ef-aace-1d774c9de84f": [
+          "385a1b11-b601-447d-86a8-7e92566a885b",
+          "51c46703-71b0-42ab-b946-87adee5f8ef4"
         ],
-        "2faeb5ab-ab3a-4098-a06f-cc692f338afd": [
-          "a98bde4c-4ad3-4008-a417-341a86128a8c"
+        "7d7e4491-b6d7-45e4-a9dd-e36e54f93358": [
+          "edb67603-5c0c-47ef-aace-1d774c9de84f"
         ]
       },
       "labels": {},
-      "head": "2faeb5ab-ab3a-4098-a06f-cc692f338afd"
+      "head": "7d7e4491-b6d7-45e4-a9dd-e36e54f93358"
     }
 ```
 
 
 
-### Differential Validation
-Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
+### Network Diagram
+Code from [LayerTestBase.java:85](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L85) executed in 0.36 seconds: 
 ```java
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+    log.h3("Network Diagram");
+    log.code(()->{
+      return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+```
+
+Returns: 
+
+![Result](etc/test.1.png)
+
+
+
+### Differential Validation
+Code from [LayerTestBase.java:98](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 0.00 seconds: 
+```java
+  
 ```
 Logging: 
 ```
@@ -129,14 +139,14 @@ Logging:
 ```
 
 ### Performance
-Code from [LayerTestBase.java:79](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L79) executed in 0.07 seconds: 
+Code from [LayerTestBase.java:103](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 0.23 seconds: 
 ```java
-    getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
-    Forward performance: 3.5960 +- 2.9808 [2.0832 - 31.1909]
-    Backward performance: 3.0007 +- 0.9323 [1.7754 - 7.8512]
+    Forward performance: 2.7293 +- 1.0320 [1.5075 - 6.7426]
+    Backward performance: 20.3369 +- 146.2808 [2.1801 - 1474.5124]
     
 ```
 

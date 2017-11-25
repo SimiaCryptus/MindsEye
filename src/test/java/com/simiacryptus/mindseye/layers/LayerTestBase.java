@@ -26,16 +26,27 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
+import com.simiacryptus.mindseye.layers.java.SimpleEval;
+import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
+import guru.nidi.graphviz.attribute.RankDir;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.model.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
-import java.util.Arrays;
+import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Layer run base.
@@ -43,6 +54,7 @@ import java.util.Arrays;
 public abstract class LayerTestBase {
   private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);
   
+  protected static final PrintStream originalOut = System.out;
   /**
    * Test derivatives.
    *
@@ -50,46 +62,105 @@ public abstract class LayerTestBase {
    */
   @Test
   public void test() throws Throwable {
-    PrintStream originalOut = System.out;
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
-      log.h3("Json Serialization");
-      log.code(() -> {
-        NNLayer layer = getLayer();
-        JsonObject json = layer.getJson();
-        NNLayer echo = NNLayer.fromJson(json);
-        assert (echo != null) : "Failed to deserialize";
-        assert (layer != echo) : "Serialization did not copy";
-        Assert.assertEquals("Serialization not equal", layer, echo);
-        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
-      });
-  
-      Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> Util.R.get().nextDouble()))
-        .toArray(i -> new Tensor[i]);
-      Tensor outputPrototype = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (data, exe) -> getLayer().eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-        (a, b) -> a.add(b));
-  
-      log.h3("Differential Validation");
-      log.code(() -> {
-        getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
-      });
-  
-      log.h3("Performance");
-      log.code(() -> {
-        getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
-      });
-  
-      log.h3("Reference Implementation");
-      NNLayer referenceLayer = getReferenceLayer();
-      if(null != referenceLayer) {
-        log.code(() -> {
-          System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
-          getEquivalencyTester().test(referenceLayer, getLayer(), outputPrototype, inputPrototype);
-        });
-      }
-      
+      test(log);
     }
+  }
+  
+  public void test(NotebookOutput log) {
+    if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
+    NNLayer layer = getLayer();
+    log.h1("%s", layer.getClass().getSimpleName());
+    log.h2("%s", getClass().getSimpleName());
+    log.h3("Json Serialization");
+    log.code(() -> {
+      JsonObject json = layer.getJson();
+      NNLayer echo = NNLayer.fromJson(json);
+      assert (echo != null) : "Failed to deserialize";
+      assert (layer != echo) : "Serialization did not copy";
+      Assert.assertEquals("Serialization not equal", layer, echo);
+      return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+    });
+    
+    if(layer instanceof DAGNetwork) {
+      log.h3("Network Diagram");
+      log.code(()->{
+        return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
+          .height(400).width(600).render(Format.PNG).toImage();
+      });
+    }
+    
+    Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random()))
+      .toArray(i -> new Tensor[i]);
+    Tensor outputPrototype = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
+      (data, exe) -> layer.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
+      (a, b) -> a.add(b));
+    
+    log.h3("Differential Validation");
+    log.code(() -> {
+      getDerivativeTester().test(layer, outputPrototype, inputPrototype);
+    });
+    
+    log.h3("Performance");
+    log.code(() -> {
+      getPerformanceTester().test(layer, outputPrototype, inputPrototype);
+    });
+  
+    HashMap<Tensor[], Tensor> referenceIO = getReferenceIO();
+    if(!referenceIO.isEmpty()) {
+      log.h3("Reference Input/Output Pairs");
+      referenceIO.forEach((input, output)->{
+        log.code(()->{
+          SimpleEval eval = SimpleEval.run(layer, input);
+          DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
+          return String.format("Input: %s\nOutput: %s\nError: %s", input, eval.getOutput(), error);
+        });
+      });
+    }
+  
+    log.h3("Reference Implementation");
+    NNLayer referenceLayer = getReferenceLayer();
+    if(null != referenceLayer) {
+      log.code(() -> {
+        System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
+        getEquivalencyTester().test(referenceLayer, layer, outputPrototype, inputPrototype);
+      });
+    }
+  
+  }
+  
+  public static Graph toGraph(DAGNetwork network) {
+    List<DAGNode> nodes = network.getNodes();
+    Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
+      String name;
+      NNLayer layer = node.getLayer();
+      if(null == layer) {
+        name = node.getId().toString();
+      } else {
+        Class<? extends NNLayer> layerClass = layer.getClass();
+        name = layerClass.getSimpleName();
+      }
+      return Factory.mutNode(name);
+    }));
+    Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
+      return Arrays.stream(to.getInputs()).map(from -> {
+        return new UUID[]{from.getId(), to.getId()};
+      });
+    });
+    Map<UUID, List<UUID>> idMap = stream.collect(Collectors.groupingBy(x -> x[0],
+      Collectors.mapping(x -> x[1], Collectors.toList())));
+    nodes.forEach(to->{
+      graphNodes.get(to.getId()).addLink(
+        idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
+          return Link.to(graphNodes.get(from));
+        }).<LinkTarget>toArray(i -> new LinkTarget[i]));
+    });
+    LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
+    return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+  }
+  
+  public double random() {
+    return 4 * (Util.R.get().nextDouble() - 0.5);
   }
   
   public EquivalencyTester getEquivalencyTester() {
@@ -100,13 +171,17 @@ public abstract class LayerTestBase {
     return new PerformanceTester();
   }
   
+  protected HashMap<Tensor[], Tensor> getReferenceIO() {
+    return new HashMap<>();
+  }
+  
   /**
    * Gets derivative tester.
    *
    * @return the derivative tester
    */
   public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-10, 1e-8);
+    return new DerivativeTester(1e-4, 1e-6);
   }
   
   /**

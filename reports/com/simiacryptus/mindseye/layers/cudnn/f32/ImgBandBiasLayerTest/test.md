@@ -1,13 +1,7 @@
 ### Json Serialization
-Code from [LayerTestBase.java:57](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L57) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
 ```java
-    NNLayer layer = getLayer();
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+  
 ```
 
 Returns: 
@@ -15,9 +9,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ImgBandBiasLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c00016377",
+      "id": "bdd6bbba-380b-47fe-a761-c24100016359",
       "isFrozen": false,
-      "name": "ImgBandBiasLayer/9d13704a-9a5a-4ecb-a687-5c7c00016377",
+      "name": "ImgBandBiasLayer/bdd6bbba-380b-47fe-a761-c24100016359",
       "bias": [
         0.0,
         0.0
@@ -28,27 +22,27 @@ Returns:
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.04 seconds: 
+Code from [LayerTestBase.java:98](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 0.19 seconds: 
 ```java
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.4318e-05 +- 4.8241e-05 [0.0000e+00 - 4.3011e-04] (360#)
-    relativeTol: 1.4317e-04 +- 6.9453e-05 [1.6928e-05 - 4.3020e-04] (36#)
+    absoluteTol: 1.8231e-05 +- 7.1032e-05 [0.0000e+00 - 1.0262e-03] (360#)
+    relativeTol: 1.8232e-04 +- 1.4341e-04 [1.3209e-04 - 1.0267e-03] (36#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:79](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L79) executed in 2.45 seconds: 
+Code from [LayerTestBase.java:103](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 14.54 seconds: 
 ```java
-    getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
-    Forward performance: 123.2669 +- 6.2514 [112.7774 - 156.2822]
-    Backward performance: 121.7155 +- 5.3203 [110.8709 - 136.7497]
+    Forward performance: 685.3711 +- 29.5893 [600.6205 - 759.0998]
+    Backward performance: 768.4105 +- 176.5743 [638.3659 - 2009.1176]
     
 ```
 

@@ -1,13 +1,7 @@
 ### Json Serialization
-Code from [LayerTestBase.java:57](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L57) executed in 0.01 seconds: 
+Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.01 seconds: 
 ```java
-    NNLayer layer = getLayer();
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+  
 ```
 
 Returns: 
@@ -15,115 +9,85 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.DropoutNoiseLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c0001636e",
+      "id": "bdd6bbba-380b-47fe-a761-c24100016356",
       "isFrozen": false,
-      "name": "DropoutNoiseLayer/9d13704a-9a5a-4ecb-a687-5c7c0001636e",
+      "name": "DropoutNoiseLayer/bdd6bbba-380b-47fe-a761-c24100016356",
       "inputs": [
-        "4f7589e2-305a-4ada-ac6d-37daa80edbe5"
+        "0d038d42-bff9-4bae-be4e-b67ec135a7df"
       ],
       "nodes": {
-        "ce0a8219-88d4-4d37-ae0f-254098895004": "9d13704a-9a5a-4ecb-a687-5c7c00016370",
-        "f81949c5-417f-4e9d-90ce-656d29bb4c2d": "9d13704a-9a5a-4ecb-a687-5c7c0001636f"
+        "0b30f42a-1d3f-4275-bf89-5b53f5fccdf8": "bdd6bbba-380b-47fe-a761-c24100016358",
+        "fc23fd90-a497-483c-ac4b-4c3f5ab9e9b9": "bdd6bbba-380b-47fe-a761-c24100016357"
       },
       "layers": {
-        "9d13704a-9a5a-4ecb-a687-5c7c00016370": {
+        "bdd6bbba-380b-47fe-a761-c24100016358": {
           "class": "com.simiacryptus.mindseye.layers.java.BinaryNoiseLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c00016370",
+          "id": "bdd6bbba-380b-47fe-a761-c24100016358",
           "isFrozen": false,
           "name": "mask",
           "value": 0.5
         },
-        "9d13704a-9a5a-4ecb-a687-5c7c0001636f": {
+        "bdd6bbba-380b-47fe-a761-c24100016357": {
           "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ProductInputsLayer",
-          "id": "9d13704a-9a5a-4ecb-a687-5c7c0001636f",
+          "id": "bdd6bbba-380b-47fe-a761-c24100016357",
           "isFrozen": false,
-          "name": "ProductInputsLayer/9d13704a-9a5a-4ecb-a687-5c7c0001636f"
+          "name": "ProductInputsLayer/bdd6bbba-380b-47fe-a761-c24100016357"
         }
       },
       "links": {
-        "ce0a8219-88d4-4d37-ae0f-254098895004": [
-          "4f7589e2-305a-4ada-ac6d-37daa80edbe5"
+        "0b30f42a-1d3f-4275-bf89-5b53f5fccdf8": [
+          "0d038d42-bff9-4bae-be4e-b67ec135a7df"
         ],
-        "f81949c5-417f-4e9d-90ce-656d29bb4c2d": [
-          "ce0a8219-88d4-4d37-ae0f-254098895004",
-          "4f7589e2-305a-4ada-ac6d-37daa80edbe5"
+        "fc23fd90-a497-483c-ac4b-4c3f5ab9e9b9": [
+          "0b30f42a-1d3f-4275-bf89-5b53f5fccdf8",
+          "0d038d42-bff9-4bae-be4e-b67ec135a7df"
         ]
       },
       "labels": {},
-      "head": "f81949c5-417f-4e9d-90ce-656d29bb4c2d"
+      "head": "fc23fd90-a497-483c-ac4b-4c3f5ab9e9b9"
     }
 ```
 
 
 
-### Differential Validation
-Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
+### Network Diagram
+Code from [LayerTestBase.java:85](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L85) executed in 3.73 seconds: 
 ```java
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+    log.h3("Network Diagram");
+    log.code(()->{
+      return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
 ```
 
 Returns: 
 
+![Result](etc/test.1.png)
+
+
+
+### Differential Validation
+Code from [LayerTestBase.java:98](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 0.20 seconds: 
+```java
+  
 ```
-    java.lang.RuntimeException: java.lang.IndexOutOfBoundsException: Index: 0, Size: 0
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:77)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:141)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:74)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-    	at java.lang.reflect.Method.invoke(Method.java:498)
-    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-    	at org.junit.runners.Suite.runChild(Suite.java:128)
-    	at org.junit.runners.Suite.runChild(Suite.java:27)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java
+Logging: 
 ```
-...[skipping 253 bytes](etc/1.txt)...
-```
-    evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-    	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
-    	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
-    	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
-    	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
-    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-    Caused by: java.lang.IndexOutOfBoundsException: Index: 0, Size: 0
-    	at java.util.ArrayList.rangeCheck(ArrayList.java:653)
-    	at java.util.ArrayList.get(ArrayList.java:429)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.measureLearningGradient(DerivativeTester.java:181)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testLearning(DerivativeTester.java:239)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$2(DerivativeTester.java:74)
-    	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
-    	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
-    	at java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:693)
-    	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481)
-    	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:471)
-    	at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
-    	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
-    	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:75)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$6(LayerTestBase.java:75)
-    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:142)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 35 more
+    Finite-Difference Derivative Accuracy:
+    absoluteTol: 3.6374e-06 +- 2.4136e-05 [0.0000e+00 - 1.6594e-04] (324#)
+    relativeTol: 1.4730e-04 +- 4.9276e-05 [1.6928e-05 - 1.6593e-04] (8#)
     
 ```
 
+### Performance
+Code from [LayerTestBase.java:103](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 14.22 seconds: 
+```java
+  
+```
+Logging: 
+```
+    Forward performance: 1421.6459 +- 67.8565 [1165.1968 - 1804.2181]
+    
+```
 
-
+### Reference Implementation

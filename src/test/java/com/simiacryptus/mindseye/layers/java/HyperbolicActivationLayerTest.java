@@ -19,6 +19,10 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.simiacryptus.mindseye.lang.Tensor;
+
+import java.util.HashMap;
+
 /**
  * The type Hyperbolic activation layer run.
  */
@@ -28,5 +32,12 @@ public class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
    */
   public HyperbolicActivationLayerTest() {
     super(new HyperbolicActivationLayer());
+  }
+  
+  @Override
+  protected HashMap<Tensor[], Tensor> getReferenceIO() {
+    HashMap<Tensor[], Tensor> map = super.getReferenceIO();
+    map.put(new Tensor[]{new Tensor(0.0)},new Tensor(0.0));
+    return map;
   }
 }

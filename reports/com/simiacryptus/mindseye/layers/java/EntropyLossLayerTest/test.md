@@ -1,13 +1,7 @@
 ### Json Serialization
-Code from [LayerTestBase.java:57](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L57) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
 ```java
-    NNLayer layer = getLayer();
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+  
 ```
 
 Returns: 
@@ -15,27 +9,27 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.EntropyLossLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c0002dd14",
+      "id": "bdd6bbba-380b-47fe-a761-c2410002dcb7",
       "isFrozen": false,
-      "name": "EntropyLossLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd14"
+      "name": "EntropyLossLayer/bdd6bbba-380b-47fe-a761-c2410002dcb7"
     }
 ```
 
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:98](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 0.00 seconds: 
 ```java
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
-    Component: EntropyLossLayer/9d13704a-9a5a-4ecb-a687-5c7c0002dd16
-    Inputs: [[ 0.9247776786239017,0.0725986944732927,0.038130581782469974,0.6725266984945635 ], [ 0.4233147752658514,0.5129284631552434,0.7495531193531236,0.06016746659439565 ]]
-    output=[ 3.850880465697442 ]
-    measured/actual: [ [ -0.45774761758821114 ],[ -7.065256912852647 ],[ -19.657529115590933 ],[ -0.0894647911309221 ] ]
-    implemented/expected: [ [ -0.4577476133461148 ],[ -7.065257397210322 ],[ -19.657531679669276 ],[ -0.08946480002813156 ] ]
-    error: [ [ -4.242096340867363E-9 ],[ 4.843576757451729E-7 ],[ 2.5640783434255354E-6 ],[ 8.89720946917194E-9 ] ]
+    Component: EntropyLossLayer/bdd6bbba-380b-47fe-a761-c2410002dcb7
+    Inputs: [[ 0.03549154049704306,1.6177526051140623,1.886853947847174,-0.08940176518378173 ], [ 1.2255987461149584,-0.6087742806664189,-0.8873851297285049,-0.890889048479242 ]]
+    output=[ 4.091613501273566 ]
+    measured/actual: [ [ -34.531650731750574 ],[ 0.0 ],[ 0.0 ],[ 0.0 ] ]
+    implemented/expected: [ [ -34.53213720652863 ],[ 0.0 ],[ 0.0 ],[ 0.0 ] ]
+    error: [ [ 4.8647477805729977E-4 ],[ 0.0 ],[ 0.0 ],[ 0.0 ] ]
     
 ```
 
@@ -43,7 +37,7 @@ Returns:
 
 ```
     java.lang.AssertionError
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:219)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:220)
     	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:69)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
@@ -54,7 +48,7 @@ Returns:
     	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
     	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
     	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:70)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$6(LayerTestBase.java:75)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$7(LayerTestBase.java:99)
     	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:142)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
@@ -62,7 +56,8 @@ Returns:
     	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:77)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:141)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:74)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:98)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:66)
     	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
     	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
     	at java.lang.reflect.Method.invoke(Method.java:498)

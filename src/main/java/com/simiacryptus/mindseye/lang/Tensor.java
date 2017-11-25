@@ -110,7 +110,7 @@ public class Tensor implements Serializable {
    *
    * @param ds the ds
    */
-  public Tensor(double[] ds) {
+  public Tensor(double... ds) {
     this(ds, ds.length);
   }
   

@@ -1,7 +1,6 @@
 ### Json Serialization
-Code from [LayerTestBase.java:57](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L57) executed in 0.04 seconds: 
+Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.06 seconds: 
 ```java
-    NNLayer layer = getLayer();
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
     assert (echo != null) : "Failed to deserialize";
@@ -15,9 +14,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c00000001",
+      "id": "bdd6bbba-380b-47fe-a761-c24100000001",
       "isFrozen": false,
-      "name": "ConvolutionLayer/9d13704a-9a5a-4ecb-a687-5c7c00000001",
+      "name": "ConvolutionLayer/bdd6bbba-380b-47fe-a761-c24100000001",
       "filter": {
         "dimensions": [
           3,
@@ -38,27 +37,27 @@ Returns:
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.77 seconds: 
+Code from [LayerTestBase.java:98](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 2.00 seconds: 
 ```java
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+    getDerivativeTester().test(layer, outputPrototype, inputPrototype);
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.1131e-18 +- 1.4324e-17 [0.0000e+00 - 1.1102e-16] (972#)
-    relativeTol: 2.2098e-17 +- 5.0341e-17 [0.0000e+00 - 1.4384e-16] (196#)
+    absoluteTol: 8.3952e-18 +- 3.9030e-17 [0.0000e+00 - 2.2204e-16] (972#)
+    relativeTol: 5.7287e-17 +- 7.9585e-17 [0.0000e+00 - 2.0132e-16] (196#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:79](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L79) executed in 20.10 seconds: 
+Code from [LayerTestBase.java:103](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 69.47 seconds: 
 ```java
-    getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
+    getPerformanceTester().test(layer, outputPrototype, inputPrototype);
 ```
 Logging: 
 ```
-    Forward performance: 1198.3191 +- 86.4272 [1110.7118 - 1556.5520]
-    Backward performance: 810.7284 +- 69.5233 [752.0352 - 1155.0317]
+    Forward performance: 4169.8569 +- 111.4655 [3875.3869 - 4603.6777]
+    Backward performance: 2775.4182 +- 59.5984 [2602.0322 - 2923.1829]
     
 ```
 

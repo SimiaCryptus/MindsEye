@@ -1,13 +1,7 @@
 ### Json Serialization
-Code from [LayerTestBase.java:57](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L57) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
 ```java
-    NNLayer layer = getLayer();
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+  
 ```
 
 Returns: 
@@ -15,9 +9,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c00016398",
+      "id": "bdd6bbba-380b-47fe-a761-c24100016365",
       "isFrozen": false,
-      "name": "ConvolutionLayer/9d13704a-9a5a-4ecb-a687-5c7c00016398",
+      "name": "ConvolutionLayer/bdd6bbba-380b-47fe-a761-c24100016365",
       "filter": {
         "dimensions": [
           3,
@@ -33,43 +27,42 @@ Returns:
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:74](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.15 seconds: 
+Code from [LayerTestBase.java:98](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 1.10 seconds: 
 ```java
-    getDerivativeTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.9697e-18 +- 1.4379e-17 [0.0000e+00 - 1.1102e-16] (972#)
-    relativeTol: 2.9697e-17 +- 5.5499e-17 [0.0000e+00 - 1.4419e-16] (196#)
+    absoluteTol: 8.6808e-18 +- 3.8363e-17 [0.0000e+00 - 2.2204e-16] (972#)
+    relativeTol: 4.8907e-17 +- 7.9936e-17 [0.0000e+00 - 2.1636e-16] (196#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:79](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L79) executed in 6.81 seconds: 
+Code from [LayerTestBase.java:103](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 32.73 seconds: 
 ```java
-    getPerformanceTester().test(getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
-    Forward performance: 366.9361 +- 121.9954 [303.5162 - 1251.6222]
-    Backward performance: 313.8544 +- 87.2484 [264.2548 - 920.0983]
+    Forward performance: 1785.7385 +- 437.3376 [1463.7146 - 3036.5587]
+    Backward performance: 1487.3774 +- 226.9126 [1137.8788 - 2724.8494]
     
 ```
 
 ### Reference Implementation
-Code from [LayerTestBase.java:86](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L86) executed in 0.34 seconds: 
+Code from [LayerTestBase.java:122](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L122) executed in 1.02 seconds: 
 ```java
-    System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
-    getEquivalencyTester().test(referenceLayer, getLayer(), outputPrototype, inputPrototype);
+  
 ```
 Logging: 
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "9d13704a-9a5a-4ecb-a687-5c7c00018ee3",
+      "id": "bdd6bbba-380b-47fe-a761-c24100018ead",
       "isFrozen": false,
-      "name": "ConvolutionLayer/9d13704a-9a5a-4ecb-a687-5c7c00018ee3",
+      "name": "ConvolutionLayer/bdd6bbba-380b-47fe-a761-c24100018ead",
       "filter": {
         "dimensions": [
           3,
@@ -86,7 +79,7 @@ Logging:
       "simple": true
     }
     Reference Layer Accuracy:
-    absoluteTol: 8.5901e-02 +- 2.1012e-01 [0.0000e+00 - 9.2702e-01] (972#)
+    absoluteTol: 1.6886e-01 +- 4.2860e-01 [0.0000e+00 - 1.9644e+00] (972#)
     relativeTol: 1.3333e+00 +- 9.4281e-01 [0.0000e+00 - 2.0000e+00] (294#)
     
 ```

@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.data.DoubleStatistics;
-import com.simiacryptus.util.io.KryoUtil;
 import com.simiacryptus.util.lang.TimedResult;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -60,16 +59,16 @@ public class PerformanceTester {
   public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     if (isTestFeedback()) {
       DoubleStatistics statistics = IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-        return testFeedback(component, i, outputPrototype, inputPrototype);
+        return testFeedbackPerformance(component, i, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
       System.out.println(String.format("Forward performance: %.4f +- %.4f [%.4f - %.4f]",
         statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
     }
     if (isTestLearning()) {
-      DoubleStatistics statistics = IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-        return testLearning(component, i, outputPrototype, inputPrototype);
-      }).reduce((a, b) -> a.combine(b)).get();
-      System.out.println(String.format("Backward performance: %.4f +- %.4f [%.4f - %.4f]",
+      DoubleStatistics statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
+        return testLearningPerformance(component, i, outputPrototype, inputPrototype);
+      }).reduce((a, b) -> a.combine(b)).orElseGet(()->null);
+      if(null != statistics) System.out.println(String.format("Backward performance: %.4f +- %.4f [%.4f - %.4f]",
         statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
     }
   }
@@ -152,7 +151,7 @@ public class PerformanceTester {
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    */
-  protected DoubleStatistics testFeedback(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  protected DoubleStatistics testFeedbackPerformance(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     try {
       return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
         TimedResult.time(()->getFeedbackGradient(component, i, outputPrototype, inputPrototype)).timeNanos
@@ -171,7 +170,7 @@ public class PerformanceTester {
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    */
-  protected DoubleStatistics testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  protected DoubleStatistics testLearningPerformance(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     try {
       return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
         TimedResult.time(()->getLearningGradient(component, i, outputPrototype, inputPrototype)).timeNanos

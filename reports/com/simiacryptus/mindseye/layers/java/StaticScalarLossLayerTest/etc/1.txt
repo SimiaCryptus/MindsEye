@@ -4,7 +4,8 @@ java.lang.RuntimeException: java.lang.ArrayIndexOutOfBoundsException: 0
 	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:77)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
 	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:141)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:74)
+	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:83)
+	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:59)
 	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.lang.reflect.Method.invoke(Method.java:498)
@@ -48,8 +49,8 @@ Caused by: java.lang.ArrayIndexOutOfBoundsException: 0
 	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
 	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
 	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:75)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$6(LayerTestBase.java:75)
+	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$6(LayerTestBase.java:84)
 	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:142)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
 	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-	... 34 more
+	... 35 more

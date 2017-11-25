@@ -71,7 +71,6 @@ public class PolynomialConvolutionTest extends LinearTest {
     });
   }
   
-  @Override
   public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     log.p("This report trains a model using a recursive polynomial convolution layer.");
     DAGNetwork network = buildModel(log);
