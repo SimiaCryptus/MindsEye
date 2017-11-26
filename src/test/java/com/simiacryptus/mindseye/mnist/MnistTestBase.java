@@ -78,6 +78,16 @@ public abstract class MnistTestBase {
     }
   }
   
+  /**
+   * Test nn layer.
+   *
+   * @param log            the log
+   * @param monitoringRoot the monitoring root
+   * @param monitor        the monitor
+   * @param trainingData   the training data
+   * @param history        the history
+   * @return the nn layer
+   */
   public NNLayer _test(NotebookOutput log, MonitoredObject monitoringRoot, TrainingMonitor monitor, Tensor[][] trainingData, List<Step> history) {
     DAGNetwork network = buildModel(log);
     addMonitoring(network, monitoringRoot);
@@ -231,10 +241,23 @@ public abstract class MnistTestBase {
     });
   }
   
+  /**
+   * Parse int.
+   *
+   * @param label the label
+   * @return the int
+   */
   public int parse(String label) {
     return Integer.parseInt(label.replaceAll("[^\\d]", ""));
   }
   
+  /**
+   * Predict int [ ].
+   *
+   * @param network       the network
+   * @param labeledObject the labeled object
+   * @return the int [ ]
+   */
   public int[] predict(NNLayer network, LabeledObject<Tensor> labeledObject) {
     double[] predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> network.eval(ctx, labeledObject.data).getData().get(0).getData());
     return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();

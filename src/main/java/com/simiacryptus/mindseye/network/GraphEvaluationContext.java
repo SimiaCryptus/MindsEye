@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * This class provides the index for re-using the output 
+ * This class provides the index for re-using the output
  * of any given node during a single network evaluation,
  * such that each node is executed minimally.
  */

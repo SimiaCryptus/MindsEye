@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.opt.orient.DescribeOrientationWrapper;
 
 /**
  * This exact line search method uses a linear interpolation of the derivative to find the extrema, where dx/dy = 0.
- * Bracketing conditions are established with logic that largely ignores derivatives, due to heuristic observations. 
+ * Bracketing conditions are established with logic that largely ignores derivatives, due to heuristic observations.
  */
 public class QuadraticSearch implements LineSearchStrategy {
   
@@ -149,9 +149,9 @@ public class QuadraticSearch implements LineSearchStrategy {
   /**
    * Is same boolean.
    *
-   * @param a the a
-   * @param b the b
-   * @param slack
+   * @param a     the a
+   * @param b     the b
+   * @param slack the slack
    * @return the boolean
    */
   protected boolean isSame(double a, double b, double slack) {
@@ -160,6 +160,15 @@ public class QuadraticSearch implements LineSearchStrategy {
     return diff < absoluteTolerance || diff < (scale * relativeTolerance);
   }
   
+  /**
+   * Is same boolean.
+   *
+   * @param cursor  the cursor
+   * @param monitor the monitor
+   * @param a       the a
+   * @param b       the b
+   * @return the boolean
+   */
   protected boolean isSame(LineSearchCursor cursor, TrainingMonitor monitor, LineSearchPoint a, LineSearchPoint b) {
     if(isSame(a.point.rate, b.point.rate, 1.0)) {
       if(!isSame(a.point.getMean(), b.point.getMean(), 10.0)) {

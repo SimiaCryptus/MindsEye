@@ -47,8 +47,8 @@ public interface Trainable {
   /**
    * Reset sampling boolean.
    *
+   * @param seed the seed
    * @return the boolean
-   * @param seed
    */
   default boolean reseed(long seed) {
     return false;

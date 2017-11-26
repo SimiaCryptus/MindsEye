@@ -53,7 +53,11 @@ import java.util.stream.Stream;
 public abstract class LayerTestBase {
   private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);
   
+  /**
+   * The constant originalOut.
+   */
   protected static final PrintStream originalOut = System.out;
+  
   /**
    * Test derivatives.
    *
@@ -66,6 +70,11 @@ public abstract class LayerTestBase {
     }
   }
   
+  /**
+   * Test.
+   *
+   * @param log the log
+   */
   public void test(NotebookOutput log) {
     if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
     NNLayer layer = getLayer();
@@ -138,6 +147,12 @@ public abstract class LayerTestBase {
   
   }
   
+  /**
+   * To graph graph.
+   *
+   * @param network the network
+   * @return the graph
+   */
   public static Graph toGraph(DAGNetwork network) {
     List<DAGNode> nodes = network.getNodes();
     Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
@@ -168,18 +183,38 @@ public abstract class LayerTestBase {
     return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
   }
   
+  /**
+   * Random double.
+   *
+   * @return the double
+   */
   public double random() {
     return Math.round(1000 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
   }
   
+  /**
+   * Gets equivalency tester.
+   *
+   * @return the equivalency tester
+   */
   public EquivalencyTester getEquivalencyTester() {
     return new EquivalencyTester(1e-2);
   }
   
+  /**
+   * Gets performance tester.
+   *
+   * @return the performance tester
+   */
   public PerformanceTester getPerformanceTester() {
     return new PerformanceTester();
   }
   
+  /**
+   * Gets reference io.
+   *
+   * @return the reference io
+   */
   protected HashMap<Tensor[], Tensor> getReferenceIO() {
     return new HashMap<>();
   }
@@ -200,6 +235,11 @@ public abstract class LayerTestBase {
    */
   public abstract NNLayer getLayer();
   
+  /**
+   * Gets reference layer.
+   *
+   * @return the reference layer
+   */
   public NNLayer getReferenceLayer() {
     return null;
   }

@@ -39,7 +39,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * This basic training class provides support for a sequence of independant training configuration, 
+ * This basic training class provides support for a sequence of independant training configuration,
  * e.g. Generative Adversarial Networks.
  */
 public class RoundRobinTrainer {

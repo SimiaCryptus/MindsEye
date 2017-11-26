@@ -71,8 +71,8 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *  @param filter the filter
    *
+   * @param filter the filter
    */
   protected ConvolutionLayer(Tensor filter) {
     super();
@@ -85,7 +85,8 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *  @param width  the width
+   *
+   * @param width  the width
    * @param height the height
    * @param bands  the bands
    */
@@ -95,7 +96,8 @@ public class ConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *  @param width       the width
+   *
+   * @param width       the width
    * @param height      the height
    * @param inputBands  the input bands
    * @param outputBands the output bands

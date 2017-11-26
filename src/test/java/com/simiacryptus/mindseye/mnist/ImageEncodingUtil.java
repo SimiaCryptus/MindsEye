@@ -264,6 +264,14 @@ class ImageEncodingUtil {
     return convolutionFeatures(tensors, radius, Math.max(3, radius));
   }
   
+  /**
+   * Convolution features tensor [ ] [ ].
+   *
+   * @param tensors the tensors
+   * @param radius  the radius
+   * @param padding the padding
+   * @return the tensor [ ] [ ]
+   */
   protected Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius, int padding) {
     return tensors.parallel().flatMap(image -> {
       return IntStream.range(0, image[1].getDimensions()[0] - (radius - 1)).filter(x -> 1 == radius || 0 == x % padding).mapToObj(x -> x).flatMap(x -> {
@@ -366,8 +374,7 @@ class ImageEncodingUtil {
   /**
    * Gets monitor.
    *
-   *
-   * @param history     the history
+   * @param history the history
    * @return the monitor
    */
   protected TrainingMonitor getMonitor(List<Step> history) {

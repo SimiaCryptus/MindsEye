@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * This training class attempts to manage the sample size hyperparameter 
+ * This training class attempts to manage the sample size hyperparameter
  * and convergence criteria via the periodic evaluation of a validation function.
  * It uses an itermediate "epoch" loop where a target learning improvement and overtraining ratio are sought.
  * It also supports multiple stages to each epoch, allowing use cases such as GAN and layerwise training.
@@ -213,8 +213,9 @@ public class ValidatingTrainer {
    * Epoch runPhase result.
    *
    * @param epochParams the runPhase params
-   * @param phase
-   * @param i
+   * @param phase       the phase
+   * @param i           the
+   * @param seed        the seed
    * @return the runPhase result
    */
   protected EpochResult runPhase(EpochParams epochParams, TrainingPhase phase, int i, long seed) {
@@ -259,7 +260,7 @@ public class ValidatingTrainer {
    * Step runStep result.
    *
    * @param previousPoint the previous point
-   * @param phase
+   * @param phase         the phase
    * @return the runStep result
    */
   protected StepResult runStep(PointSample previousPoint, TrainingPhase phase) {
@@ -745,6 +746,11 @@ public class ValidatingTrainer {
     this.improvmentStaleThreshold = improvmentStaleThreshold;
   }
   
+  /**
+   * Gets regimen.
+   *
+   * @return the regimen
+   */
   public List<TrainingPhase> getRegimen() {
     return regimen;
   }
@@ -797,10 +803,11 @@ public class ValidatingTrainer {
   
     /**
      * Instantiates a new Epoch result.
-     * @param continueTraining  the continue training
-     * @param priorPoint        the prior point
-     * @param currentPoint      the current point
-     * @param iterations        the iterations
+     *
+     * @param continueTraining the continue training
+     * @param priorPoint       the prior point
+     * @param currentPoint     the current point
+     * @param iterations       the iterations
      */
     public EpochResult(boolean continueTraining, PointSample priorPoint, PointSample currentPoint, int iterations) {
       this.priorPoint = priorPoint;
@@ -812,6 +819,9 @@ public class ValidatingTrainer {
   }
   
   private class StepResult {
+    /**
+     * The Performance.
+     */
     final double[] performance;
     /**
      * The Current point.
@@ -824,9 +834,10 @@ public class ValidatingTrainer {
   
     /**
      * Instantiates a new Step result.
-     *  @param previous     the previous
+     *
+     * @param previous     the previous
      * @param currentPoint the current point
-     * @param performance
+     * @param performance  the performance
      */
     public StepResult(PointSample previous, PointSample currentPoint, double[] performance) {
       this.currentPoint = currentPoint;
@@ -837,48 +848,100 @@ public class ValidatingTrainer {
   }
   
   
+  /**
+   * The type Training phase.
+   */
   public static class TrainingPhase {
     private SampledTrainable trainingSubject;
     private OrientationStrategy orientation = new QQN();
     private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
     private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   
+    /**
+     * Instantiates a new Training phase.
+     *
+     * @param trainingSubject the training subject
+     */
     public TrainingPhase(SampledTrainable trainingSubject) {
       this.setTrainingSubject(trainingSubject);
     }
   
   
+    /**
+     * Gets training subject.
+     *
+     * @return the training subject
+     */
     public SampledTrainable getTrainingSubject() {
       return trainingSubject;
     }
   
+    /**
+     * Sets training subject.
+     *
+     * @param trainingSubject the training subject
+     * @return the training subject
+     */
     public TrainingPhase setTrainingSubject(SampledTrainable trainingSubject) {
       this.trainingSubject = trainingSubject;
       return this;
     }
   
+    /**
+     * Gets orientation.
+     *
+     * @return the orientation
+     */
     public OrientationStrategy getOrientation() {
       return orientation;
     }
   
+    /**
+     * Sets orientation.
+     *
+     * @param orientation the orientation
+     * @return the orientation
+     */
     public TrainingPhase setOrientation(OrientationStrategy orientation) {
       this.orientation = orientation;
       return this;
     }
   
+    /**
+     * Gets line search factory.
+     *
+     * @return the line search factory
+     */
     public Function<String, LineSearchStrategy> getLineSearchFactory() {
       return lineSearchFactory;
     }
   
+    /**
+     * Sets line search factory.
+     *
+     * @param lineSearchFactory the line search factory
+     * @return the line search factory
+     */
     public TrainingPhase setLineSearchFactory(Function<String, LineSearchStrategy> lineSearchFactory) {
       this.lineSearchFactory = lineSearchFactory;
       return this;
     }
   
+    /**
+     * Gets line search strategy map.
+     *
+     * @return the line search strategy map
+     */
     public Map<String, LineSearchStrategy> getLineSearchStrategyMap() {
       return lineSearchStrategyMap;
     }
   
+    /**
+     * Sets line search strategy map.
+     *
+     * @param lineSearchStrategyMap the line search strategy map
+     * @return the line search strategy map
+     */
     public TrainingPhase setLineSearchStrategyMap(Map<String, LineSearchStrategy> lineSearchStrategyMap) {
       this.lineSearchStrategyMap = lineSearchStrategyMap;
       return this;
@@ -896,6 +959,11 @@ public class ValidatingTrainer {
   
   private class PerformanceWrapper extends TrainableWrapper<SampledTrainable> implements SampledTrainable {
   
+    /**
+     * Instantiates a new Performance wrapper.
+     *
+     * @param trainingSubject the training subject
+     */
     public PerformanceWrapper(SampledTrainable trainingSubject) {
       super(trainingSubject);
     }

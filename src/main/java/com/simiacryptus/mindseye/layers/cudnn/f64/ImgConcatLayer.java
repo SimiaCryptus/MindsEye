@@ -41,7 +41,7 @@ import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 public class ImgConcatLayer extends NNLayer {
   
   private int maxBands = -1;
-
+  
   /**
    * Instantiates a new Img concat layer.
    *
@@ -155,10 +155,21 @@ public class ImgConcatLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Gets max bands.
+   *
+   * @return the max bands
+   */
   public int getMaxBands() {
     return maxBands;
   }
   
+  /**
+   * Sets max bands.
+   *
+   * @param maxBands the max bands
+   * @return the max bands
+   */
   public ImgConcatLayer setMaxBands(int maxBands) {
     this.maxBands = maxBands;
     return this;

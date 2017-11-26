@@ -21,25 +21,56 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.util.data.DoubleStatistics;
 
+/**
+ * The type Tolerance statistics.
+ */
 public class ToleranceStatistics {
+  /**
+   * The Absolute tol.
+   */
   public final DoubleStatistics absoluteTol;
+  /**
+   * The Relative tol.
+   */
   public final DoubleStatistics relativeTol;
-
+  
+  /**
+   * Instantiates a new Tolerance statistics.
+   */
   public ToleranceStatistics() {
     this(new DoubleStatistics(),new DoubleStatistics());
   }
-
+  
+  /**
+   * Instantiates a new Tolerance statistics.
+   *
+   * @param absoluteTol the absolute tol
+   * @param relativeTol the relative tol
+   */
   public ToleranceStatistics(DoubleStatistics absoluteTol, DoubleStatistics relativeTol) {
     this.absoluteTol = absoluteTol;
     this.relativeTol = relativeTol;
   }
-
+  
+  /**
+   * Accumulate tolerance statistics.
+   *
+   * @param target the target
+   * @param val    the val
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics accumulate(double target, double val) {
     absoluteTol.accept(Math.abs(target-val));
     if(Double.isFinite(val+target) && val!=-target) relativeTol.accept(Math.abs(target-val) / (Math.abs(val)+Math.abs(target)));
     return this;
   }
-
+  
+  /**
+   * Combine tolerance statistics.
+   *
+   * @param right the right
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics combine(ToleranceStatistics right) {
     return new ToleranceStatistics(
       absoluteTol.combine(right.absoluteTol),

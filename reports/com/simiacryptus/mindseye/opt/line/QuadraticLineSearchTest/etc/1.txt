@@ -1,0 +1,1642 @@
+Constructing line search parameters: GD
+Returning cached value; 2 buffers unchanged since 0.0 => 2.5629102336749554
+F(0.0) = LineSearchPoint{point=PointSample{avg=2.5629102336749554}, derivative=-542689.5964178878}
+New Minimum: 2.5629102336749554 > 2.5628833736797487
+F(1.0E-10) = LineSearchPoint{point=PointSample{avg=2.5628833736797487}, derivative=-542671.6536499622}, delta = -2.6859995206685028E-5
+New Minimum: 2.5628833736797487 > 2.562722232607343
+F(7.000000000000001E-10) = LineSearchPoint{point=PointSample{avg=2.562722232607343}, derivative=-542563.999534474}, delta = -1.8800106761229785E-4
+New Minimum: 2.562722232607343 > 2.5615951521453453
+F(4.900000000000001E-9) = LineSearchPoint{point=PointSample{avg=2.5615951521453453}, derivative=-541810.5407307594}, delta = -0.0013150815296101293
+New Minimum: 2.5615951521453453 > 2.5537499995038644
+F(3.430000000000001E-8) = LineSearchPoint{point=PointSample{avg=2.5537499995038644}, derivative=-536542.3629144948}, delta = -0.00916023417109102
+New Minimum: 2.5537499995038644 > 2.5009966104168764
+F(2.4010000000000004E-7) = LineSearchPoint{point=PointSample{avg=2.5009966104168764}, derivative=-500012.49900408677}, delta = -0.06191362325807903
+New Minimum: 2.5009966104168764 > 2.2300007993046105
+F(1.6807000000000003E-6) = LineSearchPoint{point=PointSample{avg=2.2300007993046105}, derivative=-274728.3633517809}, delta = -0.3329094343703449
+F(1.1764900000000001E-5) = LineSearchPoint{point=PointSample{avg=2.610973688340347}, derivative=239238.90911751371}, delta = 0.048063454665391525
+F(1.1764900000000001E-7) = LineSearchPoint{point=PointSample{avg=2.5319302792353837}, derivative=-521669.43440666323}, delta = -0.03097995443957169
+F(8.235430000000001E-7) = LineSearchPoint{point=PointSample{avg=2.3714148966637767}, derivative=-401277.4598236619}, delta = -0.1914953370111787
+New Minimum: 2.2300007993046105 > 2.085899859269844
+F(5.7648010000000005E-6) = LineSearchPoint{point=PointSample{avg=2.085899859269844}, derivative=66630.64559801338}, delta = -0.4770103744051113
+2.085899859269844 <= 2.5629102336749554
+New Minimum: 2.085899859269844 > 2.068345912286701
+Returning cached value; 2 buffers unchanged since 0.0 => 2.068345912286701
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=2.5629102336749554}, derivative=-542689.5964178878}; rightPoint=LineSearchPoint{point=PointSample{avg=2.085899859269844}, derivative=66630.64559801338}
+F(5.1344060354354566E-6) = LineSearchPoint{point=PointSample{avg=2.068345912286701}, derivative=32660.23981974395}, delta = -0.49456432138825424
+Right bracket at 5.1344060354354566E-6
+New Minimum: 2.068345912286701 > 2.0639973914128587
+Returning cached value; 2 buffers unchanged since 0.0 => 2.0639973914128587
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=2.5629102336749554}, derivative=-542689.5964178878}; rightPoint=LineSearchPoint{point=PointSample{avg=2.068345912286701}, derivative=32660.23981974395}
+F(4.842946958040321E-6) = LineSearchPoint{point=PointSample{avg=2.0639973914128587}, derivative=15294.023423970853}, delta = -0.49891284226209676
+Right bracket at 4.842946958040321E-6
+New Minimum: 2.0639973914128587 > 2.0628696564151836
+Returning cached value; 2 buffers unchanged since 0.0 => 2.0628696564151836
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=2.5629102336749554}, derivative=-542689.5964178878}; rightPoint=LineSearchPoint{point=PointSample{avg=2.0639973914128587}, derivative=15294.023423970853}
+F(4.710204451659382E-6) = LineSearchPoint{point=PointSample{avg=2.0628696564151836}, derivative=7005.338204177106}, delta = -0.5000405772597718
+Right bracket at 4.710204451659382E-6
+New Minimum: 2.0628696564151836 > 2.062541324898355
+Returning cached value; 2 buffers unchanged since 0.0 => 2.062541324898355
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=2.5629102336749554}, derivative=-542689.5964178878}; rightPoint=LineSearchPoint{point=PointSample{avg=2.0628696564151836}, derivative=7005.338204177106}
+F(4.650177383705079E-6) = LineSearchPoint{point=PointSample{avg=2.062541324898355}, derivative=3175.8826268836583}, delta = -0.5003689087766006
+Right bracket at 4.650177383705079E-6
+Converged to right
+Iteration 1 complete. Error: 2.062541324898355 Total: 180105850897316.0600; Orientation: 0.0004; Line Search: 4.2236
+Returning cached value; 2 buffers unchanged since 0.0 => 2.1557293612019937
+F(0.0) = LineSearchPoint{point=PointSample{avg=2.1557293612019937}, derivative=-517316.5942082825}
+New Minimum: 2.1557293612019937 > 1.709266349662013
+F(4.650177383705079E-6) = LineSearchPoint{point=PointSample{avg=1.709266349662013}, derivative=87418.90209173867}, delta = -0.4464630115399806
+1.709266349662013 <= 2.1557293612019937
+New Minimum: 1.709266349662013 > 1.6919493267707706
+Returning cached value; 2 buffers unchanged since 0.0 => 1.6919493267707706
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=2.1557293612019937}, derivative=-517316.5942082825}; rightPoint=LineSearchPoint{point=PointSample{avg=1.709266349662013}, derivative=87418.90209173867}
+F(3.977960515499856E-6) = LineSearchPoint{point=PointSample{avg=1.6919493267707706}, derivative=17393.968493601908}, delta = -0.46378003443122306
+Right bracket at 3.977960515499856E-6
+New Minimum: 1.6919493267707706 > 1.6913696232754196
+Returning cached value; 2 buffers unchanged since 0.0 => 1.6913696232754196
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=2.1557293612019937}, derivative=-517316.5942082825}; rightPoint=LineSearchPoint{point=PointSample{avg=1.6919493267707706}, derivative=17393.968493601908}
+F(3.848558695708289E-6) = LineSearchPoint{point=PointSample{avg=1.6913696232754196}, derivative=3492.128259439497}, delta = -0.46435973792657403
+Right bracket at 3.848558695708289E-6
+Converged to right
+Iteration 2 complete. Error: 1.6913696232754196 Total: 180106932144080.1600; Orientation: 0.0014; Line Search: 0.8206
+Returning cached value; 2 buffers unchanged since 0.0 => 1.7368950810646244
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.7368950810646244}, derivative=-317629.35984810314}
+New Minimum: 1.7368950810646244 > 1.4202143956133688
+F(3.848558695708289E-6) = LineSearchPoint{point=PointSample{avg=1.4202143956133688}, derivative=-14236.746150864585}, delta = -0.3166806854512556
+F(2.693991086995802E-5) = LineSearchPoint{point=PointSample{avg=5.05992673656466}, derivative=429680.927685629}, delta = 3.3230316555000354
+F(2.693991086995802E-7) = LineSearchPoint{point=PointSample{avg=1.695520071504029}, derivative=-297367.85765970976}, delta = -0.041375009560595366
+F(1.8857937608970613E-6) = LineSearchPoint{point=PointSample{avg=1.507296414490672}, derivative=-167677.98345756307}, delta = -0.22959866657395245
+F(1.3200556326279429E-5) = LineSearchPoint{point=PointSample{avg=2.3563157966972827}, derivative=327135.0671290032}, delta = 0.6194207156326583
+F(1.320055632627943E-7) = LineSearchPoint{point=PointSample{avg=1.7162799968549471}, derivative=-307771.0736663}, delta = -0.02061508420967728
+F(9.240389428395601E-7) = LineSearchPoint{point=PointSample{avg=1.6066422718119537}, derivative=-246087.45393047782}, delta = -0.1302528092526707
+F(6.46827259987692E-6) = LineSearchPoint{point=PointSample{avg=1.5106206127888546}, derivative=140386.79592955753}, delta = -0.2262744682757698
+1.5106206127888546 <= 1.7368950810646244
+Returning cached value; 2 buffers unchanged since 0.0 => 1.4228848649584471
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.7368950810646244}, derivative=-317629.35984810314}; rightPoint=LineSearchPoint{point=PointSample{avg=1.5106206127888546}, derivative=140386.79592955753}
+F(4.485678636670788E-6) = LineSearchPoint{point=PointSample{avg=1.4228848649584471}, derivative=29464.708042309423}, delta = -0.3140102161061773
+Right bracket at 4.485678636670788E-6
+New Minimum: 1.4202143956133688 > 1.4196101044816598
+Returning cached value; 2 buffers unchanged since 0.0 => 1.4196101044816598
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.7368950810646244}, derivative=-317629.35984810314}; rightPoint=LineSearchPoint{point=PointSample{avg=1.4228848649584471}, derivative=29464.708042309423}
+F(4.10489076494358E-6) = LineSearchPoint{point=PointSample{avg=1.4196101044816598}, derivative=3803.320908024158}, delta = -0.3172849765829646
+Right bracket at 4.10489076494358E-6
+New Minimum: 1.4196101044816598 > 1.4195476840087087
+Returning cached value; 2 buffers unchanged since 0.0 => 1.4195476840087087
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.7368950810646244}, derivative=-317629.35984810314}; rightPoint=LineSearchPoint{point=PointSample{avg=1.4196101044816598}, derivative=3803.320908024158}
+F(4.056320044521688E-6) = LineSearchPoint{point=PointSample{avg=1.4195476840087087}, derivative=431.2891371948718}, delta = -0.31734739705591575
+Right bracket at 4.056320044521688E-6
+Converged to right
+Iteration 3 complete. Error: 1.4195476840087087 Total: 180110218075437.0600; Orientation: 0.0005; Line Search: 3.0078
+Returning cached value; 2 buffers unchanged since 0.0 => 1.4833725640621394
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.4833725640621394}, derivative=-255548.5793021}
+New Minimum: 1.4833725640621394 > 1.2776770341634895
+F(4.056320044521688E-6) = LineSearchPoint{point=PointSample{avg=1.2776770341634895}, derivative=59996.04513132033}, delta = -0.2056955298986498
+1.2776770341634895 <= 1.4833725640621394
+New Minimum: 1.2776770341634895 > 1.2658921624675743
+Returning cached value; 2 buffers unchanged since 0.0 => 1.2658921624675743
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.4833725640621394}, derivative=-255548.5793021}; rightPoint=LineSearchPoint{point=PointSample{avg=1.2776770341634895}, derivative=59996.04513132033}
+F(3.2850720446700796E-6) = LineSearchPoint{point=PointSample{avg=1.2658921624675743}, derivative=-732.7062635242123}, delta = -0.21748040159456505
+Left bracket at 3.2850720446700796E-6
+Converged to left
+Iteration 4 complete. Error: 1.2658921624675743 Total: 180111017820833.7800; Orientation: 0.0007; Line Search: 0.5258
+Returning cached value; 2 buffers unchanged since 0.0 => 1.253109351194515
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.253109351194515}, derivative=-125063.8649453679}
+New Minimum: 1.253109351194515 > 1.1233421835056174
+F(3.2850720446700796E-6) = LineSearchPoint{point=PointSample{avg=1.1233421835056174}, derivative=-35506.28957591476}, delta = -0.12976716768889762
+F(2.299550431269056E-5) = LineSearchPoint{point=PointSample{avg=2.328855738606081}, derivative=204709.67108088234}, delta = 1.075746387411566
+F(2.299550431269056E-7) = LineSearchPoint{point=PointSample{avg=1.2391633392652208}, derivative=-118629.45491805591}, delta = -0.013946011929294233
+F(1.609685301888339E-6) = LineSearchPoint{point=PointSample{avg=1.171028334050254}, derivative=-80253.19141539758}, delta = -0.08208101714426097
+F(1.1267797113218374E-5) = LineSearchPoint{point=PointSample{avg=1.3261758022867554}, derivative=118468.02982298635}, delta = 0.0730664510922403
+F(1.1267797113218374E-7) = LineSearchPoint{point=PointSample{avg=1.2461830704911465}, derivative=-121911.26381797457}, delta = -0.006926280703368537
+F(7.887457979252862E-7) = LineSearchPoint{point=PointSample{avg=1.2083660686574247}, derivative=-103009.73895561206}, delta = -0.04474328253709037
+New Minimum: 1.1233421835056174 > 1.1152723516578475
+F(5.521220585477003E-6) = LineSearchPoint{point=PointSample{avg=1.1152723516578475}, derivative=18262.20283905494}, delta = -0.1378369995366675
+1.1152723516578475 <= 1.253109351194515
+New Minimum: 1.1152723516578475 > 1.1113873371256169
+Returning cached value; 2 buffers unchanged since 0.0 => 1.1113873371256169
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.253109351194515}, derivative=-125063.8649453679}; rightPoint=LineSearchPoint{point=PointSample{avg=1.1152723516578475}, derivative=18262.20283905494}
+F(4.817722249062689E-6) = LineSearchPoint{point=PointSample{avg=1.1113873371256169}, derivative=2214.856421667391}, delta = -0.14172201406889817
+Right bracket at 4.817722249062689E-6
+New Minimum: 1.1113873371256169 > 1.111304516694847
+Returning cached value; 2 buffers unchanged since 0.0 => 1.111304516694847
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.253109351194515}, derivative=-125063.8649453679}; rightPoint=LineSearchPoint{point=PointSample{avg=1.1113873371256169}, derivative=2214.856421667391}
+F(4.733886059112482E-6) = LineSearchPoint{point=PointSample{avg=1.111304516694847}, derivative=247.12707655770623}, delta = -0.14180483449966808
+Right bracket at 4.733886059112482E-6
+Converged to right
+Iteration 5 complete. Error: 1.111304516694847 Total: 180114002341376.9700; Orientation: 0.0004; Line Search: 2.7120
+Returning cached value; 2 buffers unchanged since 0.0 => 1.11759510646396
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.11759510646396}, derivative=-138531.49318526578}
+New Minimum: 1.11759510646396 > 1.0409238735886972
+F(4.733886059112482E-6) = LineSearchPoint{point=PointSample{avg=1.0409238735886972}, derivative=48476.13833105077}, delta = -0.07667123287526278
+1.0409238735886972 <= 1.11759510646396
+New Minimum: 1.0409238735886972 > 1.0209447885376084
+Returning cached value; 2 buffers unchanged since 0.0 => 1.0209447885376084
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.11759510646396}, derivative=-138531.49318526578}; rightPoint=LineSearchPoint{point=PointSample{avg=1.0409238735886972}, derivative=48476.13833105077}
+F(3.5067676063291947E-6) = LineSearchPoint{point=PointSample{avg=1.0209447885376084}, derivative=12514.04547378223}, delta = -0.09665031792635159
+Right bracket at 3.5067676063291947E-6
+New Minimum: 1.0209447885376084 > 1.0196086343984418
+Returning cached value; 2 buffers unchanged since 0.0 => 1.0196086343984418
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.11759510646396}, derivative=-138531.49318526578}; rightPoint=LineSearchPoint{point=PointSample{avg=1.0209447885376084}, derivative=12514.04547378223}
+F(3.2162337072072344E-6) = LineSearchPoint{point=PointSample{avg=1.0196086343984418}, derivative=2862.852022360687}, delta = -0.09798647206551814
+Right bracket at 3.2162337072072344E-6
+New Minimum: 1.0196086343984418 > 1.0195036286748256
+Returning cached value; 2 buffers unchanged since 0.0 => 1.0195036286748256
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.11759510646396}, derivative=-138531.49318526578}; rightPoint=LineSearchPoint{point=PointSample{avg=1.0196086343984418}, derivative=2862.852022360687}
+F(3.151113697212901E-6) = LineSearchPoint{point=PointSample{avg=1.0195036286748256}, derivative=634.3732209723596}, delta = -0.09809147778913441
+Right bracket at 3.151113697212901E-6
+Converged to right
+Iteration 6 complete. Error: 1.0195036286748256 Total: 180115434769863.0000; Orientation: 0.0012; Line Search: 1.1478
+Returning cached value; 2 buffers unchanged since 0.0 => 1.0404458050372276
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.0404458050372276}, derivative=-87240.17449762938}
+New Minimum: 1.0404458050372276 > 0.9540920053934412
+F(3.151113697212901E-6) = LineSearchPoint{point=PointSample{avg=0.9540920053934412}, derivative=-20215.05526609784}, delta = -0.08635379964378642
+F(2.205779588049031E-5) = LineSearchPoint{point=PointSample{avg=2.4268507667671027}, derivative=267382.27789972787}, delta = 1.386404961729875
+F(2.2057795880490308E-7) = LineSearchPoint{point=PointSample{avg=1.0310375633682705}, derivative=-82919.97427462481}, delta = -0.009408241668957151
+F(1.5440457116343214E-6) = LineSearchPoint{point=PointSample{avg=0.9849019138497757}, derivative=-55755.82023105049}, delta = -0.055543891187451955
+F(1.080831998144025E-5) = LineSearchPoint{point=PointSample{avg=1.2065154104706273}, derivative=143623.48540128928}, delta = 0.16606960543339966
+F(1.0808319981440251E-7) = LineSearchPoint{point=PointSample{avg=1.0357761942185308}, derivative=-85130.69714999908}, delta = -0.004669610818696768
+F(7.565823987008176E-7) = LineSearchPoint{point=PointSample{avg=1.0101895483813332}, derivative=-72173.51400873315}, delta = -0.030256256655894376
+F(5.296076790905723E-6) = LineSearchPoint{point=PointSample{avg=0.9589410093629024}, derivative=29503.048660005006}, delta = -0.08150479567432523
+0.9589410093629024 <= 1.0404458050372276
+New Minimum: 0.9540920053934412 > 0.9496341981798051
+Returning cached value; 2 buffers unchanged since 0.0 => 0.9496341981798051
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.0404458050372276}, derivative=-87240.17449762938}; rightPoint=LineSearchPoint{point=PointSample{avg=0.9589410093629024}, derivative=29503.048660005006}
+F(3.957665814722247E-6) = LineSearchPoint{point=PointSample{avg=0.9496341981798051}, derivative=-1649.015168387406}, delta = -0.09081160685742251
+Left bracket at 3.957665814722247E-6
+New Minimum: 0.9496341981798051 > 0.9496025452605894
+Returning cached value; 2 buffers unchanged since 0.0 => 0.9496025452605894
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.9496341981798051}, derivative=-1649.015168387406}; rightPoint=LineSearchPoint{point=PointSample{avg=0.9589410093629024}, derivative=29503.048660005006}
+F(4.028513769240471E-6) = LineSearchPoint{point=PointSample{avg=0.9496025452605894}, derivative=-4.810550152280659}, delta = -0.09084325977663821
+Left bracket at 4.028513769240471E-6
+Converged to left
+Iteration 7 complete. Error: 0.9496025452605894 Total: 180118444219460.5600; Orientation: 0.0005; Line Search: 2.7251
+Returning cached value; 2 buffers unchanged since 0.0 => 1.0030481347334634
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.0030481347334634}, derivative=-91270.91902711858}
+New Minimum: 1.0030481347334634 > 0.9365925543132154
+F(4.028513769240471E-6) = LineSearchPoint{point=PointSample{avg=0.9365925543132154}, derivative=19336.933545441843}, delta = -0.06645558042024802
+0.9365925543132154 <= 1.0030481347334634
+New Minimum: 0.9365925543132154 > 0.932634410334358
+Returning cached value; 2 buffers unchanged since 0.0 => 0.932634410334358
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.0030481347334634}, derivative=-91270.91902711858}; rightPoint=LineSearchPoint{point=PointSample{avg=0.9365925543132154}, derivative=19336.933545441843}
+F(3.3242319191647955E-6) = LineSearchPoint{point=PointSample{avg=0.932634410334358}, derivative=2302.2904608365757}, delta = -0.07041372439910543
+Right bracket at 3.3242319191647955E-6
+New Minimum: 0.932634410334358 > 0.932567206980629
+Returning cached value; 2 buffers unchanged since 0.0 => 0.932567206980629
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=1.0030481347334634}, derivative=-91270.91902711858}; rightPoint=LineSearchPoint{point=PointSample{avg=0.932634410334358}, derivative=2302.2904608365757}
+F(3.2424419765200823E-6) = LineSearchPoint{point=PointSample{avg=0.932567206980629}, derivative=255.49194272209073}, delta = -0.07048092775283443
+Right bracket at 3.2424419765200823E-6
+Converged to right
+Iteration 8 complete. Error: 0.932567206980629 Total: 180119544578016.5600; Orientation: 0.0004; Line Search: 0.8248
+Returning cached value; 2 buffers unchanged since 0.0 => 0.9236712827858746
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.9236712827858746}, derivative=-61320.14149398193}
+New Minimum: 0.9236712827858746 > 0.8624745370455233
+F(3.2424419765200823E-6) = LineSearchPoint{point=PointSample{avg=0.8624745370455233}, derivative=-13633.585438093445}, delta = -0.06119674574035128
+F(2.2697093835640575E-5) = LineSearchPoint{point=PointSample{avg=1.8280856665707577}, derivative=173900.11563545009}, delta = 0.904414383784883
+F(2.2697093835640575E-7) = LineSearchPoint{point=PointSample{avg=0.916885306465013}, derivative=-58055.2921495936}, delta = -0.006785976320861642
+F(1.5887965684948402E-6) = LineSearchPoint{point=PointSample{avg=0.8840172312302736}, derivative=-38167.35616939224}, delta = -0.03965405155560098
+F(1.1121575979463882E-5) = LineSearchPoint{point=PointSample{avg=1.0253862567923622}, derivative=91102.30940041445}, delta = 0.10171497400648755
+F(1.1121575979463882E-7) = LineSearchPoint{point=PointSample{avg=0.9202999240378973}, derivative=-59722.42512535694}, delta = -0.0033713587479773377
+F(7.785103185624717E-7) = LineSearchPoint{point=PointSample{avg=0.9019447278687607}, derivative=-50056.915433853406}, delta = -0.02172655491711395
+F(5.4495722299373015E-6) = LineSearchPoint{point=PointSample{avg=0.8652199977002111}, derivative=18739.80158676554}, delta = -0.05845128508566355
+0.8652199977002111 <= 0.9236712827858746
+New Minimum: 0.8624745370455233 > 0.8592698393276401
+Returning cached value; 2 buffers unchanged since 0.0 => 0.8592698393276401
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.9236712827858746}, derivative=-61320.14149398193}; rightPoint=LineSearchPoint{point=PointSample{avg=0.8652199977002111}, derivative=18739.80158676554}
+F(4.1739792380865384E-6) = LineSearchPoint{point=PointSample{avg=0.8592698393276401}, derivative=156.7933126489192}, delta = -0.06440144345823451
+Right bracket at 4.1739792380865384E-6
+Converged to right
+Iteration 9 complete. Error: 0.8592698393276401 Total: 180122208611862.4700; Orientation: 0.0005; Line Search: 2.4018
+Returning cached value; 2 buffers unchanged since 0.0 => 0.8705826445820086
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.8705826445820086}, derivative=-56201.338674541206}
+New Minimum: 0.8705826445820086 > 0.8152202324722146
+F(4.1739792380865384E-6) = LineSearchPoint{point=PointSample{avg=0.8152202324722146}, derivative=1221.4278048051906}, delta = -0.05536241210979398
+0.8152202324722146 <= 0.8705826445820086
+New Minimum: 0.8152202324722146 > 0.8152185337280698
+Returning cached value; 2 buffers unchanged since 0.0 => 0.8152185337280698
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.8705826445820086}, derivative=-56201.338674541206}; rightPoint=LineSearchPoint{point=PointSample{avg=0.8152202324722146}, derivative=1221.4278048051906}
+F(4.0851953878707505E-6) = LineSearchPoint{point=PointSample{avg=0.8152185337280698}, derivative=198.5067675073606}, delta = -0.055364110853938775
+Right bracket at 4.0851953878707505E-6
+Converged to right
+Iteration 10 complete. Error: 0.8152185337280698 Total: 180123007934921.7800; Orientation: 0.0004; Line Search: 0.5413
+Returning cached value; 2 buffers unchanged since 0.0 => 0.8363390610294301
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.8363390610294301}, derivative=-44239.907831967044}
+New Minimum: 0.8363390610294301 > 0.7861430631656267
+F(4.0851953878707505E-6) = LineSearchPoint{point=PointSample{avg=0.7861430631656267}, derivative=-5377.1274542015}, delta = -0.050195997863803465
+F(2.8596367715095252E-5) = LineSearchPoint{point=PointSample{avg=1.851547060632881}, derivative=149562.19439778483}, delta = 1.0152079996034509
+F(2.8596367715095255E-7) = LineSearchPoint{point=PointSample{avg=0.8302311708002503}, derivative=-41545.98118912586}, delta = -0.006107890229179791
+F(2.001745740056668E-6) = LineSearchPoint{point=PointSample{avg=0.8017613269269418}, derivative=-25217.65121605499}, delta = -0.03457773410248832
+F(1.4012220180396675E-5) = LineSearchPoint{point=PointSample{avg=0.979590455786794}, derivative=78588.17913892129}, delta = 0.14325139475736393
+F(1.4012220180396675E-7) = LineSearchPoint{point=PointSample{avg=0.8332978861057181}, derivative=-42921.327609480024}, delta = -0.003041174923712031
+F(9.808554126277673E-7) = LineSearchPoint{point=PointSample{avg=0.8170063730957231}, derivative=-34958.63003493608}, delta = -0.019332687933707016
+F(6.865987888394371E-6) = LineSearchPoint{point=PointSample{avg=0.7972030357375033}, derivative=20341.61603262417}, delta = -0.039136025291926835
+0.7972030357375033 <= 0.8363390610294301
+New Minimum: 0.7861430631656267 > 0.7854849823215682
+Returning cached value; 2 buffers unchanged since 0.0 => 0.7854849823215682
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.8363390610294301}, derivative=-44239.907831967044}; rightPoint=LineSearchPoint{point=PointSample{avg=0.7972030357375033}, derivative=20341.61603262417}
+F(4.70336797866285E-6) = LineSearchPoint{point=PointSample{avg=0.7854849823215682}, derivative=440.5893635450893}, delta = -0.05085407870786196
+Right bracket at 4.70336797866285E-6
+Converged to right
+Iteration 11 complete. Error: 0.7854849823215682 Total: 180125684342529.0000; Orientation: 0.0003; Line Search: 2.4138
+Returning cached value; 2 buffers unchanged since 0.0 => 0.7564243117466067
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.7564243117466067}, derivative=-38868.63994016683}
+New Minimum: 0.7564243117466067 > 0.7148302787466481
+F(4.70336797866285E-6) = LineSearchPoint{point=PointSample{avg=0.7148302787466481}, derivative=3230.356325363266}, delta = -0.041594032999958674
+0.7148302787466481 <= 0.7564243117466067
+New Minimum: 0.7148302787466481 > 0.7146447366140827
+Returning cached value; 2 buffers unchanged since 0.0 => 0.7146447366140827
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.7564243117466067}, derivative=-38868.63994016683}; rightPoint=LineSearchPoint{point=PointSample{avg=0.7148302787466481}, derivative=3230.356325363266}
+F(4.3424673432996076E-6) = LineSearchPoint{point=PointSample{avg=0.7146447366140827}, derivative=399.2769315818479}, delta = -0.04177957513252406
+Right bracket at 4.3424673432996076E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.7146572818165503
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.7564243117466067}, derivative=-38868.63994016683}; rightPoint=LineSearchPoint{point=PointSample{avg=0.7146447366140827}, derivative=399.2769315818479}
+F(4.298313052100767E-6) = LineSearchPoint{point=PointSample{avg=0.7146572818165503}, derivative=48.327953948082296}, delta = -0.04176702993005643
+0.7146572818165503 > 0.7146447366140827
+Iteration 12 complete. Error: 0.7146447366140827 Total: 180126749763875.3000; Orientation: 0.0004; Line Search: 0.7996
+Returning cached value; 2 buffers unchanged since 0.0 => 0.7574580184884951
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.7574580184884951}, derivative=-42928.24816283636}
+New Minimum: 0.7574580184884951 > 0.7182153448946667
+F(4.3424673432996076E-6) = LineSearchPoint{point=PointSample{avg=0.7182153448946667}, derivative=6880.758547952511}, delta = -0.03924267359382849
+0.7182153448946667 <= 0.7574580184884951
+New Minimum: 0.7182153448946667 > 0.7172167062504549
+Returning cached value; 2 buffers unchanged since 0.0 => 0.7172167062504549
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.7574580184884951}, derivative=-42928.24816283636}; rightPoint=LineSearchPoint{point=PointSample{avg=0.7182153448946667}, derivative=6880.758547952511}
+F(3.742586493133178E-6) = LineSearchPoint{point=PointSample{avg=0.7172167062504549}, derivative=-69.19172298483387}, delta = -0.04024131223804028
+Left bracket at 3.742586493133178E-6
+Converged to left
+Iteration 13 complete. Error: 0.7172167062504549 Total: 180127586935772.2500; Orientation: 0.0004; Line Search: 0.5436
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6993831208270878
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6993831208270878}, derivative=-39311.49304373903}
+New Minimum: 0.6993831208270878 > 0.6637721352360819
+F(3.742586493133178E-6) = LineSearchPoint{point=PointSample{avg=0.6637721352360819}, derivative=-531.2095136123455}, delta = -0.03561098559100584
+F(2.6198105451932246E-5) = LineSearchPoint{point=PointSample{avg=1.8620397624899332}, derivative=173691.87505879562}, delta = 1.1626566416628454
+F(2.6198105451932244E-7) = LineSearchPoint{point=PointSample{avg=0.6945571159003374}, derivative=-36702.80597927939}, delta = -0.004826004926750338
+F(1.833867381635257E-6) = LineSearchPoint{point=PointSample{avg=0.6728615575824841}, derivative=-20704.479280176347}, delta = -0.02652156324460364
+F(1.2837071671446799E-5) = LineSearchPoint{point=PointSample{avg=0.8948080818720228}, derivative=97154.72593005926}, delta = 0.195424961044935
+F(1.2837071671446798E-7) = LineSearchPoint{point=PointSample{avg=0.6969758206997846}, derivative=-38035.39263746571}, delta = -0.002407300127303169
+F(8.985950170012758E-7) = LineSearchPoint{point=PointSample{avg=0.6842591627629984}, derivative=-30293.412639616578}, delta = -0.015123958064089393
+F(6.290165119008931E-6) = LineSearchPoint{point=PointSample{avg=0.6824355249301335}, derivative=27466.089875943835}, delta = -0.01694759589695427
+0.6824355249301335 <= 0.6993831208270878
+New Minimum: 0.6637721352360819 > 0.6637633175252895
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6637633175252895
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.6993831208270878}, derivative=-39311.49304373903}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6824355249301335}, derivative=27466.089875943835}
+F(3.7029759315682617E-6) = LineSearchPoint{point=PointSample{avg=0.6637633175252895}, derivative=-957.742810233099}, delta = -0.03561980330179826
+Left bracket at 3.7029759315682617E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6637939382784621
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.6637633175252895}, derivative=-957.742810233099}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6824355249301335}, derivative=27466.089875943835}
+F(3.7901514321540488E-6) = LineSearchPoint{point=PointSample{avg=0.6637939382784621}, derivative=-18.60182645807127}, delta = -0.03558918254862564
+0.6637939382784621 > 0.6637633175252895
+Iteration 14 complete. Error: 0.6637633175252895 Total: 180130558915555.4000; Orientation: 0.0010; Line Search: 2.7000
+Returning cached value; 2 buffers unchanged since 0.0 => 0.7179210720479963
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.7179210720479963}, derivative=-29177.95598120701}
+New Minimum: 0.7179210720479963 > 0.6862431630100165
+F(3.7029759315682617E-6) = LineSearchPoint{point=PointSample{avg=0.6862431630100165}, derivative=-5558.58106266028}, delta = -0.031677909037979735
+F(2.5920831520977832E-5) = LineSearchPoint{point=PointSample{avg=1.1773325808452797}, derivative=81617.11943153889}, delta = 0.45941150879728343
+F(2.5920831520977833E-7) = LineSearchPoint{point=PointSample{avg=0.7142535682974359}, derivative=-27426.55918013023}, delta = -0.0036675037505603525
+F(1.8144582064684484E-6) = LineSearchPoint{point=PointSample{avg=0.6969310440474685}, derivative=-17213.697602251796}, delta = -0.02099002800052774
+F(1.2701207445279139E-5) = LineSearchPoint{point=PointSample{avg=0.76768754918492}, derivative=39021.22078107405}, delta = 0.049766477136923726
+F(1.270120744527914E-7) = LineSearchPoint{point=PointSample{avg=0.7160956497666853}, derivative=-28318.12007910688}, delta = -0.0018254222813109955
+F(8.890845211695397E-7) = LineSearchPoint{point=PointSample{avg=0.7062798236601039}, derivative=-23227.466973191364}, delta = -0.011641248387892378
+F(6.223591648186779E-6) = LineSearchPoint{point=PointSample{avg=0.6883508443563996}, derivative=8664.448615976695}, delta = -0.029570227691596673
+0.6883508443563996 <= 0.7179210720479963
+New Minimum: 0.6862431630100165 > 0.6849525519419384
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6849525519419384
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.7179210720479963}, derivative=-29177.95598120701}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6883508443563996}, derivative=8664.448615976695}
+F(4.798629608471438E-6) = LineSearchPoint{point=PointSample{avg=0.6849525519419384}, derivative=809.6145694229838}, delta = -0.032968520106057886
+Right bracket at 4.798629608471438E-6
+New Minimum: 0.6849525519419384 > 0.6849243782792942
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6849243782792942
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.7179210720479963}, derivative=-29177.95598120701}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6849525519419384}, derivative=809.6145694229838}
+F(4.669074583741321E-6) = LineSearchPoint{point=PointSample{avg=0.6849243782792942}, derivative=71.68610389276043}, delta = -0.03299669376870207
+Right bracket at 4.669074583741321E-6
+Converged to right
+Iteration 15 complete. Error: 0.6849243782792942 Total: 180133500930144.4400; Orientation: 0.0004; Line Search: 2.6566
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6901011099160654
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6901011099160654}, derivative=-19938.24443174266}
+New Minimum: 0.6901011099160654 > 0.6570708233596777
+F(4.669074583741321E-6) = LineSearchPoint{point=PointSample{avg=0.6570708233596777}, derivative=-7677.056948000902}, delta = -0.033030286556387733
+F(3.268352208618925E-5) = LineSearchPoint{point=PointSample{avg=1.021397606260052}, derivative=55459.72451303554}, delta = 0.3312964963439866
+F(3.268352208618925E-7) = LineSearchPoint{point=PointSample{avg=0.6868545300166835}, derivative=-19079.768245732514}, delta = -0.0032465798993819295
+F(2.2878465460332473E-6) = LineSearchPoint{point=PointSample{avg=0.6703303870340896}, derivative=-13927.077752198853}, delta = -0.01977072288197579
+F(1.601492582223273E-5) = LineSearchPoint{point=PointSample{avg=0.6948043182430027}, derivative=21341.541152771355}, delta = 0.004703208326937269
+F(1.601492582223273E-7) = LineSearchPoint{point=PointSample{avg=0.6884927030135213}, derivative=-19517.614485436254}, delta = -0.0016084069025441572
+F(1.1210448075562912E-6) = LineSearchPoint{point=PointSample{avg=0.679551830805132}, derivative=-16993.076236964484}, delta = -0.010549279110933396
+New Minimum: 0.6570708233596777 > 0.6509538912832122
+F(7.847313652894038E-6) = LineSearchPoint{point=PointSample{avg=0.6509538912832122}, derivative=621.6929779782402}, delta = -0.0391472186328532
+0.6509538912832122 <= 0.6901011099160654
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6509554431601263
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.6901011099160654}, derivative=-19938.24443174266}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6509538912832122}, derivative=621.6929779782402}
+F(7.610025975564324E-6) = LineSearchPoint{point=PointSample{avg=0.6509554431601263}, derivative=4.736085455043901}, delta = -0.03914566675593911
+0.6509554431601263 > 0.6509538912832122
+Iteration 16 complete. Error: 0.6509538912832122 Total: 180136159666239.5000; Orientation: 0.0005; Line Search: 2.3981
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6831870544382066
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6831870544382066}, derivative=-32475.632057995354}
+New Minimum: 0.6831870544382066 > 0.6537006696547895
+F(7.847313652894038E-6) = LineSearchPoint{point=PointSample{avg=0.6537006696547895}, derivative=15705.591709961807}, delta = -0.02948638478341714
+0.6537006696547895 <= 0.6831870544382066
+New Minimum: 0.6537006696547895 > 0.6429568990885342
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6429568990885342
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.6831870544382066}, derivative=-32475.632057995354}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6537006696547895}, derivative=15705.591709961807}
+F(5.289331629732399E-6) = LineSearchPoint{point=PointSample{avg=0.6429568990885342}, derivative=1477.6252074697188}, delta = -0.04023015534967245
+Right bracket at 5.289331629732399E-6
+New Minimum: 0.6429568990885342 > 0.6428956000372805
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6428956000372805
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.6831870544382066}, derivative=-32475.632057995354}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6429568990885342}, derivative=1477.6252074697188}
+F(5.059143118342977E-6) = LineSearchPoint{point=PointSample{avg=0.6428956000372805}, derivative=129.7529262072013}, delta = -0.040291454400926074
+Right bracket at 5.059143118342977E-6
+Converged to right
+Iteration 17 complete. Error: 0.6428956000372805 Total: 180137239643997.8400; Orientation: 0.0010; Line Search: 0.8054
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6141594201904375
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6141594201904375}, derivative=-22363.945978845542}
+New Minimum: 0.6141594201904375 > 0.5880087620483947
+F(5.059143118342977E-6) = LineSearchPoint{point=PointSample{avg=0.5880087620483947}, derivative=2086.6133527683846}, delta = -0.02615065814204276
+0.5880087620483947 <= 0.6141594201904375
+New Minimum: 0.5880087620483947 > 0.5877979632231155
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5877979632231155
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.6141594201904375}, derivative=-22363.945978845542}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5880087620483947}, derivative=2086.6133527683846}
+F(4.62739530263344E-6) = LineSearchPoint{point=PointSample{avg=0.5877979632231155}, derivative=-127.73842881252695}, delta = -0.02636145696732195
+Left bracket at 4.62739530263344E-6
+Converged to left
+Iteration 18 complete. Error: 0.5877979632231155 Total: 180138044348305.7500; Orientation: 0.0011; Line Search: 0.5336
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5857199576567522
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5857199576567522}, derivative=-16650.00302477019}
+New Minimum: 0.5857199576567522 > 0.5626476759571638
+F(4.62739530263344E-6) = LineSearchPoint{point=PointSample{avg=0.5626476759571638}, derivative=-4432.261872644691}, delta = -0.023072281699588415
+F(3.239176711843408E-5) = LineSearchPoint{point=PointSample{avg=0.8113638355478769}, derivative=32706.14371540354}, delta = 0.22564387789112472
+F(3.2391767118434076E-7) = LineSearchPoint{point=PointSample{avg=0.5831567372270307}, derivative=-15692.792757479723}, delta = -0.002563220429721569
+F(2.2674236982903852E-6) = LineSearchPoint{point=PointSample{avg=0.5709003628367997}, derivative=-10287.37762569558}, delta = -0.014819594819952542
+F(1.5871965888032697E-5) = LineSearchPoint{point=PointSample{avg=0.6013598618234278}, derivative=16012.596988069774}, delta = 0.0156399041666756
+F(1.5871965888032696E-7) = LineSearchPoint{point=PointSample{avg=0.5844446861107733}, derivative=-16178.889503202658}, delta = -0.001275271545978951
+F(1.1110376121622886E-6) = LineSearchPoint{point=PointSample{avg=0.5775607265379087}, derivative=-13435.168941237744}, delta = -0.008159231118843535
+New Minimum: 0.5626476759571638 > 0.5615999010361032
+F(7.77726328513602E-6) = LineSearchPoint{point=PointSample{avg=0.5615999010361032}, derivative=2376.466640636282}, delta = -0.024120056620648977
+0.5615999010361032 <= 0.5857199576567522
+New Minimum: 0.5615999010361032 > 0.5607966572015957
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5607966572015957
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5857199576567522}, derivative=-16650.00302477019}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5615999010361032}, derivative=2376.466640636282}
+F(6.805858338364659E-6) = LineSearchPoint{point=PointSample{avg=0.5607966572015957}, derivative=385.086131064227}, delta = -0.02492330045515656
+Right bracket at 6.805858338364659E-6
+New Minimum: 0.5607966572015957 > 0.5607586223279696
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5607586223279696
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5857199576567522}, derivative=-16650.00302477019}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5607966572015957}, derivative=385.086131064227}
+F(6.652008738159048E-6) = LineSearchPoint{point=PointSample{avg=0.5607586223279696}, derivative=61.29700038942505}, delta = -0.02496133532878264
+Right bracket at 6.652008738159048E-6
+Converged to right
+Iteration 19 complete. Error: 0.5607586223279696 Total: 180140999684211.9700; Orientation: 0.0003; Line Search: 2.6901
+Returning cached value; 2 buffers unchanged since 0.0 => 0.64694312060978
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.64694312060978}, derivative=-17272.489575438136}
+New Minimum: 0.64694312060978 > 0.6278726845404956
+F(6.652008738159048E-6) = LineSearchPoint{point=PointSample{avg=0.6278726845404956}, derivative=4902.651786356013}, delta = -0.01907043606928438
+0.6278726845404956 <= 0.64694312060978
+New Minimum: 0.6278726845404956 > 0.6256902253640757
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6256902253640757
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.64694312060978}, derivative=-17272.489575438136}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6278726845404956}, derivative=4902.651786356013}
+F(5.181331190227843E-6) = LineSearchPoint{point=PointSample{avg=0.6256902253640757}, derivative=175.20841845965836}, delta = -0.021252895245704284
+Right bracket at 5.181331190227843E-6
+New Minimum: 0.6256902253640757 > 0.6256780005377691
+Returning cached value; 2 buffers unchanged since 0.0 => 0.6256780005377691
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.64694312060978}, derivative=-17272.489575438136}; rightPoint=LineSearchPoint{point=PointSample{avg=0.6256902253640757}, derivative=175.20841845965836}
+F(5.129300667710029E-6) = LineSearchPoint{point=PointSample{avg=0.6256780005377691}, derivative=6.0805477313484415}, delta = -0.021265120072010868
+Right bracket at 5.129300667710029E-6
+Converged to right
+Iteration 20 complete. Error: 0.6256780005377691 Total: 180142066479724.0000; Orientation: 0.0004; Line Search: 0.7895
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5694209644944359
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5694209644944359}, derivative=-17280.193222753198}
+New Minimum: 0.5694209644944359 > 0.547998983509717
+F(5.129300667710029E-6) = LineSearchPoint{point=PointSample{avg=0.547998983509717}, derivative=-680.1886192363858}, delta = -0.021421980984718925
+F(3.5905104673970205E-5) = LineSearchPoint{point=PointSample{avg=1.1156741180225627}, derivative=67175.83668842455}, delta = 0.5462531535281268
+F(3.59051046739702E-7) = LineSearchPoint{point=PointSample{avg=0.5665196493080285}, derivative=-16048.697789850163}, delta = -0.0029013151864074604
+F(2.513357327177914E-6) = LineSearchPoint{point=PointSample{avg=0.5536415183142773}, derivative=-8877.606539468745}, delta = -0.015779446180158585
+F(1.7593501290245397E-5) = LineSearchPoint{point=PointSample{avg=0.6519507758929984}, derivative=31946.61903028666}, delta = 0.08252981139856252
+F(1.7593501290245398E-7) = LineSearchPoint{point=PointSample{avg=0.5679718567734102}, derivative=-16675.512383312594}, delta = -0.0014491077210256886
+F(1.231545090317178E-6) = LineSearchPoint{point=PointSample{avg=0.5603778414045413}, derivative=-13098.695051970037}, delta = -0.009043123089894634
+F(8.620815632220245E-6) = LineSearchPoint{point=PointSample{avg=0.556375504063465}, derivative=9454.626017757453}, delta = -0.013045460430970879
+0.556375504063465 <= 0.5694209644944359
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5480804040428902
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5694209644944359}, derivative=-17280.193222753198}; rightPoint=LineSearchPoint{point=PointSample{avg=0.556375504063465}, derivative=9454.626017757453}
+F(5.572110232814565E-6) = LineSearchPoint{point=PointSample{avg=0.5480804040428902}, derivative=654.0480156412611}, delta = -0.021340560451545754
+Right bracket at 5.572110232814565E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.548006692555884
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5694209644944359}, derivative=-17280.193222753198}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5480804040428902}, derivative=654.0480156412611}
+F(5.3688996485326626E-6) = LineSearchPoint{point=PointSample{avg=0.548006692555884}, derivative=43.599205154052314}, delta = -0.021414271938551943
+Right bracket at 5.3688996485326626E-6
+Converged to right
+Iteration 21 complete. Error: 0.547998983509717 Total: 180145070581416.9400; Orientation: 0.0006; Line Search: 2.7362
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5816878602549522
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5816878602549522}, derivative=-17316.792993941956}
+New Minimum: 0.5816878602549522 > 0.5626811709076531
+F(5.3688996485326626E-6) = LineSearchPoint{point=PointSample{avg=0.5626811709076531}, derivative=2590.275100800714}, delta = -0.0190066893472991
+0.5626811709076531 <= 0.5816878602549522
+New Minimum: 0.5626811709076531 > 0.5621948860411601
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5621948860411601
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5816878602549522}, derivative=-17316.792993941956}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5626811709076531}, derivative=2590.275100800714}
+F(4.670307218341268E-6) = LineSearchPoint{point=PointSample{avg=0.5621948860411601}, derivative=155.6630672185286}, delta = -0.019492974213792147
+Right bracket at 4.670307218341268E-6
+Converged to right
+Iteration 22 complete. Error: 0.5621948860411601 Total: 180145882336657.9400; Orientation: 0.0012; Line Search: 0.5366
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5461590809077803
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5461590809077803}, derivative=-12405.716042459679}
+New Minimum: 0.5461590809077803 > 0.525740325243287
+F(4.670307218341268E-6) = LineSearchPoint{point=PointSample{avg=0.525740325243287}, derivative=-5411.343680558583}, delta = -0.02041875566449336
+F(3.269215052838887E-5) = LineSearchPoint{point=PointSample{avg=0.7312001285906888}, derivative=33668.33111227107}, delta = 0.18504104768290852
+F(3.2692150528388873E-7) = LineSearchPoint{point=PointSample{avg=0.5441945689034486}, derivative=-11909.077650493196}, delta = -0.0019645120043316755
+F(2.288450536987221E-6) = LineSearchPoint{point=PointSample{avg=0.5341083627267191}, derivative=-8952.20993306557}, delta = -0.012050718181061182
+F(1.601915375891055E-5) = LineSearchPoint{point=PointSample{avg=0.5426436819130591}, derivative=10893.982816134001}, delta = -0.003515398994721197
+0.5426436819130591 <= 0.5461590809077803
+New Minimum: 0.525740325243287 > 0.5210653111342787
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5210653111342787
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5461590809077803}, derivative=-12405.716042459679}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5426436819130591}, derivative=10893.982816134001}
+F(8.529254990789169E-6) = LineSearchPoint{point=PointSample{avg=0.5210653111342787}, derivative=225.23601443834823}, delta = -0.02509376977350164
+Right bracket at 8.529254990789169E-6
+New Minimum: 0.5210653111342787 > 0.5210439273197736
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5210439273197736
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5461590809077803}, derivative=-12405.716042459679}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5210653111342787}, derivative=225.23601443834823}
+F(8.377160723342038E-6) = LineSearchPoint{point=PointSample{avg=0.5210439273197736}, derivative=5.1552363093269085}, delta = -0.025115153588006756
+Right bracket at 8.377160723342038E-6
+Converged to right
+Iteration 23 complete. Error: 0.5210439273197736 Total: 180148048981476.1200; Orientation: 0.0005; Line Search: 1.8876
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5702072754818537
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5702072754818537}, derivative=-21781.866455198106}
+New Minimum: 0.5702072754818537 > 0.5542750309195904
+F(8.377160723342038E-6) = LineSearchPoint{point=PointSample{avg=0.5542750309195904}, derivative=13528.703946944614}, delta = -0.015932244562263276
+0.5542750309195904 <= 0.5702072754818537
+New Minimum: 0.5542750309195904 > 0.5429952686544746
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5429952686544746
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5702072754818537}, derivative=-21781.866455198106}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5542750309195904}, derivative=13528.703946944614}
+F(5.167579964624258E-6) = LineSearchPoint{point=PointSample{avg=0.5429952686544746}, derivative=82.2991860574071}, delta = -0.02721200682737912
+Right bracket at 5.167579964624258E-6
+Converged to right
+Iteration 24 complete. Error: 0.5429952686544746 Total: 180148869288349.9400; Orientation: 0.0008; Line Search: 0.5505
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5488051704810607
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5488051704810607}, derivative=-17349.202121507657}
+New Minimum: 0.5488051704810607 > 0.5310238709353025
+F(5.167579964624258E-6) = LineSearchPoint{point=PointSample{avg=0.5310238709353025}, derivative=3070.9990358437453}, delta = -0.017781299545758245
+0.5310238709353025 <= 0.5488051704810607
+New Minimum: 0.5310238709353025 > 0.5303569846895513
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5303569846895513
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5488051704810607}, derivative=-17349.202121507657}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5310238709353025}, derivative=3070.9990358437453}
+F(4.3904263525358985E-6) = LineSearchPoint{point=PointSample{avg=0.5303569846895513}, derivative=84.37991983951702}, delta = -0.01844818579150942
+Right bracket at 4.3904263525358985E-6
+Converged to right
+Iteration 25 complete. Error: 0.5303569846895513 Total: 180149690643090.1200; Orientation: 0.0006; Line Search: 0.5501
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5638669313704059
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5638669313704059}, derivative=-27284.900683290725}
+New Minimum: 0.5638669313704059 > 0.5365258116347895
+F(4.3904263525358985E-6) = LineSearchPoint{point=PointSample{avg=0.5365258116347895}, derivative=1450.8045615490275}, delta = -0.02734111973561637
+0.5365258116347895 <= 0.5638669313704059
+New Minimum: 0.5365258116347895 > 0.5364532169706073
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5364532169706073
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5638669313704059}, derivative=-27284.900683290725}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5365258116347895}, derivative=1450.8045615490275}
+F(4.1687630759560425E-6) = LineSearchPoint{point=PointSample{avg=0.5364532169706073}, derivative=146.07275228375627}, delta = -0.02741371439979856
+Right bracket at 4.1687630759560425E-6
+Converged to right
+Iteration 26 complete. Error: 0.5364532169706073 Total: 180150530185722.3000; Orientation: 0.0006; Line Search: 0.5678
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5397892556006065
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5397892556006065}, derivative=-20000.262107456703}
+New Minimum: 0.5397892556006065 > 0.5193980978879233
+F(4.1687630759560425E-6) = LineSearchPoint{point=PointSample{avg=0.5193980978879233}, derivative=-566.6753756165127}, delta = -0.020391157712683183
+F(2.9181341531692298E-5) = LineSearchPoint{point=PointSample{avg=1.4544250541381194}, derivative=150586.48968649964}, delta = 0.9146357985375129
+F(2.91813415316923E-7) = LineSearchPoint{point=PointSample{avg=0.5370900625056205}, derivative=-18738.955602082424}, delta = -0.0026991930949860077
+F(2.042693907218461E-6) = LineSearchPoint{point=PointSample{avg=0.52480307326958}, derivative=-10863.818115736281}, delta = -0.014986182331026554
+F(1.4298857350529229E-5) = LineSearchPoint{point=PointSample{avg=0.6624561823410257}, derivative=58658.665995801995}, delta = 0.12266692674041912
+F(1.429885735052923E-7) = LineSearchPoint{point=PointSample{avg=0.5384439702583252}, derivative=-19383.996090731514}, delta = -0.0013452853422812883
+F(1.000920014537046E-6) = LineSearchPoint{point=PointSample{avg=0.5312959948028321}, derivative=-15613.910566782193}, delta = -0.00849326079777446
+F(7.006440101759322E-6) = LineSearchPoint{point=PointSample{avg=0.5298713304311842}, derivative=14415.704334652795}, delta = -0.00991792516942236
+0.5298713304311842 <= 0.5397892556006065
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5194062514850957
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5397892556006065}, derivative=-20000.262107456703}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5298713304311842}, derivative=14415.704334652795}
+F(4.0716752415217916E-6) = LineSearchPoint{point=PointSample{avg=0.5194062514850957}, derivative=-1054.5533453944365}, delta = -0.02038300411551086
+Left bracket at 4.0716752415217916E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5194151052357995
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5194062514850957}, derivative=-1054.5533453944365}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5298713304311842}, derivative=14415.704334652795}
+F(4.271727895156717E-6) = LineSearchPoint{point=PointSample{avg=0.5194151052357995}, derivative=-47.43835697456223}, delta = -0.020374150364807053
+0.5194151052357995 > 0.5194062514850957
+Iteration 27 complete. Error: 0.5193980978879233 Total: 180153554523160.4700; Orientation: 0.0012; Line Search: 2.7508
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5327501151513871
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5327501151513871}, derivative=-15056.845716150643}
+New Minimum: 0.5327501151513871 > 0.514384163576459
+F(4.0716752415217916E-6) = LineSearchPoint{point=PointSample{avg=0.514384163576459}, derivative=-3266.952910213414}, delta = -0.018365951574928152
+F(2.8501726690652542E-5) = LineSearchPoint{point=PointSample{avg=0.8178012150853587}, derivative=45679.33334084306}, delta = 0.2850510999339716
+F(2.850172669065254E-7) = LineSearchPoint{point=PointSample{avg=0.5306745740699674}, derivative=-14201.657172163721}, delta = -0.0020755410814197184
+F(1.9951208683456776E-6) = LineSearchPoint{point=PointSample{avg=0.5207488462304344}, derivative=-9171.752101135839}, delta = -0.012001268920952768
+F(1.3965846078419744E-5) = LineSearchPoint{point=PointSample{avg=0.5631078445497594}, derivative=21487.41430809987}, delta = 0.030357729398372224
+F(1.3965846078419744E-7) = LineSearchPoint{point=PointSample{avg=0.5317178806202701}, derivative=-14637.159009301286}, delta = -0.0010322345311170045
+F(9.77609225489382E-7) = LineSearchPoint{point=PointSample{avg=0.5261358172277868}, derivative=-12144.397116459544}, delta = -0.006614297923600354
+F(6.843264578425674E-6) = LineSearchPoint{point=PointSample{avg=0.5152799778788575}, derivative=4298.003989196695}, delta = -0.017470137272529662
+0.5152799778788575 <= 0.5327501151513871
+New Minimum: 0.514384163576459 > 0.5134820111308797
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5134820111308797
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5327501151513871}, derivative=-15056.845716150643}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5152799778788575}, derivative=4298.003989196695}
+F(5.32362588812492E-6) = LineSearchPoint{point=PointSample{avg=0.5134820111308797}, derivative=196.25839466766425}, delta = -0.019268104020507493
+Right bracket at 5.32362588812492E-6
+New Minimum: 0.5134820111308797 > 0.5134752124847609
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5134752124847609
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5327501151513871}, derivative=-15056.845716150643}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5134820111308797}, derivative=196.25839466766425}
+F(5.255127944163889E-6) = LineSearchPoint{point=PointSample{avg=0.5134752124847609}, derivative=8.665263025146965}, delta = -0.019274902666626237
+Right bracket at 5.255127944163889E-6
+Converged to right
+Iteration 28 complete. Error: 0.5134752124847609 Total: 180156561399971.4400; Orientation: 0.0006; Line Search: 2.7343
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5005876081522168
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5005876081522168}, derivative=-17514.17988399983}
+New Minimum: 0.5005876081522168 > 0.48204743934409666
+F(5.255127944163889E-6) = LineSearchPoint{point=PointSample{avg=0.48204743934409666}, derivative=2311.895622247495}, delta = -0.01854016880812015
+0.48204743934409666 <= 0.5005876081522168
+New Minimum: 0.48204743934409666 > 0.48160307985459944
+Returning cached value; 2 buffers unchanged since 0.0 => 0.48160307985459944
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5005876081522168}, derivative=-17514.17988399983}; rightPoint=LineSearchPoint{point=PointSample{avg=0.48204743934409666}, derivative=2311.895622247495}
+F(4.642333582282504E-6) = LineSearchPoint{point=PointSample{avg=0.48160307985459944}, derivative=188.9515079940095}, delta = -0.018984528297617376
+Right bracket at 4.642333582282504E-6
+New Minimum: 0.48160307985459944 > 0.4815956115285177
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4815956115285177
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5005876081522168}, derivative=-17514.17988399983}; rightPoint=LineSearchPoint{point=PointSample{avg=0.48160307985459944}, derivative=188.9515079940095}
+F(4.592784386066279E-6) = LineSearchPoint{point=PointSample{avg=0.4815956115285177}, derivative=15.396966034874918}, delta = -0.018991996623699103
+Right bracket at 4.592784386066279E-6
+Converged to right
+Iteration 29 complete. Error: 0.4815956115285177 Total: 180157657943807.4400; Orientation: 0.0004; Line Search: 0.8205
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4954866780317282
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4954866780317282}, derivative=-11544.00208083419}
+New Minimum: 0.4954866780317282 > 0.47908687414468026
+F(4.592784386066279E-6) = LineSearchPoint{point=PointSample{avg=0.47908687414468026}, derivative=-2802.8254318580666}, delta = -0.016399803887047926
+F(3.214949070246395E-5) = LineSearchPoint{point=PointSample{avg=0.808903706510814}, derivative=47359.55700583498}, delta = 0.3134170284790858
+F(3.214949070246395E-7) = LineSearchPoint{point=PointSample{avg=0.49368693622111826}, derivative=-10942.320902659241}, delta = -0.0017997418106099339
+F(2.2504643491724767E-6) = LineSearchPoint{point=PointSample{avg=0.4849361449498073}, derivative=-7301.0480239535855}, delta = -0.010550533081920888
+F(1.5753250444207337E-5) = LineSearchPoint{point=PointSample{avg=0.5259507741619116}, derivative=19517.19753770778}, delta = 0.030464096130183416
+F(1.5753250444207336E-7) = LineSearchPoint{point=PointSample{avg=0.4945926854158563}, derivative=-11249.358542324357}, delta = -8.939926158718636E-4
+F(1.1027275310945135E-6) = LineSearchPoint{point=PointSample{avg=0.4897187308088513}, derivative=-9474.147596705203}, delta = -0.005767947222876879
+F(7.719092717661594E-6) = LineSearchPoint{point=PointSample{avg=0.4796112364456919}, derivative=3339.5366126595113}, delta = -0.015875441586036265
+0.4796112364456919 <= 0.4954866780317282
+New Minimum: 0.47908687414468026 > 0.4781315870281026
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4781315870281026
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4954866780317282}, derivative=-11544.00208083419}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4796112364456919}, derivative=3339.5366126595113}
+F(5.987099185880529E-6) = LineSearchPoint{point=PointSample{avg=0.4781315870281026}, derivative=-82.82532437812606}, delta = -0.01735509100362559
+Left bracket at 5.987099185880529E-6
+Converged to left
+Iteration 30 complete. Error: 0.4781315870281026 Total: 180160358277345.3400; Orientation: 0.0009; Line Search: 2.4181
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5315947872225888
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5315947872225888}, derivative=-16518.28210716149}
+New Minimum: 0.5315947872225888 > 0.5151293890644904
+F(5.987099185880529E-6) = LineSearchPoint{point=PointSample{avg=0.5151293890644904}, derivative=5168.613718317136}, delta = -0.016465398158098443
+0.5151293890644904 <= 0.5315947872225888
+New Minimum: 0.5151293890644904 > 0.513227004588666
+Returning cached value; 2 buffers unchanged since 0.0 => 0.513227004588666
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5315947872225888}, derivative=-16518.28210716149}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5151293890644904}, derivative=5168.613718317136}
+F(4.560200507798991E-6) = LineSearchPoint{point=PointSample{avg=0.513227004588666}, derivative=155.1626579112546}, delta = -0.018367782633922802
+Right bracket at 4.560200507798991E-6
+Converged to right
+Iteration 31 complete. Error: 0.513227004588666 Total: 180161173457172.6600; Orientation: 0.0005; Line Search: 0.5258
+Returning cached value; 2 buffers unchanged since 0.0 => 0.47104535715638296
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.47104535715638296}, derivative=-12881.754760573322}
+New Minimum: 0.47104535715638296 > 0.4551082850377701
+F(4.560200507798991E-6) = LineSearchPoint{point=PointSample{avg=0.4551082850377701}, derivative=-1811.1110470584977}, delta = -0.01593707211861284
+F(3.1921403554592936E-5) = LineSearchPoint{point=PointSample{avg=0.7631318784805973}, derivative=39701.97068138157}, delta = 0.2920865213242143
+F(3.1921403554592934E-7) = LineSearchPoint{point=PointSample{avg=0.4690995013597211}, derivative=-12062.990529681314}, delta = -0.001945855796661844
+F(2.2344982488215054E-6) = LineSearchPoint{point=PointSample{avg=0.46010195942935567}, derivative=-7293.93715233851}, delta = -0.010943397727027293
+F(1.5641487741750537E-5) = LineSearchPoint{point=PointSample{avg=0.5100633434686577}, derivative=20134.986682066352}, delta = 0.03901798631227471
+F(1.5641487741750536E-7) = LineSearchPoint{point=PointSample{avg=0.4700756595028185}, derivative=-12479.68204771659}, delta = -9.696976535644719E-4
+F(1.0949041419225374E-6) = LineSearchPoint{point=PointSample{avg=0.4649078087628545}, derivative=-10102.338001068758}, delta = -0.00613754839352848
+F(7.664328993457761E-6) = LineSearchPoint{point=PointSample{avg=0.45798178856826444}, derivative=5034.195863524421}, delta = -0.013063568588118524
+0.45798178856826444 <= 0.47104535715638296
+New Minimum: 0.4551082850377701 > 0.4548602188678099
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4548602188678099
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.47104535715638296}, derivative=-12881.754760573322}; rightPoint=LineSearchPoint{point=PointSample{avg=0.45798178856826444}, derivative=5034.195863524421}
+F(5.510732227921998E-6) = LineSearchPoint{point=PointSample{avg=0.4548602188678099}, derivative=340.2624817704744}, delta = -0.016185138288573042
+Right bracket at 5.510732227921998E-6
+New Minimum: 0.4548602188678099 > 0.45483287039890696
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45483287039890696
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.47104535715638296}, derivative=-12881.754760573322}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4548602188678099}, derivative=340.2624817704744}
+F(5.368916089743003E-6) = LineSearchPoint{point=PointSample{avg=0.45483287039890696}, derivative=22.438422690194468}, delta = -0.016212486757475997
+Right bracket at 5.368916089743003E-6
+Converged to right
+Iteration 32 complete. Error: 0.45483287039890696 Total: 180164174216068.8000; Orientation: 0.0003; Line Search: 2.7182
+Returning cached value; 2 buffers unchanged since 0.0 => 0.47228040451758474
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.47228040451758474}, derivative=-7846.466953154912}
+New Minimum: 0.47228040451758474 > 0.45808458625029563
+F(5.368916089743003E-6) = LineSearchPoint{point=PointSample{avg=0.45808458625029563}, derivative=-2596.1510569502516}, delta = -0.014195818267289106
+F(3.758241262820102E-5) = LineSearchPoint{point=PointSample{avg=0.6522363611663633}, derivative=26734.59215743474}, delta = 0.17995595664877856
+F(3.7582412628201017E-7) = LineSearchPoint{point=PointSample{avg=0.4708236845713804}, derivative=-7468.827596605038}, delta = -0.0014567199462043323
+F(2.630768883974071E-6) = LineSearchPoint{point=PointSample{avg=0.46356102225680895}, derivative=-5235.766378927352}, delta = -0.008719382260775788
+F(1.8415382187818498E-5) = LineSearchPoint{point=PointSample{avg=0.479931663101946}, derivative=9308.617560903718}, delta = 0.007651258584361276
+F(1.8415382187818497E-7) = LineSearchPoint{point=PointSample{avg=0.47155774317221444}, derivative=-7661.2267942898925}, delta = -7.226613453703012E-4
+F(1.2890767531472947E-6) = LineSearchPoint{point=PointSample{avg=0.4675784895607712}, derivative=-6557.711898672121}, delta = -0.0047019149568135465
+New Minimum: 0.45808458625029563 > 0.45632996373113544
+F(9.023537272031062E-6) = LineSearchPoint{point=PointSample{avg=0.45632996373113544}, derivative=821.9422206606985}, delta = -0.015950440786449305
+0.45632996373113544 <= 0.47228040451758474
+New Minimum: 0.45632996373113544 > 0.45618044025787774
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45618044025787774
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.47228040451758474}, derivative=-7846.466953154912}; rightPoint=LineSearchPoint{point=PointSample{avg=0.45632996373113544}, derivative=821.9422206606985}
+F(8.167921655039703E-6) = LineSearchPoint{point=PointSample{avg=0.45618044025787774}, derivative=30.916583983168643}, delta = -0.016099964259707
+Right bracket at 8.167921655039703E-6
+Converged to right
+Iteration 33 complete. Error: 0.45618044025787774 Total: 180166944772554.8000; Orientation: 0.0003; Line Search: 2.5024
+Returning cached value; 2 buffers unchanged since 0.0 => 0.48775311451545816
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.48775311451545816}, derivative=-11636.577438104288}
+New Minimum: 0.48775311451545816 > 0.4763510976299074
+F(8.167921655039703E-6) = LineSearchPoint{point=PointSample{avg=0.4763510976299074}, derivative=5691.247728438581}, delta = -0.011402016885550759
+0.4763510976299074 <= 0.48775311451545816
+New Minimum: 0.4763510976299074 > 0.47229685175425595
+Returning cached value; 2 buffers unchanged since 0.0 => 0.47229685175425595
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.48775311451545816}, derivative=-11636.577438104288}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4763510976299074}, derivative=5691.247728438581}
+F(5.48520382296779E-6) = LineSearchPoint{point=PointSample{avg=0.47229685175425595}, derivative=139.8648050026727}, delta = -0.01545626276120221
+Right bracket at 5.48520382296779E-6
+New Minimum: 0.47229685175425595 > 0.4722916702702903
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4722916702702903
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.48775311451545816}, derivative=-11636.577438104288}; rightPoint=LineSearchPoint{point=PointSample{avg=0.47229685175425595}, derivative=139.8648050026727}
+F(5.420057920048905E-6) = LineSearchPoint{point=PointSample{avg=0.4722916702702903}, derivative=3.29613415560769}, delta = -0.015461444245167877
+Right bracket at 5.420057920048905E-6
+Converged to right
+Iteration 34 complete. Error: 0.4722916702702903 Total: 180168048193204.0600; Orientation: 0.0005; Line Search: 0.8155
+Returning cached value; 2 buffers unchanged since 0.0 => 0.47783337698096406
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.47783337698096406}, derivative=-19784.878782473672}
+New Minimum: 0.47783337698096406 > 0.4533064807256193
+F(5.420057920048905E-6) = LineSearchPoint{point=PointSample{avg=0.4533064807256193}, derivative=1130.7184182790597}, delta = -0.024526896255344766
+0.4533064807256193 <= 0.47783337698096406
+New Minimum: 0.4533064807256193 > 0.45321418036435124
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45321418036435124
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.47783337698096406}, derivative=-19784.878782473672}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4533064807256193}, derivative=1130.7184182790597}
+F(5.127044086424397E-6) = LineSearchPoint{point=PointSample{avg=0.45321418036435124}, derivative=76.02874066995639}, delta = -0.024619196616612826
+Right bracket at 5.127044086424397E-6
+Converged to right
+Iteration 35 complete. Error: 0.45321418036435124 Total: 180168889753767.9400; Orientation: 0.0008; Line Search: 0.5389
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5062615777607442
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5062615777607442}, derivative=-19151.123151718504}
+New Minimum: 0.5062615777607442 > 0.48182600879437426
+F(5.127044086424397E-6) = LineSearchPoint{point=PointSample{avg=0.48182600879437426}, derivative=-674.0862223044618}, delta = -0.024435568966369947
+F(3.5889308604970776E-5) = LineSearchPoint{point=PointSample{avg=1.3305705365062055}, derivative=100806.38023848558}, delta = 0.8243089587454613
+F(3.5889308604970774E-7) = LineSearchPoint{point=PointSample{avg=0.5030108287164061}, derivative=-17874.236404831452}, delta = -0.003250749044338086
+F(2.512251602347954E-6) = LineSearchPoint{point=PointSample{avg=0.488349670818244}, derivative=-10177.975767231357}, delta = -0.017911906942500222
+F(1.758576121643568E-5) = LineSearchPoint{point=PointSample{avg=0.6286499789268435}, derivative=46604.48305137251}, delta = 0.12238840116609928
+F(1.7585761216435677E-7) = LineSearchPoint{point=PointSample{avg=0.5046399727006853}, derivative=-18525.558149907603}, delta = -0.0016216050600589282
+F(1.2310032851504973E-6) = LineSearchPoint{point=PointSample{avg=0.49607097426337277}, derivative=-14766.259052370317}, delta = -0.010190603497371442
+F(8.61702299605348E-6) = LineSearchPoint{point=PointSample{avg=0.49289646030716505}, derivative=12414.380779677242}, delta = -0.013365117453579156
+0.49289646030716505 <= 0.5062615777607442
+New Minimum: 0.48182600879437426 > 0.4818255923121056
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4818255923121056
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5062615777607442}, derivative=-19151.123151718504}; rightPoint=LineSearchPoint{point=PointSample{avg=0.49289646030716505}, derivative=12414.380779677242}
+F(5.228038461140245E-6) = LineSearchPoint{point=PointSample{avg=0.4818255923121056}, derivative=-302.15209498581623}, delta = -0.02443598544863862
+Left bracket at 5.228038461140245E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.48183879401050267
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4818255923121056}, derivative=-302.15209498581623}; rightPoint=LineSearchPoint{point=PointSample{avg=0.49289646030716505}, derivative=12414.380779677242}
+F(5.308562672196138E-6) = LineSearchPoint{point=PointSample{avg=0.48183879401050267}, derivative=-5.315825297686392}, delta = -0.02442278375024154
+0.48183879401050267 > 0.4818255923121056
+Iteration 36 complete. Error: 0.4818255923121056 Total: 180171889694206.1200; Orientation: 0.0008; Line Search: 2.7346
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5130830162135132
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5130830162135132}, derivative=-24210.700801673076}
+New Minimum: 0.5130830162135132 > 0.4888757722560454
+F(5.228038461140245E-6) = LineSearchPoint{point=PointSample{avg=0.4888757722560454}, derivative=5264.158296704504}, delta = -0.02420724395746776
+0.4888757722560454 <= 0.5130830162135132
+New Minimum: 0.4888757722560454 > 0.4875464348838219
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4875464348838219
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5130830162135132}, derivative=-24210.700801673076}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4888757722560454}, derivative=5264.158296704504}
+F(4.2943199334674E-6) = LineSearchPoint{point=PointSample{avg=0.4875464348838219}, derivative=120.33397473132376}, delta = -0.025536581329691277
+Right bracket at 4.2943199334674E-6
+Converged to right
+Iteration 37 complete. Error: 0.4875464348838219 Total: 180172719670966.1200; Orientation: 0.0004; Line Search: 0.5528
+Returning cached value; 2 buffers unchanged since 0.0 => 0.5168863576568619
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5168863576568619}, derivative=-16515.443371011883}
+New Minimum: 0.5168863576568619 > 0.4970444807148412
+F(4.2943199334674E-6) = LineSearchPoint{point=PointSample{avg=0.4970444807148412}, derivative=-2042.5754311490114}, delta = -0.019841876942020664
+F(3.0060239534271802E-5) = LineSearchPoint{point=PointSample{avg=0.9973868895058949}, derivative=73053.68354728108}, delta = 0.4805005318490331
+F(3.0060239534271804E-7) = LineSearchPoint{point=PointSample{avg=0.514487980234673}, derivative=-15503.001088582896}, delta = -0.0023983774221888465
+F(2.1042167673990263E-6) = LineSearchPoint{point=PointSample{avg=0.5032901611858607}, derivative=-9427.57820277091}, delta = -0.013596196471001187
+F(1.4729517371793184E-5) = LineSearchPoint{point=PointSample{avg=0.5780048687136654}, derivative=33106.613588189844}, delta = 0.06111851105680355
+F(1.4729517371793185E-7) = LineSearchPoint{point=PointSample{avg=0.5156921469226485}, derivative=-16019.34732194221}, delta = -0.0011942107342133301
+F(1.031066216025523E-6) = LineSearchPoint{point=PointSample{avg=0.5092936498171332}, derivative=-13042.701705410029}, delta = -0.007592707839728652
+F(7.217463512178661E-6) = LineSearchPoint{point=PointSample{avg=0.5012748461585224}, derivative=7844.484335406832}, delta = -0.015611511498339503
+0.5012748461585224 <= 0.5168863576568619
+New Minimum: 0.4970444807148412 > 0.4967403027530696
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4967403027530696
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.5168863576568619}, derivative=-16515.443371011883}; rightPoint=LineSearchPoint{point=PointSample{avg=0.5012748461585224}, derivative=7844.484335406832}
+F(4.893266160487115E-6) = LineSearchPoint{point=PointSample{avg=0.4967403027530696}, derivative=-19.999940805629546}, delta = -0.020146054903792288
+Left bracket at 4.893266160487115E-6
+Converged to left
+Iteration 38 complete. Error: 0.4967403027530696 Total: 180175446940946.2800; Orientation: 0.0010; Line Search: 2.4511
+Returning cached value; 2 buffers unchanged since 0.0 => 0.44392015807157287
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.44392015807157287}, derivative=-8668.080539213392}
+New Minimum: 0.44392015807157287 > 0.43021749015170385
+F(4.893266160487115E-6) = LineSearchPoint{point=PointSample{avg=0.43021749015170385}, derivative=-2374.3463925142373}, delta = -0.013702667919869016
+F(3.4252863123409804E-5) = LineSearchPoint{point=PointSample{avg=0.6349949899615511}, derivative=28289.551065385433}, delta = 0.19107483188997826
+F(3.4252863123409804E-7) = LineSearchPoint{point=PointSample{avg=0.44245684985562844}, derivative=-8217.752227291528}, delta = -0.0014633082159444255
+F(2.397700418638686E-6) = LineSearchPoint{point=PointSample{avg=0.4352837256348373}, derivative=-5547.1175876873685}, delta = -0.008636432436735564
+F(1.67839029304708E-5) = LineSearchPoint{point=PointSample{avg=0.4580488527719734}, derivative=11700.673381846098}, delta = 0.014128694700400513
+F(1.67839029304708E-7) = LineSearchPoint{point=PointSample{avg=0.4431935060685396}, derivative=-8447.229540914313}, delta = -7.266520030332901E-4
+F(1.174873205132956E-6) = LineSearchPoint{point=PointSample{avg=0.43922115536941186}, derivative=-7129.734629691295}, delta = -0.004699002702161004
+New Minimum: 0.43021749015170385 > 0.42952366167209743
+F(8.224112435930693E-6) = LineSearchPoint{point=PointSample{avg=0.42952366167209743}, derivative=1743.200248592953}, delta = -0.014396496399475434
+0.42952366167209743 <= 0.44392015807157287
+New Minimum: 0.42952366167209743 > 0.42898158073017234
+Returning cached value; 2 buffers unchanged since 0.0 => 0.42898158073017234
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.44392015807157287}, derivative=-8668.080539213392}; rightPoint=LineSearchPoint{point=PointSample{avg=0.42952366167209743}, derivative=1743.200248592953}
+F(6.847118083846618E-6) = LineSearchPoint{point=PointSample{avg=0.42898158073017234}, derivative=57.10575735304917}, delta = -0.014938577341400527
+Right bracket at 6.847118083846618E-6
+Converged to right
+Iteration 39 complete. Error: 0.42898158073017234 Total: 180178141216126.5600; Orientation: 0.0004; Line Search: 2.4298
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4697147374718375
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4697147374718375}, derivative=-15614.981134217884}
+New Minimum: 0.4697147374718375 > 0.4583106420011624
+F(6.847118083846618E-6) = LineSearchPoint{point=PointSample{avg=0.4583106420011624}, derivative=8211.548999219032}, delta = -0.011404095470675113
+0.4583106420011624 <= 0.4697147374718375
+New Minimum: 0.4583106420011624 > 0.4529897559826206
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4529897559826206
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4697147374718375}, derivative=-15614.981134217884}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4583106420011624}, derivative=8211.548999219032}
+F(4.487334878568172E-6) = LineSearchPoint{point=PointSample{avg=0.4529897559826206}, derivative=-104.46338528837008}, delta = -0.016724981489216917
+Left bracket at 4.487334878568172E-6
+Converged to left
+Iteration 40 complete. Error: 0.4529897559826206 Total: 180178965233418.8400; Orientation: 0.0005; Line Search: 0.5588
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4357443152656017
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4357443152656017}, derivative=-9302.98262835895}
+New Minimum: 0.4357443152656017 > 0.42425172531120636
+F(4.487334878568172E-6) = LineSearchPoint{point=PointSample{avg=0.42425172531120636}, derivative=-1675.738154593316}, delta = -0.011492589954395338
+F(3.14113441499772E-5) = LineSearchPoint{point=PointSample{avg=0.6403855184569041}, derivative=27987.986593755722}, delta = 0.20464120319130236
+F(3.1411344149977203E-7) = LineSearchPoint{point=PointSample{avg=0.43438130162951655}, derivative=-8749.970143573988}, delta = -0.001363013636085153
+F(2.1987940904984043E-6) = LineSearchPoint{point=PointSample{avg=0.42799140152740645}, derivative=-5496.167916560827}, delta = -0.007752913738195255
+F(1.539155863348883E-5) = LineSearchPoint{point=PointSample{avg=0.4620219023697955}, derivative=14335.320407489244}, delta = 0.02627758710419381
+F(1.539155863348883E-7) = LineSearchPoint{point=PointSample{avg=0.4350656665750467}, derivative=-9031.597982015192}, delta = -6.78648690555006E-4
+F(1.0774091043442181E-6) = LineSearchPoint{point=PointSample{avg=0.43142640655368225}, derivative=-7419.365950219201}, delta = -0.004317908711919449
+F(7.541863730409527E-6) = LineSearchPoint{point=PointSample{avg=0.4258791581081884}, derivative=3217.262141097583}, delta = -0.009865157157413318
+0.4258791581081884 <= 0.4357443152656017
+New Minimum: 0.42425172531120636 > 0.42398419882856025
+Returning cached value; 2 buffers unchanged since 0.0 => 0.42398419882856025
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4357443152656017}, derivative=-9302.98262835895}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4258791581081884}, derivative=3217.262141097583}
+F(5.603870256643215E-6) = LineSearchPoint{point=PointSample{avg=0.42398419882856025}, derivative=140.62998361632918}, delta = -0.011760116437041446
+Right bracket at 5.603870256643215E-6
+New Minimum: 0.42398419882856025 > 0.4239694706058198
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4239694706058198
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4357443152656017}, derivative=-9302.98262835895}; rightPoint=LineSearchPoint{point=PointSample{avg=0.42398419882856025}, derivative=140.62998361632918}
+F(5.520419969686248E-6) = LineSearchPoint{point=PointSample{avg=0.4239694706058198}, derivative=5.947219477820966}, delta = -0.011774844659781902
+Right bracket at 5.520419969686248E-6
+Converged to right
+Iteration 41 complete. Error: 0.4239694706058198 Total: 180181934663786.0300; Orientation: 0.0005; Line Search: 2.6976
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4502340688289048
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4502340688289048}, derivative=-13054.209405451182}
+New Minimum: 0.4502340688289048 > 0.43566161489848204
+F(5.520419969686248E-6) = LineSearchPoint{point=PointSample{avg=0.43566161489848204}, derivative=2626.855189568398}, delta = -0.01457245393042278
+0.43566161489848204 <= 0.4502340688289048
+New Minimum: 0.43566161489848204 > 0.4350958039271656
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4350958039271656
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4502340688289048}, derivative=-13054.209405451182}; rightPoint=LineSearchPoint{point=PointSample{avg=0.43566161489848204}, derivative=2626.855189568398}
+F(4.5956521544594E-6) = LineSearchPoint{point=PointSample{avg=0.4350958039271656}, derivative=-7.7751817210903855}, delta = -0.015138264901739196
+Left bracket at 4.5956521544594E-6
+Converged to left
+Iteration 42 complete. Error: 0.4350958039271656 Total: 180182735319690.0600; Orientation: 0.0003; Line Search: 0.5357
+Returning cached value; 2 buffers unchanged since 0.0 => 0.49732377559284013
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.49732377559284013}, derivative=-9488.399964021855}
+New Minimum: 0.49732377559284013 > 0.4847321525070708
+F(4.5956521544594E-6) = LineSearchPoint{point=PointSample{avg=0.4847321525070708}, derivative=-1484.7311301529487}, delta = -0.012591623085769332
+F(3.21695650812158E-5) = LineSearchPoint{point=PointSample{avg=0.8027109778796816}, derivative=47462.59978404052}, delta = 0.30538720228684146
+F(3.21695650812158E-7) = LineSearchPoint{point=PointSample{avg=0.49584251507938404}, derivative=-8926.366028064707}, delta = -0.0014812605134560952
+F(2.251869555685106E-6) = LineSearchPoint{point=PointSample{avg=0.48885337805128337}, derivative=-5560.231546873383}, delta = -0.008470397541556762
+F(1.576308688979574E-5) = LineSearchPoint{point=PointSample{avg=0.5311450858084934}, derivative=18213.935470457756}, delta = 0.033821310215653266
+F(1.576308688979574E-7) = LineSearchPoint{point=PointSample{avg=0.49658665047569006}, derivative=-9212.969735875986}, delta = -7.371251171500726E-4
+F(1.1034160822857019E-6) = LineSearchPoint{point=PointSample{avg=0.4926200159077424}, derivative=-7561.801814594661}, delta = -0.00470375968509773
+F(7.723912575999912E-6) = LineSearchPoint{point=PointSample{avg=0.4866800655351507}, derivative=3955.8634079014055}, delta = -0.010643710057689437
+0.4866800655351507 <= 0.49732377559284013
+New Minimum: 0.4847321525070708 > 0.4844186445585695
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4844186445585695
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.49732377559284013}, derivative=-9488.399964021855}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4866800655351507}, derivative=3955.8634079014055}
+F(5.451215122821669E-6) = LineSearchPoint{point=PointSample{avg=0.4844186445585695}, derivative=1.698173522502402}, delta = -0.012905131034270656
+Right bracket at 5.451215122821669E-6
+Converged to right
+Iteration 43 complete. Error: 0.4844186445585695 Total: 180185450413968.2500; Orientation: 0.0007; Line Search: 2.4482
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45549464366463366
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.45549464366463366}, derivative=-7267.750968340902}
+New Minimum: 0.45549464366463366 > 0.4431817814692677
+F(5.451215122821669E-6) = LineSearchPoint{point=PointSample{avg=0.4431817814692677}, derivative=-1856.0735947749718}, delta = -0.012312862195365981
+F(3.815850585975169E-5) = LineSearchPoint{point=PointSample{avg=0.6956514668151977}, derivative=31949.670928813186}, delta = 0.24015682315056408
+F(3.815850585975169E-7) = LineSearchPoint{point=PointSample{avg=0.4541540175729901}, derivative=-6889.37037398994}, delta = -0.0013406260916435375
+F(2.671095410182618E-6) = LineSearchPoint{point=PointSample{avg=0.44762260757030314}, derivative=-4620.939040781213}, delta = -0.007872036094330515
+F(1.8697667871278325E-5) = LineSearchPoint{point=PointSample{avg=0.4764835548182267}, derivative=12101.977381569832}, delta = 0.020988911153593026
+F(1.8697667871278325E-7) = LineSearchPoint{point=PointSample{avg=0.45482873281815966}, derivative=-7082.317447175785}, delta = -6.659108464739938E-4
+F(1.3088367509894827E-6) = LineSearchPoint{point=PointSample{avg=0.4511964822354037}, derivative=-5970.571529141604}, delta = -0.004298161429229952
+F(9.161857256926379E-6) = LineSearchPoint{point=PointSample{avg=0.4432798118600588}, derivative=1894.06146585198}, delta = -0.012214831804574833
+0.4432798118600588 <= 0.45549464366463366
+New Minimum: 0.4431817814692677 > 0.4423617218924526
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4423617218924526
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.45549464366463366}, derivative=-7267.750968340902}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4432798118600588}, derivative=1894.06146585198}
+F(7.2677865246751004E-6) = LineSearchPoint{point=PointSample{avg=0.4423617218924526}, derivative=-31.82488671372237}, delta = -0.013132921772181061
+Left bracket at 7.2677865246751004E-6
+Converged to left
+Iteration 44 complete. Error: 0.4423617218924526 Total: 180188165307905.5600; Orientation: 0.0010; Line Search: 2.4272
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4786228139760832
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4786228139760832}, derivative=-13453.862258237923}
+New Minimum: 0.4786228139760832 > 0.47002385718751755
+F(7.2677865246751004E-6) = LineSearchPoint{point=PointSample{avg=0.47002385718751755}, derivative=9503.13524991334}, delta = -0.008598956788565648
+0.47002385718751755 <= 0.4786228139760832
+New Minimum: 0.47002385718751755 > 0.46354709094902613
+Returning cached value; 2 buffers unchanged since 0.0 => 0.46354709094902613
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4786228139760832}, derivative=-13453.862258237923}; rightPoint=LineSearchPoint{point=PointSample{avg=0.47002385718751755}, derivative=9503.13524991334}
+F(4.259259025076695E-6) = LineSearchPoint{point=PointSample{avg=0.46354709094902613}, derivative=-542.8788298616707}, delta = -0.015075723027057064
+Left bracket at 4.259259025076695E-6
+New Minimum: 0.46354709094902613 > 0.46351963905916027
+Returning cached value; 2 buffers unchanged since 0.0 => 0.46351963905916027
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.46354709094902613}, derivative=-542.8788298616707}; rightPoint=LineSearchPoint{point=PointSample{avg=0.47002385718751755}, derivative=9503.13524991334}
+F(4.4218375239339474E-6) = LineSearchPoint{point=PointSample{avg=0.46351963905916027}, derivative=-24.775364468057916}, delta = -0.015103174916922923
+Left bracket at 4.4218375239339474E-6
+Converged to left
+Iteration 45 complete. Error: 0.46351963905916027 Total: 180189261916716.8400; Orientation: 0.0003; Line Search: 0.8338
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4674733178810677
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4674733178810677}, derivative=-13671.276879210052}
+New Minimum: 0.4674733178810677 > 0.45233760048483396
+F(4.4218375239339474E-6) = LineSearchPoint{point=PointSample{avg=0.45233760048483396}, derivative=-674.6328702299041}, delta = -0.015135717396233761
+F(3.0952862667537635E-5) = LineSearchPoint{point=PointSample{avg=0.769243548620477}, derivative=38042.8760694713}, delta = 0.30177023073940923
+F(3.0952862667537636E-7) = LineSearchPoint{point=PointSample{avg=0.46545129032515287}, derivative=-12664.045353084224}, delta = -0.0020220275559148515
+F(2.1667003867276346E-6) = LineSearchPoint{point=PointSample{avg=0.45647624836209977}, derivative=-6955.621859651652}, delta = -0.01099706951896795
+F(1.5166902707093442E-5) = LineSearchPoint{point=PointSample{avg=0.516191024033416}, derivative=22664.81248824884}, delta = 0.04871770615234827
+F(1.5166902707093443E-7) = LineSearchPoint{point=PointSample{avg=0.4664630519626229}, derivative=-13175.585679559768}, delta = -0.0010102659184448304
+F(1.061683189496541E-6) = LineSearchPoint{point=PointSample{avg=0.4611765422889089}, derivative=-10285.747103081176}, delta = -0.006296775592158799
+F(7.431782326475786E-6) = LineSearchPoint{point=PointSample{avg=0.45721850499547245}, derivative=6858.321967419576}, delta = -0.010254812885595266
+0.45721850499547245 <= 0.4674733178810677
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45236537503365076
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4674733178810677}, derivative=-13671.276879210052}; rightPoint=LineSearchPoint{point=PointSample{avg=0.45721850499547245}, derivative=6858.321967419576}
+F(4.949047209850885E-6) = LineSearchPoint{point=PointSample{avg=0.45236537503365076}, derivative=708.2383654512835}, delta = -0.015107942847416955
+Right bracket at 4.949047209850885E-6
+New Minimum: 0.45233760048483396 > 0.4523073176160143
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4523073176160143
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4674733178810677}, derivative=-13671.276879210052}; rightPoint=LineSearchPoint{point=PointSample{avg=0.45236537503365076}, derivative=708.2383654512835}
+F(4.705290376132353E-6) = LineSearchPoint{point=PointSample{avg=0.4523073176160143}, derivative=72.51576493439735}, delta = -0.015166000265053436
+Right bracket at 4.705290376132353E-6
+Converged to right
+Iteration 46 complete. Error: 0.4523073176160143 Total: 180192215530782.7500; Orientation: 0.0006; Line Search: 2.6907
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4385513634748446
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4385513634748446}, derivative=-9255.47186982681}
+New Minimum: 0.4385513634748446 > 0.42570817697347973
+F(4.705290376132353E-6) = LineSearchPoint{point=PointSample{avg=0.42570817697347973}, derivative=-1672.7708124301812}, delta = -0.012843186501364845
+F(3.293703263292647E-5) = LineSearchPoint{point=PointSample{avg=0.7323164986301286}, derivative=46385.91684445565}, delta = 0.293765135155284
+F(3.293703263292647E-7) = LineSearchPoint{point=PointSample{avg=0.43706862441306604}, derivative=-8723.729743884915}, delta = -0.0014827390617785374
+F(2.305592284304853E-6) = LineSearchPoint{point=PointSample{avg=0.4300195156774887}, derivative=-5535.836709653846}, delta = -0.008531847797355885
+F(1.6139145990133972E-5) = LineSearchPoint{point=PointSample{avg=0.4690690563125734}, derivative=16883.307113104864}, delta = 0.030517692837728816
+F(1.6139145990133971E-7) = LineSearchPoint{point=PointSample{avg=0.4378138207947767}, derivative=-8994.908985502976}, delta = -7.375426800678708E-4
+F(1.129740219309378E-6) = LineSearchPoint{point=PointSample{avg=0.4338323460887161}, derivative=-7432.009051246489}, delta = -0.0047190173861284546
+F(7.908181535165646E-6) = LineSearchPoint{point=PointSample{avg=0.42719106334180357}, derivative=3476.964614307629}, delta = -0.011360300133041012
+0.42719106334180357 <= 0.4385513634748446
+New Minimum: 0.42570817697347973 > 0.4252834031876729
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4252834031876729
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4385513634748446}, derivative=-9255.47186982681}; rightPoint=LineSearchPoint{point=PointSample{avg=0.42719106334180357}, derivative=3476.964614307629}
+F(5.748620998927781E-6) = LineSearchPoint{point=PointSample{avg=0.4252834031876729}, derivative=4.6836158061059745}, delta = -0.013267960287171698
+Right bracket at 5.748620998927781E-6
+Converged to right
+Iteration 47 complete. Error: 0.4252834031876729 Total: 180194976284581.7800; Orientation: 0.0004; Line Search: 2.4792
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4567035392789227
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4567035392789227}, derivative=-10736.58409165961}
+New Minimum: 0.4567035392789227 > 0.4420393752167209
+F(5.748620998927781E-6) = LineSearchPoint{point=PointSample{avg=0.4420393752167209}, derivative=927.2233940266228}, delta = -0.014664164062201834
+0.4420393752167209 <= 0.4567035392789227
+New Minimum: 0.4420393752167209 > 0.4419849563031143
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4419849563031143
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4567035392789227}, derivative=-10736.58409165961}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4420393752167209}, derivative=927.2233940266228}
+F(5.291629928032638E-6) = LineSearchPoint{point=PointSample{avg=0.4419849563031143}, derivative=10.970008578543105}, delta = -0.014718582975808414
+Right bracket at 5.291629928032638E-6
+Converged to right
+Iteration 48 complete. Error: 0.4419849563031143 Total: 180195823899225.0300; Orientation: 0.0010; Line Search: 0.5637
+Returning cached value; 2 buffers unchanged since 0.0 => 0.46391077713233486
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.46391077713233486}, derivative=-8421.786475684432}
+New Minimum: 0.46391077713233486 > 0.45116194382457064
+F(5.291629928032638E-6) = LineSearchPoint{point=PointSample{avg=0.45116194382457064}, derivative=-1802.4298255187061}, delta = -0.012748833307764218
+F(3.704140949622847E-5) = LineSearchPoint{point=PointSample{avg=0.702600908941621}, derivative=31732.541051155265}, delta = 0.2386901318092861
+F(3.704140949622847E-7) = LineSearchPoint{point=PointSample{avg=0.4624468981011517}, derivative=-7940.948985663974}, delta = -0.0014638790311831684
+F(2.592898664735993E-6) = LineSearchPoint{point=PointSample{avg=0.45549173105645324}, derivative=-5112.626948866421}, delta = -0.00841904607588162
+F(1.815029065315195E-5) = LineSearchPoint{point=PointSample{avg=0.48843452234149304}, derivative=12607.57466485052}, delta = 0.024523745209158176
+F(1.815029065315195E-7) = LineSearchPoint{point=PointSample{avg=0.46318248118777394}, derivative=-8185.8336712299015}, delta = -7.282959445609194E-4
+F(1.2705203457206365E-6) = LineSearchPoint{point=PointSample{avg=0.459254607224061}, derivative=-6783.870757415597}, delta = -0.004656169908273888
+F(8.893642420044456E-6) = LineSearchPoint{point=PointSample{avg=0.4521670274804286}, derivative=2428.7067875343832}, delta = -0.011743749651906277
+0.4521670274804286 <= 0.46391077713233486
+New Minimum: 0.45116194382457064 > 0.45066935763367444
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45066935763367444
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.46391077713233486}, derivative=-8421.786475684432}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4521670274804286}, derivative=2428.7067875343832}
+F(6.9029449293888096E-6) = LineSearchPoint{point=PointSample{avg=0.45066935763367444}, derivative=114.66264184427405}, delta = -0.013241419498660423
+Right bracket at 6.9029449293888096E-6
+New Minimum: 0.45066935763367444 > 0.45065600874197254
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45065600874197254
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.46391077713233486}, derivative=-8421.786475684432}; rightPoint=LineSearchPoint{point=PointSample{avg=0.45066935763367444}, derivative=114.66264184427405}
+F(6.8102237181203E-6) = LineSearchPoint{point=PointSample{avg=0.45065600874197254}, derivative=5.461451661350691}, delta = -0.013254768390362326
+Right bracket at 6.8102237181203E-6
+Converged to right
+Iteration 49 complete. Error: 0.45065600874197254 Total: 180198820745083.2000; Orientation: 0.0016; Line Search: 2.7292
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4664474284219826
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4664474284219826}, derivative=-13817.477142224154}
+New Minimum: 0.4664474284219826 > 0.44986837738738683
+F(6.8102237181203E-6) = LineSearchPoint{point=PointSample{avg=0.44986837738738683}, derivative=3883.1449980192356}, delta = -0.016579051034595782
+0.44986837738738683 <= 0.4664474284219826
+New Minimum: 0.44986837738738683 > 0.4483641877210325
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4483641877210325
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4664474284219826}, derivative=-13817.477142224154}; rightPoint=LineSearchPoint{point=PointSample{avg=0.44986837738738683}, derivative=3883.1449980192356}
+F(5.3162035669140684E-6) = LineSearchPoint{point=PointSample{avg=0.4483641877210325}, derivative=33.96284306531293}, delta = -0.01808324070095013
+Right bracket at 5.3162035669140684E-6
+Converged to right
+Iteration 50 complete. Error: 0.4483641877210325 Total: 180199672106336.2000; Orientation: 0.0006; Line Search: 0.5696
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4288440153320444
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4288440153320444}, derivative=-11872.962682718951}
+New Minimum: 0.4288440153320444 > 0.41420180358491426
+F(5.3162035669140684E-6) = LineSearchPoint{point=PointSample{avg=0.41420180358491426}, derivative=686.1300966914141}, delta = -0.014642211747130152
+0.41420180358491426 <= 0.4288440153320444
+New Minimum: 0.41420180358491426 > 0.4141456581356816
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4141456581356816
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4288440153320444}, derivative=-11872.962682718951}; rightPoint=LineSearchPoint{point=PointSample{avg=0.41420180358491426}, derivative=686.1300966914141}
+F(5.0257679971268975E-6) = LineSearchPoint{point=PointSample{avg=0.4141456581356816}, derivative=5.696232811487899}, delta = -0.01469835719636281
+Right bracket at 5.0257679971268975E-6
+Converged to right
+Iteration 51 complete. Error: 0.4141456581356816 Total: 180200506317877.3000; Orientation: 0.0005; Line Search: 0.5664
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4017494014060602
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4017494014060602}, derivative=-8561.096535229715}
+New Minimum: 0.4017494014060602 > 0.38902514627801216
+F(5.0257679971268975E-6) = LineSearchPoint{point=PointSample{avg=0.38902514627801216}, derivative=-1163.1385745681641}, delta = -0.012724255128048034
+F(3.518037597988828E-5) = LineSearchPoint{point=PointSample{avg=0.6771889236113549}, derivative=38077.584114383295}, delta = 0.27543952220529466
+F(3.518037597988828E-7) = LineSearchPoint{point=PointSample{avg=0.4002526062515122}, derivative=-8035.1171359639375}, delta = -0.0014967951545479807
+F(2.4626263185921797E-6) = LineSearchPoint{point=PointSample{avg=0.3931993789763634}, derivative=-4905.807597174954}, delta = -0.008550022429696769
+F(1.723838423014526E-5) = LineSearchPoint{point=PointSample{avg=0.43321312305170734}, derivative=16057.783339207446}, delta = 0.03146372164564715
+F(1.723838423014526E-7) = LineSearchPoint{point=PointSample{avg=0.4010044390631415}, derivative=-8303.204836643043}, delta = -7.449623429187091E-4
+F(1.2066868961101682E-6) = LineSearchPoint{point=PointSample{avg=0.3969990735393971}, derivative=-6762.331511277528}, delta = -0.004750327866663073
+F(8.446808272771177E-6) = LineSearchPoint{point=PointSample{avg=0.39082779945450596}, derivative=3749.1657696723355}, delta = -0.010921601951554227
+0.39082779945450596 <= 0.4017494014060602
+New Minimum: 0.38902514627801216 > 0.38869129276454195
+Returning cached value; 2 buffers unchanged since 0.0 => 0.38869129276454195
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4017494014060602}, derivative=-8561.096535229715}; rightPoint=LineSearchPoint{point=PointSample{avg=0.39082779945450596}, derivative=3749.1657696723355}
+F(5.874281087331095E-6) = LineSearchPoint{point=PointSample{avg=0.38869129276454195}, derivative=63.357354133473336}, delta = -0.01305810864151824
+Right bracket at 5.874281087331095E-6
+Converged to right
+Iteration 52 complete. Error: 0.38869129276454195 Total: 180203220527582.5000; Orientation: 0.0010; Line Search: 2.4417
+Returning cached value; 2 buffers unchanged since 0.0 => 0.47388160883577
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.47388160883577}, derivative=-15768.152091302669}
+New Minimum: 0.47388160883577 > 0.4532425689116837
+F(5.874281087331095E-6) = LineSearchPoint{point=PointSample{avg=0.4532425689116837}, derivative=1576.6595129458117}, delta = -0.020639039924086333
+0.4532425689116837 <= 0.47388160883577
+New Minimum: 0.4532425689116837 > 0.4530356438488501
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4530356438488501
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.47388160883577}, derivative=-15768.152091302669}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4532425689116837}, derivative=1576.6595129458117}
+F(5.340303470889897E-6) = LineSearchPoint{point=PointSample{avg=0.4530356438488501}, derivative=46.751426307250384}, delta = -0.02084596498691993
+Right bracket at 5.340303470889897E-6
+Converged to right
+Iteration 53 complete. Error: 0.4530356438488501 Total: 180204038315531.7800; Orientation: 0.0005; Line Search: 0.5395
+Returning cached value; 2 buffers unchanged since 0.0 => 0.42581491165412033
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.42581491165412033}, derivative=-10601.869851168063}
+New Minimum: 0.42581491165412033 > 0.41208745980001377
+F(5.340303470889897E-6) = LineSearchPoint{point=PointSample{avg=0.41208745980001377}, derivative=162.18744593064284}, delta = -0.013727451854106565
+0.41208745980001377 <= 0.42581491165412033
+New Minimum: 0.41208745980001377 > 0.41207979343526413
+Returning cached value; 2 buffers unchanged since 0.0 => 0.41207979343526413
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.42581491165412033}, derivative=-10601.869851168063}; rightPoint=LineSearchPoint{point=PointSample{avg=0.41208745980001377}, derivative=162.18744593064284}
+F(5.259838442087827E-6) = LineSearchPoint{point=PointSample{avg=0.41207979343526413}, derivative=-3.8272496617994105}, delta = -0.013735118218856202
+Left bracket at 5.259838442087827E-6
+Converged to left
+Iteration 54 complete. Error: 0.41207979343526413 Total: 180204879227769.9700; Orientation: 0.0005; Line Search: 0.5604
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4251871065301713
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4251871065301713}, derivative=-8590.497983996622}
+New Minimum: 0.4251871065301713 > 0.41378425280131426
+F(5.259838442087827E-6) = LineSearchPoint{point=PointSample{avg=0.41378425280131426}, derivative=-557.997882807533}, delta = -0.01140285372885702
+F(3.681886909461479E-5) = LineSearchPoint{point=PointSample{avg=0.7868889614925247}, derivative=46009.68139272148}, delta = 0.36170185496235346
+F(3.681886909461479E-7) = LineSearchPoint{point=PointSample{avg=0.4237035176301951}, derivative=-8022.9699442906285}, delta = -0.0014835888999761848
+F(2.577320836623035E-6) = LineSearchPoint{point=PointSample{avg=0.41697555040423456}, derivative=-4638.6591732582}, delta = -0.008211556125936714
+F(1.8041245856361246E-5) = LineSearchPoint{point=PointSample{avg=0.47408907982005805}, derivative=19242.391654103358}, delta = 0.04890197328988677
+F(1.8041245856361245E-7) = LineSearchPoint{point=PointSample{avg=0.4244471649536826}, derivative=-8312.265618073634}, delta = -7.399415764886563E-4
+F(1.2628872099452872E-6) = LineSearchPoint{point=PointSample{avg=0.4205306115266043}, derivative=-6648.3864295335825}, delta = -0.004656495003566963
+F(8.84021046961701E-6) = LineSearchPoint{point=PointSample{avg=0.4180105339910156}, derivative=4897.958819219911}, delta = -0.007176572539155657
+0.4180105339910156 <= 0.4251871065301713
+New Minimum: 0.41378425280131426 > 0.41377118096330434
+Returning cached value; 2 buffers unchanged since 0.0 => 0.41377118096330434
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4251871065301713}, derivative=-8590.497983996622}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4180105339910156}, derivative=4897.958819219911}
+F(5.630133329947817E-6) = LineSearchPoint{point=PointSample{avg=0.41377118096330434}, derivative=4.651174335917796}, delta = -0.011415925566866936
+Right bracket at 5.630133329947817E-6
+Converged to right
+Iteration 55 complete. Error: 0.41377118096330434 Total: 180207601693014.1200; Orientation: 0.0005; Line Search: 2.4470
+Returning cached value; 2 buffers unchanged since 0.0 => 0.428243370531291
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.428243370531291}, derivative=-5053.99268908631}
+New Minimum: 0.428243370531291 > 0.4183254709125783
+F(5.630133329947817E-6) = LineSearchPoint{point=PointSample{avg=0.4183254709125783}, derivative=-2239.2983080559966}, delta = -0.0099178996187127
+F(3.941093330963472E-5) = LineSearchPoint{point=PointSample{avg=0.5225007163196538}, derivative=14290.791909027854}, delta = 0.09425734578836276
+F(3.941093330963472E-7) = LineSearchPoint{point=PointSample{avg=0.4272889704394157}, derivative=-4855.17801019965}, delta = -9.544000918753071E-4
+F(2.7587653316744304E-6) = LineSearchPoint{point=PointSample{avg=0.42238764150921626}, derivative=-3668.2000771288435}, delta = -0.005855729022074763
+F(1.931135732172101E-5) = LineSearchPoint{point=PointSample{avg=0.4269407939048707}, derivative=4436.637022957352}, delta = -0.0013025766264203043
+0.4269407939048707 <= 0.428243370531291
+New Minimum: 0.4183254709125783 > 0.41609882110167173
+Returning cached value; 2 buffers unchanged since 0.0 => 0.41609882110167173
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.428243370531291}, derivative=-5053.99268908631}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4269407939048707}, derivative=4436.637022957352}
+F(1.0283770590739317E-5) = LineSearchPoint{point=PointSample{avg=0.41609882110167173}, derivative=51.98092991525772}, delta = -0.012144549429619289
+Right bracket at 1.0283770590739317E-5
+New Minimum: 0.41609882110167173 > 0.41609006262486165
+Returning cached value; 2 buffers unchanged since 0.0 => 0.41609006262486165
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.428243370531291}, derivative=-5053.99268908631}; rightPoint=LineSearchPoint{point=PointSample{avg=0.41609882110167173}, derivative=51.98092991525772}
+F(1.0179077539378362E-5) = LineSearchPoint{point=PointSample{avg=0.41609006262486165}, derivative=0.7268681868701493}, delta = -0.012153307906429378
+Right bracket at 1.0179077539378362E-5
+Converged to right
+Iteration 56 complete. Error: 0.41609006262486165 Total: 180209804078395.4000; Orientation: 0.0007; Line Search: 1.9281
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4238572546481172
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4238572546481172}, derivative=-8769.883689305354}
+New Minimum: 0.4238572546481172 > 0.415328958438977
+F(1.0179077539378362E-5) = LineSearchPoint{point=PointSample{avg=0.415328958438977}, derivative=4768.59859475633}, delta = -0.008528296209140196
+0.415328958438977 <= 0.4238572546481172
+New Minimum: 0.415328958438977 > 0.4105201616371224
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4105201616371224
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4238572546481172}, derivative=-8769.883689305354}; rightPoint=LineSearchPoint{point=PointSample{avg=0.415328958438977}, derivative=4768.59859475633}
+F(6.593746936454021E-6) = LineSearchPoint{point=PointSample{avg=0.4105201616371224}, derivative=244.6398609256552}, delta = -0.013337093010994783
+Right bracket at 6.593746936454021E-6
+New Minimum: 0.4105201616371224 > 0.4104953400411003
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4104953400411003
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4238572546481172}, derivative=-8769.883689305354}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4105201616371224}, derivative=244.6398609256552}
+F(6.4148031104687044E-6) = LineSearchPoint{point=PointSample{avg=0.4104953400411003}, derivative=13.327538459959039}, delta = -0.013361914607016911
+Right bracket at 6.4148031104687044E-6
+Converged to right
+Iteration 57 complete. Error: 0.4104953400411003 Total: 180210901473747.2000; Orientation: 0.0008; Line Search: 0.8116
+Returning cached value; 2 buffers unchanged since 0.0 => 0.40193073431749615
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.40193073431749615}, derivative=-11400.138132383616}
+New Minimum: 0.40193073431749615 > 0.38686304936765564
+F(6.4148031104687044E-6) = LineSearchPoint{point=PointSample{avg=0.38686304936765564}, derivative=1385.2410322863534}, delta = -0.01506768494984051
+0.38686304936765564 <= 0.40193073431749615
+New Minimum: 0.38686304936765564 > 0.3865280721849208
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3865280721849208
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.40193073431749615}, derivative=-11400.138132383616}; rightPoint=LineSearchPoint{point=PointSample{avg=0.38686304936765564}, derivative=1385.2410322863534}
+F(5.719786688334402E-6) = LineSearchPoint{point=PointSample{avg=0.3865280721849208}, derivative=52.714145122727444}, delta = -0.015402662132575351
+Right bracket at 5.719786688334402E-6
+Converged to right
+Iteration 58 complete. Error: 0.3865280721849208 Total: 180211737674152.1000; Orientation: 0.0005; Line Search: 0.5622
+Returning cached value; 2 buffers unchanged since 0.0 => 0.420221021515053
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.420221021515053}, derivative=-17591.145934639866}
+New Minimum: 0.420221021515053 > 0.3989430039789913
+F(5.719786688334402E-6) = LineSearchPoint{point=PointSample{avg=0.3989430039789913}, derivative=2501.2540586021482}, delta = -0.021278017536061677
+0.3989430039789913 <= 0.420221021515053
+New Minimum: 0.3989430039789913 > 0.398445290014684
+Returning cached value; 2 buffers unchanged since 0.0 => 0.398445290014684
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.420221021515053}, derivative=-17591.145934639866}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3989430039789913}, derivative=2501.2540586021482}
+F(5.007744340314905E-6) = LineSearchPoint{point=PointSample{avg=0.398445290014684}, derivative=-50.81593110609084}, delta = -0.02177573150036899
+Left bracket at 5.007744340314905E-6
+Converged to left
+Iteration 59 complete. Error: 0.398445290014684 Total: 180212536043106.2500; Orientation: 0.0003; Line Search: 0.5295
+Returning cached value; 2 buffers unchanged since 0.0 => 0.42971929210489085
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.42971929210489085}, derivative=-9696.086525378592}
+New Minimum: 0.42971929210489085 > 0.41523569416050327
+F(5.007744340314905E-6) = LineSearchPoint{point=PointSample{avg=0.41523569416050327}, derivative=-2204.6597922986784}, delta = -0.014483597944387583
+F(3.5054210382204333E-5) = LineSearchPoint{point=PointSample{avg=0.7182828833859909}, derivative=41916.257701091985}, delta = 0.28856359128110004
+F(3.505421038220433E-7) = LineSearchPoint{point=PointSample{avg=0.428084951595926}, derivative=-9147.284003229273}, delta = -0.0016343405089648266
+F(2.4537947267543034E-6) = LineSearchPoint{point=PointSample{avg=0.4202704762162098}, derivative=-5944.51690357017}, delta = -0.009448815888681072
+F(1.7176563087280124E-5) = LineSearchPoint{point=PointSample{avg=0.45657102170924546}, derivative=15390.938764454468}, delta = 0.026851729604354613
+F(1.7176563087280124E-7) = LineSearchPoint{point=PointSample{avg=0.42890641434798704}, derivative=-9426.573136519344}, delta = -8.12877756903807E-4
+F(1.2023594161096087E-6) = LineSearchPoint{point=PointSample{avg=0.4245122534902417}, derivative=-7832.77200856234}, delta = -0.005207038614649162
+F(8.41651591276726E-6) = LineSearchPoint{point=PointSample{avg=0.4159198016316557}, derivative=2681.4812128602953}, delta = -0.013799490473235143
+0.4159198016316557 <= 0.42971929210489085
+New Minimum: 0.41523569416050327 > 0.41450775134094503
+Returning cached value; 2 buffers unchanged since 0.0 => 0.41450775134094503
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.42971929210489085}, derivative=-9696.086525378592}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4159198016316557}, derivative=2681.4812128602953}
+F(6.5931585476443874E-6) = LineSearchPoint{point=PointSample{avg=0.41450775134094503}, derivative=73.5931653738024}, delta = -0.015211540763945819
+Right bracket at 6.5931585476443874E-6
+Converged to right
+Iteration 60 complete. Error: 0.41450775134094503 Total: 180215236887040.4700; Orientation: 0.0013; Line Search: 2.4365
+Returning cached value; 2 buffers unchanged since 0.0 => 0.45933486987627126
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.45933486987627126}, derivative=-11281.744682397328}
+New Minimum: 0.45933486987627126 > 0.4446364737193793
+F(6.5931585476443874E-6) = LineSearchPoint{point=PointSample{avg=0.4446364737193793}, derivative=2289.596060165065}, delta = -0.014698396156891946
+0.4446364737193793 <= 0.45933486987627126
+New Minimum: 0.4446364737193793 > 0.4439427650878698
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4439427650878698
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.45933486987627126}, derivative=-11281.744682397328}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4446364737193793}, derivative=2289.596060165065}
+F(5.480838835017379E-6) = LineSearchPoint{point=PointSample{avg=0.4439427650878698}, derivative=-121.78778217207984}, delta = -0.015392104788401473
+Left bracket at 5.480838835017379E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.44394573096844514
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4439427650878698}, derivative=-121.78778217207984}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4446364737193793}, derivative=2289.596060165065}
+F(5.537016930137993E-6) = LineSearchPoint{point=PointSample{avg=0.44394573096844514}, derivative=-1.5254118032776023}, delta = -0.015389138907826116
+0.44394573096844514 > 0.4439427650878698
+Iteration 61 complete. Error: 0.4439427650878698 Total: 180216338348463.7500; Orientation: 0.0007; Line Search: 0.8354
+Returning cached value; 2 buffers unchanged since 0.0 => 0.42374848785069497
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.42374848785069497}, derivative=-9027.80330864086}
+New Minimum: 0.42374848785069497 > 0.40893398948617243
+F(5.480838835017379E-6) = LineSearchPoint{point=PointSample{avg=0.40893398948617243}, derivative=-1638.169136818342}, delta = -0.014814498364522533
+F(3.8365871845121653E-5) = LineSearchPoint{point=PointSample{avg=0.6583658863943388}, derivative=29782.502984258783}, delta = 0.23461739854364383
+F(3.8365871845121656E-7) = LineSearchPoint{point=PointSample{avg=0.42202497099053315}, derivative=-8465.915031709377}, delta = -0.0017235168601618112
+F(2.6856110291585157E-6) = LineSearchPoint{point=PointSample{avg=0.4139215538183947}, derivative=-5246.33554094402}, delta = -0.009826934032300283
+F(1.879927720410961E-5) = LineSearchPoint{point=PointSample{avg=0.44763231736338777}, derivative=12852.444490079508}, delta = 0.0238838295126928
+F(1.8799277204109608E-7) = LineSearchPoint{point=PointSample{avg=0.4228902563526058}, derivative=-8751.518757059615}, delta = -8.582314980891681E-4
+F(1.3159494042876725E-6) = LineSearchPoint{point=PointSample{avg=0.41828796634933835}, derivative=-7131.680240462819}, delta = -0.005460521501356619
+F(9.211645830013707E-6) = LineSearchPoint{point=PointSample{avg=0.4098743877090013}, derivative=2785.9434165769344}, delta = -0.013874100141693657
+0.4098743877090013 <= 0.42374848785069497
+New Minimum: 0.40893398948617243 > 0.4083111890351828
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4083111890351828
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.42374848785069497}, derivative=-9027.80330864086}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4098743877090013}, derivative=2785.9434165769344}
+F(7.039335499271286E-6) = LineSearchPoint{point=PointSample{avg=0.4083111890351828}, derivative=256.9185276171639}, delta = -0.015437298815512146
+Right bracket at 7.039335499271286E-6
+New Minimum: 0.4083111890351828 > 0.40830776893092013
+Returning cached value; 2 buffers unchanged since 0.0 => 0.40830776893092013
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.42374848785069497}, derivative=-9027.80330864086}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4083111890351828}, derivative=256.9185276171639}
+F(6.844549296327279E-6) = LineSearchPoint{point=PointSample{avg=0.40830776893092013}, derivative=24.034892019874153}, delta = -0.015440718919774832
+Right bracket at 6.844549296327279E-6
+Converged to right
+Iteration 62 complete. Error: 0.40830776893092013 Total: 180219355724734.6600; Orientation: 0.0006; Line Search: 2.7297
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4205458263886589
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4205458263886589}, derivative=-5148.34299480315}
+New Minimum: 0.4205458263886589 > 0.4095803127071236
+F(6.844549296327279E-6) = LineSearchPoint{point=PointSample{avg=0.4095803127071236}, derivative=-1563.7469476295882}, delta = -0.01096551368153531
+F(4.791184507429095E-5) = LineSearchPoint{point=PointSample{avg=0.612498102108731}, derivative=22365.00452356396}, delta = 0.19195227572007212
+F(4.791184507429095E-7) = LineSearchPoint{point=PointSample{avg=0.4193795641578762}, derivative=-4893.935414557222}, delta = -0.0011662622307826997
+F(3.3538291552003665E-6) = LineSearchPoint{point=PointSample{avg=0.41364818337096115}, derivative=-3379.952929050766}, delta = -0.006897643017697741
+F(2.3476804086402564E-5) = LineSearchPoint{point=PointSample{avg=0.4336385601761424}, derivative=7184.837041472924}, delta = 0.01309273378748349
+F(2.3476804086402563E-7) = LineSearchPoint{point=PointSample{avg=0.41996678669193777}, derivative=-5023.602774865869}, delta = -5.790396967211286E-4
+F(1.6433762860481794E-6) = LineSearchPoint{point=PointSample{avg=0.41679748465789457}, derivative=-4278.320124678088}, delta = -0.0037483417307643263
+New Minimum: 0.4095803127071236 > 0.4090496089068679
+F(1.1503634002337256E-5) = LineSearchPoint{point=PointSample{avg=0.4090496089068679}, derivative=844.400658781115}, delta = -0.011496217481790971
+0.4090496089068679 <= 0.4205458263886589
+New Minimum: 0.4090496089068679 > 0.40860008029493183
+Returning cached value; 2 buffers unchanged since 0.0 => 0.40860008029493183
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4205458263886589}, derivative=-5148.34299480315}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4090496089068679}, derivative=844.400658781115}
+F(9.882727671037627E-6) = LineSearchPoint{point=PointSample{avg=0.40860008029493183}, derivative=6.8059879165989}, delta = -0.011945746093727061
+Right bracket at 9.882727671037627E-6
+Converged to right
+Iteration 63 complete. Error: 0.40860008029493183 Total: 180222118665457.6600; Orientation: 0.0007; Line Search: 2.4865
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3931447527243651
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3931447527243651}, derivative=-5622.121338292435}
+New Minimum: 0.3931447527243651 > 0.3791808782064439
+F(9.882727671037627E-6) = LineSearchPoint{point=PointSample{avg=0.3791808782064439}, derivative=-93.94097940468507}, delta = -0.013963874517921193
+F(6.917909369726339E-5) = LineSearchPoint{point=PointSample{avg=0.8264077551251621}, derivative=29152.125049471717}, delta = 0.43326300240079696
+F(6.917909369726339E-7) = LineSearchPoint{point=PointSample{avg=0.3912703956123551}, derivative=-5219.556212593634}, delta = -0.0018743571120100055
+F(4.8425365588084375E-6) = LineSearchPoint{point=PointSample{avg=0.3828998219127603}, derivative=-2857.781566657279}, delta = -0.010244930811604824
+F(3.3897755911659064E-5) = LineSearchPoint{point=PointSample{avg=0.45317014633106}, derivative=12362.293206007262}, delta = 0.0600253936066949
+F(3.389775591165906E-7) = LineSearchPoint{point=PointSample{avg=0.3922089646418686}, derivative=-5424.520550250052}, delta = -9.357880824965026E-4
+F(2.372842913816134E-6) = LineSearchPoint{point=PointSample{avg=0.3872906968481962}, derivative=-4252.4116745023475}, delta = -0.005854055876168884
+F(1.6609900396712938E-5) = LineSearchPoint{point=PointSample{avg=0.38483760674585743}, derivative=3464.4866475513595}, delta = -0.00830714597850768
+0.38483760674585743 <= 0.3931447527243651
+Returning cached value; 2 buffers unchanged since 0.0 => 0.37918104318830936
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3931447527243651}, derivative=-5622.121338292435}; rightPoint=LineSearchPoint{point=PointSample{avg=0.38483760674585743}, derivative=3464.4866475513595}
+F(1.0276978559299004E-5) = LineSearchPoint{point=PointSample{avg=0.37918104318830936}, derivative=118.23618579957152}, delta = -0.013963709536055746
+Right bracket at 1.0276978559299004E-5
+New Minimum: 0.3791808782064439 > 0.37917576425402777
+Returning cached value; 2 buffers unchanged since 0.0 => 0.37917576425402777
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3931447527243651}, derivative=-5622.121338292435}; rightPoint=LineSearchPoint{point=PointSample{avg=0.37918104318830936}, derivative=118.23618579957152}
+F(1.0065299976336928E-5) = LineSearchPoint{point=PointSample{avg=0.37917576425402777}, derivative=4.3805810257060696}, delta = -0.01396898847033734
+Right bracket at 1.0065299976336928E-5
+Converged to right
+Iteration 64 complete. Error: 0.37917576425402777 Total: 180225175057263.8800; Orientation: 0.0009; Line Search: 2.7792
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4010989693218302
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4010989693218302}, derivative=-7780.430396370494}
+New Minimum: 0.4010989693218302 > 0.38966806111042473
+F(1.0065299976336928E-5) = LineSearchPoint{point=PointSample{avg=0.38966806111042473}, derivative=2726.846773640591}, delta = -0.011430908211405466
+0.38966806111042473 <= 0.4010989693218302
+New Minimum: 0.38966806111042473 > 0.3876183152829831
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3876183152829831
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4010989693218302}, derivative=-7780.430396370494}; rightPoint=LineSearchPoint{point=PointSample{avg=0.38966806111042473}, derivative=2726.846773640591}
+F(7.453155048387901E-6) = LineSearchPoint{point=PointSample{avg=0.3876183152829831}, derivative=63.86811855707776}, delta = -0.013480654038847129
+Right bracket at 7.453155048387901E-6
+Converged to right
+Iteration 65 complete. Error: 0.3876183152829831 Total: 180225987813634.8000; Orientation: 0.0006; Line Search: 0.5442
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3759245879168178
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3759245879168178}, derivative=-4302.339777944862}
+New Minimum: 0.3759245879168178 > 0.3659722332165034
+F(7.453155048387901E-6) = LineSearchPoint{point=PointSample{avg=0.3659722332165034}, derivative=-1144.922294966213}, delta = -0.009952354700314414
+F(5.21720853387153E-5) = LineSearchPoint{point=PointSample{avg=0.5427562137783384}, derivative=16449.614308130833}, delta = 0.16683162586152056
+F(5.21720853387153E-7) = LineSearchPoint{point=PointSample{avg=0.37483759261074456}, derivative=-4072.882500110343}, delta = -0.0010869953060732573
+F(3.652045973710071E-6) = LineSearchPoint{point=PointSample{avg=0.36956599212624736}, derivative=-2725.449983995492}, delta = -0.006358595790570465
+F(2.5564321815970497E-5) = LineSearchPoint{point=PointSample{avg=0.38918920208682134}, derivative=6105.865361573368}, delta = 0.01326461417000352
+F(2.5564321815970494E-7) = LineSearchPoint{point=PointSample{avg=0.37538442111475123}, derivative=-4189.717457413582}, delta = -5.401668020665884E-4
+F(1.7895025271179347E-6) = LineSearchPoint{point=PointSample{avg=0.3724461015291676}, derivative=-3521.3728565577003}, delta = -0.003478486387650248
+New Minimum: 0.3659722332165034 > 0.36581848251374716
+F(1.2526517689825542E-5) = LineSearchPoint{point=PointSample{avg=0.36581848251374716}, derivative=902.2410826198011}, delta = -0.010106105403070664
+0.36581848251374716 <= 0.3759245879168178
+New Minimum: 0.36581848251374716 > 0.3652435262891959
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3652435262891959
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3759245879168178}, derivative=-4302.339777944862}; rightPoint=LineSearchPoint{point=PointSample{avg=0.36581848251374716}, derivative=902.2410826198011}
+F(1.0354980887014087E-5) = LineSearchPoint{point=PointSample{avg=0.3652435262891959}, derivative=32.198245891455144}, delta = -0.010681061627621946
+Right bracket at 1.0354980887014087E-5
+Converged to right
+Iteration 66 complete. Error: 0.3652435262891959 Total: 180228705225928.0000; Orientation: 0.0005; Line Search: 2.4578
+Returning cached value; 2 buffers unchanged since 0.0 => 0.43115358576910257
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.43115358576910257}, derivative=-9893.163574287611}
+New Minimum: 0.43115358576910257 > 0.4286209530001521
+F(1.0354980887014087E-5) = LineSearchPoint{point=PointSample{avg=0.4286209530001521}, derivative=8136.968975282835}, delta = -0.002532632768950438
+0.4286209530001521 <= 0.43115358576910257
+New Minimum: 0.4286209530001521 > 0.4183200628859897
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4183200628859897
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.43115358576910257}, derivative=-9893.163574287611}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4286209530001521}, derivative=8136.968975282835}
+F(5.681795152764577E-6) = LineSearchPoint{point=PointSample{avg=0.4183200628859897}, derivative=562.7161171702412}, delta = -0.012833522883112847
+Right bracket at 5.681795152764577E-6
+New Minimum: 0.4183200628859897 > 0.4182732799052966
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4182732799052966
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.43115358576910257}, derivative=-9893.163574287611}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4183200628859897}, derivative=562.7161171702412}
+F(5.376011440511994E-6) = LineSearchPoint{point=PointSample{avg=0.4182732799052966}, derivative=41.50507499483248}, delta = -0.012880305863805952
+Right bracket at 5.376011440511994E-6
+Converged to right
+Iteration 67 complete. Error: 0.4182732799052966 Total: 180229784364708.2800; Orientation: 0.0003; Line Search: 0.7867
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3583150719425443
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3583150719425443}, derivative=-6954.515416937869}
+New Minimum: 0.3583150719425443 > 0.34726382517594667
+F(5.376011440511994E-6) = LineSearchPoint{point=PointSample{avg=0.34726382517594667}, derivative=-1613.9073701327402}, delta = -0.011051246766597633
+F(3.763208008358396E-5) = LineSearchPoint{point=PointSample{avg=0.5490456165667723}, derivative=25297.999404727572}, delta = 0.190730544624228
+F(3.763208008358396E-7) = LineSearchPoint{point=PointSample{avg=0.35707349518773807}, derivative=-6568.6476433890975}, delta = -0.0012415767548062395
+F(2.634245605850877E-6) = LineSearchPoint{point=PointSample{avg=0.3511201091854108}, derivative=-4293.312215748869}, delta = -0.007194962757133494
+F(1.8439719240956138E-5) = LineSearchPoint{point=PointSample{avg=0.37660608973114285}, derivative=10200.739930987502}, delta = 0.01829101778859854
+F(1.8439719240956138E-7) = LineSearchPoint{point=PointSample{avg=0.35769770294010594}, derivative=-6765.191402878426}, delta = -6.173690024383616E-4
+F(1.2907803468669296E-6) = LineSearchPoint{point=PointSample{avg=0.35435506493392693}, derivative=-5639.105569351062}, delta = -0.003960007008617372
+F(9.035462428068508E-6) = LineSearchPoint{point=PointSample{avg=0.34769472444348415}, derivative=1838.0774450166439}, delta = -0.010620347499060157
+0.34769472444348415 <= 0.3583150719425443
+New Minimum: 0.34726382517594667 > 0.34668875013314676
+Returning cached value; 2 buffers unchanged since 0.0 => 0.34668875013314676
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3583150719425443}, derivative=-6954.515416937869}; rightPoint=LineSearchPoint{point=PointSample{avg=0.34769472444348415}, derivative=1838.0774450166439}
+F(7.14661348952727E-6) = LineSearchPoint{point=PointSample{avg=0.34668875013314676}, derivative=72.81793037668758}, delta = -0.011626321809397544
+Right bracket at 7.14661348952727E-6
+New Minimum: 0.34668875013314676 > 0.34668316779821773
+Returning cached value; 2 buffers unchanged since 0.0 => 0.34668316779821773
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3583150719425443}, derivative=-6954.515416937869}; rightPoint=LineSearchPoint{point=PointSample{avg=0.34668875013314676}, derivative=72.81793037668758}
+F(7.072559566397473E-6) = LineSearchPoint{point=PointSample{avg=0.34668316779821773}, derivative=2.9118744340944156}, delta = -0.011631904144326577
+Right bracket at 7.072559566397473E-6
+Converged to right
+Iteration 68 complete. Error: 0.34668316779821773 Total: 180232772534400.2200; Orientation: 0.0005; Line Search: 2.7219
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4356246542690407
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4356246542690407}, derivative=-14599.516774512816}
+New Minimum: 0.4356246542690407 > 0.417674538614934
+F(7.072559566397473E-6) = LineSearchPoint{point=PointSample{avg=0.417674538614934}, derivative=4517.4640894116155}, delta = -0.017950115654106702
+0.417674538614934 <= 0.4356246542690407
+New Minimum: 0.417674538614934 > 0.41579296124604015
+Returning cached value; 2 buffers unchanged since 0.0 => 0.41579296124604015
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4356246542690407}, derivative=-14599.516774512816}; rightPoint=LineSearchPoint{point=PointSample{avg=0.417674538614934}, derivative=4517.4640894116155}
+F(5.401268786287004E-6) = LineSearchPoint{point=PointSample{avg=0.41579296124604015}, derivative=-265.9068189124808}, delta = -0.01983169302300053
+Left bracket at 5.401268786287004E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.41579390216569473
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.41579296124604015}, derivative=-265.9068189124808}; rightPoint=LineSearchPoint{point=PointSample{avg=0.417674538614934}, derivative=4517.4640894116155}
+F(5.494175571759895E-6) = LineSearchPoint{point=PointSample{avg=0.41579390216569473}, derivative=-5.6236589101899686}, delta = -0.01983075210334595
+0.41579390216569473 > 0.41579296124604015
+Iteration 69 complete. Error: 0.41579296124604015 Total: 180233860345643.2200; Orientation: 0.0012; Line Search: 0.8192
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3966387188843497
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3966387188843497}, derivative=-10628.134067045856}
+New Minimum: 0.3966387188843497 > 0.3807002817659854
+F(5.401268786287004E-6) = LineSearchPoint{point=PointSample{avg=0.3807002817659854}, derivative=-516.8437483027889}, delta = -0.01593843711836429
+F(3.780888150400903E-5) = LineSearchPoint{point=PointSample{avg=0.8077325285764296}, derivative=52203.97818869103}, delta = 0.4110938096920799
+F(3.780888150400903E-7) = LineSearchPoint{point=PointSample{avg=0.39461034821600866}, derivative=-9890.393942799146}, delta = -0.0020283706683410507
+F(2.646621705280632E-6) = LineSearchPoint{point=PointSample{avg=0.3853706302171672}, derivative=-5562.208852604603}, delta = -0.011268088667182485
+F(1.8526351936964423E-5) = LineSearchPoint{point=PointSample{avg=0.4495487233732813}, derivative=21649.542361284653}, delta = 0.05291000448893157
+F(1.8526351936964424E-7) = LineSearchPoint{point=PointSample{avg=0.39562713410798656}, derivative=-10266.0444061238}, delta = -0.0010115847763631503
+F(1.2968446355875097E-6) = LineSearchPoint{point=PointSample{avg=0.3902674689417399}, derivative=-8117.4389458785945}, delta = -0.006371249942609791
+F(9.077912449112569E-6) = LineSearchPoint{point=PointSample{avg=0.385151992196273}, derivative=5923.73626935468}, delta = -0.01148672668807671
+0.385151992196273 <= 0.3966387188843497
+New Minimum: 0.3807002817659854 > 0.380600116864336
+Returning cached value; 2 buffers unchanged since 0.0 => 0.380600116864336
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3966387188843497}, derivative=-10628.134067045856}; rightPoint=LineSearchPoint{point=PointSample{avg=0.385151992196273}, derivative=5923.73626935468}
+F(5.829025276128059E-6) = LineSearchPoint{point=PointSample{avg=0.380600116864336}, derivative=248.09263973502962}, delta = -0.016038602020013726
+Right bracket at 5.829025276128059E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.38061354147884774
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3966387188843497}, derivative=-10628.134067045856}; rightPoint=LineSearchPoint{point=PointSample{avg=0.380600116864336}, derivative=248.09263973502962}
+F(5.6960620429384445E-6) = LineSearchPoint{point=PointSample{avg=0.38061354147884774}, derivative=10.813038424362569}, delta = -0.016025177405501967
+0.38061354147884774 > 0.380600116864336
+Iteration 70 complete. Error: 0.380600116864336 Total: 180236890913564.1200; Orientation: 0.0006; Line Search: 2.7647
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4264418316825952
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4264418316825952}, derivative=-8634.548857398606}
+New Minimum: 0.4264418316825952 > 0.4140131527881714
+F(5.829025276128059E-6) = LineSearchPoint{point=PointSample{avg=0.4140131527881714}, derivative=50.1861689372646}, delta = -0.012428678894423784
+0.4140131527881714 <= 0.4264418316825952
+Converged to right
+Iteration 71 complete. Error: 0.4140131527881714 Total: 180237411554831.1000; Orientation: 0.0004; Line Search: 0.2620
+Returning cached value; 2 buffers unchanged since 0.0 => 0.38197806019364
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.38197806019364}, derivative=-8165.817412831382}
+New Minimum: 0.38197806019364 > 0.36958459746685923
+F(5.829025276128059E-6) = LineSearchPoint{point=PointSample{avg=0.36958459746685923}, derivative=-1257.759630895689}, delta = -0.012393462726780768
+F(4.080317693289641E-5) = LineSearchPoint{point=PointSample{avg=0.7762313423828391}, derivative=48335.2247430603}, delta = 0.3942532821891991
+F(4.080317693289641E-7) = LineSearchPoint{point=PointSample{avg=0.38046418594096837}, derivative=-7681.825598596366}, delta = -0.001513874252671632
+F(2.8562223853027487E-6) = LineSearchPoint{point=PointSample{avg=0.37342305664746356}, derivative=-4784.542611223213}, delta = -0.008555003546176443
+F(1.999355669711924E-5) = LineSearchPoint{point=PointSample{avg=0.42721563845751287}, derivative=17442.11081221617}, delta = 0.04523757826387287
+F(1.999355669711924E-7) = LineSearchPoint{point=PointSample{avg=0.3812240957043107}, derivative=-7928.606217444769}, delta = -7.539644893292952E-4
+F(1.3995489687983468E-6) = LineSearchPoint{point=PointSample{avg=0.377190949771693}, derivative=-6507.386307961687}, delta = -0.004787110421947016
+F(9.796842781588428E-6) = LineSearchPoint{point=PointSample{avg=0.37264933911752185}, derivative=3567.7048460972037}, delta = -0.009328721076118152
+0.37264933911752185 <= 0.38197806019364
+New Minimum: 0.36958459746685923 > 0.36946224496150615
+Returning cached value; 2 buffers unchanged since 0.0 => 0.36946224496150615
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.38197806019364}, derivative=-8165.817412831382}; rightPoint=LineSearchPoint{point=PointSample{avg=0.37264933911752185}, derivative=3567.7048460972037}
+F(6.8180063591553734E-6) = LineSearchPoint{point=PointSample{avg=0.36946224496150615}, derivative=-73.0437399154484}, delta = -0.012515815232133853
+Left bracket at 6.8180063591553734E-6
+Converged to left
+Iteration 72 complete. Error: 0.36946224496150615 Total: 180240168760651.6000; Orientation: 0.0004; Line Search: 2.4779
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4473544128999773
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4473544128999773}, derivative=-6584.295560470482}
+New Minimum: 0.4473544128999773 > 0.4351748170306717
+F(6.8180063591553734E-6) = LineSearchPoint{point=PointSample{avg=0.4351748170306717}, derivative=-710.6208600915218}, delta = -0.012179595869305615
+F(4.772604451408762E-5) = LineSearchPoint{point=PointSample{avg=0.7141118637987123}, derivative=23867.537456446276}, delta = 0.266757450898735
+F(4.772604451408761E-7) = LineSearchPoint{point=PointSample{avg=0.445837818547555}, derivative=-6157.798075789294}, delta = -0.0015165943524222958
+F(3.340823115986133E-6) = LineSearchPoint{point=PointSample{avg=0.4388641367252848}, derivative=-3650.7378730753235}, delta = -0.008490276174692502
+F(2.3385761811902932E-5) = LineSearchPoint{point=PointSample{avg=0.48450561832567063}, derivative=11958.920674138515}, delta = 0.037151205425693334
+F(2.3385761811902932E-7) = LineSearchPoint{point=PointSample{avg=0.4465984754261235}, derivative=-6374.982328769853}, delta = -7.559374738537739E-4
+F(1.6370033268332053E-6) = LineSearchPoint{point=PointSample{avg=0.4425771876960901}, derivative=-5132.081664322722}, delta = -0.004777225203887181
+F(1.1459023287832437E-5) = LineSearchPoint{point=PointSample{avg=0.4381323476681255}, derivative=3065.668654358478}, delta = -0.009222065231851817
+0.4381323476681255 <= 0.4473544128999773
+New Minimum: 0.4351748170306717 > 0.43506074544270834
+Returning cached value; 2 buffers unchanged since 0.0 => 0.43506074544270834
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4473544128999773}, derivative=-6584.295560470482}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4381323476681255}, derivative=3065.668654358478}
+F(7.818639995105958E-6) = LineSearchPoint{point=PointSample{avg=0.43506074544270834}, derivative=117.05075847512326}, delta = -0.012293667457268953
+Right bracket at 7.818639995105958E-6
+New Minimum: 0.43506074544270834 > 0.4350516910591154
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4350516910591154
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4473544128999773}, derivative=-6584.295560470482}; rightPoint=LineSearchPoint{point=PointSample{avg=0.43506074544270834}, derivative=117.05075847512326}
+F(7.682073744368588E-6) = LineSearchPoint{point=PointSample{avg=0.4350516910591154}, derivative=4.542840143330078}, delta = -0.012302721840861897
+Right bracket at 7.682073744368588E-6
+Converged to right
+Iteration 73 complete. Error: 0.4350516910591154 Total: 180243152442500.8400; Orientation: 0.0007; Line Search: 2.7059
+Returning cached value; 2 buffers unchanged since 0.0 => 0.39920131452514024
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.39920131452514024}, derivative=-5807.45784386779}
+New Minimum: 0.39920131452514024 > 0.3889003085967143
+F(7.682073744368588E-6) = LineSearchPoint{point=PointSample{avg=0.3889003085967143}, derivative=370.6634625293325}, delta = -0.010301005928425921
+0.3889003085967143 <= 0.39920131452514024
+New Minimum: 0.3889003085967143 > 0.38885162563916886
+Returning cached value; 2 buffers unchanged since 0.0 => 0.38885162563916886
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.39920131452514024}, derivative=-5807.45784386779}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3889003085967143}, derivative=370.6634625293325}
+F(7.221178933102106E-6) = LineSearchPoint{point=PointSample{avg=0.38885162563916886}, derivative=-1.8824104132874064}, delta = -0.010349688885971375
+Left bracket at 7.221178933102106E-6
+Converged to left
+Iteration 74 complete. Error: 0.38885162563916886 Total: 180243993241314.8400; Orientation: 0.0006; Line Search: 0.5605
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4053680267764851
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4053680267764851}, derivative=-4412.826924205872}
+New Minimum: 0.4053680267764851 > 0.3943246238664394
+F(7.221178933102106E-6) = LineSearchPoint{point=PointSample{avg=0.3943246238664394}, derivative=-1709.1114248375552}, delta = -0.011043402910045685
+F(5.054825253171474E-5) = LineSearchPoint{point=PointSample{avg=0.5403557763887444}, derivative=15354.514819588678}, delta = 0.13498774961225934
+F(5.054825253171475E-7) = LineSearchPoint{point=PointSample{avg=0.4042775244877421}, derivative=-4222.7643966940905}, delta = -0.0010905022887429672
+F(3.538377677220032E-6) = LineSearchPoint{point=PointSample{avg=0.3987392305210459}, derivative=-3086.113514560599}, delta = -0.006628796255439218
+F(2.4768643740540224E-5) = LineSearchPoint{point=PointSample{avg=0.40856869946075247}, derivative=5012.527208619388}, delta = 0.0032006726842673805
+F(2.4768643740540226E-7) = LineSearchPoint{point=PointSample{avg=0.4048276909888099}, derivative=-4319.667907648917}, delta = -5.403357876752057E-4
+F(1.7338050618378158E-6) = LineSearchPoint{point=PointSample{avg=0.4018271807331304}, derivative=-3761.7660265489326}, delta = -0.003540846043354695
+New Minimum: 0.3943246238664394 > 0.39238902652846985
+F(1.2136635432864711E-5) = LineSearchPoint{point=PointSample{avg=0.39238902652846985}, derivative=137.39765361312234}, delta = -0.012979000248015238
+0.39238902652846985 <= 0.4053680267764851
+New Minimum: 0.39238902652846985 > 0.39237649976066324
+Returning cached value; 2 buffers unchanged since 0.0 => 0.39237649976066324
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4053680267764851}, derivative=-4412.826924205872}; rightPoint=LineSearchPoint{point=PointSample{avg=0.39238902652846985}, derivative=137.39765361312234}
+F(1.1770160063854953E-5) = LineSearchPoint{point=PointSample{avg=0.39237649976066324}, derivative=-0.9571907944338384}, delta = -0.012991527015821847
+Left bracket at 1.1770160063854953E-5
+Converged to left
+Iteration 75 complete. Error: 0.39237649976066324 Total: 180246752691910.0000; Orientation: 0.0009; Line Search: 2.4838
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3886809677190952
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3886809677190952}, derivative=-4981.541412767003}
+New Minimum: 0.3886809677190952 > 0.3759868619696912
+F(1.1770160063854953E-5) = LineSearchPoint{point=PointSample{avg=0.3759868619696912}, derivative=938.6786586863257}, delta = -0.012694105749403994
+0.3759868619696912 <= 0.3886809677190952
+New Minimum: 0.3759868619696912 > 0.3756795705044337
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3756795705044337
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3886809677190952}, derivative=-4981.541412767003}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3759868619696912}, derivative=938.6786586863257}
+F(9.903945982635756E-6) = LineSearchPoint{point=PointSample{avg=0.3756795705044337}, derivative=-6.580195117991488}, delta = -0.013001397214661536
+Left bracket at 9.903945982635756E-6
+Converged to left
+Iteration 76 complete. Error: 0.3756795705044337 Total: 180247554197049.2500; Orientation: 0.0007; Line Search: 0.5293
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3876599001873615
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3876599001873615}, derivative=-23146.562829532333}
+F(9.903945982635756E-6) = LineSearchPoint{point=PointSample{avg=0.3918400353003516}, derivative=22087.0949617658}, delta = 0.004180135112990091
+New Minimum: 0.3876599001873615 > 0.386527392847131
+F(9.903945982635756E-8) = LineSearchPoint{point=PointSample{avg=0.386527392847131}, derivative=-22601.32802812172}, delta = -0.0011325073402305152
+New Minimum: 0.386527392847131 > 0.38029421767429405
+F(6.93276218784503E-7) = LineSearchPoint{point=PointSample{avg=0.38029421767429405}, derivative=-19383.92574034899}, delta = -0.007365682513067462
+New Minimum: 0.38029421767429405 > 0.3617730608831163
+F(4.852933531491521E-6) = LineSearchPoint{point=PointSample{avg=0.3617730608831163}, derivative=895.0760955160865}, delta = -0.025886839304245235
+0.3617730608831163 <= 0.3876599001873615
+New Minimum: 0.3617730608831163 > 0.3617205084946947
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3617205084946947
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3876599001873615}, derivative=-23146.562829532333}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3617730608831163}, derivative=895.0760955160865}
+F(4.6722576295403906E-6) = LineSearchPoint{point=PointSample{avg=0.3617205084946947}, derivative=81.12401853678979}, delta = -0.02593939169266679
+Right bracket at 4.6722576295403906E-6
+Converged to right
+Iteration 77 complete. Error: 0.3617205084946947 Total: 180249217165645.4400; Orientation: 0.0004; Line Search: 1.3765
+Returning cached value; 2 buffers unchanged since 0.0 => 0.38960324344219655
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.38960324344219655}, derivative=-9236.050641597472}
+New Minimum: 0.38960324344219655 > 0.37737554623299946
+F(4.6722576295403906E-6) = LineSearchPoint{point=PointSample{avg=0.37737554623299946}, derivative=-1129.673414852989}, delta = -0.012227697209197086
+F(3.270580340678273E-5) = LineSearchPoint{point=PointSample{avg=0.6830289222593128}, derivative=42976.14470171844}, delta = 0.29342567881711623
+F(3.270580340678273E-7) = LineSearchPoint{point=PointSample{avg=0.3881302393814058}, derivative=-8662.082579256621}, delta = -0.0014730040607907613
+F(2.2894062384747912E-6) = LineSearchPoint{point=PointSample{avg=0.3812511290493281}, derivative=-5242.13763311287}, delta = -0.008352114392868426
+F(1.602584366932354E-5) = LineSearchPoint{point=PointSample{avg=0.4253664854896485}, derivative=18147.522885299113}, delta = 0.03576324204745196
+F(1.602584366932354E-7) = LineSearchPoint{point=PointSample{avg=0.3888697625091797}, derivative=-8954.646931830783}, delta = -7.33480933016839E-4
+F(1.1218090568526477E-6) = LineSearchPoint{point=PointSample{avg=0.3849405243127081}, derivative=-7272.396943389679}, delta = -0.004662719129488457
+F(7.852663397968534E-6) = LineSearchPoint{point=PointSample{avg=0.37978792374389503}, derivative=4322.427216239557}, delta = -0.009815319698301517
+0.37978792374389503 <= 0.38960324344219655
+New Minimum: 0.37737554623299946 > 0.3771643429947377
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3771643429947377
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.38960324344219655}, derivative=-9236.050641597472}; rightPoint=LineSearchPoint{point=PointSample{avg=0.37978792374389503}, derivative=4322.427216239557}
+F(5.349243298216849E-6) = LineSearchPoint{point=PointSample{avg=0.3771643429947377}, derivative=33.474239505556255}, delta = -0.012438900447458823
+Right bracket at 5.349243298216849E-6
+Converged to right
+Iteration 78 complete. Error: 0.3771643429947377 Total: 180251920348681.7800; Orientation: 0.0016; Line Search: 2.4430
+Returning cached value; 2 buffers unchanged since 0.0 => 0.37002608036344786
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.37002608036344786}, derivative=-6029.668658785536}
+New Minimum: 0.37002608036344786 > 0.35940337266570277
+F(5.349243298216849E-6) = LineSearchPoint{point=PointSample{avg=0.35940337266570277}, derivative=-2096.320678524182}, delta = -0.010622707697745093
+F(3.744470308751794E-5) = LineSearchPoint{point=PointSample{avg=0.50564544369862}, derivative=20756.8871624465}, delta = 0.1356193633351721
+F(3.7444703087517937E-7) = LineSearchPoint{point=PointSample{avg=0.3689432032103458}, derivative=-5749.655340237836}, delta = -0.0010828771531020687
+F(2.6211292161262556E-6) = LineSearchPoint{point=PointSample{avg=0.36352550629526276}, derivative=-4084.2700644376428}, delta = -0.006500574068185105
+F(1.8347904512883788E-5) = LineSearchPoint{point=PointSample{avg=0.3754249765457181}, derivative=6989.2924512877335}, delta = 0.005398896182270241
+F(1.8347904512883787E-7) = LineSearchPoint{point=PointSample{avg=0.36948901019791824}, derivative=-5892.375699510201}, delta = -5.370701655296184E-4
+F(1.284353315901865E-6) = LineSearchPoint{point=PointSample{avg=0.3665267288879226}, derivative=-5072.122016616059}, delta = -0.0034993514755252697
+New Minimum: 0.35940337266570277 > 0.35801497298269463
+F(8.990473211313056E-6) = LineSearchPoint{point=PointSample{avg=0.35801497298269463}, derivative=500.66352225354586}, delta = -0.012011107380753228
+0.35801497298269463 <= 0.37002608036344786
+New Minimum: 0.35801497298269463 > 0.357921476281725
+Returning cached value; 2 buffers unchanged since 0.0 => 0.357921476281725
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.37002608036344786}, derivative=-6029.668658785536}; rightPoint=LineSearchPoint{point=PointSample{avg=0.35801497298269463}, derivative=500.66352225354586}
+F(8.301197097952169E-6) = LineSearchPoint{point=PointSample{avg=0.357921476281725}, derivative=13.636900025024914}, delta = -0.01210460408172287
+Right bracket at 8.301197097952169E-6
+Converged to right
+Iteration 79 complete. Error: 0.357921476281725 Total: 180254634254883.1000; Orientation: 0.0011; Line Search: 2.4415
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3896482067753537
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3896482067753537}, derivative=-5662.880926327169}
+New Minimum: 0.3896482067753537 > 0.3766784468317258
+F(8.301197097952169E-6) = LineSearchPoint{point=PointSample{avg=0.3766784468317258}, derivative=-407.2717425825867}, delta = -0.012969759943627923
+F(5.810837968566518E-5) = LineSearchPoint{point=PointSample{avg=0.8461530766026899}, derivative=41038.94870613318}, delta = 0.4565048698273362
+F(5.810837968566518E-7) = LineSearchPoint{point=PointSample{avg=0.38802153339034584}, derivative=-5295.941689483949}, delta = -0.0016266733850078818
+F(4.067586577996562E-6) = LineSearchPoint{point=PointSample{avg=0.3805312775216735}, derivative=-3095.753002529379}, delta = -0.00911692925368024
+F(2.8473106045975932E-5) = LineSearchPoint{point=PointSample{avg=0.44224016718642806}, derivative=13933.482418745776}, delta = 0.052591960411074334
+F(2.8473106045975934E-7) = LineSearchPoint{point=PointSample{avg=0.38883762350433027}, derivative=-5483.053142011837}, delta = -8.105832710234573E-4
+F(1.9931174232183153E-6) = LineSearchPoint{point=PointSample{avg=0.3845192319812162}, derivative=-4404.9342908922545}, delta = -0.005128974794137542
+F(1.3951821962528207E-5) = LineSearchPoint{point=PointSample{avg=0.38063493157958095}, derivative=3278.9471352720693}, delta = -0.009013275195772774
+0.38063493157958095 <= 0.3896482067753537
+New Minimum: 0.3766784468317258 > 0.37660351483483323
+Returning cached value; 2 buffers unchanged since 0.0 => 0.37660351483483323
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3896482067753537}, derivative=-5662.880926327169}; rightPoint=LineSearchPoint{point=PointSample{avg=0.38063493157958095}, derivative=3278.9471352720693}
+F(8.835721950236543E-6) = LineSearchPoint{point=PointSample{avg=0.37660351483483323}, derivative=-64.67476278942317}, delta = -0.013044691940520492
+Left bracket at 8.835721950236543E-6
+New Minimum: 0.37660351483483323 > 0.3765998317110188
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3765998317110188
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.37660351483483323}, derivative=-64.67476278942317}; rightPoint=LineSearchPoint{point=PointSample{avg=0.38063493157958095}, derivative=3278.9471352720693}
+F(8.934681271831418E-6) = LineSearchPoint{point=PointSample{avg=0.3765998317110188}, derivative=-1.1406905048737068}, delta = -0.013048375064334927
+Left bracket at 8.934681271831418E-6
+Converged to left
+Iteration 80 complete. Error: 0.3765998317110188 Total: 180257677463874.3800; Orientation: 0.0008; Line Search: 2.7731
+Returning cached value; 2 buffers unchanged since 0.0 => 0.38341217274904804
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.38341217274904804}, derivative=-9139.970000688916}
+New Minimum: 0.38341217274904804 > 0.36767194031286715
+F(8.934681271831418E-6) = LineSearchPoint{point=PointSample{avg=0.36767194031286715}, derivative=1647.6351570589588}, delta = -0.01574023243618089
+0.36767194031286715 <= 0.38341217274904804
+New Minimum: 0.36767194031286715 > 0.36698176257015036
+Returning cached value; 2 buffers unchanged since 0.0 => 0.36698176257015036
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.38341217274904804}, derivative=-9139.970000688916}; rightPoint=LineSearchPoint{point=PointSample{avg=0.36767194031286715}, derivative=1647.6351570589588}
+F(7.570050775505483E-6) = LineSearchPoint{point=PointSample{avg=0.36698176257015036}, derivative=-11.800736154263099}, delta = -0.01643041017889768
+Left bracket at 7.570050775505483E-6
+Converged to left
+Iteration 81 complete. Error: 0.36698176257015036 Total: 180258531279076.3000; Orientation: 0.0009; Line Search: 0.5769
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4588386755909344
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4588386755909344}, derivative=-12272.8165104855}
+New Minimum: 0.4588386755909344 > 0.43663963051779925
+F(7.570050775505483E-6) = LineSearchPoint{point=PointSample{avg=0.43663963051779925}, derivative=722.663413313794}, delta = -0.022199045073135137
+0.43663963051779925 <= 0.4588386755909344
+New Minimum: 0.43663963051779925 > 0.4365682225476075
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4365682225476075
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4588386755909344}, derivative=-12272.8165104855}; rightPoint=LineSearchPoint{point=PointSample{avg=0.43663963051779925}, derivative=722.663413313794}
+F(7.149089120802224E-6) = LineSearchPoint{point=PointSample{avg=0.4365682225476075}, derivative=-40.48149076433614}, delta = -0.022270453043326865
+Left bracket at 7.149089120802224E-6
+Converged to left
+Iteration 82 complete. Error: 0.4365682225476075 Total: 180259343544146.4700; Orientation: 0.0021; Line Search: 0.5372
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3601131895526471
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3601131895526471}, derivative=-7968.624816403355}
+New Minimum: 0.3601131895526471 > 0.3462514230733602
+F(7.149089120802224E-6) = LineSearchPoint{point=PointSample{avg=0.3462514230733602}, derivative=-7.307095448001802}, delta = -0.013861766479286886
+F(5.004362384561557E-5) = LineSearchPoint{point=PointSample{avg=0.8850242982814274}, derivative=51028.80943701837}, delta = 0.5249111087287803
+F(5.004362384561557E-7) = LineSearchPoint{point=PointSample{avg=0.3582084081500444}, derivative=-7392.243505439613}, delta = -0.0019047814026026955
+F(3.5030536691930896E-6) = LineSearchPoint{point=PointSample{avg=0.34977032927978646}, derivative=-4000.6425621836265}, delta = -0.010342860272860632
+F(2.4521375684351627E-5) = LineSearchPoint{point=PointSample{avg=0.4291673583928624}, derivative=19410.63498981123}, delta = 0.06905416884021531
+F(2.4521375684351625E-7) = LineSearchPoint{point=PointSample{avg=0.35916183174767125}, derivative=-7685.779195230928}, delta = -9.513578049758498E-4
+F(1.7164962979046138E-6) = LineSearchPoint{point=PointSample{avg=0.35417723520854805}, derivative=-6005.317545215389}, delta = -0.005935954344099048
+F(1.2015474085332297E-5) = LineSearchPoint{point=PointSample{avg=0.3527556191136386}, derivative=5227.098414987967}, delta = -0.007357570439008476
+0.3527556191136386 <= 0.3601131895526471
+Returning cached value; 2 buffers unchanged since 0.0 => 0.34625748342393003
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3601131895526471}, derivative=-7968.624816403355}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3527556191136386}, derivative=5227.098414987967}
+F(7.255896724891757E-6) = LineSearchPoint{point=PointSample{avg=0.34625748342393003}, derivative=108.21028849749571}, delta = -0.01385570612871706
+Right bracket at 7.255896724891757E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.34625171550379363
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3601131895526471}, derivative=-7968.624816403355}; rightPoint=LineSearchPoint{point=PointSample{avg=0.34625748342393003}, derivative=108.21028849749571}
+F(7.158685048819263E-6) = LineSearchPoint{point=PointSample{avg=0.34625171550379363}, derivative=3.073842176954548}, delta = -0.013861474048853462
+Right bracket at 7.158685048819263E-6
+Converged to right
+Iteration 83 complete. Error: 0.3462514230733602 Total: 180262403444323.6600; Orientation: 0.0003; Line Search: 2.7834
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4134466157914488
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.4134466157914488}, derivative=-4450.774147365277}
+New Minimum: 0.4134466157914488 > 0.40246657463328905
+F(7.158685048819263E-6) = LineSearchPoint{point=PointSample{avg=0.40246657463328905}, derivative=-1761.2947338644362}, delta = -0.010980041158159759
+F(5.011079534173484E-5) = LineSearchPoint{point=PointSample{avg=0.5682525093444342}, derivative=18879.242628352404}, delta = 0.15480589355298535
+F(5.011079534173484E-7) = LineSearchPoint{point=PointSample{avg=0.41236649791396673}, derivative=-4265.539774202609}, delta = -0.0010801178774820785
+F(3.5077556739214386E-6) = LineSearchPoint{point=PointSample{avg=0.40686464731296657}, derivative=-3145.1306946184254}, delta = -0.006581968478482247
+F(2.455428971745007E-5) = LineSearchPoint{point=PointSample{avg=0.41781798315955243}, derivative=5388.0476910373345}, delta = 0.004371367368103618
+F(2.455428971745007E-7) = LineSearchPoint{point=PointSample{avg=0.41291156300121346}, derivative=-4360.060553939599}, delta = -5.350527902353575E-4
+F(1.7188002802215047E-6) = LineSearchPoint{point=PointSample{avg=0.40993552438907943}, derivative=-3813.678870419545}, delta = -0.0035110914023693818
+New Minimum: 0.40246657463328905 > 0.4005840693023935
+F(1.2031601961550532E-5) = LineSearchPoint{point=PointSample{avg=0.4005840693023935}, derivative=135.43709823079996}, delta = -0.012862546489055326
+0.4005840693023935 <= 0.4134466157914488
+New Minimum: 0.4005840693023935 > 0.4005644550217906
+Returning cached value; 2 buffers unchanged since 0.0 => 0.4005644550217906
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.4134466157914488}, derivative=-4450.774147365277}; rightPoint=LineSearchPoint{point=PointSample{avg=0.4005840693023935}, derivative=135.43709823079996}
+F(1.1676292280099386E-5) = LineSearchPoint{point=PointSample{avg=0.4005644550217906}, derivative=-5.108524287167638}, delta = -0.012882160769658202
+Left bracket at 1.1676292280099386E-5
+Converged to left
+Iteration 84 complete. Error: 0.4005644550217906 Total: 180265211557825.6000; Orientation: 0.0005; Line Search: 2.5490
+Returning cached value; 2 buffers unchanged since 0.0 => 0.37828260859830143
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.37828260859830143}, derivative=-15552.856101554513}
+F(1.1676292280099386E-5) = LineSearchPoint{point=PointSample{avg=0.37957649199495613}, derivative=13827.105646035463}, delta = 0.0012938833966547048
+New Minimum: 0.37828260859830143 > 0.37739783988249453
+F(1.1676292280099385E-7) = LineSearchPoint{point=PointSample{avg=0.37739783988249453}, derivative=-15211.622663796126}, delta = -8.84768715806894E-4
+New Minimum: 0.37739783988249453 > 0.3725063927636891
+F(8.17340459606957E-7) = LineSearchPoint{point=PointSample{avg=0.3725063927636891}, derivative=-13191.387302851039}, delta = -0.005776215834612353
+New Minimum: 0.3725063927636891 > 0.3572608493624456
+F(5.7213832172486994E-6) = LineSearchPoint{point=PointSample{avg=0.3572608493624456}, derivative=-115.0397064121914}, delta = -0.021021759235855808
+F(4.0049682520740895E-5) = LineSearchPoint{point=PointSample{avg=0.8839437932313832}, derivative=46451.62692307622}, delta = 0.5056611846330817
+F(4.00496825207409E-7) = LineSearchPoint{point=PointSample{avg=0.37533099797495845}, derivative=-14387.898133537763}, delta = -0.0029516106233429817
+F(2.8034777764518626E-6) = LineSearchPoint{point=PointSample{avg=0.362420704499242}, derivative=-7692.368786785908}, delta = -0.01586190409905941
+F(1.962434443516304E-5) = LineSearchPoint{point=PointSample{avg=0.4689814547953469}, derivative=29068.16149086218}, delta = 0.09069884619704549
+F(1.962434443516304E-7) = LineSearchPoint{point=PointSample{avg=0.37680701510936254}, derivative=-14980.10180378916}, delta = -0.0014755934889388866
+F(1.3737041104614127E-6) = LineSearchPoint{point=PointSample{avg=0.36912423183937293}, derivative=-11618.559629998446}, delta = -0.0091583767589285
+F(9.61592877322989E-6) = LineSearchPoint{point=PointSample{avg=0.3671214469696308}, derivative=9226.152566623816}, delta = -0.011161161628670646
+0.3671214469696308 <= 0.37828260859830143
+Returning cached value; 2 buffers unchanged since 0.0 => 0.357363156136847
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.37828260859830143}, derivative=-15552.856101554513}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3671214469696308}, derivative=9226.152566623816}
+F(6.035558504198905E-6) = LineSearchPoint{point=PointSample{avg=0.357363156136847}, derivative=670.2239469433149}, delta = -0.020919452461454435
+Right bracket at 6.035558504198905E-6
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3572717146491618
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.37828260859830143}, derivative=-15552.856101554513}; rightPoint=LineSearchPoint{point=PointSample{avg=0.357363156136847}, derivative=670.2239469433149}
+F(5.786211534905855E-6) = LineSearchPoint{point=PointSample{avg=0.3572717146491618}, derivative=47.45801600781121}, delta = -0.02101089394913963
+Right bracket at 5.786211534905855E-6
+Converged to right
+Iteration 85 complete. Error: 0.3572608493624456 Total: 180269335878790.7800; Orientation: 0.0009; Line Search: 3.8241
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3646532542451394
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3646532542451394}, derivative=-5954.277187202937}
+New Minimum: 0.3646532542451394 > 0.35387736100936595
+F(5.786211534905855E-6) = LineSearchPoint{point=PointSample{avg=0.35387736100936595}, derivative=-1858.634101460853}, delta = -0.010775893235773437
+F(4.0503480744340985E-5) = LineSearchPoint{point=PointSample{avg=0.5352697144787452}, derivative=23397.698847553023}, delta = 0.17061646023360577
+F(4.050348074434098E-7) = LineSearchPoint{point=PointSample{avg=0.36351597521359064}, derivative=-5662.7160680727175}, delta = -0.0011372790315487546
+F(2.8352436521038686E-6) = LineSearchPoint{point=PointSample{avg=0.3579098577027213}, derivative=-3930.6441544618947}, delta = -0.0067433965424180675
+F(1.984670556472708E-5) = LineSearchPoint{point=PointSample{avg=0.37573731515034514}, derivative=7864.039288430788}, delta = 0.01108406090520575
+F(1.984670556472708E-7) = LineSearchPoint{point=PointSample{avg=0.36408869926829335}, derivative=-5811.299104107073}, delta = -5.645549768460434E-4
+F(1.3892693895308957E-6) = LineSearchPoint{point=PointSample{avg=0.36099478398038587}, derivative=-4957.842839915695}, delta = -0.0036584702647535217
+New Minimum: 0.35387736100936595 > 0.3531781397103733
+F(9.72488572671627E-6) = LineSearchPoint{point=PointSample{avg=0.3531781397103733}, derivative=874.4017044876804}, delta = -0.011475114534766073
+0.3531781397103733 <= 0.3646532542451394
+New Minimum: 0.3531781397103733 > 0.3528233705542425
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3528233705542425
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3646532542451394}, derivative=-5954.277187202937}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3531781397103733}, derivative=874.4017044876804}
+F(8.479629244421295E-6) = LineSearchPoint{point=PointSample{avg=0.3528233705542425}, derivative=13.062419114463664}, delta = -0.01182988369089688
+Right bracket at 8.479629244421295E-6
+Converged to right
+Iteration 86 complete. Error: 0.3528233705542425 Total: 180272146961197.6600; Orientation: 0.0007; Line Search: 2.5290
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3568048981978405
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3568048981978405}, derivative=-5549.634498327412}
+New Minimum: 0.3568048981978405 > 0.34369159583576203
+F(8.479629244421295E-6) = LineSearchPoint{point=PointSample{avg=0.34369159583576203}, derivative=-247.90837202457914}, delta = -0.013113302362078472
+F(5.935740471094906E-5) = LineSearchPoint{point=PointSample{avg=0.7580899459860275}, derivative=32468.621498776563}, delta = 0.401285047788187
+F(5.935740471094906E-7) = LineSearchPoint{point=PointSample{avg=0.3551649321436977}, derivative=-5183.277890538641}, delta = -0.001639966054142794
+F(4.155018329766434E-6) = LineSearchPoint{point=PointSample{avg=0.347596826686186}, derivative=-2975.0610701344103}, delta = -0.009208071511654481
+F(2.9085128308365042E-5) = LineSearchPoint{point=PointSample{avg=0.40853245131054633}, derivative=13575.472008407227}, delta = 0.051727553112705826
+F(2.908512830836504E-7) = LineSearchPoint{point=PointSample{avg=0.3559878270526887}, derivative=-5370.147372506307}, delta = -8.17071145151782E-4
+F(2.035958981585553E-6) = LineSearchPoint{point=PointSample{avg=0.3516299778609845}, derivative=-4291.606089392355}, delta = -0.005174920336856015
+F(1.425171287109887E-5) = LineSearchPoint{point=PointSample{avg=0.347721350250501}, derivative=3500.2517800344035}, delta = -0.00908354794733951
+0.347721350250501 <= 0.3568048981978405
+New Minimum: 0.34369159583576203 > 0.34364388711687344
+Returning cached value; 2 buffers unchanged since 0.0 => 0.34364388711687344
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3568048981978405}, derivative=-5549.634498327412}; rightPoint=LineSearchPoint{point=PointSample{avg=0.347721350250501}, derivative=3500.2517800344035}
+F(8.739534948501482E-6) = LineSearchPoint{point=PointSample{avg=0.34364388711687344}, derivative=-81.88043117121957}, delta = -0.013161011080967067
+Left bracket at 8.739534948501482E-6
+New Minimum: 0.34364388711687344 > 0.34362845599189973
+Returning cached value; 2 buffers unchanged since 0.0 => 0.34362845599189973
+isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.34364388711687344}, derivative=-81.88043117121957}; rightPoint=LineSearchPoint{point=PointSample{avg=0.347721350250501}, derivative=3500.2517800344035}
+F(8.865532393147125E-6) = LineSearchPoint{point=PointSample{avg=0.34362845599189973}, derivative=-1.2996204018377473}, delta = -0.013176442205940775
+Left bracket at 8.865532393147125E-6
+Converged to left
+Iteration 87 complete. Error: 0.34362845599189973 Total: 180275191858969.8400; Orientation: 0.0003; Line Search: 2.7680
+Returning cached value; 2 buffers unchanged since 0.0 => 0.38221837532054287
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.38221837532054287}, derivative=-7872.557652568687}
+New Minimum: 0.38221837532054287 > 0.3650149569300942
+F(8.865532393147125E-6) = LineSearchPoint{point=PointSample{avg=0.3650149569300942}, derivative=-90.65124032273481}, delta = -0.017203418390448644
+F(6.205872675202987E-5) = LineSearchPoint{point=PointSample{avg=0.9835794920800773}, derivative=45155.883936638966}, delta = 0.6013611167595345
+F(6.205872675202988E-7) = LineSearchPoint{point=PointSample{avg=0.37986729784249396}, derivative=-7283.085596240331}, delta = -0.002351077478048913
+F(4.344110872642092E-6) = LineSearchPoint{point=PointSample{avg=0.36948869927021133}, derivative=-3915.7372085780326}, delta = -0.01272967605033154
+F(3.040877610849464E-5) = LineSearchPoint{point=PointSample{avg=0.46155055533351586}, derivative=18436.074730337295}, delta = 0.07933218001297299
+F(3.040877610849464E-7) = LineSearchPoint{point=PointSample{avg=0.3810434650463868}, derivative=-7582.5776630886585}, delta = -0.0011749102741560602
+F(2.1286143275946246E-6) = LineSearchPoint{point=PointSample{avg=0.3749062484009765}, derivative=-5886.804374738512}, delta = -0.007312126919566342
+F(1.4900300293162372E-5) = LineSearchPoint{point=PointSample{avg=0.37227603320340286}, derivative=4858.303776938143}, delta = -0.009942342117140013
+0.37227603320340286 <= 0.38221837532054287
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3650263778515075
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.38221837532054287}, derivative=-7872.557652568687}; rightPoint=LineSearchPoint{point=PointSample{avg=0.37227603320340286}, derivative=4858.303776938143}
+F(9.214103361978939E-6) = LineSearchPoint{point=PointSample{avg=0.3650263778515075}, derivative=197.68683234185153}, delta = -0.01719199746903538
+Right bracket at 9.214103361978939E-6
+New Minimum: 0.3650149569300942 > 0.3650132349897106
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3650132349897106
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.38221837532054287}, derivative=-7872.557652568687}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3650263778515075}, derivative=197.68683234185153}
+F(8.988396828564022E-6) = LineSearchPoint{point=PointSample{avg=0.3650132349897106}, derivative=11.049504590088999}, delta = -0.017205140330832258
+Right bracket at 8.988396828564022E-6
+Converged to right
+Iteration 88 complete. Error: 0.3650132349897106 Total: 180278234812049.8000; Orientation: 0.0003; Line Search: 2.7744
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3515286952554496
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3515286952554496}, derivative=-3828.51730354085}
+New Minimum: 0.3515286952554496 > 0.3395525972460012
+F(8.988396828564022E-6) = LineSearchPoint{point=PointSample{avg=0.3395525972460012}, derivative=-1584.5113041477634}, delta = -0.011976098009448433
+F(6.291877779994816E-5) = LineSearchPoint{point=PointSample{avg=0.47582040118941993}, derivative=11964.83449798987}, delta = 0.12429170593397032
+F(6.291877779994816E-7) = LineSearchPoint{point=PointSample{avg=0.35035673848832166}, derivative=-3665.500287236255}, delta = -0.0011719567671279463
+F(4.404314445996371E-6) = LineSearchPoint{point=PointSample{avg=0.34439361914874567}, derivative=-2707.7754814957425}, delta = -0.0071350761067039414
+F(3.08302011219746E-5) = LineSearchPoint{point=PointSample{avg=0.3510117814966694}, derivative=3579.0336838382846}, delta = -5.169137587802131E-4
+0.3510117814966694 <= 0.3515286952554496
+New Minimum: 0.3395525972460012 > 0.33706372459297734
+Returning cached value; 2 buffers unchanged since 0.0 => 0.33706372459297734
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3515286952554496}, derivative=-3828.51730354085}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3510117814966694}, derivative=3579.0336838382846}
+F(1.593427553427963E-5) = LineSearchPoint{point=PointSample{avg=0.33706372459297734}, derivative=62.82171019442689}, delta = -0.014464970662472265
+Right bracket at 1.593427553427963E-5
+New Minimum: 0.33706372459297734 > 0.33705358633728166
+Returning cached value; 2 buffers unchanged since 0.0 => 0.33705358633728166
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3515286952554496}, derivative=-3828.51730354085}; rightPoint=LineSearchPoint{point=PointSample{avg=0.33706372459297734}, derivative=62.82171019442689}
+F(1.567703286376458E-5) = LineSearchPoint{point=PointSample{avg=0.33705358633728166}, derivative=2.502684815380464}, delta = -0.014475108918167945
+Right bracket at 1.567703286376458E-5
+Converged to right
+Iteration 89 complete. Error: 0.33705358633728166 Total: 180280417712032.7500; Orientation: 0.0006; Line Search: 1.9004
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3519751103879528
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.3519751103879528}, derivative=-11106.508306683816}
+New Minimum: 0.3519751103879528 > 0.3438104941329295
+F(1.567703286376458E-5) = LineSearchPoint{point=PointSample{avg=0.3438104941329295}, derivative=8624.40711440811}, delta = -0.008164616255023294
+0.3438104941329295 <= 0.3519751103879528
+New Minimum: 0.3438104941329295 > 0.3286200213509458
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3286200213509458
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3519751103879528}, derivative=-11106.508306683816}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3438104941329295}, derivative=8624.40711440811}
+F(8.824582742847755E-6) = LineSearchPoint{point=PointSample{avg=0.3286200213509458}, derivative=364.29390906893565}, delta = -0.023355089037007004
+Right bracket at 8.824582742847755E-6
+New Minimum: 0.3286200213509458 > 0.3286014559195639
+Returning cached value; 2 buffers unchanged since 0.0 => 0.3286014559195639
+isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3519751103879528}, derivative=-11106.508306683816}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3286200213509458}, derivative=364.29390906893565}
+F(8.544328434314782E-6) = LineSearchPoint{point=PointSample{avg=0.3286014559195639}, derivative=24.61128410775488}, delta = -0.023373654468388905
+Right bracket at 8.544328434314782E-6
+Converged to right
+Iteration 90 complete. Error: 0.3286014559195639 Total: 180281520836590.6000; Orientation: 0.0005; Line Search: 0.8451

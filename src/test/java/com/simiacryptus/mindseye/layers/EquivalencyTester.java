@@ -50,8 +50,11 @@ public class EquivalencyTester {
   
   /**
    * Test.
-   *  @param reference       the component
-   * @param inputPrototype  the input prototype
+   *
+   * @param reference      the component
+   * @param subject        the subject
+   * @param inputPrototype the input prototype
+   * @return the tolerance statistics
    */
   public ToleranceStatistics test(final NNLayer reference, final NNLayer subject, final Tensor... inputPrototype) {
     if(null == reference || null == subject) return new ToleranceStatistics();

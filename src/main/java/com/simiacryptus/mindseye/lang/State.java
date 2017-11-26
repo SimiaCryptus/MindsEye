@@ -41,10 +41,21 @@ public class State extends DoubleBuffer {
     super(target,delta,layer);
   }
   
+  /**
+   * Instantiates a new State.
+   *
+   * @param target the target
+   * @param layer  the layer
+   */
   public State(final double[] target, final NNLayer layer) {
     super(target,layer);
   }
   
+  /**
+   * Backup double buffer.
+   *
+   * @return the double buffer
+   */
   public final synchronized DoubleBuffer backup() {
     double[] delta = getDelta();
     System.arraycopy(target,0,delta,0,target.length);
@@ -53,17 +64,32 @@ public class State extends DoubleBuffer {
   
   /**
    * Overwrite.
+   *
+   * @return the double buffer
    */
   public final synchronized DoubleBuffer restore() {
     System.arraycopy(delta,0,target,0,target.length);
     return this;
   }
   
+  /**
+   * Accumulate state.
+   *
+   * @param delta the delta
+   * @return the state
+   */
   public State accumulate(double[] delta) {
     Delta.accumulate(this.delta, delta, null);
     return this;
   }
   
+  /**
+   * Instantiates a new State.
+   *
+   * @param layer  the layer
+   * @param target the target
+   * @param delta  the delta
+   */
   public State(NNLayer layer, double[] target, double[] delta) {
     super(layer, target, delta);
   }

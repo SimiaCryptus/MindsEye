@@ -77,8 +77,8 @@ public class SimpleConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *  @param filter the filter
    *
+   * @param filter the filter
    */
   protected SimpleConvolutionLayer(Tensor filter) {
     super();
@@ -91,7 +91,8 @@ public class SimpleConvolutionLayer extends NNLayer {
   
   /**
    * Instantiates a new Convolution layer.
-   *  @param width  the width
+   *
+   * @param width  the width
    * @param height the height
    * @param bands  the bands
    */
@@ -325,11 +326,19 @@ public class SimpleConvolutionLayer extends NNLayer {
   
   /**
    * The Stride x.
+   *
+   * @return the stride x
    */
   public int getStrideX() {
     return strideX;
   }
   
+  /**
+   * Sets stride x.
+   *
+   * @param strideX the stride x
+   * @return the stride x
+   */
   public SimpleConvolutionLayer setStrideX(int strideX) {
     this.strideX = strideX;
     return this;
@@ -337,11 +346,19 @@ public class SimpleConvolutionLayer extends NNLayer {
   
   /**
    * The Stride y.
+   *
+   * @return the stride y
    */
   public int getStrideY() {
     return strideY;
   }
   
+  /**
+   * Sets stride y.
+   *
+   * @param strideY the stride y
+   * @return the stride y
+   */
   public SimpleConvolutionLayer setStrideY(int strideY) {
     this.strideY = strideY;
     return this;

@@ -75,12 +75,22 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     }
   }
   
+  /**
+   * Gets log.
+   *
+   * @return the log
+   */
   public NotebookOutput getLog() {
     MarkdownNotebookOutput log = MarkdownNotebookOutput.get(this);
     log.addCopy(rawOut);
     return log;
   }
   
+  /**
+   * Run.
+   *
+   * @param log the log
+   */
   public void run(NotebookOutput log) {
     //      int pretrainMinutes = 20;
 //      int timeoutMinutes = 60;

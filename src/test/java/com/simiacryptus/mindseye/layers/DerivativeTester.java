@@ -58,8 +58,10 @@ public class DerivativeTester {
   
   /**
    * Test.
-   *  @param component       the component
-   * @param inputPrototype  the input prototype
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   * @return the tolerance statistics
    */
   public ToleranceStatistics test(final NNLayer component, final Tensor... inputPrototype) {
     Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
@@ -209,6 +211,7 @@ public class DerivativeTester {
    * @param i               the
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
+   * @return the tolerance statistics
    */
   protected ToleranceStatistics testFeedback(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
@@ -236,6 +239,7 @@ public class DerivativeTester {
    * @param i               the
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
+   * @return the tolerance statistics
    */
   protected ToleranceStatistics testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);

@@ -31,10 +31,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * The type Describe orientation wrapper.
+ */
 public class DescribeOrientationWrapper implements OrientationStrategy {
   
   private final OrientationStrategy inner;
   
+  /**
+   * Instantiates a new Describe orientation wrapper.
+   *
+   * @param inner the inner
+   */
   public DescribeOrientationWrapper(OrientationStrategy inner) {
     this.inner = inner;
   }
@@ -53,6 +61,13 @@ public class DescribeOrientationWrapper implements OrientationStrategy {
     return cursor;
   }
   
+  /**
+   * Render string.
+   *
+   * @param weights   the weights
+   * @param direction the direction
+   * @return the string
+   */
   public static String render(StateSet weights, DeltaSet direction) {
     Map<String, String> data = weights.stream()
       .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
@@ -73,12 +88,25 @@ public class DescribeOrientationWrapper implements OrientationStrategy {
       .reduce((a, b) -> a + "\n" + b).orElse("");
   }
   
+  /**
+   * Render string.
+   *
+   * @param weightDelta the weight delta
+   * @param dirDelta    the dir delta
+   * @return the string
+   */
   public static String render(DoubleBuffer weightDelta, DoubleBuffer dirDelta) {
     String weightString = Arrays.toString(weightDelta.getDelta());
     String deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
   }
   
+  /**
+   * Gets id.
+   *
+   * @param x the x
+   * @return the id
+   */
   public static String getId(DoubleBuffer x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();

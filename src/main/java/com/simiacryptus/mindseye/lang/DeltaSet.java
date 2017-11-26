@@ -30,14 +30,27 @@ import java.util.function.Function;
  */
 public class DeltaSet extends DoubleBufferSet<Delta> {
   
+  /**
+   * Instantiates a new Delta set.
+   */
   public DeltaSet() {
   }
   
+  /**
+   * Instantiates a new Delta set.
+   *
+   * @param toCopy the to copy
+   */
   public DeltaSet(DoubleBufferSet<Delta> toCopy) {
     super(toCopy);
     assert stream().allMatch(x->x instanceof Delta);
   }
   
+  /**
+   * Instantiates a new Delta set.
+   *
+   * @param collect the collect
+   */
   public DeltaSet(Map<NNLayer, ? extends Delta> collect) {
     super(collect);
     assert stream().allMatch(x->x instanceof Delta);
@@ -78,6 +91,12 @@ public class DeltaSet extends DoubleBufferSet<Delta> {
     return returnValue;
   }
   
+  /**
+   * Add state set.
+   *
+   * @param right the right
+   * @return the state set
+   */
   public StateSet add(StateSet right) {
     return right.add(this);
   }

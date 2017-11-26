@@ -45,7 +45,7 @@ public final class PointSample {
    * The Rate.
    */
   public double rate;
-
+  
   /**
    * Instantiates a new Point sample.
    *
@@ -57,7 +57,7 @@ public final class PointSample {
   public PointSample(DoubleBufferSet<Delta> delta, DoubleBufferSet<State> weights, double sum, int count) {
     this(delta, weights, sum, 0.0, count);
   }
-
+  
   /**
    * Instantiates a new Point sample.
    *
@@ -69,7 +69,7 @@ public final class PointSample {
   public PointSample(DoubleBufferSet<Delta> delta, DoubleBufferSet<State> weights, double sum, double rate) {
     this(delta, weights, sum, rate, 1);
   }
-
+  
   /**
    * Instantiates a new Point sample.
    *
@@ -80,10 +80,11 @@ public final class PointSample {
   public PointSample(DoubleBufferSet<Delta> delta, DoubleBufferSet<State> weights, double sum) {
     this(delta, weights, sum, 1);
   }
-
+  
   /**
    * Instantiates a new Point sample.
-   *  @param delta   the delta
+   *
+   * @param delta   the delta
    * @param weights the weights
    * @param sum     the sum
    * @param rate    the rate
@@ -97,7 +98,7 @@ public final class PointSample {
     this.count = count;
     this.setRate(rate);
   }
-
+  
   /**
    * Add point sample.
    *
@@ -113,7 +114,7 @@ public final class PointSample {
       left.sum + right.sum,
       left.count + right.count);
   }
-
+  
   /**
    * Gets mean.
    *
@@ -130,7 +131,7 @@ public final class PointSample {
     sb.append('}');
     return sb.toString();
   }
-
+  
   /**
    * Gets rate.
    *
@@ -139,7 +140,7 @@ public final class PointSample {
   public double getRate() {
     return rate;
   }
-
+  
   /**
    * Sets rate.
    *
@@ -150,7 +151,7 @@ public final class PointSample {
     this.rate = rate;
     return this;
   }
-
+  
   /**
    * Copy delta point sample.
    *
@@ -159,7 +160,7 @@ public final class PointSample {
   public PointSample copyDelta() {
     return new PointSample(delta.copy(), weights, sum, rate, count);
   }
-
+  
   /**
    * Copy full point sample.
    *
@@ -168,7 +169,7 @@ public final class PointSample {
   public PointSample copyFull() {
     return new PointSample(delta.copy(), weights.copy(), sum, rate, count);
   }
-
+  
   /**
    * Reset point sample.
    *
@@ -178,7 +179,7 @@ public final class PointSample {
     weights.stream().forEach(d -> d.restore());
     return this;
   }
-
+  
   /**
    * Add point sample.
    *

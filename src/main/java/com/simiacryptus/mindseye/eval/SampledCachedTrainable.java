@@ -19,6 +19,11 @@
 
 package com.simiacryptus.mindseye.eval;
 
+/**
+ * The type Sampled cached trainable.
+ *
+ * @param <T> the type parameter
+ */
 public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTrainable<T> implements SampledTrainable {
   
   private long seed;

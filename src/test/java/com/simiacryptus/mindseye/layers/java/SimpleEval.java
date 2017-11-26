@@ -26,21 +26,40 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
+/**
+ * The type Simple eval.
+ */
 public class SimpleEval implements Callable<SimpleEval> {
   private NNLayer layer;
   private Tensor[] input;
   private Tensor[] derivative;
   private Tensor output;
   
+  /**
+   * Instantiates a new Simple eval.
+   *
+   * @param layer the layer
+   * @param input the input
+   */
   public SimpleEval(NNLayer layer, Tensor... input) {
     this.layer = layer;
     this.input = input;
   }
   
+  /**
+   * Get derivative tensor [ ].
+   *
+   * @return the tensor [ ]
+   */
   public Tensor[] getDerivative() {
     return derivative;
   }
   
+  /**
+   * Gets output.
+   *
+   * @return the output
+   */
   public Tensor getOutput() {
     return output;
   }
@@ -74,6 +93,13 @@ public class SimpleEval implements Callable<SimpleEval> {
     return this;
   }
   
+  /**
+   * Run simple eval.
+   *
+   * @param layer  the layer
+   * @param tensor the tensor
+   * @return the simple eval
+   */
   public static SimpleEval run(NNLayer layer, Tensor... tensor) {
     return new SimpleEval(layer, tensor).call();
   }

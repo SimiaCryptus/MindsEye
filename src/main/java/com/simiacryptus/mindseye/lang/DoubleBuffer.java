@@ -45,18 +45,38 @@ public class DoubleBuffer {
    */
   protected double[] delta;
   
+  /**
+   * Instantiates a new Double buffer.
+   *
+   * @param layer  the layer
+   * @param target the target
+   * @param delta  the delta
+   */
   public DoubleBuffer(final NNLayer layer, final double[] target, final double[] delta) {
     this.layer = layer;
     this.target = target;
     this.delta = delta;
   }
   
+  /**
+   * Instantiates a new Double buffer.
+   *
+   * @param target the target
+   * @param delta  the delta
+   * @param layer  the layer
+   */
   public DoubleBuffer(double[] target, double[] delta, NNLayer layer) {
     this.layer = layer;
     this.target = target;
     this.delta = delta;
   }
   
+  /**
+   * Instantiates a new Double buffer.
+   *
+   * @param target the target
+   * @param layer  the layer
+   */
   public DoubleBuffer(double[] target, NNLayer layer) {
     this.layer = layer;
     this.target = target;
@@ -78,10 +98,20 @@ public class DoubleBuffer {
     return true;
   }
   
+  /**
+   * Delta statistics double array stats facade.
+   *
+   * @return the double array stats facade
+   */
   public DoubleArrayStatsFacade deltaStatistics() {
     return new DoubleArrayStatsFacade(delta);
   }
   
+  /**
+   * Target statistics double array stats facade.
+   *
+   * @return the double array stats facade
+   */
   public DoubleArrayStatsFacade targetStatistics() {
     return new DoubleArrayStatsFacade(target);
   }
@@ -189,9 +219,20 @@ public class DoubleBuffer {
     return areEqual(getDelta(), target);
   }
   
+  /**
+   * The type Double array stats facade.
+   */
   public static class DoubleArrayStatsFacade {
+    /**
+     * The Data.
+     */
     public final double[] data;
   
+    /**
+     * Instantiates a new Double array stats facade.
+     *
+     * @param data the data
+     */
     public DoubleArrayStatsFacade(double[] data) {
       this.data = data;
     }
@@ -215,10 +256,20 @@ public class DoubleBuffer {
       return Arrays.stream(data).map(x -> x * x).sum();
     }
   
+    /**
+     * Rms double.
+     *
+     * @return the double
+     */
     public double rms() {
       return Math.sqrt(sumSq() / length());
     }
   
+    /**
+     * Length int.
+     *
+     * @return the int
+     */
     public int length() {
       return data.length;
     }

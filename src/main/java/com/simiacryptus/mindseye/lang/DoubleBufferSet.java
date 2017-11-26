@@ -32,8 +32,13 @@ import java.util.stream.Stream;
  * A collection of DoubleBuffer objects being staged for particular layers.
  * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
  * and based on logical referants (i.e. layers)
+ *
+ * @param <T> the type parameter
  */
 public abstract class DoubleBufferSet<T extends DoubleBuffer> {
+  /**
+   * The Map.
+   */
   protected final ConcurrentHashMap<NNLayer, T> map = new ConcurrentHashMap<>();
   
   /**
@@ -44,6 +49,8 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
   
   /**
    * Instantiates a new Delta set.
+   *
+   * @param toCopy the to copy
    */
   public DoubleBufferSet(DoubleBufferSet<T> toCopy) {
     this(toCopy.map);
@@ -72,6 +79,13 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
     return delta;
   }
   
+  /**
+   * Factory t.
+   *
+   * @param layer the layer
+   * @param ptr   the ptr
+   * @return the t
+   */
   protected abstract T factory(final NNLayer layer, final double[] ptr);
   
   /**
@@ -139,6 +153,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
   /**
    * Dot double.
    *
+   * @param <U>   the type parameter
    * @param right the right
    * @return the double
    */
@@ -185,14 +200,28 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
     return map;
   }
   
+  /**
+   * The type Delegate.
+   */
   protected class Delegate extends DoubleBufferSet<T> {
     private final DoubleBufferSet<T> parent;
   
+    /**
+     * Instantiates a new Delegate.
+     *
+     * @param parent the parent
+     * @param newMap the new map
+     */
     public Delegate(DoubleBufferSet<T> parent, Map<NNLayer, T> newMap) {
       super(newMap);
       this.parent = parent;
     }
   
+    /**
+     * Instantiates a new Delegate.
+     *
+     * @param parent the parent
+     */
     public Delegate(DoubleBufferSet<T> parent) {
       this(parent, new HashMap<>());
     }

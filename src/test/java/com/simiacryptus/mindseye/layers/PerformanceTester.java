@@ -43,7 +43,6 @@ public class PerformanceTester {
   
   /**
    * Instantiates a new Derivative tester.
-   *
    */
   public PerformanceTester() {
 
@@ -51,8 +50,9 @@ public class PerformanceTester {
   
   /**
    * Test.
-   *  @param component       the component
-   * @param inputPrototype  the input prototype
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
    */
   public void test(final NNLayer component, final Tensor... inputPrototype) {
     Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
@@ -73,11 +73,12 @@ public class PerformanceTester {
   }
   
   
-  
   /**
    * Test feedback.
-   * @param component       the component
-   * @param inputPrototype  the input prototype
+   *
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   * @return the double statistics
    */
   protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor... inputPrototype) {
     return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
@@ -89,9 +90,11 @@ public class PerformanceTester {
   
   /**
    * Test learning.
-   *  @param component       the component
+   *
+   * @param component       the component
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
+   * @return the double statistics
    */
   protected DoubleStatistics testLearningPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l ->

@@ -29,8 +29,14 @@ import java.util.Random;
  */
 public class ConvolutionLayerTest extends F32LayerTestBase {
   
+  /**
+   * The Convolution layer.
+   */
   ConvolutionLayer convolutionLayer;
   
+  /**
+   * Instantiates a new Convolution layer test.
+   */
   public ConvolutionLayerTest() {
     convolutionLayer = new ConvolutionLayer(3, 3, 2,2);
     convolutionLayer.filter.fill(() -> random());
@@ -60,10 +66,19 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     return new DerivativeTester(1e-1, 1e-3);
   }
   
+  /**
+   * The type Asymmetric test.
+   */
   public static class AsymmetricTest extends ConvolutionLayerTest {
-    
+  
+    /**
+     * The Convolution layer.
+     */
     ConvolutionLayer convolutionLayer;
   
+    /**
+     * Instantiates a new Asymmetric test.
+     */
     public AsymmetricTest() {
       convolutionLayer = new ConvolutionLayer(3, 3, 2, 4);
       Random random = new Random();
@@ -91,9 +106,18 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     
   }
   
+  /**
+   * The type Irregular test.
+   */
   public static class IrregularTest extends ConvolutionLayerTest {
+    /**
+     * The Convolution layer.
+     */
     ConvolutionLayer convolutionLayer;
   
+    /**
+     * Instantiates a new Irregular test.
+     */
     public IrregularTest() {
       convolutionLayer = new ConvolutionLayer(3, 3, 2, 5);
       Random random = new Random();

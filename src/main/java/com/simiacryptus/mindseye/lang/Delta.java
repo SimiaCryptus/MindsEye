@@ -27,6 +27,9 @@ import java.util.function.DoubleUnaryOperator;
  * In comparison with the State class via geometric analogy, this would be a vector whereas State is a point.
  */
 public class Delta extends DoubleBuffer {
+  /**
+   * The Delta compensation.
+   */
   protected double[] deltaCompensation;
   
   /**
@@ -56,8 +59,9 @@ public class Delta extends DoubleBuffer {
   /**
    * Accumulate.
    *
-   * @param data  the data
-   * @param delta the delta
+   * @param data             the data
+   * @param delta            the delta
+   * @param dataCompensation the data compensation
    */
   public static void accumulate(double[] data, double[] delta, double[] dataCompensation) {
     for (int i = 0; i < data.length; i++) {

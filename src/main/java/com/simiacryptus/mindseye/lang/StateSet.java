@@ -34,14 +34,27 @@ import java.util.stream.Stream;
  */
 public class StateSet extends DoubleBufferSet<State> {
   
+  /**
+   * Instantiates a new State set.
+   */
   public StateSet() {
   }
   
+  /**
+   * Instantiates a new State set.
+   *
+   * @param toCopy the to copy
+   */
   public StateSet(DoubleBufferSet<State> toCopy) {
     super(toCopy);
     assert stream().allMatch(x->x instanceof State);
   }
   
+  /**
+   * Instantiates a new State set.
+   *
+   * @param toCopy the to copy
+   */
   public StateSet(DeltaSet toCopy) {
     assert (toCopy.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     toCopy.getMap().forEach((layer, layerDelta) -> {
@@ -51,10 +64,20 @@ public class StateSet extends DoubleBufferSet<State> {
     assert stream().allMatch(x->x instanceof State);
   }
   
+  /**
+   * Instantiates a new State set.
+   *
+   * @param collect the collect
+   */
   public StateSet(Map<NNLayer, State> collect) {
     super(collect);
   }
   
+  /**
+   * State backup double buffer set.
+   *
+   * @return the double buffer set
+   */
   public DoubleBufferSet<State> stateBackup() {
     assert (this.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     DoubleBufferSet<State> stateBackup = new Delegate(this);
@@ -82,6 +105,13 @@ public class StateSet extends DoubleBufferSet<State> {
     return union(left, right);
   }
   
+  /**
+   * Union state set.
+   *
+   * @param left  the left
+   * @param right the right
+   * @return the state set
+   */
   public static StateSet union(DoubleBufferSet<State> left, DoubleBufferSet<State> right) {
     return new StateSet(Stream.concat(
       left.map.entrySet().stream(),

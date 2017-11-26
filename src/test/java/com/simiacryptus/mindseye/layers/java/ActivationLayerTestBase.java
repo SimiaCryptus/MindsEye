@@ -80,11 +80,26 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   
   }
   
+  /**
+   * Plot plot canvas.
+   *
+   * @param title    the title
+   * @param plotData the plot data
+   * @param function the function
+   * @return the plot canvas
+   */
   public static PlotCanvas plot(String title, List<double[]> plotData, Function<double[], double[]> function) {
     double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
     return plot(title, data);
   }
   
+  /**
+   * Plot plot canvas.
+   *
+   * @param title the title
+   * @param data  the data
+   * @return the plot canvas
+   */
   public static PlotCanvas plot(String title, double[][] data) {
     PlotCanvas plot = ScatterPlot.plot(data);
     plot.setTitle(title);

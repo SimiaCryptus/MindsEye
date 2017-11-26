@@ -155,6 +155,16 @@ public class CuDNN {
     return deviceProp;
   }
   
+  /**
+   * New convolution nd descriptor cuda resource.
+   *
+   * @param mode     the mode
+   * @param dataType the data type
+   * @param padding  the padding
+   * @param stride   the stride
+   * @param dilation the dilation
+   * @return the cuda resource
+   */
   public static CudaResource<cudnnConvolutionDescriptor> newConvolutionNdDescriptor(int mode, int dataType, int[] padding, int[] stride, int[] dilation) {
     cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     handle(cudnnCreateConvolutionDescriptor(convDesc));
@@ -177,6 +187,17 @@ public class CuDNN {
     };
   }
   
+  /**
+   * New convolutions 2 d descriptor cuda resource.
+   *
+   * @param paddingX     the padding x
+   * @param paddingY     the padding y
+   * @param strideHeight the stride height
+   * @param strideWidth  the stride width
+   * @param mode         the mode
+   * @param dataType     the data type
+   * @return the cuda resource
+   */
   public static CudaResource<cudnnConvolutionDescriptor> newConvolutions2dDescriptor(int paddingX, int paddingY, int strideHeight, int strideWidth, int mode, int dataType) {
     cudnnConvolutionDescriptor convDesc = new cudnnConvolutionDescriptor();
     handle(cudnnCreateConvolutionDescriptor(convDesc));

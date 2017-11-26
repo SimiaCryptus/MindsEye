@@ -33,10 +33,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * The type Quantify orientation wrapper.
+ */
 public class QuantifyOrientationWrapper implements OrientationStrategy {
   
   private final OrientationStrategy inner;
   
+  /**
+   * Instantiates a new Quantify orientation wrapper.
+   *
+   * @param inner the inner
+   */
   public QuantifyOrientationWrapper(OrientationStrategy inner) {
     this.inner = inner;
   }
@@ -66,6 +74,12 @@ public class QuantifyOrientationWrapper implements OrientationStrategy {
     return cursor;
   }
   
+  /**
+   * Gets id.
+   *
+   * @param x the x
+   * @return the id
+   */
   public String getId(DoubleBuffer x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();

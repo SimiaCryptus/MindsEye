@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This is a recycling mechanism to reuse short-term-lifecycle double[] objects of regular length.
- * It is a commonly-used and effective convenience mechanism to optimize tight loops which 
+ * It is a commonly-used and effective convenience mechanism to optimize tight loops which
  * would otherwise require careful and complex coding to minimize allocations and avoid excessive GC load
  */
 public class DoubleArrays {
@@ -102,6 +102,12 @@ public class DoubleArrays {
     recycling.clear();
   }
   
+  /**
+   * Copy of double [ ].
+   *
+   * @param original the original
+   * @return the double [ ]
+   */
   public static double[] copyOf(double[] original) {
     if(null == original) return null;
     double[] copy = obtain(original.length);

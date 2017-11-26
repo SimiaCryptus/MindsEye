@@ -30,8 +30,14 @@ import java.util.Random;
  */
 public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   
+  /**
+   * The Convolution layer.
+   */
   SimpleConvolutionLayer convolutionLayer;
   
+  /**
+   * Instantiates a new Simple convolution layer test.
+   */
   public SimpleConvolutionLayerTest() {
     convolutionLayer = new SimpleConvolutionLayer(3, 3, 1);
     convolutionLayer.filter.fill(() -> random());

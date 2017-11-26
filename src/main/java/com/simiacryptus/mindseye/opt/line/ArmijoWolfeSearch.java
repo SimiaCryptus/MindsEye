@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
  * Commonly used "loose" criteria for the line search iteration.
-*/
+ */
 public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   private double minAlpha = 1e-15;

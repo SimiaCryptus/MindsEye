@@ -33,7 +33,7 @@ import java.util.stream.*;
 /**
  * A multi-dimensional array of data.
  * Represented internally as a single double[] array.
- * This class is central to data handling in MindsEye, and 
+ * This class is central to data handling in MindsEye, and
  * may have some odd-looking or suprising optimizations.
  */
 public class Tensor implements Serializable {
@@ -1055,6 +1055,11 @@ public class Tensor implements Serializable {
     }
   }
   
+  /**
+   * Pretty print string.
+   *
+   * @return the string
+   */
   public String prettyPrint() {
     return toString(true, new int[]{});
   }
@@ -1123,6 +1128,11 @@ public class Tensor implements Serializable {
     setParallelByIndex(c -> get(c) + tensor.get(c));
   }
   
+  /**
+   * Get.
+   *
+   * @param bufferArray the buffer array
+   */
   public void get(double[] bufferArray) {
     System.arraycopy(getData(), 0, bufferArray, 0, dim());
   }
