@@ -113,14 +113,24 @@ public abstract class LayerTestBase {
         log.code(()->{
           SimpleEval eval = SimpleEval.run(layer, input);
           DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
-          return String.format("Input: %s\nOutput: %s\nError: %s", input, eval.getOutput(), error);
+          return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s",
+            Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+            eval.getOutput().prettyPrint(), error);
         });
+      });
+    } else {
+      log.h3("Example Input/Output Pair");
+      log.code(() -> {
+        SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+        return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
+          Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+          eval.getOutput().prettyPrint());
       });
     }
   
-    log.h3("Reference Implementation");
     NNLayer referenceLayer = getReferenceLayer();
     if(null != referenceLayer) {
+      log.h3("Reference Implementation");
       log.code(() -> {
         System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
         getEquivalencyTester().test(referenceLayer, layer, outputPrototype, inputPrototype);
@@ -160,7 +170,7 @@ public abstract class LayerTestBase {
   }
   
   public double random() {
-    return 4 * (Util.R.get().nextDouble() - 0.5);
+    return Math.round(1000 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
   }
   
   public EquivalencyTester getEquivalencyTester() {

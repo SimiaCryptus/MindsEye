@@ -17,43 +17,41 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.EquivalencyTester;
-import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
-
-import java.util.Random;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Convolution layer run.
+ * The type Img concat layer run.
  */
-public class SimpleConvolutionLayerTest extends F32LayerTestBase {
-  
-  SimpleConvolutionLayer convolutionLayer;
-  
-  public SimpleConvolutionLayerTest() {
-    convolutionLayer = new SimpleConvolutionLayer(3, 3, 1);
-    convolutionLayer.filter.fill(() -> random());
-  }
+public class ImgConcatLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return convolutionLayer;
-  }
-  
-  @Override
-  public NNLayer getReferenceLayer() {
-    ConvolutionLayer referenceLayer = new ConvolutionLayer(3, 3, 1, 1, true);
-    referenceLayer.kernel.set(convolutionLayer.filter);
-    return referenceLayer;
+    return new ImgConcatLayer();
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {2, 2, 1}, {2, 2, 1}
     };
+  }
+  
+  public static class BandLimitTest extends ImgConcatLayerTest {
+  
+    @Override
+    public NNLayer getLayer() {
+      return new ImgConcatLayer();
+    }
+  
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {2, 2, 2}, {2, 2, 2}
+      };
+    }
   }
   
 }

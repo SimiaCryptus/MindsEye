@@ -84,9 +84,10 @@ public class ImgCropLayer extends NNLayer {
     assert inDim[2] == outDim[2];
     assert inDim[0] >= outDim[0];
     assert inDim[1] >= outDim[1];
-    int paddingX = (inDim[0] - outDim[0]);
-    int paddingY = (inDim[0] - outDim[0]);
-    outputData.coordStream().forEach((c) -> outputData.set(c, inputData.get(c.coords[0] + paddingX, c.coords[1] + paddingY, c.coords[2])));
+    int paddingX = (inDim[0] - outDim[0]) / 2;
+    int paddingY = (inDim[0] - outDim[0]) / 2;
+    outputData.coordStream().forEach((c) ->
+      outputData.set(c, inputData.get(c.coords[0] + paddingX, c.coords[1] + paddingY, c.coords[2])));
     return outputData;
   }
   
@@ -105,14 +106,10 @@ public class ImgCropLayer extends NNLayer {
     assert inDim[0] <= outDim[0];
     assert inDim[1] <= outDim[1];
     assert inDim[2] == outDim[2];
-    int paddingX = (outDim[0] - inDim[0]);
-    int paddingY = (outDim[0] - inDim[0]);
-    outputData.coordStream().forEach(c -> {
-      int x = c.coords[0] - paddingX;
-      int y = c.coords[1] - paddingY;
-      if (x >= 0 && x < outDim[0] && y >= 0 && y < outDim[1]) {
-        outputData.set(c, inputData.get(x, y, c.coords[2]));
-      }
+    int paddingX = (outDim[0] - inDim[0]) / 2;
+    int paddingY = (outDim[0] - inDim[0]) / 2;
+    inputData.coordStream().forEach(c -> {
+      outputData.set(c.coords[0] + paddingX, c.coords[1] + paddingY, c.coords[2], inputData.get(c));
     });
     return outputData;
   }
@@ -133,9 +130,7 @@ public class ImgCropLayer extends NNLayer {
     final int[] inputDims = batch.get(0).getDimensions();
     assert (3 == inputDims.length);
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    Tensor outputDims = new Tensor(inputDims[0] - sizeX,
-      inputDims[1] - sizeY,
-      inputDims[2]);
+    Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
     return new NNResult(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> copyCondense(batch.get(dataIndex), outputDims))
       .toArray(i -> new Tensor[i])) {

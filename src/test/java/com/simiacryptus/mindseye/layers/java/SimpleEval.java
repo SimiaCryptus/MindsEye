@@ -63,7 +63,11 @@ public class SimpleEval implements Callable<SimpleEval> {
     }).toArray(i->new NNResult[i]);
     NNResult result = CudaExecutionContext.gpuContexts.run(cudaExeCtx -> {
       NNResult eval = layer.eval(cudaExeCtx, inputR);
-      eval.accumulate(new DeltaSet());
+      if(Tensor.dim(eval.getData().getDimensions()) > 1) {
+        new SumReducerLayer().eval(cudaExeCtx, eval).accumulate(new DeltaSet());
+      } else {
+        eval.accumulate(new DeltaSet());
+      }
       return eval;
     });
     output = result.getData().get(0);

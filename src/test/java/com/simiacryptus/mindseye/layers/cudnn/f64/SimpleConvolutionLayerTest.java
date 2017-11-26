@@ -20,22 +20,33 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.EquivalencyTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
+
+import java.util.Random;
 
 /**
  * The type Convolution layer run.
  */
 public class SimpleConvolutionLayerTest extends LayerTestBase {
   
+  SimpleConvolutionLayer layer;
+  
+  public SimpleConvolutionLayerTest() {
+    layer = new SimpleConvolutionLayer(3, 3, 1);
+    layer.filter.fill(() -> random());
+  }
+  
   @Override
   public NNLayer getLayer() {
-    return new SimpleConvolutionLayer(3, 3, 1);
+    return layer;
   }
   
   @Override
   public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 1, 1, true);
+    ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1, true);
+    convolutionLayer.kernel.set(layer.filter);
+    return convolutionLayer;
   }
   
   @Override

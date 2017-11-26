@@ -20,10 +20,9 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.TimedResult;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,103 +57,35 @@ public class PerformanceTester {
    */
   public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     if (isTestFeedback()) {
-      DoubleStatistics statistics = IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-        return testFeedbackPerformance(component, i, outputPrototype, inputPrototype);
+      DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
+        return testEvaluationPerformance(component, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
-      System.out.println(String.format("Forward performance: %.4f +- %.4f [%.4f - %.4f]",
+      System.out.println(String.format("Evaluation performance: %.4f +- %.4f [%.4f - %.4f]",
         statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
     }
     if (isTestLearning()) {
-      DoubleStatistics statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
-        return testLearningPerformance(component, i, outputPrototype, inputPrototype);
+      DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
+        return testLearningPerformance(component, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).orElseGet(()->null);
-      if(null != statistics) System.out.println(String.format("Backward performance: %.4f +- %.4f [%.4f - %.4f]",
+      if(null != statistics) System.out.println(String.format("Learning performance: %.4f +- %.4f [%.4f - %.4f]",
         statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
     }
   }
   
-  private Tensor getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor gradientBuffer = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    for (int j = 0; j < outputPrototype.dim(); j++) {
-      final int j_ = j;
-      final NNResult[] copyInput = Arrays.stream(inputPrototype).map(x -> new NNResult(x) {
-        @Override
-        public void accumulate(final DeltaSet buffer, final TensorList data) {
-        }
-        
-        @Override
-        public boolean isAlive() {
-          return false;
-        }
-      }).toArray(i -> new NNResult[i]);
-      copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
-        @Override
-        public void accumulate(final DeltaSet buffer, final TensorList data) {
-          Assert.assertEquals(1, data.length());
-          IntStream.range(0, data.length()).forEach(dataIndex -> {
-            Assert.assertArrayEquals(inputPrototype[inputIndex].getDimensions(), data.get(dataIndex).getDimensions());
-            for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
-              gradientBuffer.set(new int[]{i, j_}, data.get(dataIndex).getData()[i]);
-            }
-          });
-        }
-        
-        @Override
-        public boolean isAlive() {
-          return true;
-        }
-      };
-      final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
-      GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (d, exe) -> {
-          NNResult eval = component.eval(exe, copyInput);
-          Tensor tensor = eval.getData().get(0);
-          eval.accumulate(new DeltaSet(), new TensorArray(data));
-          return tensor;
-        }, (a, b) -> a.add(b));
-    }
-    return gradientBuffer;
-  }
   
-  private Tensor getLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    component.setFrozen(false);
-    final double[] stateArray = component.state().get(layerNum);
-    final int stateLen = stateArray.length;
-    final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-    for (int j = 0; j < outputPrototype.dim(); j++) {
-      final int j_ = j;
-      final DeltaSet buffer = new DeltaSet();
-      final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
-      
-      GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (d, exe) -> {
-          NNResult eval = component.eval(exe, NNResult.batchResultArray(d.toArray(new Tensor[][]{})));
-          Tensor tensor = eval.getData().get(0);
-          eval.accumulate(buffer, new TensorArray(data));
-          return tensor;
-        }, (a, b) -> a.add(b));
-      
-      
-      final DoubleBuffer deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().get();
-      for (int i = 0; i < stateLen; i++) {
-        gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
-      }
-    }
-    return gradient;
-  }
   
   /**
    * Test feedback.
-   *
-   * @param component       the component
-   * @param i               the
+   *  @param component       the component
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    */
-  protected DoubleStatistics testFeedbackPerformance(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     try {
       return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
-        TimedResult.time(()->getFeedbackGradient(component, i, outputPrototype, inputPrototype)).timeNanos
+        TimedResult.time(()->CudaExecutionContext.gpuContexts.run(exe->{
+          return component.eval(exe, inputPrototype);
+        })).timeNanos
       ).mapToDouble(x->x/1e9).toArray());
     } catch (final Throwable e) {
       System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
@@ -164,16 +95,21 @@ public class PerformanceTester {
   
   /**
    * Test learning.
-   *
-   * @param component       the component
-   * @param i               the
+   *  @param component       the component
    * @param outputPrototype the output prototype
    * @param inputPrototype  the input prototype
    */
-  protected DoubleStatistics testLearningPerformance(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  protected DoubleStatistics testLearningPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     try {
+      NNResult eval = CudaExecutionContext.gpuContexts.run(exe->{
+        return component.eval(exe, inputPrototype);
+      });
       return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
-        TimedResult.time(()->getLearningGradient(component, i, outputPrototype, inputPrototype)).timeNanos
+        TimedResult.time(()->{
+          DeltaSet buffer = new DeltaSet();
+          eval.accumulate(buffer, new TensorArray(outputPrototype));
+          return buffer;
+        }).timeNanos
       ).mapToDouble(x->x/1e9).toArray());
   } catch (final Throwable e) {
       System.out.println(String.format("Component: %s", component));

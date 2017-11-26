@@ -36,7 +36,7 @@ public class ToleranceStatistics {
 
   public ToleranceStatistics accumulate(double target, double val) {
     absoluteTol.accept(Math.abs(target-val));
-    if(Double.isFinite(val+target) && val!=-target) relativeTol.accept(2 * Math.abs(target-val) / Math.abs(val+target));
+    if(Double.isFinite(val+target) && val!=-target) relativeTol.accept(Math.abs(target-val) / (Math.abs(val)+Math.abs(target)));
     return this;
   }
 

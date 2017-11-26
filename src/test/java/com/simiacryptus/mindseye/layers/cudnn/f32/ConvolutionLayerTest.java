@@ -23,42 +23,59 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.EquivalencyTester;
 
+import java.util.Random;
+
 /**
  * The type Convolution layer run.
  */
 public class ConvolutionLayerTest extends F32LayerTestBase {
   
+  ConvolutionLayer convolutionLayer;
+  
+  public ConvolutionLayerTest() {
+    convolutionLayer = new ConvolutionLayer(3, 3, 2,2);
+    convolutionLayer.filter.fill(() -> random());
+  }
+  
   @Override
   public NNLayer getLayer() {
-    return new ConvolutionLayer(3, 3, 1);
+    return convolutionLayer;
   }
   
   @Override
   public NNLayer getReferenceLayer() {
-    return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 1, 1, true);
+    com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 2, true);
+    referenceLayer.kernel.set(convolutionLayer.filter);
+    return referenceLayer;
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {3, 3, 2}
     };
   }
   
   public static class AsymmetricTest extends ConvolutionLayerTest {
     
+    ConvolutionLayer convolutionLayer;
+  
+    public AsymmetricTest() {
+      convolutionLayer = new ConvolutionLayer(3, 3, 2, 4);
+      Random random = new Random();
+      convolutionLayer.filter.fill(() -> 2 * (random.nextDouble()-0.5));
+    }
+  
     @Override
     public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, 4);
+      return convolutionLayer;
     }
     
     @Override
     public NNLayer getReferenceLayer() {
-      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 4, true);
-    }
-    
-    public EquivalencyTester getEquivalencyTester() {
-      return new EquivalencyTester(2);
+      com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 4, true);
+      referenceLayer.kernel.set(convolutionLayer.filter);
+      return referenceLayer;
     }
     
     @Override
@@ -71,19 +88,24 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
   }
   
   public static class IrregularTest extends ConvolutionLayerTest {
-    
+    ConvolutionLayer convolutionLayer;
+  
+    public IrregularTest() {
+      convolutionLayer = new ConvolutionLayer(3, 3, 2, 5);
+      Random random = new Random();
+      convolutionLayer.filter.fill(() -> 2 * (random.nextDouble()-0.5));
+    }
+  
     @Override
     public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, 5);
+      return convolutionLayer;
     }
     
     @Override
     public NNLayer getReferenceLayer() {
-      return new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 5, true);
-    }
-    
-    public EquivalencyTester getEquivalencyTester() {
-      return new EquivalencyTester(2);
+      com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 5, true);
+      referenceLayer.kernel.set(convolutionLayer.filter);
+      return referenceLayer;
     }
     
     @Override
@@ -94,9 +116,5 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     }
     
   }
-//
-//  @Override
-//  public DerivativeTester getDerivativeTester() {
-//    return new DerivativeTester(1e-1, 1e-2);
-//  }
+  
 }

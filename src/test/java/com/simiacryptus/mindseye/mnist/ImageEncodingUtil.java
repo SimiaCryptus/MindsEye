@@ -323,7 +323,6 @@ class ImageEncodingUtil {
   /**
    * Build training model dag network.
    *
-   * @param log              the log
    * @param innerModel       the inner model
    * @param reproducedColumn the reproduced column
    * @param learnedColumn    the learned column
@@ -331,7 +330,7 @@ class ImageEncodingUtil {
    * @param factor_entropy   the factor entropy
    * @return the dag network
    */
-  protected DAGNetwork buildTrainingModel(NotebookOutput log, NNLayer innerModel, int reproducedColumn, int learnedColumn, double factor_l1, double factor_entropy) {
+  protected DAGNetwork buildTrainingModel(NNLayer innerModel, int reproducedColumn, int learnedColumn, double factor_l1, double factor_entropy) {
     PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     DAGNode input = network.getInput(learnedColumn);
     DAGNode output = network.add("image", innerModel, input);

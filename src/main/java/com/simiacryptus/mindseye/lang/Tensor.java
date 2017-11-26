@@ -1023,24 +1023,40 @@ public class Tensor implements Serializable {
   
   @Override
   public String toString() {
-    return toString(new int[]{});
+    return toString(false, new int[]{});
   }
   
-  private String toString(final int... coords) {
+  private String toString(boolean prettyPrint, final int... coords) {
     if (coords.length == this.dimensions.length) {
       return Double.toString(get(coords));
     }
     else {
       List<String> list = IntStream.range(0, this.dimensions[coords.length]).mapToObj(i -> {
-        return toString(_add(coords, i));
+        return toString(prettyPrint, _add(coords, i));
       }).collect(Collectors.toList());
-      if (list.size() > 10) {
-        list = list.subList(0, 8);
-        list.add("...");
+      if(prettyPrint) {
+        if(coords.length < this.dimensions.length-2) {
+          final String str = list.stream().limit(10)
+            .map(s->"\t"+s.replaceAll("\n","\n\t"))
+            .reduce((a, b) -> a + ",\n" + b).get();
+          return "[\n" + str + "\n]";
+        } else {
+          final String str = list.stream().limit(10).reduce((a, b) -> a + ", " + b).get();
+          return "[ " + str + " ]";
+        }
+      } else {
+        if (list.size() > 10) {
+          list = list.subList(0, 8);
+          list.add("...");
+        }
+        final String str = list.stream().limit(10).reduce((a, b) -> a + "," + b).get();
+        return "[ " + str + " ]";
       }
-      final Optional<String> str = list.stream().limit(10).reduce((a, b) -> a + "," + b);
-      return "[ " + str.get() + " ]";
     }
+  }
+  
+  public String prettyPrint() {
+    return toString(true, new int[]{});
   }
   
   /**

@@ -93,7 +93,7 @@ public class ImgBandBiasLayer extends NNLayer {
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
     final int[] inputSize = batch.get(0).getDimensions();
-    assert (inputSize[2] == bias.length);
+    assert (inputSize[2] == bias.length) : inputSize[2] +" != "+ bias.length;
     int[] outputSize = inputSize;
     int length = batch.length();
     

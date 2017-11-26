@@ -161,10 +161,11 @@ public class EquivalencyTester {
     final Tensor subjectGradient = getFeedbackGradient(subject, i, outputPrototype, inputPrototype);
     final Tensor referenceGradient = getFeedbackGradient(reference, i, outputPrototype, inputPrototype);
     try {
+      Tensor error = subjectGradient.minus(referenceGradient);
       ToleranceStatistics result = IntStream.range(0, subjectGradient.dim()).mapToObj(i1 -> {
         return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
-      assert result.absoluteTol.getMax() < tolerance;
+      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
 //      System.out.println(String.format("Output Dims: %s\nInputs: %s", Arrays.toString(outputPrototype.getDimensions()), Arrays.toString(inputPrototype)));
 //      System.out.println(String.format("Subject Output: %s", subjectGradient));
 //      System.out.println(String.format("Reference Output: %s", referenceGradient));
@@ -197,7 +198,7 @@ public class EquivalencyTester {
       ToleranceStatistics result = IntStream.range(0, subjectGradient.dim()).mapToObj(i1 -> {
         return new ToleranceStatistics().accumulate(subjectGradient.getData()[i1], referenceGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
-      assert result.absoluteTol.getMax() < tolerance;
+      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
 //      System.out.println(String.format("Subject Gradient: %s", subjectGradient));
 //      System.out.println(String.format("Reference Gradient: %s", referenceGradient));
 //      System.out.println(String.format("Error: %s", error));

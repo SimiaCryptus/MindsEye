@@ -142,14 +142,19 @@ public class ConvolutionLayer extends NNLayer {
     // Extract Weights
     int[] filterDimensions = filter.getDimensions();
     int[] inputDimensions = inObj[0].getData().getDimensions();
-    int outputBands = filterDimensions[2] / inputDimensions[2];
-    int inputBandsSq = inputDimensions[2] * inputDimensions[2];
+    int inputBands = inputDimensions[2];
+    int outputBands = filterDimensions[2] / inputBands;
+    int inputBandsSq = inputBands * inputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
       Tensor batchKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
       int _offset = offset;
       batchKernel.fillByCoord(c -> {
         int filterBand = _offset + c.coords[2];
-        return filterBand >= filterDimensions[2] ? 0 : filter.get(c.coords[0], c.coords[1], filterBand);
+        int filterBandX = filterBand % outputBands;
+        int filterBandY = filterBand / outputBands;
+        assert filterBand == filterBandY * outputBands + filterBandX;
+        int filterBandT = filterBandX * inputBands + filterBandY;
+        return filterBandT >= filterDimensions[2] ? 0 : filter.get(c.coords[0], c.coords[1], filterBandT);
       });
       subLayers.add(new SimpleConvolutionLayer(batchKernel)
         .setStrideX(strideX).setStrideY(strideY));
@@ -177,7 +182,11 @@ public class ConvolutionLayer extends NNLayer {
           int offset = batchNumber * inputBandsSq;
           subnetTensor.coordStream().forEach(c -> {
             int band = offset + c.coords[2];
-            if (band < filterDimensions[2]) deltaBuffer.set(c.coords[0], c.coords[1], band, subnetTensor.get(c));
+            int bandX = band % outputBands;
+            int bandY = band / outputBands;
+            assert band == bandY * outputBands + bandX;
+            int bandT = bandX * inputBands + bandY;
+            if (bandT < filterDimensions[2]) deltaBuffer.set(c.coords[0], c.coords[1], bandT, subnetTensor.get(c));
           });
         }
         inputDelta.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(deltaBuffer.getData());

@@ -217,7 +217,8 @@ public class DerivativeTester {
       ToleranceStatistics result = IntStream.range(0, measuredGradient.dim()).mapToObj(i1 -> {
         return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
-      assert result.absoluteTol.getMax() < tolerance;
+  
+      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
       return result;
     } catch (final Throwable e) {
       System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
@@ -239,20 +240,24 @@ public class DerivativeTester {
   protected ToleranceStatistics testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
     final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
+    final Tensor error = measuredGradient.minus(implementedGradient);
   
     try {
       ToleranceStatistics result = IntStream.range(0, measuredGradient.dim()).mapToObj(i1 -> {
         return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
       }).reduce((a, b) -> a.combine(b)).get();
-      assert result.absoluteTol.getMax() < tolerance;
-      return result;
+      if (!(result.absoluteTol.getMax() < tolerance)) {
+        throw new AssertionError(result.toString());
+      } else {
+        return result;
+      }
     } catch (final Throwable e) {
       System.out.println(String.format("Component: %s", component));
       System.out.println(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
       System.out.println(String.format("Outputs: %s", outputPrototype));
       System.out.println(String.format("Measured Gradient: %s", measuredGradient));
       System.out.println(String.format("Implemented Gradient: %s", implementedGradient));
-      System.out.println(String.format("%s", measuredGradient.minus(implementedGradient)));
+      System.out.println(String.format("%s", error));
       throw e;
     }
     
