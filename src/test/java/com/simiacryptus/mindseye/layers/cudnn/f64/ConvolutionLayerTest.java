@@ -63,7 +63,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
     public AsymmetricTest() {
       convolutionLayer = new ConvolutionLayer(3, 3, 2, 4);
       Random random = new Random();
-      convolutionLayer.filter.fill(() -> 2 * (random.nextDouble()-0.5));
+      convolutionLayer.filter.fill(() -> random());
     }
   
     @Override
@@ -92,9 +92,9 @@ public class ConvolutionLayerTest extends LayerTestBase {
     ConvolutionLayer convolutionLayer;
   
     public IrregularTest() {
-      convolutionLayer = new ConvolutionLayer(3, 3, 7, 3);
+      convolutionLayer = new ConvolutionLayer(3, 3, 2, 3);
       Random random = new Random();
-      convolutionLayer.filter.fill(() -> 2 * (random.nextDouble()-0.5));
+      convolutionLayer.filter.fill(() -> random());
     }
   
     @Override
@@ -104,7 +104,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
     
     @Override
     public NNLayer getReferenceLayer() {
-      com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 7, 3, true);
+      com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 3, true);
       referenceLayer.kernel.set(convolutionLayer.filter);
       return referenceLayer;
     }
@@ -112,7 +112,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
     @Override
     public int[][] getInputDims() {
       return new int[][]{
-        {3, 3, 7}
+        {3, 3, 2}
       };
     }
     

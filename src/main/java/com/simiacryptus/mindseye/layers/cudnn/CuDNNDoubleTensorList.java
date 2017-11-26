@@ -71,6 +71,7 @@ public class CuDNNDoubleTensorList implements TensorList {
     this.dimensions = dimensions;
     this.cudnnHandle = cudnnHandle;
     assert (ptr.size == length * Tensor.dim(dimensions) * Sizeof.DOUBLE);
+    assert ptr.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     assert !System.getProperties().containsKey("safe") || this.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
   }

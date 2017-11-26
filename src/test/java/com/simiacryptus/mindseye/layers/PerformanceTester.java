@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.java.SimpleEval;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.TimedResult;
 import org.slf4j.Logger;
@@ -50,15 +51,14 @@ public class PerformanceTester {
   
   /**
    * Test.
-   *
-   * @param component       the component
-   * @param outputPrototype the output prototype
+   *  @param component       the component
    * @param inputPrototype  the input prototype
    */
-  public void test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  public void test(final NNLayer component, final Tensor... inputPrototype) {
+    Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     if (isTestFeedback()) {
       DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
-        return testEvaluationPerformance(component, outputPrototype, inputPrototype);
+        return testEvaluationPerformance(component, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
       System.out.println(String.format("Evaluation performance: %.4f +- %.4f [%.4f - %.4f]",
         statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
@@ -76,21 +76,15 @@ public class PerformanceTester {
   
   /**
    * Test feedback.
-   *  @param component       the component
-   * @param outputPrototype the output prototype
+   * @param component       the component
    * @param inputPrototype  the input prototype
    */
-  protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    try {
-      return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
-        TimedResult.time(()->CudaExecutionContext.gpuContexts.run(exe->{
-          return component.eval(exe, inputPrototype);
-        })).timeNanos
-      ).mapToDouble(x->x/1e9).toArray());
-    } catch (final Throwable e) {
-      System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
-      throw e;
-    }
+  protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor... inputPrototype) {
+    return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
+      TimedResult.time(()->CudaExecutionContext.gpuContexts.run(exe->{
+        return component.eval(exe, inputPrototype);
+      })).timeNanos
+    ).mapToDouble(x->x/1e9).toArray());
   }
   
   /**
@@ -100,24 +94,15 @@ public class PerformanceTester {
    * @param inputPrototype  the input prototype
    */
   protected DoubleStatistics testLearningPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    try {
-      NNResult eval = CudaExecutionContext.gpuContexts.run(exe->{
-        return component.eval(exe, inputPrototype);
-      });
-      return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
-        TimedResult.time(()->{
+    return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l ->
+      CudaExecutionContext.gpuContexts.run(exe->{
+        NNResult eval = component.eval(exe, inputPrototype);
+        return TimedResult.time(() -> {
           DeltaSet buffer = new DeltaSet();
           eval.accumulate(buffer, new TensorArray(outputPrototype));
           return buffer;
-        }).timeNanos
-      ).mapToDouble(x->x/1e9).toArray());
-  } catch (final Throwable e) {
-      System.out.println(String.format("Component: %s", component));
-      System.out.println(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
-      System.out.println(String.format("Outputs: %s", outputPrototype));
-      throw e;
-    }
-    
+        });
+      }).timeNanos).mapToDouble(x->x/1e9).toArray());
   }
   
   /**

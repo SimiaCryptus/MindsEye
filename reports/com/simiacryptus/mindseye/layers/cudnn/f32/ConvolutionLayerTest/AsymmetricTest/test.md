@@ -1,5 +1,7 @@
+# ConvolutionLayer
+## AsymmetricTest
 ### Json Serialization
-Code from [LayerTestBase.java:74](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:75](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L75) executed in 0.05 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -14,14 +16,88 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer",
-      "id": "bdd6bbba-380b-47fe-a761-c241000015cb",
+      "id": "055e4cd6-0193-4699-9154-1c1700000002",
       "isFrozen": false,
-      "name": "ConvolutionLayer/bdd6bbba-380b-47fe-a761-c241000015cb",
+      "name": "ConvolutionLayer/055e4cd6-0193-4699-9154-1c1700000002",
       "filter": {
         "dimensions": [
           3,
           3,
           8
+        ],
+        "data": [
+          -1.016,
+          -0.376,
+          1.8239999999999998,
+          -2.232,
+          -2.376,
+          2.528,
+          -2.7039999999999997,
+          -3.896,
+          -0.41600000000000004,
+          -1.6560000000000001,
+          1.3599999999999999,
+          0.3839999999999999,
+          -3.328,
+          -0.264,
+          -1.728,
+          -1.88,
+          1.7999999999999998,
+          1.7839999999999998,
+          0.48,
+          2.272,
+          2.792,
+          -4.984,
+          -4.3759999999999994,
+          -3.048,
+          -3.232,
+          -4.8,
+          -0.16000000000000003,
+          -0.11199999999999999,
+          -2.992,
+          -0.43999999999999995,
+          1.376,
+          -1.528,
+          2.376,
+          -0.040000000000000036,
+          -2.7199999999999998,
+          2.512,
+          -0.736,
+          2.872,
+          -3.6,
+          -0.12,
+          -4.6080000000000005,
+          -4.92,
+          -1.28,
+          -0.04800000000000004,
+          -0.528,
+          1.2959999999999998,
+          -3.896,
+          -2.776,
+          1.888,
+          -0.18400000000000005,
+          0.08000000000000007,
+          1.96,
+          1.536,
+          -1.688,
+          1.496,
+          2.344,
+          -0.808,
+          2.512,
+          1.064,
+          -2.912,
+          -3.688,
+          1.7120000000000002,
+          2.552,
+          0.72,
+          -2.136,
+          -4.08,
+          -1.6640000000000001,
+          -0.768,
+          -2.3280000000000003,
+          -0.384,
+          -4.808,
+          0.6639999999999999
         ]
       },
       "strideX": 1,
@@ -31,49 +107,128 @@ Returns:
 
 
 
-### Differential Validation
-Code from [LayerTestBase.java:98](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 1.74 seconds: 
+### Example Input/Output Pair
+Code from [LayerTestBase.java:112](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L112) executed in 0.02 seconds: 
 ```java
-    getDerivativeTester().test(layer, outputPrototype, inputPrototype);
-```
-Logging: 
-```
-    Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.4255e-08 +- 4.4358e-08 [0.0000e+00 - 3.1572e-07] (3240#)
-    relativeTol: 4.3200e-01 +- 8.2303e-01 [7.5493e-09 - 2.0000e+00] (500#)
-    
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
+      Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+      eval.getOutput().prettyPrint());
 ```
 
-### Performance
-Code from [LayerTestBase.java:103](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 115.72 seconds: 
-```java
-    getPerformanceTester().test(layer, outputPrototype, inputPrototype);
+Returns: 
+
 ```
-Logging: 
+    --------------------
+    Input: 
+    [[
+    	[ [ -1.7, -0.708 ], [ 0.172, 0.004 ], [ -1.928, -0.588 ] ],
+    	[ [ -0.008, -0.212 ], [ 0.22, 0.856 ], [ 0.744, 0.392 ] ],
+    	[ [ -0.496, 1.928 ], [ 1.616, 0.72 ], [ 0.412, -0.912 ] ]
+    ]]
+    --------------------
+    Output: 
+    [
+    	[ [ 8.343647956848145, 8.170721054077148, 1.027295708656311, 1.416991114616394 ], [ 4.366144180297852, -5.879489421844482, -2.855295181274414, 9.828768730163574 ], [ -0.5111043453216553, 5.714080333709717, -0.6783034801483154, 1.906176209449768 ] ],
+    	[ [ -8.804224014282227, 17.043264389038086, 0.9306561946868896, -3.0347201824188232 ], [ -19.466047286987305, 1.7104310989379883, -10.65756893157959, 6.746016502380371 ], [ -14.673887252807617, 2.4968338012695312, -6.169248580932617, 1.8975677490234375 ] ],
+    	[ [ -2.813023805618286, 9.838849067687988, -3.5535693168640137, -12.833599090576172 ], [ -16.103458404541016, -11.417375564575195, -3.1546244621276855, -16.30624008178711 ], [ -6.282400608062744, -4.447423934936523, 4.423679828643799, -1.0110079050064087 ] ]
+    ]
 ```
-    Forward performance: 6427.3511 +- 1182.6463 [5514.9531 - 11768.6500]
-    Backward performance: 5144.6467 +- 806.7592 [4573.5156 - 8972.6814]
-    
-```
+
+
 
 ### Reference Implementation
-Code from [LayerTestBase.java:122](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L122) executed in 2.59 seconds: 
+Code from [LayerTestBase.java:123](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L123) executed in 0.00 seconds: 
 ```java
     System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
-    getEquivalencyTester().test(referenceLayer, layer, outputPrototype, inputPrototype);
+    getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
 ```
 Logging: 
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "bdd6bbba-380b-47fe-a761-c241000088e0",
+      "id": "055e4cd6-0193-4699-9154-1c170000000c",
       "isFrozen": false,
-      "name": "ConvolutionLayer/bdd6bbba-380b-47fe-a761-c241000088e0",
+      "name": "ConvolutionLayer/055e4cd6-0193-4699-9154-1c170000000c",
       "filter": {
         "dimensions": [
           3,
           3,
           8
+        ],
+        "data": [
+          -1.016,
+          -0.376,
+          1.8239999999999998,
+          -2.232,
+          -2.376,
+          2.528,
+          -2.7039999999999997,
+          -3.896,
+          -0.41600000000000004,
+          -1.6560000000000001,
+          1.3599999999999999,
+          0.3839999999999999,
+          -3.328,
+          -0.264,
+          -1.728,
+          -1.88,
+          1.7999999999999998,
+          1.7839999999999998,
+          0.48,
+          2.272,
+          2.792,
+          -4.984,
+          -4.3759999999999994,
+          -3.048,
+          -3.232,
+          -4.8,
+          -0.16000000000000003,
+          -0.11199999999999999,
+          -2.992,
+          -0.43999999999999995,
+          1.376,
+          -1.528,
+          2.376,
+          -0.040000000000000036,
+          -2.7199999999999998,
+          2.512,
+          -0.736,
+          2.872,
+          -3.6,
+          -0.12,
+          -4.6080000000000005,
+          -4.92,
+          -1.28,
+          -0.04800000000000004,
+          -0.528,
+          1.2959999999999998,
+          -3.896,
+          -2.776,
+          1.888,
+          -0.18400000000000005,
+          0.08000000000000007,
+          1.96,
+          1.536,
+          -1.688,
+          1.496,
+          2.344,
+          -0.808,
+          2.512,
+          1.064,
+          -2.912,
+          -3.688,
+          1.7120000000000002,
+          2.552,
+          0.72,
+          -2.136,
+          -4.08,
+          -1.6640000000000001,
+          -0.768,
+          -2.3280000000000003,
+          -0.384,
+          -4.808,
+          0.6639999999999999
         ]
       },
       "skip": {
@@ -84,9 +239,80 @@ Logging:
       },
       "simple": true
     }
-    Reference Layer Accuracy:
-    absoluteTol: 1.8880e-01 +- 4.8537e-01 [0.0000e+00 - 1.9779e+00] (3240#)
-    relativeTol: 1.7143e+00 +- 6.9985e-01 [5.4195e-10 - 2.0000e+00] (686#)
+    Inputs: Optional[[
+    	[ [ -1.7, -0.708 ], [ 0.172, 0.004 ], [ -1.928, -0.588 ] ],
+    	[ [ -0.008, -0.212 ], [ 0.22, 0.856 ], [ 0.744, 0.392 ] ],
+    	[ [ -0.496, 1.928 ], [ 1.616, 0.72 ], [ 0.412, -0.912 ] ]
+    ]]
+    Subject Output: [
+    	[ [ 8.343647956848145, 8.170721054077148, 1.027295708656311, 1.416991114616394 ], [ 4.366144180297852, -5.879489421844482, -2.855295181274414, 9.828768730163574 ], [ -
+```
+...[skipping 1 bytes](etc/1.txt)...
+```
+    .5111043453216553, 5.714080333709717, -0.6783034801483154, 1.906176209449768 ] ],
+    	[ [ -8.804224014282227, 17.043264389038086, 0.9306561946868896, -3.0347201824188232 ], [ -19.466047286987305, 1.7104310989379883, -10.65756893157959, 6.746016502380371 ], [ -14.673887252807617, 2.4968338012695312, -6.169248580932617, 1.8975677490234375 ] ],
+    	[ [ -2.813023805618286, 9.838849067687988, -3.5535693168640137, -12.833599090576172 ], [ -16.103458404541016, -11.417375564575195, -3.1546244621276855, -16.30624008178711 ], [ -6.282400608062744, -4.447423934936523, 4.423679828643799, -1.0110079050064087 ] ]
+    ]
+    Reference Output: [
+    	[ [ 6.43824, 1.1688319999999996, 7.979551999999999, 3.5516159999999997 ], [ 3.9210880000000006, -4.765408, 3.245856000000001, 13.945695999999998 ], [ 3.2219199999999995, 0.46115200000000006, 0.40118399999999926, 2.944448 ] ],
+    	[ [ 1.5606399999999998, 3.489023999999999, 19.204032, -8.347872 ], [ -8.050784, -3.4852160000000003, -17.665343999999997, -4.507424 ], [ -12.628384, 0.3070399999999994, -7.08032, -7.185919999999999 ] ],
+    	[ [ -7.903008000000002, -3.1260799999999995, 10.14544, -10.21056 ], [ -11.685920000000001, 4.852384, -3.7681279999999995, -13.785216 ], [ -3.698207999999999, 1.7670399999999993, -10.557344, -5.810208 ] ]
+    ]
+    Error: [
+    	[ [ 1.9054079568481441, 7.001889054077148, -6.952256291343688, -2.1346248853836056 ], [ 0.445056180297851, -1.1140814218444826, -6.101151181274416, -4.116927269836424 ], [ -3.7330243453216547, 5.252928333709717, -1.0794874801483147, -1.0382717905502319 ] ],
+    	[ [ -10.364864014282226, 13.554240389038087, -18.273375805313112, 5.313151817581177 ], [ -11.415263286987305, 5.195647098937989, 7.007775068420408, 11.253440502380371 ], [ -2.0455032528076167, 2.189793801269532, 0.9110714190673832, 9.083487749023437 ] ],
+    	[ [ 5.0899841943817155, 12.964929067687988, -13.699009316864014, -2.6230390905761727 ], [ -4.417538404541014, -16.269759564575196, 0.6135035378723139, -2.5210240817871092 ], [ -2.5841926080627453, -6.214463934936523, 14.9810238286438, 4.799200094993592 ] ]
+    ]
     
 ```
+
+Returns: 
+
+```
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=6.2295e+00 +- 4.8843e+00 [4.4506e-01 - 1.8273e+01] (36#), relativeTol=5.8279e-01 +- 3.7701e-01 [5.3704e-02 - 1.0000e+00] (36#)}
+    	at com.simiacryptus.mindseye.layers.EquivalencyTester.test(EquivalencyTester.java:66)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$14(LayerTestBase.java:125)
+    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:142)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:77)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
+    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:141)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:123)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:65)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.lang.reflect.Method.invoke(Method.java:498)
+    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runners.Suite.runChild(Suite.java:128)
+    	at org.junit.runners.Suite.runChild(Suite.java:27)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+    	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
+    	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
+    	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
+    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
+    
+```
+
+
 

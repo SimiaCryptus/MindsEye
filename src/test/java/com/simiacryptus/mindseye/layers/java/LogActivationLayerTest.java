@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.simiacryptus.mindseye.layers.DerivativeTester;
+
 /**
  * The type Log activation layer run.
  */
@@ -28,5 +30,10 @@ public class LogActivationLayerTest extends ActivationLayerTestBase {
    */
   public LogActivationLayerTest() {
     super(new LogActivationLayer());
+  }
+  
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-2, 1e-8);
   }
 }

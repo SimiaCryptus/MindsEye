@@ -83,8 +83,8 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     double d = e * c / (s3 * k);
     double f = e / (stddev * k);
     // double d = f * (1 - f);
-    if (!Double.isFinite(d) || d < minDeriv) {
-      d = minDeriv;
+    if (!Double.isFinite(d) || Math.abs(d) < minDeriv) {
+      d = minDeriv * Math.signum(d);
     }
     assert Double.isFinite(d);
     assert minDeriv <= Math.abs(d);

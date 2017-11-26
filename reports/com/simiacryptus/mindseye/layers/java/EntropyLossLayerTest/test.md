@@ -1,7 +1,14 @@
+# EntropyLossLayer
+## EntropyLossLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:75](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L75) executed in 0.00 seconds: 
 ```java
-  
+    JsonObject json = layer.getJson();
+    NNLayer echo = NNLayer.fromJson(json);
+    assert (echo != null) : "Failed to deserialize";
+    assert (layer != echo) : "Serialization did not copy";
+    Assert.assertEquals("Serialization not equal", layer, echo);
+    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
 ```
 
 Returns: 
@@ -9,35 +16,59 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.EntropyLossLayer",
-      "id": "bdd6bbba-380b-47fe-a761-c2410002dcb7",
+      "id": "055e4cd6-0193-4699-9154-1c170000ebd8",
       "isFrozen": false,
-      "name": "EntropyLossLayer/bdd6bbba-380b-47fe-a761-c2410002dcb7"
+      "name": "EntropyLossLayer/055e4cd6-0193-4699-9154-1c170000ebd8"
     }
 ```
 
 
 
-### Differential Validation
-Code from [LayerTestBase.java:98](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 0.00 seconds: 
+### Example Input/Output Pair
+Code from [LayerTestBase.java:112](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L112) executed in 0.00 seconds: 
 ```java
-  
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
+      Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+      eval.getOutput().prettyPrint());
+```
+
+Returns: 
+
+```
+    --------------------
+    Input: 
+    [[ 0.6713852191218317, 0.19905474072873142, 0.5556726211573552, 0.7630604149991375 ],
+    [ 0.38436524349137924, 0.8511476227831475, 0.3957395051865735, 0.8452836921323652 ]]
+    --------------------
+    Output: 
+    [ 1.9881443793967923 ]
+```
+
+
+
+### Differential Validation
+Code from [LayerTestBase.java:130](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L130) executed in 0.00 seconds: 
+```java
+    getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Component: EntropyLossLayer/bdd6bbba-380b-47fe-a761-c2410002dcb7
-    Inputs: [[ 0.03549154049704306,1.6177526051140623,1.886853947847174,-0.08940176518378173 ], [ 1.2255987461149584,-0.6087742806664189,-0.8873851297285049,-0.890889048479242 ]]
-    output=[ 4.091613501273566 ]
-    measured/actual: [ [ -34.531650731750574 ],[ 0.0 ],[ 0.0 ],[ 0.0 ] ]
-    implemented/expected: [ [ -34.53213720652863 ],[ 0.0 ],[ 0.0 ],[ 0.0 ] ]
-    error: [ [ 4.8647477805729977E-4 ],[ 0.0 ],[ 0.0 ],[ 0.0 ] ]
+    Component: EntropyLossLayer/055e4cd6-0193-4699-9154-1c170000ebd8
+    Inputs: [ 0.6713852191218317, 0.19905474072873142, 0.5556726211573552, 0.7630604149991375 ],
+    [ 0.38436524349137924, 0.8511476227831475, 0.3957395051865735, 0.8452836921323652 ]
+    output=[ 1.9881443793967923 ]
+    measured/actual: [ [ 0.39841221433079 ], [ 1.614175437758547 ], [ 0.5875759656603918 ], [ 0.2704180657175925 ] ]
+    implemented/expected: [ [ -0.6713852191218317 ], [ -0.19905474072873142 ], [ -0.5556726211573552 ], [ -0.7630604149991375 ] ]
+    error: [ [ 1.0697974334526217 ], [ 1.8132301784872786 ], [ 1.143248586817747 ], [ 1.03347848071673 ] ]
     
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:220)
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=1.2649e+00 +- 3.1902e-01 [1.0335e+00 - 1.8132e+00] (4#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (4#)}
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:221)
     	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:69)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
@@ -48,7 +79,7 @@ Returns:
     	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
     	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
     	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:70)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$7(LayerTestBase.java:99)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:131)
     	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:142)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
@@ -56,10 +87,14 @@ Returns:
     	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:77)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:141)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:98)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:66)
-    	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
-    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:130)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:65)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke(Nat
+```
+...[skipping 75 bytes](etc/1.txt)...
+```
+    l.invoke(DelegatingMethodAccessorImpl.java:43)
     	at java.lang.reflect.Method.invoke(Method.java:498)
     	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
     	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)

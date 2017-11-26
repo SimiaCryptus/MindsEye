@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -96,16 +95,6 @@ public abstract class LayerTestBase {
       (data, exe) -> layer.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
       (a, b) -> a.add(b));
     
-    log.h3("Differential Validation");
-    log.code(() -> {
-      getDerivativeTester().test(layer, outputPrototype, inputPrototype);
-    });
-    
-    log.h3("Performance");
-    log.code(() -> {
-      getPerformanceTester().test(layer, outputPrototype, inputPrototype);
-    });
-  
     HashMap<Tensor[], Tensor> referenceIO = getReferenceIO();
     if(!referenceIO.isEmpty()) {
       log.h3("Reference Input/Output Pairs");
@@ -133,9 +122,19 @@ public abstract class LayerTestBase {
       log.h3("Reference Implementation");
       log.code(() -> {
         System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
-        getEquivalencyTester().test(referenceLayer, layer, outputPrototype, inputPrototype);
+        getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
       });
     }
+  
+    log.h3("Differential Validation");
+    log.code(() -> {
+      getDerivativeTester().test(layer, inputPrototype);
+    });
+  
+    log.h3("Performance");
+    log.code(() -> {
+      getPerformanceTester().test(layer, inputPrototype);
+    });
   
   }
   

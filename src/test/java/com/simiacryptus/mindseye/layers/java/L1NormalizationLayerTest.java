@@ -19,14 +19,21 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+
 /**
  * The type L 1 normalization layer run.
  */
-public class L1NormalizationLayerTest extends ActivationLayerTestBase {
-  /**
-   * Instantiates a new L 1 normalization layer run.
-   */
-  public L1NormalizationLayerTest() {
-    super(new L1NormalizationLayer());
+public class L1NormalizationLayerTest extends LayerTestBase {
+  
+  @Override
+  public NNLayer getLayer() {
+    return new L1NormalizationLayer();
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{{4}};
   }
 }

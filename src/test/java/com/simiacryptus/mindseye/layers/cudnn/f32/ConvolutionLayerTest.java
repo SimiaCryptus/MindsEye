@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
-import com.simiacryptus.mindseye.layers.EquivalencyTester;
 
 import java.util.Random;
 
@@ -56,6 +55,11 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     };
   }
   
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-1, 1e-3);
+  }
+  
   public static class AsymmetricTest extends ConvolutionLayerTest {
     
     ConvolutionLayer convolutionLayer;
@@ -63,7 +67,7 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     public AsymmetricTest() {
       convolutionLayer = new ConvolutionLayer(3, 3, 2, 4);
       Random random = new Random();
-      convolutionLayer.filter.fill(() -> 2 * (random.nextDouble()-0.5));
+      convolutionLayer.filter.fill(() -> random());
     }
   
     @Override
@@ -93,7 +97,7 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     public IrregularTest() {
       convolutionLayer = new ConvolutionLayer(3, 3, 2, 5);
       Random random = new Random();
-      convolutionLayer.filter.fill(() -> 2 * (random.nextDouble()-0.5));
+      convolutionLayer.filter.fill(() -> random());
     }
   
     @Override

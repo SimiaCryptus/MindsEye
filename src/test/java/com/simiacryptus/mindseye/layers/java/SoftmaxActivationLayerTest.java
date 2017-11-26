@@ -19,14 +19,21 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+
 /**
  * The type Softmax activation layer run.
  */
-public class SoftmaxActivationLayerTest extends ActivationLayerTestBase {
-  /**
-   * Instantiates a new Softmax activation layer run.
-   */
-  public SoftmaxActivationLayerTest() {
-    super(new SoftmaxActivationLayer());
+public class SoftmaxActivationLayerTest extends LayerTestBase {
+  
+  @Override
+  public NNLayer getLayer() {
+    return new SoftmaxActivationLayer();
+  }
+  
+  @Override
+  public int[][] getInputDims() {
+    return new int[][]{{4}};
   }
 }

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.java.SimpleEval;
 import com.simiacryptus.util.io.KryoUtil;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -57,12 +58,11 @@ public class DerivativeTester {
   
   /**
    * Test.
-   *
-   * @param component       the component
-   * @param outputPrototype the output prototype
+   *  @param component       the component
    * @param inputPrototype  the input prototype
    */
-  public ToleranceStatistics test(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
+  public ToleranceStatistics test(final NNLayer component, final Tensor... inputPrototype) {
+    Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     ToleranceStatistics statistics = new ToleranceStatistics();
     if (isTestFeedback()) {
       statistics = statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
@@ -221,10 +221,10 @@ public class DerivativeTester {
       if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
       return result;
     } catch (final Throwable e) {
-      System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
-      System.out.println(String.format("measured/actual: %s", measuredGradient));
-      System.out.println(String.format("implemented/expected: %s", implementedGradient));
-      System.out.println(String.format("error: %s", measuredGradient.minus(implementedGradient)));
+      System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(), outputPrototype.prettyPrint()));
+      System.out.println(String.format("measured/actual: %s", measuredGradient.prettyPrint()));
+      System.out.println(String.format("implemented/expected: %s", implementedGradient.prettyPrint()));
+      System.out.println(String.format("error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
       throw e;
     }
   }
@@ -253,11 +253,11 @@ public class DerivativeTester {
       }
     } catch (final Throwable e) {
       System.out.println(String.format("Component: %s", component));
-      System.out.println(String.format("Inputs: %s", Arrays.toString(inputPrototype)));
-      System.out.println(String.format("Outputs: %s", outputPrototype));
-      System.out.println(String.format("Measured Gradient: %s", measuredGradient));
-      System.out.println(String.format("Implemented Gradient: %s", implementedGradient));
-      System.out.println(String.format("%s", error));
+      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get()));
+      System.out.println(String.format("Outputs: %s", outputPrototype.prettyPrint()));
+      System.out.println(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+      System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+      System.out.println(String.format("%s", error.prettyPrint()));
       throw e;
     }
     

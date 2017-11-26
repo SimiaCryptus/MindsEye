@@ -164,7 +164,7 @@ public class ConvolutionLayer extends NNLayer {
     }
     
     DAGNode input = network.getHead();
-    network.add(new ImgConcatLayer(),
+    network.add(new ImgConcatLayer().setMaxBands(outputBands),
       subLayers.stream().map(l -> {
         return network.add(l, input);
       }).toArray(i -> new DAGNode[i]));

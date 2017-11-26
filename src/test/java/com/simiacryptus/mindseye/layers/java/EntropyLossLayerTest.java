@@ -20,7 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.util.Util;
 
 /**
  * The type Entropy loss layer run.
@@ -39,4 +41,12 @@ public class EntropyLossLayerTest extends LayerTestBase {
     };
   }
   
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-4, 1e-8);
+  }
+  @Override
+  public double random() {
+    return Util.R.get().nextDouble();
+  }
 }

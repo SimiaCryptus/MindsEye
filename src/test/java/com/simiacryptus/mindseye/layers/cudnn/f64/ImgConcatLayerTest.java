@@ -40,12 +40,12 @@ public class ImgConcatLayerTest extends LayerTestBase {
   }
   
   public static class BandLimitTest extends ImgConcatLayerTest {
-  
+    
     @Override
     public NNLayer getLayer() {
-      return new ImgConcatLayer();
+      return new ImgConcatLayer().setMaxBands(3);
     }
-  
+    
     @Override
     public int[][] getInputDims() {
       return new int[][]{

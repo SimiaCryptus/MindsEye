@@ -29,7 +29,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ConvolutionLayer(3, 3, 2, 2, true);
+    return new ConvolutionLayer(3, 3, 2, 2, true).setWeights(this::random);
   }
   
   @Override
@@ -46,8 +46,15 @@ public class ConvolutionLayerTest extends LayerTestBase {
     
     @Override
     public NNLayer getLayer() {
-      return new ConvolutionLayer(3, 3, 2, 2, false);
+      return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(this::random);
     }
-    
+  
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3, 3, 7}
+      };
+    }
+  
   }
 }

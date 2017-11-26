@@ -1,7 +1,14 @@
+# FullyConnectedLayer
+## FullyConnectedLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:74](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L74) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:75](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L75) executed in 0.00 seconds: 
 ```java
-  
+    JsonObject json = layer.getJson();
+    NNLayer echo = NNLayer.fromJson(json);
+    assert (echo != null) : "Failed to deserialize";
+    assert (layer != echo) : "Serialization did not copy";
+    Assert.assertEquals("Serialization not equal", layer, echo);
+    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
 ```
 
 Returns: 
@@ -9,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.FullyConnectedLayer",
-      "id": "bdd6bbba-380b-47fe-a761-c2410002dcb8",
+      "id": "b385277b-2d2d-42fe-8250-210c0000ecdd",
       "isFrozen": false,
-      "name": "FullyConnectedLayer/bdd6bbba-380b-47fe-a761-c2410002dcb8",
+      "name": "FullyConnectedLayer/b385277b-2d2d-42fe-8250-210c0000ecdd",
       "outputDims": [
         3
       ],
@@ -24,15 +31,15 @@ Returns:
           3
         ],
         "data": [
-          0.25669730332498525,
-          0.26036702968649494,
-          -0.4223764149243788,
-          0.2572318477154033,
-          -0.4547870130561086,
-          -0.6089738171089158,
-          0.2841177742503492,
-          -0.42830138276893776,
-          0.5751474563785285
+          0.9184077313795951,
+          -0.9014792964772951,
+          -0.8715565041540496,
+          -0.4345647924414399,
+          0.19267372125758617,
+          -0.28748377892018756,
+          0.8013258362095582,
+          0.17525274962148524,
+          0.5988759366548948
         ]
       }
     }
@@ -40,29 +47,50 @@ Returns:
 
 
 
-### Differential Validation
-Code from [LayerTestBase.java:98](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L98) executed in 0.01 seconds: 
+### Example Input/Output Pair
+Code from [LayerTestBase.java:112](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L112) executed in 0.00 seconds: 
 ```java
-  
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
+      Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+      eval.getOutput().prettyPrint());
+```
+
+Returns: 
+
+```
+    --------------------
+    Input: 
+    [[ 0.268, 1.476, 1.2 ]]
+    --------------------
+    Output: 
+    [ 0.5663066418176361, 0.25309326066606436, 0.06074792318639155 ]
+```
+
+
+
+### Differential Validation
+Code from [LayerTestBase.java:130](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L130) executed in 0.00 seconds: 
+```java
+    getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 3.0098e-11 +- 4.0122e-11 [0.0000e+00 - 1.3354e-10] (36#)
-    relativeTol: 1.2190e-10 +- 1.3611e-10 [5.1832e-12 - 5.2023e-10] (18#)
+    absoluteTol: 1.4900e-11 +- 2.2010e-11 [0.0000e+00 - 7.8985e-11] (36#)
+    relativeTol: 3.1174e-11 +- 2.6965e-11 [8.6351e-14 - 8.9308e-11] (18#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:103](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L103) executed in 0.07 seconds: 
+Code from [LayerTestBase.java:135](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L135) executed in 0.23 seconds: 
 ```java
-  
+    getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Forward performance: 4.5133 +- 2.4423 [1.7555 - 14.3772]
-    Backward performance: 2.7977 +- 1.8076 [1.4648 - 18.8570]
+    Evaluation performance: 0.0214 +- 0.0326 [0.0114 - 1.7412]
+    Learning performance: 0.1793 +- 0.1199 [0.0513 - 5.3889]
     
 ```
 
-### Reference Implementation
