@@ -25,7 +25,8 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.DescribeOrientationWrapper;
 
 /**
- * The type Quadratic search.
+ * This exact line search method uses a linear interpolation of the derivative to find the extrema, where dx/dy = 0.
+ * Bracketing conditions are established with logic that largely ignores derivatives, due to heuristic observations. 
  */
 public class QuadraticSearch implements LineSearchStrategy {
   

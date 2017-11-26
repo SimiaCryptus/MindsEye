@@ -23,7 +23,8 @@ import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * The type Delta.
+ * Alternate version being staged to effect an in-memory change to a double[] array.
+ * In comparison with the Delta class via geometric analogy, this would be a point whereas Delta is a vector.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class State extends DoubleBuffer {

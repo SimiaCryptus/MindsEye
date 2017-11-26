@@ -25,7 +25,10 @@ import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.layers.cudnn.CuDNNFloatTensorList;
 
 /**
- * The type Counting nn result.
+ * A result type for evaluating the backpropigation phase of an Acyclic Directed Graph.
+ * Since the result of a given compoent in a network can be used multiple times, we can improve
+ * efficiency of backprop by accumulating all the backpropigating delta signals into a single signal 
+ * before evaluating further backwards.
  */
 class CountingNNResult extends NNResult {
   /**

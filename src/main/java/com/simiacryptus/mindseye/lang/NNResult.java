@@ -27,7 +27,8 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
- * The type Nn result.
+ * This type holds the result from a NNLayer evaluation.
+ * It holds the result and a callback mechanism to evaluate the derivatives.
  */
 public abstract class NNResult {
   

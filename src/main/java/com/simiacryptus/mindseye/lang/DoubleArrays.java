@@ -26,7 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Tensor memory.
+ * This is a recycling mechanism to reuse short-term-lifecycle double[] objects of regular length.
+ * It is a commonly-used and effective convenience mechanism to optimize tight loops which 
+ * would otherwise require careful and complex coding to minimize allocations and avoid excessive GC load
  */
 public class DoubleArrays {
   

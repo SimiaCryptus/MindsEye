@@ -45,7 +45,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Validating trainer.
+ * This training class attempts to manage the sample size hyperparameter 
+ * and convergence criteria via the periodic evaluation of a validation function.
+ * It uses an itermediate "epoch" loop where a target learning improvement and overtraining ratio are sought.
+ * It also supports multiple stages to each epoch, allowing use cases such as GAN and layerwise training.
  */
 public class ValidatingTrainer {
   

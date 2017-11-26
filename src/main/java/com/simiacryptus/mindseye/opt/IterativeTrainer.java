@@ -41,7 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * The type Iterative trainer.
+ * The basic type of training loop, which integrates a Trainable object
+ * with an Orientation and Line Search strategy
  */
 public class IterativeTrainer {
   

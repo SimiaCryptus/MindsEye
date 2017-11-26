@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * The interface Line search cursor.
+ * A mutable cursor which represents a 1-d optimization problem.
  */
 public interface LineSearchCursor {
   

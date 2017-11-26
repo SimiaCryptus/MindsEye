@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Nn constant.
+ * A special type of NNResult which ignores backpropigation; it has a constant value.
  */
 public final class NNConstant extends NNResult {
   

@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import java.util.UUID;
 
 /**
- * The type Input node.
+ * A node providing access to given inputs for NNLayer evaluation.
  */
 final class InputNode extends LazyResult {
   private final DAGNetwork dagNetwork;

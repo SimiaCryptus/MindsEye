@@ -42,7 +42,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Dag network.
+ * Directed Acyclical Graph Network
+ * The base class for all conventional network wiring.
  */
 public abstract class DAGNetwork extends NNLayer {
   

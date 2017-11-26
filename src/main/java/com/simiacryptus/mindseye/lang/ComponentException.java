@@ -20,7 +20,8 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Component exception.
+ * An exception occured within a NNLayer component. 
+ * This is most often due to invalid input or configuration.
  */
 public class ComponentException extends RuntimeException {
   

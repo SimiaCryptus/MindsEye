@@ -39,7 +39,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The type Layer rate diagnostic trainer.
+ * This trains a subject with a diagnostic goal: train each layer individually, 
+ * and measure the ideal rate for each phase. 
+ * This can indicate how balanced a network is, and how to train it.
  */
 public class LayerRateDiagnosticTrainer {
   

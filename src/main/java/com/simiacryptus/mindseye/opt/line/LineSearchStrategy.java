@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * The interface Line search strategy.
+ * Base interface for providing a solver for line search problems.
  */
 public interface LineSearchStrategy {
   

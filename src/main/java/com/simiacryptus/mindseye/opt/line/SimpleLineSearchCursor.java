@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * The type Simple line search cursor.
+ * A basic line search cursor representing a linear parametric path.
  */
 public class SimpleLineSearchCursor implements LineSearchCursor {
   /**

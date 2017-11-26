@@ -23,7 +23,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * The type Delta set.
+ * This is a collection of Deltas being staged for particular layers.
+ * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
+ * and based on logical referants (i.e. layers)
+ * Provides collection-arithmetic operations appropriate to the Delta's vector geometric archtype.
  */
 public class DeltaSet extends DoubleBufferSet<Delta> {
   

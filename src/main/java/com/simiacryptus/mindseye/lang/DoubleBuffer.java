@@ -26,6 +26,9 @@ import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
+/**
+ * A generic alternate memory buffer being staged in relation to an existing double[] array.
+ */
 public class DoubleBuffer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DoubleBuffer.class);

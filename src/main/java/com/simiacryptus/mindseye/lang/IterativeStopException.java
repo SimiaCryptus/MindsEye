@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Iterative stop exception.
+ * Used to communicate that an iterative learning process should be terminated gracefully.
  */
 public class IterativeStopException extends RuntimeException {
   

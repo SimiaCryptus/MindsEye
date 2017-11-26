@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The type Gpu error.
+ * A low-level exception occured while executing GPU instructions
  */
 public class GpuError extends RuntimeException {
   

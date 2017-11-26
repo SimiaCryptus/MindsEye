@@ -27,7 +27,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Delta set.
+ * A collection of State objects being staged for particular layers.
+ * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
+ * and based on logical referants (i.e. layers)
+ * Provides collection-arithmetic operations appropriate to the State's 'point' geometric archtype.
  */
 public class StateSet extends DoubleBufferSet<State> {
   

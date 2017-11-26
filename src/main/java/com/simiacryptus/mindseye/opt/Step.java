@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt;
 import com.simiacryptus.mindseye.lang.PointSample;
 
 /**
- * The type Step.
+ * Data describing the result of a given training iteration evaluation.
  */
 public class Step {
   /**

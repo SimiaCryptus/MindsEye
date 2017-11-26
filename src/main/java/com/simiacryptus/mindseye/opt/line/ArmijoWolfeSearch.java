@@ -23,8 +23,8 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * The type Armijo wolfe search.
- */
+ * Commonly used "loose" criteria for the line search iteration.
+*/
 public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   private double minAlpha = 1e-15;

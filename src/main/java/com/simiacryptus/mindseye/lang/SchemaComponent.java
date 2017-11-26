@@ -20,7 +20,8 @@
 package com.simiacryptus.mindseye.lang;
 
 /**
- * The interface Schema component.
+ * Largely intended as a decorator interface for NNLayer classes,
+ * this specifies a component with an active "dictionary" which can be set.
  */
 public interface SchemaComponent {
   /**

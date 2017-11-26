@@ -23,7 +23,10 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The interface Tensor list.
+ * This abstract data container is used to pass data between NNLayer components.
+ * It potentially represents data stored off-heap, such as on a particular GPU.
+ * Use of this abstract class allows optimizations where adjacent GPU components 
+ * can operate with minimal CPU-GPU data transfer.
  */
 public interface TensorList {
   /**

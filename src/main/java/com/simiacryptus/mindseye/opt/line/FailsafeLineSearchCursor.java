@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * The type Failsafe line search cursor.
+ * A wrapper for a line search cursor which tracks the best-known point.
  */
 public class FailsafeLineSearchCursor implements LineSearchCursor {
   private final LineSearchCursor direction;

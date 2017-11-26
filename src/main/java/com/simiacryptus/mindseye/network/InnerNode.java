@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * The type Inner node.
+ * A calculation node, to be evaluated by a network once the inputs are available.
  */
 final class InnerNode extends LazyResult {
   /**

@@ -31,7 +31,10 @@ import java.util.function.*;
 import java.util.stream.*;
 
 /**
- * The type Tensor.
+ * A multi-dimensional array of data.
+ * Represented internally as a single double[] array.
+ * This class is central to data handling in MindsEye, and 
+ * may have some odd-looking or suprising optimizations.
  */
 public class Tensor implements Serializable {
   

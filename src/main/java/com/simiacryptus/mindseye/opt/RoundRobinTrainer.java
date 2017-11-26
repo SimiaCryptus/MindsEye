@@ -39,7 +39,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * The type Round robin trainer.
+ * This basic training class provides support for a sequence of independant training configuration, 
+ * e.g. Generative Adversarial Networks.
  */
 public class RoundRobinTrainer {
   

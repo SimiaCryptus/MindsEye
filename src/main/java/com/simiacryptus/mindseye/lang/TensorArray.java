@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
- * The type Tensor array.
+ * An on-heap implementation of the TensorList data container.
  */
 public class TensorArray implements TensorList {
   private final Tensor[] data;
