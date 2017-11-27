@@ -36,14 +36,14 @@ import java.util.stream.Collectors;
  */
 public class DescribeOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
   
-  private final OrientationStrategy<LineSearchCursor> inner;
+  private final OrientationStrategy<? extends LineSearchCursor> inner;
   
   /**
    * Instantiates a new Describe orientation wrapper.
    *
    * @param inner the inner
    */
-  public DescribeOrientationWrapper(OrientationStrategy<LineSearchCursor> inner) {
+  public DescribeOrientationWrapper(OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
   

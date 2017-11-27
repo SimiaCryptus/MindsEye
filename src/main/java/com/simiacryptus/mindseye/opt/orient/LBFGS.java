@@ -54,7 +54,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     addToHistory(measurement, monitor);
     List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
     DeltaSet result = lbfgs(measurement, monitor, history);

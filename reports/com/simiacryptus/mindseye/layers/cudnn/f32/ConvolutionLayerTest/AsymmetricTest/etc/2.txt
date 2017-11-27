@@ -1,6 +1,6 @@
-java.lang.AssertionError: ToleranceStatistics{absoluteTol=6.2000e-02 +- 2.5563e-01 [0.0000e+00 - 1.1160e+00] (18#), relativeTol=1.6667e-01 +- 3.7268e-01 [1.7093e-12 - 1.0000e+00] (6#)}
-	at com.simiacryptus.mindseye.layers.DerivativeTester.testLearning(DerivativeTester.java:254)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$2(DerivativeTester.java:77)
+java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.6683e-01 +- 6.4725e-01 [0.0000e+00 - 1.9841e+00] (648#), relativeTol=5.0016e-01 +- 4.9984e-01 [4.2464e-07 - 1.0000e+00] (392#)}
+	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:224)
+	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:71)
 	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
 	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
 	at java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:693)
@@ -9,7 +9,7 @@ java.lang.AssertionError: ToleranceStatistics{absoluteTol=6.2000e-02 +- 2.5563e-
 	at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
 	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
 	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:78)
+	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:72)
 	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
 	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:142)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)

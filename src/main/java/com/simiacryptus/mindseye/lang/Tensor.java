@@ -722,7 +722,9 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor minus(final Tensor right) {
-    assert Arrays.equals(getDimensions(), right.getDimensions());
+    if (!Arrays.equals(getDimensions(), right.getDimensions())) {
+      throw new IllegalArgumentException(Arrays.toString(getDimensions()) + " != " + Arrays.toString(right.getDimensions()));
+    }
     final Tensor copy = new Tensor(getDimensions());
     final double[] thisData = getData();
     final double[] rightData = right.getData();

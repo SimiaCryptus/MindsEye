@@ -46,7 +46,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
   /**
    * The Inner.
    */
-  public final OrientationStrategy<SimpleLineSearchCursor> inner;
+  public final OrientationStrategy<? extends SimpleLineSearchCursor> inner;
   private final List<PointSample> history = new LinkedList<>();
   private int maxHistory = 10;
   
@@ -62,7 +62,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
    *
    * @param inner the inner
    */
-  protected TrustRegionStrategy(OrientationStrategy<SimpleLineSearchCursor> inner) {
+  protected TrustRegionStrategy(OrientationStrategy<? extends SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
   

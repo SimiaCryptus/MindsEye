@@ -183,7 +183,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
 //            });
 
           validatingTrainer.getRegimen().get(0)
-            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
+            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
               @Override
               public TrustRegion getRegionPolicy(NNLayer layer) {
                 if(layer instanceof BiasLayer) return null;
@@ -202,7 +202,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
               }
             });
           validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
-            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
+            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
               @Override
               public TrustRegion getRegionPolicy(NNLayer layer) {
                 if(layer instanceof PlaceholderLayer) return null;
@@ -220,7 +220,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
               }
             }));
           validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
-            .setOrientation(new TrustRegionStrategy(new QuantifyOrientationWrapper(new LBFGS())) {
+            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
               @Override
               public TrustRegion getRegionPolicy(NNLayer layer) {
                 if(layer instanceof FullyConnectedLayer) return null;

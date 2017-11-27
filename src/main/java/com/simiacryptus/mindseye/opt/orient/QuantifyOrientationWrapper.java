@@ -36,16 +36,16 @@ import java.util.stream.Collectors;
 /**
  * An orientation wrapper which adds additional log statements.
  */
-public class QuantifyOrientationWrapper<SimpleLineSearchCursor> implements OrientationStrategy<LineSearchCursor> {
+public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
   
-  private final OrientationStrategy<LineSearchCursor> inner;
+  private final OrientationStrategy<? extends LineSearchCursor> inner;
   
   /**
    * Instantiates a new Quantify orientation wrapper.
    *
    * @param inner the inner
    */
-  public QuantifyOrientationWrapper(OrientationStrategy<LineSearchCursor> inner) {
+  public QuantifyOrientationWrapper(OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
   

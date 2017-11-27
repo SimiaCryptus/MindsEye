@@ -27,7 +27,6 @@ import com.simiacryptus.util.lang.TimedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
@@ -38,8 +37,8 @@ public class PerformanceTester {
   private static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
   
   private boolean testLearning = true;
-  private boolean testFeedback = true;
-  private int samples = 100;
+  private boolean testEvaluation = true;
+  private int samples = 10;
   
   /**
    * Instantiates a new Derivative tester.
@@ -56,7 +55,7 @@ public class PerformanceTester {
    */
   public void test(final NNLayer component, final Tensor... inputPrototype) {
     Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
-    if (isTestFeedback()) {
+    if (isTestEvaluation()) {
       DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
         return testEvaluationPerformance(component, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
@@ -133,18 +132,18 @@ public class PerformanceTester {
    *
    * @return the boolean
    */
-  public boolean isTestFeedback() {
-    return testFeedback;
+  public boolean isTestEvaluation() {
+    return testEvaluation;
   }
   
   /**
    * Sets run feedback.
    *
-   * @param testFeedback the run feedback
+   * @param testEvaluation the run feedback
    * @return the run feedback
    */
-  public PerformanceTester setTestFeedback(boolean testFeedback) {
-    this.testFeedback = testFeedback;
+  public PerformanceTester setTestEvaluation(boolean testEvaluation) {
+    this.testEvaluation = testEvaluation;
     return this;
   }
 }

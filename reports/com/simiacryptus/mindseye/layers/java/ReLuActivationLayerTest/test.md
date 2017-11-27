@@ -1,7 +1,7 @@
 # ReLuActivationLayer
 ## ReLuActivationLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:75](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L75) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:84](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L84) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.ReLuActivationLayer",
-      "id": "b385277b-2d2d-42fe-8250-210c0000ed56",
+      "id": "0910987d-3688-428c-a892-e2c400000e95",
       "isFrozen": true,
-      "name": "ReLuActivationLayer/b385277b-2d2d-42fe-8250-210c0000ed56",
+      "name": "ReLuActivationLayer/0910987d-3688-428c-a892-e2c400000e95",
       "weights": {
         "dimensions": [
           1
@@ -33,7 +33,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:112](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L112) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:121](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -46,36 +46,36 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.112, 1.632, -1.62 ]]
+    [[ 0.28, -0.2, 0.364 ]]
     --------------------
     Output: 
-    [ 1.112, 1.632, 0.0 ]
+    [ 0.28, 0.0, 0.364 ]
 ```
 
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:130](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L130) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.00 seconds: 
 ```java
     getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 4.1553e-11 +- 6.4525e-11 [0.0000e+00 - 1.9288e-10] (12#)
-    relativeTol: 5.1214e-11 +- 1.0201e-11 [4.1133e-11 - 6.3498e-11] (4#)
+    absoluteTol: 5.9963e-13 +- 9.6619e-13 [0.0000e+00 - 2.6955e-12] (12#)
+    relativeTol: 2.2918e-12 +- 1.8121e-12 [4.9993e-13 - 4.4650e-12] (4#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:135](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L135) executed in 0.05 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0197 +- 0.0174 [0.0142 - 0.8065]
-    Learning performance: 0.0165 +- 0.0188 [0.0114 - 0.9148]
+    Evaluation performance: 0.0527 +- 0.0147 [0.0484 - 0.1710]
+    Learning performance: 0.0380 +- 0.0107 [0.0314 - 0.1026]
     
 ```
 

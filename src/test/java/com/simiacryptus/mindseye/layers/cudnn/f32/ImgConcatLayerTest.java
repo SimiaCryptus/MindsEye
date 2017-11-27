@@ -34,7 +34,26 @@ public class ImgConcatLayerTest extends F32LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 2}
+      {2, 2, 1}, {2, 2, 1}
     };
   }
+  
+  /**
+   * The type Band limit test.
+   */
+  public static class BandLimitTest extends com.simiacryptus.mindseye.layers.cudnn.f32.ImgConcatLayerTest {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new com.simiacryptus.mindseye.layers.cudnn.f32.ImgConcatLayer().setMaxBands(3);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {2, 2, 2}, {2, 2, 2}
+      };
+    }
+  }
+  
 }

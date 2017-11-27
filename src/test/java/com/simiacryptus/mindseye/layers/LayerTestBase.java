@@ -225,7 +225,7 @@ public abstract class LayerTestBase {
    * @return the derivative tester
    */
   public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-4, 1e-6);
+    return new DerivativeTester(1e-4, 1e-5);
   }
   
   /**

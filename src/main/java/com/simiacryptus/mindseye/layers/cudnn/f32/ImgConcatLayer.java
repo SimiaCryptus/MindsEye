@@ -40,6 +40,9 @@ import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
  */
 public class ImgConcatLayer extends NNLayer {
   
+  private int maxBands = -1;
+  
+  
   /**
    * Instantiates a new Img concat layer.
    *
@@ -47,6 +50,7 @@ public class ImgConcatLayer extends NNLayer {
    */
   protected ImgConcatLayer(JsonObject json) {
     super(json);
+    maxBands = json.get("maxBands").getAsInt();
   }
   
   /**
@@ -67,6 +71,7 @@ public class ImgConcatLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
+    json.addProperty("maxBands",maxBands);
     return json;
   }
   
@@ -79,24 +84,26 @@ public class ImgConcatLayer extends NNLayer {
     int length = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> 3 == x.getData().getDimensions().length && x.getData().getDimensions()[0] == dimOut[0] && x.getData().getDimensions()[1] == dimOut[1] && x.getData().length() == length);
     dimOut[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().getDimensions()[2]).sum();
+    if(0 < maxBands && dimOut[2] > maxBands) dimOut[2] = maxBands;
     ((CudaExecutionContext) nncontext).initThread();
     CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), length * dimOut[2] * dimOut[1] * dimOut[0] * Sizeof.FLOAT);
     int bandOffset = 0;
     for (int i = 0; i < inObj.length; i++) {
       TensorList data = inObj[i].getData();
       int[] dimensions = data.getDimensions();
+      int bands = maxBands<=0?dimensions[2]:Math.min(dimensions[2], maxBands - bandOffset);
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+        CUDNN_DATA_FLOAT, length, bands, dimensions[1], dimensions[0],
         dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
       CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
-        CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+        CUDNN_DATA_FLOAT, length, bands, dimensions[1], dimensions[0],
         dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
       CudaPtr cudaPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), data);
       cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
         Pointer.to(new float[]{1.0f}), inputDescriptor.getPtr(), cudaPtr.getPtr(),
         Pointer.to(new float[]{0.0f}), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * Sizeof.FLOAT)
       );
-      bandOffset += dimensions[2];
+      bandOffset += bands;
     }
     TensorList outputData = CudaPtr.fromDeviceFloat(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle);
     //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
@@ -112,14 +119,15 @@ public class ImgConcatLayer extends NNLayer {
         for (int i = 0; i < inObj.length; i++) {
           NNResult input = inObj[i];
           int[] dimensions = input.getData().getDimensions();
+          int bands = maxBands<=0?dimensions[2]:Math.min(dimensions[2], maxBands - bandOffset);
           if (input.isAlive()) {
             int _bandOffset = bandOffset;
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), length * dimensions[2] * dimensions[1] * dimensions[0] * Sizeof.FLOAT);
             CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+              CUDNN_DATA_FLOAT, length, bands, dimensions[1], dimensions[0],
               dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
             CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
-              CUDNN_DATA_FLOAT, length, dimensions[2], dimensions[1], dimensions[0],
+              CUDNN_DATA_FLOAT, length, bands, dimensions[1], dimensions[0],
               dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
             cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
               Pointer.to(new float[]{1.0f}), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * Sizeof.FLOAT),
@@ -130,7 +138,7 @@ public class ImgConcatLayer extends NNLayer {
             input.accumulate(buffer, passbackTensorList);
             passbackBuffer.finalize();
           }
-          bandOffset += dimensions[2];
+          bandOffset += bands;
         }
       }
       
@@ -144,6 +152,26 @@ public class ImgConcatLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  /**
+   * Gets max bands.
+   *
+   * @return the max bands
+   */
+  public int getMaxBands() {
+    return maxBands;
+  }
+  
+  /**
+   * Sets max bands.
+   *
+   * @param maxBands the max bands
+   * @return the max bands
+   */
+  public ImgConcatLayer setMaxBands(int maxBands) {
+    this.maxBands = maxBands;
+    return this;
   }
   
 }

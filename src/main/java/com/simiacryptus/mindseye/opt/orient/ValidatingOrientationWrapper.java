@@ -34,14 +34,14 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
  */
 public class ValidatingOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
   
-  private final OrientationStrategy<LineSearchCursor> inner;
+  private final OrientationStrategy<? extends LineSearchCursor> inner;
   
   /**
    * Instantiates a new Validating orientation strategy.
    *
    * @param inner the inner
    */
-  public ValidatingOrientationWrapper(OrientationStrategy<LineSearchCursor> inner) {
+  public ValidatingOrientationWrapper(OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
   

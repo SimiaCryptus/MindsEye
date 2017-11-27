@@ -1,7 +1,7 @@
 # SimpleConvolutionLayer
 ## SimpleConvolutionLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:75](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L75) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:84](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L84) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f64.SimpleConvolutionLayer",
-      "id": "b385277b-2d2d-42fe-8250-210c0000eca4",
+      "id": "0910987d-3688-428c-a892-e2c400000de2",
       "isFrozen": false,
-      "name": "SimpleConvolutionLayer/b385277b-2d2d-42fe-8250-210c0000eca4",
+      "name": "SimpleConvolutionLayer/0910987d-3688-428c-a892-e2c400000de2",
       "filter": {
         "dimensions": [
           3,
@@ -26,15 +26,15 @@ Returns:
           1
         ],
         "data": [
-          1.044,
-          -0.676,
-          1.024,
-          -1.268,
-          -1.204,
-          -0.336,
-          0.68,
-          0.66,
-          1.784
+          -1.8,
+          0.432,
+          -1.416,
+          -0.272,
+          -0.224,
+          1.0,
+          -1.568,
+          -0.532,
+          0.332
         ]
       },
       "strideX": 1,
@@ -46,7 +46,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:112](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L112) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:121](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -60,23 +60,23 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.66 ], [ -1.324 ], [ -1.796 ] ],
-    	[ [ 1.872 ], [ -0.028 ], [ 0.652 ] ],
-    	[ [ 0.668 ], [ 0.556 ], [ -0.684 ] ]
+    	[ [ -1.796 ], [ 0.384 ], [ 0.316 ] ],
+    	[ [ -0.216 ], [ 1.8 ], [ -1.688 ] ],
+    	[ [ 0.468 ], [ 1.448 ], [ -0.48 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 0.49073599999999973 ], [ 3.7017440000000006 ], [ 0.44276799999999994 ] ],
-    	[ [ -3.299536 ], [ -4.492064 ], [ -1.316656 ] ],
-    	[ [ -1.837792 ], [ 4.2505440000000005 ], [ 0.9214720000000001 ] ]
+    	[ [ -2.6130560000000003 ], [ 3.8934559999999996 ], [ -2.6383360000000002 ] ],
+    	[ [ -4.247456 ], [ -1.9409120000000004 ], [ -2.275904 ] ],
+    	[ [ -2.244096 ], [ 3.337808 ], [ -1.7532159999999999 ] ]
     ]
 ```
 
 
 
 ### Reference Implementation
-Code from [LayerTestBase.java:123](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L123) executed in 0.01 seconds: 
+Code from [LayerTestBase.java:132](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L132) executed in 0.01 seconds: 
 ```java
     System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
     getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
@@ -85,9 +85,9 @@ Logging:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "b385277b-2d2d-42fe-8250-210c0000eca6",
+      "id": "0910987d-3688-428c-a892-e2c400000de4",
       "isFrozen": false,
-      "name": "ConvolutionLayer/b385277b-2d2d-42fe-8250-210c0000eca6",
+      "name": "ConvolutionLayer/0910987d-3688-428c-a892-e2c400000de4",
       "filter": {
         "dimensions": [
           3,
@@ -95,15 +95,15 @@ Logging:
           1
         ],
         "data": [
-          1.044,
-          -0.676,
-          1.024,
-          -1.268,
-          -1.204,
-          -0.336,
-          0.68,
-          0.66,
-          1.784
+          -1.8,
+          0.432,
+          -1.416,
+          -0.272,
+          -0.224,
+          1.0,
+          -1.568,
+          -0.532,
+          0.332
         ]
       },
       "skip": {
@@ -115,9 +115,9 @@ Logging:
       "simple": true
     }
     Inputs: [
-    	[ [ -1.66 ], [ -1.324 ], [ -1.796 ] ],
-    	[ [ 1.872 ], [ -0.028 ], [ 0.652 ] ],
-    	[ [ 0.668 ], [ 0.556 ], [ -0.684 ] ]
+    	[ [ -1.796 ], [ 0.384 ], [ 0.316 ] ],
+    	[ [ -0.216 ], [ 1.8 ], [ -1.688 ] ],
+    	[ [ 0.468 ], [ 1.448 ], [ -0.48 ] ]
     ]
     Error: [
     	[ [ 0.0 ], [ 0.0 ], [ 0.0 ] ],
@@ -131,27 +131,27 @@ Logging:
 ```
 
 ### Differential Validation
-Code from [LayerTestBase.java:130](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L130) executed in 0.03 seconds: 
+Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.03 seconds: 
 ```java
     getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.1315e-10 +- 1.6205e-10 [0.0000e+00 - 7.1697e-10] (162#)
-    relativeTol: 4.5877e-10 +- 1.5177e-09 [2.6801e-12 - 9.6495e-09] (98#)
+    absoluteTol: 8.8981e-12 +- 1.1033e-11 [0.0000e+00 - 5.0960e-11] (162#)
+    relativeTol: 1.6449e-11 +- 1.7964e-11 [9.1949e-14 - 6.4924e-11] (98#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:135](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L135) executed in 13.53 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.10 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 3.5728 +- 0.4532 [3.1604 - 12.8041]
-    Learning performance: 4.3646 +- 35.6876 [2.3026 - 3570.8818]
+    Evaluation performance: 3.5389 +- 0.2882 [3.3400 - 5.7309]
+    Learning performance: 2.8579 +- 0.2652 [2.4822 - 4.8845]
     
 ```
 

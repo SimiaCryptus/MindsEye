@@ -66,7 +66,7 @@ public class ConvolutionLayer extends NNLayer {
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
-    this((Tensor)null);
+    this((Tensor) null);
   }
   
   /**
@@ -137,9 +137,7 @@ public class ConvolutionLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    
     PipelineNetwork network = new PipelineNetwork();
-    
     List<SimpleConvolutionLayer> subLayers = new ArrayList<>();
     // Extract Weights
     int[] filterDimensions = filter.getDimensions();
@@ -150,21 +148,21 @@ public class ConvolutionLayer extends NNLayer {
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
       Tensor batchKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
       int _offset = offset;
-      batchKernel.fillByCoord(c -> {
-        int filterBand = _offset + c.coords[2];
-        int filterBandX = filterBand % outputBands;
-        int filterBandY = filterBand / outputBands;
-        assert filterBand == filterBandY * outputBands + filterBandX;
-        int filterBandT = filterBandX * inputBands + filterBandY;
-        return filterBandT >= filterDimensions[2] ? 0 : filter.get(c.coords[0], c.coords[1], filterBandT);
+      batchKernel.fillByCoord(batchCoord -> {
+        int filterBand = _offset + batchCoord.coords[2];
+        int filterBandX = filterBand % inputBands;
+        int filterBandY = filterBand / inputBands;
+        assert filterBand == filterBandY * inputBands + filterBandX;
+        int filterBandT = filterBandX * outputBands + filterBandY;
+        return filterBandT >= filterDimensions[2] ? 0 : filter.get(batchCoord.coords[0], batchCoord.coords[1], filterBandT);
+        //return filterBand >= filterDimensions[2] ? 0 : filter.get(batchCoord.coords[0], batchCoord.coords[1], filterBand);
       });
       subLayers.add(new SimpleConvolutionLayer(batchKernel)
         .setStrideX(strideX).setStrideY(strideY));
-      
     }
     
     DAGNode input = network.getHead();
-    network.add(new ImgConcatLayer(),
+    network.add(new ImgConcatLayer().setMaxBands(outputBands),
       subLayers.stream().map(l -> {
         return network.add(l, input);
       }).toArray(i -> new DAGNode[i]));
@@ -176,22 +174,23 @@ public class ConvolutionLayer extends NNLayer {
         DeltaSet subnetDeltas = new DeltaSet();
         innerResult.accumulate(subnetDeltas, data);
         // Extract Deltas
-        Tensor deltaBuffer = new Tensor(ConvolutionLayer.this.filter.getDimensions());
+        Tensor filterDelta = new Tensor(ConvolutionLayer.this.filter.getDimensions());
         for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
-          Tensor subnetFilter = subLayers.get(batchNumber).filter;
-          Delta subnetDelta = subnetDeltas.get(subLayers.get(batchNumber), subnetFilter.getData());
-          Tensor subnetTensor = new Tensor(subnetDelta.getDelta(), subnetFilter.getDimensions());
+          SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
+          Delta subnetDelta = subnetDeltas.get(batchLayer, batchLayer.filter.getData());
+          Tensor batchDelta = new Tensor(subnetDelta.getDelta(), batchLayer.filter.getDimensions());
           int offset = batchNumber * inputBandsSq;
-          subnetTensor.coordStream().forEach(c -> {
-            int band = offset + c.coords[2];
-            int bandX = band % outputBands;
-            int bandY = band / outputBands;
-            assert band == bandY * outputBands + bandX;
-            int bandT = bandX * inputBands + bandY;
-            if (bandT < filterDimensions[2]) deltaBuffer.set(c.coords[0], c.coords[1], bandT, subnetTensor.get(c));
+          batchDelta.coordStream().forEach(batchCoord -> {
+            int band = offset + batchCoord.coords[2];
+            int bandX = band % inputBands;
+            int bandY = band / inputBands;
+            assert band == bandY * inputBands + bandX;
+            int bandT = bandX * outputBands + bandY;
+            if (bandT < filterDimensions[2]) filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], bandT, batchDelta.get(batchCoord));
+            //if (band < filterDimensions[2]) filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], band, batchDelta.get(batchCoord));
           });
         }
-        inputDelta.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(deltaBuffer.getData());
+        inputDelta.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(filterDelta.getData());
       }
       
       @Override

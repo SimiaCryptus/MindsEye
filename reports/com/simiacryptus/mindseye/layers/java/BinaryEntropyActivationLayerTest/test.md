@@ -1,7 +1,7 @@
 # BinaryEntropyActivationLayer
 ## BinaryEntropyActivationLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:75](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L75) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:84](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L84) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.BinaryEntropyActivationLayer",
-      "id": "055e4cd6-0193-4699-9154-1c170000ebd7",
+      "id": "79cb4e2c-4a9a-4706-8f49-c2d5000000be",
       "isFrozen": true,
-      "name": "BinaryEntropyActivationLayer/055e4cd6-0193-4699-9154-1c170000ebd7"
+      "name": "BinaryEntropyActivationLayer/79cb4e2c-4a9a-4706-8f49-c2d5000000be"
     }
 ```
 

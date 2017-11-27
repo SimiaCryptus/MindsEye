@@ -1,7 +1,7 @@
 # DropoutNoiseLayer
 ## DropoutNoiseLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:75](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L75) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:84](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L84) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,49 +16,49 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.DropoutNoiseLayer",
-      "id": "b385277b-2d2d-42fe-8250-210c000000bd",
+      "id": "0910987d-3688-428c-a892-e2c4000003fd",
       "isFrozen": false,
-      "name": "DropoutNoiseLayer/b385277b-2d2d-42fe-8250-210c000000bd",
+      "name": "DropoutNoiseLayer/0910987d-3688-428c-a892-e2c4000003fd",
       "inputs": [
-        "1b2c18ab-7db0-44c8-a4a3-0c23db39d6d9"
+        "2558ab05-f25c-4dbc-9976-0cf2f9b70ac5"
       ],
       "nodes": {
-        "81f8cb36-510b-4679-acb8-dc443fb34776": "b385277b-2d2d-42fe-8250-210c000000bf",
-        "56180516-8b7b-4409-86dd-8ae729f15f70": "b385277b-2d2d-42fe-8250-210c000000be"
+        "455c5453-b573-45b8-9aae-5ce326dd1199": "0910987d-3688-428c-a892-e2c4000003ff",
+        "2ced19d3-a64a-407f-8178-94aaa22d0dc8": "0910987d-3688-428c-a892-e2c4000003fe"
       },
       "layers": {
-        "b385277b-2d2d-42fe-8250-210c000000bf": {
+        "0910987d-3688-428c-a892-e2c4000003ff": {
           "class": "com.simiacryptus.mindseye.layers.java.BinaryNoiseLayer",
-          "id": "b385277b-2d2d-42fe-8250-210c000000bf",
+          "id": "0910987d-3688-428c-a892-e2c4000003ff",
           "isFrozen": false,
           "name": "mask",
           "value": 0.5
         },
-        "b385277b-2d2d-42fe-8250-210c000000be": {
+        "0910987d-3688-428c-a892-e2c4000003fe": {
           "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ProductInputsLayer",
-          "id": "b385277b-2d2d-42fe-8250-210c000000be",
+          "id": "0910987d-3688-428c-a892-e2c4000003fe",
           "isFrozen": false,
-          "name": "ProductInputsLayer/b385277b-2d2d-42fe-8250-210c000000be"
+          "name": "ProductInputsLayer/0910987d-3688-428c-a892-e2c4000003fe"
         }
       },
       "links": {
-        "81f8cb36-510b-4679-acb8-dc443fb34776": [
-          "1b2c18ab-7db0-44c8-a4a3-0c23db39d6d9"
+        "455c5453-b573-45b8-9aae-5ce326dd1199": [
+          "2558ab05-f25c-4dbc-9976-0cf2f9b70ac5"
         ],
-        "56180516-8b7b-4409-86dd-8ae729f15f70": [
-          "81f8cb36-510b-4679-acb8-dc443fb34776",
-          "1b2c18ab-7db0-44c8-a4a3-0c23db39d6d9"
+        "2ced19d3-a64a-407f-8178-94aaa22d0dc8": [
+          "455c5453-b573-45b8-9aae-5ce326dd1199",
+          "2558ab05-f25c-4dbc-9976-0cf2f9b70ac5"
         ]
       },
       "labels": {},
-      "head": "56180516-8b7b-4409-86dd-8ae729f15f70"
+      "head": "2ced19d3-a64a-407f-8178-94aaa22d0dc8"
     }
 ```
 
 
 
 ### Network Diagram
-Code from [LayerTestBase.java:86](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L86) executed in 2.07 seconds: 
+Code from [LayerTestBase.java:95](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L95) executed in 2.12 seconds: 
 ```java
     return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
       .height(400).width(600).render(Format.PNG).toImage();
@@ -71,7 +71,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:112](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L112) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:121](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -85,43 +85,43 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.4, 1.444 ], [ -0.348, 0.584 ], [ 0.516, -1.152 ] ],
-    	[ [ -0.036, 0.016 ], [ -0.24, 0.564 ], [ -1.832, 0.796 ] ],
-    	[ [ 1.396, -0.092 ], [ -0.844, 1.128 ], [ 1.908, 1.068 ] ]
+    	[ [ -1.812, 1.188 ], [ 0.228, -1.4 ], [ -0.148, -0.528 ] ],
+    	[ [ 1.108, -0.068 ], [ -1.364, 1.66 ], [ -0.204, -1.656 ] ],
+    	[ [ -1.456, 0.8 ], [ -0.948, -0.248 ], [ 1.876, 0.856 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ -1.399999976158142, 1.444000005722046 ], [ 0.0, 0.5839999914169312 ], [ 0.515999972820282, 0.0 ] ],
-    	[ [ 0.0, 0.0 ], [ -0.23999999463558197, 0.5640000104904175 ], [ 0.0, 0.0 ] ],
-    	[ [ 1.3960000276565552, -0.09200000017881393 ], [ -0.843999981880188, 1.128000020980835 ], [ 1.9079999923706055, 1.0679999589920044 ] ]
+    	[ [ -1.812000036239624, 0.0 ], [ 0.2280000001192093, 0.0 ], [ 0.0, -0.527999997138977 ] ],
+    	[ [ 1.1080000400543213, -0.06800000369548798 ], [ -1.3639999628067017, 0.0 ], [ 0.0, 0.0 ] ],
+    	[ [ -1.4559999704360962, 0.0 ], [ -0.9480000138282776, 0.0 ], [ 1.8760000467300415, 0.8560000061988831 ] ]
     ]
 ```
 
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:130](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L130) executed in 0.06 seconds: 
+Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.04 seconds: 
 ```java
     getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 6.0414e-06 +- 3.6071e-05 [0.0000e+00 - 4.3011e-04] (324#)
-    relativeTol: 8.1558e-05 +- 4.8765e-05 [8.4638e-06 - 2.1510e-04] (12#)
+    absoluteTol: 6.8567e-06 +- 6.1641e-05 [0.0000e+00 - 1.0262e-03] (324#)
+    relativeTol: 1.1110e-04 +- 1.3726e-04 [8.4638e-06 - 5.1334e-04] (10#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:135](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L135) executed in 6.29 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.06 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 2.6863 +- 0.9842 [2.0576 - 57.2465]
-    Learning performance: 0.5278 +- 0.2831 [0.1738 - 5.1524]
+    Evaluation performance: 2.8551 +- 1.0946 [2.3739 - 10.9745]
+    Learning performance: 0.5080 +- 0.1213 [0.3477 - 1.0573]
     
 ```
 

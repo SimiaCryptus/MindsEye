@@ -43,7 +43,7 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
-    addToHistory(origin, monitor);
+    inner.addToHistory(origin, monitor);
     SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
     final DeltaSet lbfgs = lbfgsCursor.direction;
     DeltaSet gd = origin.delta.scale(-1.0);
@@ -66,7 +66,7 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
           position(t).accumulate();
           PointSample sample = subject.measure(true, monitor).setRate(t);
           //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
-          addToHistory(sample, monitor);
+          inner.addToHistory(sample, monitor);
           DeltaSet tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
@@ -86,6 +86,11 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
     else {
       return lbfgsCursor;
     }
+  }
+  
+  @Override
+  public void reset() {
+    inner.reset();
   }
   
   
