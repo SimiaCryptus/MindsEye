@@ -32,18 +32,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * The type Describe orientation wrapper.
+ * This wrapper adds extra logging to the orientation step.
  */
-public class DescribeOrientationWrapper implements OrientationStrategy {
+public class DescribeOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
   
-  private final OrientationStrategy inner;
+  private final OrientationStrategy<LineSearchCursor> inner;
   
   /**
    * Instantiates a new Describe orientation wrapper.
    *
    * @param inner the inner
    */
-  public DescribeOrientationWrapper(OrientationStrategy inner) {
+  public DescribeOrientationWrapper(OrientationStrategy<LineSearchCursor> inner) {
     this.inner = inner;
   }
   

@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.opt.region;
 
 /**
- * The type Compound region.
+ * This combination region yields the effective itersection of the trust region volumes.
  */
 public class CompoundRegion implements TrustRegion {
   

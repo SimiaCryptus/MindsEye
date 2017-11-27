@@ -27,12 +27,12 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 /**
- * The type Gradient descent.
+ * The most basic type of orientation, which uses the raw function gradient.
  */
-public class GradientDescent implements OrientationStrategy {
+public class GradientDescent implements OrientationStrategy<SimpleLineSearchCursor> {
   
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     DeltaSet direction = measurement.delta.scale(-1);
     double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {

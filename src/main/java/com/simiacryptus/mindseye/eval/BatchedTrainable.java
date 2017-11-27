@@ -29,7 +29,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The type Batched trainable.
+ * Base class to manage batched execution, where a data set is executed
+ * in segments in order to manage execution memory requirements.
  */
 public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> implements DataTrainable {
   

@@ -33,14 +33,15 @@ import java.util.HashMap;
 import static com.simiacryptus.util.ArrayUtil.multiply;
 
 /**
- * The type Layer reweighting strategy.
+ * This wrapping strategy alters the (Simple)LineCursor returned by the inner strategy
+ * to effectively tune the learning rate for each layer.
  */
-public abstract class LayerReweightingStrategy implements OrientationStrategy {
+public abstract class LayerReweightingStrategy implements OrientationStrategy<SimpleLineSearchCursor> {
   
   /**
    * The Inner.
    */
-  public final OrientationStrategy inner;
+  public final OrientationStrategy<SimpleLineSearchCursor> inner;
   
   
   /**
@@ -48,12 +49,12 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy {
    *
    * @param inner the inner
    */
-  public LayerReweightingStrategy(OrientationStrategy inner) {
+  public LayerReweightingStrategy(OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     LineSearchCursor orient = inner.orient(subject, measurement, monitor);
     DeltaSet direction = ((SimpleLineSearchCursor) orient).direction;
     direction.getMap().forEach((layer, buffer) -> {

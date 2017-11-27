@@ -29,14 +29,16 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
 
 /**
- * The type Momentum strategy.
+ * A simple momentum module which uses a cumulative decay algorithm
+ * to add a momentum term to any orientation strategy 
+ * (if it yields a SimpleLineSearch cursor)
  */
-public class MomentumStrategy implements OrientationStrategy {
+public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCursor> {
   
   /**
    * The Inner.
    */
-  public final OrientationStrategy inner;
+  public final OrientationStrategy<SimpleLineSearchCursor> inner;
   /**
    * The Prev delta.
    */
@@ -48,12 +50,12 @@ public class MomentumStrategy implements OrientationStrategy {
    *
    * @param inner the inner
    */
-  public MomentumStrategy(OrientationStrategy inner) {
+  public MomentumStrategy(OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
   
   @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+  public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     LineSearchCursor orient = inner.orient(subject, measurement, monitor);
     DeltaSet direction = ((SimpleLineSearchCursor) orient).direction;
     DeltaSet newDelta = new DeltaSet();

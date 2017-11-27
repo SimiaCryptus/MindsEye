@@ -38,15 +38,15 @@ import java.util.stream.IntStream;
 import static com.simiacryptus.util.ArrayUtil.*;
 
 /**
- * The type Trust region strategy.
+ * A generalization of the OWL-QN algorithm, this wrapping strategy projects an inner cursor to the interior of a trust region, which can be defined per-layer. Any simple orientation strategy can be used as the inner, most commonly either GD or LBFGS. Many trust regions can be defined; see the com.simiacryptus.mindseye.opt.region package.
  */
-public abstract class TrustRegionStrategy implements OrientationStrategy {
+public abstract class TrustRegionStrategy implements OrientationStrategy<LineSearchCursor> {
   
   
   /**
    * The Inner.
    */
-  public final OrientationStrategy inner;
+  public final OrientationStrategy<SimpleLineSearchCursor> inner;
   private final List<PointSample> history = new LinkedList<>();
   private int maxHistory = 10;
   
@@ -62,7 +62,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy {
    *
    * @param inner the inner
    */
-  protected TrustRegionStrategy(OrientationStrategy inner) {
+  protected TrustRegionStrategy(OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
   

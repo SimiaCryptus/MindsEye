@@ -28,14 +28,23 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 /**
- * The type Qqn.
+ * Quadratic Quasi-Newton optimization
+ * 
+ * This method hybridizes pure gradient descent with higher-order quasinewton 
+ * implementations such as L-BFGS. During each iteration, a quadratic curve is 
+ * interpolated which aligns with the gradient's direction prediction and 
+ * intersects with the quasinewton's optimal point prediction. A simple 
+ * parameteric quadratic function blends both inner cursors into a simple 
+ * nonlinear path which should combine the stability of both methods.
  */
-public class QQN extends LBFGS {
+public class QQN implements OrientationStrategy<LineSearchCursor> {
+  
+  private final LBFGS inner = new LBFGS();
   
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
     addToHistory(origin, monitor);
-    SimpleLineSearchCursor lbfgsCursor = (SimpleLineSearchCursor) super.orient(subject, origin, monitor);
+    SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
     final DeltaSet lbfgs = lbfgsCursor.direction;
     DeltaSet gd = origin.delta.scale(-1.0);
     double lbfgsMag = lbfgs.getMagnitude();

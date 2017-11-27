@@ -33,9 +33,11 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * The type Owl qn.
+ * Orthant-Wise Limited-memory Quasi-Newton optimization
+ * This is a modified L-BFGS algorithm which uses orthant trust regions 
+ * to bound the cursor path during the line search phase of each iteration
  */
-public class OwlQn implements OrientationStrategy {
+public class OwlQn implements OrientationStrategy<LineSearchCursor> {
   /**
    * The Inner.
    */

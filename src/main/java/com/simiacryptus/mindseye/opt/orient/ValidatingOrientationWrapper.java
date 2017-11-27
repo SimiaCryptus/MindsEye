@@ -27,18 +27,21 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 
 /**
- * The type Validating orientation strategy.
+ * This strategy uses finite-difference methods to estimate a numerical derivative, 
+ * and compares it with the derivative supplied by the inner's cursor. This is a 
+ * diagnostic tool; extra processing is used to estimate derivatives which should
+ * agree with the programmatic derivatives to an appropriate degree.
  */
-public class ValidatingOrientationWrapper implements OrientationStrategy {
+public class ValidatingOrientationWrapper implements OrientationStrategy<LineSearchCursor> {
   
-  private final OrientationStrategy inner;
+  private final OrientationStrategy<LineSearchCursor> inner;
   
   /**
    * Instantiates a new Validating orientation strategy.
    *
    * @param inner the inner
    */
-  public ValidatingOrientationWrapper(OrientationStrategy inner) {
+  public ValidatingOrientationWrapper(OrientationStrategy<LineSearchCursor> inner) {
     this.inner = inner;
   }
   

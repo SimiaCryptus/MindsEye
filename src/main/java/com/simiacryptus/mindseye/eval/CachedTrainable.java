@@ -26,9 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The type Cached trainable.
- *
- * @param <T> the type parameter
+ * A wrapper which maintains a hisotry of N prior evaluations. 
+ * If a detectable repeated evaluation is requested, the cached result is used.
  */
 public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   

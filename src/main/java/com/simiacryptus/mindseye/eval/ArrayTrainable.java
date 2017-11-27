@@ -25,7 +25,8 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import java.util.List;
 
 /**
- * The type Array trainable.
+ * Basic training component which evaluates a static array of data on a network.
+ * Evaluation is subject to batch-size conditions to manage execution memory requirements.
  */
 public class ArrayTrainable extends BatchedTrainable implements TrainableDataMask {
   

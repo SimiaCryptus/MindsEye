@@ -33,9 +33,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * The type Lbfgs.
+ * An implementation of the Limited-Memory Broyden–Fletcher–Goldfarb–Shanno algorithm
+ * https://en.m.wikipedia.org/wiki/Limited-memory_BFGS
  */
-public class LBFGS implements OrientationStrategy {
+public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   
   /**
    * The History.

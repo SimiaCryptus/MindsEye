@@ -34,18 +34,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * The type Quantify orientation wrapper.
+ * An orientation wrapper which adds additional log statements.
  */
-public class QuantifyOrientationWrapper implements OrientationStrategy {
+public class QuantifyOrientationWrapper<SimpleLineSearchCursor> implements OrientationStrategy<LineSearchCursor> {
   
-  private final OrientationStrategy inner;
+  private final OrientationStrategy<LineSearchCursor> inner;
   
   /**
    * Instantiates a new Quantify orientation wrapper.
    *
    * @param inner the inner
    */
-  public QuantifyOrientationWrapper(OrientationStrategy inner) {
+  public QuantifyOrientationWrapper(OrientationStrategy<LineSearchCursor> inner) {
     this.inner = inner;
   }
   
