@@ -20,7 +20,8 @@
 package com.simiacryptus.mindseye.eval;
 
 /**
- * The interface Stochastic trainable.
+ * A trainable contract for variable sample size; smaller values 
+ * result in faster but less representative evaluations.
  */
 public interface SampledTrainable extends Trainable {
   /**

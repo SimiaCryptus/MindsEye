@@ -41,7 +41,9 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Gpu trainable.
+ * This class handles dispatching network evaluations, 
+ * and distributing the evaluations to the system GPU(s).
+ * This is the main class the handles actual execution for training purposes.
  */
 public class GpuTrainable implements DataTrainable, TrainableDataMask {
   
@@ -50,7 +52,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    */
   protected final NNLayer network;
   /**
-   * The Gc each iteration.
+   * Between each iteration we have the option to initiate a garbage collection. 
+   * This is a good opportunity since the reachable object count will be at a minimum 
+   * between collections, making GC more efficient. 
+   * This can be configured as a non-blocking operation by using the 
+   * JVM flags "-XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC"
    */
   protected boolean gcEachIteration = true;
   /**

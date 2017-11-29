@@ -22,7 +22,8 @@ package com.simiacryptus.mindseye.opt.region;
 import com.simiacryptus.util.ArrayUtil;
 
 /**
- * The type Proportionality constraint.
+ * This strict region allows only raw scaling of weights;
+ * it is similar to but more constrained than MeanVarianceGradient
  */
 public class ProportionalityConstraint implements TrustRegion {
   @Override

@@ -22,7 +22,8 @@ package com.simiacryptus.mindseye.opt.region;
 import com.simiacryptus.util.ArrayUtil;
 
 /**
- * The type Distance constraint.
+ * This constraint ensures that the L2 magnitude of the weight delta cannot exceed a simple threshold. 
+ * A simpler version of AdaptiveTrustSphere, it places a limit on the step size for a given layer.
  */
 public class DistanceConstraint implements TrustRegion {
   

@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.opt.region;
 
 /**
- * The type Linear sum constraint.
+ * This constrains a weight vector based on a single hyperplane which 
+ * prevents immediate increases to the L1 magnitude. (Note: This region 
+ * can allow effective L1 increases, if at least one weight changes sign;
+ * this allows for our entire search space to be reachable.)
  */
 public class LinearSumConstraint implements TrustRegion {
   private boolean permitDecrease = true;

@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.opt.region;
 
 /**
- * The type Static constraint.
+ * This type of trust region prevents any change the the given weight vector.
  */
 public class StaticConstraint implements TrustRegion {
   @Override

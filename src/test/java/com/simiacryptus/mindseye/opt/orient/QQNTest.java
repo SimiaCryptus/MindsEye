@@ -38,22 +38,7 @@ import java.util.concurrent.TimeUnit;
  * The type Qqn run.
  */
 public class QQNTest extends MnistTestBase {
-  
-  @Override
-  public DAGNetwork buildModel(NotebookOutput log) {
-    return log.code(() -> {
-      PipelineNetwork network = new PipelineNetwork();
-      network.add(new BiasLayer(28, 28, 1));
-      network.add(new LinearActivationLayer().setScale(1.0 / 1000));
-      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{100}));
-      network.add(new SinewaveActivationLayer());
-      network.add(new FullyConnectedLayer(new int[]{100}, new int[]{10}));
-      network.add(new LinearActivationLayer());
-      network.add(new SoftmaxActivationLayer());
-      return network;
-    });
-  }
-  
+ 
   @Override
   public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
@@ -64,10 +49,8 @@ public class QQNTest extends MnistTestBase {
         new ArrayTrainable(trainingData, supervisedNetwork)
       )
         .setMonitor(monitor)
-        //.setOrientation(new ValidatingOrientationWrapper(new QQN()))
         .setOrientation(new QQN())
-        //.setLineSearchFactory(name->name.contains("QQN") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch().setCurrentRate(1e-6))
-        .setTimeout(30, TimeUnit.MINUTES)
+        .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();
     });

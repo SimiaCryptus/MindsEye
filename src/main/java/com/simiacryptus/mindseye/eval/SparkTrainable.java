@@ -34,7 +34,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * The type Spark trainable.
+ * A training implementation which holds data as a Spark RDD 
+ * and distributes network evaluation over the partitions.
  */
 public class SparkTrainable implements Trainable {
   

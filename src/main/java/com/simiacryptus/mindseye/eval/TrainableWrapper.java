@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * The type Trainable wrapper.
+ * A base class for a Trainable type which wraps an inner type of the same kind.
  *
  * @param <T> the type parameter
  */

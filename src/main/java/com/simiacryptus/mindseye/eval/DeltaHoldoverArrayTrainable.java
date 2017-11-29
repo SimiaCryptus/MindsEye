@@ -36,7 +36,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Delta holdover array trainable.
+ * Experimental.
+ * The idea behind this class is to track for each row the change 
+ * in value for an objective function over the course of a single 
+ * training epoch. Rows which are observed to have a high delta 
+ * are inferred to be "interesting" rows, subject to retention 
+ * when re-sampling training data between epochs.
  */
 public class DeltaHoldoverArrayTrainable extends GpuTrainable {
   
