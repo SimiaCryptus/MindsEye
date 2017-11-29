@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.LogActivationLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e4a",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f7d",
       "isFrozen": true,
-      "name": "LogActivationLayer/0910987d-3688-428c-a892-e2c400000e4a"
+      "name": "LogActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7d"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.544, -1.24, -1.3 ]]
+    [[ -0.148, -1.64, 1.428 ]]
     --------------------
     Output: 
-    [ 0.4343764516025845, 0.2151113796169455, 0.26236426446749106 ]
+    [ -1.9105430052180221, 0.494696241836107, 0.3562748639173926 ]
 ```
 
 
@@ -53,9 +53,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: LogActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7d
+    Inputs: [ -0.148, -1.64, 1.428 ]
+    output=[ -1.9105430052180221, 0.494696241836107, 0.3562748639173926 ]
+    measured/actual: [ [ -6.756756976145084, 0.0, 0.0 ], [ 0.0, -0.6097560956153103, 0.0 ], [ 0.0, 0.0, 0.7002801061251063 ] ]
+    implemented/expected: [ [ -6.756756756756757, -0.0, -0.0 ], [ -0.0, -0.6097560975609756, -0.0 ], [ 0.0, 0.0, 0.700280112044818 ] ]
+    error: [ [ -2.1938832706069888E-7, 0.0, 0.0 ], [ 0.0, 1.9456652955440745E-9, 0.0 ], [ 0.0, 0.0, -5.919711720814291E-9 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.2863e-09 +- 2.1959e-09 [0.0000e+00 - 6.8100e-09] (9#)
-    relativeTol: 2.6079e-09 +- 1.3614e-09 [1.1514e-09 - 4.4265e-09] (3#)
+    absoluteTol: 2.5250e-08 +- 6.8663e-08 [0.0000e+00 - 2.1939e-07] (9#)
+    relativeTol: 7.3523e-09 +- 6.3720e-09 [1.5954e-09 - 1.6235e-08] (3#)
     
 ```
 
@@ -66,13 +72,13 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0234 +- 0.0180 [0.0171 - 0.1653]
-    Learning performance: 0.0009 +- 0.0020 [0.0000 - 0.0171]
+    Evaluation performance: 0.1275 +- 0.0429 [0.0912 - 0.3277]
+    Learning performance: 0.0028 +- 0.0035 [0.0000 - 0.0256]
     
 ```
 
 ### Function Plots
-Code from [ActivationLayerTestBase.java:73](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L73) executed in 0.01 seconds: 
+Code from [ActivationLayerTestBase.java:73](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L73) executed in 0.00 seconds: 
 ```java
     return plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
 ```
@@ -83,7 +89,7 @@ Returns:
 
 
 
-Code from [ActivationLayerTestBase.java:77](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L77) executed in 0.01 seconds: 
+Code from [ActivationLayerTestBase.java:77](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L77) executed in 0.00 seconds: 
 ```java
     return plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
 ```

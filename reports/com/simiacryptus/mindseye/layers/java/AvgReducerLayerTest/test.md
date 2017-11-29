@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgReducerLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000df4",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f62",
       "isFrozen": false,
-      "name": "AvgReducerLayer/0910987d-3688-428c-a892-e2c400000df4"
+      "name": "AvgReducerLayer/c88cbdf1-1c2a-4a5e-b964-890900000f62"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.148, -1.364, 1.14 ]]
+    [[ -0.664, -0.312, 0.508 ]]
     --------------------
     Output: 
-    [ -0.4573333333333334 ]
+    [ -0.15600000000000003 ]
 ```
 
 
@@ -53,9 +53,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: AvgReducerLayer/c88cbdf1-1c2a-4a5e-b964-890900000f62
+    Inputs: [ -0.664, -0.312, 0.508 ]
+    output=[ -0.15600000000000003 ]
+    measured/actual: [ [ 0.3333333333332966 ], [ 0.3333333333332966 ], [ 0.3333333333332966 ] ]
+    implemented/expected: [ [ 0.3333333333333333 ], [ 0.3333333333333333 ], [ 0.3333333333333333 ] ]
+    error: [ [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.1837e-12 +- 0.0000e+00 [2.1837e-12 - 2.1837e-12] (3#)
-    relativeTol: 3.2755e-12 +- 0.0000e+00 [3.2755e-12 - 3.2755e-12] (3#)
+    absoluteTol: 3.6693e-14 +- 0.0000e+00 [3.6693e-14 - 3.6693e-14] (3#)
+    relativeTol: 5.5039e-14 +- 0.0000e+00 [5.5039e-14 - 5.5039e-14] (3#)
     
 ```
 
@@ -66,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0375 +- 0.0088 [0.0314 - 0.1054]
-    Learning performance: 0.0023 +- 0.0020 [0.0000 - 0.0171]
+    Evaluation performance: 0.1565 +- 0.0495 [0.1282 - 0.5130]
+    Learning performance: 0.0032 +- 0.0020 [0.0000 - 0.0171]
     
 ```
 

@@ -1,4 +1,4 @@
-java.lang.AssertionError: ToleranceStatistics{absoluteTol=1.4922e+00 +- 2.9680e-01 [1.1992e+00 - 1.9793e+00] (4#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (4#)}
+java.lang.AssertionError: ToleranceStatistics{absoluteTol=1.0451e+00 +- 3.3752e-02 [1.0007e+00 - 1.0956e+00] (4#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (4#)}
 	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:224)
 	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:71)
 	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
@@ -11,13 +11,13 @@ java.lang.AssertionError: ToleranceStatistics{absoluteTol=1.4922e+00 +- 2.9680e-
 	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
 	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:72)
 	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:142)
+	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
 	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:77)
+	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:141)
+	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
 	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
 	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)

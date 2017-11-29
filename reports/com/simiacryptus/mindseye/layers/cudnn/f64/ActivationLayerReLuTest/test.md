@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f64.ActivationLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000425",
+      "id": "c88cbdf1-1c2a-4a5e-b964-8909000002fc",
       "isFrozen": false,
-      "name": "ActivationLayer/0910987d-3688-428c-a892-e2c400000425",
+      "name": "ActivationLayer/c88cbdf1-1c2a-4a5e-b964-8909000002fc",
       "mode": 1
     }
 ```
@@ -40,12 +40,12 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -0.932, 1.632, -1.68 ] ]
+    	[ [ -1.072, 1.468, -0.888 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 0.0, 1.632, 0.0 ] ]
+    	[ [ 0.0, 1.468, 0.0 ] ]
     ]
 ```
 
@@ -58,6 +58,16 @@ Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
+    Component: ActivationLayer/c88cbdf1-1c2a-4a5e-b964-8909000002fc
+    Inputs: [
+    	[ [ -1.072, 1.468, -0.888 ] ]
+    ]
+    output=[
+    	[ [ 0.0, 1.468, 0.0 ] ]
+    ]
+    measured/actual: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    implemented/expected: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 1.2237e-14 +- 3.4612e-14 [0.0000e+00 - 1.1013e-13] (9#)
     relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)
@@ -65,14 +75,14 @@ Logging:
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.04 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.06 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 1.7813 +- 0.3360 [1.4847 - 3.9555]
-    Learning performance: 1.2057 +- 0.2031 [0.9262 - 2.3226]
+    Evaluation performance: 2.2115 +- 0.6742 [1.6272 - 6.3949]
+    Learning performance: 1.2487 +- 0.2176 [0.9461 - 2.6446]
     
 ```
 

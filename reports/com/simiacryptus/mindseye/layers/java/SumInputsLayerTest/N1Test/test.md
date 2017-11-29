@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.SumInputsLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000eb9",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000fa6",
       "isFrozen": false,
-      "name": "SumInputsLayer/0910987d-3688-428c-a892-e2c400000eb9"
+      "name": "SumInputsLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa6"
     }
 ```
 
@@ -38,11 +38,11 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.184, -0.832, -1.516 ],
-    [ 1.44 ]]
+    [[ -1.588, -0.144, -0.696 ],
+    [ 1.336 ]]
     --------------------
     Output: 
-    [ 1.6239999999999999, 0.608, -0.07600000000000007 ]
+    [ -0.252, 1.1920000000000002, 0.6400000000000001 ]
 ```
 
 
@@ -54,21 +54,35 @@ Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
+    Component: SumInputsLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa6
+    Inputs: [ -1.588, -0.144, -0.696 ],
+    [ 1.336 ]
+    output=[ -0.252, 1.1920000000000002, 0.6400000000000001 ]
+    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Component: SumInputsLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa6
+    Inputs: [ -1.588, -0.144, -0.696 ],
+    [ 1.336 ]
+    output=[ -0.252, 1.1920000000000002, 0.6400000000000001 ]
+    measured/actual: [ [ 0.9999999999998899, 0.9999999999998899, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 1.0, 1.0 ] ]
+    error: [ [ -1.1013412404281553E-13, -1.1013412404281553E-13, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 3.1088e-12 +- 3.1532e-12 [0.0000e+00 - 6.5510e-12] (12#)
-    relativeTol: 3.1088e-12 +- 3.7265e-13 [2.2756e-12 - 3.2755e-12] (6#)
+    absoluteTol: 5.5067e-14 +- 5.5067e-14 [0.0000e+00 - 1.1013e-13] (12#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (6#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.01 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1075 +- 0.0541 [0.0798 - 0.6013]
-    Learning performance: 0.0153 +- 0.0085 [0.0114 - 0.0912]
+    Evaluation performance: 0.2370 +- 0.0574 [0.1624 - 0.5386]
+    Learning performance: 0.0173 +- 0.0079 [0.0114 - 0.0655]
     
 ```
 

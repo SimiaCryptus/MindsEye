@@ -44,7 +44,7 @@ public class GDTest extends MnistTestBase {
       Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
-        .setOrientation(new ValidatingOrientationWrapper(new GradientDescent()))
+        .setOrientation(new GradientDescent())
         .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();

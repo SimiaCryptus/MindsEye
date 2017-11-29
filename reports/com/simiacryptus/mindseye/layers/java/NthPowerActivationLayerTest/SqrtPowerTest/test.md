@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e80",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f90",
       "isFrozen": false,
-      "name": "NthPowerActivationLayer/0910987d-3688-428c-a892-e2c400000e80",
+      "name": "NthPowerActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f90",
       "power": 0.5
     }
 ```
@@ -39,10 +39,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.58, 1.852, 0.636 ]]
+    [[ 1.676, -0.616, -1.976 ]]
     --------------------
     Output: 
-    [ 0.7615773105863908, 1.36088206689632, 0.7974960814950754 ]
+    [ 1.2946041866145805, 0.0, 0.0 ]
 ```
 
 
@@ -54,9 +54,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
+    Component: NthPowerActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f90
+    Inputs: [ 1.676, -0.616, -1.976 ]
+    output=[ 1.2946041866145805, 0.0, 0.0 ]
+    measured/actual: [ [ 0.3862126719189618, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    implemented/expected: [ [ 0.3862184327609131, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    error: [ [ -5.760841951307771E-6, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 6.4336e-07 +- 1.0854e-06 [0.0000e+00 - 2.8299e-06] (9#)
-    relativeTol: 1.5985e-06 +- 6.5764e-07 [6.7493e-07 - 2.1552e-06] (3#)
+    absoluteTol: 6.4009e-07 +- 1.8105e-06 [0.0000e+00 - 5.7608e-06] (9#)
+    relativeTol: 7.4581e-06 +- 0.0000e+00 [7.4581e-06 - 7.4581e-06] (1#)
     
 ```
 
@@ -67,13 +73,13 @@ Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0285 +- 0.0155 [0.0256 - 0.1738]
-    Learning performance: 0.0017 +- 0.0104 [0.0000 - 0.0997]
+    Evaluation performance: 0.1791 +- 0.0472 [0.1197 - 0.4075]
+    Learning performance: 0.0021 +- 0.0015 [0.0000 - 0.0085]
     
 ```
 
 ### Function Plots
-Code from [ActivationLayerTestBase.java:73](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L73) executed in 0.00 seconds: 
+Code from [ActivationLayerTestBase.java:73](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L73) executed in 0.01 seconds: 
 ```java
     return plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
 ```

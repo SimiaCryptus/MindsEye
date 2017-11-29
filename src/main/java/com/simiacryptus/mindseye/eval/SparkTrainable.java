@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -220,7 +221,7 @@ public class SparkTrainable implements Trainable {
   protected DeltaSet getDelta(SparkTrainable.ReducableResult reduce) {
     DeltaSet deltaSet = new DeltaSet();
     Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
-    NNResult result = CudaExecutionContext.gpuContexts.run(exe -> network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
+    NNResult result = GpuController.call(exe -> network.eval(exe, NNResult.batchResultArray(new Tensor[][]{prototype})));
     result.accumulate(deltaSet, 0);
     reduce.accumulate(deltaSet);
     return deltaSet;

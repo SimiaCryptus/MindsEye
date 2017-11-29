@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000ea9",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f9c",
       "isFrozen": true,
-      "name": "SqActivationLayer/0910987d-3688-428c-a892-e2c400000ea9"
+      "name": "SqActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f9c"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.708, 0.78, 1.524 ]]
+    [[ -1.072, 1.352, 1.232 ]]
     --------------------
     Output: 
-    [ 2.917264, 0.6084, 2.322576 ]
+    [ 1.1491840000000002, 1.8279040000000002, 1.517824 ]
 ```
 
 
@@ -53,9 +53,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: SqActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f9c
+    Inputs: [ -1.072, 1.352, 1.232 ]
+    output=[ 1.1491840000000002, 1.8279040000000002, 1.517824 ]
+    measured/actual: [ [ -2.1439000000000874, 0.0, 0.0 ], [ 0.0, 2.704099999999432, 0.0 ], [ 0.0, 0.0, 2.464099999999192 ] ]
+    implemented/expected: [ [ -2.144, -0.0, -0.0 ], [ 0.0, 2.704, 0.0 ], [ 0.0, 0.0, 2.464 ] ]
+    error: [ [ 9.999999991272546E-5, 0.0, 0.0 ], [ 0.0, 9.999999943177684E-5, 0.0 ], [ 0.0, 0.0, 9.999999919196867E-5 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 3.3333e-06 +- 4.7140e-06 [0.0000e+00 - 1.0000e-05] (9#)
-    relativeTol: 2.1031e-06 +- 7.8259e-07 [1.4637e-06 - 3.2051e-06] (3#)
+    absoluteTol: 3.3333e-05 +- 4.7140e-05 [0.0000e+00 - 1.0000e-04] (9#)
+    relativeTol: 2.0701e-05 +- 1.9933e-06 [1.8491e-05 - 2.3321e-05] (3#)
     
 ```
 
@@ -66,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0150 +- 0.0094 [0.0114 - 0.0940]
-    Learning performance: 0.0005 +- 0.0011 [0.0000 - 0.0057]
+    Evaluation performance: 0.1291 +- 0.0393 [0.0912 - 0.4104]
+    Learning performance: 0.0015 +- 0.0016 [0.0000 - 0.0086]
     
 ```
 

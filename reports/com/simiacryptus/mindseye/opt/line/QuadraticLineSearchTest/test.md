@@ -1,7 +1,7 @@
 ### Model
 This is a very simple model that performs basic logistic regression. It is expected to be trainable to about 91% accuracy on MNIST.
 
-Code from [MnistTestBase.java:272](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L272) executed in 0.00 seconds: 
+Code from [MnistTestBase.java:295](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L295) executed in 0.00 seconds: 
 ```java
     PipelineNetwork network = new PipelineNetwork();
     network.add(new BiasLayer(28, 28, 1));
@@ -14,13 +14,13 @@ Code from [MnistTestBase.java:272](../../../../../../../../MindsEye/src/test/jav
 Returns: 
 
 ```
-    PipelineNetwork/e1035fb9-1fe3-4846-a360-62290000000a
+    PipelineNetwork/3cc8990a-29bd-4377-9ee9-86380000000a
 ```
 
 
 
 ### Training
-Code from [QuadraticLineSearchTest.java:43](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/opt/line/QuadraticLineSearchTest.java#L43) executed in 180.61 seconds: 
+Code from [QuadraticLineSearchTest.java:43](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/opt/line/QuadraticLineSearchTest.java#L43) executed in 180.14 seconds: 
 ```java
     SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
@@ -35,62 +35,64 @@ Code from [QuadraticLineSearchTest.java:43](../../../../../../../../MindsEye/src
 Logging: 
 ```
     Constructing line search parameters: GD
-    Returning cached value; 2 buffers unchanged since 0.0 => 2.5629102336749554
-    F(0.0) = LineSearchPoint{point=PointSample{avg=2.5629102336749554}, derivative=-542689.5964178878}
-    New Minimum: 2.5629102336749554 > 2.5628833736797487
-    F(1.0E-10) = LineSearchPoint{point=PointSample{avg=2.5628833736797487}, derivative=-542671.6536499622}, delta = -2.6859995206685028E-5
-    New Minimum: 2.5628833736797487 > 2.562722232607343
-    F(7.000000000000001E-10) = LineSearchPoint{point=PointSample{avg=2.562722232607343}, derivative=-542563.999534474}, delta = -1.8800106761229785E-4
-    New Minimum: 2.562722232607343 > 2.5615951521453453
-    F(4.900000000000001E-9) = LineSearchPoint{point=PointSample{avg=2.5615951521453453}, derivative=-541810.5407307594}, delta = -0.0013150815296101293
-    New Minimum: 2.5615951521453453 > 2.5537499995038644
-    F(3.430000000000001E-8) = LineSearchPoint{point=PointSample{avg=2.5537499995038644}, derivative=-536542.3629144948}, delta = -0.00916023417109102
-    New Minimum: 2.5537499995038644 > 2.5009966104168764
-    F(2.4010000000000004E-7) = LineSearchPoint{point=PointSample{avg=2.5009966104168764}, derivative=-500012.49900408677}, delta = -0.06191362325807903
-    New Minimum: 2.5009966104168764 > 2.2300007993046105
-    F(1.6807000000000003E-6) = LineSearchPoint{point=PointSample{avg=2.2300007993046105}, derivative=-274728.3633517809}, delta = -0.3329094343703449
-    F(1.1764900000000001E-5) = LineSearchPoint{point=PointSample{avg=2.610973688340347}, derivative=239238.90911751371}, delta = 0.048063454665391525
-    F(1.1764900000000001E-7) = LineSearchPoint{point=PointSample{avg=2.5319302792353837}, derivative=-521669.43440666323}, delta = -0.03097995443957169
-    F(8.235430000000001E-7) = LineSearchPoint{point=PointSample{avg=2.3714148966637767}, derivative=-401277.4598236619}, delta = -0.1914953370111787
-    New Minimum: 2.2300007993046105 > 2.085899859269844
-    F(5.7648010000000005E-6) = LineSearchPoint{point=PointSample{avg=2.085899859269844}, derivative=66630.64559801338}, delta = -0.4770103744
+    Returning cached value; 2 buffers unchanged since 0.0 => 2.612488721455952
+    F(0.0) = LineSearchPoint{point=PointSample{avg=2.612488721455952}, derivative=-408997.9164698912}
+    New Minimum: 2.612488721455952 > 2.612468243249202
+    F(1.0E-10) = LineSearchPoint{point=PointSample{avg=2.612468243249202}, derivative=-408990.8732681633}, delta = -2.047820674988543E-5
+    New Minimum: 2.612468243249202 > 2.6123453813969495
+    F(7.000000000000001E-10) = LineSearchPoint{point=PointSample{avg=2.6123453813969495}, derivative=-408948.6144913668}, delta = -1.4334005900229485E-4
+    New Minimum: 2.6123453813969495 > 2.6114857030493637
+    F(4.900000000000001E-9) = LineSearchPoint{point=PointSample{avg=2.6114857030493637}, derivative=-408652.8238876286}, delta = -0.0010030184065881187
+    New Minimum: 2.6114857030493637 > 2.6054853248298073
+    F(3.430000000000001E-8) = LineSearchPoint{point=PointSample{avg=2.6054853248298073}, derivative=-406583.3258498245}, delta = -0.007003396626144465
+    New Minimum: 2.6054853248298073 > 2.564331577264652
+    F(2.4010000000000004E-7) = LineSearchPoint{point=PointSample{avg=2.564331577264652}, derivative=-392152.7901046876}, delta = -0.04815714419129957
+    New Minimum: 2.564331577264652 > 2.31674781918018
+    F(1.6807000000000003E-6) = LineSearchPoint{point=PointSample{avg=2.31674781918018}, derivative=-295425.9669335972}, delta = -0.29574090227577177
+    New Minimum: 2.31674781918018 > 1.9499987852794458
+    F(1.1764900000000001E-5) = LineSearchPoint{point=PointSample{avg=1.9499987852794458}, derivative=70808.18156976893}, delta = -0.662489936176506
+    1.9499987852794458 <= 2.612488721455952
+    New Minimum: 1.9499987852794458 > 1.902892795901858
+    Returning cached value; 2 buffers unchanged since 0.0 => 1.902892795901858
+    isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=2.612488721455952}, derivative=-408997.9164698912}; rightPoint=LineSearchPoint{point=PointSample{avg=1.9499987852794458}, derivative=70808.18156976893}
+    F(1.002867534851315E-5) = LineSearchPoint
 ```
-...[skipping 171691 bytes](etc/1.txt)...
+...[skipping 274316 bytes](etc/1.txt)...
 ```
-    g=0.33706372459297734}, derivative=62.82171019442689}
-    F(1.567703286376458E-5) = LineSearchPoint{point=PointSample{avg=0.33705358633728166}, derivative=2.502684815380464}, delta = -0.014475108918167945
-    Right bracket at 1.567703286376458E-5
-    Converged to right
-    Iteration 89 complete. Error: 0.33705358633728166 Total: 180280417712032.7500; Orientation: 0.0006; Line Search: 1.9004
-    Returning cached value; 2 buffers unchanged since 0.0 => 0.3519751103879528
-    F(0.0) = LineSearchPoint{point=PointSample{avg=0.3519751103879528}, derivative=-11106.508306683816}
-    New Minimum: 0.3519751103879528 > 0.3438104941329295
-    F(1.567703286376458E-5) = LineSearchPoint{point=PointSample{avg=0.3438104941329295}, derivative=8624.40711440811}, delta = -0.008164616255023294
-    0.3438104941329295 <= 0.3519751103879528
-    New Minimum: 0.3438104941329295 > 0.3286200213509458
-    Returning cached value; 2 buffers unchanged since 0.0 => 0.3286200213509458
-    isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3519751103879528}, derivative=-11106.508306683816}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3438104941329295}, derivative=8624.40711440811}
-    F(8.824582742847755E-6) = LineSearchPoint{point=PointSample{avg=0.3286200213509458}, derivative=364.29390906893565}, delta = -0.023355089037007004
-    Right bracket at 8.824582742847755E-6
-    New Minimum: 0.3286200213509458 > 0.3286014559195639
-    Returning cached value; 2 buffers unchanged since 0.0 => 0.3286014559195639
-    isLeft=false; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3519751103879528}, derivative=-11106.508306683816}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3286200213509458}, derivative=364.29390906893565}
-    F(8.544328434314782E-6) = LineSearchPoint{point=PointSample{avg=0.3286014559195639}, derivative=24.61128410775488}, delta = -0.023373654468388905
-    Right bracket at 8.544328434314782E-6
-    Converged to right
-    Iteration 90 complete. Error: 0.3286014559195639 Total: 180281520836590.6000; Orientation: 0.0005; Line Search: 0.8451
+    =0.3483708030708421}, derivative=2714.2761278225394}
+    F(9.580082105331916E-6) = LineSearchPoint{point=PointSample{avg=0.34561759669102277}, derivative=-48.06582289341617}, delta = -0.015982509409249723
+    Left bracket at 9.580082105331916E-6
+    Converged to left
+    Iteration 148 complete. Error: 0.34561759669102277 Total: 12534558102067.9730; Orientation: 0.0004; Line Search: 0.3530
+    Returning cached value; 2 buffers unchanged since 0.0 => 0.40581313440927014
+    F(0.0) = LineSearchPoint{point=PointSample{avg=0.40581313440927014}, derivative=-11480.61912554787}
+    New Minimum: 0.40581313440927014 > 0.3882978350122853
+    F(9.580082105331916E-6) = LineSearchPoint{point=PointSample{avg=0.3882978350122853}, derivative=4284.170288892759}, delta = -0.017515299396984818
+    0.3882978350122853 <= 0.40581313440927014
+    New Minimum: 0.3882978350122853 > 0.3855662735162566
+    Returning cached value; 2 buffers unchanged since 0.0 => 0.3855662735162566
+    isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.40581313440927014}, derivative=-11480.61912554787}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3882978350122853}, derivative=4284.170288892759}
+    F(6.97664085141825E-6) = LineSearchPoint{point=PointSample{avg=0.3855662735162566}, derivative=-187.98337546038087}, delta = -0.02024686089301353
+    Left bracket at 6.97664085141825E-6
+    New Minimum: 0.3855662735162566 > 0.38556475120170686
+    Returning cached value; 2 buffers unchanged since 0.0 => 0.38556475120170686
+    isLeft=true; isBracketed=true; leftPoint=LineSearchPoint{point=PointSample{avg=0.3855662735162566}, derivative=-187.98337546038087}; rightPoint=LineSearchPoint{point=PointSample{avg=0.3882978350122853}, derivative=4284.170288892759}
+    F(7.086074406580824E-6) = LineSearchPoint{point=PointSample{avg=0.38556475120170686}, derivative=-4.7305637008824615}, delta = -0.02024838320756328
+    Left bracket at 7.086074406580824E-6
+    Converged to left
+    Iteration 149 complete. Error: 0.38556475120170686 Total: 12535269428724.4410; Orientation: 0.0003; Line Search: 0.5220
     
 ```
 
 Returns: 
 
 ```
-    0.3286014559195639
+    0.3893499219747667
 ```
 
 
 
-Code from [MnistTestBase.java:131](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L131) executed in 0.03 seconds: 
+Code from [MnistTestBase.java:141](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L141) executed in 0.01 seconds: 
 ```java
     PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
     plot.setTitle("Convergence Plot");
@@ -108,7 +110,7 @@ Returns:
 Saved model as [model0.json](etc/model0.json)
 
 ### Metrics
-Code from [MnistTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L144) executed in 0.08 seconds: 
+Code from [MnistTestBase.java:154](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L154) executed in 0.07 seconds: 
 ```java
     try {
       ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -123,123 +125,125 @@ Returns:
 
 ```
     [ "java.util.HashMap", {
-      "SoftmaxActivationLayer/e1035fb9-1fe3-4846-a360-62290000000d" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.0037904962826747733,
+      "BiasLayer/3cc8990a-29bd-4377-9ee9-86380000000b" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.014354511062801955,
         "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 2.5476063556231023E-6,
-        "totalItems" : 658000,
+        "avgMsPerItem_Backward" : 1.9552230635748782E-5,
+        "totalItems" : 1035000,
         "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -2.5561529606499085,
-          "tp50" : -0.0021643722580351756,
-          "negative" : 500,
-          "min" : -0.0991447428050771,
-          "max" : 0.0,
-          "tp90" : -0.002011163905992002,
-          "mean" : -6.291922974107975E-4,
-          "count" : 5000.0,
-          "positive" : 0,
-          "stdDev" : 0.011187648139418803,
-          "tp75" : -0.002049312662962529,
-          "zeros" : 4500
-        } ],
-        "totalBatches" : 1316,
-        "class" : "com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer",
-        "outputStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -2.8104293498321478,
-          "tp50" : 2.0733421167991396E-6,
-          "negative" : 0,
-          "min" : 1.582478451477227E-8,
-          "max" : 0.9945549225322479,
-          "tp90" : 8.77479240571079E-6,
-          "mean" : 0.1,
-          "count" : 5000.0,
-          "positive" : 5000,
-          "stdDev" : 0.2588204221407428,
-          "tp75" : 5.491892813322415E-6,
-          "zeros" : 0
-        } ],
-        "medianMsPerItem_Backward" : "NaN"
-      } ],
-      "BiasLayer/e1035fb9-1fe3-4846-a360-62290000000b" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.021412316933130702,
-        "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 2.9643503167173275E-5,
-        "totalItems" : 658000,
-        "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -7.507683773202984,
-          "tp50" : -2.303438274064275E-6,
-          "negative" : 192955,
-          "min" : -1.325538373847737E-6,
-          "max" : 1.2828111577185632E-6,
-          "tp90" : -1.989747900767966E-6,
-          "mean" : 1.4058285046965556E-9,
+          "meanExponent" : -7.530630986098907,
+          "tp50" : -2.6396250380805123E-6,
+          "negative" : 192608,
+          "min" : -1.1816068182211468E-6,
+          "max" : 8.12311139644593E-7,
+          "tp90" : -2.346190003448275E-6,
+          "mean" : 1.0747785639255915E-10,
           "count" : 392000.0,
-          "positive" : 199045,
-          "stdDev" : 3.035137896463675E-7,
-          "tp75" : -2.089785915130262E-6,
+          "positive" : 199392,
+          "stdDev" : 3.4613435335655836E-7,
+          "tp75" : -2.4414755308945056E-6,
           "zeros" : 0
         } ],
-```
-...[skipping 778 bytes](etc/2.txt)...
-```
-     "tp90" : -1.147808749741543E-8,
-          "mean" : 33.68192346892257,
-          "count" : 392000.0,
-          "positive" : 217645,
-          "stdDev" : 78.93033637805053,
-          "tp75" : -1.147808749741543E-8,
-          "zeros" : 0
-        } ],
-        "medianMsPerItem_Backward" : "NaN"
-      } ],
-      "FullyConnectedLayer/e1035fb9-1fe3-4846-a360-62290000000c" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.014735135518237076,
-        "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 7.726057027355619E-5,
-        "totalItems" : 658000,
-        "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -5.614359609006677,
-          "tp50" : -1.5188908231931708E-4,
-          "negative" : 500,
-          "min" : -0.0019596549460230667,
-          "max" : 0.0017837983342344087,
-          "tp90" : -1.1101935509821852E-5,
-          "mean" : 7.279248947470747E-22,
-          "count" : 5000.0,
-          "positive" : 4500,
-          "stdDev" : 2.4065028020965495E-4,
-          "tp75" : -4.812605109387386E-5,
-          "zeros" : 0
-        } ],
-        "totalBatches" : 1316,
+        "totalBatches" : 2070,
         "weights" : [ "java.util.HashMap", {
           "tp50" : "NaN",
           "buffers" : 1,
-          "max" : 0.0021565397082931284,
+          "max" : 1.503653764106652E-8,
           "tp90" : "NaN",
-          "count" : 7840.0,
-          "positive" : 4306,
+          "count" : 784.0,
+          "positive" : 396,
           "tp75" : "NaN",
           "zeros" : 0,
-          "meanExponent" : -3.661790455097161,
-          "negative" : 3534,
-          "min" : -0.0016427015162876891,
-          "mean" : 5.056478537486408E-5,
-          "stdDev" : 4.041666854613679E-4
+          "meanExponent" : -8.521595464875379,
+          "negative" : 388,
+          "min" : -2.0324375551212187E-8,
+          "mean" : -3.38201691499704E-10,
+          "stdDev" : 5.819024978558855E-9
+        } ],
+        "class" : "com.simiacryptus.mindseye.layers.java.BiasLayer",
+        "outputStatistics" : [ "java.util.HashMap", {
+          "meanExponent" : -6.5091970171224345,
+          "tp50" : -2.0324375551212187E-8,
+          "negative" : 152177,
+          "min" : 3.0956703417306436E-9,
+          "max" : 3.0956703417306436E-9,
+          "tp90" : -1.840542175641853E-8,
+          "mean" : 32.84733928537629,
+          "count" : 392000.0,
+          "positive" : 239823,
+          "stdDev" : 78.03256694029238,
+          "tp75" : -1.840542175641853E-8,
+          "zeros" : 0
+        } ],
+        "medianMsPerItem_Backward" : "NaN"
+      } ],
+      "SoftmaxActivationLayer/3cc8990a-29bd-4377-9ee9-86380000000d" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.0021128612067632833,
+        "medianMsPerItem" : "NaN",
+        "avgMsPerItem_Backward" : 1.2695668830917889E-6,
+        "totalItems" : 1035000
+```
+...[skipping 776 bytes](etc/2.txt)...
+```
+    721205406325,
+          "tp90" : 3.1945837748890793E-6,
+          "mean" : 0.1,
+          "count" : 5000.0,
+          "positive" : 5000,
+          "stdDev" : 0.26278104603078345,
+          "tp75" : 2.0848266384588697E-6,
+          "zeros" : 0
+        } ],
+        "medianMsPerItem_Backward" : "NaN"
+      } ],
+      "FullyConnectedLayer/3cc8990a-29bd-4377-9ee9-86380000000c" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.008989065863768091,
+        "medianMsPerItem" : "NaN",
+        "avgMsPerItem_Backward" : 5.096913572173915E-5,
+        "totalItems" : 1035000,
+        "backpropStatistics" : [ "java.util.HashMap", {
+          "meanExponent" : -5.853875359358212,
+          "tp50" : -1.2127183968403388E-4,
+          "negative" : 500,
+          "min" : -0.0019888350208475247,
+          "max" : 0.0013667449501282532,
+          "tp90" : -9.196644177801809E-6,
+          "mean" : 2.053812331627705E-21,
+          "count" : 5000.0,
+          "positive" : 4500,
+          "stdDev" : 2.513262609774066E-4,
+          "tp75" : -3.542261777971565E-5,
+          "zeros" : 0
+        } ],
+        "totalBatches" : 2070,
+        "weights" : [ "java.util.HashMap", {
+          "tp50" : "NaN",
+          "buffers" : 1,
+          "max" : 0.002463526087419943,
+          "tp90" : "NaN",
+          "count" : 7840.0,
+          "positive" : 4260,
+          "tp75" : "NaN",
+          "zeros" : 0,
+          "meanExponent" : -3.633740245616081,
+          "negative" : 3580,
+          "min" : -0.0020507949349857692,
+          "mean" : 4.8363242641321685E-5,
+          "stdDev" : 4.4601796145559347E-4
         } ],
         "class" : "com.simiacryptus.mindseye.layers.java.FullyConnectedLayer",
         "outputStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : 0.2439878591545723,
-          "tp50" : -3.5680005887012465,
-          "negative" : 1722,
-          "min" : -5.241564398700268,
-          "max" : 10.648346713393785,
-          "tp90" : -2.7200303388454805,
-          "mean" : 1.4232031968101213,
+          "meanExponent" : 0.27184269522742394,
+          "tp50" : -4.668656062942205,
+          "negative" : 2077,
+          "min" : -6.677569755446058,
+          "max" : 9.884819509023902,
+          "tp90" : -3.670712652994158,
+          "mean" : 0.990586637117401,
           "count" : 5000.0,
-          "positive" : 3278,
-          "stdDev" : 3.344983894936401,
-          "tp75" : -2.9698546540838078,
+          "positive" : 2923,
+          "stdDev" : 3.7187540690471295,
+          "tp75" : -4.01836073177686,
           "zeros" : 0
         } ],
         "medianMsPerItem_Backward" : "NaN"
@@ -252,7 +256,7 @@ Returns:
 ### Validation
 If we run our model against the entire validation dataset, we get this accuracy:
 
-Code from [MnistTestBase.java:201](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L201) executed in 1.11 seconds: 
+Code from [MnistTestBase.java:211](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L211) executed in 0.74 seconds: 
 ```java
     return MNIST.validationDataStream().mapToDouble(labeledObject ->
       predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
@@ -262,14 +266,14 @@ Code from [MnistTestBase.java:201](../../../../../../../../MindsEye/src/test/jav
 Returns: 
 
 ```
-    89.64999999999999
+    90.7
 ```
 
 
 
 Let's examine some incorrectly predicted results in more detail:
 
-Code from [MnistTestBase.java:208](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L208) executed in 0.10 seconds: 
+Code from [MnistTestBase.java:218](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L218) executed in 0.17 seconds: 
 ```java
     try {
       TableOutput table = new TableOutput();
@@ -299,16 +303,16 @@ Returns:
 
 Image | Prediction
 ----- | ----------
-![[5]](etc/test.2.png)  | 6 (90.8%), 2 (4.6%), 0 (1.3%)  
-![[4]](etc/test.3.png)  | 6 (50.3%), 0 (38.2%), 4 (4.0%) 
-![[1]](etc/test.4.png)  | 3 (53.0%), 1 (19.7%), 8 (7.4%) 
-![[3]](etc/test.5.png)  | 2 (58.9%), 3 (30.5%), 8 (5.8%) 
-![[2]](etc/test.6.png)  | 7 (78.3%), 2 (12.2%), 9 (7.0%) 
-![[7]](etc/test.7.png)  | 9 (51.0%), 7 (45.0%), 4 (2.1%) 
-![[7]](etc/test.8.png)  | 1 (47.3%), 7 (23.7%), 9 (11.7%)
-![[7]](etc/test.9.png)  | 9 (48.9%), 4 (36.2%), 7 (9.2%) 
-![[2]](etc/test.10.png) | 9 (42.0%), 8 (25.7%), 6 (10.2%)
-![[3]](etc/test.11.png) | 8 (30.4%), 3 (27.1%), 5 (14.1%)
+![[5]](etc/test.2.png)  | 6 (89.2%), 2 (5.3%), 4 (2.1%)  
+![[4]](etc/test.3.png)  | 6 (57.0%), 0 (26.5%), 5 (5.5%) 
+![[1]](etc/test.4.png)  | 3 (55.8%), 1 (33.7%), 5 (3.5%) 
+![[3]](etc/test.5.png)  | 2 (62.9%), 3 (26.7%), 8 (7.6%) 
+![[6]](etc/test.6.png)  | 2 (31.0%), 6 (27.8%), 7 (21.4%)
+![[2]](etc/test.7.png)  | 7 (74.7%), 2 (15.9%), 9 (7.3%) 
+![[9]](etc/test.8.png)  | 4 (33.2%), 8 (26.7%), 9 (24.6%)
+![[7]](etc/test.9.png)  | 1 (40.3%), 7 (38.6%), 9 (7.3%) 
+![[7]](etc/test.10.png) | 4 (60.3%), 9 (25.4%), 7 (10.1%)
+![[2]](etc/test.11.png) | 9 (40.0%), 8 (30.1%), 4 (9.2%) 
 
 
 

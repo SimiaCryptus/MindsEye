@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000df0",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f61",
       "isFrozen": false,
-      "name": "AvgMetaLayer/0910987d-3688-428c-a892-e2c400000df0"
+      "name": "AvgMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f61"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.528, -1.392, -0.592 ]]
+    [[ 1.896, 1.144, 0.424 ]]
     --------------------
     Output: 
-    [ -1.528, -1.392, -0.592 ]
+    [ 1.896, 1.144, 0.424 ]
 ```
 
 
@@ -53,6 +53,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: AvgMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f61
+    Inputs: [ 1.896, 1.144, 0.424 ]
+    output=[ 1.896, 1.144, 0.424 ]
+    measured/actual: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    implemented/expected: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (9#)
     relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)
@@ -66,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0109 +- 0.0241 [0.0057 - 0.2508]
-    Learning performance: 0.0008 +- 0.0018 [0.0000 - 0.0142]
+    Evaluation performance: 0.1121 +- 0.0255 [0.0741 - 0.1995]
+    Learning performance: 0.0019 +- 0.0021 [0.0000 - 0.0114]
     
 ```
 

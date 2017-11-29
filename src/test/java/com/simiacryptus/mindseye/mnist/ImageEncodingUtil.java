@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.*;
@@ -111,7 +112,7 @@ class ImageEncodingUtil {
             for (int i = col - 2; i >= 0; i--) {
               decoder.add(dataPipeline.get(i));
             }
-            row.put("Decode_" + col, render(log, CudaExecutionContext.gpuContexts.run(ctx -> {
+            row.put("Decode_" + col, render(log, GpuController.call(ctx -> {
               return decoder.eval(ctx, tensor);
             }).getData().get(0), false));
             int bands = tensor.getDimensions()[2];
@@ -122,7 +123,7 @@ class ImageEncodingUtil {
               decoderBand.add(new ImgBandScaleLayer(gate));
               decoderBand.add(decoder);
               try {
-                Tensor t = CudaExecutionContext.gpuContexts.run(ctx -> {
+                Tensor t = GpuController.call(ctx -> {
                   return decoderBand.eval(ctx, tensor);
                 }).getData().get(0);
                 return render(log, t, true);
@@ -190,7 +191,7 @@ class ImageEncodingUtil {
   protected Tensor[][] addColumn(Tensor[][] trainingData, int... size) {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
       Arrays.stream(x),
-      Stream.of(new Tensor(size).fill(() -> 0 * (FastRandom.random() - 0.5))))
+      Stream.of(new Tensor(size).fill(() -> 0.01 * (FastRandom.random() - 0.5))))
       .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
@@ -244,8 +245,10 @@ class ImageEncodingUtil {
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
     convolutionLayer.filter.fillByCoord(c -> {
-      int outband = c.coords[2] / inputBands;
-      int inband = c.coords[2] % inputBands;
+//      int outband = c.coords[2] / inputBands;
+//      int inband = (c.coords[2]-outband) % inputBands;
+      int outband = c.coords[2] % outputBands;
+      int inband = (c.coords[2]-outband) / outputBands;
       assert outband < outputBands;
       assert inband < inputBands;
       double v = featureSpace.getVectors()[inband].get(filterDimensions[0] - (c.coords[0] + 1), filterDimensions[1] - (c.coords[1] + 1), outputBands - (outband + 1));
@@ -297,7 +300,7 @@ class ImageEncodingUtil {
     if (0 == factor) throw new IllegalArgumentException();
     if (-1 == factor) throw new IllegalArgumentException();
     return 1 == factor ? stream : stream.map(tensor -> {
-      return CudaExecutionContext.gpuContexts.run(ctx -> {
+      return GpuController.call(ctx -> {
         boolean expand = factor < 0;
         int abs = expand ? -factor : factor;
         return new ImgReshapeLayer(abs, abs, expand).eval(ctx, tensor);
@@ -322,7 +325,7 @@ class ImageEncodingUtil {
       PipelineNetwork network = new PipelineNetwork();
       network.add(new ImgReshapeLayer(factor, factor, false));
       network.add(new ImgBandSelectLayer(select));
-      Tensor result = CudaExecutionContext.gpuContexts.run(ctx ->
+      Tensor result = GpuController.call(ctx ->
         network.eval(ctx, new Tensor[]{tensor[1]})).getData().get(0);
       return new Tensor[]{tensor[0], result};
     }));

@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MaxMetaLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e5a",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f81",
       "isFrozen": false,
-      "name": "MaxMetaLayer/0910987d-3688-428c-a892-e2c400000e5a"
+      "name": "MaxMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f81"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.256, 1.188, 0.58 ]]
+    [[ -0.032, -0.616, 1.124 ]]
     --------------------
     Output: 
-    [ -1.256, 1.188, 0.58 ]
+    [ -0.032, -0.616, 1.124 ]
 ```
 
 
@@ -53,9 +53,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: MaxMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f81
+    Inputs: [ -0.032, -0.616, 1.124 ]
+    output=[ -0.032, -0.616, 1.124 ]
+    measured/actual: [ [ 1.0000000000000286, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ 2.864375403532904E-14, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.9615e-12 +- 2.8268e-12 [0.0000e+00 - 6.5510e-12] (9#)
-    relativeTol: 2.9422e-12 +- 4.7137e-13 [2.2756e-12 - 3.2755e-12] (3#)
+    absoluteTol: 2.7657e-14 +- 4.4963e-14 [0.0000e+00 - 1.1013e-13] (9#)
+    relativeTol: 4.1485e-14 +- 1.9207e-14 [1.4322e-14 - 5.5067e-14] (3#)
     
 ```
 
@@ -66,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0623 +- 0.0231 [0.0513 - 0.2451]
-    Learning performance: 0.0017 +- 0.0019 [0.0000 - 0.0142]
+    Evaluation performance: 0.2267 +- 0.0978 [0.1453 - 0.8492]
+    Learning performance: 0.0029 +- 0.0021 [0.0000 - 0.0142]
     
 ```
 

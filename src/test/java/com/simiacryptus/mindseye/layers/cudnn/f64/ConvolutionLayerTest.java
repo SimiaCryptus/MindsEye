@@ -81,9 +81,10 @@ public class ConvolutionLayerTest extends LayerTestBase {
    * The type Irregular test.
    */
   public static class IrregularTest extends ConvolutionLayerTest {
-  
+    
     public IrregularTest() {
       super(1,2,3);
     }
   }
+  
 }

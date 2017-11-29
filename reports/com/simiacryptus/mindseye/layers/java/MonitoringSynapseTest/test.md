@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MonitoringSynapse",
-      "id": "0910987d-3688-428c-a892-e2c400000e63",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f84",
       "isFrozen": false,
-      "name": "MonitoringSynapse/0910987d-3688-428c-a892-e2c400000e63",
+      "name": "MonitoringSynapse/c88cbdf1-1c2a-4a5e-b964-890900000f84",
       "totalBatches": 0,
       "totalItems": 0
     }
@@ -40,10 +40,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.26, -0.16, -1.692 ]]
+    [[ 1.628, 0.988, 1.536 ]]
     --------------------
     Output: 
-    [ -0.26, -0.16, -1.692 ]
+    [ 1.628, 0.988, 1.536 ]
 ```
 
 
@@ -55,9 +55,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: MonitoringSynapse/c88cbdf1-1c2a-4a5e-b964-890900000f84
+    Inputs: [ 1.628, 0.988, 1.536 ]
+    output=[ 1.628, 0.988, 1.536 ]
+    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 9.5008e-13 +- 2.0219e-12 [0.0000e+00 - 6.5510e-12] (9#)
-    relativeTol: 1.4251e-12 +- 1.3084e-12 [4.9993e-13 - 3.2755e-12] (3#)
+    absoluteTol: 3.6711e-14 +- 5.1918e-14 [0.0000e+00 - 1.1013e-13] (9#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (3#)
     
 ```
 
@@ -68,8 +74,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0312 +- 0.0046 [0.0285 - 0.0713]
-    Learning performance: 0.0262 +- 0.0187 [0.0199 - 0.1938]
+    Evaluation performance: 0.1402 +- 0.0236 [0.1083 - 0.2508]
+    Learning performance: 0.0270 +- 0.0133 [0.0171 - 0.0941]
     
 ```
 

@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.DropoutNoiseLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e12",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f6b",
       "isFrozen": false,
-      "name": "DropoutNoiseLayer/0910987d-3688-428c-a892-e2c400000e12",
+      "name": "DropoutNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f6b",
       "value": 0.5
     }
 ```
@@ -39,10 +39,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.884, -1.1, -1.064 ]]
+    [[ 1.812, 1.392, 0.648 ]]
     --------------------
     Output: 
-    [ 0.884, -0.0, -1.064 ]
+    [ 1.812, 0.0, 0.648 ]
 ```
 
 
@@ -54,9 +54,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: DropoutNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f6b
+    Inputs: [ 1.812, 1.392, 0.648 ]
+    output=[ 1.812, 0.0, 0.648 ]
+    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.2336e-12 +- 2.3554e-12 [0.0000e+00 - 6.5510e-12] (9#)
-    relativeTol: 2.7755e-12 +- 4.9996e-13 [2.2756e-12 - 3.2755e-12] (2#)
+    absoluteTol: 2.4474e-14 +- 4.5787e-14 [0.0000e+00 - 1.1013e-13] (9#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (2#)
     
 ```
 
@@ -67,8 +73,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0610 +- 0.0202 [0.0513 - 0.2080]
-    Learning performance: 0.0016 +- 0.0025 [0.0000 - 0.0171]
+    Evaluation performance: 0.1909 +- 0.0365 [0.1425 - 0.3306]
+    Learning performance: 0.0025 +- 0.0025 [0.0000 - 0.0200]
     
 ```
 

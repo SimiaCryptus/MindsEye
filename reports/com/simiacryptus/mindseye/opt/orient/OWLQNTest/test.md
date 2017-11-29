@@ -1,7 +1,7 @@
 ### Model
 This is a very simple model that performs basic logistic regression. It is expected to be trainable to about 91% accuracy on MNIST.
 
-Code from [MnistTestBase.java:272](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L272) executed in 0.00 seconds: 
+Code from [MnistTestBase.java:295](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L295) executed in 0.00 seconds: 
 ```java
     PipelineNetwork network = new PipelineNetwork();
     network.add(new BiasLayer(28, 28, 1));
@@ -14,13 +14,13 @@ Code from [MnistTestBase.java:272](../../../../../../../../MindsEye/src/test/jav
 Returns: 
 
 ```
-    PipelineNetwork/e1035fb9-1fe3-4846-a360-622900000037
+    PipelineNetwork/3cc8990a-29bd-4377-9ee9-863800000037
 ```
 
 
 
 ### Training
-Code from [OWLQNTest.java:42](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/opt/orient/OWLQNTest.java#L42) executed in 180.61 seconds: 
+Code from [OWLQNTest.java:42](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/opt/orient/OWLQNTest.java#L42) executed in 301.38 seconds: 
 ```java
     SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
@@ -28,7 +28,7 @@ Code from [OWLQNTest.java:42](../../../../../../../../MindsEye/src/test/java/com
       .setIterationsPerSample(100)
       .setMonitor(monitor)
       .setOrientation(new ValidatingOrientationWrapper(new OwlQn()))
-      .setTimeout(3, TimeUnit.MINUTES)
+      .setTimeout(5, TimeUnit.MINUTES)
       .setMaxIterations(500)
       .run();
 ```
@@ -36,72 +36,71 @@ Logging:
 ```
     LBFGS Accumulation History: 1 points
     Constructing line search parameters: OWL/QN
-    Returning cached value; 2 buffers unchanged since 0.0 => 2.4782226230156015
-    -388174.2028094232 vs (-387529.70376967377, -388585.71760774206); probe=0.001
-    -387699.11409713136 vs (-387529.70376967377, -387635.27302724693); probe=1.0E-4
-    -387646.8660677881 vs (-387529.70376967377, -387530.7594250117); probe=1.0E-6
-    th(0)=2.4782226230156015;dx=-387529.70376967377
-    0.0 vs (4.9431329702547546E-20, 0.0); probe=0.001
-    0.0 vs (4.9431329702547546E-20, 0.0); probe=1.0E-4
-    0.0 vs (4.9431329702547546E-20, 0.0); probe=1.0E-6
-    Armijo: th(2.154434690031884)=14.724571152678323; dx=4.9431329702547546E-20 delta=-12.246348529662722
-    0.0 vs (2.2031881785909962E-5, 0.0); probe=0.001
-    0.0 vs (2.2031881785909962E-5, 0.0); probe=1.0E-4
-    0.0 vs (2.2031881785909962E-5, 1.2739358221338951E-23); probe=1.0E-6
-    Armijo: th(1.077217345015942)=14.724571152678323; dx=2.2031881785909962E-5 delta=-12.246348529662722
-    0.020967637536204866 vs (0.06652482391347721, 0.006283748310986481); probe=0.001
-    0.05389907281090292 vs (0.06652482391347721, 0.04441983120345249); probe=1.0E-4
-    0.06614556188557721 vs (0.06652482391347721, 0.06651004059323759); probe=1.0E-6
-    Armijo: th(0.3590724483386473)=14.719631154560641; dx=0.06652482391347721 delta=-12.24140853154504
-    0.24664931583521463 vs (0.3863893367543833, 0.2159647355560969); probe=0.001
-    0.37247342915660975 vs (0.3863893367543833, 0.36968070618412924); probe=1.0E-4
-    0.3758908951326841 vs (0.3863893367543833, 0.3861302477269529); probe=1.0E-6
-    Armijo: th(0.08976811208466183)=14.697204328912843; dx=0.3863893367543833 delta=-12.218981705897242
-    7.662539741180103 vs (10.059393869303491, 7.099186614100956); probe=0.001
-    9.348526106800884 vs (10.059393869303491, 9.789037135291059); probe=1.0E-4
-    9.463742302181535 vs (10.059393869303491, 10.056592264107435); probe=1.0E-6
-    Armijo: th(0.017953622416932366)=14.636097611009607; dx=10.059393869303491 delta=-12.157874987994006
-    420.9702999563804 vs (447.4828872860625, 435.256964223526)
+    Returning cached value; 2 buffers unchanged since 0.0 => 2.3847031386732453
+    -343541.14487505634 vs (-343084.18136640533, -343805.51931744604); probe=0.001
+    -343216.4487200453 vs (-343084.18136640533, -343156.3320959327); probe=1.0E-4
+    -343180.72589866904 vs (-343084.18136640533, -343084.9028913498); probe=1.0E-6
+    th(0)=2.3847031386732453;dx=-343084.18136640533
+    -7.667965859086564E-6 vs (-1.480593996381028E-8, 0.0); probe=0.001
+    -7.667965859086564E-5 vs (-1.480593996381028E-8, 0.0); probe=1.0E-4
+    -0.007667965859086565 vs (-1.480593996381028E-8, 0.0); probe=1.0E-6
+    Armijo: th(2.154434690031884)=18.13976536408881; dx=-1.480593996381028E-8 delta=-15.755062225415564
+    8.000939748713519E-5 vs (0.004597698035277361, 3.510406523062451E-78); probe=0.001
+    8.000939748713518E-4 vs (0.004597698035277361, 2.229282962129354E-9); probe=1.0E-4
+    0.0045975112764481876 vs (0.004597698035277361, 0.004597653809837924); probe=1.0E-6
+    Armijo: th(1.077217345015942)=17.60341721731044; dx=0.004597698035277361 delta=-15.218714078637195
+    0.005410239686377624 vs (0.02753217513114715, 2.502974129717051E-7); probe=0.001
+    0.011983205917601311 vs (0.02753217513114715, 0.01165651227998482); probe=1.0E-4
+    0.027532200488611727 vs (0.02753217513114715, 0.02753222564026847); probe=1.0E-6
+    Armijo: th(0.3590724483386473)=17.600264993955474; dx=0.02753217513114715 delta=-15.215561855282228
+    0.20613369532831233 vs (0.4727282617858429, 0.11803338501963244); probe=0.001
+    0.40194938429798543 vs (0.4727282617858429, 0.397443168420022); probe=1.0E-4
+    0.4157284815616726 vs (0.4727282617858429, 0.47142535164902555); probe=1.0E-6
+    Armijo: th(0.08976811208466183)=17.588782431959256; dx=0.4727282617858429 delta=-15.20407929328601
+    10.015829031601484 vs (13.279379101591484, 9.239689648928994); probe=0.001
+    11.623401757340215 vs (13.279379101591484, 12.663139150109508); probe=1.0E-4
+    12.20981077481408 vs (13.279379101591484, 13.274341040874516); probe=1.0E-6
+    Armijo: th(0.0179536224169
 ```
-...[skipping 10791 bytes](etc/1.txt)...
+...[skipping 33526 bytes](etc/1.txt)...
 ```
-    43532914E8 vs (65224.585481935326, 64736.940656385625); probe=1.0E-6
-    Armijo: th(1.91370272388791E-5)=1.0390330327662398; dx=65224.585481935326 delta=-0.19661985333713616
-    21403.787423641967 vs (21254.24306729743, 21640.682814036267); probe=0.001
-    21229.908634162857 vs (21254.24306729743, 21292.9054122584); probe=1.0E-4
-    21210.775297561537 vs (21254.24306729743, 21254.629710885478); probe=1.0E-6
-    New Minimum: 0.8424131794291037 > 0.8275486370815732
-    WOLF (strong): th(9.56851361943955E-6)=0.8275486370815732; dx=21254.24306729743 delta=0.01486454234753043
-    -11677.943891835113 vs (-11283.018816583643, -12021.319750639934); probe=0.001
-    -11345.902950666014 vs (-11283.018816583643, -11356.877057053696); probe=1.0E-4
-    -11309.368284894927 vs (-11283.018816583643, -11283.757428830046); probe=1.0E-6
-    New Minimum: 0.8275486370815732 > 0.8114576200680834
-    END: th(3.1895045398131836E-6)=0.8114576200680834; dx=-11283.018816583643 delta=0.030955559361020235
-    Iteration 9 complete. Error: 0.8114576200680834 Total: 182827532477710.6200; Orientation: 0.0022; Line Search: 20.1467
-    Orientation vanished. Popping history element from 1.0032930094850985, 0.9374182771114397, 0.8424131794291037, 0.8114576200680834
+    771700697656 vs (-577.5906096253096, -578.2907132239168); probe=1.0E-6
+    New Minimum: 0.49865379884251465 > 0.4932320251660275
+    END: th(9.613427552967019E-6)=0.4932320251660275; dx=-577.5906096253096 delta=0.005421773676487163
+    Iteration 27 complete. Error: 0.4932320251660275 Total: 13624563561464.3000; Orientation: 0.0011; Line Search: 6.8631
+    Orientation vanished. Popping history element from 0.5107680914351721, 0.5043097085763621, 0.49865379884251465, 0.4932320251660275
     LBFGS Accumulation History: 3 points
-    -15575.62198938978 vs (-17592.750831711925, -15623.30273630772); probe=0.001
-    -15547.650102402655 vs (-17592.750831711925, -15567.331865531452); probe=1.0E-4
-    -15544.5740239726 vs (-17592.750831711925, -15561.17754320876); probe=1.0E-6
-    th(0)=0.8114576200680834;dx=-17592.750831711925
-    -20344.888230374843 vs (-10749.928836634255, -10882.301092280459); probe=0.001
-    -105973.39359460496 vs (-10749.928836634255, -10805.65358859451); probe=1.0E-4
-    -9529316.512721853 vs (-10749.928836634255, -10797.22940075798); probe=1.0E-6
-    New Minimum: 0.8114576200680834 > 0.7665117685317205
-    END: th(6.871579224587702E-6)=0.7665117685317205; dx=-10749.928836634255 delta=0.04494585153636288
-    Iteration 10 complete. Error: 0.7665117685317205 Total: 182837536566275.4700; Orientation: 0.0027; Line Search: 10.0012
+    -2574.5587247910953 vs (-3133.979921862451, -2638.230969103866); probe=0.001
+    -2520.3377529405575 vs (-3133.979921862451, -2529.8612974106563); probe=1.0E-4
+    -2514.37546774128 vs (-3133.979921862451, -2517.9379933674472); probe=1.0E-6
+    th(0)=0.4932320251660275;dx=-3133.979921862451
+    3471.942720146575 vs (5439.773286871076, 5478.0658610215505); probe=0.001
+    -20026.665500351686 vs (5439.773286871076, 5405.127721900621); probe=1.0E-4
+    -2537909.5082101864 vs (5439.773286871076, 5397.939263806435); probe=1.0E-6
+    Armijo: th(2.071150181022047E-5)=0.5083480764947333; dx=5439.773286871076 delta=-0.01511605132870586
+    1557.5981185375267 vs (1422.4662414824732, 1684.7343659723826); probe=0.001
+    1439.5720599360304 vs (1422.4662414824732, 1448.6811141886715); probe=1.0E-4
+    1426.5935740532532 vs (1422.4662414824732, 1422.7283773449487); probe=1.0E-6
+    New Minimum: 0.4932320251660275 > 0.4904676822148395
+    WOLF (strong): th(1.0355750905110236E-5)=0.4904676822148395; dx=1422.4662414824732 delta=0.0027643429511879924
+    -1342.4452520142509 vs (-1190.9004479381617, -1501.1320363049838); probe=0.001
+    -1202.8079550400284 vs (-1190.9004479381617, -1221.9362951885723); probe=1.0E-4
+    -1187.443194678286 vs (-1190.9004479381617, -1191.2108201247488); probe=1.0E-6
+    New Minimum: 0.4904676822148395 > 0.4900607836533293
+    END: th(3.4519169683700785E-6)=0.4900607836533293; dx=-1190.9004479381617 delta=0.0031712415126982085
+    Iteration 28 complete. Error: 0.4900607836533293 Total: 13638231461038.4360; Orientation: 0.0011; Line Search: 13.6667
     
 ```
 
 Returns: 
 
 ```
-    0.7665117685317205
+    0.4900607836533293
 ```
 
 
 
-Code from [MnistTestBase.java:131](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L131) executed in 0.04 seconds: 
+Code from [MnistTestBase.java:141](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L141) executed in 0.01 seconds: 
 ```java
     PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
     plot.setTitle("Convergence Plot");
@@ -119,7 +118,7 @@ Returns:
 Saved model as [model0.json](etc/model0.json)
 
 ### Metrics
-Code from [MnistTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L144) executed in 0.65 seconds: 
+Code from [MnistTestBase.java:154](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L154) executed in 0.54 seconds: 
 ```java
     try {
       ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -134,26 +133,26 @@ Returns:
 
 ```
     [ "java.util.HashMap", {
-      "BiasLayer/e1035fb9-1fe3-4846-a360-622900000038" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.017772173575862058,
+      "BiasLayer/3cc8990a-29bd-4377-9ee9-863800000038" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.012438506483002829,
         "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 3.4193706811034482E-6,
-        "totalItems" : 1450000,
+        "avgMsPerItem_Backward" : 1.9978107230594894E-6,
+        "totalItems" : 3530000,
         "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -7.841143235643946,
-          "tp50" : -1.5264507358804071E-7,
-          "negative" : 1968803,
-          "min" : -1.5358743091342589E-7,
-          "max" : 1.5298324610541604E-7,
-          "tp90" : -1.4104771322013354E-7,
-          "mean" : 5.699933992448722E-11,
+          "meanExponent" : -8.160654591470468,
+          "tp50" : -1.9953567183832054E-7,
+          "negative" : 1967060,
+          "min" : -1.6442609118426604E-7,
+          "max" : 1.3965667562558325E-7,
+          "tp90" : -1.778485974450442E-7,
+          "mean" : 8.004072584931535E-12,
           "count" : 3920000.0,
-          "positive" : 1951197,
-          "stdDev" : 3.6020513287925E-8,
-          "tp75" : -1.4460350087296653E-7,
+          "positive" : 1952940,
+          "stdDev" : 3.33656345376923E-8,
+          "tp75" : -1.8432742715046232E-7,
           "zeros" : 0
         } ],
-        "totalBatches" : 290,
+        "totalBatches" : 706,
         "weights" : [ "java.util.HashMap", {
           "tp50" : "NaN",
           "buffers" : 1,
@@ -171,92 +170,90 @@ Returns:
         } ],
         "class" : "com.simiacryptus.mindseye.layers.java.BiasLayer",
         "outputStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : 2.1117910157181567,
+          "meanExponent" : 2.112317628155531,
           "tp50" : 0.0,
           "negative" : 0,
           "min" : 0.0,
           "max" : 0.0,
           "tp90" : 0.0,
-          "mean" : 33.18171147959184,
+          "mean" : 33.4151068877551,
           "count" : 3920000.0,
-          "positive" : 747016,
-          "stdDev" : 78.4265335317425,
+          "positive" : 751747,
+          "stdDev" : 78.66960947789427,
           "tp75" : 0.0,
-          "zeros" : 3172984
+          "zeros" : 3168253
         } ],
         "medianMsPerItem_Backward" : "NaN"
       } ],
-      "SoftmaxActivationLayer/e1035fb9-1fe3-4846-a360-62290000003a" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.0032811953937931016,
+      "FullyConnectedLayer/3cc8990a-29bd-4377-9ee9-863800000039" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.007208563311331441,
         "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 1.661795074482758E-7,
-        "totalItems" : 1450000,
+        "avgMsPerItem_Backward" : 5.35706889439094E-6,
+        "totalItems" : 3530000,
         "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -3.3711123107649006,
-          "tp50" : -3.475781335575363E-4,
+          "meanExponent" : -5.912808983638872,
+          "tp50" : -3.8282682760734746E-5,
           "negative" : 5000,
-          "min"
+          "min" : -1.
 ```
-...[skipping 623 bytes](etc/2.txt)...
+...[skipping 614 bytes](etc/2.txt)...
 ```
-         "tp90" : 0.0026271519246143476,
-          "mean" : 0.1,
-          "count" : 50000.0,
-          "positive" : 50000,
-          "stdDev" : 0.18438160738891868,
-          "tp75" : 0.0021607957155420437,
-          "zeros" : 0
-        } ],
-        "medianMsPerItem_Backward" : "NaN"
-      } ],
-      "FullyConnectedLayer/e1035fb9-1fe3-4846-a360-622900000039" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.0115418236862069,
-        "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 7.349343826344827E-6,
-        "totalItems" : 1450000,
-        "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -5.275655001102074,
-          "tp50" : -8.491796192530449E-5,
-          "negative" : 5000,
-          "min" : -1.9820893249062284E-4,
-          "max" : 1.4217594935798006E-4,
-          "tp90" : -2.4879624586002435E-5,
-          "mean" : 2.8494651566777696E-23,
-          "count" : 50000.0,
-          "positive" : 45000,
-          "stdDev" : 3.6470914074583265E-5,
-          "tp75" : -4.6891418516675894E-5,
-          "zeros" : 0
-        } ],
-        "totalBatches" : 290,
-        "weights" : [ "java.util.HashMap", {
-          "tp50" : "NaN",
-          "buffers" : 1,
-          "max" : 0.0012365207655343849,
-          "tp90" : "NaN",
-          "count" : 7840.0,
-          "positive" : 4436,
-          "tp75" : "NaN",
-          "zeros" : 181,
-          "meanExponent" : -3.7066820450283684,
-          "negative" : 3223,
-          "min" : -9.910259128608557E-4,
-          "mean" : 5.788151003329443E-5,
-          "stdDev" : 3.167914109036458E-4
+    
+          "negative" : 2991,
+          "min" : -0.001583714374759889,
+          "mean" : 6.526737959799504E-5,
+          "stdDev" : 3.608688425646005E-4
         } ],
         "class" : "com.simiacryptus.mindseye.layers.java.FullyConnectedLayer",
         "outputStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : 0.13642830191695815,
-          "tp50" : -0.40299426198001015,
-          "negative" : 4772,
-          "min" : -1.8212634410871449,
-          "max" : 7.739447633076614,
-          "tp90" : -0.03782686145045894,
-          "mean" : 1.9422476651190934,
+          "meanExponent" : 0.23274917345926716,
+          "tp50" : -1.345766902256856,
+          "negative" : 8423,
+          "min" : -4.1312165182466805,
+          "max" : 10.19217983309459,
+          "tp90" : -0.7480244632539115,
+          "mean" : 2.288385499287399,
           "count" : 50000.0,
-          "positive" : 45228,
-          "stdDev" : 1.696095200887086,
-          "tp75" : -0.15558540197657567,
+          "positive" : 41577,
+          "stdDev" : 2.547839134017002,
+          "tp75" : -0.9443880503739662,
+          "zeros" : 0
+        } ],
+        "medianMsPerItem_Backward" : "NaN"
+      } ],
+      "SoftmaxActivationLayer/3cc8990a-29bd-4377-9ee9-86380000003a" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.0019900946079320133,
+        "medianMsPerItem" : "NaN",
+        "avgMsPerItem_Backward" : 9.187111966005664E-8,
+        "totalItems" : 3530000,
+        "backpropStatistics" : [ "java.util.HashMap", {
+          "meanExponent" : -3.4822798052990582,
+          "tp50" : -2.4734518654436307E-4,
+          "negative" : 5000,
+          "min" : -0.09081669254219733,
+          "max" : 0.0,
+          "tp90" : -2.055143420924845E-4,
+          "mean" : -6.804696852938784E-5,
+          "count" : 50000.0,
+          "positive" : 0,
+          "stdDev" : 0.0013791001469162921,
+          "tp75" : -2.1497146395027642E-4,
+          "zeros" : 45000
+        } ],
+        "totalBatches" : 706,
+        "class" : "com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer",
+        "outputStatistics" : [ "java.util.HashMap", {
+          "meanExponent" : -2.155084776089597,
+          "tp50" : 5.5708275424593766E-5,
+          "negative" : 0,
+          "min" : 5.728096552790493E-7,
+          "max" : 0.9630877876117298,
+          "tp90" : 1.6291778347796612E-4,
+          "mean" : 0.1,
+          "count" : 50000.0,
+          "positive" : 50000,
+          "stdDev" : 0.2327919009520555,
+          "tp75" : 1.178441660978841E-4,
           "zeros" : 0
         } ],
         "medianMsPerItem_Backward" : "NaN"
@@ -269,7 +266,7 @@ Returns:
 ### Validation
 If we run our model against the entire validation dataset, we get this accuracy:
 
-Code from [MnistTestBase.java:201](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L201) executed in 0.74 seconds: 
+Code from [MnistTestBase.java:211](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L211) executed in 0.51 seconds: 
 ```java
     return MNIST.validationDataStream().mapToDouble(labeledObject ->
       predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
@@ -279,14 +276,14 @@ Code from [MnistTestBase.java:201](../../../../../../../../MindsEye/src/test/jav
 Returns: 
 
 ```
-    82.95
+    87.87
 ```
 
 
 
 Let's examine some incorrectly predicted results in more detail:
 
-Code from [MnistTestBase.java:208](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L208) executed in 0.07 seconds: 
+Code from [MnistTestBase.java:218](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L218) executed in 0.19 seconds: 
 ```java
     try {
       TableOutput table = new TableOutput();
@@ -316,16 +313,16 @@ Returns:
 
 Image | Prediction
 ----- | ----------
-![[5]](etc/test.2.png)  | 6 (25.5%), 4 (16.4%), 5 (15.9%)
-![[6]](etc/test.3.png)  | 2 (29.1%), 6 (23.0%), 8 (15.5%)
-![[5]](etc/test.4.png)  | 3 (38.9%), 5 (25.6%), 8 (11.8%)
-![[9]](etc/test.5.png)  | 7 (45.3%), 9 (35.5%), 4 (7.5%) 
-![[4]](etc/test.6.png)  | 6 (41.8%), 0 (28.5%), 4 (9.1%) 
-![[2]](etc/test.7.png)  | 3 (36.1%), 2 (19.6%), 5 (12.3%)
-![[1]](etc/test.8.png)  | 5 (21.7%), 3 (20.1%), 1 (14.0%)
-![[6]](etc/test.9.png)  | 2 (55.2%), 6 (20.6%), 4 (7.4%) 
-![[3]](etc/test.10.png) | 2 (28.0%), 8 (20.7%), 3 (17.9%)
-![[4]](etc/test.11.png) | 8 (19.8%), 9 (15.9%), 5 (14.9%)
+![[5]](etc/test.2.png)  | 2 (37.4%), 6 (31.6%), 4 (11.2%)
+![[4]](etc/test.3.png)  | 0 (40.5%), 6 (32.0%), 2 (10.7%)
+![[5]](etc/test.4.png)  | 3 (46.8%), 5 (40.6%), 8 (7.9%) 
+![[1]](etc/test.5.png)  | 3 (42.7%), 5 (15.1%), 1 (12.2%)
+![[9]](etc/test.6.png)  | 4 (37.5%), 9 (34.6%), 8 (8.3%) 
+![[3]](etc/test.7.png)  | 2 (35.8%), 3 (35.0%), 9 (10.3%)
+![[9]](etc/test.8.png)  | 7 (31.8%), 9 (29.8%), 8 (19.7%)
+![[2]](etc/test.9.png)  | 7 (71.3%), 9 (10.3%), 2 (9.4%) 
+![[7]](etc/test.10.png) | 9 (64.5%), 7 (25.2%), 4 (5.2%) 
+![[9]](etc/test.11.png) | 8 (27.6%), 9 (27.2%), 4 (19.6%)
 
 
 

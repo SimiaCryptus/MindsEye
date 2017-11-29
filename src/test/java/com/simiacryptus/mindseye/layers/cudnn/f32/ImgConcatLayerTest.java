@@ -41,7 +41,7 @@ public class ImgConcatLayerTest extends F32LayerTestBase {
   /**
    * The type Band limit test.
    */
-  public static class BandLimitTest extends com.simiacryptus.mindseye.layers.cudnn.f32.ImgConcatLayerTest {
+  public static class BandLimitTest extends ImgConcatLayerTest {
     
     @Override
     public NNLayer getLayer() {

@@ -20,6 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 
 /**
@@ -27,13 +29,12 @@ import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
  */
 public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   
-  final int radius;
-  final int bands;
-  
+  private final int radius;
+  private final int bands;
   /**
-   * The Convolution layer.
+   * The Layer.
    */
-  SimpleConvolutionLayer convolutionLayer;
+  SimpleConvolutionLayer layer;
   
   /**
    * Instantiates a new Simple convolution layer test.
@@ -45,20 +46,29 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   protected SimpleConvolutionLayerTest(int radius, int bands) {
     this.radius = radius;
     this.bands = bands;
-    convolutionLayer = new SimpleConvolutionLayer(radius, radius, bands*bands);
-    convolutionLayer.filter.fill(() -> random());
+    layer = new SimpleConvolutionLayer(radius, radius, bands*bands);
+    layer.filter.fill(() -> random());
   }
   
   @Override
   public NNLayer getLayer() {
-    return convolutionLayer;
+    return layer;
   }
   
   @Override
   public NNLayer getReferenceLayer() {
-    ConvolutionLayer referenceLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
-    referenceLayer.kernel.set(convolutionLayer.filter);
-    return referenceLayer;
+    ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
+    Tensor tensor = new Tensor(layer.filter.getDimensions());
+    tensor.fillByCoord(c->{
+      int band = c.coords[2];
+      int bandX = band % bands;
+      int bandY = (band-bandX) / bands;
+      assert band == bandX + bandY * bands;
+      int bandT = bandY + bandX * bands;
+      return layer.filter.get(c.coords[0],c.coords[1], bandT);
+    });
+    convolutionLayer.kernel.set(tensor);
+    return convolutionLayer;
   }
   
   @Override
@@ -68,9 +78,14 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
     };
   }
   
-  public static class MultiBand extends com.simiacryptus.mindseye.layers.cudnn.f64.SimpleConvolutionLayerTest {
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-2, 1e-4);
+  }
+  
+  public static class MultiBand extends SimpleConvolutionLayerTest {
     public MultiBand() {
-      super(1,2);
+      super(1,3);
     }
   }
   

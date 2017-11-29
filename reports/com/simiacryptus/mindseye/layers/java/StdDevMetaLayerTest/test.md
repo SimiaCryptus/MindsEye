@@ -16,51 +16,51 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StdDevMetaLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000eae",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f9e",
       "isFrozen": false,
-      "name": "StdDevMetaLayer/0910987d-3688-428c-a892-e2c400000eae",
+      "name": "StdDevMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f9e",
       "inputs": [
-        "abba68e5-1dd9-4e37-8924-9fe67e45ab9f"
+        "88146096-8003-4f2b-a5b8-f3e83c8559c2"
       ],
       "nodes": {
-        "f476951a-0ddb-4fc0-a567-c5aa7adaa28e": "0910987d-3688-428c-a892-e2c400000eb2",
-        "7f7ec226-7891-49e6-9d9d-d78cfb617d8e": "0910987d-3688-428c-a892-e2c400000eb1",
-        "49d4eb12-2a96-4b14-8c66-1425e56fef9b": "0910987d-3688-428c-a892-e2c400000eb5",
-        "f93f43e0-63cd-456b-8c57-19f247f6c30c": "0910987d-3688-428c-a892-e2c400000eb4",
-        "70d534aa-248d-42df-808c-4110d11aafad": "0910987d-3688-428c-a892-e2c400000eb3",
-        "0954c6ec-c485-497d-bfab-a247c9a9c777": "0910987d-3688-428c-a892-e2c400000eb0",
-        "d5329a01-835e-49c8-a973-caa0f21c8aa1": "0910987d-3688-428c-a892-e2c400000eaf"
+        "87709b2a-7c49-4859-aa0c-32b5df380dca": "c88cbdf1-1c2a-4a5e-b964-890900000fa2",
+        "0d123abf-d1a9-4f22-a14b-92a54aa87b4b": "c88cbdf1-1c2a-4a5e-b964-890900000fa1",
+        "68015413-fbe2-4a51-b92f-efe94ced9d69": "c88cbdf1-1c2a-4a5e-b964-890900000fa5",
+        "24a3776e-2129-4d44-9c19-a14d44e3ce31": "c88cbdf1-1c2a-4a5e-b964-890900000fa4",
+        "c5d47345-ab50-4d8b-8693-81b63dadc054": "c88cbdf1-1c2a-4a5e-b964-890900000fa3",
+        "1187b106-6bd7-4443-9cba-f787da4f1632": "c88cbdf1-1c2a-4a5e-b964-890900000fa0",
+        "c39436e3-da5e-4cbd-9b58-071adfe3f2e1": "c88cbdf1-1c2a-4a5e-b964-890900000f9f"
       },
       "layers": {
-        "0910987d-3688-428c-a892-e2c400000eb2": {
+        "c88cbdf1-1c2a-4a5e-b964-890900000fa2": {
           "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
-          "id": "0910987d-3688-428c-a892-e2c400000eb2",
+          "id": "c88cbdf1-1c2a-4a5e-b964-890900000fa2",
           "isFrozen": true,
-          "name": "SqActivationLayer/0910987d-3688-428c-a892-e2c400000eb2"
+          "name": "SqActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa2"
         },
-        "0910987d-3688-428c-a892-e2c400000eb1": {
+        "c88cbdf1-1c2a-4a5e-b964-890900000fa1": {
           "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-          "id": "0910987d-3688-428c-a892-e2c400000eb1",
+          "id": "c88cbdf1-1c2a-4a5e-b964-890900000fa1",
           "isFrozen": false,
-          "name": "AvgMetaLayer/0910987d-3688-428c-a892-e2c400000eb1"
+          "name": "AvgMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa1"
         },
-        "0910987d-3688-428c-a892-e2c400000eb5": {
+        "c88cbdf1-1c2a-4a5e-b964-890900000fa5": {
           "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-          "id": "0910987d-3688-428c-a892-e2c400000eb5",
+          "id": "c88cbdf1-1c2a-4a5e-b964-890900000fa5",
           "isFrozen": false,
-          "name": "AvgMetaLayer/0910987d-3688-428c-a892-e2c400000eb5"
+          "name": "AvgMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa5"
         },
-        "0910987d-3688-428c-a892-e2c400000eb4": {
+        "c88cbdf1-1c2a-4a5e-b964-890900000fa4": {
           "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
-          "id": "0910987d-3688-428c-a892-e2c400000eb4",
+          "id": "c88cbdf1-1c2a-4a5e-b964-890900000fa4",
           "isFrozen": true,
-          "name": "SqActivationLayer/0910987d-3688-428c-a892-e2c400000eb4"
+          "name": "SqActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa4"
         },
-        "0910987d-3688-428c-a892-e2c400000eb3": {
+        "c88cbdf1-1c2a-4a5e-b964-890900000fa3": {
           "class": "com.simiacryptus.mindseye.layers.java.LinearActivationLayer",
-          "id": "0910987d-3688-428c-a892-e2c400000eb3",
+          "id": "c88cbdf1-1c2a-4a5e-b964-890900000fa3",
           "isFrozen": false,
-          "name": "LinearActivationLayer/0910987d-3688-428c-a892-e2c400000eb3",
+          "name": "LinearActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa3",
           "weights": {
             "dimensions": [
               2
@@ -71,53 +71,53 @@ Returns:
             ]
           }
         },
-        "0910987d-3688-428c-a892-e2c400000eb0": {
+        "c88cbdf1-1c2a-4a5e-b964-890900000fa0": {
           "class": "com.simiacryptus.mindseye.layers.java.SumInputsLayer",
-          "id": "0910987d-3688-428c-a892-e2c400000eb0",
+          "id": "c88cbdf1-1c2a-4a5e-b964-890900000fa0",
           "isFrozen": false,
-          "name": "SumInputsLayer/0910987d-3688-428c-a892-e2c400000eb0"
+          "name": "SumInputsLayer/c88cbdf1-1c2a-4a5e-b964-890900000fa0"
         },
-        "0910987d-3688-428c-a892-e2c400000eaf": {
+        "c88cbdf1-1c2a-4a5e-b964-890900000f9f": {
           "class": "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer",
-          "id": "0910987d-3688-428c-a892-e2c400000eaf",
+          "id": "c88cbdf1-1c2a-4a5e-b964-890900000f9f",
           "isFrozen": false,
-          "name": "NthPowerActivationLayer/0910987d-3688-428c-a892-e2c400000eaf",
+          "name": "NthPowerActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f9f",
           "power": 0.5
         }
       },
       "links": {
-        "f476951a-0ddb-4fc0-a567-c5aa7adaa28e": [
-          "abba68e5-1dd9-4e37-8924-9fe67e45ab9f"
+        "87709b2a-7c49-4859-aa0c-32b5df380dca": [
+          "88146096-8003-4f2b-a5b8-f3e83c8559c2"
         ],
-        "7f7ec226-7891-49e6-9d9d-d78cfb617d8e": [
-          "f476951a-0ddb-4fc0-a567-c5aa7adaa28e"
+        "0d123abf-d1a9-4f22-a14b-92a54aa87b4b": [
+          "87709b2a-7c49-4859-aa0c-32b5df380dca"
         ],
-        "49d4eb12-2a96-4b14-8c66-1425e56fef9b": [
-          "abba68e5-1dd9-4e37-8924-9fe67e45ab9f"
+        "68015413-fbe2-4a51-b92f-efe94ced9d69": [
+          "88146096-8003-4f2b-a5b8-f3e83c8559c2"
         ],
-        "f93f43e0-63cd-456b-8c57-19f247f6c30c": [
-          "49d4eb12-2a96-4b14-8c66-1425e56fef9b"
+        "24a3776e-2129-4d44-9c19-a14d44e3ce31": [
+          "68015413-fbe2-4a51-b92f-efe94ced9d69"
         ],
-        "70d534aa-248d-42df-808c-4110d11aafad": [
-          "f93f43e0-63cd-456b-8c57-19f247f6c30c"
+        "c5d47345-ab50-4d8b-8693-81b63dadc054": [
+          "24a3776e-2129-4d44-9c19-a14d44e3ce31"
         ],
-        "0954c6ec-c485-497d-bfab-a247c9a9c777": [
-          "7f7ec226-7891-49e6-9d9d-d78cfb617d8e",
-          "70d534aa-248d-42df-808c-4110d11aafad"
+        "1187b106-6bd7-4443-9cba-f787da4f1632": [
+          "0d123abf-d1a9-4f22-a14b-92a54aa87b4b",
+          "c5d47345-ab50-4d8b-8693-81b63dadc054"
         ],
-        "d5329a01-835e-49c8-a973-caa0f21c8aa1": [
-          "0954c6ec-c485-497d-bfab-a247c9a9c777"
+        "c39436e3-da5e-4cbd-9b58-071adfe3f2e1": [
+          "1187b106-6bd7-4443-9cba-f787da4f1632"
         ]
       },
       "labels": {},
-      "head": "d5329a01-835e-49c8-a973-caa0f21c8aa1"
+      "head": "c39436e3-da5e-4cbd-9b58-071adfe3f2e1"
     }
 ```
 
 
 
 ### Network Diagram
-Code from [LayerTestBase.java:95](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L95) executed in 0.20 seconds: 
+Code from [LayerTestBase.java:95](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L95) executed in 0.21 seconds: 
 ```java
     return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
       .height(400).width(600).render(Format.PNG).toImage();
@@ -143,7 +143,7 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.372, 1.46, -1.22 ]]
+    [[ -0.192, 1.96, -1.748 ]]
     --------------------
     Output: 
     [ 0.0, 0.0, 0.0 ]
@@ -158,6 +158,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: StdDevMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f9e
+    Inputs: [ -0.192, 1.96, -1.748 ]
+    output=[ 0.0, 0.0, 0.0 ]
+    measured/actual: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    implemented/expected: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (9#)
     relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)
@@ -171,8 +177,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.3402 +- 0.0444 [0.2308 - 0.5586]
-    Learning performance: 0.1112 +- 0.0335 [0.0826 - 0.3420]
+    Evaluation performance: 0.3607 +- 0.0676 [0.2992 - 0.6782]
+    Learning performance: 0.1018 +- 0.0509 [0.0684 - 0.4987]
     
 ```
 

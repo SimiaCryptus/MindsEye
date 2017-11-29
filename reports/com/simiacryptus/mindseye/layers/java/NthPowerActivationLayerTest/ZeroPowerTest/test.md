@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e88",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f92",
       "isFrozen": false,
-      "name": "NthPowerActivationLayer/0910987d-3688-428c-a892-e2c400000e88",
+      "name": "NthPowerActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f92",
       "power": 0.0
     }
 ```
@@ -39,7 +39,7 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.152, 0.604, -0.32 ]]
+    [[ 0.496, -1.708, 1.04 ]]
     --------------------
     Output: 
     [ 1.0, 1.0, 1.0 ]
@@ -54,6 +54,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
+    Component: NthPowerActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f92
+    Inputs: [ 0.496, -1.708, 1.04 ]
+    output=[ 1.0, 1.0, 1.0 ]
+    measured/actual: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    implemented/expected: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (9#)
     relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)
@@ -67,8 +73,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0107 +- 0.0030 [0.0085 - 0.0371]
-    Learning performance: 0.0006 +- 0.0013 [0.0000 - 0.0086]
+    Evaluation performance: 0.1421 +- 0.0358 [0.0940 - 0.3363]
+    Learning performance: 0.0011 +- 0.0014 [0.0000 - 0.0057]
     
 ```
 

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -70,8 +71,8 @@ public class SimpleEval implements Callable<SimpleEval> {
     NNResult[] inputR = IntStream.range(0,input.length).mapToObj(i->{
       return new NNResult(input[i]) {
         @Override
-        public void accumulate(DeltaSet buffer, TensorList data) {
-          derivative[i].accum(data.get(0));
+        public void accumulate(DeltaSet buffer, TensorList data)  {
+          data.stream().forEach(t->derivative[i].accum(t));
         }
     
         @Override
@@ -80,13 +81,17 @@ public class SimpleEval implements Callable<SimpleEval> {
         }
       };
     }).toArray(i->new NNResult[i]);
-    NNResult result = CudaExecutionContext.gpuContexts.run(cudaExeCtx -> {
+    NNResult result = GpuController.call(cudaExeCtx -> {
       NNResult eval = layer.eval(cudaExeCtx, inputR);
-      new SumReducerLayer().eval(cudaExeCtx, eval).accumulate(new DeltaSet());
+      eval.accumulate(new DeltaSet(), getFeedback(eval.getData()));
       return eval;
     });
     output = result.getData().get(0);
     return this;
+  }
+  
+  public TensorArray getFeedback(TensorList data) {
+    return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
   }
   
   /**

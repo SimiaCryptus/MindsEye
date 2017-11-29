@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.SimpleEval;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.TimedResult;
@@ -81,7 +82,7 @@ public class PerformanceTester {
    */
   protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor... inputPrototype) {
     return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
-      TimedResult.time(()->CudaExecutionContext.gpuContexts.run(exe->{
+      TimedResult.time(()-> GpuController.call(exe->{
         return component.eval(exe, inputPrototype);
       })).timeNanos
     ).mapToDouble(x->x/1e9).toArray());
@@ -97,7 +98,7 @@ public class PerformanceTester {
    */
   protected DoubleStatistics testLearningPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
     return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l ->
-      CudaExecutionContext.gpuContexts.run(exe->{
+      GpuController.call(exe->{
         NNResult eval = component.eval(exe, inputPrototype);
         return TimedResult.time(() -> {
           DeltaSet buffer = new DeltaSet();

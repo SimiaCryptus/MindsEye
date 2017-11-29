@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
 
 public class ConvolutionLayerTest extends F32LayerTestBase {
   final int radius;
@@ -60,6 +61,11 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
     return new int[][]{
       {radius, radius, inputBands}
     };
+  }
+  
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-2, 1e-4);
   }
   
   /**

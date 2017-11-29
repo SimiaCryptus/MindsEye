@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MaxDropoutNoiseLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e52",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f7f",
       "isFrozen": false,
-      "name": "MaxDropoutNoiseLayer/0910987d-3688-428c-a892-e2c400000e52",
+      "name": "MaxDropoutNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7f",
       "kernelSize": [
         2,
         2
@@ -42,10 +42,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.624, -1.912, -1.488 ]]
+    [[ 1.284, 0.212, -0.172 ]]
     --------------------
     Output: 
-    [ 0.624, -0.0, -1.488 ]
+    [ 1.284, 0.0, -0.172 ]
 ```
 
 
@@ -57,21 +57,27 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: MaxDropoutNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7f
+    Inputs: [ 1.284, 0.212, -0.172 ]
+    output=[ 1.284, 0.0, -0.172 ]
+    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.2336e-12 +- 2.3554e-12 [0.0000e+00 - 6.5510e-12] (9#)
-    relativeTol: 2.7755e-12 +- 4.9996e-13 [2.2756e-12 - 3.2755e-12] (2#)
+    absoluteTol: 2.4474e-14 +- 4.5787e-14 [0.0000e+00 - 1.1013e-13] (9#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (2#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.01 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0944 +- 0.0411 [0.0826 - 0.4617]
-    Learning performance: 0.0016 +- 0.0017 [0.0000 - 0.0114]
+    Evaluation performance: 0.2395 +- 0.0764 [0.1795 - 0.8635]
+    Learning performance: 0.0030 +- 0.0034 [0.0000 - 0.0257]
     
 ```
 

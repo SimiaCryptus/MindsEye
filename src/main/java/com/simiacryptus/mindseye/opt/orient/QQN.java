@@ -94,4 +94,44 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
   }
   
   
+  /**
+   * Gets min history.
+   *
+   * @return the min history
+   */
+  public int getMinHistory() {
+    return inner.getMinHistory();
+  }
+  
+  /**
+   * Sets min history.
+   *
+   * @param minHistory the min history
+   * @return the min history
+   */
+  public QQN setMinHistory(int minHistory) {
+    inner.setMinHistory(minHistory);
+    return this;
+  }
+  
+  /**
+   * Gets max history.
+   *
+   * @return the max history
+   */
+  public int getMaxHistory() {
+    return inner.getMaxHistory();
+  }
+  
+  /**
+   * Sets max history.
+   *
+   * @param maxHistory the max history
+   * @return the max history
+   */
+  public QQN setMaxHistory(int maxHistory) {
+    inner.setMaxHistory(maxHistory);
+    return this;
+  }
+  
 }

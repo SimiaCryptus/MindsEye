@@ -106,6 +106,17 @@ public class ConvolutionLayer extends NNLayer {
     this(width, height, inputBands * outputBands);
   }
   
+  public ConvolutionLayer setWeightsLog(double w) {
+    setWeights(()->Math.exp(w)*(Math.random()-0.5));
+    return this;
+  }
+  
+  public ConvolutionLayer setStrideXY(int x,int y) {
+    strideX = x;
+    strideY = y;
+    return this;
+  }
+  
   /**
    * From json convolution layer.
    *
@@ -186,7 +197,6 @@ public class ConvolutionLayer extends NNLayer {
               int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
               filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], bandT, batchDelta.get(batchCoord));
             }
-            //if (band < filterDimensions[2]) filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], band, batchDelta.get(batchCoord));
           });
         }
         inputDelta.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(filterDelta.getData());

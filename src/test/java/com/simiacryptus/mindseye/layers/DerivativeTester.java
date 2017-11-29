@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.SimpleEval;
 import com.simiacryptus.util.io.KryoUtil;
@@ -28,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 /**
@@ -81,7 +84,54 @@ public class DerivativeTester {
     System.out.println(String.format("Finite-Difference Derivative Accuracy:"));
     System.out.println(String.format("absoluteTol: %s", statistics.absoluteTol));
     System.out.println(String.format("relativeTol: %s", statistics.relativeTol));
+    
+    //testFrozen(component, inputPrototype);
+  
     return statistics;
+  }
+  
+  public void testFrozen(NNLayer component, Tensor[] inputPrototype) {
+    AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
+    NNLayer frozen = component.copy().freeze();
+    GpuController.run(exe->{
+      NNResult eval = frozen.eval(exe, Arrays.stream(inputPrototype).map((Tensor x) -> new NNResult(x) {
+        @Override
+        public void accumulate(DeltaSet buffer, TensorList data) {
+          reachedInputFeedback.set(true);
+        }
+        
+        @Override
+        public boolean isAlive() {
+          return true;
+        }
+      }).<NNResult>toArray(i -> new NNResult[i]));
+      DeltaSet buffer = new DeltaSet();
+      eval.accumulate(buffer, eval.getData());
+      if (buffer.getMap().containsKey(component)) throw new AssertionError("Frozen component listed in delta");
+      if(!reachedInputFeedback.get()) throw new RuntimeException("Frozen component did not pass input backwards");
+    });
+  }
+  
+  public void testUnFrozen(NNLayer component, Tensor[] inputPrototype) {
+    AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
+    NNLayer frozen = component.copy().freeze();
+    GpuController.run(exe->{
+      NNResult eval = frozen.eval(exe, Arrays.stream(inputPrototype).map((Tensor x) -> new NNResult(x) {
+        @Override
+        public void accumulate(DeltaSet buffer, TensorList data) {
+          reachedInputFeedback.set(true);
+        }
+        
+        @Override
+        public boolean isAlive() {
+          return true;
+        }
+      }).<NNResult>toArray(i -> new NNResult[i]));
+      DeltaSet buffer = new DeltaSet();
+      eval.accumulate(buffer, eval.getData());
+      if (!buffer.getMap().containsKey(component)) throw new AssertionError("Frozen component not listed in delta");
+      if(!reachedInputFeedback.get()) throw new RuntimeException("Non-Frozen component did not pass input backwards");
+    });
   }
   
   private Tensor getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
@@ -136,16 +186,12 @@ public class DerivativeTester {
       final int j_ = j;
       final DeltaSet buffer = new DeltaSet();
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
-      
-      GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (d, exe) -> {
-          NNResult eval = component.eval(exe, NNResult.batchResultArray(d.toArray(new Tensor[][]{})));
-          Tensor tensor = eval.getData().get(0);
-          eval.accumulate(buffer, new TensorArray(data));
-          return tensor;
-        }, (a, b) -> a.add(b));
-      
-      
+      GpuController.call(exe->{
+        NNResult eval = component.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype}));
+        Tensor tensor = eval.getData().get(0);
+        eval.accumulate(buffer, new TensorArray(data));
+        return tensor;
+      });
       final DoubleBuffer deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().get();
       for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
@@ -156,22 +202,18 @@ public class DerivativeTester {
   
   private Tensor measureFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
-    
-    Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-      (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-      (a, b) -> a.add(b));
-    
+    Tensor baseOutput = GpuController.call(exe->{
+      return component.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+    });
     outputPrototype.set(baseOutput);
     for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
       final Tensor inputProbe = inputPrototype[inputIndex].copy();
       inputProbe.add(i, probeSize * 1);
       final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
-      
-      Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(copyInput),
-        (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-        (a, b) -> a.add(b));
-      
+      Tensor evalProbe = GpuController.call(exe->{
+        return component.eval(exe, NNResult.batchResultArray(new Tensor[][]{copyInput})).getData().get(0);
+      });
       final Tensor delta = evalProbe.minus(baseOutput).scale(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
@@ -183,18 +225,18 @@ public class DerivativeTester {
   private Tensor measureLearningGradient(final NNLayer component, final int layerNum, final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
-    
-    Tensor baseOutput = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-      (data, exe) -> component.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-      (a, b) -> a.add(b));
+  
+    Tensor baseOutput = GpuController.call(exe -> {
+      return component.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+    });
     
     for (int i = 0; i < stateLen; i++) {
       final NNLayer copy = KryoUtil.kryo().copy(component);
       copy.state().get(layerNum)[i] += probeSize;
       
-      Tensor evalProbe = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-        (data, exe) -> copy.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-        (a, b) -> a.add(b));
+      Tensor evalProbe = GpuController.call(exe->{
+        return copy.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
+      });
       
       final Tensor delta = evalProbe.minus(baseOutput).scale(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
@@ -222,6 +264,10 @@ public class DerivativeTester {
       }).reduce((a, b) -> a.combine(b)).get();
   
       if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
+      System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(), outputPrototype.prettyPrint()));
+      System.out.println(String.format("measured/actual: %s", measuredGradient.prettyPrint()));
+      System.out.println(String.format("implemented/expected: %s", implementedGradient.prettyPrint()));
+      System.out.println(String.format("error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
       return result;
     } catch (final Throwable e) {
       System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(), outputPrototype.prettyPrint()));
@@ -253,6 +299,12 @@ public class DerivativeTester {
       if (!(result.absoluteTol.getMax() < tolerance)) {
         throw new AssertionError(result.toString());
       } else {
+        System.out.println(String.format("Component: %s", component));
+        System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get()));
+        System.out.println(String.format("Outputs: %s", outputPrototype.prettyPrint()));
+        System.out.println(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+        System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+        System.out.println(String.format("Error: %s", error.prettyPrint()));
         return result;
       }
     } catch (final Throwable e) {
@@ -261,7 +313,7 @@ public class DerivativeTester {
       System.out.println(String.format("Outputs: %s", outputPrototype.prettyPrint()));
       System.out.println(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
       System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-      System.out.println(String.format("%s", error.prettyPrint()));
+      System.out.println(String.format("Error: %s", error.prettyPrint()));
       throw e;
     }
     

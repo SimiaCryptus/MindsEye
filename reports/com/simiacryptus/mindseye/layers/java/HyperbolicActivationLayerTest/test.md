@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.HyperbolicActivationLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e27",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f71",
       "isFrozen": false,
-      "name": "HyperbolicActivationLayer/0910987d-3688-428c-a892-e2c400000e27",
+      "name": "HyperbolicActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f71",
       "weights": {
         "dimensions": [
           2
@@ -40,7 +40,7 @@ Code from [LayerTestBase.java:111](../../../../../../../../MindsEye/src/test/jav
     SimpleEval eval = SimpleEval.run(layer, input);
     DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s",
-      Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+      Arrays.stream(input).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
       eval.getOutput().prettyPrint(), error);
 ```
 
@@ -49,7 +49,7 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.216, 1.84, -1.5 ]]
+    [[ 0.0 ]]
     --------------------
     Output: 
     [ 0.0 ]
@@ -65,9 +65,21 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: HyperbolicActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f71
+    Inputs: [ 1.808, 1.936, -1.68 ]
+    output=[ 1.0661229392269957, 1.179012620431557, 0.9550959055759898 ]
+    measured/actual: [ [ 0.8750746036945145, 0.0, 0.0 ], [ 0.0, 0.8884806411613155, 0.0 ], [ 0.0, 0.0, -0.8592861935041718 ] ]
+    implemented/expected: [ [ 0.8750689349959165, 0.0, 0.0 ], [ 0.0, 0.888475808651614, 0.0 ], [ -0.0, -0.0, -0.8592928844097067 ] ]
+    error: [ [ 5.668698597971478E-6, 0.0, 0.0 ], [ 0.0, 4.832509701513388E-6, 0.0 ], [ 0.0, 0.0, 6.690905534956215E-6 ] ]
+    Component: HyperbolicActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f71
+    Inputs: [ 1.808, 1.936, -1.68 ]
+    Outputs: [ 1.0661229392269957, 1.179012620431557, 0.9550959055759898 ]
+    Measured Gradient: [ [ -0.48393138205593544, -0.4588594569066018, 0.0 ], [ 0.0, 0.0, -0.5114138361972387 ] ]
+    Implemented Gradient: [ [ -0.4839983047543786, -0.458923454882032, 0.0 ], [ 0.0, 0.0, -0.5114838597676826 ] ]
+    Error: [ [ 6.692269844316145E-5, 6.39979754302189E-5, 0.0 ], [ 0.0, 0.0, 7.002357044394447E-5 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.0097e-06 +- 3.2828e-06 [0.0000e+00 - 9.9923e-06] (15#)
-    relativeTol: 5.1088e-06 +- 3.7748e-06 [3.0982e-07 - 1.1058e-05] (6#)
+    absoluteTol: 1.4542e-05 +- 2.6338e-05 [0.0000e+00 - 7.0024e-05] (15#)
+    relativeTol: 3.6196e-05 +- 3.2916e-05 [2.7195e-06 - 6.9731e-05] (6#)
     
 ```
 
@@ -78,8 +90,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0297 +- 0.0137 [0.0228 - 0.1510]
-    Learning performance: 0.0363 +- 0.0066 [0.0314 - 0.0855]
+    Evaluation performance: 0.1693 +- 0.0388 [0.1140 - 0.2736]
+    Learning performance: 0.0574 +- 0.0190 [0.0399 - 0.1795]
     
 ```
 

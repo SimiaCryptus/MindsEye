@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.ProductLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e94",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f95",
       "isFrozen": false,
-      "name": "ProductLayer/0910987d-3688-428c-a892-e2c400000e94"
+      "name": "ProductLayer/c88cbdf1-1c2a-4a5e-b964-890900000f95"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.304, 1.1, 0.076 ]]
+    [[ 1.9, -1.056, -0.024 ]]
     --------------------
     Output: 
-    [ -0.10901440000000001 ]
+    [ 0.048153600000000005 ]
 ```
 
 
@@ -53,9 +53,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: ProductLayer/c88cbdf1-1c2a-4a5e-b964-890900000f95
+    Inputs: [ 1.9, -1.056, -0.024 ]
+    output=[ 0.048153600000000005 ]
+    measured/actual: [ [ 0.025343999999968836 ], [ -0.045600000000076135 ], [ -2.00639999999995 ] ]
+    implemented/expected: [ [ 0.025344000000000002 ], [ -0.0456 ], [ -2.0064 ] ]
+    error: [ [ -3.1166041969399316E-14 ], [ -7.613354391367011E-14 ], [ 5.0182080713057076E-14 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 9.1717e-13 +- 4.2293e-13 [4.0555e-13 - 1.4413e-12] (3#)
-    relativeTol: 2.4974e-12 +- 1.6590e-12 [5.0240e-13 - 4.5643e-12] (3#)
+    absoluteTol: 5.2494e-14 +- 1.8431e-14 [3.1166e-14 - 7.6134e-14] (3#)
+    relativeTol: 4.8739e-13 +- 3.4759e-13 [1.2506e-14 - 8.3480e-13] (3#)
     
 ```
 
@@ -66,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0231 +- 0.0034 [0.0200 - 0.0541]
-    Learning performance: 0.0018 +- 0.0014 [0.0000 - 0.0057]
+    Evaluation performance: 0.1537 +- 0.0396 [0.1054 - 0.3448]
+    Learning performance: 0.0018 +- 0.0017 [0.0000 - 0.0086]
     
 ```
 

@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.BiasLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000df9",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f64",
       "isFrozen": false,
-      "name": "BiasLayer/0910987d-3688-428c-a892-e2c400000df9",
+      "name": "BiasLayer/c88cbdf1-1c2a-4a5e-b964-890900000f64",
       "bias": [
         0.0,
         0.0,
@@ -43,10 +43,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.416, 0.056, 0.46 ]]
+    [[ 1.456, -0.672, 1.46 ]]
     --------------------
     Output: 
-    [ 0.416, 0.056, 0.46 ]
+    [ 1.456, -0.672, 1.46 ]
 ```
 
 
@@ -58,21 +58,33 @@ Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
+    Component: BiasLayer/c88cbdf1-1c2a-4a5e-b964-890900000f64
+    Inputs: [ 1.456, -0.672, 1.46 ]
+    output=[ 1.456, -0.672, 1.46 ]
+    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Component: BiasLayer/c88cbdf1-1c2a-4a5e-b964-890900000f64
+    Inputs: [ 1.456, -0.672, 1.46 ]
+    Outputs: [ 1.456, -0.672, 1.46 ]
+    Measured Gradient: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    Implemented Gradient: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.5619e-13 +- 4.0857e-13 [0.0000e+00 - 9.9987e-13] (18#)
-    relativeTol: 3.8429e-13 +- 1.6355e-13 [1.5299e-13 - 4.9993e-13] (6#)
+    absoluteTol: 3.6711e-14 +- 5.1918e-14 [0.0000e+00 - 1.1013e-13] (18#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (6#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.01 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0803 +- 0.0601 [0.0456 - 0.4987]
-    Learning performance: 0.0412 +- 0.0133 [0.0313 - 0.1168]
+    Evaluation performance: 0.1905 +- 0.0528 [0.1453 - 0.4360]
+    Learning performance: 0.0586 +- 0.0331 [0.0399 - 0.3306]
     
 ```
 

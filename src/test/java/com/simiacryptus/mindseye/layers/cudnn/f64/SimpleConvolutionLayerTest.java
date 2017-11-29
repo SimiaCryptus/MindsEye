@@ -65,9 +65,9 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
       int bandY = (band-bandX) / bands;
       assert band == bandX + bandY * bands;
       int bandT = bandY + bandX * bands;
-      return layer.filter.get(c.coords[0],c.coords[1], band);
+      return layer.filter.get(c.coords[0],c.coords[1], bandT);
     });
-    convolutionLayer.kernel.set(layer.filter);
+    convolutionLayer.kernel.set(tensor);
     return convolutionLayer;
   }
   
@@ -80,7 +80,7 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
 
   public static class MultiBand extends SimpleConvolutionLayerTest {
     public MultiBand() {
-      super(1,2);
+      super(3,3);
     }
   }
   

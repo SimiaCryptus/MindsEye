@@ -112,7 +112,7 @@ public abstract class LayerTestBase {
           SimpleEval eval = SimpleEval.run(layer, input);
           DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
           return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s",
-            Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+            Arrays.stream(input).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
             eval.getOutput().prettyPrint(), error);
         });
       });
@@ -225,7 +225,7 @@ public abstract class LayerTestBase {
    * @return the derivative tester
    */
   public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-4, 1e-5);
+    return new DerivativeTester(1e-4, 1e-4);
   }
   
   /**

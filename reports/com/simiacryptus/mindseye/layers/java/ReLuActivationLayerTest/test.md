@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.ReLuActivationLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e95",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f96",
       "isFrozen": true,
-      "name": "ReLuActivationLayer/0910987d-3688-428c-a892-e2c400000e95",
+      "name": "ReLuActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f96",
       "weights": {
         "dimensions": [
           1
@@ -46,10 +46,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.28, -0.2, 0.364 ]]
+    [[ -1.424, -0.936, 0.492 ]]
     --------------------
     Output: 
-    [ 0.28, 0.0, 0.364 ]
+    [ 0.0, 0.0, 0.492 ]
 ```
 
 
@@ -61,9 +61,21 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: ReLuActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f96
+    Inputs: [ -1.424, -0.936, 0.492 ]
+    output=[ 0.0, 0.0, 0.492 ]
+    measured/actual: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Component: ReLuActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f96
+    Inputs: [ -1.424, -0.936, 0.492 ]
+    Outputs: [ 0.0, 0.0, 0.492 ]
+    Measured Gradient: [ [ 0.0, 0.0, 0.4919999999997149 ] ]
+    Implemented Gradient: [ [ 0.0, 0.0, 0.492 ] ]
+    Error: [ [ 0.0, 0.0, -2.851052727237402E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 5.9963e-13 +- 9.6619e-13 [0.0000e+00 - 2.6955e-12] (12#)
-    relativeTol: 2.2918e-12 +- 1.8121e-12 [4.9993e-13 - 4.4650e-12] (4#)
+    absoluteTol: 3.2937e-14 +- 8.1852e-14 [0.0000e+00 - 2.8511e-13] (12#)
+    relativeTol: 1.7240e-13 +- 1.1734e-13 [5.5067e-14 - 2.8974e-13] (2#)
     
 ```
 
@@ -74,8 +86,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0527 +- 0.0147 [0.0484 - 0.1710]
-    Learning performance: 0.0380 +- 0.0107 [0.0314 - 0.1026]
+    Evaluation performance: 0.1895 +- 0.0460 [0.1396 - 0.3306]
+    Learning performance: 0.0541 +- 0.0173 [0.0371 - 0.1567]
     
 ```
 

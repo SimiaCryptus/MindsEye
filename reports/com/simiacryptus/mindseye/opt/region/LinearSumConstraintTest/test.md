@@ -1,7 +1,7 @@
 ### Model
 This is a very simple model that performs basic logistic regression. It is expected to be trainable to about 91% accuracy on MNIST.
 
-Code from [MnistTestBase.java:272](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L272) executed in 0.00 seconds: 
+Code from [MnistTestBase.java:295](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L295) executed in 0.00 seconds: 
 ```java
     PipelineNetwork network = new PipelineNetwork();
     network.add(new BiasLayer(28, 28, 1));
@@ -14,13 +14,13 @@ Code from [MnistTestBase.java:272](../../../../../../../../MindsEye/src/test/jav
 Returns: 
 
 ```
-    PipelineNetwork/e1035fb9-1fe3-4846-a360-622900000051
+    PipelineNetwork/3cc8990a-29bd-4377-9ee9-863800000049
 ```
 
 
 
 ### Training
-Code from [LinearSumConstraintTest.java:43](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/opt/region/LinearSumConstraintTest.java#L43) executed in 182.16 seconds: 
+Code from [LinearSumConstraintTest.java:43](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/opt/region/LinearSumConstraintTest.java#L43) executed in 182.23 seconds: 
 ```java
     SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
     Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
@@ -43,69 +43,70 @@ Logging:
 ```
     LBFGS Accumulation History: 1 points
     Constructing line search parameters: GD+Trust
-    Returning cached value; 2 buffers unchanged since 0.0 => 2.453916458205654
-    th(0)=2.453916458205654;dx=-319096.15812707774
-    Armijo: th(2.154434690031884)=15.221932953739579; dx=-1.0567423826657749E-5 delta=-12.768016495533924
-    Armijo: th(1.077217345015942)=16.786905113830848; dx=0.007126348981736195 delta=-14.332988655625194
-    Armijo: th(0.3590724483386473)=17.188692806121473; dx=0.059543350437347584 delta=-14.734776347915819
-    Armijo: th(0.08976811208466183)=17.43656284728624; dx=1.1649632324239945 delta=-14.982646389080585
-    Armijo: th(0.017953622416932366)=18.026388219349236; dx=12.304428731701307 delta=-15.572471761143582
-    Armijo: th(0.002992270402822061)=17.358999157358497; dx=981.1482008557591 delta=-14.905082699152842
-    Armijo: th(4.2746720040315154E-4)=8.146605561026709; dx=35370.86735398066 delta=-5.6926891028210544
-    New Minimum: 2.453916458205654 > 1.8773570070040089
-    WOLF (strong): th(5.343340005039394E-5)=1.8773570070040089; dx=5819.676565887444 delta=0.576559451201645
-    END: th(5.9370444500437714E-6)=2.29346874932281; dx=-48116.80853120228 delta=0.160447708882844
-    Iteration 1 complete. Error: 1.8773570070040089 Total: 183811235349988.7500; Orientation: 0.0027; Line Search: 12.6399
+    Returning cached value; 2 buffers unchanged since 0.0 => 2.433649456323333
+    th(0)=2.433649456323333;dx=-415005.08950926317
+    Armijo: th(2.154434690031884)=19.645656013425196; dx=-2.556137595321686E-17 delta=-17.212006557101862
+    Armijo: th(1.077217345015942)=19.19250726712397; dx=2.5663169286857956E-18 delta=-16.758857810800635
+    Armijo: th(0.3590724483386473)=19.374202351836992; dx=0.012311230599118844 delta=-16.940552895513658
+    Armijo: th(0.08976811208466183)=19.602089961795315; dx=0.2779053745397098 delta=-17.16844050547198
+    Armijo: th(0.017953622416932366)=19.587523419515904; dx=5.678392138766885 delta=-17.15387396319257
+    Armijo: th(0.002992270402822061)=19.42517231495026; dx=182.76966271419465 delta=-16.991522858626926
+    Armijo: th(4.2746720040315154E-4)=16.20132177661998; dx=32106.944684350707 delta=-13.767672320296647
+    Armijo: th(5.343340005039394E-5)=2.46931002224201; dx=63878.4349582583 delta=-0.03566056591867728
+    New Minimum: 2.433649456323333 > 2.2464475881108794
+    END: th(5.9370444500437714E-6)=2.2464475881108794; dx=-55897.591070996285 delta=0.18720186821245344
+    Iteration 1 complete. Error: 2.2464475881108794 Total: 13963486722845.1110; Orientation: 0.0034; Line Search: 8.2756
     LBFGS Accumulation History: 2 points
-    Returning cached value; 2 buffers unchanged since 0.0 => 1.8773570070040089
-    th(0)=1.8773570070040089;dx=-648833.1811257699
-    Armijo: th(1.279097451943557E-5)=2.747627533891606; dx=411580.18587180716 delta=-0.8702705268875972
-    New Minimum: 1.8773570070040089 > 1.6342211278577392
-    WOLF (strong): th(6.395487259717785E-6)=1.6342211278577392; dx=248451.4784937382 delta=0.24313587914626966
-    New Minimum: 1.6342211278577392 > 1.46584171672353
-    END: th(2.131829086572595E-6)=1.46584171672353; dx=-178536.20044407426 delta=0.41151529028047884
-    Iteration 2 complete. Error: 1.46584171672353 Total: 183815644458109.7500; Orientation: 0.0021; Line Search: 4.4069
+    Returning cached value; 2 buffers unchanged since 0.0 => 2.2464475881108794
+    th(0)=2.2464475881108794;dx=-312342.4119629793
+    New Minimum: 2.2464475881108794 > 1.8142361764058053
+    WOLF (strong): th(1.279097451943557E-5)=1.8142361764058053; dx=119548.20066142976 delta=0.43221141170507416
+    New Minimum: 1.8142361764058053 > 1.6719242904506664
+    END: th(6.395487259717785E-6)=1.6719242904506664; dx=-52503.82974295158 delta=0.574523297660213
+    Iteration 2 complete. Error: 1.6719242904506664 Total: 13965487937414.5140; Orientation: 0.0006; Line Search: 2.0005
     LBFGS Accumulation History: 3 points
-    Returning cached value;
+    Returning cached value; 2 buffers unchanged since 0.0 => 1.6719242904506664
+    th(0)=1.6719242904506664;dx=-357970.7469841741
 ```
-...[skipping 38433 bytes](etc/1.txt)...
+...[skipping 59478 bytes](etc/1.txt)...
 ```
-    : th(3.881555551278108E-6)=0.3888511909017417; dx=-257.07716496137607 delta=0.0011258866045729121
-    Iteration 60 complete. Error: 0.3888511909017417 Total: 183971577954540.3000; Orientation: 0.0266; Line Search: 2.8789
-    Orientation vanished. Popping history element from 0.3926478238864606, 0.3911343088175502, 0.3899770775063146, 0.3888511909017417
+    837165E-4
+    Iteration 91 complete. Error: 0.3328550775135105 Total: 14130213473806.7620; Orientation: 0.0009; Line Search: 0.9736
+    Orientation vanished. Popping history element from 0.33586187724848693, 0.33438682179598817, 0.3335096896226942, 0.3328550775135105
     LBFGS Accumulation History: 3 points
-    Returning cached value; 2 buffers unchanged since 0.0 => 0.3888511909017417
-    th(0)=0.3888511909017417;dx=-390.37632600101307
-    New Minimum: 0.3888511909017417 > 0.3876040235810906
-    END: th(8.362557930959388E-6)=0.3876040235810906; dx=-295.0136032313399 delta=0.0012471673206511102
-    Iteration 61 complete. Error: 0.3876040235810906 Total: 183973041168102.4000; Orientation: 0.0020; Line Search: 1.4611
-    Orientation vanished. Popping history element from 0.3911343088175502, 0.3899770775063146, 0.3888511909017417, 0.3876040235810906
+    Returning cached value; 2 buffers unchanged since 0.0 => 0.3328550775135105
+    th(0)=0.3328550775135105;dx=-189.34852494332358
+    New Minimum: 0.3328550775135105 > 0.331500078278377
+    END: th(1.964100856443076E-5)=0.331500078278377; dx=-137.02424910968156 delta=0.0013549992351334916
+    Iteration 92 complete. Error: 0.331500078278377 Total: 14131197553460.7870; Orientation: 0.0014; Line Search: 0.9825
+    Orientation vanished. Popping history element from 0.33438682179598817, 0.3335096896226942, 0.3328550775135105, 0.331500078278377
     LBFGS Accumulation History: 3 points
-    Returning cached value; 2 buffers unchanged since 0.0 => 0.3876040235810906
-    th(0)=0.3876040235810906;dx=-382.4912980846053
-    New Minimum: 0.3876040235810906 > 0.38502779284532307
-    END: th(1.801658490386016E-5)=0.38502779284532307; dx=-276.73864910637366 delta=0.002576230735767515
-    Iteration 62 complete. Error: 0.38502779284532307 Total: 183974494222470.9700; Orientation: 0.0011; Line Search: 1.4518
-    Orientation vanished. Popping history element from 0.3899770775063146, 0.3888511909017417, 0.3876040235810906, 0.38502779284532307
+    Returning cached value; 2 buffers unchanged since 0.0 => 0.331500078278377
+    th(0)=0.331500078278377;dx=-184.88332451881863
+    New Minimum: 0.331500078278377 > 0.3287377678683504
+    END: th(4.231527019842296E-5)=0.3287377678683504; dx=-126.38079484470623 delta=0.002762310410026614
+    Iteration 93 complete. Error: 0.3287377678683504 Total: 14132165402142.8030; Orientation: 0.0011; Line Search: 0.9666
+    Orientation vanished. Popping history element from 0.3335096896226942, 0.3328550775135105, 0.331500078278377, 0.3287377678683504
     LBFGS Accumulation History: 3 points
-    Returning cached value; 2 buffers unchanged since 0.0 => 0.38502779284532307
-    th(0)=0.38502779284532307;dx=-395.9869024725056
-    New Minimum: 0.38502779284532307 > 0.38236272914321723
-    WOLF (strong): th(3.881555551278108E-5)=0.38236272914321723; dx=32.39934429692056 delta=0.002665063702105841
-    END: th(1.940777775639054E-5)=0.38303275503176015; dx=-122.40164380060375 delta=0.0019950378135629165
-    Iteration 63 complete. Error: 0.38236272914321723 Total: 183977405334004.5000; Orientation: 0.0010; Line Search: 2.9100
+    Returning cached value; 2 buffers unchanged since 0.0 => 0.3287377678683504
+    th(0)=0.3287377678683504;dx=-198.72525577304202
+    Armijo: th(9.116548603355478E-5)=0.33077194221678063; dx=232.85097018500517 delta=-0.002034174348430229
+    New Minimum: 0.3287377678683504 > 0.3278568419760609
+    WOLF (strong): th(4.558274301677739E-5)=0.3278568419760609; dx=56.758361758352464 delta=8.809258922894969E-4
+    END: th(1.519424767225913E-5)=0.32795131861855875; dx=-71.97430093019959 delta=7.864492497916542E-4
+    Iteration 94 complete. Error: 0.3278568419760609 Total: 14135108525772.8340; Orientation: 0.0015; Line Search: 2.9415
     
 ```
 
 Returns: 
 
 ```
-    0.38236272914321723
+    0.3278568419760609
 ```
 
 
 
-Code from [MnistTestBase.java:131](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L131) executed in 0.01 seconds: 
+Code from [MnistTestBase.java:141](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L141) executed in 0.01 seconds: 
 ```java
     PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
     plot.setTitle("Convergence Plot");
@@ -123,7 +124,7 @@ Returns:
 Saved model as [model0.json](etc/model0.json)
 
 ### Metrics
-Code from [MnistTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L144) executed in 0.67 seconds: 
+Code from [MnistTestBase.java:154](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L154) executed in 0.55 seconds: 
 ```java
     try {
       ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -138,122 +139,122 @@ Returns:
 
 ```
     [ "java.util.HashMap", {
-      "FullyConnectedLayer/e1035fb9-1fe3-4846-a360-622900000053" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.01185088381290323,
+      "BiasLayer/3cc8990a-29bd-4377-9ee9-86380000004a" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.012433837360869565,
         "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 8.247312577258066E-6,
-        "totalItems" : 1240000,
+        "avgMsPerItem_Backward" : 2.9832004897826106E-6,
+        "totalItems" : 1840000,
         "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -6.360436070769375,
-          "tp50" : -2.0693147662860594E-5,
-          "negative" : 5000,
-          "min" : -1.997218190295749E-4,
-          "max" : 1.7213319134042944E-4,
-          "tp90" : -1.9362760695330373E-6,
-          "mean" : -8.33568885933833E-23,
-          "count" : 50000.0,
-          "positive" : 45000,
-          "stdDev" : 2.5837025487965878E-5,
-          "tp75" : -6.223591836863561E-6,
+          "meanExponent" : -8.67914249886011,
+          "tp50" : -2.349909754557481E-7,
+          "negative" : 1876192,
+          "min" : -8.812828955119639E-8,
+          "max" : 7.4962830250826E-8,
+          "tp90" : -2.037024543097599E-7,
+          "mean" : -2.7028671127914617E-11,
+          "count" : 3920000.0,
+          "positive" : 2043808,
+          "stdDev" : 2.7495036671763147E-8,
+          "tp75" : -2.1333318079161294E-7,
           "zeros" : 0
         } ],
-        "totalBatches" : 248,
+        "totalBatches" : 368,
         "weights" : [ "java.util.HashMap", {
           "tp50" : "NaN",
           "buffers" : 1,
-          "max" : 0.002162567163704902,
+          "max" : 9.002328270856454E-9,
           "tp90" : "NaN",
-          "count" : 7840.0,
-          "positive" : 4259,
+          "count" : 784.0,
+          "positive" : 391,
           "tp75" : "NaN",
           "zeros" : 0,
-          "meanExponent" : -4.140865173111277,
-          "negative" : 3581,
-          "min" : -0.001722301557936319,
-          "mean" : 3.6975414634750556E-5,
-          "stdDev" : 3.3834568722512884E-4
-        } ],
-        "class" : "com.simiacryptus.mindseye.layers.java.FullyConnectedLayer",
-        "outputStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : 0.17941798830952976,
-          "tp50" : -3.6705335429451327,
-          "negative" : 20048,
-          "min" : -6.1066008496414,
-          "max" : 9.982214100674414,
-          "tp90" : -2.907144737054511,
-          "mean" : 0.8877891424913665,
-          "count" : 50000.0,
-          "positive" : 29952,
-          "stdDev" : 3.0341899315088177,
-          "tp75" : -3.1624493626180725,
-          "zeros" : 0
-        } ],
-        "medianMsPerItem_Backward" : "NaN"
-      } ],
-      "BiasLayer/e1035fb9-1fe3-4846-a360-622900000052" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.01786764980080646,
-        "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 4.424246208225806E-6,
-        "totalItems" : 1240000,
-        "backpropSt
-```
-...[skipping 803 bytes](etc/2.txt)...
-```
-    8,
-          "min" : -7.695686497072642E-9,
-          "mean" : -8.802390277427331E-11,
-          "stdDev" : 1.0429811271936584E-9
+          "meanExponent" : -9.832878770859363,
+          "negative" : 393,
+          "min" : -1.3440107133178546E-8,
+          "mean" : -1.4088222191961346E-10,
+          "stdDev" : 2.031898876575874E-9
         } ],
         "class" : "com.simiacryptus.mindseye.layers.java.BiasLayer",
         "outputStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -7.969039017332885,
-          "tp50" : -7.695686497072642E-9,
-          "negative" : 1519825,
-          "min" : -2.4127817748312226E-11,
-          "max" : -2.4127817748312226E-11,
-          "tp90" : -6.7253189227462945E-9,
-          "mean" : 33.470370152970126,
+          "meanExponent" : -7.602958311948974,
+          "tp50" : -1.3440107133178546E-8,
+          "negative" : 1574693,
+          "min" : -1.2207470406512945E-11,
+          "max" : -1.2207470406512945E-11,
+          "tp90" : -1.2545520306356636E-8,
+          "mean" : 33.1147438774133,
           "count" : 3920000.0,
-          "positive" : 2400175,
-          "stdDev" : 78.74328533487063,
-          "tp75" : -6.7253189227462945E-9,
+          "positive" : 2345307,
+          "stdDev" : 78.3174209296068,
+          "tp75" : -1.2545520306356636E-8,
           "zeros" : 0
         } ],
         "medianMsPerItem_Backward" : "NaN"
       } ],
-      "SoftmaxActivationLayer/e1035fb9-1fe3-4846-a360-622900000054" : [ "java.util.HashMap", {
-        "avgMsPerItem" : 0.0032025145185483857,
+      "FullyConnectedLayer/3cc8990a-29bd-4377-9ee9-86380000004b" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.007937926790217395,
         "medianMsPerItem" : "NaN",
-        "avgMsPerItem_Backward" : 1.6118773016129016E-7,
-        "totalItems" : 1240000,
+        "avgMsPerItem_Backward" : 6.005000778695653E-6,
+        "totalItems" : 18400
+```
+...[skipping 792 bytes](etc/2.txt)...
+```
+    912743,
+          "negative" : 3546,
+          "min" : -0.001884551976097795,
+          "mean" : 4.095355304791772E-5,
+          "stdDev" : 3.6994173117534E-4
+        } ],
+        "class" : "com.simiacryptus.mindseye.layers.java.FullyConnectedLayer",
+        "outputStatistics" : [ "java.util.HashMap", {
+          "meanExponent" : 0.24221994164593924,
+          "tp50" : -3.975924361354311,
+          "negative" : 18715,
+          "min" : -6.154015631138495,
+          "max" : 10.781463900427909,
+          "tp90" : -3.1142375747875186,
+          "mean" : 1.176302937213581,
+          "count" : 50000.0,
+          "positive" : 31285,
+          "stdDev" : 3.395986027684285,
+          "tp75" : -3.400982541880216,
+          "zeros" : 0
+        } ],
+        "medianMsPerItem_Backward" : "NaN"
+      } ],
+      "SoftmaxActivationLayer/3cc8990a-29bd-4377-9ee9-86380000004c" : [ "java.util.HashMap", {
+        "avgMsPerItem" : 0.00198747243152174,
+        "medianMsPerItem" : "NaN",
+        "avgMsPerItem_Backward" : 9.183029076086958E-8,
+        "totalItems" : 1840000,
         "backpropStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -3.528316022305248,
-          "tp50" : -2.2308126810898738E-4,
+          "meanExponent" : -3.556823678972538,
+          "tp50" : -2.1539435179272984E-4,
           "negative" : 5000,
-          "min" : -0.14379128787592887,
+          "min" : -2.6660987798104134,
           "max" : 0.0,
-          "tp90" : -2.0195520515428944E-4,
-          "mean" : -1.6850497513864904E-4,
+          "tp90" : -2.0109966503554448E-4,
+          "mean" : -0.0010619575034677658,
           "count" : 50000.0,
           "positive" : 0,
-          "stdDev" : 0.011993252823384606,
-          "tp75" : -2.0642347734263302E-4,
+          "stdDev" : 0.1890447251060161,
+          "tp75" : -2.045388725829398E-4,
           "zeros" : 45000
         } ],
-        "totalBatches" : 248,
+        "totalBatches" : 368,
         "class" : "com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer",
         "outputStatistics" : [ "java.util.HashMap", {
-          "meanExponent" : -2.5725546873096063,
-          "tp50" : 6.846272766859167E-6,
+          "meanExponent" : -2.838493281171822,
+          "tp50" : 1.7547088347427903E-6,
           "negative" : 0,
-          "min" : 1.1796004011224603E-8,
-          "max" : 0.9861136124404106,
-          "tp90" : 2.4872588783728432E-5,
+          "min" : 3.0796538319849784E-9,
+          "max" : 0.9944600074068468,
+          "tp90" : 7.302588133059375E-6,
           "mean" : 0.1,
           "count" : 50000.0,
           "positive" : 50000,
-          "stdDev" : 0.25110365623260467,
-          "tp75" : 1.6674298534728093E-5,
+          "stdDev" : 0.2593090207945561,
+          "tp75" : 4.665286082050566E-6,
           "zeros" : 0
         } ],
         "medianMsPerItem_Backward" : "NaN"
@@ -266,7 +267,7 @@ Returns:
 ### Validation
 If we run our model against the entire validation dataset, we get this accuracy:
 
-Code from [MnistTestBase.java:201](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L201) executed in 0.92 seconds: 
+Code from [MnistTestBase.java:211](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L211) executed in 0.67 seconds: 
 ```java
     return MNIST.validationDataStream().mapToDouble(labeledObject ->
       predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
@@ -276,14 +277,14 @@ Code from [MnistTestBase.java:201](../../../../../../../../MindsEye/src/test/jav
 Returns: 
 
 ```
-    89.92
+    90.53
 ```
 
 
 
 Let's examine some incorrectly predicted results in more detail:
 
-Code from [MnistTestBase.java:208](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L208) executed in 0.07 seconds: 
+Code from [MnistTestBase.java:218](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/mnist/MnistTestBase.java#L218) executed in 0.23 seconds: 
 ```java
     try {
       TableOutput table = new TableOutput();
@@ -313,16 +314,16 @@ Returns:
 
 Image | Prediction
 ----- | ----------
-![[5]](etc/test.2.png)  | 6 (79.2%), 2 (8.4%), 8 (3.6%)  
-![[6]](etc/test.3.png)  | 8 (36.4%), 6 (35.4%), 2 (10.2%)
-![[4]](etc/test.4.png)  | 0 (46.8%), 6 (38.1%), 4 (6.0%) 
-![[1]](etc/test.5.png)  | 3 (47.8%), 1 (33.8%), 8 (6.6%) 
-![[3]](etc/test.6.png)  | 2 (55.6%), 3 (27.6%), 9 (6.5%) 
-![[6]](etc/test.7.png)  | 2 (26.3%), 6 (22.2%), 7 (22.1%)
-![[2]](etc/test.8.png)  | 7 (84.9%), 2 (7.7%), 9 (5.3%)  
-![[7]](etc/test.9.png)  | 9 (54.4%), 7 (33.9%), 4 (7.1%) 
-![[9]](etc/test.10.png) | 4 (28.4%), 9 (27.7%), 8 (22.9%)
-![[7]](etc/test.11.png) | 1 (53.7%), 7 (22.3%), 9 (6.9%) 
+![[5]](etc/test.2.png)  | 6 (73.0%), 2 (14.9%), 4 (4.9%) 
+![[4]](etc/test.3.png)  | 6 (50.4%), 0 (32.9%), 4 (5.7%) 
+![[3]](etc/test.4.png)  | 2 (52.7%), 3 (36.9%), 8 (5.9%) 
+![[6]](etc/test.5.png)  | 2 (28.4%), 7 (22.9%), 6 (17.7%)
+![[2]](etc/test.6.png)  | 7 (85.0%), 2 (8.3%), 9 (4.7%)  
+![[9]](etc/test.7.png)  | 4 (35.6%), 9 (29.4%), 8 (19.8%)
+![[7]](etc/test.8.png)  | 1 (55.1%), 7 (24.6%), 9 (7.0%) 
+![[7]](etc/test.9.png)  | 4 (69.3%), 9 (22.6%), 7 (5.2%) 
+![[2]](etc/test.10.png) | 9 (56.6%), 8 (11.6%), 4 (9.1%) 
+![[9]](etc/test.11.png) | 3 (44.6%), 4 (25.9%), 9 (20.8%)
 
 
 

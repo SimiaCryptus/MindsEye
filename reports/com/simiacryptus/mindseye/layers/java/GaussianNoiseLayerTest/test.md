@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.GaussianNoiseLayer",
-      "id": "0910987d-3688-428c-a892-e2c400000e23",
+      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f70",
       "isFrozen": false,
-      "name": "GaussianNoiseLayer/0910987d-3688-428c-a892-e2c400000e23",
+      "name": "GaussianNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f70",
       "value": 1.0
     }
 ```
@@ -39,10 +39,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.692, 1.844, 0.612 ]]
+    [[ 0.4, 1.076, -0.188 ]]
     --------------------
     Output: 
-    [ -0.909266696156094, 1.6272676522983607, 1.0283536501657782 ]
+    [ -1.3825212147276669, 1.1955079802222857, -0.38799840159613685 ]
 ```
 
 
@@ -54,21 +54,27 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
+    Component: GaussianNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f70
+    Inputs: [ 0.4, 1.076, -0.188 ]
+    output=[ -1.3825212147276669, 1.1955079802222857, -0.38799840159613685 ]
+    measured/actual: [ [ 0.9999999999976694, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    error: [ [ -2.3305801732931286E-12, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.9728e-12 +- 5.0455e-12 [0.0000e+00 - 1.5653e-11] (9#)
-    relativeTol: 4.4592e-12 +- 2.4159e-12 [2.2756e-12 - 7.8267e-12] (3#)
+    absoluteTol: 2.8343e-13 +- 7.2517e-13 [0.0000e+00 - 2.3306e-12] (9#)
+    relativeTol: 4.2514e-13 +- 5.2336e-13 [5.5067e-14 - 1.1653e-12] (3#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.01 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.0508 +- 0.0284 [0.0427 - 0.3277]
-    Learning performance: 0.0017 +- 0.0019 [0.0000 - 0.0142]
+    Evaluation performance: 0.2097 +- 0.0557 [0.1510 - 0.4645]
+    Learning performance: 0.0025 +- 0.0022 [0.0000 - 0.0142]
     
 ```
 

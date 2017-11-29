@@ -25,6 +25,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.lang.DoubleArrays;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.SysOutInterceptor;
 
 import java.io.PrintStream;
@@ -35,6 +36,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * The type Gpu controller.
@@ -192,5 +195,25 @@ public final class GpuController {
    */
   public void setGpuDriverThreads(LoadingCache<CudaExecutionContext, ExecutorService> gpuDriverThreads) {
     this.gpuDriverThreads = gpuDriverThreads;
+  }
+  
+  public static <T> T call(Function<CudaExecutionContext, T> fn) {
+    return CudaExecutionContext.gpuContexts.<T>run(exe->{
+      try {
+        return INSTANCE.getGpuDriverThreads().get(exe).submit(()->fn.apply(exe)).get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+  
+  public static void run(Consumer<CudaExecutionContext> fn) {
+    CudaExecutionContext.gpuContexts.apply(exe->{
+      try {
+        INSTANCE.getGpuDriverThreads().get(exe).submit(()->fn.accept(exe)).get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 }

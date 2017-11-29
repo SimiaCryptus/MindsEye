@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -176,7 +177,7 @@ public class MnistEncodingTest {
       Arrays.stream(data).map(tensorArray -> {
         try {
           NNLayer imageNetwork = network.getLabelNetwork("image");
-          Tensor predictionSignal = CudaExecutionContext.gpuContexts.run(ctx -> {
+          Tensor predictionSignal = GpuController.call(ctx -> {
             return imageNetwork.eval(ctx, tensorArray);
           }).getData().get(0);
           LinkedHashMap<String, Object> row = new LinkedHashMap<String, Object>();
