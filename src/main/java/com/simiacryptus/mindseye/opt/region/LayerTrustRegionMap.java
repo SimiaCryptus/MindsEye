@@ -26,7 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The type Layer trust region map.
+ * A concrete class of the TrustRegion orientation strategy base class, 
+ * this uses a map collection to store per-layer Trust Region configurations.
  */
 public class LayerTrustRegionMap extends TrustRegionStrategy {
   private final Map<NNLayer, TrustRegion> regionPolicies = new HashMap<>();

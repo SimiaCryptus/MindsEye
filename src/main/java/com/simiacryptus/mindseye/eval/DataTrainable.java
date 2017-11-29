@@ -24,7 +24,8 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import java.util.List;
 
 /**
- * The interface Data trainable.
+ * A base class for Trainable objects advertizing an API for 
+ * setting and accessing the training data.
  */
 public interface DataTrainable extends Trainable {
   /**

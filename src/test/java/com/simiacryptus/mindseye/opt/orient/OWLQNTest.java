@@ -46,7 +46,7 @@ public class OWLQNTest extends MnistTestBase {
         .setIterationsPerSample(100)
         .setMonitor(monitor)
         .setOrientation(new ValidatingOrientationWrapper(new OwlQn()))
-        .setTimeout(3, TimeUnit.MINUTES)
+        .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();
     });

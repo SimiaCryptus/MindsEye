@@ -22,7 +22,9 @@ package com.simiacryptus.mindseye.opt.region;
 import com.simiacryptus.util.ArrayUtil;
 
 /**
- * The type Mean variance gradient.
+ * This highly-constrained region allows ONLY changes to the
+ * mean/stddev of the weight vector components. 
+ * Experimental; no proven use case.
  */
 public class MeanVarianceGradient implements TrustRegion {
   

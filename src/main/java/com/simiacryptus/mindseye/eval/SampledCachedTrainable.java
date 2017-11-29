@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 /**
- * The type Sampled cached trainable.
+ * A type-merging class for Trainable objects which are both Sampled and Cached.
  *
  * @param <T> the type parameter
  */

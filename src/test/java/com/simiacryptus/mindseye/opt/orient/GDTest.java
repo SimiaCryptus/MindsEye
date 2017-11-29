@@ -41,17 +41,11 @@ public class GDTest extends MnistTestBase {
   public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
       SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-//      new DerivativeTester(1e-2, 1e-6) {
-//        @Override
-//        protected void testEvaluationPerformance(NNLayer component, int i, Tensor outputPrototype, Tensor... inputPrototype) {
-//          if (i == 0) super.testEvaluationPerformance(component, i, outputPrototype, inputPrototype);
-//        }
-//      }.run(supervisedNetwork, new Tensor(1), trainingData[0]);
       Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new ValidatingOrientationWrapper(new GradientDescent()))
-        .setTimeout(3, TimeUnit.MINUTES)
+        .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();
     });

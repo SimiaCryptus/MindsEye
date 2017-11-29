@@ -171,7 +171,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
   }
   
   /**
-   * Gets region policy.
+   * Gets the Trust Region for a particular Layer
    *
    * @param layer the layer
    * @return the region policy

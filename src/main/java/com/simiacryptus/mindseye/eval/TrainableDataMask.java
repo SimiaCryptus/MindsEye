@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 /**
- * The interface Trainable data mask.
+ * A Trainable supplemental contract exposing a boolean mask which configures which, if any, input columns are to be adjusted by the learning procedure. This can be used to train per-row, non-shared parameters.
  */
 public interface TrainableDataMask extends Trainable {
   /**

@@ -39,22 +39,7 @@ import java.util.concurrent.TimeUnit;
  * The type Lbfgs run.
  */
 public class LBFGSTest extends MnistTestBase {
-  
-//  @Override
-//  public DAGNetwork buildModel(NotebookOutput log) {
-//    return log.code(() -> {
-//      PipelineNetwork network = new PipelineNetwork();
-//      network.add(new BiasLayer(28, 28, 1));
-//      network.add(new LinearActivationLayer().setScale(1.0 / 1000));
-//      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{100}));
-//      network.add(new SinewaveActivationLayer());
-//      network.add(new FullyConnectedLayer(new int[]{100}, new int[]{10}));
-//      network.add(new LinearActivationLayer());
-//      network.add(new SoftmaxActivationLayer());
-//      return network;
-//    });
-//  }
-  
+ 
   @Override
   public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {
@@ -67,7 +52,7 @@ public class LBFGSTest extends MnistTestBase {
         //.setOrientation(new ValidatingOrientationWrapper(new LBFGS()))
         .setOrientation(new LBFGS())
         .setLineSearchFactory(name -> name.contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch())
-        .setTimeout(30, TimeUnit.MINUTES)
+        .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .run();
     });

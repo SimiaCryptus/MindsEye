@@ -27,7 +27,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 /**
- * The type Linked example array trainable.
+ * A stochastic trainable wrapper, similar to SampledArrayTrainable,
+ * but allowing for sets of rows which will remain together 
+ * when being selected for training data.
  */
 public class LinkedExampleArrayTrainable implements Trainable {
   

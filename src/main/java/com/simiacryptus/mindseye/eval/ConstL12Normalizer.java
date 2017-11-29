@@ -24,7 +24,8 @@ import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
 
 /**
- * The type Const l 12 normalizer.
+ * This Trainable wrapper adds additional L1 and L2 terms for weight normalization.
+ * Both coefficients are universal for the network (does not depend on layer) and are set statically.
  */
 public class ConstL12Normalizer extends L12Normalizer implements SampledTrainable, TrainableDataMask {
   private double factor_L1 = 0.0;
