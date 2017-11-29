@@ -20,15 +20,15 @@
 package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.EquivalencyTester;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
-
-import java.util.Random;
 
 /**
  * The type Convolution layer run.
  */
 public class SimpleConvolutionLayerTest extends F32LayerTestBase {
+  
+  final int radius;
+  final int bands;
   
   /**
    * The Convolution layer.
@@ -39,7 +39,13 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
    * Instantiates a new Simple convolution layer test.
    */
   public SimpleConvolutionLayerTest() {
-    convolutionLayer = new SimpleConvolutionLayer(3, 3, 1);
+    this(1,1);
+  }
+  
+  protected SimpleConvolutionLayerTest(int radius, int bands) {
+    this.radius = radius;
+    this.bands = bands;
+    convolutionLayer = new SimpleConvolutionLayer(radius, radius, bands*bands);
     convolutionLayer.filter.fill(() -> random());
   }
   
@@ -50,7 +56,7 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   
   @Override
   public NNLayer getReferenceLayer() {
-    ConvolutionLayer referenceLayer = new ConvolutionLayer(3, 3, 1, 1, true);
+    ConvolutionLayer referenceLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
     referenceLayer.kernel.set(convolutionLayer.filter);
     return referenceLayer;
   }
@@ -58,8 +64,14 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {radius, radius, bands}
     };
+  }
+  
+  public static class MultiBand extends com.simiacryptus.mindseye.layers.cudnn.f64.SimpleConvolutionLayerTest {
+    public MultiBand() {
+      super(1,2);
+    }
   }
   
 }

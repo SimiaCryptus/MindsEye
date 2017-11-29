@@ -20,28 +20,32 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.EquivalencyTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-
-import java.util.Random;
 
 /**
  * The type Convolution layer run.
  */
 public class ConvolutionLayerTest extends LayerTestBase {
+  final int radius;
+  final int inputBands;
+  final int outputBands;
+  
+  public ConvolutionLayerTest() {
+    this(1,2,2);
+  }
+  
+  protected ConvolutionLayerTest(int radius, int inputBands, int outputBands) {
+    this.radius = radius;
+    this.inputBands = inputBands;
+    this.outputBands = outputBands;
+    convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands);
+    convolutionLayer.filter.fill(() -> random());
+  }
   
   /**
    * The Convolution layer.
    */
   ConvolutionLayer convolutionLayer;
-  
-  /**
-   * Instantiates a new Convolution layer test.
-   */
-  public ConvolutionLayerTest() {
-    convolutionLayer = new ConvolutionLayer(3, 3, 2, 2);
-    convolutionLayer.filter.fill(() -> random());
-  }
   
   @Override
   public NNLayer getLayer() {
@@ -50,7 +54,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getReferenceLayer() {
-    com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 2, true);
+    com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(radius, radius, inputBands, outputBands, true);
     referenceLayer.kernel.set(convolutionLayer.filter);
     return referenceLayer;
   }
@@ -58,7 +62,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 2}
+      {3, 3, inputBands}
     };
   }
   
@@ -67,38 +71,10 @@ public class ConvolutionLayerTest extends LayerTestBase {
    */
   public static class AsymmetricTest extends ConvolutionLayerTest {
   
-    /**
-     * The Convolution layer.
-     */
-    ConvolutionLayer convolutionLayer;
-  
-    /**
-     * Instantiates a new Asymmetric test.
-     */
     public AsymmetricTest() {
-      convolutionLayer = new ConvolutionLayer(3, 3, 2, 4);
-      convolutionLayer.filter.fill(() -> random());
+      super(1,2,4);
     }
   
-    @Override
-    public NNLayer getLayer() {
-      return convolutionLayer;
-    }
-    
-    @Override
-    public NNLayer getReferenceLayer() {
-      com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(3, 3, 2, 4, true);
-      referenceLayer.kernel.set(convolutionLayer.filter);
-      return referenceLayer;
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {3, 3, 2}
-      };
-    }
-    
   }
   
   /**
@@ -106,37 +82,8 @@ public class ConvolutionLayerTest extends LayerTestBase {
    */
   public static class IrregularTest extends ConvolutionLayerTest {
   
-    /**
-     * The Convolution layer.
-     */
-    ConvolutionLayer convolutionLayer;
-  
-    /**
-     * Instantiates a new Irregular test.
-     */
     public IrregularTest() {
-      convolutionLayer = new ConvolutionLayer(1, 1, 2, 3);
-      convolutionLayer.filter.fill(() -> random());
+      super(1,2,3);
     }
-  
-    @Override
-    public NNLayer getLayer() {
-      return convolutionLayer;
-    }
-    
-    @Override
-    public NNLayer getReferenceLayer() {
-      com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer referenceLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(1, 1, 2, 3, true);
-      referenceLayer.kernel.set(convolutionLayer.filter);
-      return referenceLayer;
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {1, 1, 2}
-      };
-    }
-    
   }
 }

@@ -20,16 +20,17 @@
 package com.simiacryptus.mindseye.layers.cudnn.f64;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
-
-import java.util.Random;
 
 /**
  * The type Convolution layer run.
  */
 public class SimpleConvolutionLayerTest extends LayerTestBase {
   
+  private final int radius;
+  private final int bands;
   /**
    * The Layer.
    */
@@ -39,7 +40,13 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
    * Instantiates a new Simple convolution layer test.
    */
   public SimpleConvolutionLayerTest() {
-    layer = new SimpleConvolutionLayer(3, 3, 1);
+    this(1,1);
+  }
+  
+  protected SimpleConvolutionLayerTest(int radius, int bands) {
+    this.radius = radius;
+    this.bands = bands;
+    layer = new SimpleConvolutionLayer(radius, radius, bands*bands);
     layer.filter.fill(() -> random());
   }
   
@@ -50,7 +57,16 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getReferenceLayer() {
-    ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1, true);
+    ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
+    Tensor tensor = new Tensor(layer.filter.getDimensions());
+    tensor.fillByCoord(c->{
+      int band = c.coords[2];
+      int bandX = band % bands;
+      int bandY = (band-bandX) / bands;
+      assert band == bandX + bandY * bands;
+      int bandT = bandY + bandX * bands;
+      return layer.filter.get(c.coords[0],c.coords[1], band);
+    });
     convolutionLayer.kernel.set(layer.filter);
     return convolutionLayer;
   }
@@ -58,8 +74,14 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {radius, radius, bands}
     };
+  }
+
+  public static class MultiBand extends SimpleConvolutionLayerTest {
+    public MultiBand() {
+      super(1,2);
+    }
   }
   
 }

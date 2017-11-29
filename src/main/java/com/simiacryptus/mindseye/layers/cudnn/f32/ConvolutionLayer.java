@@ -149,13 +149,13 @@ public class ConvolutionLayer extends NNLayer {
       Tensor batchKernel = new Tensor(filterDimensions[0], filterDimensions[1], inputBandsSq);
       int _offset = offset;
       batchKernel.fillByCoord(batchCoord -> {
-        int filterBand = _offset + batchCoord.coords[2];
-        int filterBandX = filterBand % inputBands;
-        int filterBandY = filterBand / inputBands;
-        assert filterBand == filterBandY * inputBands + filterBandX;
-        int filterBandT = filterBandX * outputBands + filterBandY;
-        return filterBandT >= filterDimensions[2] ? 0 : filter.get(batchCoord.coords[0], batchCoord.coords[1], filterBandT);
-        //return filterBand >= filterDimensions[2] ? 0 : filter.get(batchCoord.coords[0], batchCoord.coords[1], filterBand);
+        int filterBandT = getFilterBand(inputBands, outputBands, _offset, batchCoord);
+        if (_offset + batchCoord.coords[2] < filterDimensions[2]) {
+          return filter.get(batchCoord.coords[0], batchCoord.coords[1], filterBandT);
+        }
+        else {
+          return 0;
+        }
       });
       subLayers.add(new SimpleConvolutionLayer(batchKernel)
         .setStrideX(strideX).setStrideY(strideY));
@@ -174,19 +174,18 @@ public class ConvolutionLayer extends NNLayer {
         DeltaSet subnetDeltas = new DeltaSet();
         innerResult.accumulate(subnetDeltas, data);
         // Extract Deltas
-        Tensor filterDelta = new Tensor(ConvolutionLayer.this.filter.getDimensions());
+        Tensor filterDelta = new Tensor(filterDimensions);
         for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
           SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
           Delta subnetDelta = subnetDeltas.get(batchLayer, batchLayer.filter.getData());
-          Tensor batchDelta = new Tensor(subnetDelta.getDelta(), batchLayer.filter.getDimensions());
+          int[] batchDimensions = batchLayer.filter.getDimensions();
+          Tensor batchDelta = new Tensor(subnetDelta.getDelta(), batchDimensions);
           int offset = batchNumber * inputBandsSq;
           batchDelta.coordStream().forEach(batchCoord -> {
-            int band = offset + batchCoord.coords[2];
-            int bandX = band % inputBands;
-            int bandY = band / inputBands;
-            assert band == bandY * inputBands + bandX;
-            int bandT = bandX * outputBands + bandY;
-            if (bandT < filterDimensions[2]) filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], bandT, batchDelta.get(batchCoord));
+            if (offset + batchCoord.coords[2] < filterDimensions[2]) {
+              int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
+              filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], bandT, batchDelta.get(batchCoord));
+            }
             //if (band < filterDimensions[2]) filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], band, batchDelta.get(batchCoord));
           });
         }
@@ -198,6 +197,14 @@ public class ConvolutionLayer extends NNLayer {
         return inObj[0].isAlive() || !isFrozen();
       }
     };
+  }
+  
+  public int getFilterBand(int inputBands, int outputBands, int offset, Coordinate coord) {
+    int filterBand = offset + coord.coords[2];
+    int filterBandX = filterBand % inputBands;
+    int filterBandY = (filterBand - filterBandX) / inputBands;
+    assert filterBand == filterBandY * inputBands + filterBandX;
+    return filterBandX * outputBands + filterBandY;
   }
   
   /**

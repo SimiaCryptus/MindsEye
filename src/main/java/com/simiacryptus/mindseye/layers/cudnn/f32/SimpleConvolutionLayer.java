@@ -157,19 +157,22 @@ public class SimpleConvolutionLayer extends NNLayer {
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, kernelSize[2] / inputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       int paddingX = ((kernelSize[1] - 1) / 2);
       int paddingY = ((kernelSize[0] - 1) / 2);
-//      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionNdDescriptor(CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT,
-//        new int[]{paddingX, paddingY},
-//        new int[]{strideY, strideX},
-//        new int[]{1, 1});
-      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutions2dDescriptor(paddingX, paddingY,strideY, strideX,CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
+      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutionNdDescriptor(CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT,
+        new int[]{paddingX, paddingY},
+        new int[]{strideY, strideX},
+        new int[]{1, 1});
+//      CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = CuDNN.newConvolutions2dDescriptor(paddingX, paddingY,strideY, strideX,CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT);
       int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, outputDims[1], outputDims[2], outputDims[3]);
       CudaPtr alpha = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0f);
       CudaPtr beta = CuDNN.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0f);
-      
-      CudaPtr filterPtr = getStateCache().computeIfAbsent(((CudaExecutionContext) nncontext).getDeviceNumber(), i -> new GPUDataMirror(filter.dim()))
-        .uploadAsFloats(((CudaExecutionContext) nncontext).getDeviceNumber(), filter.getData());
+  
+      final double[] filterData = this.filter.getData();
+      CudaPtr filterPtr = CuDNN.write(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.toFloats(filterData));
+      assert (0 < filterData.length);
+//      CudaPtr filterPtr = getStateCache().computeIfAbsent(((CudaExecutionContext) nncontext).getDeviceNumber(), i -> new GPUDataMirror(filter.dim()))
+//        .uploadAsFloats(((CudaExecutionContext) nncontext).getDeviceNumber(), filter.getData());
       CudaPtr inputData = inObj[0].getGpuFloats(((CudaExecutionContext) nncontext).getDeviceNumber());
       CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputDims) * 1l * Sizeof.FLOAT);
       try {
