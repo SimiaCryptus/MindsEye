@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AbsActivationLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f5f",
+      "id": "f4569375-56fe-4e46-925c-95f40000096e",
       "isFrozen": true,
-      "name": "AbsActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f5f"
+      "name": "AbsActivationLayer/f4569375-56fe-4e46-925c-95f40000096e"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.656, -0.404, 0.724 ]]
+    [[ 0.116, -0.18, 0.68 ]]
     --------------------
     Output: 
-    [ 0.656, 0.404, 0.724 ]
+    [ 0.116, 0.18, 0.68 ]
 ```
 
 
@@ -53,15 +53,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: AbsActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f5f
-    Inputs: [ -0.656, -0.404, 0.724 ]
-    output=[ 0.656, 0.404, 0.724 ]
-    measured/actual: [ [ -0.9999999999998899, 0.0, 0.0 ], [ 0.0, -0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
-    implemented/expected: [ [ -1.0, -0.0, -0.0 ], [ -0.0, -1.0, -0.0 ], [ 0.0, 0.0, 1.0 ] ]
-    error: [ [ 1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, 1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Feedback for input 0
+    Inputs: [ 0.116, -0.18, 0.68 ]
+    Output: [ 0.116, 0.18, 0.68 ]
+    Measured: [ [ 1.0000000000000286, 0.0, 0.0 ], [ 0.0, -0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, -1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    Error: [ [ 2.864375403532904E-14, 0.0, 0.0 ], [ 0.0, 1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 3.6711e-14 +- 5.1918e-14 [0.0000e+00 - 1.1013e-13] (9#)
-    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (3#)
+    absoluteTol: 2.7657e-14 +- 4.4963e-14 [0.0000e+00 - 1.1013e-13] (9#)
+    relativeTol: 4.1485e-14 +- 1.9207e-14 [1.4322e-14 - 5.5067e-14] (3#)
     
 ```
 
@@ -72,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.2604 +- 0.0899 [0.1567 - 0.7495]
-    Learning performance: 0.0050 +- 0.0180 [0.0000 - 0.1824]
+    Evaluation performance: 0.2812 +- 0.0785 [0.1795 - 0.6441]
+    Learning performance: 0.0030 +- 0.0020 [0.0000 - 0.0114]
     
 ```
 

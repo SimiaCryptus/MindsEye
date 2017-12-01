@@ -16,14 +16,14 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f86",
+      "id": "f4569375-56fe-4e46-925c-95f400000a31",
       "isFrozen": false,
-      "name": "MonitoringSynapse/c88cbdf1-1c2a-4a5e-b964-890900000f85",
+      "name": "MonitoringSynapse/f4569375-56fe-4e46-925c-95f400000a30",
       "inner": {
         "class": "com.simiacryptus.mindseye.layers.java.MonitoringSynapse",
-        "id": "c88cbdf1-1c2a-4a5e-b964-890900000f85",
+        "id": "f4569375-56fe-4e46-925c-95f400000a30",
         "isFrozen": false,
-        "name": "MonitoringSynapse/c88cbdf1-1c2a-4a5e-b964-890900000f85",
+        "name": "MonitoringSynapse/f4569375-56fe-4e46-925c-95f400000a30",
         "totalBatches": 0,
         "totalItems": 0
       },
@@ -49,10 +49,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.476, -0.516, -0.128 ]]
+    [[ 0.54, 1.584, 1.8 ]]
     --------------------
     Output: 
-    [ -1.476, -0.516, -0.128 ]
+    [ 0.54, 1.584, 1.8 ]
 ```
 
 
@@ -64,12 +64,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: MonitoringSynapse/c88cbdf1-1c2a-4a5e-b964-890900000f85
-    Inputs: [ -1.476, -0.516, -0.128 ]
-    output=[ -1.476, -0.516, -0.128 ]
-    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
-    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
-    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Feedback for input 0
+    Inputs: [ 0.54, 1.584, 1.8 ]
+    Output: [ 0.54, 1.584, 1.8 ]
+    Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 3.6711e-14 +- 5.1918e-14 [0.0000e+00 - 1.1013e-13] (9#)
     relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (3#)
@@ -83,8 +83,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.2413 +- 0.0909 [0.1510 - 0.8179]
-    Learning performance: 0.0506 +- 0.0616 [0.0342 - 0.5472]
+    Evaluation performance: 0.2550 +- 0.1554 [0.1567 - 1.5360]
+    Learning performance: 0.0457 +- 0.0161 [0.0342 - 0.1311]
     
 ```
 

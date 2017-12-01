@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgReducerLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f62",
+      "id": "f4569375-56fe-4e46-925c-95f40000097a",
       "isFrozen": false,
-      "name": "AvgReducerLayer/c88cbdf1-1c2a-4a5e-b964-890900000f62"
+      "name": "AvgReducerLayer/f4569375-56fe-4e46-925c-95f40000097a"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.664, -0.312, 0.508 ]]
+    [[ -0.868, 0.328, -1.064 ]]
     --------------------
     Output: 
-    [ -0.15600000000000003 ]
+    [ -0.5346666666666666 ]
 ```
 
 
@@ -53,12 +53,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: AvgReducerLayer/c88cbdf1-1c2a-4a5e-b964-890900000f62
-    Inputs: [ -0.664, -0.312, 0.508 ]
-    output=[ -0.15600000000000003 ]
-    measured/actual: [ [ 0.3333333333332966 ], [ 0.3333333333332966 ], [ 0.3333333333332966 ] ]
-    implemented/expected: [ [ 0.3333333333333333 ], [ 0.3333333333333333 ], [ 0.3333333333333333 ] ]
-    error: [ [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ] ]
+    Feedback for input 0
+    Inputs: [ -0.868, 0.328, -1.064 ]
+    Output: [ -0.5346666666666666 ]
+    Measured: [ [ 0.3333333333332966 ], [ 0.3333333333332966 ], [ 0.3333333333332966 ] ]
+    Implemented: [ [ 0.3333333333333333 ], [ 0.3333333333333333 ], [ 0.3333333333333333 ] ]
+    Error: [ [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 3.6693e-14 +- 0.0000e+00 [3.6693e-14 - 3.6693e-14] (3#)
     relativeTol: 5.5039e-14 +- 0.0000e+00 [5.5039e-14 - 5.5039e-14] (3#)
@@ -72,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1565 +- 0.0495 [0.1282 - 0.5130]
-    Learning performance: 0.0032 +- 0.0020 [0.0000 - 0.0171]
+    Evaluation performance: 0.2099 +- 0.0721 [0.1482 - 0.5557]
+    Learning performance: 0.0038 +- 0.0024 [0.0000 - 0.0171]
     
 ```
 

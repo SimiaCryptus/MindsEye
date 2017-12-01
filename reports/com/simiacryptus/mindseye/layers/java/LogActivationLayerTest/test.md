@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.LogActivationLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f7d",
+      "id": "f4569375-56fe-4e46-925c-95f400000a11",
       "isFrozen": true,
-      "name": "LogActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7d"
+      "name": "LogActivationLayer/f4569375-56fe-4e46-925c-95f400000a11"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.148, -1.64, 1.428 ]]
+    [[ 0.716, 0.0, 0.564 ]]
     --------------------
     Output: 
-    [ -1.9105430052180221, 0.494696241836107, 0.3562748639173926 ]
+    [ -0.3340751120214915, 0.0, -0.5727010274840783 ]
 ```
 
 
@@ -53,50 +53,75 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: LogActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7d
-    Inputs: [ -0.148, -1.64, 1.428 ]
-    output=[ -1.9105430052180221, 0.494696241836107, 0.3562748639173926 ]
-    measured/actual: [ [ -6.756756976145084, 0.0, 0.0 ], [ 0.0, -0.6097560956153103, 0.0 ], [ 0.0, 0.0, 0.7002801061251063 ] ]
-    implemented/expected: [ [ -6.756756756756757, -0.0, -0.0 ], [ -0.0, -0.6097560975609756, -0.0 ], [ 0.0, 0.0, 0.700280112044818 ] ]
-    error: [ [ -2.1938832706069888E-7, 0.0, 0.0 ], [ 0.0, 1.9456652955440745E-9, 0.0 ], [ 0.0, 0.0, -5.919711720814291E-9 ] ]
-    Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.5250e-08 +- 6.8663e-08 [0.0000e+00 - 2.1939e-07] (9#)
-    relativeTol: 7.3523e-09 +- 6.3720e-09 [1.5954e-09 - 1.6235e-08] (3#)
+    Feedback for input 0
+    Inputs: [ 0.716, 0.0, 0.564 ]
+    Output: [ -0.3340751120214915, 0.0, -0.5727010274840783 ]
+    Measured: [ [ 1.3966480416627292, 0.0, 0.0 ], [ 0.0, -1.8420680743952367E9, 0.0 ], [ 0.0, 0.0, 1.7730496404411156 ] ]
+    Implemented: [ [ 1.3966480446927374, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.773049645390071 ] ]
+    Error: [ [ -3.0300082443091014E-9, 0.0, 0.0 ], [ 0.0, -1.8420680743952367E9, 0.0 ], [ 0.0, 0.0, -4.948955467654059E-9 ] ]
     
-```
-
-### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
-```java
-    getPerformanceTester().test(layer, inputPrototype);
-```
-Logging: 
-```
-    Evaluation performance: 0.1275 +- 0.0429 [0.0912 - 0.3277]
-    Learning performance: 0.0028 +- 0.0035 [0.0000 - 0.0256]
-    
-```
-
-### Function Plots
-Code from [ActivationLayerTestBase.java:73](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L73) executed in 0.00 seconds: 
-```java
-    return plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
 ```
 
 Returns: 
 
-![Result](etc/test.1.png)
-
-
-
-Code from [ActivationLayerTestBase.java:77](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L77) executed in 0.00 seconds: 
-```java
-    return plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
 ```
-
-Returns: 
-
-![Result](etc/test.2.png)
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=2.0467e+08 +- 5.7891e+08 [0.0000e+00 - 1.8421e+09] (9#), relativeTol=3.3333e-01 +- 4.7140e-01 [1.0847e-09 - 1.0000e+00] (3#)}
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:283)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:77)
+    	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
+    	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
+    	at java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:693)
+    	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481)
+    	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:471)
+    	at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
+    	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+    	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:78)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
+    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
+    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
+    	at com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase.test(ActivationLayerTestBase.java:64)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
+    	at sun.ref
+```
+...[skipping 97 bytes](etc/1.txt)...
+```
+    l.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.lang.reflect.Method.invoke(Method.java:498)
+    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runners.Suite.runChild(Suite.java:128)
+    	at org.junit.runners.Suite.runChild(Suite.java:27)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+    	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
+    	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
+    	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
+    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
+    
+```
 
 
 

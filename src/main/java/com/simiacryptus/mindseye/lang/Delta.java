@@ -53,7 +53,7 @@ public class Delta extends DoubleBuffer {
    * @param layer  the layer
    */
   public Delta(final double[] target, final NNLayer layer) {
-    this(target,DoubleArrays.obtain(target.length),layer);
+    this(target,null==target?null:DoubleArrays.obtain(target.length),layer);
   }
   
   /**

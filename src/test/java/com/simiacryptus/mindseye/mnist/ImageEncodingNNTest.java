@@ -310,9 +310,9 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
   }
   
   @Override
-  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, double factor_l1, boolean... mask) {
+  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, boolean... mask) {
     if (network instanceof DAGNetwork) addPerformanceWrappers(log, (DAGNetwork) network);
-    super.train(log, monitor, network, data, orientation, timeoutMinutes, factor_l1, mask);
+    super.train(log, monitor, network, data, orientation, timeoutMinutes, mask);
     if (network instanceof DAGNetwork) removePerformanceWrappers(log, (DAGNetwork) network);
   }
 }

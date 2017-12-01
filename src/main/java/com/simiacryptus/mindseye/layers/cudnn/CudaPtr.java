@@ -144,7 +144,10 @@ public class CudaPtr extends CudaResource<Pointer> {
    */
   public static CudaPtr toDeviceAsDouble(int deviceId, TensorList data) {
     if (data instanceof CuDNNDoubleTensorList) {
-      return ((CuDNNDoubleTensorList) data).ptr;
+      CudaPtr ptr = ((CuDNNDoubleTensorList) data).ptr;
+      assert null != ptr;
+      assert null != ptr.getPtr();
+      return ptr;
 //        } else if(data instanceof CuDNNFloatTensorList) {
 //            CuDNNFloatTensorList floatData = (CuDNNFloatTensorList) data;
 //            int[] dimensions = floatData.dimensions;
@@ -184,7 +187,10 @@ public class CudaPtr extends CudaResource<Pointer> {
    */
   public static CudaPtr toDeviceAsFloat(int deviceId, TensorList data) {
     if (data instanceof CuDNNFloatTensorList) {
-      return ((CuDNNFloatTensorList) data).ptr;
+      CudaPtr ptr = ((CuDNNFloatTensorList) data).ptr;
+      assert null != ptr;
+      assert null != ptr.getPtr();
+      return ptr;
 //        } else if(data instanceof CuDNNDoubleTensorList) {
 //            return ((CuDNNDoubleTensorList)data).ptr;
     }

@@ -21,13 +21,14 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
 import com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
@@ -94,9 +95,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   public void run(NotebookOutput log) {
     //      int pretrainMinutes = 20;
 //      int timeoutMinutes = 60;
-    int pretrainMinutes = 1;
-    int timeoutMinutes = 1;
-    int size = 256;
+    int pretrainMinutes = 10;
+    int timeoutMinutes = 10;
+    int size = 32;
     int images = 50;
     
     Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
@@ -207,8 +208,8 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
      */
     public TranscodeStep invoke() {
       log.h3("Training");
-      DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2, 0, 0);
-      train(log, monitor, trainingModel0, trainingData, new QQN(), trainMinutes, 0, false, false, true);
+      DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2);
+      train(log, monitor, trainingModel0, trainingData, new QQN(), trainMinutes, false, false, true);
       printHistory(log, history);
       log.h3("Results");
       validationReport(log, trainingData, Arrays.asList(this.model), imageCount);
@@ -302,7 +303,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.toSize = (fromSize + (radius - 1));
       this.trainingData = addColumn(originalTrainingData, toSize, toSize, band1);
       this.radius = radius;
-      this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0).setWeights(() -> 0.01 * (Math.random() - 0.5));
+      this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0).setWeights(() -> 0.1 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band0);
       this.model = buildModel();
     }
@@ -348,8 +349,11 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2, 0, 0);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, 0, false, false, true);
+        DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2);
+        log.code(()->{
+          new DerivativeTester(1, 1e-3).test(trainingModel0, trainingData[0]);
+        });
+        train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, false, false, true);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, dataPipeline, displayImage);
@@ -360,8 +364,8 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       
       log.h2("Tuning");
       log.h3("Training");
-      DAGNetwork trainingModel0 = buildTrainingModel(model, 1, 2, 0, 0);
-      train(log, monitor, trainingModel0, trainingData, new OwlQn(), timeoutMinutes, 0, false, false, true);
+      DAGNetwork trainingModel0 = buildTrainingModel(model, 1, 2);
+      train(log, monitor, trainingModel0, trainingData, new OwlQn(), timeoutMinutes, false, false, true);
       printHistory(log, history);
       log.h3("Results");
       validationReport(log, trainingData, dataPipeline, displayImage);
@@ -519,8 +523,8 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1, 0, 0);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, 0, mask);
+        DAGNetwork trainingModel0 = buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
+        train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, mask);
         printHistory(log, history);
         log.h3("Results");
         validationReport(log, trainingData, dataPipeline, displayImage);
@@ -531,8 +535,8 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       
       log.h2("Tuning");
       log.h3("Training");
-      DAGNetwork trainingModel0 = buildTrainingModel(innerModel, layerNumber, layerNumber + 1, 0, 0);
-      train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, 0, mask);
+      DAGNetwork trainingModel0 = buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
+      train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, mask);
       printHistory(log, history);
       log.h3("Results");
       validationReport(log, trainingData, dataPipeline, displayImage);
@@ -542,8 +546,8 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       
       log.h2("Integration Training");
       log.h3("Training");
-      DAGNetwork trainingModel1 = buildTrainingModel(integrationModel, 1, layerNumber + 1, 0, 0);
-      train(log, monitor, trainingModel1, trainingData, new QQN(), timeoutMinutes, 0, mask);
+      DAGNetwork trainingModel1 = buildTrainingModel(integrationModel, 1, layerNumber + 1);
+      train(log, monitor, trainingModel1, trainingData, new QQN(), timeoutMinutes, mask);
       printHistory(log, history);
       log.h3("Results");
       validationReport(log, trainingData, dataPipeline, displayImage);

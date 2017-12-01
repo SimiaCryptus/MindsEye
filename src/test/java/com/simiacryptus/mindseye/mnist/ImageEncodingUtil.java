@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.eval.*;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
@@ -35,8 +34,10 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
+import com.simiacryptus.mindseye.opt.orient.QuantifyOrientationWrapper;
+import com.simiacryptus.mindseye.opt.orient.ValidatingOrientationWrapper;
 import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.data.DoubleStatistics;
@@ -144,21 +145,18 @@ class ImageEncodingUtil {
   
   /**
    * Train.
-   *
-   * @param log            the log
+   *  @param log            the log
    * @param monitor        the monitor
    * @param network        the network
    * @param data           the data
    * @param orientation    the orientation
    * @param timeoutMinutes the timeout minutes
-   * @param factor_l1      the factor l 1
    * @param mask           the mask
    */
-  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, double factor_l1, boolean... mask) {
-    log.out("Training for %s minutes, l1=%s, mask=%s", timeoutMinutes, factor_l1, Arrays.toString(mask));
+  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, boolean... mask) {
+    log.out("Training for %s minutes, mask=%s", timeoutMinutes, Arrays.toString(mask));
     log.code(() -> {
       SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
-      if (0 < factor_l1) trainingSubject = new ConstL12Normalizer(trainingSubject).setFactor_L1(factor_l1);
       trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
       ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
         .setMaxTrainingSize(data.length)
@@ -167,15 +165,8 @@ class ImageEncodingUtil {
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(orientation)
-        .setLineSearchFactory(name -> {
-          if (name.contains("LBFGS") || name.contains("QQN")) {
-            return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
-          }
-          else {
-            return new ArmijoWolfeSearch().setMaxAlpha(1e6);
-          }
-        });
+        .setOrientation(new QuantifyOrientationWrapper(new ValidatingOrientationWrapper(orientation)))
+        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
       validatingTrainer
         .run();
     });
@@ -191,7 +182,7 @@ class ImageEncodingUtil {
   protected Tensor[][] addColumn(Tensor[][] trainingData, int... size) {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
       Arrays.stream(x),
-      Stream.of(new Tensor(size).fill(() -> 0.01 * (FastRandom.random() - 0.5))))
+      Stream.of(new Tensor(size).fill(() -> 0.0 * (FastRandom.random() - 0.5))))
       .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
   
@@ -245,10 +236,17 @@ class ImageEncodingUtil {
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
     convolutionLayer.filter.fillByCoord(c -> {
-//      int outband = c.coords[2] / inputBands;
-//      int inband = (c.coords[2]-outband) % inputBands;
+//      int inband = c.coords[2] % inputBands;
+//      int outband = (c.coords[2]-inband) / inputBands;
+
+//      int outband = c.coords[2] % inputBands;
+//      int inband = (c.coords[2]-outband) / inputBands;
+
       int outband = c.coords[2] % outputBands;
       int inband = (c.coords[2]-outband) / outputBands;
+
+//      int inband = c.coords[2] % outputBands;
+//      int outband = (c.coords[2]-inband) / outputBands;
       assert outband < outputBands;
       assert inband < inputBands;
       double v = featureSpace.getVectors()[inband].get(filterDimensions[0] - (c.coords[0] + 1), filterDimensions[1] - (c.coords[1] + 1), outputBands - (outband + 1));
@@ -337,40 +335,15 @@ class ImageEncodingUtil {
    * @param innerModel       the inner model
    * @param reproducedColumn the reproduced column
    * @param learnedColumn    the learned column
-   * @param factor_l1        the factor l 1
-   * @param factor_entropy   the factor entropy
    * @return the dag network
    */
-  protected DAGNetwork buildTrainingModel(NNLayer innerModel, int reproducedColumn, int learnedColumn, double factor_l1, double factor_entropy) {
+  protected DAGNetwork buildTrainingModel(NNLayer innerModel, int reproducedColumn, int learnedColumn) {
     PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     DAGNode input = network.getInput(learnedColumn);
     DAGNode output = network.add("image", innerModel, input);
-    DAGNode rmsError = network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
+    network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
       network.add(new MeanSqLossLayer(), output, network.getInput(reproducedColumn))
     );
-    List<DAGNode> fitnessNodes = new ArrayList<>();
-    fitnessNodes.add(rmsError);
-    if (0 < factor_entropy) {
-      DAGNode density = network.add(new L1NormalizationLayer(),
-        network.add(new SigmoidActivationLayer().setBalanced(true),
-          network.add(new AbsActivationLayer(), input)));
-      DAGNode entropy = network.add(new AbsActivationLayer(),
-        network.add(new EntropyLossLayer(), density, density));
-      fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_entropy).freeze(), entropy));
-    }
-    if (0 < factor_l1) {
-      double lfactor = 1.0;
-      DAGNode avgSignal = network.add(new NthPowerActivationLayer().setPower(1.0 / lfactor),
-        network.add(new AvgReducerLayer(),
-          network.add(new NthPowerActivationLayer().setPower(lfactor),
-            input)));
-      fitnessNodes.add(network.add(new LinearActivationLayer().setScale(factor_l1).freeze(),
-        network.add(new MeanSqLossLayer(),
-          network.add(new NthPowerActivationLayer().setPower(1), avgSignal),
-          network.add(new NthPowerActivationLayer().setPower(0), avgSignal)
-        )));
-    }
-    network.add(new SumInputsLayer(), fitnessNodes.toArray(new DAGNode[]{}));
     return network;
   }
   

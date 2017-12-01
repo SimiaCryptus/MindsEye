@@ -106,17 +106,6 @@ public class ConvolutionLayer extends NNLayer {
     this(width, height, inputBands * outputBands);
   }
   
-  public ConvolutionLayer setWeightsLog(double w) {
-    setWeights(()->Math.exp(w)*(Math.random()-0.5));
-    return this;
-  }
-  
-  public ConvolutionLayer setStrideXY(int x,int y) {
-    strideX = x;
-    strideY = y;
-    return this;
-  }
-  
   /**
    * From json convolution layer.
    *
@@ -177,29 +166,30 @@ public class ConvolutionLayer extends NNLayer {
       subLayers.stream().map(l -> {
         return network.add(l, input);
       }).toArray(i -> new DAGNode[i]));
-    
+    if(isFrozen()) network.freeze();
     NNResult innerResult = network.eval(nncontext, inObj);
     return new NNResult(innerResult.getData()) {
       @Override
-      public void accumulate(DeltaSet inputDelta, TensorList data) {
-        DeltaSet subnetDeltas = new DeltaSet();
-        innerResult.accumulate(subnetDeltas, data);
+      public void accumulate(DeltaSet deltaSet, TensorList data) {
+        innerResult.accumulate(deltaSet, data);
         // Extract Deltas
         Tensor filterDelta = new Tensor(filterDimensions);
         for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
           SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
-          Delta subnetDelta = subnetDeltas.get(batchLayer, batchLayer.filter.getData());
-          int[] batchDimensions = batchLayer.filter.getDimensions();
-          Tensor batchDelta = new Tensor(subnetDelta.getDelta(), batchDimensions);
-          int offset = batchNumber * inputBandsSq;
-          batchDelta.coordStream().forEach(batchCoord -> {
-            if (offset + batchCoord.coords[2] < filterDimensions[2]) {
-              int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
-              filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], bandT, batchDelta.get(batchCoord));
-            }
-          });
+          Delta subnetDelta = deltaSet.getMap().remove(batchLayer);
+          if(null != subnetDelta) {
+            int[] batchDimensions = batchLayer.filter.getDimensions();
+            Tensor batchDelta = new Tensor(null==subnetDelta?null:subnetDelta.getDelta(), batchDimensions);
+            int offset = batchNumber * inputBandsSq;
+            batchDelta.coordStream().forEach(batchCoord -> {
+              if (offset + batchCoord.coords[2] < filterDimensions[2]) {
+                int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
+                filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], bandT, batchDelta.get(batchCoord));
+              }
+            });
+          }
         }
-        inputDelta.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(filterDelta.getData());
+        deltaSet.get(ConvolutionLayer.this, ConvolutionLayer.this.filter).accumulate(filterDelta.getData());
       }
       
       @Override
@@ -246,6 +236,18 @@ public class ConvolutionLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList(this.filter.getData());
+  }
+  
+  
+  public ConvolutionLayer setWeightsLog(double w) {
+    setWeights(()->Math.exp(w)*(Math.random()-0.5));
+    return this;
+  }
+  
+  public ConvolutionLayer setStrideXY(int x,int y) {
+    strideX = x;
+    strideY = y;
+    return this;
   }
   
 }

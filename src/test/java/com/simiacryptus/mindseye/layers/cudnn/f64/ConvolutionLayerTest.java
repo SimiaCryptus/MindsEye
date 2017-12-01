@@ -83,7 +83,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   public static class IrregularTest extends ConvolutionLayerTest {
     
     public IrregularTest() {
-      super(1,2,3);
+      super(3,3,6);
     }
   }
   

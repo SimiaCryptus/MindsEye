@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ActivationLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000004",
+      "id": "f4569375-56fe-4e46-925c-95f40000001c",
       "isFrozen": false,
-      "name": "ActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000004",
+      "name": "ActivationLayer/f4569375-56fe-4e46-925c-95f40000001c",
       "mode": 1
     }
 ```
@@ -40,12 +40,12 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -0.932, -1.784, -0.452 ] ]
+    	[ [ 1.076, 1.616, -0.52 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 0.0, 0.0, 0.0 ] ]
+    	[ [ 1.0759999752044678, 1.6160000562667847, 0.0 ] ]
     ]
 ```
 
@@ -58,31 +58,31 @@ Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
-    Component: ActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000004
+    Feedback for input 0
     Inputs: [
-    	[ [ -0.932, -1.784, -0.452 ] ]
+    	[ [ 1.076, 1.616, -0.52 ] ]
     ]
-    output=[
-    	[ [ 0.0, 0.0, 0.0 ] ]
+    Output: [
+    	[ [ 1.0759999752044678, 1.6160000562667847, 0.0 ] ]
     ]
-    measured/actual: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    implemented/expected: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Measured: [ [ 1.0001659393310547, 0.0, 0.0 ], [ 0.0, 0.9989738464355469, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Error: [ [ 1.659393310546875E-4, 0.0, 0.0 ], [ 0.0, -0.001026153564453125, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (9#)
-    relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)
+    absoluteTol: 1.3245e-04 +- 3.2018e-04 [0.0000e+00 - 1.0262e-03] (9#)
+    relativeTol: 2.9815e-04 +- 2.1519e-04 [8.2963e-05 - 5.1334e-04] (2#)
     
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.06 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.07 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 2.2170 +- 0.3089 [1.8381 - 4.3003]
-    Learning performance: 1.8039 +- 0.2633 [1.4990 - 3.2545]
+    Evaluation performance: 2.5196 +- 1.3589 [1.8296 - 13.5565]
+    Learning performance: 1.7136 +- 0.2026 [1.4506 - 2.5591]
     
 ```
 

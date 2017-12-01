@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgImageBandLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f60",
+      "id": "f4569375-56fe-4e46-925c-95f400000972",
       "isFrozen": false,
-      "name": "AvgImageBandLayer/c88cbdf1-1c2a-4a5e-b964-890900000f60"
+      "name": "AvgImageBandLayer/f4569375-56fe-4e46-925c-95f400000972"
     }
 ```
 
@@ -39,13 +39,13 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ 1.152, 1.428, -0.844 ], [ -1.38, 1.288, -0.34 ] ],
-    	[ [ 0.608, 0.888, 0.144 ], [ -0.576, -1.896, 0.524 ] ]
+    	[ [ 1.404, -1.46, 1.972 ], [ 0.54, 1.604, -0.116 ] ],
+    	[ [ 0.072, -0.2, -0.228 ], [ -0.144, -1.944, 2.0 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 0.42700000000000005, -0.049000000000000016, -0.129 ] ]
+    	[ [ -0.49999999999999994, 0.46799999999999997, 0.907 ] ]
     ]
 ```
 
@@ -58,26 +58,26 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: AvgImageBandLayer/c88cbdf1-1c2a-4a5e-b964-890900000f60
+    Feedback for input 0
     Inputs: [
-    	[ [ 1.152, 1.428, -0.844 ], [ -1.38, 1.288, -0.34 ] ],
-    	[ [ 0.608, 0.888, 0.144 ], [ -0.576, -1.896, 0.524 ] ]
+    	[ [ 1.404, -1.46, 1.972 ], [ 0.54, 1.604, -0.116 ] ],
+    	[ [ 0.072, -0.2, -0.228 ], [ -0.144, -1.944, 2.0 ] ]
     ]
-    output=[
-    	[ [ -0.049000000000000016, 0.42700000000000005, -0.129 ] ]
+    Output: [
+    	[ [ -0.49999999999999994, 0.46799999999999997, 0.907 ] ]
     ]
-    measured/actual: [ [ 4760.000000000001, -5560.000000000001, 800.2500000000005 ], [ 4760.000000000001, -4759.75, 0.0 ], [ 4760.000000000001, -4759.75, 0.0 ], [ -799.9999999999999, 0.0, 800.2499999999999 ], [ 4760.25, -4760.000000000001, 0.0 ], [ 4760.25, -4760.000000000001, 0.0 ], [ 4760.25, -4760.000000000001, 0.0 ], [ 4760.25, -4760.000000000001, 0.0 ], [ 4760.000000000001, -5559.750000000001, 799.9999999999999 ], [ 4760.000000000001, -5559.750000000001, 799.9999999999999 ] ]
-    implemented/expected: [ [ 0.25, 0.0, 0.0 ], [ 0.25, 0.0, 0.0 ], [ 0.25, 0.0, 0.0 ], [ 0.25, 0.0, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.0, 0.25 ], [ 0.0, 0.0, 0.25 ] ]
-    error: [ [ 4759.750000000001, -5560.000000000001, 800.2500000000005 ], [ 4759.750000000001, -4759.75, 0.0 ], [ 4759.750000000001, -4759.75, 0.0 ], [ -800.2499999999999, 0.0, 800.2499999999999 ], [ 4760.25, -4760.250000000001, 0.0 ], [ 4760.25, -4760.250000000001, 0.0 ], [ 4760.25, -4760.250000000001, 0.0 ], [ 4760.25, -4760.250000000001, 0.0 ], [ 4760.000000000001, -5559.750000000001, 799.7499999999999 ], [ 4760.000000000001, -5559.750000000001, 799.7499999999999 ] ]
+    Measured: [ [ 0.0, 0.24999999999997247, 0.0 ], [ 0.0, 0.2500000000005276, 0.0 ], [ 0.0, 4390.000000000001, -4389.750000000001 ], [ 9680.25, -9680.0, 0.0 ], [ 0.24999999999997247, 0.0, 0.0 ], [ 0.24999999999997247, 0.0, 0.0 ], [ 0.24999999999997247, 0.0, 0.0 ], [ 0.24999999999997247, 4390.000000000001, -4390.000000000001 ], [ 0.0, 4390.25, -4390.000000000001 ], [ 0.0, 4390.25, -4390.000000000001 ] ]
+    Implemented: [ [ 0.25, 0.0, 0.0 ], [ 0.25, 0.0, 0.0 ], [ 0.25, 0.0, 0.0 ], [ 0.25, 0.0, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.25, 0.0 ], [ 0.0, 0.0, 0.25 ], [ 0.0, 0.0, 0.25 ] ]
+    Error: [ [ -0.25, 0.24999999999997247, 0.0 ], [ -0.25, 0.2500000000005276, 0.0 ], [ -0.25, 4390.000000000001, -4389.750000000001 ], [ 9680.0, -9680.0, 0.0 ], [ 0.24999999999997247, -0.25, 0.0 ], [ 0.24999999999997247, -0.25, 0.0 ], [ 0.24999999999997247, -0.25, 0.0 ], [ 0.24999999999997247, 4389.750000000001, -4390.000000000001 ], [ 0.0, 4390.25, -4390.250000000001 ], [ 0.0, 4390.25, -4390.250000000001 ] ]
     
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.1755e+03 +- 2.2435e+03 [0.0000e+00 - 5.5600e+03] (36#), relativeTol=9.9990e-01 +- 2.1347e-04 [9.9938e-01 - 1.0000e+00] (29#)}
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:266)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:74)
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=1.7573e+03 +- 2.7333e+03 [0.0000e+00 - 9.6800e+03] (36#), relativeTol=9.5999e-01 +- 1.9596e-01 [1.1653e-12 - 1.0000e+00] (25#)}
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:283)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:77)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
     	at java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:693)
@@ -86,7 +86,7 @@ Returns:
     	at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
     	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
     	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:75)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:78)
     	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
     	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)

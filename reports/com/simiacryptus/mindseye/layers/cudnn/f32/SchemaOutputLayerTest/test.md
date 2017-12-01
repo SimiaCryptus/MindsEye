@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.SchemaOutputLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-8909000002f7",
+      "id": "f4569375-56fe-4e46-925c-95f40000014a",
       "isFrozen": false,
-      "name": "SchemaOutputLayer/c88cbdf1-1c2a-4a5e-b964-8909000002f7",
+      "name": "SchemaOutputLayer/f4569375-56fe-4e46-925c-95f40000014a",
       "inputBands": 2,
       "logWeightInit": -3.0,
       "selected": [
@@ -27,12 +27,12 @@ Returns:
       ],
       "features": {
         "test2": [
-          4.999400373278935E-4,
-          -4.997601636936622E-4
+          4.6016488281229386E-4,
+          -3.4700687749460846E-4
         ],
         "test1": [
-          -4.961672190492596E-4,
-          -4.990408848604641E-4
+          1.8344907885767148E-5,
+          -3.4700687749460846E-4
         ]
       }
     }

@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.BinaryEntropyActivationLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f67",
+      "id": "f4569375-56fe-4e46-925c-95f40000098f",
       "isFrozen": true,
-      "name": "BinaryEntropyActivationLayer/c88cbdf1-1c2a-4a5e-b964-890900000f67"
+      "name": "BinaryEntropyActivationLayer/f4569375-56fe-4e46-925c-95f40000098f"
     }
 ```
 

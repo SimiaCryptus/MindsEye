@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MaxConstLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f7e",
+      "id": "f4569375-56fe-4e46-925c-95f400000a15",
       "isFrozen": true,
-      "name": "MaxConstLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7e",
+      "name": "MaxConstLayer/f4569375-56fe-4e46-925c-95f400000a15",
       "value": 0.0
     }
 ```
@@ -39,10 +39,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.56, 0.72, -1.992 ]]
+    [[ 1.404, 0.548, -1.008 ]]
     --------------------
     Output: 
-    [ 1.56, 0.72, 0.0 ]
+    [ 1.404, 0.548, 0.0 ]
 ```
 
 
@@ -54,12 +54,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: MaxConstLayer/c88cbdf1-1c2a-4a5e-b964-890900000f7e
-    Inputs: [ 1.56, 0.72, -1.992 ]
-    output=[ 1.56, 0.72, 0.0 ]
-    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Feedback for input 0
+    Inputs: [ 1.404, 0.548, -1.008 ]
+    Output: [ 1.404, 0.548, 0.0 ]
+    Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 2.4474e-14 +- 4.5787e-14 [0.0000e+00 - 1.1013e-13] (9#)
     relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (2#)
@@ -73,13 +73,13 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1241 +- 0.0317 [0.0940 - 0.3135]
-    Learning performance: 0.0036 +- 0.0107 [0.0000 - 0.1083]
+    Evaluation performance: 0.1360 +- 0.0312 [0.0997 - 0.2821]
+    Learning performance: 0.0025 +- 0.0032 [0.0000 - 0.0257]
     
 ```
 
 ### Function Plots
-Code from [ActivationLayerTestBase.java:73](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L73) executed in 0.00 seconds: 
+Code from [ActivationLayerTestBase.java:73](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L73) executed in 0.01 seconds: 
 ```java
     return plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
 ```

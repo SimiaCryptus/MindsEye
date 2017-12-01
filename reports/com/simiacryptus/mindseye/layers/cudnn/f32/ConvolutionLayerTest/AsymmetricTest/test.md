@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000294",
+      "id": "f4569375-56fe-4e46-925c-95f400000070",
       "isFrozen": false,
-      "name": "ConvolutionLayer/c88cbdf1-1c2a-4a5e-b964-890900000294",
+      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f400000070",
       "filter": {
         "dimensions": [
           1,
@@ -26,14 +26,14 @@ Returns:
           8
         ],
         "data": [
-          -1.668,
-          1.592,
-          -0.796,
-          -0.692,
-          -0.74,
-          0.692,
-          -0.076,
-          1.916
+          -1.616,
+          1.996,
+          -0.2,
+          0.896,
+          -1.576,
+          -1.52,
+          1.956,
+          0.796
         ]
       },
       "strideX": 1,
@@ -58,12 +58,12 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ 1.004, 1.724 ] ]
+    	[ [ -1.032, -1.628 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ -2.9504318237304688, 2.7913758754730225, -0.9302079677581787, 2.6084160804748535 ] ]
+    	[ [ 4.233439922332764, 0.4146880805492401, -2.9779679775238037, -2.220560073852539 ] ]
     ]
 ```
 
@@ -79,9 +79,9 @@ Logging:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-89090000029d",
+      "id": "f4569375-56fe-4e46-925c-95f400000079",
       "isFrozen": false,
-      "name": "ConvolutionLayer/c88cbdf1-1c2a-4a5e-b964-89090000029d",
+      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f400000079",
       "filter": {
         "dimensions": [
           1,
@@ -89,14 +89,14 @@ Logging:
           8
         ],
         "data": [
-          -1.668,
-          1.592,
-          -0.796,
-          -0.692,
-          -0.74,
-          0.692,
-          -0.076,
-          1.916
+          -1.616,
+          1.996,
+          -0.2,
+          0.896,
+          -1.576,
+          -1.52,
+          1.956,
+          0.796
         ]
       },
       "skip": {
@@ -108,14 +108,14 @@ Logging:
       "simple": true
     }
     Inputs: [
-    	[ [ 1.004, 1.724 ] ]
+    	[ [ -1.032, -1.628 ] ]
     ]
     Error: [
-    	[ [ 1.7626953097149567E-7, -1.2452697761844433E-7, 3.22418213238862E-8, 8.047485344775396E-8 ] ]
+    	[ [ -7.766723619795357E-8, 8.054924016676068E-8, 2.2476196015475125E-8, -7.385253919522938E-8 ] ]
     ]
     Accuracy:
-    absoluteTol: 1.0338e-07 +- 5.3257e-08 [3.2242e-08 - 1.7627e-07] (4#)
-    relativeTol: 2.1233e-08 +- 5.5842e-09 [1.5426e-08 - 2.9872e-08] (4#)
+    absoluteTol: 6.3636e-08 +- 2.3882e-08 [2.2476e-08 - 8.0549e-08] (4#)
+    relativeTol: 3.1674e-08 +- 3.8060e-08 [3.7737e-09 - 9.7120e-08] (4#)
     
 ```
 
@@ -126,25 +126,25 @@ Code from [LayerTestBase.java:139](../../../../../../../../../../MindsEye/src/te
 ```
 Logging: 
 ```
-    Component: ConvolutionLayer/c88cbdf1-1c2a-4a5e-b964-890900000294
+    Feedback for input 0
     Inputs: [
-    	[ [ 1.004, 1.724 ] ]
+    	[ [ -1.032, -1.628 ] ]
     ]
-    output=[
-    	[ [ -2.9504318237304688, 2.7913758754730225, -0.9302079677581787, 2.6084160804748535 ] ]
+    Output: [
+    	[ [ 4.233439922332764, 0.4146880805492401, -2.9779679775238037, -2.220560073852539 ] ]
     ]
-    measured/actual: [ [ -1.6689300537109375, 1.5926361083984375, -0.7963180541992188, -0.6937980651855469 ], [ -0.7414817810058594, 0.6914138793945312, -0.0756978988647461, 1.9168853759765625 ] ]
-    implemented/expected: [ [ 0.0, 0.0, -0.7960000038146973, -0.6919999718666077 ], [ 0.0, 0.0, -0.07599999755620956, 1.9160000085830688 ] ]
-    error: [ [ -1.6689300537109375, 1.5926361083984375, -3.180503845214844E-4, -0.001798093318939209 ], [ -0.7414817810058594, 0.6914138793945312, 3.0209869146347046E-4, 8.853673934936523E-4 ] ]
+    Measured: [ [ -1.6117095947265625, 1.9931793212890625, -0.2002716064453125, 0.896453857421875 ], [ -1.5735626220703125, -1.520216464996338, 1.9550323486328125, 0.7963180541992188 ] ]
+    Implemented: [ [ 0.0, 0.0, -0.20000000298023224, 0.8960000276565552 ], [ 0.0, 0.0, 1.9559999704360962, 0.7960000038146973 ] ]
+    Error: [ [ -1.6117095947265625, 1.9931793212890625, -2.7160346508026123E-4, 4.538297653198242E-4 ], [ -1.5735626220703125, -1.520216464996338, -9.676218032836914E-4, 3.180503845214844E-4 ] ]
     
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=5.8722e-01 +- 6.6999e-01 [3.0210e-04 - 1.6689e+00] (8#), relativeTol=5.0046e-01 +- 4.9954e-01 [1.9974e-04 - 1.0000e+00] (8#)}
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:266)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:74)
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=8.3758e-01 +- 8.4743e-01 [2.7160e-04 - 1.9932e+00] (8#), relativeTol=5.0017e-01 +- 4.9983e-01 [1.9974e-04 - 1.0000e+00] (8#)}
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:283)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:77)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
     	at java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:693)
@@ -153,7 +153,7 @@ Returns:
     	at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
     	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
     	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:75)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:78)
     	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
     	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)

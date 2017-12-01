@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.DropoutNoiseLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f6b",
+      "id": "f4569375-56fe-4e46-925c-95f4000009a8",
       "isFrozen": false,
-      "name": "DropoutNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f6b",
+      "name": "DropoutNoiseLayer/f4569375-56fe-4e46-925c-95f4000009a8",
       "value": 0.5
     }
 ```
@@ -39,10 +39,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.812, 1.392, 0.648 ]]
+    [[ 0.136, -0.168, 0.448 ]]
     --------------------
     Output: 
-    [ 1.812, 0.0, 0.648 ]
+    [ 0.0, -0.0, 0.0 ]
 ```
 
 
@@ -54,15 +54,15 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: DropoutNoiseLayer/c88cbdf1-1c2a-4a5e-b964-890900000f6b
-    Inputs: [ 1.812, 1.392, 0.648 ]
-    output=[ 1.812, 0.0, 0.648 ]
-    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
-    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
-    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Feedback for input 0
+    Inputs: [ 0.136, -0.168, 0.448 ]
+    Output: [ 0.0, -0.0, 0.0 ]
+    Measured: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Implemented: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.4474e-14 +- 4.5787e-14 [0.0000e+00 - 1.1013e-13] (9#)
-    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (2#)
+    absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (9#)
+    relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)
     
 ```
 
@@ -73,8 +73,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1909 +- 0.0365 [0.1425 - 0.3306]
-    Learning performance: 0.0025 +- 0.0025 [0.0000 - 0.0200]
+    Evaluation performance: 0.2193 +- 0.0431 [0.1624 - 0.4218]
+    Learning performance: 0.0025 +- 0.0021 [0.0000 - 0.0142]
     
 ```
 

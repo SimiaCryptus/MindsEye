@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f9d",
+      "id": "f4569375-56fe-4e46-925c-95f400000a83",
       "isFrozen": false,
-      "name": "StaticScalarLossLayer/c88cbdf1-1c2a-4a5e-b964-890900000f9d"
+      "name": "StaticScalarLossLayer/f4569375-56fe-4e46-925c-95f400000a83"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.528 ]]
+    [[ 1.544 ]]
     --------------------
     Output: 
-    [ 1.528 ]
+    [ 1.544 ]
 ```
 
 
@@ -53,12 +53,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: StaticScalarLossLayer/c88cbdf1-1c2a-4a5e-b964-890900000f9d
-    Inputs: [ -1.528 ]
-    output=[ 1.528 ]
-    measured/actual: [ [ -0.9999999999998899 ] ]
-    implemented/expected: [ [ -1.0 ] ]
-    error: [ [ 1.1013412404281553E-13 ] ]
+    Feedback for input 0
+    Inputs: [ 1.544 ]
+    Output: [ 1.544 ]
+    Measured: [ [ 0.9999999999998899 ] ]
+    Implemented: [ [ 1.0 ] ]
+    Error: [ [ -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (1#)
     relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)
@@ -72,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1706 +- 0.0313 [0.1225 - 0.2565]
-    Learning performance: 0.0109 +- 0.0024 [0.0085 - 0.0200]
+    Evaluation performance: 0.1951 +- 0.0465 [0.1311 - 0.4018]
+    Learning performance: 0.0152 +- 0.0053 [0.0114 - 0.0513]
     
 ```
 

@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000007",
+      "id": "f4569375-56fe-4e46-925c-95f400000036",
       "isFrozen": false,
-      "name": "ConvolutionLayer/c88cbdf1-1c2a-4a5e-b964-890900000007",
+      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f400000036",
       "filter": {
         "dimensions": [
           1,
@@ -26,10 +26,10 @@ Returns:
           4
         ],
         "data": [
-          -0.664,
-          -1.948,
-          1.088,
-          1.044
+          1.176,
+          1.24,
+          0.292,
+          1.304
         ]
       },
       "strideX": 1,
@@ -54,19 +54,19 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.664, 0.652 ] ]
+    	[ [ 0.228, -0.944 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 1.8142720460891724, 3.9221601486206055 ] ]
+    	[ [ -0.007519989740103483, -0.9482560157775879 ] ]
     ]
 ```
 
 
 
 ### Reference Implementation
-Code from [LayerTestBase.java:132](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L132) executed in 0.01 seconds: 
+Code from [LayerTestBase.java:132](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L132) executed in 0.02 seconds: 
 ```java
     System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
     getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
@@ -75,9 +75,9 @@ Logging:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-89090000000e",
+      "id": "f4569375-56fe-4e46-925c-95f40000003d",
       "isFrozen": false,
-      "name": "ConvolutionLayer/c88cbdf1-1c2a-4a5e-b964-89090000000e",
+      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f40000003d",
       "filter": {
         "dimensions": [
           1,
@@ -85,10 +85,10 @@ Logging:
           4
         ],
         "data": [
-          -0.664,
-          -1.948,
-          1.088,
-          1.044
+          1.176,
+          1.24,
+          0.292,
+          1.304
         ]
       },
       "skip": {
@@ -100,59 +100,111 @@ Logging:
       "simple": true
     }
     Inputs: [
-    	[ [ -1.664, 0.652 ] ]
+    	[ [ 0.228, -0.944 ] ]
     ]
     Error: [
-    	[ [ 4.6089172256458255E-8, 1.486206056000583E-7 ] ]
+    	[ [ 1.0259896507901212E-8, -1.5777587902832124E-8 ] ]
     ]
     Accuracy:
-    absoluteTol: 9.7355e-08 +- 5.1266e-08 [4.6089e-08 - 1.4862e-07] (2#)
-    relativeTol: 1.5824e-08 +- 3.1222e-09 [1.2702e-08 - 1.8946e-08] (2#)
+    absoluteTol: 1.3019e-08 +- 2.7588e-09 [1.0260e-08 - 1.5778e-08] (2#)
+    relativeTol: 3.4525e-07 +- 3.3693e-07 [8.3193e-09 - 6.8217e-07] (2#)
     
 ```
 
 ### Differential Validation
-Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.02 seconds: 
+Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.00 seconds: 
 ```java
     getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Component: ConvolutionLayer/c88cbdf1-1c2a-4a5e-b964-890900000007
+    Feedback for input 0
     Inputs: [
-    	[ [ -1.664, 0.652 ] ]
+    	[ [ 0.228, -0.944 ] ]
     ]
-    output=[
-    	[ [ 1.8142720460891724, 3.9221601486206055 ] ]
+    Output: [
+    	[ [ -0.007519989740103483, -0.9482560157775879 ] ]
     ]
-    measured/actual: [ [ -0.6639957427978516, -1.9478797912597656 ], [ 1.087188720703125, 1.0418891906738281 ] ]
-    implemented/expected: [ [ -0.6639999747276306, -1.9479999542236328 ], [ 1.0880000591278076, 1.0440000295639038 ] ]
-    error: [ [ 4.231929779052734E-6, 1.201629638671875E-4 ], [ -8.113384246826172E-4, -0.0021108388900756836 ] ]
-    Component: ConvolutionLayer/c88cbdf1-1c2a-4a5e-b964-890900000007
+    Measured: [ [ 1.175999641418457, 1.239776611328125 ], [ 0.29204413294792175, 1.3041496276855469 ] ]
+    Implemented: [ [ 1.1759999990463257, 1.2400000095367432 ], [ 0.2919999957084656, 1.3040000200271606 ] ]
+    Error: [ [ -3.5762786865234375E-7, -2.2339820861816406E-4 ], [ 4.413723945617676E-5, 1.4960765838623047E-4 ] ]
+    Learning Gradient for weight set 0
     Inputs: [
-    	[ [ -1.664, 0.652 ] ]
+    	[ [ 0.228, -0.944 ] ]
     ]
     Outputs: [
-    	[ [ 1.8142720460891724, 3.9221601486206055 ] ]
+    	[ [ -0.007519989740103483, -0.9482560157775879 ] ]
     ]
-    Measured Gradient: [ [ -1.6629695892333984, 0.0 ], [ 0.0, -1.6617774963378906 ], [ 0.6508827209472656, 0.0 ], [ 0.0, 0.6508827209472656 ] ]
-    Implemented Gradient: [ [ -1.6640000343322754, 0.0 ], [ 0.0, -1.6640000343322754 ], [ 0.6520000100135803, 0.0 ], [ 0.0, 0.6520000100135803 ] ]
-    Error: [ [ 0.0010304450988769531, 0.0 ], [ 0.0, 0.0022225379943847656 ], [ -0.0011172890663146973, 0.0 ], [ 0.0, -0.0011172890663146973 ] ]
+    Measured Gradient: [ [ 0.22798776626586914, 0.0 ], [ 0.0, 0.2276897430419922 ], [ -0.9441608563065529, 0.0 ], [ 0.0, -0.9441375732421875 ] ]
+    Implemented Gradient: [ [ 0.2280000001192093, 0.0 ], [ 0.0, 0.2280000001192093 ], [ -0.9440000057220459, 0.0 ], [ 0.0, -0.9440000057220459 ] ]
+    Error: [ [ -1.2233853340148926E-5, 0.0 ], [ 0.0, -3.1025707721710205E-4 ], [ -1.6085058450698853E-4, 0.0 ], [ 0.0, -1.3756752014160156E-4 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 7.1118e-04 +- 7.9358e-04 [0.0000e+00 - 2.2225e-03] (12#)
-    relativeTol: 5.1401e-04 +- 3.6466e-04 [3.1867e-06 - 1.0120e-03] (8#)
+    absoluteTol: 8.6534e-05 +- 1.0230e-04 [0.0000e+00 - 3.1026e-04] (12#)
+    relativeTol: 1.3611e-04 +- 2.0789e-04 [1.5205e-07 - 6.8085e-04] (8#)
     
 ```
 
-### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.21 seconds: 
-```java
-    getPerformanceTester().test(layer, inputPrototype);
+Returns: 
+
 ```
-Logging: 
+    java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
+    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.lang.reflect.Method.invoke(Method.java:498)
+    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runners.Suite.runChild(Suite.ja
 ```
-    Evaluation performance: 8.1770 +- 1.3979 [5.8221 - 15.1153]
-    Learning performance: 5.8240 +- 0.7351 [5.0299 - 10.5556]
+...[skipping 1053 bytes](etc/1.txt)...
+```
+    ntroller.lambda$run$8(GpuController.java:215)
+    	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:125)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:92)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
+    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
+    	... 36 more
+    Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError
+    	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
+    	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
+    	... 44 more
+    Caused by: java.lang.AssertionError
+    	at com.simiacryptus.mindseye.layers.cudnn.CudaPtr.toDeviceAsFloat(CudaPtr.java:192)
+    	at com.simiacryptus.mindseye.layers.cudnn.f32.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:117)
+    	at com.simiacryptus.mindseye.network.CountingNNResult.accumulate(CountingNNResult.java:110)
+    	at com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer$1.accumulate(ConvolutionLayer.java:174)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
+    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+    	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+    	at java.lang.Thread.run(Thread.java:748)
     
 ```
+
+
 

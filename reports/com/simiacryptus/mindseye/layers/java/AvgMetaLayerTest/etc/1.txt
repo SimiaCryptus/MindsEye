@@ -39,8 +39,8 @@ Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: 
 	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
 	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
 	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.testFrozen(DerivativeTester.java:97)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:89)
+	at com.simiacryptus.mindseye.layers.DerivativeTester.testFrozen(DerivativeTester.java:100)
+	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:91)
 	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
 	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
@@ -52,7 +52,7 @@ Caused by: java.util.concurrent.ExecutionException: java.lang.RuntimeException: 
 	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
 	... 43 more
 Caused by: java.lang.RuntimeException: Frozen component did not pass input backwards
-	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testFrozen$8(DerivativeTester.java:112)
+	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testFrozen$11(DerivativeTester.java:118)
 	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)

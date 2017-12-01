@@ -32,13 +32,13 @@ public class ImgCropLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ImgCropLayer(1, 1);
+    return new ImgCropLayer(2, 2);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 1}
+      {4, 4, 3}
     };
   }
 }

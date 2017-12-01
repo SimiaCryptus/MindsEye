@@ -62,6 +62,8 @@ public class CuDNNFloatTensorList implements TensorList {
    * @param cudnnHandle the cudnn handle
    */
   public CuDNNFloatTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
+    if (null == ptr) throw new IllegalArgumentException("ptr");
+    if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
     this.ptr = ptr;
     this.length = length;
     this.dimensions = dimensions;

@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MonitoringSynapse",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f84",
+      "id": "f4569375-56fe-4e46-925c-95f400000a2c",
       "isFrozen": false,
-      "name": "MonitoringSynapse/c88cbdf1-1c2a-4a5e-b964-890900000f84",
+      "name": "MonitoringSynapse/f4569375-56fe-4e46-925c-95f400000a2c",
       "totalBatches": 0,
       "totalItems": 0
     }
@@ -40,10 +40,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.628, 0.988, 1.536 ]]
+    [[ 0.232, -0.896, -0.444 ]]
     --------------------
     Output: 
-    [ 1.628, 0.988, 1.536 ]
+    [ 0.232, -0.896, -0.444 ]
 ```
 
 
@@ -55,12 +55,12 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: MonitoringSynapse/c88cbdf1-1c2a-4a5e-b964-890900000f84
-    Inputs: [ 1.628, 0.988, 1.536 ]
-    output=[ 1.628, 0.988, 1.536 ]
-    measured/actual: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
-    implemented/expected: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
-    error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Feedback for input 0
+    Inputs: [ 0.232, -0.896, -0.444 ]
+    Output: [ 0.232, -0.896, -0.444 ]
+    Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+    Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+    Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 3.6711e-14 +- 5.1918e-14 [0.0000e+00 - 1.1013e-13] (9#)
     relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (3#)
@@ -74,8 +74,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1402 +- 0.0236 [0.1083 - 0.2508]
-    Learning performance: 0.0270 +- 0.0133 [0.0171 - 0.0941]
+    Evaluation performance: 0.1917 +- 0.1765 [0.1140 - 1.7042]
+    Learning performance: 0.0282 +- 0.0095 [0.0200 - 0.1026]
     
 ```
 

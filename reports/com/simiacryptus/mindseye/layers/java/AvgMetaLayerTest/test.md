@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-      "id": "c88cbdf1-1c2a-4a5e-b964-890900000f61",
+      "id": "f4569375-56fe-4e46-925c-95f400000976",
       "isFrozen": false,
-      "name": "AvgMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f61"
+      "name": "AvgMetaLayer/f4569375-56fe-4e46-925c-95f400000976"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.896, 1.144, 0.424 ]]
+    [[ -1.832, -0.328, -1.972 ]]
     --------------------
     Output: 
-    [ 1.896, 1.144, 0.424 ]
+    [ -1.832, -0.328, -1.972 ]
 ```
 
 
@@ -53,27 +53,78 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Component: AvgMetaLayer/c88cbdf1-1c2a-4a5e-b964-890900000f61
-    Inputs: [ 1.896, 1.144, 0.424 ]
-    output=[ 1.896, 1.144, 0.424 ]
-    measured/actual: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    implemented/expected: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Feedback for input 0
+    Inputs: [ -1.832, -0.328, -1.972 ]
+    Output: [ -1.832, -0.328, -1.972 ]
+    Measured: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Implemented: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (9#)
     relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)
     
 ```
 
-### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
-```java
-    getPerformanceTester().test(layer, inputPrototype);
+Returns: 
+
 ```
-Logging: 
+    java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
+    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
+    	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
+    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.lang.reflect.Method.invoke(Method.java:498)
+    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runners.Suite.runChild(Suite.java:128)
+    	at org.junit.runners.Sui
 ```
-    Evaluation performance: 0.1121 +- 0.0255 [0.0741 - 0.1995]
-    Learning performance: 0.0019 +- 0.0021 [0.0000 - 0.0114]
+...[skipping 776 bytes](etc/1.txt)...
+```
+    .java:242)
+    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
+    Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
+    	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFrozen(DerivativeTester.java:100)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:91)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
+    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
+    	... 35 more
+    Caused by: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
+    	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
+    	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
+    	... 43 more
+    Caused by: java.lang.RuntimeException: Frozen component did not pass input backwards
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testFrozen$11(DerivativeTester.java:118)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
+    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+    	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+    	at java.lang.Thread.run(Thread.java:748)
     
 ```
+
+
 
