@@ -51,7 +51,7 @@ public class ImgConcatLayerTest extends F32LayerTestBase {
     @Override
     public int[][] getInputDims() {
       return new int[][]{
-        {2, 2, 2}, {2, 2, 2}
+        {1, 1, 2}, {1, 1, 2}
       };
     }
   }

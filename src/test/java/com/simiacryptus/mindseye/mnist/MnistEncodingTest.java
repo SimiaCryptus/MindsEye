@@ -224,7 +224,7 @@ public class MnistEncodingTest {
       DAGNode softmax = network.add(new SoftmaxActivationLayer(), input);
       
       network.add(new SumInputsLayer(),
-        network.add(new LinearActivationLayer().setScale(100).freeze(),
+        network.add(new LinearActivationLayer().setScale(1).freeze(),
           network.add(new EntropyLossLayer(), softmax, softmax)),
         network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
           network.add(new MeanSqLossLayer(), image, network.getInput(1))

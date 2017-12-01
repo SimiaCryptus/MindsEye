@@ -1036,6 +1036,10 @@ public class Tensor implements Serializable {
       List<String> list = IntStream.range(0, this.dimensions[coords.length]).mapToObj(i -> {
         return toString(prettyPrint, _add(coords, i));
       }).collect(Collectors.toList());
+      if (list.size() > 10) {
+        list = list.subList(0, 8);
+        list.add("...");
+      }
       if(prettyPrint) {
         if(coords.length < this.dimensions.length-2) {
           final String str = list.stream().limit(10)
@@ -1043,15 +1047,11 @@ public class Tensor implements Serializable {
             .reduce((a, b) -> a + ",\n" + b).get();
           return "[\n" + str + "\n]";
         } else {
-          final String str = list.stream().limit(10).reduce((a, b) -> a + ", " + b).get();
+          final String str = list.stream().reduce((a, b) -> a + ", " + b).get();
           return "[ " + str + " ]";
         }
       } else {
-        if (list.size() > 10) {
-          list = list.subList(0, 8);
-          list.add("...");
-        }
-        final String str = list.stream().limit(10).reduce((a, b) -> a + "," + b).get();
+        final String str = list.stream().reduce((a, b) -> a + "," + b).get();
         return "[ " + str + " ]";
       }
     }

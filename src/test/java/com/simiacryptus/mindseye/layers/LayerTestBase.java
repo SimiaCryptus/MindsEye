@@ -162,7 +162,7 @@ public abstract class LayerTestBase {
         name = node.getId().toString();
       } else {
         Class<? extends NNLayer> layerClass = layer.getClass();
-        name = layerClass.getSimpleName();
+        name = layerClass.getSimpleName() + "\n" + layer.getId();
       }
       return Factory.mutNode(name);
     }));

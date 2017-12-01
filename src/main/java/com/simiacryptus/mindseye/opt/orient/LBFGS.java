@@ -117,8 +117,8 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
       //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
-        DeltaSet sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        DeltaSet yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         double denominator = sd.dot(yd);
         if (0 == denominator) {
           monitor.log("Orientation vanished. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
@@ -128,13 +128,13 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
         p = p.subtract(yd.scale(alphas[i]));
         //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       }
-      DeltaSet sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
-      DeltaSet yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
+      DeltaSet<NNLayer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
+      DeltaSet<NNLayer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
       p = p.scale(sk.dot(yk) / yk.dot(yk));
       //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       for (int i = 0; i < history.size() - 1; i++) {
-        DeltaSet sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        DeltaSet yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        DeltaSet<NNLayer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        DeltaSet<NNLayer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         double beta = p.dot(yd) / sd.dot(yd);
         p = p.add(sd.scale(alphas[i] - beta));
         //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));

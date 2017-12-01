@@ -157,7 +157,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
    * @param right the right
    * @return the double
    */
-  public <U extends Delta> double dot(DoubleBufferSet<K,U> right) {
+  public <U extends DoubleBuffer> double dot(DoubleBufferSet<K,U> right) {
     ConcurrentHashMap<K, U> r = right.map;
     Stream<Map.Entry<K, T>> stream = map.entrySet().stream();
     if(100 < map.size()) stream = stream.parallel();

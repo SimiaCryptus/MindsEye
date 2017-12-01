@@ -80,13 +80,33 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   
   @Override
   public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-2, 1e-4);
+    return new DerivativeTester(1e-2, 1e-3);
   }
   
   public static class MultiBand extends SimpleConvolutionLayerTest {
     public MultiBand() {
       super(1,3);
     }
+  }
+  
+  public static class Matrix extends SimpleConvolutionLayerTest {
+    public Matrix() {
+      super(3,1);
+    }
+  }
+  
+  public static class Image extends SimpleConvolutionLayerTest {
+    public Image() {
+      super(3,3);
+    }
+  
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {4, 4, 3}
+      };
+    }
+  
   }
   
 }

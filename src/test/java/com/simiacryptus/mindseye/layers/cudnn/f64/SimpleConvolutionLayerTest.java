@@ -77,10 +77,21 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
       {radius, radius, bands}
     };
   }
-
   public static class MultiBand extends SimpleConvolutionLayerTest {
     public MultiBand() {
-      super(3,3);
+      super(1,3);
+    }
+  }
+  
+  public static class Matrix extends SimpleConvolutionLayerTest {
+    public Matrix() {
+      super(3,1);
+    }
+  }
+  
+  public static class Image extends SimpleConvolutionLayerTest {
+    public Image() {
+      super(2,3);
     }
   }
   

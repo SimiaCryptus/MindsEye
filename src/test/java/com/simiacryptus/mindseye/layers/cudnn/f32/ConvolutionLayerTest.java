@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn.f32;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
+import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 public class ConvolutionLayerTest extends F32LayerTestBase {
   final int radius;
@@ -71,12 +73,38 @@ public class ConvolutionLayerTest extends F32LayerTestBase {
   /**
    * The type Asymmetric test.
    */
-  public static class AsymmetricTest extends ConvolutionLayerTest {
+  public static class AsymmetricExplodedTest extends F32LayerTestBase {
   
+    public AsymmetricExplodedTest() {
+      super();
+    }
+  
+    @Override
+    public NNLayer getLayer() {
+      PipelineNetwork network = new PipelineNetwork();
+      DAGNode input = network.getInput(0);
+      network.add(new ImgConcatLayer().setMaxBands(3),
+        network.add(new SimpleConvolutionLayer(1,1,4).setWeights(this::random), input),
+        network.add(new SimpleConvolutionLayer(1,1,4).setWeights(this::random), input));
+      return network;
+    }
+  
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{ { 1,1,2 } };
+    }
+  
+  }
+  
+  /**
+   * The type Asymmetric test.
+   */
+  public static class AsymmetricTest extends ConvolutionLayerTest {
+    
     public AsymmetricTest() {
       super(1,2,4);
     }
-  
+    
   }
   
   /**

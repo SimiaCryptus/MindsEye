@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.layers.java.SimpleEval;
+import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.KryoUtil;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -50,6 +49,8 @@ public class DerivativeTester {
   private final double tolerance;
   private boolean testLearning = true;
   private boolean testFeedback = true;
+  private boolean verify = true;
+  private boolean verbose = true;
   
   /**
    * Instantiates a new Derivative tester.
@@ -72,15 +73,92 @@ public class DerivativeTester {
   public ToleranceStatistics test(final NNLayer component, final Tensor... inputPrototype) {
     Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
     ToleranceStatistics statistics = new ToleranceStatistics();
+    if(verbose) {
+      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a, b)->a+",\n"+b).get()));
+      System.out.println(String.format("Inputs Statistics: %s", Arrays.stream(inputPrototype).map(x->new ScalarStatistics().add(x.getData()).toString()).reduce((a, b)->a+",\n"+b).get()));
+      System.out.println(String.format("Output: %s", outputPrototype.prettyPrint()));
+      System.out.println(String.format("Outputs Statistics: %s", new ScalarStatistics().add(outputPrototype.getData())));
+    }
     if (isTestFeedback()) {
       statistics = statistics.combine(IntStream.range(0, inputPrototype.length).mapToObj(i -> {
-        return testFeedback(component, i, outputPrototype, inputPrototype);
+        final Tensor measuredGradient = !verify?null:measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
+        final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
+        try {
+          ToleranceStatistics result = IntStream.range(0, null==measuredGradient?0:measuredGradient.dim()).mapToObj(i1 -> {
+            return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
+          }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
+      
+          if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
+          //System.out.println(String.format("Component: %s", component));
+          if(verbose) {
+            System.out.println(String.format("Feedback for input %s", i));
+            System.out.println(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+            System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
+            if(null != measuredGradient) {
+              System.out.println(String.format("Measured Feedback: %s", measuredGradient.prettyPrint()));
+              System.out.println(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+              System.out.println(String.format("Feedback Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
+              System.out.println(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+            }
+          }
+          return result;
+        } catch (final Throwable e) {
+          //System.out.println(String.format("Component: %s", component));
+          System.out.println(String.format("Feedback for input %s", i));
+          System.out.println(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
+          System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
+          if(null != measuredGradient) {
+            System.out.println(String.format("Measured: %s", measuredGradient.prettyPrint()));
+            System.out.println(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+            System.out.println(String.format("Feedback Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
+            System.out.println(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+          }
+          throw e;
+        }
       }).reduce((a, b) -> a.combine(b)).get());
     }
     if (isTestLearning()) {
       ToleranceStatistics prev = statistics;
       statistics = IntStream.range(0, component.state().size()).mapToObj(i -> {
-        return testLearning(component, i, outputPrototype, inputPrototype);
+        final Tensor measuredGradient = !verify?null:measureLearningGradient(component, i, outputPrototype, inputPrototype);
+        final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
+        try {
+          ToleranceStatistics result = IntStream.range(0, null==measuredGradient?0:measuredGradient.dim()).mapToObj(i1 -> {
+            return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
+          }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
+          if (!(result.absoluteTol.getMax() < tolerance)) {
+            throw new AssertionError(result.toString());
+          } else {
+            //System.out.println(String.format("Component: %s", component));
+            if(verbose) {
+              
+              System.out.println(String.format("Learning Gradient for weight set %s", i));
+              System.out.println(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
+              System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+              System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
+              if(null != measuredGradient) {
+                System.out.println(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+                System.out.println(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+                System.out.println(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
+                System.out.println(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+              }
+            }
+            return result;
+          }
+        } catch (final Throwable e) {
+          //System.out.println(String.format("Component: %s", component));
+          System.out.println(String.format("Learning Gradient for weight set %s", i));
+          System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
+          System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
+          if(null != measuredGradient) {
+            System.out.println(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
+            System.out.println(String.format("Measured Statistics: %s", new ScalarStatistics().add(measuredGradient.getData())));
+            System.out.println(String.format("Gradient Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
+            System.out.println(String.format("Error Statistics: %s", new ScalarStatistics().add(measuredGradient.minus(implementedGradient).getData())));
+          }
+          throw e;
+        }
+  
       }).reduce((a, b) -> a.combine(b)).map(x->x.combine(prev)).orElseGet(()->prev);
     }
     //System.out.println(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
@@ -150,7 +228,9 @@ public class DerivativeTester {
   }
   
   private Tensor getFeedbackGradient(final NNLayer component, final int inputIndex, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor result = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
+    final Tensor inputTensor = inputPrototype[inputIndex];
+    final int inputDims = inputTensor.dim();
+    final Tensor result = new Tensor(inputDims, outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
       PlaceholderLayer inputKey = new PlaceholderLayer(new Tensor());
@@ -164,15 +244,15 @@ public class DerivativeTester {
           return false;
         }
       }).toArray(i -> new NNResult[i]);
-      copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
+      copyInput[inputIndex] = new NNResult(inputTensor) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           Assert.assertEquals(1, data.length());
           assert data.length() == 1;
-          final Tensor gradientBuffer = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
+          final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
           IntStream.range(0, data.length()).forEach(dataIndex -> {
-            Assert.assertArrayEquals(inputPrototype[inputIndex].getDimensions(), data.get(dataIndex).getDimensions());
-            for (int i = 0; i < inputPrototype[inputIndex].dim(); i++) {
+            Assert.assertArrayEquals(inputTensor.getDimensions(), data.get(dataIndex).getDimensions());
+            for (int i = 0; i < inputDims; i++) {
               gradientBuffer.set(new int[]{i, j_}, data.get(dataIndex).getData()[i]);
             }
           });
@@ -269,87 +349,6 @@ public class DerivativeTester {
   }
   
   /**
-   * Test feedback.
-   *
-   * @param component       the component
-   * @param i               the
-   * @param outputPrototype the output prototype
-   * @param inputPrototype  the input prototype
-   * @return the tolerance statistics
-   */
-  protected ToleranceStatistics testFeedback(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor measuredGradient = measureFeedbackGradient(component, i, outputPrototype, inputPrototype);
-    final Tensor implementedGradient = getFeedbackGradient(component, i, outputPrototype, inputPrototype);
-    try {
-      ToleranceStatistics result = IntStream.range(0, measuredGradient.dim()).mapToObj(i1 -> {
-        return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
-      }).reduce((a, b) -> a.combine(b)).get();
-  
-      if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
-      //System.out.println(String.format("Component: %s", component));
-      System.out.println(String.format("Feedback for input %s", i));
-      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get()));
-      System.out.println(String.format("Output: %s", outputPrototype.prettyPrint()));
-      System.out.println(String.format("Measured: %s", measuredGradient.prettyPrint()));
-      System.out.println(String.format("Implemented: %s", implementedGradient.prettyPrint()));
-      System.out.println(String.format("Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-      return result;
-    } catch (final Throwable e) {
-      //System.out.println(String.format("Component: %s", component));
-      System.out.println(String.format("Feedback for input %s", i));
-      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get()));
-      System.out.println(String.format("Output: %s", outputPrototype.prettyPrint()));
-      System.out.println(String.format("Measured: %s", measuredGradient.prettyPrint()));
-      System.out.println(String.format("Implemented: %s", implementedGradient.prettyPrint()));
-      System.out.println(String.format("Error: %s", measuredGradient.minus(implementedGradient).prettyPrint()));
-      throw e;
-    }
-  }
-  
-  /**
-   * Test learning.
-   *
-   * @param component       the component
-   * @param i               the
-   * @param outputPrototype the output prototype
-   * @param inputPrototype  the input prototype
-   * @return the tolerance statistics
-   */
-  protected ToleranceStatistics testLearning(final NNLayer component, final int i, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    final Tensor measuredGradient = measureLearningGradient(component, i, outputPrototype, inputPrototype);
-    final Tensor implementedGradient = getLearningGradient(component, i, outputPrototype, inputPrototype);
-    final Tensor error = measuredGradient.minus(implementedGradient);
-  
-    try {
-      ToleranceStatistics result = IntStream.range(0, measuredGradient.dim()).mapToObj(i1 -> {
-        return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
-      }).reduce((a, b) -> a.combine(b)).get();
-      if (!(result.absoluteTol.getMax() < tolerance)) {
-        throw new AssertionError(result.toString());
-      } else {
-        //System.out.println(String.format("Component: %s", component));
-        System.out.println(String.format("Learning Gradient for weight set %s", i));
-        System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get()));
-        System.out.println(String.format("Outputs: %s", outputPrototype.prettyPrint()));
-        System.out.println(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
-        System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-        System.out.println(String.format("Error: %s", error.prettyPrint()));
-        return result;
-      }
-    } catch (final Throwable e) {
-      //System.out.println(String.format("Component: %s", component));
-      System.out.println(String.format("Learning Gradient for weight set %s", i));
-      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get()));
-      System.out.println(String.format("Outputs: %s", outputPrototype.prettyPrint()));
-      System.out.println(String.format("Measured Gradient: %s", measuredGradient.prettyPrint()));
-      System.out.println(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
-      System.out.println(String.format("Error: %s", error.prettyPrint()));
-      throw e;
-    }
-    
-  }
-  
-  /**
    * Is run learning boolean.
    *
    * @return the boolean
@@ -386,6 +385,24 @@ public class DerivativeTester {
    */
   public DerivativeTester setTestFeedback(boolean testFeedback) {
     this.testFeedback = testFeedback;
+    return this;
+  }
+  
+  public boolean isVerify() {
+    return verify;
+  }
+  
+  public DerivativeTester setVerify(boolean verify) {
+    this.verify = verify;
+    return this;
+  }
+  
+  public boolean isVerbose() {
+    return verbose;
+  }
+  
+  public DerivativeTester setVerbose(boolean verbose) {
+    this.verbose = verbose;
     return this;
   }
 }

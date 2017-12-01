@@ -103,4 +103,19 @@ public class State<K> extends DoubleBuffer<K> {
   public DoubleBuffer copy() {
     return new State(target, DoubleArrays.copyOf(delta), layer);
   }
+  
+  
+  /**
+   * Accumulate delta.
+   *
+   * @param data the data
+   * @return the delta
+   */
+  public DoubleBuffer accumulate(final double[] data) {
+    //assert Arrays.stream(data).allMatch(Double::isFinite);
+    if(null!=data) Delta.accumulate(getDelta(), data, (double[])null);
+    //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
+    return this;
+  }
+  
 }

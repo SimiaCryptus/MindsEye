@@ -165,7 +165,8 @@ class ImageEncodingUtil {
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(new QuantifyOrientationWrapper(new ValidatingOrientationWrapper(orientation)))
+        .setOrientation(new QuantifyOrientationWrapper(orientation))
+        //.setOrientation(new QuantifyOrientationWrapper(new ValidatingOrientationWrapper(orientation)))
         .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
       validatingTrainer
         .run();
@@ -197,7 +198,7 @@ class ImageEncodingUtil {
   protected void initialize(NotebookOutput log, Tensor[][] features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
     Tensor prototype = features[0][1];
     int[] dimensions = prototype.getDimensions();
-    int[] filterDimensions = convolutionLayer.filter.getDimensions();
+    int[] filterDimensions = convolutionLayer.kernel.getDimensions();
     assert filterDimensions[0] == dimensions[0];
     assert filterDimensions[1] == dimensions[1];
     int outputBands = dimensions[2];
@@ -227,7 +228,7 @@ class ImageEncodingUtil {
    * @param featureSpace     the feature space
    */
   protected void setInitialFeatureSpace(ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer, FindFeatureSpace featureSpace) {
-    int[] filterDimensions = convolutionLayer.filter.getDimensions();
+    int[] filterDimensions = convolutionLayer.kernel.getDimensions();
     int outputBands = biasLayer.getBias().length;
     assert outputBands == biasLayer.getBias().length;
     int inputBands = filterDimensions[2] / outputBands;
@@ -235,22 +236,21 @@ class ImageEncodingUtil {
       double v = featureSpace.getAverages()[i];
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
-    convolutionLayer.filter.fillByCoord(c -> {
+    Tensor[] featureSpaceVectors = featureSpace.getVectors();
+    convolutionLayer.kernel.fillByCoord(c -> {
 //      int inband = c.coords[2] % inputBands;
 //      int outband = (c.coords[2]-inband) / inputBands;
-
-//      int outband = c.coords[2] % inputBands;
-//      int inband = (c.coords[2]-outband) / inputBands;
-
       int outband = c.coords[2] % outputBands;
       int inband = (c.coords[2]-outband) / outputBands;
-
-//      int inband = c.coords[2] % outputBands;
-//      int outband = (c.coords[2]-inband) / outputBands;
       assert outband < outputBands;
       assert inband < inputBands;
-      double v = featureSpace.getVectors()[inband].get(filterDimensions[0] - (c.coords[0] + 1), filterDimensions[1] - (c.coords[1] + 1), outputBands - (outband + 1));
-      return Double.isFinite(v) ? v : convolutionLayer.filter.get(c);
+      int x = c.coords[0];
+      int y = c.coords[1];
+      x = filterDimensions[0] - (x + 1);
+      y = filterDimensions[1] - (y + 1);
+      outband = outputBands - (outband+1);
+      double v = featureSpaceVectors[inband].get(x, y, outband);
+      return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
     });
   }
   
@@ -599,8 +599,8 @@ class ImageEncodingUtil {
               Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
               return src
                 .scale(1.0 / src.rms())
-                //.scale((decomposition.getRealEigenvalue(orderedVectors[inputBands-1])))
-                //.scale((decomposition.getRealEigenvalue(orderedVectors[i])))
+                //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[inputBands-1])))
+                //.scale(decomposition.getRealEigenvalue(orderedVectors[inputBands-1]) / decomposition.getRealEigenvalue(orderedVectors[i]))
                 //.scale((1.0 / decomposition.getRealEigenvalue(orderedVectors[0])))
                 .scale(Math.sqrt(6. / (components + featureVectors[0][1].dim() + 1)))
                 ;

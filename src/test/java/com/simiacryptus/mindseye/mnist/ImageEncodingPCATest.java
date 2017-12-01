@@ -97,7 +97,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
 //      int timeoutMinutes = 60;
     int pretrainMinutes = 10;
     int timeoutMinutes = 10;
-    int size = 32;
+    int size = 256;
     int images = 50;
     
     Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
@@ -351,7 +351,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         log.h3("Training");
         DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2);
         log.code(()->{
-          new DerivativeTester(1, 1e-3).test(trainingModel0, trainingData[0]);
+          new DerivativeTester(1, 1e-3).setVerify(false).test(trainingModel0.copy().setFrozen(false), trainingData[0]);
         });
         train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, false, false, true);
         printHistory(log, history);

@@ -130,11 +130,11 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
    * @param right the right
    * @return the delta set
    */
-  public DeltaSet<K> subtract(StateSet right) {
-    return this.add(right.asVector().scale(-1));
+  public DeltaSet<K> subtract(StateSet<K> right) {
+    return this.add(right.asVector().scale(-1)).asVector();
   }
   
-  private DeltaSet asVector() {
+  public DeltaSet<K> asVector() {
     HashMap<K, Delta> newMap = new HashMap<>();
     map.forEach((layer, state)->new Delta(state.delta, layer));
     return new DeltaSet(newMap);
@@ -146,7 +146,7 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
    * @param right the right
    * @return the delta set
    */
-  public DeltaSet<K> subtract(DeltaSet<K> right) {
+  public StateSet<K> subtract(DeltaSet<K> right) {
     return this.add(right.scale(-1));
   }
   
@@ -156,8 +156,8 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
    * @param right the right
    * @return the delta set
    */
-  public DeltaSet<K> add(DeltaSet<K> right) {
-    DeltaSet<K> returnValue = new DeltaSet(this);
+  public StateSet<K> add(DeltaSet<K> right) {
+    StateSet<K> returnValue = new StateSet();
     map.forEach(100, (layer, buffer) -> {
       returnValue.get(layer, buffer.target)
         .accumulate(buffer.getDelta());
