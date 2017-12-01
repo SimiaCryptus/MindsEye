@@ -150,7 +150,7 @@ public class LinearActivationLayer extends NNLayer {
             weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
           }
-          buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights).accumulate(weightDelta.getData());
+          buffer.get(LinearActivationLayer.this, LinearActivationLayer.this.weights.getData()).accumulate(weightDelta.getData());
         });
       }
       if (this.inObj.isAlive()) {

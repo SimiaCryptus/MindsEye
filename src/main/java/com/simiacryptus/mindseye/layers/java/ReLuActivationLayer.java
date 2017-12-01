@@ -143,11 +143,6 @@ public class ReLuActivationLayer extends NNLayer {
     return Arrays.asList(this.weights.getData());
   }
   
-  @Override
-  public ReLuActivationLayer freeze() {
-    return (ReLuActivationLayer) super.freeze();
-  }
-  
   private final class Result extends NNResult {
     private final NNResult inObj;
     
@@ -168,7 +163,7 @@ public class ReLuActivationLayer extends NNLayer {
           for (int i = 0; i < deltaData.length; i++) {
             weightDeltaData[0] += inputData[i] < 0 ? 0 : (deltaData[i] * inputData[i]);
           }
-          buffer.get(ReLuActivationLayer.this, ReLuActivationLayer.this.weights).accumulate(weightDeltaData);
+          buffer.get(ReLuActivationLayer.this, ReLuActivationLayer.this.weights.getData()).accumulate(weightDeltaData);
         });
       }
       if (this.inObj.isAlive()) {

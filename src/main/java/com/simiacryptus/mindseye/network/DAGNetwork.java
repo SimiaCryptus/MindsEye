@@ -482,14 +482,9 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   @Override
-  public DAGNetwork freeze() {
-    setFrozen(true);
-    visitLayers(new Consumer<NNLayer>() {
-      @Override
-      public void accept(NNLayer layer) {
-        layer.freeze();
-      }
-    });
+  public DAGNetwork setFrozen(boolean frozen) {
+    super.setFrozen(frozen);
+    visitLayers(layer -> layer.setFrozen(frozen));
     return this;
   }
   

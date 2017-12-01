@@ -107,7 +107,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
             for (int index = 0; index < delta.length(); index++) {
               double[] doubles = delta.get(index).getData();
               //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));
-              Delta<NNLayer> deltaObj = buffer.get(layer[index], tensors[index]);
+              Delta<NNLayer> deltaObj = buffer.get(layer[index], tensors[index].getData());
               deltaObj.accumulate(doubles);
             }
           }

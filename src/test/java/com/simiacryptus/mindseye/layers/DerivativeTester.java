@@ -136,11 +136,16 @@ public class DerivativeTester {
       }).<NNResult>toArray(i -> new NNResult[i]));
       DeltaSet<NNLayer> buffer = new DeltaSet();
       eval.accumulate(buffer, eval.getData());
-      List<Delta<NNLayer>> deltas = component.state().stream().map(doubles -> {
+      List<double[]> stateList = frozen.state();
+      List<Delta<NNLayer>> deltas = stateList.stream().map(doubles -> {
         return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
       }).filter(x->x!=null).collect(Collectors.toList());
-      if (deltas.isEmpty() && !component.state().isEmpty()) throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
-      if(!reachedInputFeedback.get()) throw new RuntimeException("Nonfrozen component did not pass input backwards");
+      if (deltas.isEmpty() && !stateList.isEmpty()) {
+        throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
+      }
+      if(!reachedInputFeedback.get()) {
+        throw new RuntimeException("Nonfrozen component did not pass input backwards");
+      }
     });
   }
   

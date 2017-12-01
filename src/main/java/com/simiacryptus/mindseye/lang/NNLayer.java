@@ -166,7 +166,7 @@ public abstract class NNLayer implements Serializable {
    *
    * @return the nn layer
    */
-  public NNLayer freeze() {
+  public final NNLayer freeze() {
     return setFrozen(true);
   }
   

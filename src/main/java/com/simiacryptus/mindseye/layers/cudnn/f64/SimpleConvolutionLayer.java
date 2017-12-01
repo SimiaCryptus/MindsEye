@@ -212,7 +212,7 @@ public class SimpleConvolutionLayer extends NNLayer {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceDouble(filterBuffer, SimpleConvolutionLayer.this.filter.getDimensions());
-            buffer.get(SimpleConvolutionLayer.this, SimpleConvolutionLayer.this.filter).accumulate(weightGradient.getData());
+            buffer.get(SimpleConvolutionLayer.this, SimpleConvolutionLayer.this.filter.getData()).accumulate(weightGradient.getData());
           }
           if (input.isAlive()) {
             CudaPtr inputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), batch.get(0).dim() * 1l * length * Sizeof.DOUBLE);

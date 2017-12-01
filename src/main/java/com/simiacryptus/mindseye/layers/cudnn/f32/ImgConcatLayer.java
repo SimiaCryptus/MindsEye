@@ -110,7 +110,7 @@ public class ImgConcatLayer extends NNLayer {
     return new NNResult(outputData) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
-        outputBuffer.finalize();
+        //outputBuffer.finalize();
         ((CudaExecutionContext) nncontext).initThread();
         assert (error.length() == inObj[0].getData().length());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);

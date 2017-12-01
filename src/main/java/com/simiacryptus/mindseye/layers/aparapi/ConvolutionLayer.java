@@ -173,6 +173,7 @@ public class ConvolutionLayer extends NNLayer {
     final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
     int[] kernelDims = this.kernel.getDimensions();
+    double[] kernelData = ConvolutionLayer.this.kernel.getData();
     ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, simple);
     Tensor[] output = IntStream.range(0, batch.length())
       .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
@@ -180,7 +181,7 @@ public class ConvolutionLayer extends NNLayer {
     try {
       double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
       double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
-      convolutionController.convolve(inputBuffers, this.kernel.getData(), outputBuffers);
+      convolutionController.convolve(inputBuffers, kernelData, outputBuffers);
     } catch (Throwable e) {
       throw new RuntimeException("Error mapCoords image res " + Arrays.toString(inputDims), e);
     }
@@ -193,16 +194,15 @@ public class ConvolutionLayer extends NNLayer {
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          final Tensor kernel = ConvolutionLayer.this.kernel;
-          final Tensor weightGradient = new Tensor(kernel.getDimensions());
+          final Tensor weightGradient = new Tensor(kernelDims);
           convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
-          buffer.get(ConvolutionLayer.this, kernel).accumulate(weightGradient.getData());
+          buffer.get(ConvolutionLayer.this, kernelData).accumulate(weightGradient.getData());
         }
         if (input.isAlive()) {
           Tensor[] inputBufferTensors = IntStream.range(0, getData().length()).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);
           double[][] inputBuffers = Arrays.stream(inputBufferTensors).map(x -> x.getData()).toArray(i -> new double[i][]);
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
-          convolutionController.backprop(inputBuffers, ConvolutionLayer.this.kernel.getData(), outputBuffers);
+          convolutionController.backprop(inputBuffers, kernelData, outputBuffers);
           assert Arrays.stream(inputBufferTensors).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
           input.accumulate(buffer, new TensorArray(inputBufferTensors));
         }

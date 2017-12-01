@@ -111,7 +111,7 @@ public class ImgConcatLayer extends NNLayer {
       public void accumulate(final DeltaSet buffer, final TensorList error) {
         if (!Arrays.equals(error.getDimensions(), outputData.getDimensions()))
           throw new AssertionError(Arrays.toString(error.getDimensions()) +" != "+ Arrays.toString(outputData.getDimensions()));
-        outputBuffer.finalize();
+        //outputBuffer.finalize();
         ((CudaExecutionContext) nncontext).initThread();
         assert (error.length() == inObj[0].getData().length());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);

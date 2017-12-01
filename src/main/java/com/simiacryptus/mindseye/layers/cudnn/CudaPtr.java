@@ -30,6 +30,7 @@ import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnHandle;
 import jcuda.runtime.JCuda;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -146,7 +147,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     if (data instanceof CuDNNDoubleTensorList) {
       CudaPtr ptr = ((CuDNNDoubleTensorList) data).ptr;
       assert null != ptr;
-      assert null != ptr.getPtr();
+      assert null != ptr.getPtr() : null==ptr.finalizedBy?"":Arrays.stream(ptr.finalizedBy).map(x->x.toString()).reduce((a,b)->a+"; "+b).get();
       return ptr;
 //        } else if(data instanceof CuDNNFloatTensorList) {
 //            CuDNNFloatTensorList floatData = (CuDNNFloatTensorList) data;
@@ -189,7 +190,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     if (data instanceof CuDNNFloatTensorList) {
       CudaPtr ptr = ((CuDNNFloatTensorList) data).ptr;
       assert null != ptr;
-      assert null != ptr.getPtr();
+      assert null != ptr.getPtr() : null==ptr.finalizedBy?"":Arrays.stream(ptr.finalizedBy).map(x->x.toString()).reduce((a,b)->a+"; "+b).get();
       return ptr;
 //        } else if(data instanceof CuDNNDoubleTensorList) {
 //            return ((CuDNNDoubleTensorList)data).ptr;

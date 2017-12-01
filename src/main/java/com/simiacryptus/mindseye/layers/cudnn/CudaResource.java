@@ -40,6 +40,9 @@ public class CudaResource<T> {
    */
   public final int objGeneration = gpuGeneration.get();
   private final T ptr;
+  public static boolean debugLifecycle = true;
+  public final StackTraceElement[] createdBy = debugLifecycle?Thread.currentThread().getStackTrace():null;
+  public StackTraceElement[] finalizedBy = null;
   private final ToIntFunction<T> destructor;
   //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
   private final int device = CuDNN.getDevice();
@@ -70,6 +73,7 @@ public class CudaResource<T> {
     try {
       if (!this.finalized && isActiveObj()) {
         if (null != this.destructor) free();
+        finalizedBy = debugLifecycle?Thread.currentThread().getStackTrace():null;
         this.finalized = true;
       }
       super.finalize();

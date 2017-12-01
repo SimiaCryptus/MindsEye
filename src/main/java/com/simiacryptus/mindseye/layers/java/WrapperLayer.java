@@ -81,12 +81,6 @@ public abstract class WrapperLayer extends NNLayer {
   }
   
   @Override
-  public NNLayer freeze() {
-    inner.freeze();
-    return this;
-  }
-  
-  @Override
   public boolean isFrozen() {
     if (null == inner) return true;
     return inner.isFrozen();

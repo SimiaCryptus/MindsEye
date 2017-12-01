@@ -75,12 +75,12 @@ public class AutoencoderNetwork {
     this.encoderSynapse = new FullyConnectedLayer(this.outerSize, this.innerSize);
     this.encoderSynapse.initSpacial(networkParameters.getInitRadius(), networkParameters.getInitStiffness(), networkParameters.getInitPeak());
     this.encoderBias = new BiasLayer(this.innerSize).setWeights(i -> 0.0);
-    this.encoderActivation = new ReLuActivationLayer().freeze();
+    this.encoderActivation = (ReLuActivationLayer) new ReLuActivationLayer().freeze();
     this.encodedNoise = new DropoutNoiseLayer().setValue(networkParameters.getDropout());
     this.decoderSynapse = encoderSynapse.getTranspose();
     this.decoderSynapsePlaceholder = new VariableLayer(this.decoderSynapse);
     this.decoderBias = new BiasLayer(this.outerSize).setWeights(i -> 0.0);
-    this.decoderActivation = new ReLuActivationLayer().freeze();
+    this.decoderActivation = (ReLuActivationLayer) new ReLuActivationLayer().freeze();
     
     this.encoder = new PipelineNetwork();
     this.encoder.add(inputNoise);

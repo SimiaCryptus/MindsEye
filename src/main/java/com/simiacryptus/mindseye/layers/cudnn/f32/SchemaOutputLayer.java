@@ -223,7 +223,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
               throw new ComponentException("Error with " + Arrays.toString(kernelSize), e);
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, SchemaOutputLayer.this.filter.getDimensions());
-            buffer.get(SchemaOutputLayer.this, SchemaOutputLayer.this.filter).accumulate(weightGradient.getData());
+            buffer.get(SchemaOutputLayer.this, SchemaOutputLayer.this.filter.getData()).accumulate(weightGradient.getData());
             filterBuffer.finalize();
           }
           if (input.isAlive()) {
