@@ -200,7 +200,7 @@ public class SchemaOutputLayer extends NNLayer implements SchemaComponent {
       
       return new NNResult(output) {
         @Override
-        public void accumulate(final DeltaSet buffer, final TensorList error) {
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           outputBuffer.finalize();
           ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());

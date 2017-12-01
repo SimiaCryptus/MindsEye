@@ -26,7 +26,7 @@ import java.util.function.DoubleUnaryOperator;
  * An arithmetic delta being staged to effect an in-memory change to a double[] array.
  * In comparison with the State class via geometric analogy, this would be a vector whereas State is a point.
  */
-public class Delta extends DoubleBuffer {
+public class Delta<K> extends DoubleBuffer<K> {
   /**
    * The Delta compensation.
    */
@@ -39,7 +39,7 @@ public class Delta extends DoubleBuffer {
    * @param delta  the delta
    * @param layer  the layer
    */
-  public Delta(final double[] target, final double[] delta, final NNLayer layer) {
+  public Delta(final double[] target, final double[] delta, final K layer) {
     super(layer, target, delta);
     if (null == target) throw new IllegalArgumentException();
     //if(null == array) throw new IllegalArgumentException();
@@ -52,7 +52,7 @@ public class Delta extends DoubleBuffer {
    * @param target the target
    * @param layer  the layer
    */
-  public Delta(final double[] target, final NNLayer layer) {
+  public Delta(final double[] target, final K layer) {
     this(target,null==target?null:DoubleArrays.obtain(target.length),layer);
   }
   

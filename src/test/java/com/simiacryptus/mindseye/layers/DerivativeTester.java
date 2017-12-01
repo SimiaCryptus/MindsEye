@@ -109,7 +109,7 @@ public class DerivativeTester {
           return true;
         }
       }).<NNResult>toArray(i -> new NNResult[i]));
-      DeltaSet buffer = new DeltaSet();
+      DeltaSet<NNLayer> buffer = new DeltaSet();
       eval.accumulate(buffer, eval.getData().copy());
       List<Delta> deltas = component.state().stream().map(doubles -> {
         return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
@@ -134,9 +134,9 @@ public class DerivativeTester {
           return true;
         }
       }).<NNResult>toArray(i -> new NNResult[i]));
-      DeltaSet buffer = new DeltaSet();
+      DeltaSet<NNLayer> buffer = new DeltaSet();
       eval.accumulate(buffer, eval.getData());
-      List<Delta> deltas = component.state().stream().map(doubles -> {
+      List<Delta<NNLayer>> deltas = component.state().stream().map(doubles -> {
         return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
       }).filter(x->x!=null).collect(Collectors.toList());
       if (deltas.isEmpty() && !component.state().isEmpty()) throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
@@ -161,7 +161,7 @@ public class DerivativeTester {
       }).toArray(i -> new NNResult[i]);
       copyInput[inputIndex] = new NNResult(inputPrototype[inputIndex]) {
         @Override
-        public void accumulate(final DeltaSet buffer, final TensorList data) {
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
           Assert.assertEquals(1, data.length());
           assert data.length() == 1;
           final Tensor gradientBuffer = new Tensor(inputPrototype[inputIndex].dim(), outputPrototype.dim());
@@ -184,9 +184,9 @@ public class DerivativeTester {
         (d, exe) -> {
           NNResult eval = component.eval(exe, copyInput);
           Tensor tensor = eval.getData().get(0);
-          DeltaSet deltaSet = new DeltaSet();
+          DeltaSet<NNLayer> deltaSet = new DeltaSet();
           eval.accumulate(deltaSet, new TensorArray(data));
-          Delta inputDelta = deltaSet.getMap().get(inputKey);
+          Delta<NNLayer> inputDelta = deltaSet.getMap().get(inputKey);
           if(null != inputDelta) result.accum(new Tensor(inputDelta.getDelta(), result.getDimensions()));
           return tensor;
         }, (a, b) -> a.add(b));
@@ -201,7 +201,7 @@ public class DerivativeTester {
     final Tensor gradient = new Tensor(stateLen, outputPrototype.dim());
     for (int j = 0; j < outputPrototype.dim(); j++) {
       final int j_ = j;
-      final DeltaSet buffer = new DeltaSet();
+      final DeltaSet<NNLayer> buffer = new DeltaSet();
       final Tensor[] data = {new Tensor(outputPrototype.getDimensions()).fill((k) -> k == j_ ? 1 : 0)};
       GpuController.call(exe->{
         NNResult eval = component.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype}));
@@ -209,7 +209,7 @@ public class DerivativeTester {
         eval.accumulate(buffer, new TensorArray(data));
         return tensor;
       });
-      final DoubleBuffer deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
+      final DoubleBuffer<NNLayer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
       if(null != deltaFlushBuffer) for (int i = 0; i < stateLen; i++) {
         gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
       }

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
@@ -57,8 +58,8 @@ public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCur
   @Override
   public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     LineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    DeltaSet direction = ((SimpleLineSearchCursor) orient).direction;
-    DeltaSet newDelta = new DeltaSet();
+    DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) orient).direction;
+    DeltaSet<NNLayer> newDelta = new DeltaSet();
     direction.getMap().forEach((layer, delta) -> {
       DoubleBuffer prevBuffer = prevDelta.get(layer, delta.target);
       newDelta.get(layer, delta.target).accumulate(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));

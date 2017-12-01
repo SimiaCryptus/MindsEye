@@ -152,7 +152,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
       TensorList output = CudaPtr.fromDeviceFloat(inputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
       return new NNResult(output) {
         @Override
-        public void accumulate(final DeltaSet buffer, final TensorList error) {
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
@@ -170,7 +170,7 @@ public class SchemaBiasLayer extends NNLayer implements SchemaComponent {
             }
             final Tensor weightGradient = CudaPtr.fromDeviceFloat(filterBuffer, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
-            Delta deltaBuffer = buffer.get(SchemaBiasLayer.this, SchemaBiasLayer.this.bias);
+            Delta<NNLayer> deltaBuffer = buffer.get(SchemaBiasLayer.this, SchemaBiasLayer.this.bias);
             deltaBuffer.accumulate(weightGradient.getData());
             //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
             filterBuffer.finalize();

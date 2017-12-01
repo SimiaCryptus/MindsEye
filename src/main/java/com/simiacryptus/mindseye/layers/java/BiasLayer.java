@@ -135,10 +135,10 @@ public class BiasLayer extends NNLayer {
       .toArray(i -> new Tensor[i]);
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
-          Delta deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
+          Delta<NNLayer> deltaBuffer = buffer.get(BiasLayer.this, BiasLayer.this.bias);
           if (1 == BiasLayer.this.bias.length) {
             data.stream().parallel().forEach(d -> {
               double[] array = d.getData();

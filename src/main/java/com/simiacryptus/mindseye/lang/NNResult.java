@@ -95,7 +95,7 @@ public abstract class NNResult {
    *
    * @param buffer the buffer
    */
-  public final void accumulate(DeltaSet buffer) {
+  public final void accumulate(DeltaSet<NNLayer> buffer) {
     accumulate(buffer, 1.0);
   }
   
@@ -105,7 +105,7 @@ public abstract class NNResult {
    * @param buffer the buffer
    * @param value  the value
    */
-  public final void accumulate(DeltaSet buffer, double value) {
+  public final void accumulate(DeltaSet<NNLayer> buffer, double value) {
     Tensor[] defaultVector = IntStream.range(0, this.getData().length()).mapToObj(i -> {
       assert (Arrays.equals(this.getData().get(i).getDimensions(), new int[]{1})) : Arrays.toString(this.getData().get(i).getDimensions());
       return new Tensor(this.getData().get(i).getDimensions()).fill(() -> value);
@@ -119,7 +119,7 @@ public abstract class NNResult {
    * @param buffer the buffer
    * @param data   the data
    */
-  public abstract void accumulate(DeltaSet buffer, final TensorList data);
+  public abstract void accumulate(DeltaSet<NNLayer> buffer, final TensorList data);
   
   /**
    * Is alive boolean.

@@ -56,7 +56,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
   @Override
   public SimpleLineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     SimpleLineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    DeltaSet direction = ((SimpleLineSearchCursor) orient).direction;
+    DeltaSet<NNLayer> direction = orient.direction;
     direction.getMap().forEach((layer, buffer) -> {
       if (null == buffer.getDelta()) return;
       Double weight = getRegionPolicy(layer);

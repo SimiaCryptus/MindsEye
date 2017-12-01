@@ -68,11 +68,11 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
    * @param direction the direction
    * @return the string
    */
-  public static String render(StateSet weights, DeltaSet direction) {
+  public static String render(StateSet<NNLayer> weights, DeltaSet<NNLayer> direction) {
     Map<String, String> data = weights.stream()
       .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), (Map.Entry<String, List<State>> list) -> {
-        List<State> deltaList = list.getValue();
+      .collect(Collectors.toMap(x -> x.getKey(), (Map.Entry<String, List<State<NNLayer>>> list) -> {
+        List<State<NNLayer>> deltaList = list.getValue();
         if (1 == deltaList.size()) {
           State weightDelta = deltaList.get(0);
           return render(weightDelta, direction.getMap().get(weightDelta.layer));
@@ -107,7 +107,7 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
    * @param x the x
    * @return the id
    */
-  public static String getId(DoubleBuffer x) {
+  public static String getId(DoubleBuffer<NNLayer> x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
     return name.contains(className)?className:name;

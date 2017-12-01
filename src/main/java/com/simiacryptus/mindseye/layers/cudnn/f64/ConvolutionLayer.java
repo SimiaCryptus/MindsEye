@@ -170,13 +170,13 @@ public class ConvolutionLayer extends NNLayer {
     NNResult innerResult = network.eval(nncontext, inObj);
     return new NNResult(innerResult.getData()) {
       @Override
-      public void accumulate(DeltaSet deltaSet, TensorList data) {
+      public void accumulate(DeltaSet<NNLayer> deltaSet, TensorList data) {
         innerResult.accumulate(deltaSet, data);
         // Extract Deltas
         Tensor filterDelta = new Tensor(filterDimensions);
         for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
           SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
-          Delta subnetDelta = deltaSet.getMap().remove(batchLayer);
+          Delta<NNLayer> subnetDelta = deltaSet.getMap().remove(batchLayer);
           if(null != subnetDelta) {
             int[] batchDimensions = batchLayer.filter.getDimensions();
             Tensor batchDelta = new Tensor(null==subnetDelta?null:subnetDelta.getDelta(), batchDimensions);

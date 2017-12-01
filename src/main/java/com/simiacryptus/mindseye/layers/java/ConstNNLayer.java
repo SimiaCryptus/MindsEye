@@ -74,7 +74,7 @@ public class ConstNNLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, NNResult... array) {
     return new NNResult(data) {
       @Override
-      public void accumulate(DeltaSet buffer, TensorList data) {
+      public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
         if (!isFrozen()) {
           data.stream().forEach(datum -> {
             buffer.get(ConstNNLayer.this, ConstNNLayer.this.data).accumulate(datum.getData());

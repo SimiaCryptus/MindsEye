@@ -141,10 +141,10 @@ public class ImgBandScaleLayer extends NNLayer {
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
-          Delta deltaBuffer = buffer.get(ImgBandScaleLayer.this, bias);
+          Delta<NNLayer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, bias);
           IntStream.range(0, data.length()).forEach(index -> {
             final double[] array = DoubleArrays.obtain(bias.length);
             double[] signal = data.get(index).getData();

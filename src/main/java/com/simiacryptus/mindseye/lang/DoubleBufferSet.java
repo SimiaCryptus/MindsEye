@@ -35,11 +35,11 @@ import java.util.stream.Stream;
  *
  * @param <T> the type parameter
  */
-public abstract class DoubleBufferSet<T extends DoubleBuffer> {
+public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
   /**
    * The Map.
    */
-  protected final ConcurrentHashMap<NNLayer, T> map = new ConcurrentHashMap<>();
+  protected final ConcurrentHashMap<K, T> map = new ConcurrentHashMap<>();
   
   /**
    * Instantiates a new Delta set.
@@ -52,7 +52,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    *
    * @param toCopy the to copy
    */
-  public DoubleBufferSet(DoubleBufferSet<T> toCopy) {
+  public DoubleBufferSet(DoubleBufferSet<K,T> toCopy) {
     this(toCopy.map);
   }
   
@@ -61,7 +61,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    *
    * @param collect the collect
    */
-  public DoubleBufferSet(final Map<NNLayer, ? extends T> collect) {
+  public DoubleBufferSet(final Map<K, ? extends T> collect) {
     map.putAll(collect);
   }
   
@@ -72,7 +72,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    * @param ptr   the ptr
    * @return the delta
    */
-  public T get(final NNLayer layer, final double[] ptr) {
+  public T get(final K layer, final double[] ptr) {
     T delta = get(layer, () -> factory(layer, ptr));
     assert delta.layer.equals(layer);
     assert delta.target == ptr;
@@ -86,7 +86,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    * @param ptr   the ptr
    * @return the t
    */
-  protected abstract T factory(final NNLayer layer, final double[] ptr);
+  protected abstract T factory(final K layer, final double[] ptr);
   
   /**
    * Get t.
@@ -95,7 +95,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    * @param factory the factory
    * @return the t
    */
-  public T get(final NNLayer layer, Supplier<T> factory) {
+  public T get(final K layer, Supplier<T> factory) {
     if (null == map) throw new IllegalArgumentException();
     if (null == factory) throw new IllegalArgumentException();
     if (null == layer) throw new IllegalArgumentException();
@@ -109,7 +109,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    * @param ptr   the ptr
    * @return the delta
    */
-  public T get(final NNLayer layer, final Tensor ptr) {
+  public T get(final K layer, final Tensor ptr) {
     return get(layer, ptr.getData());
   }
   
@@ -119,11 +119,11 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    * @param mapper the mapper
    * @return the delta set
    */
-  public DoubleBufferSet<T> map(final Function<T, T> mapper) {
-    DoubleBufferSet<T> parent = this;
-    Stream<Map.Entry<NNLayer, T>> stream = map.entrySet().stream();
+  public DoubleBufferSet<K,T> map(final Function<T, T> mapper) {
+    DoubleBufferSet<K,T> parent = this;
+    Stream<Map.Entry<K, T>> stream = map.entrySet().stream();
     if(map.size() > 100) stream = stream.parallel();
-    Map<NNLayer, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
+    Map<K, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
     return new Delegate(parent, newMap);
   }
   
@@ -134,7 +134,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    * @return the stream
    */
   public Stream<T> stream() {
-    return map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> y.getId()));
+    return map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> System.identityHashCode(y.target)));
   }
   
   /**
@@ -157,12 +157,12 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    * @param right the right
    * @return the double
    */
-  public <U extends Delta> double dot(DoubleBufferSet<U> right) {
-    ConcurrentHashMap<NNLayer, U> r = right.map;
-    Stream<Map.Entry<NNLayer, T>> stream = map.entrySet().stream();
+  public <U extends Delta> double dot(DoubleBufferSet<K,U> right) {
+    ConcurrentHashMap<K, U> r = right.map;
+    Stream<Map.Entry<K, T>> stream = map.entrySet().stream();
     if(100 < map.size()) stream = stream.parallel();
     return stream.mapToDouble(entry -> {
-      NNLayer key = entry.getKey();
+      K key = entry.getKey();
       assert key.equals(key);
       if (r.containsKey(key)) {
         return entry.getValue().dot(r.get(key));
@@ -178,7 +178,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    *
    * @return the delta set
    */
-  public DoubleBufferSet<T> copy() {
+  public DoubleBufferSet<K,T> copy() {
     return map(x -> (T) x.copy());
   }
   
@@ -196,15 +196,15 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
    *
    * @return the map
    */
-  public ConcurrentHashMap<NNLayer, T> getMap() {
+  public ConcurrentHashMap<K, T> getMap() {
     return map;
   }
   
   /**
    * The type Delegate.
    */
-  protected class Delegate extends DoubleBufferSet<T> {
-    private final DoubleBufferSet<T> parent;
+  protected class Delegate extends DoubleBufferSet<K,T> {
+    private final DoubleBufferSet<K,T> parent;
   
     /**
      * Instantiates a new Delegate.
@@ -212,7 +212,7 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
      * @param parent the parent
      * @param newMap the new map
      */
-    public Delegate(DoubleBufferSet<T> parent, Map<NNLayer, T> newMap) {
+    public Delegate(DoubleBufferSet<K,T> parent, Map<K, T> newMap) {
       super(newMap);
       this.parent = parent;
     }
@@ -222,12 +222,12 @@ public abstract class DoubleBufferSet<T extends DoubleBuffer> {
      *
      * @param parent the parent
      */
-    public Delegate(DoubleBufferSet<T> parent) {
+    public Delegate(DoubleBufferSet<K,T> parent) {
       this(parent, new HashMap<>());
     }
   
     @Override
-    protected T factory(NNLayer layer, double[] ptr) {
+    protected T factory(K layer, double[] ptr) {
       return parent.factory(layer,ptr);
     }
   }

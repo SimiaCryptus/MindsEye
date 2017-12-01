@@ -146,10 +146,10 @@ public class ImgBandBiasLayer extends NNLayer {
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
     return new NNResult(outputA) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList data) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
         assert data.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
-          Delta deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
+          Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
           data.stream().parallel().forEach(d -> {
             final double[] array = DoubleArrays.obtain(bias.length);
             double[] signal = d.getData();

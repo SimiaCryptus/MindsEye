@@ -292,8 +292,8 @@ public class ValidatingTrainer {
   }
   
   private String compare(PointSample previousPoint, PointSample nextPoint) {
-    StateSet nextWeights = nextPoint.weights;
-    StateSet prevWeights = previousPoint.weights;
+    StateSet<NNLayer> nextWeights = nextPoint.weights;
+    StateSet<NNLayer> prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
       .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
       .collect(Collectors.toMap(x -> x.getKey(), list -> {
@@ -308,7 +308,7 @@ public class ValidatingTrainer {
       })));
   }
   
-  private static String getId(DoubleBuffer x) {
+  private static String getId(DoubleBuffer<NNLayer> x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
     return name.contains(className)?className:name;

@@ -189,7 +189,7 @@ public class SimpleConvolutionLayer extends NNLayer {
       
       return new NNResult(output) {
         @Override
-        public void accumulate(final DeltaSet buffer, final TensorList error) {
+        public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));

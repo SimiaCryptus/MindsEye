@@ -352,8 +352,8 @@ public class FullyConnectedLayer extends NNLayer {
       return this.inObj.isAlive() || !isFrozen();
     }
     
-    private void learn(final TensorList delta, final DeltaSet buffer) {
-      Delta deltaBuffer = buffer.get(FullyConnectedLayer.this, FullyConnectedLayer.this.getWeights());
+    private void learn(final TensorList delta, final DeltaSet<NNLayer> buffer) {
+      Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, FullyConnectedLayer.this.getWeights());
       int threads = 4;
       IntStream.range(0, threads).parallel().mapToObj(x->x).flatMap(thread -> {
         final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));

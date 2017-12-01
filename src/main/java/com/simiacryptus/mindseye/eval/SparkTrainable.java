@@ -113,7 +113,7 @@ public class SparkTrainable implements Trainable {
    * @param values the values
    * @return the result
    */
-  protected static SparkTrainable.ReducableResult getResult(DeltaSet delta, double[] values) {
+  protected static SparkTrainable.ReducableResult getResult(DeltaSet<NNLayer> delta, double[] values) {
     Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId(), e -> e.getValue().getDelta()
     ));
@@ -202,7 +202,7 @@ public class SparkTrainable implements Trainable {
    */
   protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
     NNResult result = network.eval(nncontext, input);
-    DeltaSet deltaSet = new DeltaSet();
+    DeltaSet<NNLayer> deltaSet = new DeltaSet();
     result.accumulate(deltaSet);
     assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
     TensorList resultData = result.getData();
@@ -284,7 +284,7 @@ public class SparkTrainable implements Trainable {
      *
      * @param source the source
      */
-    public void accumulate(DeltaSet source) {
+    public void accumulate(DeltaSet<NNLayer> source) {
       Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId(), e -> e.getKey()
       ));

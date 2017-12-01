@@ -28,11 +28,11 @@ public final class PointSample {
   /**
    * The Delta.
    */
-  public final DeltaSet delta;
+  public final DeltaSet<NNLayer> delta;
   /**
    * The Weights.
    */
-  public final StateSet weights;
+  public final StateSet<NNLayer> weights;
   /**
    * The Sum.
    */
@@ -54,7 +54,7 @@ public final class PointSample {
    * @param sum     the sum
    * @param count   the count
    */
-  public PointSample(DoubleBufferSet<Delta> delta, DoubleBufferSet<State> weights, double sum, int count) {
+  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum, int count) {
     this(delta, weights, sum, 0.0, count);
   }
   
@@ -66,7 +66,7 @@ public final class PointSample {
    * @param sum     the sum
    * @param rate    the rate
    */
-  public PointSample(DoubleBufferSet<Delta> delta, DoubleBufferSet<State> weights, double sum, double rate) {
+  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum, double rate) {
     this(delta, weights, sum, rate, 1);
   }
   
@@ -77,7 +77,7 @@ public final class PointSample {
    * @param weights the weights
    * @param sum     the sum
    */
-  public PointSample(DoubleBufferSet<Delta> delta, DoubleBufferSet<State> weights, double sum) {
+  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum) {
     this(delta, weights, sum, 1);
   }
   
@@ -90,7 +90,7 @@ public final class PointSample {
    * @param rate    the rate
    * @param count   the count
    */
-  public PointSample(DoubleBufferSet<Delta> delta, DoubleBufferSet<State> weights, double sum, double rate, int count) {
+  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum, double rate, int count) {
     assert (delta.getMap().size() == weights.getMap().size());
     this.delta = new DeltaSet(delta);
     this.weights = new StateSet(weights);

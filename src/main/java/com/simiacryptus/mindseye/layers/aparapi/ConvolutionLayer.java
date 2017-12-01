@@ -188,7 +188,7 @@ public class ConvolutionLayer extends NNLayer {
     
     return new NNResult(output) {
       @Override
-      public void accumulate(final DeltaSet buffer, final TensorList error) {
+      public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
         assert error.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         if (!isFrozen()) {
           double[][] inputBuffers = batch.stream().map(x -> x.getData()).toArray(i -> new double[i][]);

@@ -28,7 +28,7 @@ import java.util.function.Function;
  * and based on logical referants (i.e. layers)
  * Provides collection-arithmetic operations appropriate to the Delta's vector geometric archtype.
  */
-public class DeltaSet extends DoubleBufferSet<Delta> {
+public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
   
   /**
    * Instantiates a new Delta set.
@@ -41,7 +41,7 @@ public class DeltaSet extends DoubleBufferSet<Delta> {
    *
    * @param toCopy the to copy
    */
-  public DeltaSet(DoubleBufferSet<Delta> toCopy) {
+  public DeltaSet(DoubleBufferSet<K,Delta<K>> toCopy) {
     super(toCopy);
     assert stream().allMatch(x->x instanceof Delta);
   }
@@ -51,13 +51,13 @@ public class DeltaSet extends DoubleBufferSet<Delta> {
    *
    * @param collect the collect
    */
-  public DeltaSet(Map<NNLayer, ? extends Delta> collect) {
+  public DeltaSet(Map<K, ? extends Delta<K>> collect) {
     super(collect);
     assert stream().allMatch(x->x instanceof Delta);
   }
   
   @Override
-  protected Delta factory(NNLayer layer, double[] ptr) {
+  protected Delta factory(K layer, double[] ptr) {
     return new Delta(ptr,layer);
   }
   
@@ -78,8 +78,8 @@ public class DeltaSet extends DoubleBufferSet<Delta> {
    * @param right the right
    * @return the delta set
    */
-  public DeltaSet add(DeltaSet right) {
-    DeltaSet returnValue = new DeltaSet();
+  public DeltaSet<K> add(DeltaSet<K> right) {
+    DeltaSet<K> returnValue = new DeltaSet<K>();
     map.forEach(100, (layer, buffer) -> {
       returnValue.get(layer, buffer.target)
         .accumulate(buffer.getDelta());
@@ -89,16 +89,6 @@ public class DeltaSet extends DoubleBufferSet<Delta> {
         .accumulate(buffer.getDelta());
     });
     return returnValue;
-  }
-  
-  /**
-   * Add state set.
-   *
-   * @param right the right
-   * @return the state set
-   */
-  public StateSet add(StateSet right) {
-    return right.add(this);
   }
   
   /**
@@ -112,7 +102,7 @@ public class DeltaSet extends DoubleBufferSet<Delta> {
   }
   
   @Override
-  public DeltaSet map(Function<Delta, Delta> mapper) {
+  public DeltaSet map(Function<Delta<K>, Delta<K>> mapper) {
     return new DeltaSet(super.map(mapper));
   }
   

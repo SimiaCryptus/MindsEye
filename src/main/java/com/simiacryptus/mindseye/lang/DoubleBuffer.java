@@ -29,13 +29,13 @@ import java.util.stream.IntStream;
 /**
  * A generic alternate memory buffer being staged in relation to an existing double[] array.
  */
-public class DoubleBuffer {
+public class DoubleBuffer<K> {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DoubleBuffer.class);
   /**
    * The Layer.
    */
-  public final NNLayer layer;
+  public final K layer;
   /**
    * The Target.
    */
@@ -52,7 +52,7 @@ public class DoubleBuffer {
    * @param target the target
    * @param delta  the delta
    */
-  public DoubleBuffer(final NNLayer layer, final double[] target, final double[] delta) {
+  public DoubleBuffer(final K layer, final double[] target, final double[] delta) {
     this.layer = layer;
     this.target = target;
     this.delta = delta;
@@ -65,7 +65,7 @@ public class DoubleBuffer {
    * @param delta  the delta
    * @param layer  the layer
    */
-  public DoubleBuffer(double[] target, double[] delta, NNLayer layer) {
+  public DoubleBuffer(double[] target, double[] delta, K layer) {
     this.layer = layer;
     this.target = target;
     this.delta = delta;
@@ -77,7 +77,7 @@ public class DoubleBuffer {
    * @param target the target
    * @param layer  the layer
    */
-  public DoubleBuffer(double[] target, NNLayer layer) {
+  public DoubleBuffer(double[] target, K layer) {
     this.layer = layer;
     this.target = target;
     this.delta = null;
@@ -135,7 +135,7 @@ public class DoubleBuffer {
    * @return the id
    */
   public String getId() {
-    return this.layer.getId();
+    return this.layer.toString();
   }
   
   /**
@@ -162,9 +162,7 @@ public class DoubleBuffer {
     final StringBuilder builder = new StringBuilder();
     builder.append(getClass().getSimpleName());
     builder.append("/");
-    builder.append(this.layer.getClass().getSimpleName());
-    builder.append("/");
-    builder.append(this.layer.getId());
+    builder.append(this.layer);
     return builder.toString();
   }
   

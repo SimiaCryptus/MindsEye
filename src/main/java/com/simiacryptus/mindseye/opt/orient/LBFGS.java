@@ -49,7 +49,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   private int minHistory = 3;
   private int maxHistory = 30;
   
-  private static boolean isFinite(DoubleBufferSet<?> delta) {
+  private static boolean isFinite(DoubleBufferSet<?,?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
   
@@ -109,11 +109,11 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
    * @param history     the history
    * @return the delta set
    */
-  protected DeltaSet lbfgs(PointSample measurement, TrainingMonitor monitor, List<PointSample> history) {
-    DeltaSet result = measurement.delta.scale(-1);
+  protected DeltaSet<NNLayer> lbfgs(PointSample measurement, TrainingMonitor monitor, List<PointSample> history) {
+    DeltaSet<NNLayer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
-      DeltaSet original = result.copy();
-      DeltaSet p = measurement.delta.copy();
+      DeltaSet<NNLayer> original = result.copy();
+      DeltaSet<NNLayer> p = measurement.delta.copy();
       //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
@@ -139,7 +139,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
         p = p.add(sd.scale(alphas[i] - beta));
         //assert (p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d))));
       }
-      for (Map.Entry<NNLayer, Delta> e : result.getMap().entrySet()) {
+      for (Map.Entry<NNLayer, Delta<NNLayer>> e : result.getMap().entrySet()) {
         double[] delta = p.getMap().get(e.getKey()).getDelta();
         Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
       }
@@ -148,7 +148,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
       double dot = result.dot(original) / (mag * magGrad);
       List<String> anglesPerLayer = measurement.delta.getMap().entrySet().stream()
         .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-        .map((Map.Entry<NNLayer, Delta> e) -> {
+        .map((Map.Entry<NNLayer, Delta<NNLayer>> e) -> {
           double[] lbfgsVector = result.getMap().get(e.getKey()).getDelta();
           for (int index = 0; index < lbfgsVector.length; index++)
             lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
