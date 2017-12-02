@@ -97,18 +97,14 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       }
       else {
         return new NNResult(tensors) {
-          PlaceholderLayer[] layer = IntStream.range(0, tensors.length)
-            .mapToObj(i -> new PlaceholderLayer(tensors[i]))
-            .toArray(i -> new PlaceholderLayer[i]);
-          
           @Override
           public void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
             //System.out.println("Accumulating data");
             for (int index = 0; index < delta.length(); index++) {
               double[] doubles = delta.get(index).getData();
               //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));
-              Delta<NNLayer> deltaObj = buffer.get(layer[index], tensors[index].getData());
-              deltaObj.accumulate(doubles);
+              double[] dbls = tensors[index].getData();
+              buffer.get(new PlaceholderLayer(dbls), dbls).accumulate(doubles);
             }
           }
           
@@ -199,7 +195,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       DoubleStream stream = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData()));
       DoubleSummaryStatistics statistics = stream.summaryStatistics();
       double sum = statistics.getAverage();
-      DeltaSet deltaSet = new DeltaSet();
+      DeltaSet<NNLayer> deltaSet = new DeltaSet();
       result.accumulate(deltaSet, 1.0 / statistics.getCount());
       //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
       return new PointSample(deltaSet, new StateSet(deltaSet), sum, statistics.getCount());

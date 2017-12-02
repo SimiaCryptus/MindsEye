@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * This is a collection of Deltas being staged for particular layers.
@@ -58,7 +59,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
   
   @Override
   protected Delta factory(K layer, double[] ptr) {
-    return new Delta(ptr,layer);
+    return new Delta(layer, ptr);
   }
   
   
@@ -97,17 +98,17 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    * @param f the f
    * @return the delta set
    */
-  public DeltaSet scale(final double f) {
+  public DeltaSet<K> scale(final double f) {
     return new DeltaSet(map(x -> x.scale(f)));
   }
   
   @Override
-  public DeltaSet map(Function<Delta<K>, Delta<K>> mapper) {
+  public DeltaSet<K> map(Function<Delta<K>, Delta<K>> mapper) {
     return new DeltaSet(super.map(mapper));
   }
   
   @Override
-  public DeltaSet copy() {
+  public DeltaSet<K> copy() {
     return new DeltaSet(this);
   }
   
@@ -117,7 +118,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    * @param alpha the alpha
    * @return the delta set
    */
-  public DeltaSet accumulate(double alpha) {
+  public DeltaSet<K> accumulate(double alpha) {
     stream().forEach(d -> d.accumulate(alpha));
     return this;
   }
@@ -127,7 +128,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    *
    * @return the delta set
    */
-  public DeltaSet accumulate() {
+  public DeltaSet<K> accumulate() {
     accumulate(1);
     return this;
   }
@@ -137,8 +138,50 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    *
    * @return the delta set
    */
-  public DeltaSet unit() {
+  public DeltaSet<K> unit() {
     return scale(1.0 / getMagnitude());
+  }
+  
+  public StateSet<K> asState() {
+    StateSet<K> returnValue = new StateSet<>();
+    map.forEach((layer, delta) -> {
+      returnValue.get(layer, delta.target).set(delta.delta);
+    });
+    return returnValue;
+  }
+  
+  /**
+   * Dot double.
+   *
+   * @param right the right
+   * @return the double
+   */
+  public double dot(DoubleBufferSet<K,Delta<K>> right) {
+    Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
+    if(100 < map.size()) stream = stream.parallel();
+    return stream.mapToDouble(entry -> {
+      K key = entry.getKey();
+      assert key.equals(key);
+      if (right.map.containsKey(key)) {
+        return entry.getValue().dot(right.map.get(key));
+      }
+      else {
+        return 0;
+      }
+    }).summaryStatistics().getSum();
+  }
+  
+  /**
+   * Gets magnitude.
+   *
+   * @return the magnitude
+   */
+  public double getMagnitude() {
+    double sumSq = map.entrySet().stream().mapToDouble(entry -> {
+      DoubleBuffer value = entry.getValue();
+      return value.deltaStatistics().sumSq();
+    }).sum();
+    return Math.sqrt(sumSq);
   }
   
 }

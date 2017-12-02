@@ -35,11 +35,11 @@ public class Delta<K> extends DoubleBuffer<K> {
   /**
    * Instantiates a new Delta.
    *
+   * @param layer  the layer
    * @param target the target
    * @param delta  the delta
-   * @param layer  the layer
    */
-  public Delta(final double[] target, final double[] delta, final K layer) {
+  public Delta(final K layer, final double[] target, final double[] delta) {
     super(layer, target, delta);
     if (null == target) throw new IllegalArgumentException();
     //if(null == array) throw new IllegalArgumentException();
@@ -49,11 +49,11 @@ public class Delta<K> extends DoubleBuffer<K> {
   /**
    * Instantiates a new Delta.
    *
-   * @param target the target
    * @param layer  the layer
+   * @param target the target
    */
-  public Delta(final double[] target, final K layer) {
-    this(target,null==target?null:DoubleArrays.obtain(target.length),layer);
+  public Delta(final K layer, final double[] target) {
+    this(layer, target,null==target?null:DoubleArrays.obtain(target.length));
   }
   
   /**
@@ -92,7 +92,7 @@ public class Delta<K> extends DoubleBuffer<K> {
    */
   public DoubleBuffer accumulate(final double[] data) {
     //assert Arrays.stream(data).allMatch(Double::isFinite);
-    accumulate(delta, data, deltaCompensation);
+    accumulate(getDelta(), data, deltaCompensation);
     //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
     return this;
   }
@@ -112,12 +112,12 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param f the f
    * @return the delta
    */
-  public Delta scale(final double f) {
+  public Delta<K> scale(final double f) {
     return map(x -> x * f);
   }
   
-  public Delta map(final DoubleUnaryOperator mapper) {
-    return new Delta(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
+  public Delta<K> map(final DoubleUnaryOperator mapper) {
+    return new Delta(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
   
@@ -128,17 +128,8 @@ public class Delta<K> extends DoubleBuffer<K> {
    */
   public final synchronized void accumulate(final double factor) {
     assert Arrays.stream(target).allMatch(Double::isFinite);
-    double[] calcVector = this.getDelta();
-    if (null == calcVector) {
-      return;
-    }
-    calcVector = Arrays.copyOf(calcVector, calcVector.length);
-    for (int i = 0; i < this.getDelta().length; i++) {
-      calcVector[i] = calcVector[i] * factor;
-    }
-    final int dim = length();
-    for (int i = 0; i < dim; i++) {
-      this.target[i] = this.target[i] + calcVector[i];
+    for (int i = 0; i < length(); i++) {
+      this.target[i] = this.target[i] + this.getDelta()[i] * factor;
     }
     assert Arrays.stream(target).allMatch(Double::isFinite);
   }
@@ -157,13 +148,13 @@ public class Delta<K> extends DoubleBuffer<K> {
   }
   
   @Override
-  public Delta set(double[] data) {
+  public Delta<K> set(double[] data) {
     super.set(data);
     return this;
   }
   
   @Override
-  public Delta copy() {
-    return new Delta(target, DoubleArrays.copyOf(delta), layer);
+  public Delta<K> copy() {
+    return new Delta(layer, target, DoubleArrays.copyOf(delta));
   }
 }

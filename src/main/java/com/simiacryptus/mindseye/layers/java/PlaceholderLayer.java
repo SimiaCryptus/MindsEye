@@ -31,26 +31,16 @@ import java.util.List;
 /**
  * The type Placeholder layer.
  */
-public final class PlaceholderLayer extends NNLayer {
+public final class PlaceholderLayer<T> extends NNLayer {
   
-  private final Tensor key;
-  
-  /**
-   * Instantiates a new Placeholder layer.
-   *
-   * @param json the json
-   */
-  public PlaceholderLayer(JsonObject json) {
-    super(json);
-    throw new RuntimeException();
-  }
+  private final T key;
   
   /**
    * Instantiates a new Placeholder layer.
    *
    * @param key the key
    */
-  public PlaceholderLayer(Tensor key) {
+  public PlaceholderLayer(T key) {
     if (null == key) throw new UnsupportedOperationException();
     this.key = key;
     setName(getClass().getSimpleName() + "/" + getId());
@@ -68,7 +58,7 @@ public final class PlaceholderLayer extends NNLayer {
   
   @Override
   public List<double[]> state() {
-    return Arrays.asList(key.getData());
+    throw new UnsupportedOperationException();
   }
   
   @Override
@@ -80,14 +70,13 @@ public final class PlaceholderLayer extends NNLayer {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof PlaceholderLayer)) return false;
-    if (!super.equals(o)) return false;
     PlaceholderLayer that = (PlaceholderLayer) o;
-    return key != null ? key == that.key : that.key == null;
+    return key != null ? key.equals(that.key) : that.key == null;
   }
   
   @Override
   public int hashCode() {
-    int result = super.hashCode();
+    int result = 0;
     result = 31 * result + (key != null ? key.hashCode() : 0);
     return result;
   }

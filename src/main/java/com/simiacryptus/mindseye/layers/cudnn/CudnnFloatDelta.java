@@ -43,7 +43,7 @@ public class CudnnFloatDelta extends State {
    * @param layer  the layer
    */
   public CudnnFloatDelta(double[] values, NNLayer layer) {
-    super(values, null, layer);
+    super(layer, values, null);
   }
   
   /**

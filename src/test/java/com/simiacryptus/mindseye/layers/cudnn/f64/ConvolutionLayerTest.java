@@ -74,7 +74,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   public static class AsymmetricTest extends ConvolutionLayerTest {
   
     public AsymmetricTest() {
-      super(3,7,3);
+      super(3,7,5);
     }
   
   }

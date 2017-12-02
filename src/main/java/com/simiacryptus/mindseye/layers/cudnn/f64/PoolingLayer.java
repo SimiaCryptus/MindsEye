@@ -35,6 +35,7 @@ import java.util.List;
 
 import static jcuda.jcudnn.JCudnn.*;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
+import static jcuda.jcudnn.cudnnPoolingMode.CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING;
 import static jcuda.jcudnn.cudnnPoolingMode.CUDNN_POOLING_MAX;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -43,7 +44,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
  */
 public class PoolingLayer extends NNLayer {
   
-  private int mode = CUDNN_POOLING_MAX;
+  private PoolingMode mode = PoolingMode.Max;
   private int windowX = 2;
   private int windowY = 2;
   private int paddingX = 0;
@@ -58,7 +59,7 @@ public class PoolingLayer extends NNLayer {
    */
   protected PoolingLayer(JsonObject json) {
     super(json);
-    mode = json.get("mode").getAsInt();
+    mode = Arrays.stream(PoolingMode.values()).filter(i->i.id == json.get("mode").getAsInt()).findFirst().get();
     windowX = json.get("windowX").getAsInt();
     windowY = json.get("windowY").getAsInt();
     paddingX = json.get("paddingX").getAsInt();
@@ -86,7 +87,7 @@ public class PoolingLayer extends NNLayer {
 
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.addProperty("mode", mode);
+    json.addProperty("mode", mode.id);
     json.addProperty("windowX", windowX);
     json.addProperty("windowY", windowY);
     json.addProperty("paddingX", paddingX);
@@ -111,7 +112,7 @@ public class PoolingLayer extends NNLayer {
       int length = batch.length();
       int inputDims = Tensor.dim(inputSize);
       CudaResource<cudnnPoolingDescriptor> poolingDesc = CuDNN.createPoolingDescriptor(
-        mode, poolDims, windowSize, padding, stride);
+        mode.id, poolDims, windowSize, padding, stride);
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       int[] outputSize = new int[4];
@@ -171,7 +172,7 @@ public class PoolingLayer extends NNLayer {
    *
    * @return the mode
    */
-  public int getMode() {
+  public PoolingMode getMode() {
     return mode;
   }
   
@@ -180,8 +181,9 @@ public class PoolingLayer extends NNLayer {
    *
    * @param mode the mode
    */
-  public void setMode(int mode) {
+  public PoolingLayer setMode(PoolingMode mode) {
     this.mode = mode;
+    return this;
   }
   
   /**
@@ -290,5 +292,27 @@ public class PoolingLayer extends NNLayer {
    */
   public void setStrideY(int strideY) {
     this.strideY = strideY;
+  }
+  
+  /**
+   * The enum Pooling mode.
+   */
+  public enum PoolingMode {
+    /**
+     * Max pooling mode.
+     */
+    Max(CUDNN_POOLING_MAX),
+    /**
+     * Avg pooling mode.
+     */
+    Avg(CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+    /**
+     * The Id.
+     */
+    final int id;
+    
+    PoolingMode(int id) {
+      this.id = id;
+    }
   }
 }

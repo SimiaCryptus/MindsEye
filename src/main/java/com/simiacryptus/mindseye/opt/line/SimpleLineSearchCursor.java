@@ -57,18 +57,6 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     this.subject = subject;
   }
   
-  /**
-   * Dot double.
-   *
-   * @param a the a
-   * @param b the b
-   * @return the double
-   */
-  public static double dot(List<DoubleBuffer> a, List<DoubleBuffer> b) {
-    if (a.size() != b.size()) throw new IllegalArgumentException(String.format("%s != %s", a.size(), b.size()));
-    return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
-  }
-  
   @Override
   public String getDirectionType() {
     return type;
@@ -91,7 +79,8 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     reset();
     if(0.0 != alpha) direction.accumulate(alpha);
     PointSample sample = subject.measure(true, monitor).setRate(alpha);
-    return new LineSearchPoint(sample, direction.dot(sample.delta));
+    double dot = direction.dot(sample.delta);
+    return new LineSearchPoint(sample, dot);
   }
   
   @Override

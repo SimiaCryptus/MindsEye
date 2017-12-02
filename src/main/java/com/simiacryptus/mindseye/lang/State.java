@@ -33,22 +33,22 @@ public class State<K> extends DoubleBuffer<K> {
   /**
    * Instantiates a new Delta.
    *
+   * @param layer  the layer
    * @param target the target
    * @param delta  the delta
-   * @param layer  the layer
    */
-  public State(final double[] target, final double[] delta, final K layer) {
-    super(target,delta,layer);
+  public State(final K layer, final double[] target, final double[] delta) {
+    super(layer, target,delta);
   }
   
   /**
    * Instantiates a new State.
    *
-   * @param target the target
    * @param layer  the layer
+   * @param target the target
    */
-  public State(final double[] target, final K layer) {
-    super(target,layer);
+  public State(final K layer, final double[] target) {
+    super(layer, target);
   }
   
   /**
@@ -56,9 +56,8 @@ public class State<K> extends DoubleBuffer<K> {
    *
    * @return the double buffer
    */
-  public final synchronized DoubleBuffer backup() {
-    double[] delta = getDelta();
-    System.arraycopy(target,0,delta,0,target.length);
+  public final synchronized State<K> backup() {
+    System.arraycopy(target,0, getDelta(),0,target.length);
     return this;
   }
   
@@ -67,55 +66,19 @@ public class State<K> extends DoubleBuffer<K> {
    *
    * @return the double buffer
    */
-  public final synchronized DoubleBuffer restore() {
-    System.arraycopy(delta,0,target,0,target.length);
+  public final synchronized State<K> restore() {
+    System.arraycopy(getDelta(),0,target,0,target.length);
     return this;
-  }
-  
-  /**
-   * K state.
-   *
-   * @param delta the delta
-   * @return the state
-   */
-  public State K(double[] delta) {
-    Delta.accumulate(this.delta, delta, null);
-    return this;
-  }
-  
-  /**
-   * Instantiates a new State.
-   *
-   * @param layer  the layer
-   * @param target the target
-   * @param delta  the delta
-   */
-  public State(K layer, double[] target, double[] delta) {
-    super(layer, target, delta);
   }
   
   @Override
-  public DoubleBuffer map(DoubleUnaryOperator mapper) {
-    return new State(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
+  public State<K> map(DoubleUnaryOperator mapper) {
+    return new State(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
   @Override
-  public DoubleBuffer copy() {
-    return new State(target, DoubleArrays.copyOf(delta), layer);
-  }
-  
-  
-  /**
-   * Accumulate delta.
-   *
-   * @param data the data
-   * @return the delta
-   */
-  public DoubleBuffer accumulate(final double[] data) {
-    //assert Arrays.stream(data).allMatch(Double::isFinite);
-    if(null!=data) Delta.accumulate(getDelta(), data, (double[])null);
-    //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
-    return this;
+  public State<K> copy() {
+    return new State(layer, target, DoubleArrays.copyOf(delta));
   }
   
 }

@@ -238,17 +238,17 @@ class ImageEncodingUtil {
     });
     Tensor[] featureSpaceVectors = featureSpace.getVectors();
     convolutionLayer.kernel.fillByCoord(c -> {
-//      int inband = c.coords[2] % inputBands;
-//      int outband = (c.coords[2]-inband) / inputBands;
-      int outband = c.coords[2] % outputBands;
-      int inband = (c.coords[2]-outband) / outputBands;
+      int inband = c.coords[2] % inputBands;
+      int outband = (c.coords[2]-inband) / inputBands;
+//      int outband = c.coords[2] % outputBands;
+//      int inband = (c.coords[2]-outband) / outputBands;
       assert outband < outputBands;
       assert inband < inputBands;
       int x = c.coords[0];
       int y = c.coords[1];
       x = filterDimensions[0] - (x + 1);
       y = filterDimensions[1] - (y + 1);
-      outband = outputBands - (outband+1);
+      //outband = outputBands - (outband+1);
       double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
     });
@@ -274,12 +274,13 @@ class ImageEncodingUtil {
    * @return the tensor [ ] [ ]
    */
   protected Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius, int padding) {
+    int column = 1;
     return tensors.parallel().flatMap(image -> {
-      return IntStream.range(0, image[1].getDimensions()[0] - (radius - 1)).filter(x -> 1 == radius || 0 == x % padding).mapToObj(x -> x).flatMap(x -> {
-        return IntStream.range(0, image[1].getDimensions()[1] - (radius - 1)).filter(y -> 1 == radius || 0 == y % padding).mapToObj(y -> {
-          Tensor region = new Tensor(radius, radius, image[1].getDimensions()[2]);
+      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).filter(x -> 1 == radius || 0 == x % padding).mapToObj(x -> x).flatMap(x -> {
+        return IntStream.range(0, image[column].getDimensions()[column] - (radius - 1)).filter(y -> 1 == radius || 0 == y % padding).mapToObj(y -> {
+          Tensor region = new Tensor(radius, radius, image[column].getDimensions()[2]);
           final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> {
-            return image[1].get(c.coords[0] + x, c.coords[1] + y, c.coords[2]);
+            return image[column].get(c.coords[0] + x, c.coords[column] + y, c.coords[2]);
           };
           return new Tensor[]{image[0], region.mapCoords(f)};
         });
@@ -586,8 +587,9 @@ class ImageEncodingUtil {
      */
     protected Tensor[] findFeatureSpace(NotebookOutput log, Tensor[][] featureVectors, int components) {
       return log.code(() -> {
-        int[] dimensions = featureVectors[0][1].getDimensions();
-        double[][] data = Arrays.stream(featureVectors).map(x -> x[1].getData()).toArray(i -> new double[i][]);
+        int column = 1;
+        int[] dimensions = featureVectors[0][column].getDimensions();
+        double[][] data = Arrays.stream(featureVectors).map(x -> x[column].getData()).toArray(i -> new double[i][]);
         RealMatrix realMatrix = MatrixUtils.createRealMatrix(data);
         Covariance covariance = new Covariance(realMatrix);
         RealMatrix covarianceMatrix = covariance.getCovarianceMatrix();
@@ -602,7 +604,7 @@ class ImageEncodingUtil {
                 //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[inputBands-1])))
                 //.scale(decomposition.getRealEigenvalue(orderedVectors[inputBands-1]) / decomposition.getRealEigenvalue(orderedVectors[i]))
                 //.scale((1.0 / decomposition.getRealEigenvalue(orderedVectors[0])))
-                .scale(Math.sqrt(6. / (components + featureVectors[0][1].dim() + 1)))
+                .scale(Math.sqrt(6. / (components + featureVectors[0][column].dim() + 1)))
                 ;
             }
           ).toArray(i -> new Tensor[i]);

@@ -105,7 +105,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
+        size, pretrainMinutes, timeoutMinutes, 3, 6, 3);
     }).invoke();
     
     log.h1("Second Layer");

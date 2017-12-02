@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,7 +51,7 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
   }
   
   /**
-   * Instantiates a new State set.
+   * Instantiates a new State set as a copy of the target data buffers in the input set
    *
    * @param toCopy the to copy
    */
@@ -74,25 +73,9 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
     super(collect);
   }
   
-  /**
-   * State backup double buffer set.
-   *
-   * @return the double buffer set
-   */
-  public DoubleBufferSet<K,State<K>> stateBackup() {
-    assert (this.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    DoubleBufferSet<K,State<K>> stateBackup = new Delegate(this);
-    this.getMap().forEach((layer, layerDelta) -> {
-      stateBackup.get(layer, layerDelta.target).backup();
-    });
-    assert (stateBackup.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    return stateBackup;
-  }
-  
-  
   @Override
   protected State factory(K layer, double[] ptr) {
-    return new State(ptr,layer);
+    return new State(layer, ptr);
   }
   
   /**
@@ -102,8 +85,7 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
    * @return the delta set
    */
   public DoubleBufferSet<K,State<K>> union(DoubleBufferSet<K,State<K>> right) {
-    DoubleBufferSet<K,State<K>> left = this;
-    return union(left, right);
+    return union(this, right);
   }
   
   /**
@@ -119,7 +101,11 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
       right.map.entrySet().stream()
     ).collect(Collectors.groupingBy((Map.Entry<K, State<K>> e1) -> e1.getKey(),
       Collectors.mapping((Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
-        Collectors.reducing((State<K> a, State<K> b) -> a), x -> x.get()))));
+        Collectors.reducing((State<K> a, State<K> b) -> {
+          assert a.target == b.target;
+          assert a.layer.equals(b.layer);
+          return a;
+        }), x -> x.get()))));
     return new StateSet(collect);
   }
   
@@ -136,7 +122,7 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
   
   public DeltaSet<K> asVector() {
     HashMap<K, Delta> newMap = new HashMap<>();
-    map.forEach((layer, state)->new Delta(state.delta, layer));
+    map.forEach((layer, state)->new Delta(layer, state.target, state.delta));
     return new DeltaSet(newMap);
   }
   
@@ -157,25 +143,14 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
    * @return the delta set
    */
   public StateSet<K> add(DeltaSet<K> right) {
-    StateSet<K> returnValue = new StateSet();
-    map.forEach(100, (layer, buffer) -> {
-      returnValue.get(layer, buffer.target)
-        .accumulate(buffer.getDelta());
+    DeltaSet<K> deltas = new DeltaSet();
+    map.forEach(100, (K layer, State<K> buffer) -> {
+      deltas.get(layer, buffer.target).set(buffer.getDelta());
     });
-    right.map.forEach(100, (layer, buffer) -> {
-      returnValue.get(layer, buffer.target)
-        .accumulate(buffer.getDelta());
+    right.map.forEach(100, (K layer, Delta<K> buffer) -> {
+      deltas.get(layer, buffer.target).accumulate(buffer.getDelta());
     });
-    return returnValue;
+    return deltas.asState();
   }
   
-  @Override
-  public DoubleBufferSet<K,State<K>> map(Function<State<K>, State<K>> mapper) {
-    return new StateSet(super.map(mapper));
-  }
-  
-  @Override
-  public DoubleBufferSet<K,State<K>> copy() {
-    return new StateSet(super.copy());
-  }
 }

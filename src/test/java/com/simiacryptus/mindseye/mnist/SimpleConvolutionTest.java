@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
@@ -71,26 +71,10 @@ public class SimpleConvolutionTest extends LinearTest {
     log.p("This report trains a model using a recursive polynomial convolution layer.");
     DAGNetwork network = buildModel(log);
     run(log, monitoringRoot, monitor, trainingData, history, network);
-    network.visitNodes(node -> {
-      NNLayer layer = node.getLayer();
-      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
-        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer.class));
-      }
-      else if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer) {
-        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer.class));
-      }
-    });
-    run(log, monitoringRoot, monitor, trainingData, history, network);
-    network.visitNodes(node -> {
-      NNLayer layer = node.getLayer();
-      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer) {
-        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer.class));
-      }
-      else if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer) {
-        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer.class));
-      }
-    });
-    run(log, monitoringRoot, monitor, trainingData, history, network);
+//    //to64(network);
+//    run(log, monitoringRoot, monitor, trainingData, history, network);
+//    //to32(network);
+//    run(log, monitoringRoot, monitor, trainingData, history, network);
     testDataExpansion = data -> {
       Random random = new Random();
       return Stream.of(
@@ -102,5 +86,29 @@ public class SimpleConvolutionTest extends LinearTest {
     };
     run(log, monitoringRoot, monitor, trainingData, history, network);
     return network;
+  }
+  
+  public void to32(DAGNetwork network) {
+    network.visitNodes(node -> {
+      NNLayer layer = node.getLayer();
+      if (layer instanceof ConvolutionLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer.class));
+      }
+      else if (layer instanceof PoolingLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer.class));
+      }
+    });
+  }
+  
+  public void to64(DAGNetwork network) {
+    network.visitNodes(node -> {
+      NNLayer layer = node.getLayer();
+      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
+        node.setLayer(layer.as(ConvolutionLayer.class));
+      }
+      else if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer) {
+        node.setLayer(layer.as(PoolingLayer.class));
+      }
+    });
   }
 }

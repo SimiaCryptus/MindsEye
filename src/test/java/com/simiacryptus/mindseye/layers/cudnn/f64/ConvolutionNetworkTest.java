@@ -38,8 +38,8 @@ public class ConvolutionNetworkTest extends LayerTestBase {
     PipelineNetwork network = new PipelineNetwork(2);
     network.add(new ConvolutionLayer(3, 3, 7, 3).setWeights(this::random), network.getInput(1));
     network.add(new ImgBandBiasLayer(3));
-    network.add(new ImgCropLayer(4,4));
     network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    network.add(new ImgCropLayer(4,4));
     network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
       network.add(new MeanSqLossLayer(), network.getHead(), network.getInput(0))
     );

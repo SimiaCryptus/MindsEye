@@ -138,42 +138,6 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
   }
   
   /**
-   * Gets magnitude.
-   *
-   * @return the magnitude
-   */
-  public double getMagnitude() {
-    double sumSq = map.entrySet().stream().mapToDouble(entry -> {
-      DoubleBuffer value = entry.getValue();
-      return value.deltaStatistics().sumSq();
-    }).sum();
-    return Math.sqrt(sumSq);
-  }
-  
-  /**
-   * Dot double.
-   *
-   * @param <U>   the type parameter
-   * @param right the right
-   * @return the double
-   */
-  public <U extends DoubleBuffer> double dot(DoubleBufferSet<K,U> right) {
-    ConcurrentHashMap<K, U> r = right.map;
-    Stream<Map.Entry<K, T>> stream = map.entrySet().stream();
-    if(100 < map.size()) stream = stream.parallel();
-    return stream.mapToDouble(entry -> {
-      K key = entry.getKey();
-      assert key.equals(key);
-      if (r.containsKey(key)) {
-        return entry.getValue().dot(r.get(key));
-      }
-      else {
-        return 0;
-      }
-    }).sum();
-  }
-  
-  /**
    * Copy delta set.
    *
    * @return the delta set

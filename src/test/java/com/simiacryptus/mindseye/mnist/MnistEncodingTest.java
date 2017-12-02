@@ -59,8 +59,7 @@ import java.util.concurrent.TimeUnit;
  * The type Mnist encoding run.
  */
 public class MnistEncodingTest {
-  
-  private final int features = 100;
+  protected final int features = 100;
   /**
    * The Model no.
    */

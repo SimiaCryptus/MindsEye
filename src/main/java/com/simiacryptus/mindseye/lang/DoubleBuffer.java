@@ -52,7 +52,7 @@ public class DoubleBuffer<K> {
    * @param target the target
    * @param delta  the delta
    */
-  public DoubleBuffer(final K layer, final double[] target, final double[] delta) {
+  public DoubleBuffer(K layer, double[] target, double[] delta) {
     this.layer = layer;
     this.target = target;
     this.delta = delta;
@@ -61,23 +61,10 @@ public class DoubleBuffer<K> {
   /**
    * Instantiates a new Double buffer.
    *
-   * @param target the target
-   * @param delta  the delta
    * @param layer  the layer
-   */
-  public DoubleBuffer(double[] target, double[] delta, K layer) {
-    this.layer = layer;
-    this.target = target;
-    this.delta = delta;
-  }
-  
-  /**
-   * Instantiates a new Double buffer.
-   *
    * @param target the target
-   * @param layer  the layer
    */
-  public DoubleBuffer(double[] target, K layer) {
+  public DoubleBuffer(K layer, double[] target) {
     this.layer = layer;
     this.target = target;
     this.delta = null;
@@ -154,7 +141,7 @@ public class DoubleBuffer<K> {
    * @return the delta
    */
   public DoubleBuffer map(final DoubleUnaryOperator mapper) {
-    return new DoubleBuffer(this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray(), this.layer);
+    return new DoubleBuffer(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
   
   @Override
@@ -179,8 +166,10 @@ public class DoubleBuffer<K> {
     if (!this.layer.equals(right.layer)) {
       throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
     }
-    assert (this.getDelta().length == right.getDelta().length);
-    return IntStream.range(0, this.getDelta().length).mapToDouble(i -> getDelta()[i] * right.getDelta()[i]).sum();
+    double[] l = this.getDelta();
+    double[] r = right.getDelta();
+    assert (l.length == r.length);
+    return IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).summaryStatistics().getSum();
   }
   
   /**
@@ -189,7 +178,7 @@ public class DoubleBuffer<K> {
    * @return the delta
    */
   public DoubleBuffer copy() {
-    return new DoubleBuffer(target, DoubleArrays.copyOf(delta), layer);
+    return new DoubleBuffer(layer, target, DoubleArrays.copyOf(delta));
   }
   
   /**
