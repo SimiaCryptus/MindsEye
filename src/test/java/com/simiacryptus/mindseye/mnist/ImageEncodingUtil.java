@@ -165,8 +165,8 @@ class ImageEncodingUtil {
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(new QuantifyOrientationWrapper(orientation))
-        //.setOrientation(new QuantifyOrientationWrapper(new ValidatingOrientationWrapper(orientation)))
+        //.setOrientation(new QuantifyOrientationWrapper(orientation))
+        .setOrientation(new QuantifyOrientationWrapper(new ValidatingOrientationWrapper(orientation)))
         .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
       validatingTrainer
         .run();
@@ -237,11 +237,21 @@ class ImageEncodingUtil {
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
     Tensor[] featureSpaceVectors = featureSpace.getVectors();
+    for(Tensor t : featureSpaceVectors) System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
     convolutionLayer.kernel.fillByCoord(c -> {
-      int inband = c.coords[2] % inputBands;
-      int outband = (c.coords[2]-inband) / inputBands;
-//      int outband = c.coords[2] % outputBands;
-//      int inband = (c.coords[2]-outband) / outputBands;
+      int kband = c.coords[2];
+
+//      int kx = kband % outputBands;
+//      int ky = (kband-kx) / outputBands;
+//      assert kband == kx + outputBands * ky;
+//      kband = kx * inputBands + ky;
+
+      int inband = kband % inputBands;
+      int outband = (kband-inband) / inputBands;
+
+//      int outband = kband % outputBands;
+//      int inband = (kband -outband) / outputBands;
+
       assert outband < outputBands;
       assert inband < inputBands;
       int x = c.coords[0];
@@ -252,6 +262,8 @@ class ImageEncodingUtil {
       double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
     });
+    System.out.println(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
+    System.out.println(String.format("Kernel: %s%n", convolutionLayer.kernel.prettyPrint()));
   }
   
   /**

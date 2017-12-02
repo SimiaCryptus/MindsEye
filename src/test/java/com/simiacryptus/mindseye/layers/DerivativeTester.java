@@ -92,6 +92,8 @@ public class DerivativeTester {
           //System.out.println(String.format("Component: %s", component));
           if(verbose) {
             System.out.println(String.format("Feedback for input %s", i));
+            System.out.println(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
+            System.out.println(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
             System.out.println(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
             System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
             if(null != measuredGradient) {
@@ -105,6 +107,8 @@ public class DerivativeTester {
         } catch (final Throwable e) {
           //System.out.println(String.format("Component: %s", component));
           System.out.println(String.format("Feedback for input %s", i));
+          System.out.println(String.format("Inputs Values: %s", inputPrototype[i].prettyPrint()));
+          System.out.println(String.format("Value Statistics: %s", new ScalarStatistics().add(inputPrototype[i].getData())));
           System.out.println(String.format("Implemented Feedback: %s", implementedGradient.prettyPrint()));
           System.out.println(String.format("Implemented Statistics: %s", new ScalarStatistics().add(implementedGradient.getData())));
           if(null != measuredGradient) {
@@ -256,7 +260,7 @@ public class DerivativeTester {
               gradientBuffer.set(new int[]{i, j_}, data.get(dataIndex).getData()[i]);
             }
           });
-          buffer.get(inputKey, new double[gradientBuffer.dim()]).accumulate(gradientBuffer.getData());
+          buffer.get(inputKey, new double[gradientBuffer.dim()]).addInPlace(gradientBuffer.getData());
         }
         
         @Override

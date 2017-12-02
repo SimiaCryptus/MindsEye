@@ -80,16 +80,14 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    * @return the delta set
    */
   public DeltaSet<K> add(DeltaSet<K> right) {
-    DeltaSet<K> returnValue = new DeltaSet<K>();
-    map.forEach(100, (layer, buffer) -> {
-      returnValue.get(layer, buffer.target)
-        .accumulate(buffer.getDelta());
-    });
+    return this.copy().addInPlace(right);
+  }
+  
+  private DeltaSet<K> addInPlace(DeltaSet<K> right) {
     right.map.forEach(100, (layer, buffer) -> {
-      returnValue.get(layer, buffer.target)
-        .accumulate(buffer.getDelta());
+      get(layer, buffer.target).addInPlace(buffer);
     });
-    return returnValue;
+    return this;
   }
   
   /**
@@ -109,7 +107,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
   
   @Override
   public DeltaSet<K> copy() {
-    return new DeltaSet(this);
+    return this.map(x->x.copy());
   }
   
   /**
@@ -120,16 +118,6 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    */
   public DeltaSet<K> accumulate(double alpha) {
     stream().forEach(d -> d.accumulate(alpha));
-    return this;
-  }
-  
-  /**
-   * Accumulate delta set.
-   *
-   * @return the delta set
-   */
-  public DeltaSet<K> accumulate() {
-    accumulate(1);
     return this;
   }
   

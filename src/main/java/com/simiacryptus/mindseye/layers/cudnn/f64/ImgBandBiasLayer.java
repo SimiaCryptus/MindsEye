@@ -139,7 +139,7 @@ public class ImgBandBiasLayer extends NNLayer {
             final Tensor weightGradient = CudaPtr.fromDeviceDouble(filterBuffer, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
             Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, ImgBandBiasLayer.this.bias);
-            deltaBuffer.accumulate(weightGradient.getData());
+            deltaBuffer.addInPlace(weightGradient.getData());
             //assert Arrays.stream(deltaBuffer.delta).allMatch(Double::isFinite);
           }
           if (input.isAlive()) {

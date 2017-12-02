@@ -40,10 +40,7 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param delta  the delta
    */
   public Delta(final K layer, final double[] target, final double[] delta) {
-    super(layer, target, delta);
-    if (null == target) throw new IllegalArgumentException();
-    //if(null == array) throw new IllegalArgumentException();
-    this.deltaCompensation = DoubleArrays.obtain(delta.length);
+    this(layer, target, delta, DoubleArrays.obtain(delta.length));
   }
   
   /**
@@ -54,6 +51,13 @@ public class Delta<K> extends DoubleBuffer<K> {
    */
   public Delta(final K layer, final double[] target) {
     this(layer, target,null==target?null:DoubleArrays.obtain(target.length));
+  }
+  
+  protected Delta(K layer, double[] target, double[] doubles, double[] deltaCompensation) {
+    super(layer, target, doubles);
+    if (null == target) throw new IllegalArgumentException();
+    //if(null == array) throw new IllegalArgumentException();
+    this.deltaCompensation = deltaCompensation;
   }
   
   /**
@@ -90,20 +94,11 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param data the data
    * @return the delta
    */
-  public DoubleBuffer accumulate(final double[] data) {
+  public Delta<K> addInPlace(final double[] data) {
     //assert Arrays.stream(data).allMatch(Double::isFinite);
     accumulate(getDelta(), data, deltaCompensation);
     //assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
     return this;
-  }
-  
-  /**
-   * Is frozen boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isFrozen() {
-    return false;
   }
   
   /**
@@ -128,8 +123,9 @@ public class Delta<K> extends DoubleBuffer<K> {
    */
   public final synchronized void accumulate(final double factor) {
     assert Arrays.stream(target).allMatch(Double::isFinite);
+    double[] delta = this.getDelta();
     for (int i = 0; i < length(); i++) {
-      this.target[i] = this.target[i] + this.getDelta()[i] * factor;
+      target[i] += delta[i] * factor;
     }
     assert Arrays.stream(target).allMatch(Double::isFinite);
   }
@@ -155,6 +151,10 @@ public class Delta<K> extends DoubleBuffer<K> {
   
   @Override
   public Delta<K> copy() {
-    return new Delta(layer, target, DoubleArrays.copyOf(delta));
+    return new Delta(layer, target, DoubleArrays.copyOf(delta), DoubleArrays.copyOf(deltaCompensation));
+  }
+  
+  public Delta<K> addInPlace(Delta<K> buffer) {
+    return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }
 }

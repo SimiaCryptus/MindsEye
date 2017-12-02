@@ -129,7 +129,7 @@ public class LinearTest extends MnistTestBase {
         .setLineSearchFactory(name -> new QuadraticSearch()
           .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
           .setRelativeTolerance(2e-1))
-        .setTimeout(8, TimeUnit.HOURS)
+        .setTimeout(5, TimeUnit.MINUTES)
         .setMaxIterations(10000)
         .run();
     });

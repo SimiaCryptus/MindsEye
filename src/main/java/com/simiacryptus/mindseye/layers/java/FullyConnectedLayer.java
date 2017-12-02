@@ -369,7 +369,7 @@ public class FullyConnectedLayer extends NNLayer {
         } finally {
           weightDelta.release();
         }
-      }).reduce((a,b)-> ArrayUtil.add(a,b)).map(data->deltaBuffer.accumulate(data));
+      }).reduce((a,b)-> ArrayUtil.add(a,b)).map(data->deltaBuffer.addInPlace(data));
     }
     
   }

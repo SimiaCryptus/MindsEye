@@ -63,7 +63,7 @@ public class QQN implements OrientationStrategy<LineSearchCursor> {
         public LineSearchPoint step(double t, TrainingMonitor monitor) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           reset();
-          position(t).accumulate();
+          position(t).accumulate(1);
           PointSample sample = subject.measure(true, monitor).setRate(t);
           //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
           inner.addToHistory(sample, monitor);

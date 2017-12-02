@@ -179,7 +179,7 @@ public class HyperbolicActivationLayer extends NNLayer {
             double a = Math.max(0, HyperbolicActivationLayer.this.weights.getData()[x < 0 ? 1 : 0]);
             weightDelta.add(x < 0 ? 1 : 0, -sign * d / (a * a * Math.sqrt(1 + Math.pow(a * x, 2))));
           }
-          buffer.get(HyperbolicActivationLayer.this, HyperbolicActivationLayer.this.weights.getData()).accumulate(weightDelta.getData());
+          buffer.get(HyperbolicActivationLayer.this, HyperbolicActivationLayer.this.weights.getData()).addInPlace(weightDelta.getData());
         });
       }
       if (this.inObj.isAlive()) {

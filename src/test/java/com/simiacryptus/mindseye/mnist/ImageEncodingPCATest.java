@@ -95,9 +95,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   public void run(NotebookOutput log) {
     //      int pretrainMinutes = 20;
 //      int timeoutMinutes = 60;
-    int pretrainMinutes = 10;
-    int timeoutMinutes = 10;
-    int size = 256;
+    int pretrainMinutes = 1;
+    int timeoutMinutes = 1;
+    int size = 32;
     int images = 50;
     
     Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
@@ -105,7 +105,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 6, 3);
+        size, pretrainMinutes, timeoutMinutes, 3, 3, 1);
     }).invoke();
     
     log.h1("Second Layer");
@@ -344,14 +344,16 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
      */
     public InitializationStep invoke() {
       dataPipeline.add(model);
-      initialize(log, convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
+      log.code(()->{
+        initialize(log, convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
+      });
       
       {
         log.h2("Initialization");
         log.h3("Training");
         DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2);
         log.code(()->{
-          new DerivativeTester(1, 1e-3).setVerify(false).test(trainingModel0.copy().setFrozen(false), trainingData[0]);
+          new DerivativeTester(1, 1e-3).setVerify(true).test(trainingModel0.copy().setFrozen(false), trainingData[0]);
         });
         train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, false, false, true);
         printHistory(log, history);
@@ -517,7 +519,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       dataPipeline.add(innerModel);
       Stream<Tensor[]> inputColumn = Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]});
       Tensor[][] convolutionFeatures = convolutionFeatures(downExplodeTensors(inputColumn, scale), radius);
-      initialize(log, convolutionFeatures, convolutionLayer, biasLayer);
+      log.code(()->{
+        initialize(log, convolutionFeatures, convolutionLayer, biasLayer);
+      });
       final boolean[] mask = getTrainingMask();
       
       {

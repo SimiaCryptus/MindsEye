@@ -95,7 +95,7 @@ public final class WeightExtractor extends NNLayer {
       @Override
       public void accumulate(DeltaSet<NNLayer> buffer, TensorList data) {
         assert (data.length() == 1);
-        if (!isFrozen() && !inner.isFrozen()) buffer.get(inner, doubles).accumulate(data.get(0).getData());
+        if (!isFrozen() && !inner.isFrozen()) buffer.get(inner, doubles).addInPlace(data.get(0).getData());
       }
     };
   }

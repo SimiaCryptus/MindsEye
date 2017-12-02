@@ -99,7 +99,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
         cursor.reset();
         DeltaSet adjustedPosVector = cursor.position(alpha);
         DeltaSet adjustedGradient = project(adjustedPosVector, monitor);
-        adjustedPosVector.accumulate();
+        adjustedPosVector.accumulate(1);
         PointSample sample = subject.measure(true, monitor).setRate(alpha);
         return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));
       }

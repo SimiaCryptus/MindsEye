@@ -52,45 +52,10 @@ public final class PointSample {
    * @param delta   the delta
    * @param weights the weights
    * @param sum     the sum
-   * @param count   the count
-   */
-  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum, int count) {
-    this(delta, weights, sum, 0.0, count);
-  }
-  
-  /**
-   * Instantiates a new Point sample.
-   *
-   * @param delta   the delta
-   * @param weights the weights
-   * @param sum     the sum
-   * @param rate    the rate
-   */
-  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum, double rate) {
-    this(delta, weights, sum, rate, 1);
-  }
-  
-  /**
-   * Instantiates a new Point sample.
-   *
-   * @param delta   the delta
-   * @param weights the weights
-   * @param sum     the sum
-   */
-  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum) {
-    this(delta, weights, sum, 1);
-  }
-  
-  /**
-   * Instantiates a new Point sample.
-   *
-   * @param delta   the delta
-   * @param weights the weights
-   * @param sum     the sum
    * @param rate    the rate
    * @param count   the count
    */
-  public PointSample(DoubleBufferSet<NNLayer,Delta<NNLayer>> delta, DoubleBufferSet<NNLayer,State<NNLayer>> weights, double sum, double rate, int count) {
+  public PointSample(DeltaSet delta, StateSet weights, double sum, double rate, int count) {
     assert (delta.getMap().size() == weights.getMap().size());
     this.delta = new DeltaSet(delta);
     this.weights = new StateSet(weights);
@@ -109,9 +74,11 @@ public final class PointSample {
   public static PointSample add(PointSample left, PointSample right) {
     assert (left.delta.getMap().size() == left.weights.getMap().size());
     assert (right.delta.getMap().size() == right.weights.getMap().size());
+    assert left.rate == right.rate;
     return new PointSample(left.delta.add(right.delta),
       StateSet.union(left.weights, right.weights),
       left.sum + right.sum,
+      left.rate,
       left.count + right.count);
   }
   
@@ -188,5 +155,10 @@ public final class PointSample {
    */
   public PointSample add(PointSample right) {
     return add(this, right);
+  }
+  
+  public PointSample normalize() {
+    if(count==1) return this;
+    else return new PointSample(delta.scale(1.0/count), weights, sum / count, rate, 1);
   }
 }

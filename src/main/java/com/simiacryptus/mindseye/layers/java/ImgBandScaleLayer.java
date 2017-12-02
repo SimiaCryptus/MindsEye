@@ -155,7 +155,7 @@ public class ImgBandScaleLayer extends NNLayer {
               if (!Double.isFinite(array[i / size])) array[i / size] = 0.0;
             }
             assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
-            deltaBuffer.accumulate(array);
+            deltaBuffer.addInPlace(array);
             DoubleArrays.recycle(array);
           });
         }

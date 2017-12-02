@@ -51,9 +51,9 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DoubleBufferSet<NNLayer, Delta<NNLayer>> direction) {
+  public SimpleLineSearchCursor(Trainable subject, PointSample origin, DeltaSet direction) {
     this.origin = origin.copyFull();
-    this.direction = new DeltaSet(direction);
+    this.direction = direction;
     this.subject = subject;
   }
   
@@ -78,14 +78,16 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
     reset();
     if(0.0 != alpha) direction.accumulate(alpha);
-    PointSample sample = subject.measure(true, monitor).setRate(alpha);
+    PointSample sample = subject.measure(true, monitor).setRate(alpha).normalize();
     double dot = direction.dot(sample.delta);
+    //DeltaSet deltaDelta = sample.delta.subtract(origin.delta);
+    //System.out.println(String.format("Delta Delta L2 Magnitude: %s; %s . %s = %s", deltaDelta.getMagnitude(), direction.getMagnitude(), sample.delta.getMagnitude(), dot));
     return new LineSearchPoint(sample, dot);
   }
   
   @Override
   public DeltaSet position(double alpha) {
-    return new DeltaSet(direction.scale(alpha));
+    return direction.scale(alpha);
   }
   
   @Override

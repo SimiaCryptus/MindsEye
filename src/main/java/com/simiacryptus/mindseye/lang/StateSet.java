@@ -148,9 +148,21 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
       deltas.get(layer, buffer.target).set(buffer.getDelta());
     });
     right.map.forEach(100, (K layer, Delta<K> buffer) -> {
-      deltas.get(layer, buffer.target).accumulate(buffer.getDelta());
+      deltas.get(layer, buffer.target).addInPlace(buffer.getDelta());
     });
     return deltas.asState();
   }
   
+  @Override
+  public StateSet<K> copy() {
+    return map(x -> x.copy());
+  }
+  
+  @Override
+  public StateSet<K> map(Function<State<K>, State<K>> mapper) {
+    Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
+    if(map.size() > 100) stream = stream.parallel();
+    Map<K, State<K>> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
+    return new StateSet<>(newMap);
+  }
 }

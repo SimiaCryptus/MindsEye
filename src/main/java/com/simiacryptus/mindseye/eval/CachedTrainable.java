@@ -55,7 +55,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) System.out.println(String.format("Returning cached value; %s buffers unchanged since %s => %s",
           result.weights.getMap().size(), result.rate, result.getMean()));
-        return result;
+        return result.copyFull();
       }
     }
     PointSample result = super.measure(isStatic, monitor);

@@ -37,7 +37,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
@@ -67,7 +66,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * The Mask.
    */
   boolean[] mask = null;
-  private int verbose = 0;
+  private int verbosity = 0;
   
   /**
    * Instantiates a new Gpu trainable.
@@ -104,7 +103,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
               double[] doubles = delta.get(index).getData();
               //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));
               double[] dbls = tensors[index].getData();
-              buffer.get(new PlaceholderLayer(dbls), dbls).accumulate(doubles);
+              buffer.get(new PlaceholderLayer(dbls), dbls).addInPlace(doubles);
             }
           }
           
@@ -140,7 +139,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
       if(null != monitor && verbosity() > 1) {
-        monitor.log(String.format("Evaluated %s items in %.4fs (%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean()));
+        monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
       }
       assert (null != timedResult.result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
@@ -192,18 +191,17 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       TensorList resultData = result.getData();
       assert (resultData.stream().allMatch(x -> x.dim() == 1));
       assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-      DoubleStream stream = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData()));
-      DoubleSummaryStatistics statistics = stream.summaryStatistics();
-      double sum = statistics.getAverage();
+      DoubleSummaryStatistics statistics = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).summaryStatistics();
+      double sum = statistics.getSum();
       DeltaSet<NNLayer> deltaSet = new DeltaSet();
-      result.accumulate(deltaSet, 1.0 / statistics.getCount());
-      //System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-      return new PointSample(deltaSet, new StateSet(deltaSet), sum, statistics.getCount());
+      result.accumulate(deltaSet, 1.0); //  / statistics.getCount() ???
+      //System.out.println(String.format("Evaluated to %s delta buffers, %s mag", deltaSet.getMap().size(), deltaSet.getMagnitude()));
+      return new PointSample(deltaSet, new StateSet(deltaSet), sum, 0.0, list.size());
     });
     if (null != monitor && verbosity() > 0) {
       monitor.log(String.format("Device %s completed %s items in %.3f sec", nncontext.toString(), list.size(), timedResult.timeNanos / 1e9));
     }
-    return timedResult.result;
+    return timedResult.result.normalize();
   }
   
   /**
@@ -250,7 +248,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * @return the boolean
    */
   public int verbosity() {
-    return verbose;
+    return verbosity;
   }
   
   /**
@@ -260,7 +258,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * @return the verbose
    */
   public GpuTrainable setVerbosity(int verbose) {
-    this.verbose = verbose;
+    this.verbosity = verbose;
     return this;
   }
   

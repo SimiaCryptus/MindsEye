@@ -142,11 +142,11 @@ public class BiasLayer extends NNLayer {
           if (1 == BiasLayer.this.bias.length) {
             data.stream().parallel().forEach(d -> {
               double[] array = d.getData();
-              deltaBuffer.accumulate(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
+              deltaBuffer.addInPlace(1 == array.length ? array : new double[]{Arrays.stream(array).sum()});
             });
           }
           else {
-            data.stream().parallel().forEach(d -> deltaBuffer.accumulate(d.getData()));
+            data.stream().parallel().forEach(d -> deltaBuffer.addInPlace(d.getData()));
           }
         }
         if (0 < inObj.length && inObj[0].isAlive()) {

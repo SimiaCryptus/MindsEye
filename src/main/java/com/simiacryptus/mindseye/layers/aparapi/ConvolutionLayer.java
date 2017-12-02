@@ -196,7 +196,7 @@ public class ConvolutionLayer extends NNLayer {
           double[][] outputBuffers = error.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
           final Tensor weightGradient = new Tensor(kernelDims);
           convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
-          buffer.get(ConvolutionLayer.this, kernelData).accumulate(weightGradient.getData());
+          buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData());
         }
         if (input.isAlive()) {
           Tensor[] inputBufferTensors = IntStream.range(0, getData().length()).mapToObj(dataIndex -> new Tensor(inputDims)).toArray(i -> new Tensor[i]);

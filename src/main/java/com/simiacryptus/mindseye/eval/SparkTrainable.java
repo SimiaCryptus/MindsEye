@@ -117,7 +117,7 @@ public class SparkTrainable implements Trainable {
     Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId(), e -> e.getValue().getDelta()
     ));
-    return new SparkTrainable.ReducableResult(deltas, Arrays.stream(values).sum());
+    return new SparkTrainable.ReducableResult(deltas, values.length, Arrays.stream(values).sum());
   }
   
   /**
@@ -194,25 +194,6 @@ public class SparkTrainable implements Trainable {
   }
   
   /**
-   * Eval point sample.
-   *
-   * @param input     the input
-   * @param nncontext the nncontext
-   * @return the point sample
-   */
-  protected PointSample eval(NNResult[] input, CudaExecutionContext nncontext) {
-    NNResult result = network.eval(nncontext, input);
-    DeltaSet<NNLayer> deltaSet = new DeltaSet();
-    result.accumulate(deltaSet);
-    assert (deltaSet.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    TensorList resultData = result.getData();
-    assert (resultData.stream().allMatch(x -> x.dim() == 1));
-    assert (resultData.stream().allMatch(x -> Arrays.stream(x.getData()).allMatch(Double::isFinite)));
-    double sum = resultData.stream().mapToDouble(x -> Arrays.stream(x.getData()).sum()).sum();
-    return new PointSample(deltaSet, new StateSet(deltaSet), sum);
-  }
-  
-  /**
    * Gets delta.
    *
    * @param reduce the reduce
@@ -237,7 +218,7 @@ public class SparkTrainable implements Trainable {
       System.out.println(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
     }
     DeltaSet deltaSet = getDelta(result);
-    return new PointSample(deltaSet, new StateSet(deltaSet), result.sum);
+    return new PointSample(deltaSet, new StateSet(deltaSet), result.sum, 0.0, result.count).normalize();
   }
   
   @Override
@@ -267,6 +248,7 @@ public class SparkTrainable implements Trainable {
      * The Sum.
      */
     public final double sum;
+    public final int count;
   
     /**
      * Instantiates a new Reducable result.
@@ -274,8 +256,9 @@ public class SparkTrainable implements Trainable {
      * @param deltas the deltas
      * @param sum    the sum
      */
-    public ReducableResult(Map<String, double[]> deltas, double sum) {
+    public ReducableResult(Map<String, double[]> deltas, int count, double sum) {
       this.deltas = deltas;
+      this.count = count;
       this.sum = sum;
     }
   
@@ -288,7 +271,7 @@ public class SparkTrainable implements Trainable {
       Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId(), e -> e.getKey()
       ));
-      deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).accumulate(v));
+      deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).addInPlace(v));
     }
   
     /**
@@ -319,7 +302,7 @@ public class SparkTrainable implements Trainable {
           map.put(key, l);
         }
       }
-      return new SparkTrainable.ReducableResult(map, sum + right.sum);
+      return new SparkTrainable.ReducableResult(map, count+right.count, sum + right.sum);
     }
     
   }

@@ -189,7 +189,7 @@ public class ConvolutionLayer extends NNLayer {
             });
           }
         }
-        deltaSet.get(ConvolutionLayer.this, ConvolutionLayer.this.kernel.getData()).accumulate(filterDelta.getData());
+        deltaSet.get(ConvolutionLayer.this, ConvolutionLayer.this.kernel.getData()).addInPlace(filterDelta.getData());
       }
       
       @Override
