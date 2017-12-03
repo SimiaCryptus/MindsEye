@@ -115,7 +115,7 @@ public class SparkTrainable implements Trainable {
    */
   protected static SparkTrainable.ReducableResult getResult(DeltaSet<NNLayer> delta, double[] values) {
     Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
-      e -> e.getKey().getId(), e -> e.getValue().getDelta()
+      e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
     ));
     return new SparkTrainable.ReducableResult(deltas, values.length, Arrays.stream(values).sum());
   }
@@ -269,7 +269,7 @@ public class SparkTrainable implements Trainable {
      */
     public void accumulate(DeltaSet<NNLayer> source) {
       Map<String, NNLayer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
-        e -> e.getKey().getId(), e -> e.getKey()
+        e -> e.getKey().getId().toString(), e -> e.getKey()
       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).addInPlace(v));
     }

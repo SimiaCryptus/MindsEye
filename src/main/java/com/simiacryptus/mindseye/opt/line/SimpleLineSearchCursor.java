@@ -78,11 +78,21 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
     reset();
     if(0.0 != alpha) direction.accumulate(alpha);
-    PointSample sample = subject.measure(true, monitor).setRate(alpha).normalize();
+    PointSample sample = subject.measure(true, monitor).setRate(alpha);
     double dot = direction.dot(sample.delta);
-    //DeltaSet deltaDelta = sample.delta.subtract(origin.delta);
-    //System.out.println(String.format("Delta Delta L2 Magnitude: %s; %s . %s = %s", deltaDelta.getMagnitude(), direction.getMagnitude(), sample.delta.getMagnitude(), dot));
+    logTemp(sample, dot);
     return new LineSearchPoint(sample, dot);
+  }
+  
+  public void logTemp(PointSample sample, double dot) {
+    DeltaSet deltaDelta = sample.delta.subtract(origin.delta);
+    double deltaDeltaMagnitude = deltaDelta.getMagnitude();
+    double directionMagnitude = direction.getMagnitude();
+    double originDeltaMagnitude = origin.delta.getMagnitude();
+    double sampleDeltaMagnitude = sample.delta.getMagnitude();
+    double dot1 = origin.delta.dot(sample.delta);
+    System.out.println(String.format("Delta Delta L2 Magnitude: %s; %s . (%s to %s) = %s / %s",
+      deltaDeltaMagnitude, directionMagnitude, originDeltaMagnitude, sampleDeltaMagnitude, dot, dot1));
   }
   
   @Override

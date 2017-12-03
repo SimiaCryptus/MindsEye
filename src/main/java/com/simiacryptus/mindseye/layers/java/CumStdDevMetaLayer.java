@@ -102,7 +102,7 @@ public class CumStdDevMetaLayer extends DAGNetwork implements CumSum {
     JsonObject json = super.getJson();
     JsonArray childrenArray = new JsonArray();
     for (CumSum item : cumsumChildren) {
-      childrenArray.add(new JsonPrimitive(((NNLayer) (item)).getId()));
+      childrenArray.add(new JsonPrimitive(((NNLayer) (item)).getId().toString()));
     }
     json.add("children", childrenArray);
     return json;

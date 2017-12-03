@@ -43,7 +43,7 @@ public class DoubleBuffer<K> {
   /**
    * The Delta.
    */
-  protected double[] delta;
+  protected volatile double[] delta;
   
   /**
    * Instantiates a new Double buffer.
@@ -91,7 +91,7 @@ public class DoubleBuffer<K> {
    * @return the double array stats facade
    */
   public DoubleArrayStatsFacade deltaStatistics() {
-    return new DoubleArrayStatsFacade(delta);
+    return new DoubleArrayStatsFacade(getDelta());
   }
   
   /**
@@ -169,7 +169,8 @@ public class DoubleBuffer<K> {
     double[] l = this.getDelta();
     double[] r = right.getDelta();
     assert (l.length == r.length);
-    return IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).summaryStatistics().getSum();
+    double[] array = IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).toArray();
+    return Arrays.stream(array).summaryStatistics().getSum();
   }
   
   /**
@@ -206,59 +207,4 @@ public class DoubleBuffer<K> {
     return areEqual(getDelta(), target);
   }
   
-  /**
-   * The type Double array stats facade.
-   */
-  public static class DoubleArrayStatsFacade {
-    /**
-     * The Data.
-     */
-    public final double[] data;
-  
-    /**
-     * Instantiates a new Double array stats facade.
-     *
-     * @param data the data
-     */
-    public DoubleArrayStatsFacade(double[] data) {
-      this.data = data;
-    }
-  
-  
-    /**
-     * Sum double.
-     *
-     * @return the double
-     */
-    public double sum() {
-      return Arrays.stream(data).sum();
-    }
-  
-    /**
-     * Sum sq double.
-     *
-     * @return the double
-     */
-    public double sumSq() {
-      return Arrays.stream(data).map(x -> x * x).sum();
-    }
-  
-    /**
-     * Rms double.
-     *
-     * @return the double
-     */
-    public double rms() {
-      return Math.sqrt(sumSq() / length());
-    }
-  
-    /**
-     * Length int.
-     *
-     * @return the int
-     */
-    public int length() {
-      return data.length;
-    }
-  }
 }

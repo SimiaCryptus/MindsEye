@@ -23,9 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNExecutionContext;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.NNResult;
-import com.simiacryptus.mindseye.lang.Tensor;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -62,22 +60,8 @@ public final class PlaceholderLayer<T> extends NNLayer {
   }
   
   @Override
-  public String getId() {
-    return Integer.toHexString(System.identityHashCode(this.key));
+  public Object getId() {
+    return this.key;
   }
   
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof PlaceholderLayer)) return false;
-    PlaceholderLayer that = (PlaceholderLayer) o;
-    return key != null ? key.equals(that.key) : that.key == null;
-  }
-  
-  @Override
-  public int hashCode() {
-    int result = 0;
-    result = 31 * result + (key != null ? key.hashCode() : 0);
-    return result;
-  }
 }

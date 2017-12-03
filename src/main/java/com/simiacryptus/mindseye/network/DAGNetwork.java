@@ -60,7 +60,7 @@ public abstract class DAGNetwork extends NNLayer {
   /**
    * The Layers by id.
    */
-  protected final LinkedHashMap<String, NNLayer> layersById = new LinkedHashMap<>();
+  protected final LinkedHashMap<Object, NNLayer> layersById = new LinkedHashMap<>();
   /**
    * The Nodes by id.
    */
@@ -154,7 +154,7 @@ public abstract class DAGNetwork extends NNLayer {
       Arrays.stream(node.getInputs()).forEach((DAGNode input) -> linkArray.add(new JsonPrimitive(input.getId().toString())));
       NNLayer layer = node.getLayer();
       String nodeId = node.getId().toString();
-      String layerId = layer.getId();
+      String layerId = layer.getId().toString();
       nodeMap.addProperty(nodeId, layerId);
       layerMap.add(layerId, layer.getJson());
       links.add(nodeId, linkArray);
@@ -365,24 +365,6 @@ public abstract class DAGNetwork extends NNLayer {
   }
   
   /**
-   * Gets child layer.
-   *
-   * @param id the id
-   * @return the child layer
-   */
-  public NNLayer getChildLayer(final String id) {
-    if (this.getId().equals(id)) {
-      return this;
-    }
-    if (this.layersById.containsKey(id)) {
-      return this.layersById.get(id);
-    }
-    return this.layersById.values().stream()
-      .filter(x -> x instanceof DAGNetwork)
-      .map(x -> ((DAGNetwork) x).getChildLayer(id)).findAny().orElse(null);
-  }
-  
-  /**
    * Gets child node.
    *
    * @param id the id
@@ -399,7 +381,7 @@ public abstract class DAGNetwork extends NNLayer {
   
   @Override
   public List<NNLayer> getChildren() {
-    return this.layersById.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId())).collect(Collectors.toList());
+    return this.layersById.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId().toString())).collect(Collectors.toList());
   }
   
   /**

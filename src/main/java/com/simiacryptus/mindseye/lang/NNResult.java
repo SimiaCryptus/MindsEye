@@ -36,7 +36,6 @@ public abstract class NNResult {
    * The Data.
    */
   protected final TensorList data;
-  private final Map<Integer, CudaPtr> stateCache = new HashMap<>();
   
   /**
    * Instantiates a new Nn result.
@@ -106,10 +105,7 @@ public abstract class NNResult {
    * @param value  the value
    */
   public final void accumulate(DeltaSet<NNLayer> buffer, double value) {
-    Tensor[] defaultVector = IntStream.range(0, this.getData().length()).mapToObj(i -> {
-      assert (Arrays.equals(this.getData().get(i).getDimensions(), new int[]{1})) : Arrays.toString(this.getData().get(i).getDimensions());
-      return new Tensor(this.getData().get(i).getDimensions()).fill(() -> value);
-    }).toArray(i -> new Tensor[i]);
+    Tensor[] defaultVector = getData().stream().map(t->t.map(v->value)).toArray(i -> new Tensor[i]);
     accumulate(buffer, new TensorArray(defaultVector));
   }
   
@@ -137,13 +133,4 @@ public abstract class NNResult {
     return data;
   }
   
-  /**
-   * Gets gpu floats.
-   *
-   * @param device the device
-   * @return the gpu floats
-   */
-  public CudaPtr getGpuFloats(int device) {
-    return stateCache.computeIfAbsent(device, i -> CudaPtr.toDeviceAsFloat(device, data));
-  }
 }

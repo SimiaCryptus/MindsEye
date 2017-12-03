@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -147,16 +148,18 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
   public double dot(DoubleBufferSet<K,Delta<K>> right) {
     Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
     if(100 < map.size()) stream = stream.parallel();
-    return stream.mapToDouble(entry -> {
+    double[] components = stream.mapToDouble(entry -> {
       K key = entry.getKey();
-      assert key.equals(key);
-      if (right.map.containsKey(key)) {
-        return entry.getValue().dot(right.map.get(key));
+      Delta<K> value = entry.getValue();
+      Delta<K> rValue = right.map.get(key);
+      if (null != rValue) {
+        return value.dot(rValue);
       }
       else {
         return 0;
       }
-    }).summaryStatistics().getSum();
+    }).toArray();
+    return Arrays.stream(components).summaryStatistics().getSum();
   }
   
   /**
@@ -165,11 +168,12 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    * @return the magnitude
    */
   public double getMagnitude() {
-    double sumSq = map.entrySet().stream().mapToDouble(entry -> {
+    double[] elementArray = map.entrySet().stream().mapToDouble(entry -> {
       DoubleBuffer value = entry.getValue();
-      return value.deltaStatistics().sumSq();
-    }).sum();
-    return Math.sqrt(sumSq);
+      double v = value.deltaStatistics().sumSq();
+      return v;
+    }).toArray();
+    return Math.sqrt(Arrays.stream(elementArray).sum());
   }
   
 }

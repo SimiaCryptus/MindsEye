@@ -103,7 +103,8 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
               double[] doubles = delta.get(index).getData();
               //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));
               double[] dbls = tensors[index].getData();
-              buffer.get(new PlaceholderLayer(dbls), dbls).addInPlace(doubles);
+              Delta<NNLayer> layerDelta = buffer.get(new PlaceholderLayer(dbls), dbls);
+              layerDelta.addInPlace(doubles);
             }
           }
           
@@ -194,8 +195,8 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       DoubleSummaryStatistics statistics = resultData.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).summaryStatistics();
       double sum = statistics.getSum();
       DeltaSet<NNLayer> deltaSet = new DeltaSet();
-      result.accumulate(deltaSet, 1.0); //  / statistics.getCount() ???
-      //System.out.println(String.format("Evaluated to %s delta buffers, %s mag", deltaSet.getMap().size(), deltaSet.getMagnitude()));
+      result.accumulate(deltaSet, 1.0);
+      System.out.println(String.format("Evaluated to %s delta buffers, %s mag", deltaSet.getMap().size(), deltaSet.getMagnitude()));
       return new PointSample(deltaSet, new StateSet(deltaSet), sum, 0.0, list.size());
     });
     if (null != monitor && verbosity() > 0) {

@@ -63,6 +63,11 @@ public abstract class NNLayer implements Serializable {
     this.name = getClass().getSimpleName() + "/" + getId();
   }
   
+  protected NNLayer(UUID id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+  
   /**
    * From json nn layer.
    *
@@ -108,7 +113,7 @@ public abstract class NNLayer implements Serializable {
   }
   
   @Override
-  public boolean equals(final Object obj) {
+  public final boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
@@ -184,8 +189,8 @@ public abstract class NNLayer implements Serializable {
    *
    * @return the id
    */
-  public String getId() {
-    return this.id.toString();
+  public Object getId() {
+    return this.id;
   }
   
   /**
@@ -219,7 +224,7 @@ public abstract class NNLayer implements Serializable {
   }
   
   @Override
-  public int hashCode() {
+  public final int hashCode() {
     return this.getId().hashCode();
   }
   

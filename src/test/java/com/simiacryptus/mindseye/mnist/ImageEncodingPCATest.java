@@ -97,10 +97,10 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
 //      int timeoutMinutes = 60;
     int pretrainMinutes = 1;
     int timeoutMinutes = 1;
-    int size = 32;
-    int images = 50;
+    int size = 8;
+    int images = 1;
     
-    Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
+    Tensor[][] trainingImages = getImages(log, size, 1, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
@@ -332,7 +332,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         network.add(convolutionLayer);
         network.add(biasLayer);
         network.add(new ImgCropLayer(fromSize,fromSize));
-        network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        //network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
         return network;
       });
     }
