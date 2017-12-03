@@ -16,14 +16,14 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.VariableLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000aa1",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d00001587",
       "isFrozen": false,
-      "name": "VariableLayer/f4569375-56fe-4e46-925c-95f400000aa1",
+      "name": "VariableLayer/e2d0bffa-47dc-4875-864f-3d3d00001587",
       "inner": {
         "class": "com.simiacryptus.mindseye.layers.java.MonitoringSynapse",
-        "id": "f4569375-56fe-4e46-925c-95f400000aa0",
+        "id": "e2d0bffa-47dc-4875-864f-3d3d00001586",
         "isFrozen": false,
-        "name": "MonitoringSynapse/f4569375-56fe-4e46-925c-95f400000aa0",
+        "name": "MonitoringSynapse/e2d0bffa-47dc-4875-864f-3d3d00001586",
         "totalBatches": 0,
         "totalItems": 0
       }
@@ -46,10 +46,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.732, -1.548, -0.492 ]]
+    [[ 1.864, 1.18, 0.64 ]]
     --------------------
     Output: 
-    [ 1.732, -1.548, -0.492 ]
+    [ 1.864, 1.18, 0.64 ]
 ```
 
 
@@ -62,8 +62,8 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ 1.732, -1.548, -0.492 ]
-    Output: [ 1.732, -1.548, -0.492 ]
+    Inputs: [ 1.864, 1.18, 0.64 ]
+    Output: [ 1.864, 1.18, 0.64 ]
     Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
     Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
     Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
@@ -80,8 +80,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1182 +- 0.0279 [0.0826 - 0.2365]
-    Learning performance: 0.0219 +- 0.0400 [0.0057 - 0.3933]
+    Evaluation performance: 0.0931 +- 0.0190 [0.0769 - 0.2109]
+    Learning performance: 0.0174 +- 0.0395 [0.0057 - 0.3562]
     
 ```
 

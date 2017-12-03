@@ -1,5 +1,5 @@
-java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.3333e-05 +- 4.7140e-05 [0.0000e+00 - 1.0000e-04] (9#), relativeTol=1.2766e-04 +- 1.4236e-04 [2.0358e-05 - 3.2884e-04] (3#)}
-	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:283)
+java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.3333e-05 +- 4.7140e-05 [0.0000e+00 - 1.0000e-04] (9#), relativeTol=1.5457e-05 +- 1.5580e-06 [1.3828e-05 - 1.7556e-05] (3#)}
+	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:288)
 	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:77)
 	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
 	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)

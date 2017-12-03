@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MaxMetaLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000a21",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d0000150d",
       "isFrozen": false,
-      "name": "MaxMetaLayer/f4569375-56fe-4e46-925c-95f400000a21"
+      "name": "MaxMetaLayer/e2d0bffa-47dc-4875-864f-3d3d0000150d"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.828, 0.936, -0.784 ]]
+    [[ -1.916, 1.696, -1.912 ]]
     --------------------
     Output: 
-    [ -1.828, 0.936, -0.784 ]
+    [ -1.916, 1.696, -1.912 ]
 ```
 
 
@@ -54,8 +54,8 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ -1.828, 0.936, -0.784 ]
-    Output: [ -1.828, 0.936, -0.784 ]
+    Inputs: [ -1.916, 1.696, -1.912 ]
+    Output: [ -1.916, 1.696, -1.912 ]
     Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
     Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
     Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
@@ -72,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.2209 +- 0.0699 [0.1453 - 0.5842]
-    Learning performance: 0.0030 +- 0.0026 [0.0000 - 0.0142]
+    Evaluation performance: 0.1938 +- 0.0599 [0.1567 - 0.5814]
+    Learning performance: 0.0028 +- 0.0032 [0.0000 - 0.0228]
     
 ```
 

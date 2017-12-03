@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.SumReducerLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000a9e",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d00001584",
       "isFrozen": false,
-      "name": "SumReducerLayer/f4569375-56fe-4e46-925c-95f400000a9e"
+      "name": "SumReducerLayer/e2d0bffa-47dc-4875-864f-3d3d00001584"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.572, 1.872, 0.024 ]]
+    [[ 0.788, 0.464, -0.372 ]]
     --------------------
     Output: 
-    [ 1.3240000000000003 ]
+    [ 0.88 ]
 ```
 
 
@@ -54,14 +54,14 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ -0.572, 1.872, 0.024 ]
-    Output: [ 1.3240000000000003 ]
-    Measured: [ [ 0.9999999999976694 ], [ 0.9999999999976694 ], [ 0.9999999999998899 ] ]
+    Inputs: [ 0.788, 0.464, -0.372 ]
+    Output: [ 0.88 ]
+    Measured: [ [ 0.9999999999998899 ], [ 0.9999999999998899 ], [ 0.9999999999998899 ] ]
     Implemented: [ [ 1.0 ], [ 1.0 ], [ 1.0 ] ]
-    Error: [ [ -2.3305801732931286E-12 ], [ -2.3305801732931286E-12 ], [ -1.1013412404281553E-13 ] ]
+    Error: [ [ -1.1013412404281553E-13 ], [ -1.1013412404281553E-13 ], [ -1.1013412404281553E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.5904e-12 +- 1.0467e-12 [1.1013e-13 - 2.3306e-12] (3#)
-    relativeTol: 7.9522e-13 +- 5.2336e-13 [5.5067e-14 - 1.1653e-12] (3#)
+    absoluteTol: 1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (3#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (3#)
     
 ```
 
@@ -72,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1799 +- 0.0578 [0.1282 - 0.4759]
-    Learning performance: 0.0027 +- 0.0039 [0.0000 - 0.0399]
+    Evaluation performance: 0.1477 +- 0.0600 [0.1083 - 0.4047]
+    Learning performance: 0.0027 +- 0.0034 [0.0000 - 0.0314]
     
 ```
 

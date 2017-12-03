@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -58,6 +59,9 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * JVM flags "-XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC"
    */
   protected boolean gcEachIteration = true;
+  
+  protected double gcPeriod = 5.0;
+
   /**
    * The Data.
    */
@@ -67,6 +71,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    */
   boolean[] mask = null;
   private int verbosity = 0;
+  private long lastGc = 0;
   
   /**
    * Instantiates a new Gpu trainable.
@@ -85,7 +90,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    * @param mask the mask
    * @return the nn result [ ]
    */
-  protected static NNResult[] getNNContext(List<Tensor[]> data, boolean[] mask) {
+  public static NNResult[] getNNContext(List<Tensor[]> data, boolean[] mask) {
     if (null == data) throw new IllegalArgumentException();
     if (0 >= data.size()) throw new IllegalArgumentException();
     int cols = data.get(0).length;
@@ -100,11 +105,15 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
           public void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
             //System.out.println("Accumulating data");
             for (int index = 0; index < delta.length(); index++) {
-              double[] doubles = delta.get(index).getData();
-              //System.out.println(String.format("Accumulating data[%s] => %s", index, Long.toHexString(System.identityHashCode(doubles))));
-              double[] dbls = tensors[index].getData();
-              Delta<NNLayer> layerDelta = buffer.get(new PlaceholderLayer(dbls), dbls);
-              layerDelta.addInPlace(doubles);
+              Tensor dt = delta.get(index);
+              double[] d = dt.getData();
+              Tensor t = tensors[index];
+              double[] p = t.getData();
+              Delta<NNLayer> layerDelta = buffer.get(new PlaceholderLayer(p), p);
+              System.out.println(String.format("Accumulating data[%s/%s] via %s/%s: \n%s",
+                Long.toHexString(System.identityHashCode(t)), Long.toHexString(System.identityHashCode(p)), layerDelta, Long.toHexString(System.identityHashCode(layerDelta)),
+                dt.prettyPrint().replaceAll("\n","\n\t")));
+              layerDelta.addInPlace(d);
             }
           }
           
@@ -145,10 +154,14 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       assert (null != timedResult.result);
       // Between each iteration is a great time to collect garbage, since the reachable object count will be at a low point.
       // Recommended JVM flags: -XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC
-      if (gcEachIteration) GpuController.INSTANCE.cleanMemory();
+      if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
+        lastGc = System.currentTimeMillis();
+        GpuController.INSTANCE.cleanMemory();
+      }
       return timedResult.result;
     } catch (Exception e) {
       if (retries > 0) {
+        lastGc = System.currentTimeMillis();
         GpuController.INSTANCE.cleanMemory();
         synchronized (CudaResource.gpuGeneration) {
           for (Map.Entry<CudaExecutionContext, ExecutorService> entry : GpuController.INSTANCE.getGpuDriverThreads().asMap().entrySet()) {
@@ -166,7 +179,10 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
           }
         }
         CudaPtr.METRICS.invalidateAll();
-        GpuController.INSTANCE.cleanMemory();
+        if (gcEachIteration && TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastGc) > gcPeriod) {
+          lastGc = System.currentTimeMillis();
+          GpuController.INSTANCE.cleanMemory();
+        }
         return measure(retries - 1, isStatic, monitor);
       }
       else {
@@ -274,4 +290,11 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     return this;
   }
   
+  public double getGcPeriod() {
+    return gcPeriod;
+  }
+  
+  public void setGcPeriod(double gcPeriod) {
+    this.gcPeriod = gcPeriod;
+  }
 }

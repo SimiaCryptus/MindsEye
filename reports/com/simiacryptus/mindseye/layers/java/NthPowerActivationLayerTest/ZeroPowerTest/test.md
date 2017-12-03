@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000a52",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d0000153b",
       "isFrozen": false,
-      "name": "NthPowerActivationLayer/f4569375-56fe-4e46-925c-95f400000a52",
+      "name": "NthPowerActivationLayer/e2d0bffa-47dc-4875-864f-3d3d0000153b",
       "power": 0.0
     }
 ```
@@ -39,7 +39,7 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.18, 0.704, -1.952 ]]
+    [[ -0.94, 1.724, 1.844 ]]
     --------------------
     Output: 
     [ 1.0, 1.0, 1.0 ]
@@ -55,7 +55,7 @@ Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ 0.18, 0.704, -1.952 ]
+    Inputs: [ -0.94, 1.724, 1.844 ]
     Output: [ 1.0, 1.0, 1.0 ]
     Measured: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Implemented: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
@@ -73,8 +73,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1306 +- 0.0362 [0.0912 - 0.3249]
-    Learning performance: 0.0024 +- 0.0035 [0.0000 - 0.0285]
+    Evaluation performance: 0.1382 +- 0.0506 [0.0969 - 0.4845]
+    Learning performance: 0.0025 +- 0.0136 [0.0000 - 0.1368]
     
 ```
 
@@ -90,7 +90,7 @@ Returns:
 
 
 
-Code from [ActivationLayerTestBase.java:77](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L77) executed in 0.01 seconds: 
+Code from [ActivationLayerTestBase.java:77](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L77) executed in 0.00 seconds: 
 ```java
     return plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
 ```

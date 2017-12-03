@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.FullyConnectedLayer",
-      "id": "f4569375-56fe-4e46-925c-95f4000009b3",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d0000149f",
       "isFrozen": false,
-      "name": "FullyConnectedLayer/f4569375-56fe-4e46-925c-95f4000009b3",
+      "name": "FullyConnectedLayer/e2d0bffa-47dc-4875-864f-3d3d0000149f",
       "outputDims": [
         3
       ],
@@ -31,15 +31,15 @@ Returns:
           3
         ],
         "data": [
-          0.12712713148425284,
-          0.8257901367294009,
-          -0.5918167144000283,
-          -0.8782129963032719,
-          0.12679003816390902,
-          0.678869295613072,
-          -0.2251931768521838,
-          0.10696719269606929,
-          0.8340151395808627
+          0.2238041736627254,
+          0.7137490290649375,
+          0.19053922959861253,
+          0.35151960227263584,
+          -0.8209343185494066,
+          -0.683844456664976,
+          0.41181871178311846,
+          -0.018280005712603783,
+          -0.6152918320424763
         ]
       }
     }
@@ -61,10 +61,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.512, -1.532, 1.668 ]]
+    [[ -0.532, 1.696, -0.636 ]]
     --------------------
     Output: 
-    [ 0.9047110000272327, -0.4386256110555184, 0.6541196497144671 ]
+    [ 0.21519672437175708, -1.7603930040891242, -0.869841463471246 ]
 ```
 
 
@@ -77,82 +77,32 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ -0.512, -1.532, 1.668 ]
-    Output: [ 0.9047110000272327, -0.4386256110555184, 0.6541196497144671 ]
-    Measured: [ [ 0.12712713148399502, 0.825790136729232, -0.5918167144003394 ], [ -0.8782129963025298, 0.12679003816407075, 0.6788692956138931 ], [ -0.22519317685265605, 0.10696719269620569, 0.8340151395813677 ] ]
-    Implemented: [ [ 0.12712713148425284, 0.8257901367294009, -0.5918167144000283 ], [ -0.8782129963032719, 0.12679003816390902, 0.678869295613072 ], [ -0.2251931768521838, 0.10696719269606929, 0.8340151395808627 ] ]
-    Error: [ [ -2.57821541893577E-13, -1.6897594434794883E-13, -3.111955138024314E-13 ], [ 7.420730696594546E-13, 1.6173173911226968E-13, 8.211209490127658E-13 ], [ -4.72261119099926E-13, 1.364047763630083E-13, 5.050404539019837E-13 ] ]
+    Inputs: [ -0.532, 1.696, -0.636 ]
+    Output: [ 0.21519672437175708, -1.7603930040891242, -0.869841463471246 ]
+    Measured: [ [ 0.2238041736624119, 0.7137490290642923, 0.19053922959866298 ], [ 0.3515196022729761, -0.8209343185483498, -0.6838444566659163 ], [ 0.41181871178352925, -0.018280005713577907, -0.6152918320423417 ] ]
+    Implemented: [ [ 0.2238041736627254, 0.7137490290649375, 0.19053922959861253 ], [ 0.35151960227263584, -0.8209343185494066, -0.683844456664976 ], [ 0.41181871178311846, -0.018280005712603783, -0.6152918320424763 ] ]
+    Error: [ [ -3.134992265785286E-13, -6.45261621912141E-13, 5.0459636469213365E-14 ], [ 3.402278458963792E-13, 1.0568212971406865E-12, -9.403589018575076E-13 ], [ 4.107825191113079E-13, -9.741235595939202E-13, 1.3455903058456897E-13 ] ]
     Learning Gradient for weight set 0
-    Inputs: [ -0.512, -1.532, 1.668 ]
-    Outputs: [ 0.9047110000272327, -0.4386256110555184, 0.6541196497144671 ]
-    Measured Gradient: [ [ -0.5120000000014002, 0.0, 0.0 ], [ 0.0, -0.5119999999991798, 0.0 ], [ 0.0, 0.0, -0.51200000000029 ], [ -1.5320000000018652, 0.0, 0.0 ], [ 0.0, -1.5319999999996448, 0.0 ], [ 0.0, 0.0, -1.5319999999996448 ], [ 1.6679999999991146, 0.0, 0.0 ], [ 0.0, 1.6680000000002249, 0.0 ], [ 0.0, 0.0, 1.6679999999991146 ] ]
-    Implemented Gradient: [ [ -0.512, 0.0, 0.0 ], [ 0.0, -0.512, 0.0 ], [ 0.0, 0.0, -0.512 ], [ -1.532, 0.0, 0.0 ], [ 0.0, -1.532, 0.0 ], [ 0.0, 0.0, -1.532 ], [ 1.668, 0.0, 0.0 ], [ 0.0, 1.668, 0.0 ], [ 0.0, 0.0, 1.668 ] ]
-    Error: [ [ -1.4002132786572474E-12, 0.0, 0.0 ], [ 0.0, 8.202327705930657E-13, 0.0 ], [ 0.0, 0.0, -2.899902540320909E-13 ], [ -1.865174681370263E-12, 0.0, 0.0 ], [ 0.0, 3.552713678800501E-13, 0.0 ], [ 0.0, 0.0, 3.552713678800501E-13 ], [ -8.852918398360998E-13, 0.0, 0.0 ], [ 0.0, 2.2493118478905672E-13, 0.0 ], [ 0.0, 0.0, -8.852918398360998E-13 ] ]
+    Inputs: [ -0.532, 1.696, -0.636 ]
+    Outputs: [ 0.21519672437175708, -1.7603930040891242, -0.869841463471246 ]
+    Measured Gradient: [ [ -0.53200000000031, 0.0, 0.0 ], [ 0.0, -0.5319999999997549, 0.0 ], [ 0.0, 0.0, -0.5319999999997549 ], [ 1.6959999999999198, 0.0, 0.0 ], [ 0.0, 1.6959999999999198, 0.0 ], [ 0.0, 0.0, 1.6959999999999198 ], [ -0.6359999999999699, 0.0, 0.0 ], [ 0.0, -0.636000000000525, 0.0 ], [ 0.0, 0.0, -0.6359999999994148 ] ]
+    Implemented Gradient: [ [ -0.532, 0.0, 0.0 ], [ 0.0, -0.532, 0.0 ], [ 0.0, 0.0, -0.532 ], [ 1.696, 0.0, 0.0 ], [ 0.0, 1.696, 0.0 ], [ 0.0, 0.0, 1.696 ], [ -0.636, 0.0, 0.0 ], [ 0.0, -0.636, 0.0 ], [ 0.0, 0.0, -0.636 ] ]
+    Error: [ [ -3.099742684753437E-13, 0.0, 0.0 ], [ 0.0, 2.4513724383723456E-13, 0.0 ], [ 0.0, 0.0, 2.4513724383723456E-13 ], [ -8.01581023779363E-14, 0.0, 0.0 ], [ 0.0, -8.01581023779363E-14, 0.0 ], [ 0.0, 0.0, -8.01581023779363E-14 ], [ 3.008704396734174E-14, 0.0, 0.0 ], [ 0.0, -5.250244683452365E-13, 0.0 ], [ 0.0, 0.0, 5.8519855627992E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.9606e-13 +- 4.3624e-13 [0.0000e+00 - 1.8652e-12] (36#)
-    relativeTol: 4.9576e-13 +- 3.6263e-13 [6.7425e-14 - 1.3674e-12] (18#)
+    absoluteTol: 1.9575e-13 +- 3.0023e-13 [0.0000e+00 - 1.0568e-12] (36#)
+    relativeTol: 1.7818e-12 +- 6.0344e-12 [2.3632e-14 - 2.6645e-11] (18#)
     
 ```
 
-Returns: 
-
+### Performance
+Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.01 seconds: 
+```java
+    getPerformanceTester().test(layer, inputPrototype);
 ```
-    java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-    	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
-    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-    	at java.lang.reflect.Method.invoke(Method.java:498)
-    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-    	at org.junit.runners.Suite.runChild(Suite.java:128)
-    	at org.junit.runners
+Logging: 
 ```
-...[skipping 796 bytes](etc/1.txt)...
-```
-    com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-    Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
-    	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:125)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:92)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 35 more
-    Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-    	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-    	... 43 more
-    Caused by: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:142)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
-    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
-    	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-    	at java.lang.Thread.run(Thread.java:748)
+    Evaluation performance: 0.2253 +- 0.1037 [0.1795 - 1.1570]
+    Learning performance: 0.5399 +- 0.3073 [0.3363 - 2.5363]
     
 ```
-
-
 

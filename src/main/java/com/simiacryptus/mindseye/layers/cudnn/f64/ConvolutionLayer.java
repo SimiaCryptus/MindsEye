@@ -178,7 +178,7 @@ public class ConvolutionLayer extends NNLayer {
           SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
           Delta<NNLayer> subnetDelta = deltaSet.getMap().remove(batchLayer);
           if(null != subnetDelta) {
-            int[] batchDimensions = batchLayer.filter.getDimensions();
+            int[] batchDimensions = batchLayer.kernel.getDimensions();
             Tensor batchDelta = new Tensor(null==subnetDelta?null:subnetDelta.getDelta(), batchDimensions);
             int offset = batchNumber * inputBandsSq;
             batchDelta.coordStream().forEach(batchCoord -> {

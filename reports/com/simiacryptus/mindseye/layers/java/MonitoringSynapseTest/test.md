@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MonitoringSynapse",
-      "id": "f4569375-56fe-4e46-925c-95f400000a2c",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d00001518",
       "isFrozen": false,
-      "name": "MonitoringSynapse/f4569375-56fe-4e46-925c-95f400000a2c",
+      "name": "MonitoringSynapse/e2d0bffa-47dc-4875-864f-3d3d00001518",
       "totalBatches": 0,
       "totalItems": 0
     }
@@ -40,10 +40,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.232, -0.896, -0.444 ]]
+    [[ 0.144, 1.852, 0.168 ]]
     --------------------
     Output: 
-    [ 0.232, -0.896, -0.444 ]
+    [ 0.144, 1.852, 0.168 ]
 ```
 
 
@@ -56,8 +56,8 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ 0.232, -0.896, -0.444 ]
-    Output: [ 0.232, -0.896, -0.444 ]
+    Inputs: [ 0.144, 1.852, 0.168 ]
+    Output: [ 0.144, 1.852, 0.168 ]
     Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
     Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
     Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
@@ -74,8 +74,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1917 +- 0.1765 [0.1140 - 1.7042]
-    Learning performance: 0.0282 +- 0.0095 [0.0200 - 0.1026]
+    Evaluation performance: 0.1489 +- 0.0332 [0.1282 - 0.4161]
+    Learning performance: 0.0303 +- 0.0231 [0.0199 - 0.2280]
     
 ```
 

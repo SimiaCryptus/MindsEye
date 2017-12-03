@@ -16,14 +16,14 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000a31",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d0000151d",
       "isFrozen": false,
-      "name": "MonitoringSynapse/f4569375-56fe-4e46-925c-95f400000a30",
+      "name": "MonitoringSynapse/e2d0bffa-47dc-4875-864f-3d3d0000151c",
       "inner": {
         "class": "com.simiacryptus.mindseye.layers.java.MonitoringSynapse",
-        "id": "f4569375-56fe-4e46-925c-95f400000a30",
+        "id": "e2d0bffa-47dc-4875-864f-3d3d0000151c",
         "isFrozen": false,
-        "name": "MonitoringSynapse/f4569375-56fe-4e46-925c-95f400000a30",
+        "name": "MonitoringSynapse/e2d0bffa-47dc-4875-864f-3d3d0000151c",
         "totalBatches": 0,
         "totalItems": 0
       },
@@ -49,10 +49,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.54, 1.584, 1.8 ]]
+    [[ -0.692, 1.636, -0.356 ]]
     --------------------
     Output: 
-    [ 0.54, 1.584, 1.8 ]
+    [ -0.692, 1.636, -0.356 ]
 ```
 
 
@@ -65,8 +65,8 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ 0.54, 1.584, 1.8 ]
-    Output: [ 0.54, 1.584, 1.8 ]
+    Inputs: [ -0.692, 1.636, -0.356 ]
+    Output: [ -0.692, 1.636, -0.356 ]
     Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
     Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
     Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
@@ -83,8 +83,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.2550 +- 0.1554 [0.1567 - 1.5360]
-    Learning performance: 0.0457 +- 0.0161 [0.0342 - 0.1311]
+    Evaluation performance: 0.2164 +- 0.1040 [0.1596 - 1.0117]
+    Learning performance: 0.0453 +- 0.0130 [0.0370 - 0.1225]
     
 ```
 

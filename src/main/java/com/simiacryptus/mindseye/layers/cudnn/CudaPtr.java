@@ -149,28 +149,15 @@ public class CudaPtr extends CudaResource<Pointer> {
       assert null != ptr;
       assert null != ptr.getPtr() : null==ptr.finalizedBy?"":Arrays.stream(ptr.finalizedBy).map(x->x.toString()).reduce((a,b)->a+"; "+b).get();
       return ptr;
-//        } else if(data instanceof CuDNNFloatTensorList) {
-//            CuDNNFloatTensorList floatData = (CuDNNFloatTensorList) data;
-//            int[] dimensions = floatData.dimensions;
-//            int length = floatData.length;
-//            CuDNN.CudaResource<cudnnTensorDescriptor> fromFormat = CuDNN.newTensorDescriptor(
-//                    CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-//            CuDNN.CudaResource<cudnnTensorDescriptor> toFormat = CuDNN.newTensorDescriptor(
-//                    CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-//            CuDNN.CudaPtr destPtr = CuDNN.alloc(Sizeof.DOUBLE * length * Tensor.dim(dimensions[2], dimensions[1], dimensions[0]));
-//            CuDNN.devicePool.mapCoords(cudnn->{
-//                cudnnTransformTensor(cudnn, );
-//            });
-//            return destPtr;
     }
     else {
       int listLength = data.length();
       int elementLength = data.get(0).dim();
-      double[][] inputBuffers = data.stream().map(x -> x.getData()).toArray(i -> new double[i][]);
       final double[] inputBuffer = DoubleArrays.obtain(elementLength * listLength);
       for (int i = 0; i < listLength; i++) {
-        assert elementLength == inputBuffers[0 + i].length;
-        System.arraycopy(inputBuffers[0 + i], 0, inputBuffer, i * elementLength, elementLength);
+        double[] doubles = data.get(i).getData();
+        assert elementLength == doubles.length;
+        System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
       }
       //assert(0 < inputBuffer.length);
       CudaPtr ptr = CuDNN.write(deviceId, inputBuffer);

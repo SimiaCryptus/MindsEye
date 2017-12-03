@@ -14,128 +14,66 @@ Code from [LayerTestBase.java:84](../../../../../../../../../MindsEye/src/test/j
 Returns: 
 
 ```
-    {
-      "class": "com.simiacryptus.mindseye.layers.cudnn.f32.DropoutNoiseLayer",
-      "id": "f4569375-56fe-4e46-925c-95f4000000cf",
-      "isFrozen": false,
-      "name": "DropoutNoiseLayer/f4569375-56fe-4e46-925c-95f4000000cf",
-      "inputs": [
-        "f7a31b0d-eec4-4178-a1e0-c245d9edbf04"
-      ],
-      "nodes": {
-        "25d3d311-0bfb-451a-9d1c-670e67fa007f": "f4569375-56fe-4e46-925c-95f4000000d1",
-        "fb91b6a9-a002-4d3f-99cc-8396dfe5e249": "f4569375-56fe-4e46-925c-95f4000000d0"
-      },
-      "layers": {
-        "f4569375-56fe-4e46-925c-95f4000000d1": {
-          "class": "com.simiacryptus.mindseye.layers.java.BinaryNoiseLayer",
-          "id": "f4569375-56fe-4e46-925c-95f4000000d1",
-          "isFrozen": false,
-          "name": "mask",
-          "value": 0.5
-        },
-        "f4569375-56fe-4e46-925c-95f4000000d0": {
-          "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ProductInputsLayer",
-          "id": "f4569375-56fe-4e46-925c-95f4000000d0",
-          "isFrozen": false,
-          "name": "ProductInputsLayer/f4569375-56fe-4e46-925c-95f4000000d0"
-        }
-      },
-      "links": {
-        "25d3d311-0bfb-451a-9d1c-670e67fa007f": [
-          "f7a31b0d-eec4-4178-a1e0-c245d9edbf04"
-        ],
-        "fb91b6a9-a002-4d3f-99cc-8396dfe5e249": [
-          "25d3d311-0bfb-451a-9d1c-670e67fa007f",
-          "f7a31b0d-eec4-4178-a1e0-c245d9edbf04"
-        ]
-      },
-      "labels": {},
-      "head": "fb91b6a9-a002-4d3f-99cc-8396dfe5e249"
-    }
+    java.lang.RuntimeException: java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
+    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:84)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.lang.reflect.Method.invoke(Method.java:498)
+    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runners.Suite.runChild(Suite.java:128)
+    	at org.junit.
 ```
-
-
-
-### Network Diagram
-Code from [LayerTestBase.java:95](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L95) executed in 2.01 seconds: 
-```java
-    return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
-      .height(400).width(600).render(Format.PNG).toImage();
+...[skipping 613 bytes](etc/1.txt)...
 ```
-
-Returns: 
-
-![Result](etc/test.1.png)
-
-
-
-### Example Input/Output Pair
-Code from [LayerTestBase.java:121](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.01 seconds: 
-```java
-    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
-      Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
-      eval.getOutput().prettyPrint());
-```
-
-Returns: 
-
-```
-    --------------------
-    Input: 
-    [[
-    	[ [ -1.076, 0.136 ], [ -1.368, -1.164 ], [ -0.116, 0.368 ] ],
-    	[ [ 1.752, -0.212 ], [ -0.732, 1.976 ], [ -1.06, -0.532 ] ],
-    	[ [ -1.528, 0.34 ], [ -0.508, 1.424 ], [ 1.652, 1.924 ] ]
-    ]]
-    --------------------
-    Output: 
-    [
-    	[ [ 0.0, 0.13600000739097595 ], [ -1.3680000305175781, 0.0 ], [ -0.11599999666213989, 0.0 ] ],
-    	[ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ],
-    	[ [ -1.527999997138977, 0.3400000035762787 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
-    ]
-```
-
-
-
-### Differential Validation
-Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.04 seconds: 
-```java
-    getDerivativeTester().test(layer, inputPrototype);
-```
-Logging: 
-```
-    Feedback for input 0
-    Inputs: [
-    	[ [ -1.076, 0.136 ], [ -1.368, -1.164 ], [ -0.116, 0.368 ] ],
-    	[ [ 1.752, -0.212 ], [ -0.732, 1.976 ], [ -1.06, -0.532 ] ],
-    	[ [ -1.528, 0.34 ], [ -0.508, 1.424 ], [ 1.652, 1.924 ] ]
-    ]
-    Output: [
-    	[ [ 0.0, 0.13600000739097595 ], [ -1.3680000305175781, 0.0 ], [ -0.11599999666213989, 0.0 ] ],
-    	[ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ],
-    	[ [ -1.527999997138977, 0.3400000035762787 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
-    ]
-    Measured: [ [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0001659393310547, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 1.0001659393310547, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.999942421913147, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.9998679161071777 ] ]
-    Implemented: [ [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] ]
-    Error: [ [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.659393310546875E-4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 1.659393310546875E-4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.7578086853027344E-5, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.3208389282226562E-4 ] ]
-    Finite-Difference Derivative Accuracy:
-    absoluteTol: 2.0174e-06 +- 1.6847e-05 [0.0000e+00 - 1.6594e-04] (324#)
-    relativeTol: 6.5362e-05 +- 1.9789e-05 [2.8790e-05 - 8.2963e-05] (5#)
+    j.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
+    	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
+    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
+    Caused by: java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
+    	at com.simiacryptus.mindseye.lang.NNLayer.fromJson(NNLayer.java:83)
+    	at com.simiacryptus.mindseye.network.PipelineNetwork.getJson(PipelineNetwork.java:101)
+    	at com.simiacryptus.mindseye.layers.cudnn.f32.DropoutNoiseLayer.getJson(DropoutNoiseLayer.java:78)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$0(LayerTestBase.java:85)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
+    	... 36 more
+    Caused by: java.lang.reflect.InvocationTargetException
+    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.lang.reflect.Method.invoke(Method.java:498)
+    	at com.simiacryptus.mindseye.lang.NNLayer.fromJson(NNLayer.java:81)
+    	... 41 more
+    Caused by: java.lang.NullPointerException
+    	at com.simiacryptus.mindseye.network.DAGNetwork.visitLayers(DAGNetwork.java:258)
+    	at com.simiacryptus.mindseye.network.DAGNetwork.setFrozen(DAGNetwork.java:487)
+    	at com.simiacryptus.mindseye.network.DAGNetwork.setFrozen(DAGNetwork.java:48)
+    	at com.simiacryptus.mindseye.lang.NNLayer.<init>(NNLayer.java:54)
+    	at com.simiacryptus.mindseye.network.DAGNetwork.<init>(DAGNetwork.java:79)
+    	at com.simiacryptus.mindseye.network.PipelineNetwork.<init>(PipelineNetwork.java:45)
+    	at com.simiacryptus.mindseye.layers.cudnn.f32.DropoutNoiseLayer.<init>(DropoutNoiseLayer.java:44)
+    	at com.simiacryptus.mindseye.layers.cudnn.f32.DropoutNoiseLayer.fromJson(DropoutNoiseLayer.java:74)
+    	... 46 more
     
 ```
 
-### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.09 seconds: 
-```java
-    getPerformanceTester().test(layer, inputPrototype);
-```
-Logging: 
-```
-    Evaluation performance: 2.9936 +- 0.4222 [2.6389 - 4.7136]
-    Learning performance: 0.5040 +- 0.0946 [0.3420 - 1.1000]
-    
-```
+
 

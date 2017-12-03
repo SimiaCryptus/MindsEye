@@ -78,7 +78,7 @@ public class DoubleBuffer<K> {
    * @return the boolean
    */
   public static boolean areEqual(double[] l, double[] r) {
-    assert (r.length == l.length);
+    if ((r.length != l.length)) throw new IllegalArgumentException();
     for (int i = 0; i < r.length; i++) {
       if (r[i] != l[i]) return false;
     }
@@ -196,15 +196,6 @@ public class DoubleBuffer<K> {
       }
     }
     return delta;
-  }
-  
-  /**
-   * Are equal boolean.
-   *
-   * @return the boolean
-   */
-  public boolean areEqual() {
-    return areEqual(getDelta(), target);
   }
   
 }

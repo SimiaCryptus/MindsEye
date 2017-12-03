@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000976",
+      "id": "ff6064d4-4ed4-46f2-9d30-740100000068",
       "isFrozen": false,
-      "name": "AvgMetaLayer/f4569375-56fe-4e46-925c-95f400000976"
+      "name": "AvgMetaLayer/ff6064d4-4ed4-46f2-9d30-740100000068"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.832, -0.328, -1.972 ]]
+    [[ 0.472, -0.912, -1.088 ]]
     --------------------
     Output: 
-    [ -1.832, -0.328, -1.972 ]
+    [ 0.472, -0.912, -1.088 ]
 ```
 
 
@@ -54,8 +54,8 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ -1.832, -0.328, -1.972 ]
-    Output: [ -1.832, -0.328, -1.972 ]
+    Inputs: [ 0.472, -0.912, -1.088 ]
+    Output: [ 0.472, -0.912, -1.088 ]
     Measured: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Implemented: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
@@ -76,7 +76,8 @@ Returns:
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
     	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
     	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-    	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
     	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
     	at java.lang.reflect.Method.invoke(Method.java:498)
     	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
@@ -91,11 +92,9 @@ Returns:
     	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
     	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
     	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-    	at org.junit.runners.Suite.runChild(Suite.java:128)
-    	at org.junit.runners.Sui
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:36
 ```
-...[skipping 776 bytes](etc/1.txt)...
+...[skipping 859 bytes](etc/1.txt)...
 ```
     .java:242)
     	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
@@ -109,12 +108,12 @@ Returns:
     	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 35 more
+    	... 36 more
     Caused by: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
     	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
     	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
     	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-    	... 43 more
+    	... 44 more
     Caused by: java.lang.RuntimeException: Frozen component did not pass input backwards
     	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testFrozen$11(DerivativeTester.java:118)
     	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)

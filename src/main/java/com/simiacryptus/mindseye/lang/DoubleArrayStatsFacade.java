@@ -60,9 +60,6 @@ public class DoubleArrayStatsFacade {
    * @return the double
    */
   public double sumSq() {
-    double[] sorted = Arrays.stream(data).sorted().toArray();
-    double[] rsorted = Arrays.stream(data).map(x->-x).sorted().map(x->-x).toArray();
-    double sumOfSquare = Arrays.stream(data).map(x->x*x).sorted().sum();
     DoubleStream doubleStream = Arrays.stream(data).map((double x) -> x * x);
     DoubleSummaryStatistics statistics = doubleStream.summaryStatistics();
     return statistics.getSum();

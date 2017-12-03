@@ -68,6 +68,7 @@ public class CudaExecutionContext extends CuDNN implements NNExecutionContext {
     System.out.println(String.format("Found %s devices", deviceCount));
     List<Integer> devices = new ArrayList<Integer>();
     for (int device = 0; device < deviceCount; device++) {
+      //if(device>0) System.err.println(String.format("IGNORING Device %s - %s", device, getDeviceName(device)));
       System.out.println(String.format("Device %s - %s", device, getDeviceName(device)));
       devices.add(device);
     }

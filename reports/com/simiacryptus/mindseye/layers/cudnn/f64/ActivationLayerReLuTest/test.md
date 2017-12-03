@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f64.ActivationLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000153",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d0000039c",
       "isFrozen": false,
-      "name": "ActivationLayer/f4569375-56fe-4e46-925c-95f400000153",
+      "name": "ActivationLayer/e2d0bffa-47dc-4875-864f-3d3d0000039c",
       "mode": 1
     }
 ```
@@ -40,12 +40,12 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.78, -0.82, 1.616 ] ]
+    	[ [ 0.576, -1.652, -0.416 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 0.0, 0.0, 1.616 ] ]
+    	[ [ 0.576, 0.0, 0.0 ] ]
     ]
 ```
 
@@ -60,14 +60,14 @@ Logging:
 ```
     Feedback for input 0
     Inputs: [
-    	[ [ -1.78, -0.82, 1.616 ] ]
+    	[ [ 0.576, -1.652, -0.416 ] ]
     ]
     Output: [
-    	[ [ 0.0, 0.0, 1.616 ] ]
+    	[ [ 0.576, 0.0, 0.0 ] ]
     ]
-    Measured: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
-    Implemented: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
-    Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+    Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Implemented: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 1.2237e-14 +- 3.4612e-14 [0.0000e+00 - 1.1013e-13] (9#)
     relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)
@@ -75,14 +75,14 @@ Logging:
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.05 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.08 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 2.1013 +- 0.4796 [1.7042 - 5.2721]
-    Learning performance: 1.2303 +- 0.3160 [0.9490 - 3.4483]
+    Evaluation performance: 3.0415 +- 0.4374 [2.4565 - 4.8560]
+    Learning performance: 1.5392 +- 0.4795 [1.1570 - 5.4460]
     
 ```
 

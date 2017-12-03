@@ -765,6 +765,16 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor scale(final double d) {
+    return map(v->v*d);
+  }
+  
+  /**
+   * Scale tensor.
+   *
+   * @param d the d
+   * @return the tensor
+   */
+  public Tensor scaleInPlace(final double d) {
     double[] data = getData();
     for (int i = 0; i < data.length; i++) {
       data[i] *= d;

@@ -81,4 +81,13 @@ public class State<K> extends DoubleBuffer<K> {
     return new State(layer, target, DoubleArrays.copyOf(delta));
   }
   
+  /**
+   * Are equal boolean.
+   *
+   * @return the boolean
+   */
+  public boolean areEqual() {
+    return areEqual(getDelta(), target);
+  }
+
 }

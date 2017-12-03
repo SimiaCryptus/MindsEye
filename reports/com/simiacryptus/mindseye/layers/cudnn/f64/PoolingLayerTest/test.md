@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer",
-      "id": "f4569375-56fe-4e46-925c-95f40000094b",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d00001437",
       "isFrozen": false,
-      "name": "PoolingLayer/f4569375-56fe-4e46-925c-95f40000094b",
+      "name": "PoolingLayer/e2d0bffa-47dc-4875-864f-3d3d00001437",
       "mode": 0,
       "windowX": 2,
       "windowY": 2,
@@ -46,13 +46,13 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ 0.348, -1.072 ], [ -0.268, -1.852 ] ],
-    	[ [ -1.008, 0.236 ], [ -0.636, -1.528 ] ]
+    	[ [ -1.088, 1.572 ], [ 0.212, 0.148 ] ],
+    	[ [ -0.56, -0.8 ], [ 0.396, -1.292 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 0.348, 0.236 ] ]
+    	[ [ 0.396, 1.572 ] ]
     ]
 ```
 
@@ -67,15 +67,15 @@ Logging:
 ```
     Feedback for input 0
     Inputs: [
-    	[ [ 0.348, -1.072 ], [ -0.268, -1.852 ] ],
-    	[ [ -1.008, 0.236 ], [ -0.636, -1.528 ] ]
+    	[ [ -1.088, 1.572 ], [ 0.212, 0.148 ] ],
+    	[ [ -0.56, -0.8 ], [ 0.396, -1.292 ] ]
     ]
     Output: [
-    	[ [ 0.348, 0.236 ] ]
+    	[ [ 0.396, 1.572 ] ]
     ]
-    Measured: [ [ 0.9999999999998899, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.9999999999998899 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
-    Implemented: [ [ 1.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 1.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
-    Error: [ [ -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
+    Measured: [ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.9999999999998899, 0.0 ], [ 0.0, 0.9999999999998899 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
+    Implemented: [ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 1.0, 0.0 ], [ 0.0, 1.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
+    Error: [ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ -1.1013412404281553E-13, 0.0 ], [ 0.0, -1.1013412404281553E-13 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
     absoluteTol: 1.3767e-14 +- 3.6423e-14 [0.0000e+00 - 1.1013e-13] (16#)
     relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (2#)
@@ -83,14 +83,14 @@ Logging:
 ```
 
 ### Performance
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.05 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.07 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 2.0511 +- 0.2993 [1.6443 - 3.5508]
-    Learning performance: 1.2226 +- 0.4174 [0.9433 - 4.8133]
+    Evaluation performance: 3.0737 +- 0.5239 [2.3055 - 5.2607]
+    Learning performance: 1.4016 +- 0.2358 [1.0943 - 2.4936]
     
 ```
 

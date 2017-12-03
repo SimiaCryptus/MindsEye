@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000001",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d00000001",
       "isFrozen": false,
-      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f400000001",
+      "name": "ConvolutionLayer/e2d0bffa-47dc-4875-864f-3d3d00000001",
       "filter": {
         "dimensions": [
           3,
@@ -26,42 +26,42 @@ Returns:
           4
         ],
         "data": [
-          -0.856,
-          -0.692,
           -0.044,
-          1.352,
-          1.284,
-          0.036,
-          0.252,
-          1.44,
-          -0.128,
-          1.3,
-          0.264,
-          1.644,
-          -0.06,
-          -0.46,
-          0.636,
           -1.704,
-          0.584,
-          1.268,
-          1.892,
-          -0.836,
-          -0.252,
-          0.712,
-          -1.94,
-          0.116,
-          -0.632,
-          1.608,
-          -0.416,
-          -0.26,
-          -0.96,
-          1.384,
-          -0.264,
-          1.632,
-          -1.74,
-          -1.456,
-          -0.752,
-          0.872
+          -0.828,
+          1.132,
+          1.884,
+          1.516,
+          0.804,
+          -1.404,
+          0.228,
+          0.824,
+          -0.136,
+          0.724,
+          0.62,
+          0.328,
+          0.7,
+          -1.052,
+          -0.476,
+          -1.648,
+          -1.004,
+          1.016,
+          -1.368,
+          -0.6,
+          1.92,
+          0.02,
+          1.664,
+          -1.668,
+          0.456,
+          -1.688,
+          0.756,
+          -1.336,
+          -0.744,
+          1.68,
+          -1.396,
+          -0.596,
+          0.044,
+          -0.076
         ]
       },
       "skip": {
@@ -77,7 +77,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:121](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.29 seconds: 
+Code from [LayerTestBase.java:121](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.31 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -91,23 +91,23 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.68, -0.12 ], [ -1.724, 0.88 ], [ 1.74, -1.104 ] ],
-    	[ [ 0.792, -0.324 ], [ 0.644, 0.556 ], [ 0.712, -1.728 ] ],
-    	[ [ 1.364, -0.012 ], [ 1.188, 0.368 ], [ 0.796, -1.368 ] ]
+    	[ [ -1.288, 0.08 ], [ -1.6, -1.588 ], [ 0.86, 0.72 ] ],
+    	[ [ 1.884, 1.48 ], [ 1.88, 0.032 ], [ 1.932, 0.176 ] ],
+    	[ [ 1.828, -1.092 ], [ 0.368, -1.612 ], [ 0.264, -1.672 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ -0.12620799999999985, 0.007680000000000137 ], [ -9.022048, 3.1691520000000004 ], [ 2.851584000000001, -5.764144 ] ],
-    	[ [ 2.0296319999999994, -2.3628 ], [ 0.7761439999999998, -1.4504800000000004 ], [ 6.046079999999999, -3.8274719999999993 ] ],
-    	[ [ 0.4673920000000001, 2.20904 ], [ 3.874368, 1.3259679999999996 ], [ 5.489904, 2.579296 ] ]
+    	[ [ -0.030160000000000315, 0.2910719999999996 ], [ 0.7023359999999995, -2.576048 ], [ 11.544016, 1.2534720000000001 ] ],
+    	[ [ 9.092976, 7.792848 ], [ -6.331840000000001, 5.778288 ], [ 0.42969599999999947, 4.371536000000001 ] ],
+    	[ [ 0.36777600000000005, -1.932608 ], [ -3.180704000000001, -5.5879199999999996 ], [ 2.8349440000000006, -4.962432 ] ]
     ]
 ```
 
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.57 seconds: 
 ```java
     getDerivativeTester().test(layer, inputPrototype);
 ```
@@ -115,86 +115,37 @@ Logging:
 ```
     Feedback for input 0
     Inputs: [
-    	[ [ -1.68, -0.12 ], [ -1.724, 0.88 ], [ 1.74, -1.104 ] ],
-    	[ [ 0.792, -0.324 ], [ 0.644, 0.556 ], [ 0.712, -1.728 ] ],
-    	[ [ 1.364, -0.012 ], [ 1.188, 0.368 ], [ 0.796, -1.368 ] ]
+    	[ [ -1.288, 0.08 ], [ -1.6, -1.588 ], [ 0.86, 0.72 ] ],
+    	[ [ 1.884, 1.48 ], [ 1.88, 0.032 ], [ 1.932, 0.176 ] ],
+    	[ [ 1.828, -1.092 ], [ 0.368, -1.612 ], [ 0.264, -1.672 ] ]
     ]
     Output: [
-    	[ [ -0.12620799999999985, 0.007680000000000137 ], [ -9.022048, 3.1691520000000004 ], [ 2.851584000000001, -5.764144 ] ],
-    	[ [ 2.0296319999999994, -2.3628 ], [ 0.7761439999999998, -1.4504800000000004 ], [ 6.046079999999999, -3.8274719999999993 ] ],
-    	[ [ 0.4673920000000001, 2.20904 ], [ 3.874368, 1.3259679999999996 ], [ 5.489904, 2.579296 ] ]
+    	[ [ -0.030160000000000315, 0.2910719999999996 ], [ 0.7023359999999995, -2.576048 ], [ 11.544016, 1.2534720000000001 ] ],
+    	[ [ 9.092976, 7.792848 ], [ -6.331840000000001, 5.778288 ], [ 0.42969599999999947, 4.371536000000001 ] ],
+    	[ [ 0.36777600000000005, -1.932608 ], [ -3.180704000000001, -5.5879199999999996 ], [ 2.8349440000000006, -4.962432 ] ]
     ]
-    Measured: [ [ 1.2839999999991747, 0.03600000000325565, 0.0, 1.440000000005881, -0.12799999999923983, 0.0, 0.0, 0.0, 0.0, -0.45999999999990493 ], [ 1.3519999999989096, 1.2840000000036156, 0.03599999999992498, 0.2519999999961442, 1.4400000000014401, -0.12800000000368073, 0.0, 0.0, 0.0, -0.06000000000172534 ], [ 0.0, 1.3520000000033505, 1.284000000000285, 0.0, 0.2520000000005851, 1.4399999999969992, 0.0, 0.0, 0.0, 0.0 ], [ -0.6919999999999149, -0.0439999999990448, 0.0, 1.2840000000124974, 0.03599999999881476, 0.0, 1.4400000000014401, -0.12799999999479894, 0.0, 0.2639999999987097 ], [ -0.8560000000001899, -0.6919999999999149, -0.044000000000155026, 1.3520000000077914, 1.2839999999991747, 0.03600000000325565, 0.2519999999961442, 1.4399999999969992, -0.12800000000368073, 1.2999999999996348 ], [ 0.0, -0.8559999999979695, -0.6919999999999149, 0.0, 1.3519999999989096, 1.2840000000036156, 0.0, 0.252000000005026, 1.440000000005881, 0.0 ], [ 0.0, 0.0, 0.0, -0.6919999999865922, -0.0439999999990448, 0.0, 1.2839999999991747, 0.03600000000325565, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, -0.8559999999846468, -0.6919999999999149, -0.0439999999990448, 1.3519999999989096, 1.2840000000036156, 0.03600000000325565, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, -0.8559999999979695, -0.6920000000043558, 0.0, 1.3520000000077914, 1.2840000000036156, 0.0 ], [ -1.9399999999999973, 0.11600000000111521, 0.0, 1.6079999999973893, -0.4159999999997499, 0.0, 0.0, 0.0, 0.0, 1.6320000000000483 ] ]
-    Implemented: [ [ 1.
+    Measured: [ [ 1.8839999999986645, 1.5159999999880824, 0.0, -1.404000000000405, 0.22799999999989495, 0.0, 0.0, 0.0, 0.0, 0.3280000000005501 ], [ 1.1320000000036856, 1.8839999999897827, 1.5159999999969642, 0.8039999999986946, -1.4039999999937436, 0.22799999999989495, 0.0, 0.0, 0.0, 0.6200000000022854 ], [ 0.0, 1.1319999999948038, 1.8839999999986645, 0.0, 0.8040000000075764, -1.4039999999937436, 0.0, 0.0, 0.0, 0.0 ], [ -1.7040000000001498, -0.8280000000127075, 0.0, 1.8839999999986645, 1.5159999999969642, 0.0, -1.4039999999937436, 0.22799999999989495, 0.0, -0.13599999999946988 ], [ -0.0439999999990448, -1.7040000000001498, -0.8280000000038257, 1.1319999999992447, 1.8839999999986645, 1.516000000005846, 0.8039999999986946, -1.4039999999981845, 0.22799999999989495, 0.8240000000014902 ], [ 0.0, -0.0439999999990448, -1.7040000000001498, 0.0, 1.1320000000036856, 1.8840000000075463, 0.0, 0.8039999999986946, -1.4040000000026254, 0.0 ], [ 0.0, 0.0, 0.0, -1.7040000000001498, -0.8279999999949439, 0.0, 1.8840000000075463, 1.516000000005846, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, -0.0439999999990448, -1.703999999991268, -0.8279999999949439, 1.1319999999948038, 1.8840000000075463, 1.5159999999969642, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, -0.0439999999990448, -1.7040000000001498, 0.0, 1.1320000000036856, 1.8839999999986645, 0.0 ], [ 1.9200000000000466, 0.02000000000279556, 0.0, -1.6680000000002249, 0.4559999999997899, 0.0, 0.0, 0.0, 0.0, 1.6800000000000148 ] ]
+    Implemented: [ [ 1.884, 1.51
 ```
-...[skipping 4482 bytes](etc/1.txt)...
+...[skipping 4490 bytes](etc/1.txt)...
 ```
-    .68, 0.792, 1.364, -1.724, 0.644, 1.188, 1.74, 0.712, 0.796, 0.0 ], [ 0.0, -1.68, 0.792, 0.0, -1.724, 0.644, 0.0, 1.74, 0.712, 0.0 ], [ 0.0, 0.0, 0.0, 0.792, 1.364, 0.0, 0.644, 1.188, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, -1.68, 0.792, 1.364, -1.724, 0.644, 1.188, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, -1.68, 0.792, 0.0, -1.724, 0.644, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.644 ] ]
-    Error: [ [ -1.4653833702027441E-12, 8.550937735662956E-13, 0.0, 7.151390590820483E-12, 2.9054536554440347E-12, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ -7.249756350802272E-13, 2.975508728297882E-12, -2.5512925105886097E-13, 1.2287282302736457E-11, 2.710498492319857E-12, 2.9054536554440347E-12, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 1.4954704141700859E-12, 7.55062679047569E-13, 0.0, -1.035393992765421E-12, -1.730393606180769E-12, 0.0, 0.0, 0.0, 0.0 ], [ -1.6504575484077577E-12, 1.475042310516983E-12, 0.0, 1.1857292925299134E-11, 8.550937735662956E-13, 0.0, -1.730393606180769E-12, 2.9054536554440347E-12, 0.0, 0.0 ], [ 5.402345237826012E-13, 5.699885008425554E-13, 3.6481928589182644E-13, 1.4818146709671964E-11, -1.4653833702027441E-12, 8.550937735662956E-13, -1.035393992765421E-12, 7.151390590820483E-12, 2.9054536554440347E-12, 0.0 ], [ 0.0, 5.402345237826012E-13, 5.699885008425554E-13, 0.0, 1.4954704141700859E-12, 2.975508728297882E-12, 0.0, 3.405498105735205E-12, -1.730393606180769E-12, 0.0 ], [ 0.0, 0.0, 0.0, 5.699885008425554E-13, 1.475042310516983E-12, 0.0, -1.4653833702027441E-12, 8.550937735662956E-13, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 1.386291081928448E-11, 5.699885008425554E-13, -2.965849787983643E-12, 1.4954704141700859E-12, 2.975508728297882E-12, 8.550937735662956E-13, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 5.402345237826012E-13, 5.699885008425554E-13, 0.0, 5.936362512670712E-12, 2.975508728297882E-12, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.4653833702027441E-12 ] ]
+    1.828, -1.6, 1.88, 0.368, 0.86, 1.932, 0.264, 0.0 ], [ 0.0, -1.288, 1.884, 0.0, -1.6, 1.88, 0.0, 0.86, 1.932, 0.0 ], [ 0.0, 0.0, 0.0, 1.884, 1.828, 0.0, 1.88, 0.368, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, -1.288, 1.884, 1.828, -1.6, 1.88, 0.368, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, -1.288, 1.884, 0.0, -1.6, 1.88, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.88 ] ]
+    Error: [ [ -3.6708414086206176E-12, 1.7003065622134272E-12, 0.0, 4.4853010194856324E-14, 3.1505908992812692E-12, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ -1.6000534230897756E-12, -3.6708414086206176E-12, 1.7003065622134272E-12, 3.049782648645305E-13, 4.4853010194856324E-14, 3.1505908992812692E-12, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, -1.0481837620091028E-11, -3.6708414086206176E-12, 0.0, 4.745870363365157E-12, 4.4853010194856324E-14, 0.0, 0.0, 0.0, 0.0 ], [ -1.3353762540191383E-12, -7.386757872041017E-12, 0.0, 7.700506898800086E-13, 1.7003065622134272E-12, 0.0, 4.4853010194856324E-14, 3.1505908992812692E-12, 0.0, 0.0 ], [ -1.510125358095138E-12, -1.021716045102039E-11, 1.4950263249602358E-12, 2.8408386754108506E-12, 5.210942788380635E-12, 1.7003065622134272E-12, -4.135913833636096E-12, 4.4853010194856324E-14, -1.290301199219357E-12, 0.0 ], [ 0.0, -5.951017456595764E-12, -1.3353762540191383E-12, 0.0, -1.6000534230897756E-12, 5.210942788380635E-12, 0.0, 4.745870363365157E-12, 4.4853010194856324E-14, 0.0 ], [ 0.0, 0.0, 0.0, -1.3353762540191383E-12, 1.4950263249602358E-12, 0.0, -3.6708414086206176E-12, 1.7003065622134272E-12, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, -1.510125358095138E-12, -1.3353762540191383E-12, 1.4950263249602358E-12, 7.281730773911477E-12, 7.700506898800086E-13, -2.740585536287199E-12, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 2.9307667404054882E-12, 7.546407942982114E-12, 0.0, 2.8408386754108506E-12, -3.6708414086206176E-12, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.700506898800086E-13 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 9.1371e-13 +- 1.9175e-12 [0.0000e+00 - 1.5353e-11] (972#)
-    relativeTol: 3.6387e-12 +- 1.0729e-11 [6.8674e-16 - 1.0690e-10] (392#)
+    absoluteTol: 9.8581e-13 +- 2.0049e-12 [0.0000e+00 - 1.5843e-11] (972#)
+    relativeTol: 4.1586e-12 +- 1.1530e-11 [2.4328e-15 - 1.2440e-10] (392#)
     
 ```
 
-Returns: 
-
+### Performance
+Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.82 seconds: 
+```java
+    getPerformanceTester().test(layer, inputPrototype);
 ```
-    java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-    	at java.lang.reflect.Method.invoke(Method.java:498)
-    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.jav
+Logging: 
 ```
-...[skipping 879 bytes](etc/2.txt)...
-```
-    com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-    Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
-    	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:125)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:92)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 36 more
-    Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-    	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-    	... 44 more
-    Caused by: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:142)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
-    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
-    	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-    	at java.lang.Thread.run(Thread.java:748)
+    Evaluation performance: 31.1349 +- 6.8279 [23.0719 - 52.9947]
+    Learning performance: 21.2072 +- 1.4491 [19.0565 - 25.8305]
     
 ```
-
-
 

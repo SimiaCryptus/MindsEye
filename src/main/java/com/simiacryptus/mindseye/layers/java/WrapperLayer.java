@@ -80,6 +80,12 @@ public abstract class WrapperLayer extends NNLayer {
     return this.inner;
   }
   
+  public JsonObject getJson() {
+    JsonObject json = super.getJsonStub();
+    json.add("inner", getInner().getJson());
+    return json;
+  }
+  
   @Override
   public boolean isFrozen() {
     if (null == inner) return true;

@@ -57,7 +57,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   /**
    * The Display image.
    */
-  int displayImage = 3;
+  int displayImage = 5;
   /**
    * The Model no.
    */
@@ -95,12 +95,12 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   public void run(NotebookOutput log) {
     //      int pretrainMinutes = 20;
 //      int timeoutMinutes = 60;
-    int pretrainMinutes = 1;
-    int timeoutMinutes = 1;
-    int size = 8;
-    int images = 1;
+    int pretrainMinutes = 10;
+    int timeoutMinutes = 10;
+    int size = 3;
+    int images = 100;
     
-    Tensor[][] trainingImages = getImages(log, size, 1, "kangaroo");
+    Tensor[][] trainingImages = getImages(log, size, 10, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
@@ -114,14 +114,14 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         2, step0.toSize, pretrainMinutes, timeoutMinutes,
         step0.band1, 11, 5, 2);
     }).invoke();
-//
+
 //      log.h1("Third Layer");
 //      AddLayerStep step2 = log.code(()->{
 //        return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
 //          3, step1.toSize, pretrainMinutes, timeoutMinutes,
 //          step1.band2, 17, 5, 4);
-//      }).call();
-//
+//      }).invoke();
+
     log.h1("Transcoding Different Category");
     TranscodeStep step3 = log.code(() -> {
       return new TranscodeStep(log, "yin_yang",
@@ -332,7 +332,8 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         network.add(convolutionLayer);
         network.add(biasLayer);
         network.add(new ImgCropLayer(fromSize,fromSize));
-        //network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        //addLogging(network);
         return network;
       });
     }
@@ -352,9 +353,6 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         log.h2("Initialization");
         log.h3("Training");
         DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2);
-        log.code(()->{
-          new DerivativeTester(1, 1e-3).setVerify(true).test(trainingModel0.copy().setFrozen(false), trainingData[0]);
-        });
         train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, false, false, true);
         printHistory(log, history);
         log.h3("Results");
@@ -453,7 +451,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
      */
     public final int band2;
     private final int fromSize;
-  
+
     /**
      * Instantiates a new Add layer runStep.
      *
@@ -495,7 +493,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         return network;
       });
     }
-    
+
     @Override
     public String toString() {
       return "AddLayerStep{" +
@@ -509,7 +507,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         ", band2=" + band2 +
         '}';
     }
-  
+
     /**
      * Invoke add layer runStep.
      *
@@ -523,7 +521,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         initialize(log, convolutionFeatures, convolutionLayer, biasLayer);
       });
       final boolean[] mask = getTrainingMask();
-      
+
       {
         log.h2("Initialization");
         log.h3("Training");
@@ -536,7 +534,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         printDataStatistics(log, trainingData);
         history.clear();
       }
-      
+
       log.h2("Tuning");
       log.h3("Training");
       DAGNetwork trainingModel0 = buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
@@ -547,7 +545,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       printModel(log, innerModel, modelNo++);
       printDataStatistics(log, trainingData);
       history.clear();
-      
+
       log.h2("Integration Training");
       log.h3("Training");
       DAGNetwork trainingModel1 = buildTrainingModel(integrationModel, 1, layerNumber + 1);
@@ -560,7 +558,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       history.clear();
       return this;
     }
-  
+
     /**
      * Get training mask boolean [ ].
      *
@@ -571,7 +569,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       mask[layerNumber + 1] = true;
       return mask;
     }
-  
+
     /**
      * Build network pipeline network.
      *
@@ -590,7 +588,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         );
       });
     }
-  
+
     /**
      * Gets integration model.
      *

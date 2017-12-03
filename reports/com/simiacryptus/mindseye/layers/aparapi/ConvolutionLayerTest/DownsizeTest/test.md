@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000014",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d00000014",
       "isFrozen": false,
-      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f400000014",
+      "name": "ConvolutionLayer/e2d0bffa-47dc-4875-864f-3d3d00000014",
       "filter": {
         "dimensions": [
           3,
@@ -26,195 +26,195 @@ Returns:
           21
         ],
         "data": [
-          0.6,
-          -1.64,
+          -0.592,
+          -1.712,
+          1.78,
+          0.556,
+          1.296,
+          -1.84,
+          1.84,
+          0.192,
+          1.552,
+          1.972,
+          -0.152,
+          0.416,
           0.964,
-          -1.54,
-          -0.296,
-          0.604,
-          1.272,
-          0.616,
-          -1.128,
-          0.296,
-          -0.788,
-          0.096,
-          -1.196,
-          -0.236,
-          1.804,
-          1.132,
-          -1.312,
-          -0.836,
-          1.624,
-          0.724,
-          0.18,
-          1.488,
-          -1.668,
-          1.908,
-          -1.696,
-          0.016,
-          0.22,
-          -1.236,
-          -0.88,
-          -0.86,
-          -0.14,
-          0.352,
-          0.844,
-          0.516,
-          0.716,
-          1.172,
-          -0.66,
-          -0.556,
-          -0.252,
-          -0.068,
-          -1.12,
-          -0.44,
-          0.568,
-          0.156,
-          0.468,
-          -0.736,
-          -0.936,
-          -1.252,
-          -1.292,
-          1.06,
-          -0.772,
-          0.904,
-          -1.604,
-          0.772,
-          -0.256,
-          0.332,
-          1.912,
-          0.284,
-          -0.488,
-          -1.856,
-          1.192,
-          1.308,
-          1.516,
-          0.156,
-          -1.096,
-          -1.02,
-          0.424,
-          -1.324,
-          -1.312,
-          0.3,
-          1.084,
-          -1.288,
-          -0.76,
-          0.4,
-          1.432,
-          -1.364,
-          -1.76,
-          -1.628,
-          0.532,
-          0.612,
-          0.816,
-          1.852,
-          0.624,
-          -0.352,
-          0.956,
-          -1.576,
-          0.992,
-          1.476,
-          -1.608,
-          1.808,
-          1.704,
-          -1.176,
-          -1.056,
-          -1.36,
-          0.12,
-          1.932,
+          1.996,
+          -0.056,
+          1.228,
           1.812,
-          1.396,
-          -0.264,
-          -1.28,
-          -0.028,
-          1.064,
-          -1.276,
-          -1.612,
-          -1.916,
-          1.808,
-          0.62,
-          -1.968,
-          -1.628,
-          0.264,
-          0.008,
-          -0.744,
-          -1.664,
-          -0.06,
-          -1.156,
-          0.884,
-          1.532,
-          0.604,
-          -0.704,
-          -0.416,
-          -0.476,
-          1.628,
-          0.072,
-          0.976,
-          0.988,
-          -1.728,
-          1.68,
-          0.924,
-          1.508,
-          1.668,
-          1.308,
-          0.052,
-          -0.464,
-          -1.136,
-          0.28,
-          0.204,
-          1.356,
-          1.332,
-          -0.952,
-          1.356,
-          0.964,
-          0.076,
-          1.672,
-          -1.836,
           -1.596,
-          -0.176,
-          -1.768,
-          1.2,
-          -0.944,
-          1.672,
-          -0.78,
-          0.104,
-          -1.92,
-          1.544,
-          -1.364,
-          1.148,
-          0.664,
-          1.216,
-          1.168,
-          1.384,
-          1.364,
-          -1.048,
-          -1.348,
-          0.732,
-          -0.576,
-          1.156,
-          0.332,
-          1.116,
-          -0.092,
-          -0.732,
-          0.428,
-          0.292,
-          0.428,
-          -1.516,
-          -0.596,
-          -1.3,
-          -0.456,
-          -1.02,
-          0.78,
-          0.788,
-          -0.288,
-          1.784,
-          -0.708,
-          1.22,
+          0.056,
+          1.292,
+          1.08,
+          -1.176,
+          1.812,
+          0.02,
+          1.12,
+          -1.56,
+          0.24,
+          1.0,
+          0.628,
+          -1.472,
+          0.108,
+          0.06,
+          0.32,
+          -1.816,
+          1.608,
+          -1.604,
+          -0.16,
+          0.34,
+          -0.58,
+          0.296,
+          -1.404,
+          1.172,
+          -0.048,
+          0.06,
+          -1.236,
+          1.0,
+          -0.236,
+          -0.38,
+          0.5,
+          1.816,
+          -1.2,
+          1.576,
+          1.512,
+          -1.076,
+          0.272,
+          1.8,
+          0.252,
+          -1.468,
+          -0.356,
+          1.312,
+          0.888,
+          -0.92,
+          0.844,
+          1.832,
+          1.952,
+          0.064,
+          -1.104,
+          1.76,
+          0.384,
+          -1.608,
+          -1.36,
+          -0.632,
+          -1.496,
+          1.844,
+          -0.988,
+          1.088,
+          1.212,
+          -1.408,
+          1.484,
+          1.796,
+          -0.436,
+          1.552,
+          1.78,
+          -1.88,
+          -1.836,
+          1.184,
+          -0.492,
           1.46,
-          1.632,
-          1.456,
-          0.448,
-          0.116
+          -0.056,
+          0.864,
+          -1.024,
+          0.836,
+          -1.516,
+          -1.992,
+          0.752,
+          1.36,
+          -1.568,
+          -0.064,
+          -0.296,
+          -0.344,
+          0.424,
+          0.4,
+          1.388,
+          1.444,
+          0.644,
+          -0.152,
+          -0.908,
+          1.928,
+          -1.26,
+          -1.728,
+          1.984,
+          -0.748,
+          -0.212,
+          0.244,
+          -1.768,
+          -0.4,
+          -1.076,
+          -0.704,
+          -0.748,
+          -0.56,
+          -0.936,
+          1.464,
+          0.004,
+          -1.364,
+          -1.62,
+          -1.036,
+          -1.984,
+          0.072,
+          1.948,
+          1.228,
+          0.424,
+          -1.496,
+          -0.488,
+          -1.384,
+          -1.06,
+          -1.068,
+          -1.024,
+          0.948,
+          -0.7,
+          0.984,
+          1.152,
+          -0.708,
+          0.144,
+          0.928,
+          1.72,
+          -1.868,
+          1.928,
+          1.14,
+          1.988,
+          0.716,
+          -1.056,
+          1.324,
+          1.972,
+          -1.7,
+          -0.328,
+          -0.524,
+          1.728,
+          -1.772,
+          0.6,
+          -1.024,
+          1.292,
+          -0.54,
+          0.036,
+          1.668,
+          -1.268,
+          0.84,
+          -0.776,
+          0.364,
+          1.984,
+          -0.364,
+          -0.704,
+          0.664,
+          0.436,
+          -1.648,
+          -0.064,
+          0.216,
+          -0.04,
+          1.264,
+          -0.172,
+          -1.364,
+          1.512,
+          1.76,
+          1.076,
+          1.924,
+          -0.768,
+          -0.376,
+          0.244,
+          0.232,
+          -0.452
         ]
       },
       "skip": {
@@ -244,21 +244,21 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.672, 0.356, 0.744, 1.496, -0.4, -1.208, 0.224 ], [ -0.996, 0.468, -0.22, -0.488, 1.388, 0.636, -1.512 ], [ -0.924, -1.864, 0.668, -1.984, 1.908, 1.424, 0.464 ] ],
-    	[ [ 0.976, 1.876, -1.172, -0.016, 0.432, -1.044, -1.516 ], [ 1.704, -1.908, -0.544, -0.412, 0.392, 1.552, -0.784 ], [ -1.904, 0.716, 1.936, -0.768, -0.012, -0.34, 0.432 ] ],
-    	[ [ -0.176, 1.82, -0.96, 0.992, 1.156, 0.924, 0.22 ], [ -0.188, -1.88, -0.804, -0.916, 1.044, 1.124, 1.268 ], [ -0.432, -0.628, 0.872, 0.488, 0.696, -0.348, 0.264 ] ]
+    	[ [ -1.76, -0.468, 1.228, 1.192, -1.408, 1.068, 1.92 ], [ -0.912, -1.016, -1.98, -0.128, -0.62, -1.144, 1.892 ], [ 0.992, 1.436, -1.716, -0.572, 1.74, -1.908, -2.0 ] ],
+    	[ [ -1.212, 1.472, 0.78, -1.716, -1.784, -0.104, 1.572 ], [ -0.04, 1.544, 1.232, 1.18, 0.948, 0.668, -1.112 ], [ -0.684, -0.808, 1.748, -0.748, -1.324, 0.136, -1.004 ] ],
+    	[ [ 0.236, 0.668, -0.544, -1.248, -0.388, 0.844, 1.284 ], [ -1.28, -1.648, 0.992, -1.284, 0.748, 1.988, -0.992 ], [ 1.696, 1.152, -0.972, 0.088, -1.664, -0.676, 0.832 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 1.2397280000000004, 3.687152, -8.059328 ] ]
+    	[ [ 3.4604959999999996, 1.73632, 1.067216 ] ]
     ]
 ```
 
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:139](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 1.18 seconds: 
 ```java
     getDerivativeTester().test(layer, inputPrototype);
 ```
@@ -266,92 +266,43 @@ Logging:
 ```
     Feedback for input 0
     Inputs: [
-    	[ [ -1.672, 0.356, 0.744, 1.496, -0.4, -1.208, 0.224 ], [ -0.996, 0.468, -0.22, -0.488, 1.388, 0.636, -1.512 ], [ -0.924, -1.864, 0.668, -1.984, 1.908, 1.424, 0.464 ] ],
-    	[ [ 0.976, 1.876, -1.172, -0.016, 0.432, -1.044, -1.516 ], [ 1.704, -1.908, -0.544, -0.412, 0.392, 1.552, -0.784 ], [ -1.904, 0.716, 1.936, -0.768, -0.012, -0.34, 0.432 ] ],
-    	[ [ -0.176, 1.82, -0.96, 0.992, 1.156, 0.924, 0.22 ], [ -0.188, -1.88, -0.804, -0.916, 1.044, 1.124, 1.268 ], [ -0.432, -0.628, 0.872, 0.488, 0.696, -0.348, 0.264 ] ]
+    	[ [ -1.76, -0.468, 1.228, 1.192, -1.408, 1.068, 1.92 ], [ -0.912, -1.016, -1.98, -0.128, -0.62, -1.144, 1.892 ], [ 0.992, 1.436, -1.716, -0.572, 1.74, -1.908, -2.0 ] ],
+    	[ [ -1.212, 1.472, 0.78, -1.716, -1.784, -0.104, 1.572 ], [ -0.04, 1.544, 1.232, 1.18, 0.948, 0.668, -1.112 ], [ -0.684, -0.808, 1.748, -0.748, -1.324, 0.136, -1.004 ] ],
+    	[ [ 0.236, 0.668, -0.544, -1.248, -0.388, 0.844, 1.284 ], [ -1.28, -1.648, 0.992, -1.284, 0.748, 1.988, -0.992 ], [ 1.696, 1.152, -0.972, 0.088, -1.664, -0.676, 0.832 ] ]
     ]
     Output: [
-    	[ [ 1.2397280000000004, 3.687152, -8.059328 ] ]
+    	[ [ 3.4604959999999996, 1.73632, 1.067216 ] ]
     ]
-    Measured: [ [ 0.5999999999994898, 0.2959999999996299, 1.6240000000067312 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ -1.2360000000000149, -0.6600000000034356, -0.735999999985637 ] ]
-    Implemented: [ [ 0.6, 0.296, 1.624 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ -1.236, -0.66, -0.736 ] ]
-    Error: [ [ -5.101474798152594E-13, -3.7009284525879593E-13, 6.731060153697399E-12 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ -1.4876988529977098E-14, -3.435585149702547E-12, 1.436295526957565E-11 ] ]
+    Measured: [ [ -0.5919999999992598, 1.972000000001195, 0.05600000000161032 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.9999999999976694, -0.16000000000016001, 0.9999999999976694 ] ]
+    Implemented: [ [ -0.592, 1.972, 0.056 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 1.0, -0.16, 1.0 ] ]
+    Error: [ [ 7.401856905175919E-13, 1.1950440637065185E-12, 1.6103160471736544E-12 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ -2.3305801732931286E-12, -1.6001089342410069E-13, -2.3305801732931286E-12 ] ]
     Learning Gradient for weight set 0
     Inputs: [
-    	[ [ -1.672, 0.356, 0.744, 1.496, -0.4, -1.208, 0.224 ], [ -0.996, 0.468, -0.22, -0.488, 1.388, 0.636, -1.512 ], [ -0.924, -1.864, 0.668, -1.984, 1.908, 1.424, 0.464 ] ],
-    	[ [ 0.976, 1.876, -1.172, -0.016, 0.432, -1.044, -1.516 ], [ 1.704, -1.908, -0.544, -0.412, 0.392, 1.552, -0.784 ], [ -1.904, 0.716, 1.936, -0.768, -0.012, -0.34, 0.432 ] ],
-    	[ [ -0.176, 1.82, -0.96, 0.992, 1.156, 0.924, 0.22 ], [ -0.188, -1.88, -0.804, -0.916, 1.044, 1.124, 1.268 ], [ -0.432, -0.628, 0.872, 0.488, 0.696, -0.348, 0.264 ] ]
+    	[ [ -1.76, -0.468, 1.228, 1.192, -1.408, 1.068, 1.92 ], [ -0.912, -1.016, -1.98, -0.128, -0.62, -1.144, 1.892 ], [ 0.992, 1.436, -1.716, -0.572, 1.74, -1.908, -2.0 ] ],
+    	[ [ -1.212, 1.472, 0.78, -1.716, -1.784, -0.104, 1.572 ], [ -0.04, 1.544, 1.232, 1.18, 0.948, 0.668, -1.112 ], [ -0.684, -0.808, 1.748, -0.748, -1.324, 0.136, -1.004 ] ],
+    	[ [ 0.236, 0.668, -0.544, -1.248, -0.388, 0.844, 1.284 ], [ -1.28, -1.648, 0.992, -1.284, 0.748, 1.988, -0.992 ], [ 1.696, 1.152, -0.972, 0.088, -1.664, -0.676, 0.832 ] ]
     ]
     Outputs: [
-    	[ [ 1.2397280000000004, 3.687152, -8.059328 ] ]
+    	[ [ 3.4604959999999996, 1.73632, 1.067216 ] ]
     ]
-    Measured Gradient: [ [ -1.6719999999992297, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, -1.6719999999992297, 0.0 ] ]
-    Implemented Gradient: [ [ -1.672, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, -1.672, 0.0 ] ]
-    Error: [ [ 7.702727344849336E-13, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 7.702727344849336E-13, 0.0 ] ]
+    Measured Gradient: [ [ -1.7599999999973193, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, -1.7599999999973193, 0.0 ] ]
+    Implemented Gradient: [ [ -1.76, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, -1.76, 0.0 ] ]
+    Error: [ [ 2.680744515259903E-12, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 2.680744515259903E-12, 0.0 ] ]
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.4492e-13 +- 9.8894e-13 [0.0000e+00 - 1.4363e-11] (756#)
-    relativeTol: 2.4464e-12 +- 3.6201e-12 [6.0182e-15 - 1.6462e-11] (42#)
+    absoluteTol: 8.9358e-14 +- 4.6216e-13 [0.0000e+00 - 5.6912e-12] (756#)
+    relativeTol: 2.1821e-12 +- 7.0637e-12 [1.0253e-14 - 4.5217e-11] (42#)
     
 ```
 
-Returns: 
-
+### Performance
+Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.81 seconds: 
+```java
+    getPerformanceTester().test(layer, inputPrototype);
 ```
-    java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-    	at java.lang.reflect.Method.invoke(Method.java:498)
-    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.jav
+Logging: 
 ```
-...[skipping 879 bytes](etc/1.txt)...
-```
-    com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-    Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
-    	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:125)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:92)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 36 more
-    Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-    	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-    	... 44 more
-    Caused by: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: []
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:142)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
-    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
-    	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-    	at java.lang.Thread.run(Thread.java:748)
+    Evaluation performance: 30.1572 +- 3.3219 [25.3460 - 39.1561]
+    Learning performance: 21.1482 +- 1.2826 [18.9197 - 25.5199]
     
 ```
-
-
 

@@ -20,26 +20,30 @@
 package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.data.Caltech101;
-import com.simiacryptus.mindseye.eval.*;
+import com.simiacryptus.mindseye.eval.ArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
+import com.simiacryptus.mindseye.eval.TrainableDataMask;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.f64.SimpleConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.*;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QuantifyOrientationWrapper;
-import com.simiacryptus.mindseye.opt.orient.ValidatingOrientationWrapper;
 import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -55,7 +59,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ToDoubleBiFunction;
@@ -246,11 +252,11 @@ class ImageEncodingUtil {
 //      assert kband == kx + outputBands * ky;
 //      kband = kx * inputBands + ky;
 
-      int inband = kband % inputBands;
-      int outband = (kband-inband) / inputBands;
+//      int inband = kband % inputBands;
+//      int outband = (kband-inband) / inputBands;
 
-//      int outband = kband % outputBands;
-//      int inband = (kband -outband) / outputBands;
+      int outband = kband % outputBands;
+      int inband = (kband -outband) / outputBands;
 
       assert outband < outputBands;
       assert inband < inputBands;
@@ -352,11 +358,11 @@ class ImageEncodingUtil {
    */
   protected DAGNetwork buildTrainingModel(NNLayer innerModel, int reproducedColumn, int learnedColumn) {
     PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
-    DAGNode input = network.getInput(learnedColumn);
-    DAGNode output = network.add("image", innerModel, input);
-    network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
-      network.add(new MeanSqLossLayer(), output, network.getInput(reproducedColumn))
-    );
+    // network.add(new NthPowerActivationLayer().setPower(0.5), );
+    network.add(new MeanSqLossLayer(),
+      network.add("image", innerModel, network.getInput(learnedColumn)),
+      network.getInput(reproducedColumn));
+    //addLogging(network);
     return network;
   }
   
@@ -612,16 +618,57 @@ class ImageEncodingUtil {
           .mapToObj(i -> {
               Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), dimensions).copy();
               return src
-                .scale(1.0 / src.rms())
+                .scaleInPlace(1.0 / src.rms())
                 //.scale((decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[inputBands-1])))
                 //.scale(decomposition.getRealEigenvalue(orderedVectors[inputBands-1]) / decomposition.getRealEigenvalue(orderedVectors[i]))
                 //.scale((1.0 / decomposition.getRealEigenvalue(orderedVectors[0])))
-                .scale(Math.sqrt(6. / (components + featureVectors[0][column].dim() + 1)))
+                .scaleInPlace(Math.sqrt(6. / (components + featureVectors[0][column].dim() + 1)))
                 ;
             }
           ).toArray(i -> new Tensor[i]);
       });
     }
     
+  }
+  public static void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
+      }
+    });
+  }
+  
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
+  public static void removeMonitoring(DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
+      }
+    });
+  }
+  
+  public static void addLogging(DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
+        node.setLayer(new LoggingWrapperLayer(node.getLayer()));
+      }
+    });
+  }
+  
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
+  public static void removeLogging(DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof LoggingWrapperLayer) {
+        node.setLayer(((LoggingWrapperLayer) node.getLayer()).getInner());
+      }
+    });
   }
 }

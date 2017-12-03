@@ -1,65 +1,354 @@
-java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError
-	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:498)
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-	at org.junit.runners.Suite.runChild(Suite.java:128)
-	at org.junit.runners.Suite.runChild(Suite.java:27)
-	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
-	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
-	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
-	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
-	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
-	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:125)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:92)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-	... 35 more
-Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError
-	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-	... 43 more
-Caused by: java.lang.AssertionError
-	at com.simiacryptus.mindseye.layers.cudnn.CudaPtr.toDeviceAsDouble(CudaPtr.java:149)
-	at com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:118)
-	at com.simiacryptus.mindseye.network.CountingNNResult.accumulate(CountingNNResult.java:110)
-	at com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer$1.accumulate(ConvolutionLayer.java:174)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
-	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
-	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:748)
+{
+  "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
+  "id": "f2a5879a-aeb9-41cd-8cec-77aa00000008",
+  "isFrozen": false,
+  "name": "ConvolutionLayer/f2a5879a-aeb9-41cd-8cec-77aa00000008",
+  "filter": {
+    "dimensions": [
+      3,
+      3,
+      35
+    ],
+    "data": [
+      0.632,
+      1.0,
+      0.076,
+      -1.876,
+      -1.264,
+      0.424,
+      -1.444,
+      0.52,
+      1.976,
+      0.36,
+      1.2,
+      1.548,
+      0.668,
+      1.52,
+      1.544,
+      -0.66,
+      -0.56,
+      0.784,
+      1.808,
+      1.636,
+      1.652,
+      1.964,
+      0.332,
+      -1.588,
+      -1.904,
+      -0.812,
+      -0.508,
+      -0.136,
+      1.704,
+      -1.464,
+      1.456,
+      0.496,
+      0.008,
+      1.648,
+      -1.732,
+      -1.516,
+      0.428,
+      0.692,
+      0.86,
+      1.132,
+      -1.996,
+      0.252,
+      -1.788,
+      1.372,
+      -0.892,
+      -0.516,
+      -0.088,
+      -0.984,
+      0.648,
+      1.012,
+      -0.916,
+      0.432,
+      -1.432,
+      1.152,
+      -1.308,
+      -0.228,
+      -0.008,
+      -0.476,
+      -1.364,
+      0.86,
+      1.08,
+      -0.22,
+      1.408,
+      -1.92,
+      -0.552,
+      -0.464,
+      1.32,
+      -0.924,
+      -1.196,
+      -0.536,
+      -1.768,
+      -1.64,
+      -1.816,
+      -0.644,
+      -1.88,
+      0.672,
+      0.612,
+      1.26,
+      0.42,
+      1.316,
+      1.916,
+      1.792,
+      0.232,
+      0.128,
+      -1.256,
+      1.04,
+      -0.008,
+      -1.248,
+      -0.452,
+      1.684,
+      -0.476,
+      0.116,
+      -1.516,
+      1.892,
+      -1.748,
+      1.78,
+      -1.136,
+      -1.3,
+      -0.528,
+      -1.216,
+      -0.792,
+      -1.26,
+      -1.068,
+      0.664,
+      -0.132,
+      1.18,
+      0.576,
+      0.852,
+      -0.724,
+      -0.196,
+      1.652,
+      -1.712,
+      0.16,
+      -0.184,
+      1.084,
+      -0.332,
+      0.116,
+      1.452,
+      -0.956,
+      -0.38,
+      -1.108,
+      0.608,
+      -0.508,
+      0.18,
+      0.364,
+      0.352,
+      0.084,
+      -0.34,
+      -1.508,
+      1.468,
+      0.364,
+      -0.352,
+      1.272,
+      1.32,
+      -1.504,
+      -0.38,
+      -1.42,
+      0.328,
+      0.052,
+      -0.36,
+      -0.908,
+      1.764,
+      0.204,
+      -0.364,
+      1.168,
+      -0.004,
+      1.14,
+      -1.444,
+      0.988,
+      0.0,
+      -0.36,
+      1.232,
+      0.856,
+      1.06,
+      -0.9,
+      1.628,
+      -0.432,
+      1.088,
+      -0.5,
+      -0.332,
+      1.196,
+      1.896,
+      0.14,
+      0.344,
+      1.524,
+      -1.168,
+      -0.808,
+      -1.548,
+      0.84,
+      -1.468,
+      1.684,
+      -0.816,
+      0.348,
+      -1.76,
+      0.128,
+      0.624,
+      0.732,
+      1.98,
+      -1.356,
+      -0.24,
+      -0.836,
+      1.34,
+      1.712,
+      -0.592,
+      1.064,
+      0.036,
+      -1.9,
+      1.536,
+      -0.656,
+      1.568,
+      0.156,
+      0.548,
+      0.768,
+      -0.416,
+      1.26,
+      1.38,
+      1.112,
+      0.624,
+      0.812,
+      0.948,
+      -1.06,
+      0.832,
+      -0.528,
+      -1.092,
+      1.988,
+      1.568,
+      1.236,
+      -1.636,
+      -0.78,
+      -0.204,
+      -1.056,
+      1.292,
+      0.792,
+      -0.676,
+      0.048,
+      -1.008,
+      1.004,
+      1.716,
+      0.14,
+      -0.088,
+      -0.02,
+      1.204,
+      -0.412,
+      0.548,
+      0.056,
+      1.696,
+      -1.84,
+      1.212,
+      -1.04,
+      0.748,
+      1.14,
+      0.0,
+      0.908,
+      0.692,
+      0.636,
+      -1.452,
+      -0.808,
+      0.828,
+      -0.648,
+      -0.308,
+      -0.432,
+      0.972,
+      -0.732,
+      -0.976,
+      0.012,
+      1.276,
+      -1.752,
+      1.356,
+      0.656,
+      1.82,
+      0.12,
+      0.108,
+      0.18,
+      0.764,
+      -1.3,
+      1.368,
+      1.968,
+      -0.02,
+      -1.116,
+      -1.12,
+      1.24,
+      1.272,
+      -0.1,
+      -0.396,
+      1.104,
+      -1.376,
+      -1.392,
+      -1.048,
+      -1.74,
+      0.252,
+      -0.692,
+      0.172,
+      1.276,
+      -1.58,
+      -0.796,
+      1.304,
+      -0.472,
+      0.02,
+      -0.376,
+      -0.016,
+      -1.232,
+      -1.84,
+      -1.352,
+      -0.876,
+      -1.06,
+      1.672,
+      1.248,
+      0.98,
+      -0.956,
+      -1.188,
+      -0.676,
+      0.52,
+      -1.808,
+      0.188,
+      -1.164,
+      1.116,
+      -1.144,
+      -0.364,
+      -0.216,
+      -0.464,
+      1.248,
+      0.376,
+      0.112,
+      -0.244,
+      -0.408,
+      -1.016,
+      1.704,
+      -1.088,
+      -1.272,
+      -1.604,
+      -1.388,
+      -0.008,
+      1.108,
+      1.448,
+      0.48
+    ]
+  },
+  "skip": {
+    "dimensions": [
+      1,
+      1
+    ]
+  },
+  "simple": true
+}
+Inputs: [
+	[ [ 1.884, -0.704, 1.096, 1.252, -0.68, 0.784, 0.184 ], [ -1.476, 1.484, -0.276, -0.192, -0.18, 0.54, -0.308 ], [ 0.984, -1.052, -0.396, 1.404, -1.544, -0.064, -1.296 ], [ -0.272, -0.152, -0.6, -1.456, -1.952, -1.456, 1.972 ], [ 0.66, -0.2, -1.88, -1.76, -0.148, -1.756, 1.764 ] ],
+	[ [ 0.536, 1.132, 1.004, -1.3, 1.324, 0.576, -1.16 ], [ 0.048, -1.548, 1.612, -0.716, -1.66, -1.752, 0.704 ], [ -1.516, -1.736, -0.452, 1.4, -1.564, 1.652, 1.68 ], [ 0.036, 0.032, 0.956, 0.1, -1.436, 0.464, -1.72 ], [ 1.02, 1.248, -1.856, 0.992, -1.516, 0.744, -1.636 ] ],
+	[ [ 0.804, 1.092, 0.484, 0.7, -0.496, 0.532, 1.192 ], [ 1.768, -0.628, 0.632, -1.46, 1.5, -1.676, -1.352 ], [ -0.408, -1.604, 1.272, 0.552, 0.784, -0.444, -1.096 ], [ -0.012, 0.328, 0.924, 1.908, 0.58, -1.6, -1.36 ], [ 0.356, 0.26, 1.816, 0.2, 1.904, -1.016, -0.172 ] ],
+	[ [ 1.444, -1.4, 0.668, -0.48, -1.428, -1.944, 1.728 ], [ 0.368, 1.492, 0.316, -0.404, 1.904, 1.02, 1.244 ], [ -1.416, -1.084, -0.072, -1.756, -0.244, -0.692, -0.116 ], [ -1.748, -0.144, -0.148, 0.484, -1.528, 0.872, 0.108 ], [ -1.376, -0.936, -1.912, 0.224, 1.988, -0.32, -1.428 ] ],
+	[ [ -0.272, -1.716, -1.648, 1.864, 1.356, -1.82, -0.248 ], [ 1.28, -1.756, -0.628, 0.904, 1.888, 0.28, 1.164 ], [ -0.024, -0.468, 0.224, -0.336, -1.932, 1.24, -0.716 ], [ 1.488, 1.3, 0.0, 1.064, 1.972, 0.272, -1.408 ], [ -0.088, -1.812, -1.248, 1.284, 0.712, -0.816, -0.576 ] ]
+]
+Error: [
+	[ [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ] ],
+	[ [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ] ],
+	[ [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ] ],
+	[ [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ] ],
+	[ [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0 ] ]
+]
+Accuracy:
+absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (125#)
+relativeTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (125#)

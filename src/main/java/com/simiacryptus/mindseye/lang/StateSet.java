@@ -165,4 +165,13 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
     Map<K, State<K>> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
     return new StateSet<>(newMap);
   }
+  
+  /**
+   * Is different boolean.
+   *
+   * @return the boolean
+   */
+  public boolean isDifferent() {
+    return stream().parallel().anyMatch(x -> !x.areEqual());
+  }
 }

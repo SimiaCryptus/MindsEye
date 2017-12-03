@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000a83",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d0000156c",
       "isFrozen": false,
-      "name": "StaticScalarLossLayer/f4569375-56fe-4e46-925c-95f400000a83"
+      "name": "StaticScalarLossLayer/e2d0bffa-47dc-4875-864f-3d3d0000156c"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.544 ]]
+    [[ 1.58 ]]
     --------------------
     Output: 
-    [ 1.544 ]
+    [ 1.58 ]
 ```
 
 
@@ -54,8 +54,8 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ 1.544 ]
-    Output: [ 1.544 ]
+    Inputs: [ 1.58 ]
+    Output: [ 1.58 ]
     Measured: [ [ 0.9999999999998899 ] ]
     Implemented: [ [ 1.0 ] ]
     Error: [ [ -1.1013412404281553E-13 ] ]
@@ -72,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1951 +- 0.0465 [0.1311 - 0.4018]
-    Learning performance: 0.0152 +- 0.0053 [0.0114 - 0.0513]
+    Evaluation performance: 0.1733 +- 0.0388 [0.1282 - 0.3277]
+    Learning performance: 0.0105 +- 0.0025 [0.0085 - 0.0285]
     
 ```
 

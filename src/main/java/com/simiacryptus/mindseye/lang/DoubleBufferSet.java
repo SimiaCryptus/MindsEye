@@ -147,15 +147,6 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
   }
   
   /**
-   * Is different boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isDifferent() {
-    return stream().parallel().anyMatch(x -> !x.areEqual());
-  }
-  
-  /**
    * Gets map.
    *
    * @return the map

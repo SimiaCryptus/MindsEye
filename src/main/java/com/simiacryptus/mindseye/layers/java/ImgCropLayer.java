@@ -140,8 +140,8 @@ public class ImgCropLayer extends NNLayer {
         if (input.isAlive()) {
           final Tensor[] data1 = IntStream.range(0, error.length()).parallel()
             .mapToObj(dataIndex -> {
-              Tensor passback = new Tensor(inputDims);
               Tensor err = error.get(dataIndex);
+              Tensor passback = new Tensor(inputDims);
               return copyExpand(err, passback);
             }).toArray(i -> new Tensor[i]);
           input.accumulate(buffer, new TensorArray(data1));

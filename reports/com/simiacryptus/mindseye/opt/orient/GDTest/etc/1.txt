@@ -1,5 +1,5 @@
 java.lang.AssertionError
-	at com.simiacryptus.mindseye.lang.Delta.accumulate(Delta.java:143)
+	at addInPlace(Delta.java:143)
 	at com.simiacryptus.mindseye.lang.DeltaSet.lambda$accumulate$5(DeltaSet.java:131)
 	at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
 	at java.util.ArrayList.forEach(ArrayList.java:1249)
@@ -12,7 +12,7 @@ java.lang.AssertionError
 	at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
 	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
 	at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
-	at com.simiacryptus.mindseye.lang.DeltaSet.accumulate(DeltaSet.java:131)
+	at addInPlace(DeltaSet.java:131)
 	at com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor.step(SimpleLineSearchCursor.java:96)
 	at com.simiacryptus.mindseye.opt.orient.ValidatingOrientationWrapper$ValidatingLineSearchCursor.test(ValidatingOrientationWrapper.java:100)
 	at com.simiacryptus.mindseye.opt.orient.ValidatingOrientationWrapper$ValidatingLineSearchCursor.step(ValidatingOrientationWrapper.java:82)

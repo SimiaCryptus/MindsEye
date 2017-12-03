@@ -31,7 +31,6 @@ import com.simiacryptus.mindseye.opt.orient.DescribeOrientationWrapper;
 public class QuadraticSearch implements LineSearchStrategy {
   
   private final double initialDerivFactor = 0.95;
-  private final int maxIterations = 100;
   private double absoluteTolerance = 1e-12;
   private double relativeTolerance = 1e-2;
   private double currentRate = 0.0;
@@ -104,7 +103,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       }
       monitor.log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
       monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
-      if (loops++ > 100) {
+      if (loops++ > 10) {
         monitor.log(String.format("Loops = %s", loops));
         return filter(cursor, thisPoint.point, monitor);
       }
@@ -356,7 +355,7 @@ public class QuadraticSearch implements LineSearchStrategy {
           monitor.log(String.format("%s ~= %s", initialPoint.point.rate, thisX));
           return this;
         } else if (thisPoint.point.getMean() > initialPoint.point.getMean()) {
-          thisX = thisX / 100;
+          thisX = thisX / 13;
         } else if (thisPoint.derivative < initialDerivFactor * thisPoint.derivative) {
           thisX = thisX * 7;
         } else {
@@ -370,7 +369,7 @@ public class QuadraticSearch implements LineSearchStrategy {
         }
         lastPoint = thisPoint;
         monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
-        if (loops++ > 100) {
+        if (loops++ > 10) {
           monitor.log(String.format("Loops = %s", loops));
           return this;
         }

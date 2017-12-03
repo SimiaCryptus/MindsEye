@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgReducerLayer",
-      "id": "f4569375-56fe-4e46-925c-95f40000097a",
+      "id": "e2d0bffa-47dc-4875-864f-3d3d00001466",
       "isFrozen": false,
-      "name": "AvgReducerLayer/f4569375-56fe-4e46-925c-95f40000097a"
+      "name": "AvgReducerLayer/e2d0bffa-47dc-4875-864f-3d3d00001466"
     }
 ```
 
@@ -38,10 +38,10 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.868, 0.328, -1.064 ]]
+    [[ 1.944, -1.724, -1.072 ]]
     --------------------
     Output: 
-    [ -0.5346666666666666 ]
+    [ -0.284 ]
 ```
 
 
@@ -54,8 +54,8 @@ Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/jav
 Logging: 
 ```
     Feedback for input 0
-    Inputs: [ -0.868, 0.328, -1.064 ]
-    Output: [ -0.5346666666666666 ]
+    Inputs: [ 1.944, -1.724, -1.072 ]
+    Output: [ -0.284 ]
     Measured: [ [ 0.3333333333332966 ], [ 0.3333333333332966 ], [ 0.3333333333332966 ] ]
     Implemented: [ [ 0.3333333333333333 ], [ 0.3333333333333333 ], [ 0.3333333333333333 ] ]
     Error: [ [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ], [ -3.6692870963861424E-14 ] ]
@@ -72,8 +72,8 @@ Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/jav
 ```
 Logging: 
 ```
-    Evaluation performance: 0.2099 +- 0.0721 [0.1482 - 0.5557]
-    Learning performance: 0.0038 +- 0.0024 [0.0000 - 0.0171]
+    Evaluation performance: 0.1827 +- 0.0641 [0.1425 - 0.4503]
+    Learning performance: 0.0044 +- 0.0037 [0.0000 - 0.0285]
     
 ```
 

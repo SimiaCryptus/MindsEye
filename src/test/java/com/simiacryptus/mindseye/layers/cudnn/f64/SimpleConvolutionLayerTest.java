@@ -47,7 +47,7 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
     this.radius = radius;
     this.bands = bands;
     layer = new SimpleConvolutionLayer(radius, radius, bands*bands);
-    layer.filter.fill(() -> random());
+    layer.kernel.fill(() -> random());
   }
   
   @Override
@@ -58,14 +58,14 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
   @Override
   public NNLayer getReferenceLayer() {
     ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
-    Tensor tensor = new Tensor(layer.filter.getDimensions());
+    Tensor tensor = new Tensor(layer.kernel.getDimensions());
     tensor.fillByCoord(c->{
       int band = c.coords[2];
       int bandX = band % bands;
       int bandY = (band-bandX) / bands;
       assert band == bandX + bandY * bands;
       int bandT = bandY + bandX * bands;
-      return layer.filter.get(c.coords[0],c.coords[1], bandT);
+      return layer.kernel.get(c.coords[0],c.coords[1], bandT);
     });
     convolutionLayer.kernel.set(tensor);
     return convolutionLayer;

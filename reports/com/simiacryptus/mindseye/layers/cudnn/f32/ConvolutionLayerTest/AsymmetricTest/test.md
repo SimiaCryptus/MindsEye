@@ -1,7 +1,7 @@
 # ConvolutionLayer
 ## AsymmetricTest
 ### Json Serialization
-Code from [LayerTestBase.java:84](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L84) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:84](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L84) executed in 0.05 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000070",
+      "id": "ff6064d4-4ed4-46f2-9d30-740100000001",
       "isFrozen": false,
-      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f400000070",
+      "name": "ConvolutionLayer/ff6064d4-4ed4-46f2-9d30-740100000001",
       "filter": {
         "dimensions": [
           1,
@@ -26,14 +26,14 @@ Returns:
           8
         ],
         "data": [
-          -1.616,
-          1.996,
-          -0.2,
-          0.896,
-          -1.576,
-          -1.52,
-          1.956,
-          0.796
+          -0.788,
+          -1.492,
+          -1.312,
+          -1.212,
+          -0.328,
+          -1.688,
+          -1.124,
+          0.908
         ]
       },
       "strideX": 1,
@@ -44,7 +44,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:121](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:121](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.02 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -58,19 +58,19 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.032, -1.628 ] ]
+    	[ [ 1.852, -1.904 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 4.233439922332764, 0.4146880805492401, -2.9779679775238037, -2.220560073852539 ] ]
+    	[ [ -0.8348639607429504, 0.4507679343223572, -0.28972816467285156, -3.9734561443328857 ] ]
     ]
 ```
 
 
 
 ### Reference Implementation
-Code from [LayerTestBase.java:132](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L132) executed in 0.02 seconds: 
+Code from [LayerTestBase.java:132](../../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L132) executed in 0.74 seconds: 
 ```java
     System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
     getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
@@ -79,9 +79,9 @@ Logging:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "f4569375-56fe-4e46-925c-95f400000079",
+      "id": "ff6064d4-4ed4-46f2-9d30-74010000000a",
       "isFrozen": false,
-      "name": "ConvolutionLayer/f4569375-56fe-4e46-925c-95f400000079",
+      "name": "ConvolutionLayer/ff6064d4-4ed4-46f2-9d30-74010000000a",
       "filter": {
         "dimensions": [
           1,
@@ -89,14 +89,14 @@ Logging:
           8
         ],
         "data": [
-          -1.616,
-          1.996,
-          -0.2,
-          0.896,
-          -1.576,
-          -1.52,
-          1.956,
-          0.796
+          -0.788,
+          -1.492,
+          -1.312,
+          -1.212,
+          -0.328,
+          -1.688,
+          -1.124,
+          0.908
         ]
       },
       "skip": {
@@ -108,14 +108,14 @@ Logging:
       "simple": true
     }
     Inputs: [
-    	[ [ -1.032, -1.628 ] ]
+    	[ [ 1.852, -1.904 ] ]
     ]
     Error: [
-    	[ [ -7.766723619795357E-8, 8.054924016676068E-8, 2.2476196015475125E-8, -7.385253919522938E-8 ] ]
+    	[ [ 3.925704983309686E-8, -6.56776422691685E-8, -1.6467285124388553E-7, -1.4433288564319469E-7 ] ]
     ]
     Accuracy:
-    absoluteTol: 6.3636e-08 +- 2.3882e-08 [2.2476e-08 - 8.0549e-08] (4#)
-    relativeTol: 3.1674e-08 +- 3.8060e-08 [3.7737e-09 - 9.7120e-08] (4#)
+    absoluteTol: 1.0349e-07 +- 5.2362e-08 [3.9257e-08 - 1.6467e-07] (4#)
+    relativeTol: 9.9677e-08 +- 1.0864e-07 [1.8162e-08 - 2.8419e-07] (4#)
     
 ```
 
@@ -128,22 +128,22 @@ Logging:
 ```
     Feedback for input 0
     Inputs: [
-    	[ [ -1.032, -1.628 ] ]
+    	[ [ 1.852, -1.904 ] ]
     ]
     Output: [
-    	[ [ 4.233439922332764, 0.4146880805492401, -2.9779679775238037, -2.220560073852539 ] ]
+    	[ [ -0.8348639607429504, 0.4507679343223572, -0.28972816467285156, -3.9734561443328857 ] ]
     ]
-    Measured: [ [ -1.6117095947265625, 1.9931793212890625, -0.2002716064453125, 0.896453857421875 ], [ -1.5735626220703125, -1.520216464996338, 1.9550323486328125, 0.7963180541992188 ] ]
-    Implemented: [ [ 0.0, 0.0, -0.20000000298023224, 0.8960000276565552 ], [ 0.0, 0.0, 1.9559999704360962, 0.7960000038146973 ] ]
-    Error: [ [ -1.6117095947265625, 1.9931793212890625, -2.7160346508026123E-4, 4.538297653198242E-4 ], [ -1.5735626220703125, -1.520216464996338, -9.676218032836914E-4, 3.180503845214844E-4 ] ]
+    Measured: [ [ -0.7879734039306641, -1.4901161193847656, -1.3113021850585938, -1.2111663818359375 ], [ -0.32782554626464844, -1.6883015632629395, -1.1241436004638672, 0.9083747863769531 ] ]
+    Implemented: [ [ 0.0, 0.0, -1.312000036239624, -1.2120000123977661 ], [ 0.0, 0.0, -1.1239999532699585, 0.9079999923706055 ] ]
+    Error: [ [ -0.7879734039306641, -1.4901161193847656, 6.978511810302734E-4, 8.336305618286133E-4 ], [ -0.32782554626464844, -1.6883015632629395, -1.436471939086914E-4, 3.7479400634765625E-4 ] ]
     
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=8.3758e-01 +- 8.4743e-01 [2.7160e-04 - 1.9932e+00] (8#), relativeTol=5.0017e-01 +- 4.9983e-01 [1.9974e-04 - 1.0000e+00] (8#)}
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:283)
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=5.3703e-01 +- 6.6068e-01 [1.4365e-04 - 1.6883e+00] (8#), relativeTol=5.0011e-01 +- 4.9989e-01 [6.3896e-05 - 1.0000e+00] (8#)}
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFeedback(DerivativeTester.java:288)
     	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$test$0(DerivativeTester.java:77)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)

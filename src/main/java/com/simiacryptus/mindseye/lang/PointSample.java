@@ -55,10 +55,11 @@ public final class PointSample {
    * @param rate    the rate
    * @param count   the count
    */
-  public PointSample(DeltaSet delta, StateSet weights, double sum, double rate, int count) {
+  public PointSample(DeltaSet<NNLayer> delta, StateSet<NNLayer> weights, double sum, double rate, int count) {
     assert (delta.getMap().size() == weights.getMap().size());
-    this.delta = new DeltaSet(delta);
-    this.weights = new StateSet(weights);
+    this.delta = new DeltaSet<NNLayer>(delta);
+    this.weights = new StateSet<NNLayer>(weights);
+    assert delta.getMap().keySet().stream().allMatch(x->weights.getMap().containsKey(x));
     this.sum = sum;
     this.count = count;
     this.setRate(rate);

@@ -54,7 +54,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}
+      {2,3,1}
     };
   }
   

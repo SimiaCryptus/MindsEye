@@ -320,7 +320,7 @@ public class DerivativeTester {
       Tensor evalProbe = GpuController.call(exe->{
         return component.eval(exe, NNResult.batchResultArray(new Tensor[][]{copyInput})).getData().get(0);
       });
-      final Tensor delta = evalProbe.minus(baseOutput).scale(1. / probeSize);
+      final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
       }
@@ -344,7 +344,7 @@ public class DerivativeTester {
         return copy.eval(exe, NNResult.batchResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
       });
       
-      final Tensor delta = evalProbe.minus(baseOutput).scale(1. / probeSize);
+      final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.dim(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
       }
