@@ -246,25 +246,14 @@ class ImageEncodingUtil {
     for(Tensor t : featureSpaceVectors) System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
     convolutionLayer.kernel.fillByCoord(c -> {
       int kband = c.coords[2];
-
-//      int kx = kband % outputBands;
-//      int ky = (kband-kx) / outputBands;
-//      assert kband == kx + outputBands * ky;
-//      kband = kx * inputBands + ky;
-
-//      int inband = kband % inputBands;
-//      int outband = (kband-inband) / inputBands;
-
       int outband = kband % outputBands;
-      int inband = (kband -outband) / outputBands;
-
+      int inband = (kband - outband) / outputBands;
       assert outband < outputBands;
       assert inband < inputBands;
       int x = c.coords[0];
       int y = c.coords[1];
       x = filterDimensions[0] - (x + 1);
       y = filterDimensions[1] - (y + 1);
-      //outband = outputBands - (outband+1);
       double v = featureSpaceVectors[inband].get(x, y, outband);
       return Double.isFinite(v) ? v : convolutionLayer.kernel.get(c);
     });

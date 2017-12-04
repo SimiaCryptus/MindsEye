@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.SimpleEval;
 import com.simiacryptus.util.io.NotebookOutput;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;

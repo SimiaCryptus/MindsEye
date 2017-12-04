@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.util.data.DoubleStatistics;
 
+import java.util.stream.IntStream;
+
 /**
  * The type Tolerance statistics.
  */
@@ -62,6 +64,11 @@ public class ToleranceStatistics {
   public ToleranceStatistics accumulate(double target, double val) {
     absoluteTol.accept(Math.abs(target-val));
     if(Double.isFinite(val+target) && val!=-target) relativeTol.accept(Math.abs(target-val) / (Math.abs(val)+Math.abs(target)));
+    return this;
+  }
+  public ToleranceStatistics accumulate(double[] target, double[] val) {
+    if (target.length != val.length) throw new IllegalArgumentException();
+    IntStream.range(0, target.length).forEach(i->accumulate(target[i],val[i]));
     return this;
   }
   

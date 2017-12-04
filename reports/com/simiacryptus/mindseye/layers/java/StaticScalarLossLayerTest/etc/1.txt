@@ -1,11 +1,11 @@
-java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: {}
+java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
 	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:83)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
+	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
+	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:138)
+	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:68)
 	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.lang.reflect.Method.invoke(Method.java:498)
@@ -35,26 +35,26 @@ java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.Exe
 	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
 	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
 	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: {}
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
-	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:120)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:90)
+Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$6(GpuController.java:205)
+	at com.simiacryptus.util.lang.StaticResourcePool.run(StaticResourcePool.java:66)
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.call(GpuController.java:201)
+	at com.simiacryptus.mindseye.layers.SimpleListEval.call(SimpleListEval.java:86)
+	at com.simiacryptus.mindseye.layers.SimpleListEval.run(SimpleListEval.java:112)
+	at com.simiacryptus.mindseye.layers.BatchingTester.test(BatchingTester.java:69)
 	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
 	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
 	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
 	... 35 more
-Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: {}
+Caused by: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
 	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
 	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$6(GpuController.java:203)
 	... 43 more
-Caused by: java.lang.AssertionError: Nonfrozen component not listed in delta. Deltas: {}
-	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$11(DerivativeTester.java:134)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
-	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+Caused by: java.lang.IllegalArgumentException
+	at com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer.eval(StaticScalarLossLayer.java:73)
+	at com.simiacryptus.mindseye.layers.SimpleListEval.lambda$call$6(SimpleListEval.java:87)
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$5(GpuController.java:203)
 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)

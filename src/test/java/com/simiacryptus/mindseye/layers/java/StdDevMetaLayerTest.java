@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
@@ -44,4 +45,10 @@ public class StdDevMetaLayerTest extends LayerTestBase {
   public DerivativeTester getDerivativeTester() {
     return super.getDerivativeTester().setTestLearning(false);
   }
+  
+  @Override
+  public BatchingTester getBatchingTester() {
+    return null;
+  }
+  
 }

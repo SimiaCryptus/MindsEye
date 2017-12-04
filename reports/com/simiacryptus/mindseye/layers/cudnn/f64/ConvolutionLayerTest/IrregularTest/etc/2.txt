@@ -1,66 +1,42 @@
-java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.network.CountingNNResult.accumulate(CountingNNResult.java:110); com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer$1.accumulate(ConvolutionLayer.java:174); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:498)
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-	at org.junit.runners.Suite.runChild(Suite.java:128)
-	at org.junit.runners.Suite.runChild(Suite.java:27)
-	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
-	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
-	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
-	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
-	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.network.CountingNNResult.accumulate(CountingNNResult.java:110); com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer$1.accumulate(ConvolutionLayer.java:174); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
-	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:125)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:92)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-	... 36 more
-Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.network.CountingNNResult.accumulate(CountingNNResult.java:110); com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer$1.accumulate(ConvolutionLayer.java:174); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-	... 44 more
-Caused by: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.network.CountingNNResult.accumulate(CountingNNResult.java:110); com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer$1.accumulate(ConvolutionLayer.java:174); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at com.simiacryptus.mindseye.layers.cudnn.CudaPtr.toDeviceAsDouble(CudaPtr.java:150)
-	at com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:118)
-	at com.simiacryptus.mindseye.network.CountingNNResult.accumulate(CountingNNResult.java:110)
-	at com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer$1.accumulate(ConvolutionLayer.java:174)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
-	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
-	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:748)
+Inputs: [
+	[ [ 1.832, -1.496, 1.508 ], [ 0.82, 1.976, -0.2 ], [ -0.408, -0.008, -0.34 ], [ -0.728, -1.372, 1.392 ], [ 1.556, 0.204, 1.684 ] ],
+	[ [ 0.94, -0.612, 1.02 ], [ 0.096, 0.936, -1.504 ], [ -1.596, -0.708, -0.232 ], [ 1.804, 1.816, 0.796 ], [ 1.1, 1.932, -0.332 ] ],
+	[ [ 1.116, 1.48, 1.464 ], [ -1.752, -1.048, -1.216 ], [ -0.512, 1.38, 1.5 ], [ -1.344, -0.56, -1.356 ], [ -0.564, -0.368, -0.528 ] ],
+	[ [ 1.176, 1.596, -1.912 ], [ -1.504, -0.188, 0.676 ], [ -0.168, 0.7, 0.392 ], [ -1.772, -1.008, -0.576 ], [ -1.656, -1.564, 1.996 ] ],
+	[ [ 0.36, 0.34, -0.06 ], [ 0.372, -1.512, -0.292 ], [ -1.236, 0.032, 0.264 ], [ 1.544, 0.136, 0.9 ], [ -0.516, 0.092, 1.3 ] ]
+]
+Inputs Statistics: {meanExponent=-0.16233638417222218, negative=37, min=1.3, max=1.3, mean=0.09973333333333333, count=75.0, positive=38, stdDev=1.1372286938968004, zeros=0}
+Output: [
+	[ [ 0.1363040000000007, 3.833087999999999, 0.8948160000000008, -6.147888, 0.4403999999999997, 7.8832 ], [ -4.7934399999999995, 4.039520000000001, 9.740336, -1.8166079999999998, -5.182223999999999, -3.7947040000000003 ], [ 3.362288, -3.565552, -1.1102880000000002, 12.088655999999999, 3.080272000000001, -2.67504 ], [ 5.558752, 1.2704160000000004, -4.912704, -5.8005759999999995, -2.4834560000000003, 12.081408000000001 ], [ 0.9463199999999999, 4.018688000000002, 8.355376, 0.7464640000000003, -2.6438240000000004, 2.526768 ] ],
+	[ [ 3.813664, -10.58224, 5.930959999999999, -7.553952, -7.3228159999999995, 6.781376000000002 ], [ -10.469296, 6.802223999999999, 4.544240000000003, 16.24016, 2.286592, -19.960480000000004 ], [ 4.138576, -10.028767999999998, -3.80872, -12.839727999999997, 2.095648, 1.5496319999999997 ], [ -10.969248, 0.06188800000000005, 3.7647520000000014, 5.444608, 8.009456, 1.0967679999999997 ], [ -1.2173439999999998, -7.45024, -2.138608, 0.9681759999999996, -1.5798400000000001, -2.813808 ] ],
+	[ [ 4.820512, -6.4670559999999995, 4.965615999999999, 1.4130720000000003, -7.4312, 4.635007999999999 ], [ 1.864016, 0.49243200000000087, -1.9054880000000016, 2.488816000000001, -1.6272959999999987, -14.253647999999998 ], [ 0.8911359999999999, -9.804864, 4.651872, 2.201695999999999, 1.3991840000000004, 8.096176 ], [ -5.318576, 1.1755040000000005, -5.193856000000001, 5.114752, 8.832272000000001, -16.089184000000003 ], [ 0.43145600000000006, -4.9401280000000005, -3.953791999999999, -1.760864, 10.218768, 0.8152479999999994 ] ],
+	[ [ 2.0674879999999995, -7.9788640000000015, -5.633952, -0.782207999999999, 3.8069919999999997, -1.2426720000000004 ], [ 5.715743999999999, -4.487856, -3.046927999999998, -0.3318880000000004, -7.550864, -5.799632 ], [ 4.168512000000001, -4.448016000000001, -10.780304000000001, 3.979951999999999, 4.251919999999999, 7.0807839999999995 ], [ 8.698976000000002, -2.012863999999999, -2.0326239999999993, -11.660608000000003, -0.07027200000000111, -0.9460319999999994 ], [ 4.326351999999999, 4.227328, -2.0196159999999996, -0.6424319999999997, -0.18747199999999978, -0.9311360000000004 ] ],
+	[ [ -1.860368, -0.2821440000000001, 3.2685919999999995, -0.5328159999999998, 3.6010880000000007, -5.312032 ], [ 1.48536, -5.0587040000000005, 0.9567040000000001, 0.7448319999999999, 3.296976000000001, 6.650399999999999 ], [ 3.3494879999999996, 6.6119520000000005, -9.488608, -4.1523520000000005, 2.3654240000000013, -1.6849920000000003 ], [ -1.5023360000000001, -8.489584, 3.160176, -8.53536, 4.065632, 3.011264000000001 ], [ 4.200735999999999, 0.8064160000000001, -2.9449279999999987, -1.6428000000000005, -3.645184, 3.744592 ] ]
+]
+Outputs Statistics: {meanExponent=0.48200634263722636, negative=72, min=3.744592, max=3.744592, mean=-0.27628522666666666, count=150.0, positive=78, stdDev=5.801892403935989, zeros=0}
+Feedback for input 0
+Inputs Values: [
+	[ [ 1.832, -1.496, 1.508 ], [ 0.82, 1.976, -0.2 ], [ -0.408, -0.008, -0.34 ], [ -0.728, -1.372, 1.392 ], [ 1.556, 0.204, 1.684 ] ],
+	[ [ 0.94, -0.612, 1.02 ], [ 0.096, 0.936, -1.504 ], [ -1.596, -0.708, -0.232 ], [ 1.804, 1.816, 0.796 ], [ 1.1, 1.932, -0.332 ] ],
+	[ [ 1.116, 1.48, 1.464 ], [ -1.752, -1.048, -1.216 ], [ -0.512, 1.38, 1.5 ], [ -1.344, -0.56, -1.356 ], [ -0.564, -0.368, -0.528 ] ],
+	[ [ 1.176, 1.596, -1.912 ], [ -1.504, -0.188, 0.676 ], [ -0.168, 0.7, 0.392 ], [ -1.772, -1.008, -0.576 ], [ -1.656, -1.564, 1.996 ] ],
+	[ [ 0.36, 0.34, -0.06 ], [ 0.372, -1.512, -0.292 ], [ -1.236, 0.032, 0.264 ], [ 1.544, 0.136, 0.9 ], [ -0.516, 0.092, 1.3 ] ]
+]
+Value Statistics: {meanExponent=-0.16233638417222218, negative=37, min=1.3, max=1.3, mean=0.09973333333333333, count=75.0, positive=38, stdDev=1.1372286938968004, zeros=0}
+Implemented Feedback: [ [ -1.216, -0.148, 0.0, 0.0, 0.0, 0.548, -0.42, 0.0, ... ], [ 1.364, -1.216, -0.148, 0.0, 0.0, 0.724, 0.548, -0.42, ... ], [ 0.0, 1.364, -1.216, -0.148, 0.0, 0.0, 0.724, 0.548, ... ], [ 0.0, 0.0, 1.364, -1.216, -0.148, 0.0, 0.0, 0.724, ... ], [ 0.0, 0.0, 0.0, 1.364, -1.216, 0.0, 0.0, 0.0, ... ], [ -0.328, -0.896, 0.0, 0.0, 0.0, -1.216, -0.148, 0.0, ... ], [ 0.452, -0.328, -0.896, 0.0, 0.0, 1.364, -1.216, -0.148, ... ], [ 0.0, 0.452, -0.328, -0.896, 0.0, 0.0, 1.364, -1.216, ... ], ... ]
+Implemented Statistics: {meanExponent=-0.14159731414035737, negative=1423, min=0.48, max=0.48, mean=0.01839964444444416, count=11250.0, positive=1619, stdDev=0.5710122270882785, zeros=8208}
+Measured Feedback: [ [ -1.2159999999994398, -0.1479999999975945, 0.0, 0.0, 0.0, 0.5479999999913332, -0.42000000000541604, 0.0, ... ], [ 1.3639999999970343, -1.2159999999994398, -0.1479999999975945, 0.0, 0.0, 0.7239999999963942, 0.5479999999913332, -0.41999999999653426, ... ], [ 0.0, 1.3640000000014751, -1.2159999999994398, -0.1479999999975945, 0.0, 0.0, 0.7239999999875124, 0.548000000000215, ... ], [ 0.0, 0.0, 1.364000000005916, -1.2159999999994398, -0.14799999999981495, 0.0, 0.0, 0.724000000005276, ... ], [ 0.0, 0.0, 0.0, 1.364000000005916, -1.2160000000016602, 0.0, 0.0, 0.0, ... ], [ -0.32800000000499097, -0.8959999999991197, 0.0, 0.0, 0.0, -1.2160000000083215, -0.14800000000647628, 0.0, ... ], [ 0.45199999999745444, -0.3280000000005501, -0.8959999999991197, 0.0, 0.0, 1.3639999999970343, -1.2159999999994398, -0.1479999999975945, ... ], [ 0.0, 0.45200000000189533, -0.3279999999961092, -0.8959999999991197, 0.0, 0.0, 1.3639999999881525, -1.2159999999994398, ... ], ... ]
+Measured Statistics: {meanExponent=-0.14159731414031101, negative=1423, min=0.48000000000048004, max=0.48000000000048004, mean=0.01839964444439541, count=11250.0, positive=1619, stdDev=0.571012227088249, zeros=8208}
+Feedback Error: [ [ 5.60218538225854E-13, 2.405492471879711E-12, 0.0, 0.0, 0.0, -8.666845019433822E-12, -5.4160564921801324E-12, 0.0, ... ], [ -2.965849787983643E-12, 5.60218538225854E-13, 2.405492471879711E-12, 0.0, 0.0, -3.6057823393775834E-12, -8.666845019433822E-12, 3.46572770482112E-12, ... ], [ 0.0, 1.475042310516983E-12, 5.60218538225854E-13, 2.405492471879711E-12, 0.0, 0.0, -1.2487566536378836E-11, 2.149391775674303E-13, ... ], [ 0.0, 0.0, 5.915934409017609E-12, 5.60218538225854E-13, 1.8504642262939797E-13, 0.0, 0.0, 5.276001857623669E-12, ... ], [ 0.0, 0.0, 0.0, 5.915934409017609E-12, -1.660227511024459E-12, 0.0, 0.0, 0.0, ... ], [ -4.99095209605116E-12, 8.802958362252866E-13, 0.0, 0.0, 0.0, -8.321565658775398E-12, -6.476291725121541E-12, 0.0, ... ], [ -2.54557486201179E-12, -5.500599975505338E-13, 8.802958362252866E-13, 0.0, 0.0, -2.965849787983643E-12, 5.60218538225854E-13, 2.405492471879711E-12, ... ], [ 0.0, 1.895317236488836E-12, 3.890832100950092E-12, 8.802958362252866E-13, 0.0, 0.0, -1.1847633984984896E-11, 5.60218538225854E-13, ... ], ... ]
+Error Statistics: {meanExponent=-11.748287856716221, negative=1572, min=4.800604358479177E-13, max=4.800604358479177E-13, mean=-4.8895812090579384E-14, count=11250.0, positive=1470, stdDev=2.6106439718765734E-12, zeros=8208}
+Learning Gradient for weight set 0
+Weights: [ 0.452, -0.328, -0.896, 1.364, -1.216, -0.148, 0.724, 0.548, ... ]
+Implemented Gradient: [ [ 0.096, -1.752, -1.504, 0.372, 0.0, -1.596, -0.512, -0.168, ... ], [ 0.82, 0.096, -1.752, -1.504, 0.372, -0.408, -1.596, -0.512, ... ], [ 0.0, 0.82, 0.096, -1.752, -1.504, 0.0, -0.408, -1.596, ... ], [ 0.94, 1.116, 1.176, 0.36, 0.0, 0.096, -1.752, -1.504, ... ], [ 1.832, 0.94, 1.116, 1.176, 0.36, 0.82, 0.096, -1.752, ... ], [ 0.0, 1.832, 0.94, 1.116, 1.176, 0.0, 0.82, 0.096, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.94, 1.116, 1.176, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 1.832, 0.94, 1.116, ... ], ... ]
+Implemented Statistics: {meanExponent=-0.14819469573613397, negative=1602, min=-0.576, max=-0.576, mean=0.002574814814814809, count=24300.0, positive=1440, stdDev=0.40423137178305135, zeros=21258}
+Measured Gradient: [ [ 0.09599999999387876, -1.7519999999970892, -1.5039999999988396, 0.37200000000403577, 0.0, -1.5960000000081465, -0.5119999999969593, -0.16799999999150828, ... ], [ 0.8199999999991547, 0.09599999999831965, -1.7520000000015301, -1.5039999999988396, 0.3719999999995949, -0.4080000000072914, -1.5959999999992647, -0.5119999999969593, ... ], [ 0.0, 0.8199999999991547, 0.09600000000276054, -1.7519999999926483, -1.5039999999988396, 0.0, -0.4080000000072914, -1.5959999999992647, ... ], [ 0.9399999999981645, 1.1159999999987846, 1.1760000000027304, 0.36000000000591115, 0.0, 0.09599999999387876, -1.752000000010412, -1.5039999999988396, ... ], [ 1.8319999999949488, 0.9399999999981645, 1.1160000000032255, 1.1760000000027304, 0.3599999999992498, 0.8199999999991547, 0.09600000000276054, -1.7519999999926483, ... ], [ 0.0, 1.8319999999993897, 0.9400000000070463, 1.1160000000032255, 1.1759999999982895, 0.0, 0.819999999990273, 0.09600000000276054, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.9399999999981645, 1.1160000000032255, 1.1760000000027304, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 1.8319999999949488, 0.9399999999892827, 1.1160000000032255, ... ], ... ]
+Measured Statistics: {meanExponent=-0.14819469573500355, negative=1602, min=-0.5759999999987997, max=-0.5759999999987997, mean=0.002574814814781844, count=24300.0, positive=1440, stdDev=0.4042313717830107, zeros=21258}
+Gradient Error: [ [ -6.121242401846416E-12, 2.9107827259622354E-12, 1.1604051053382136E-12, 4.0357717168149065E-12, 0.0, -8.146372465489549E-12, 3.0406788198433787E-12, 8.49173509287482E-12, ... ], [ -8.452127886471317E-13, -1.68035030334579E-12, -1.5301093725383907E-12, 1.1604051053382136E-12, -4.051203816857196E-13, -7.291445225376947E-12, 7.354117315117037E-13, 3.0406788198433787E-12, ... ], [ 0.0, -8.452127886471317E-13, 2.760541795154836E-12, 7.351674824462862E-12, 1.1604051053382136E-12, 0.0, -7.291445225376947E-12, 7.354117315117037E-13, ... ], [ -1.8354207043103088E-12, -1.2154721673596214E-12, 2.73048250676311E-12, 5.911160450011721E-12, 0.0, -6.121242401846416E-12, -1.0411893569539643E-11, 1.1604051053382136E-12, ... ], [ -5.051292717439537E-12, -1.8354207043103088E-12, 3.2254199311410048E-12, 2.73048250676311E-12, -7.501776977392183E-13, -8.452127886471317E-13, 2.760541795154836E-12, 7.351674824462862E-12, ... ], [ 0.0, -6.104006189389111E-13, 7.0463634926909435E-12, 3.2254199311410048E-12, -1.7104095917375162E-12, 0.0, -9.726996985648384E-12, 2.760541795154836E-12, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, -1.8354207043103088E-12, 3.2254199311410048E-12, 2.73048250676311E-12, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, -5.051292717439537E-12, -1.0717204901311561E-11, 3.2254199311410048E-12, ... ], ... ]
+Error Statistics: {meanExponent=-11.710257510490036, negative=1514, min=1.2002621119222567E-12, max=1.2002621119222567E-12, mean=-3.2969497045577057E-14, count=24300.0, positive=1528, stdDev=1.7689906749852441E-12, zeros=21258}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 5.8152e-13 +- 1.9898e-12 [0.0000e+00 - 3.3477e-11] (35550#)
+relativeTol: 5.4420e-12 +- 3.1052e-11 [1.5383e-15 - 1.4022e-09] (6084#)

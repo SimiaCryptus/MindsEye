@@ -1,64 +1,42 @@
-java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:498)
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-	at org.junit.runners.Suite.runChild(Suite.java:128)
-	at org.junit.runners.Suite.runChild(Suite.java:27)
-	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
-	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
-	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
-	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
-	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
-	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.testUnFrozen(DerivativeTester.java:125)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:92)
-	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
-	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-	... 36 more
-Caused by: java.util.concurrent.ExecutionException: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-	... 44 more
-Caused by: java.lang.AssertionError: java.lang.Thread.getStackTrace(Thread.java:1559); com.simiacryptus.mindseye.layers.cudnn.CudaResource.finalize(CudaResource.java:76); com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:114); com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138); com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213); java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511); java.util.concurrent.FutureTask.run(FutureTask.java:266); java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149); java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624); java.lang.Thread.run(Thread.java:748)
-	at com.simiacryptus.mindseye.layers.cudnn.CudaPtr.toDeviceAsDouble(CudaPtr.java:150)
-	at com.simiacryptus.mindseye.layers.cudnn.f64.ImgConcatLayer$1.accumulate(ImgConcatLayer.java:118)
-	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testUnFrozen$17(DerivativeTester.java:138)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
-	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
-	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:748)
+Inputs: [
+	[ [ 0.836, 0.264 ], [ -1.88, 1.32 ] ],
+	[ [ -1.72, -1.16 ], [ 1.108, -1.588 ] ]
+],
+[
+	[ [ -1.052, 0.472 ], [ 1.288, 1.472 ] ],
+	[ [ 1.144, 1.28 ], [ 0.068, 0.8 ] ]
+]
+Inputs Statistics: {meanExponent=0.035489834924541615, negative=4, min=-1.588, max=-1.588, mean=-0.3524999999999999, count=8.0, positive=4, stdDev=1.2798803655029636, zeros=0},
+{meanExponent=-0.1406229618399831, negative=1, min=0.8, max=0.8, mean=0.684, count=8.0, positive=7, stdDev=0.7908956947663832, zeros=0}
+Output: [
+	[ [ 0.836, 0.264, -1.052 ], [ -1.88, 1.32, 1.288 ] ],
+	[ [ -1.72, -1.16, 1.144 ], [ 1.108, -1.588, 0.068 ] ]
+]
+Outputs Statistics: {meanExponent=-0.057767898383242644, negative=5, min=0.068, max=0.068, mean=-0.1143333333333333, count=12.0, positive=7, stdDev=1.2254571482602818, zeros=0}
+Feedback for input 0
+Inputs Values: [
+	[ [ 0.836, 0.264 ], [ -1.88, 1.32 ] ],
+	[ [ -1.72, -1.16 ], [ 1.108, -1.588 ] ]
+]
+Value Statistics: {meanExponent=0.035489834924541615, negative=4, min=-1.588, max=-1.588, mean=-0.3524999999999999, count=8.0, positive=4, stdDev=1.2798803655029636, zeros=0}
+Implemented Feedback: [ [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, ... ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=0.0, max=0.0, mean=0.08333333333333333, count=96.0, positive=8, stdDev=0.2763853991962833, zeros=88}
+Measured Feedback: [ [ 0.9999999999998899, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.9999999999998899, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.9999999999998899, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.9999999999998899, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.9999999999998899, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.9999999999998899, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.9999999999998899, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.9999999999998899, ... ] ]
+Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=0, min=0.0, max=0.0, mean=0.08333333333332416, count=96.0, positive=8, stdDev=0.2763853991962529, zeros=88}
+Feedback Error: [ [ -1.1013412404281553E-13, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, -1.1013412404281553E-13, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, -1.1013412404281553E-13, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, -1.1013412404281553E-13, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, -1.1013412404281553E-13, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, -1.1013412404281553E-13, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.1013412404281553E-13, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.1013412404281553E-13, ... ] ]
+Error Statistics: {meanExponent=-12.958078098036824, negative=8, min=0.0, max=0.0, mean=-9.177843670234628E-15, count=96.0, positive=0, stdDev=3.0439463838706555E-14, zeros=88}
+Feedback for input 1
+Inputs Values: [
+	[ [ -1.052, 0.472 ], [ 1.288, 1.472 ] ],
+	[ [ 1.144, 1.28 ], [ 0.068, 0.8 ] ]
+]
+Value Statistics: {meanExponent=-0.1406229618399831, negative=1, min=0.8, max=0.8, mean=0.684, count=8.0, positive=7, stdDev=0.7908956947663832, zeros=0}
+Implemented Feedback: [ [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=0.0, max=0.0, mean=0.041666666666666664, count=96.0, positive=4, stdDev=0.19982631347136331, zeros=92}
+Measured Feedback: [ [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ] ]
+Measured Statistics: {meanExponent=-3.276302567614995E-14, negative=0, min=0.0, max=0.0, mean=0.04166666666666352, count=96.0, positive=4, stdDev=0.19982631347134824, zeros=92}
+Feedback Error: [ [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ] ]
+Error Statistics: {meanExponent=-13.104301089584563, negative=3, min=0.0, max=0.0, mean=-3.1433189384699745E-15, count=96.0, positive=1, stdDev=1.943485831517598E-14, zeros=92}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 6.4590e-15 +- 2.5641e-14 [0.0000e+00 - 1.1013e-13] (192#)
+relativeTol: 5.1672e-14 +- 1.1261e-14 [1.4322e-14 - 5.5067e-14] (12#)

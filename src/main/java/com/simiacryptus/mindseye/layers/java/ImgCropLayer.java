@@ -130,9 +130,11 @@ public class ImgCropLayer extends NNLayer {
     final int[] inputDims = batch.get(0).getDimensions();
     assert (3 == inputDims.length);
     assert input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
     return new NNResult(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> copyCondense(batch.get(dataIndex), outputDims))
+      .mapToObj(dataIndex -> {
+        Tensor outputDims = new Tensor(sizeX, sizeY, inputDims[2]);
+        return copyCondense(batch.get(dataIndex), outputDims);
+      })
       .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {

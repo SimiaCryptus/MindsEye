@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.mnist;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
@@ -97,15 +96,15 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
 //      int timeoutMinutes = 60;
     int pretrainMinutes = 10;
     int timeoutMinutes = 10;
-    int size = 3;
+    int size = 256;
     int images = 100;
     
-    Tensor[][] trainingImages = getImages(log, size, 10, "kangaroo");
+    Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 3, 1);
+        size, pretrainMinutes, timeoutMinutes, 3, 7, 3);
     }).invoke();
     
     log.h1("Second Layer");

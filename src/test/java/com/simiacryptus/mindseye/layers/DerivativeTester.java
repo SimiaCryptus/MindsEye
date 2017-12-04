@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.layers;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
-import com.simiacryptus.mindseye.layers.java.SimpleEval;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.KryoUtil;
 import org.junit.Assert;

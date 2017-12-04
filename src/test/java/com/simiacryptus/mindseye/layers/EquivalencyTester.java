@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.java.SimpleEval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

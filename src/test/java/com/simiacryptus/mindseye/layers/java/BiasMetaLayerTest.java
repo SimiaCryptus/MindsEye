@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
@@ -37,5 +38,10 @@ public class BiasMetaLayerTest extends LayerTestBase {
     return new int[][]{
       {3}, {3}
     };
+  }
+  
+  @Override
+  public BatchingTester getBatchingTester() {
+    return null;
   }
 }

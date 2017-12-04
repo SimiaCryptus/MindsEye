@@ -1,7 +1,7 @@
 # AvgMetaLayer
 ## AvgMetaLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:84](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L84) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,16 +16,16 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
-      "id": "ff6064d4-4ed4-46f2-9d30-740100000068",
+      "id": "370a9587-74a1-4959-b406-fa4500002b7c",
       "isFrozen": false,
-      "name": "AvgMetaLayer/ff6064d4-4ed4-46f2-9d30-740100000068"
+      "name": "AvgMetaLayer/370a9587-74a1-4959-b406-fa4500002b7c"
     }
 ```
 
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:121](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -38,27 +38,41 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.472, -0.912, -1.088 ]]
+    [[ 0.66, -0.256, -0.74 ]]
     --------------------
     Output: 
-    [ 0.472, -0.912, -1.088 ]
+    [ 0.66, -0.256, -0.74 ]
 ```
 
 
 
-### Differential Validation
-Code from [LayerTestBase.java:139](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L139) executed in 0.00 seconds: 
+### Batch Execution
+Code from [LayerTestBase.java:138](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
-    getDerivativeTester().test(layer, inputPrototype);
+    BatchingTester batchingTester = getBatchingTester();
+    return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
+```
+
+### Differential Validation
+Code from [LayerTestBase.java:144](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
+```java
+    return getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
+    Inputs: [ 0.66, -0.256, -0.74 ]
+    Inputs Statistics: {meanExponent=-0.3009947931384352, negative=2, min=-0.74, max=-0.74, mean=-0.11199999999999999, count=3.0, positive=1, stdDev=0.5805468686218768, zeros=0}
+    Output: [ 0.66, -0.256, -0.74 ]
+    Outputs Statistics: {meanExponent=-0.3009947931384352, negative=2, min=-0.74, max=-0.74, mean=-0.11199999999999999, count=3.0, positive=1, stdDev=0.5805468686218768, zeros=0}
     Feedback for input 0
-    Inputs: [ 0.472, -0.912, -1.088 ]
-    Output: [ 0.472, -0.912, -1.088 ]
-    Measured: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    Implemented: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Inputs Values: [ 0.66, -0.256, -0.74 ]
+    Value Statistics: {meanExponent=-0.3009947931384352, negative=2, min=-0.74, max=-0.74, mean=-0.11199999999999999, count=3.0, positive=1, stdDev=0.5805468686218768, zeros=0}
+    Implemented Feedback: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Implemented Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+    Measured Feedback: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Measured Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+    Feedback Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    Error Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
     Finite-Difference Derivative Accuracy:
     absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (9#)
     relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)
@@ -71,13 +85,12 @@ Returns:
     java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:83)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:139)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:69)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-    	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:144)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:68)
+    	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
     	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
     	at java.lang.reflect.Method.invoke(Method.java:498)
     	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
@@ -92,30 +105,31 @@ Returns:
     	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
     	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
     	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:36
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runners.Suite.runChild(Suite.java:128)
+    	at org.junit.runners.Sui
 ```
-...[skipping 859 bytes](etc/1.txt)...
+...[skipping 693 bytes](etc/1.txt)...
 ```
-    .java:242)
+    at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
     	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
     Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
     	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
     	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
     	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFrozen(DerivativeTester.java:100)
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:91)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-    	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.testFrozen(DerivativeTester.java:181)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:172)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$16(LayerTestBase.java:145)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 36 more
+    	... 35 more
     Caused by: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
     	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
     	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
     	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
-    	... 44 more
+    	... 42 more
     Caused by: java.lang.RuntimeException: Frozen component did not pass input backwards
-    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testFrozen$11(DerivativeTester.java:118)
+    	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testFrozen$19(DerivativeTester.java:199)
     	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
     	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
     	at java.util.concurrent.FutureTask.run(FutureTask.java:266)

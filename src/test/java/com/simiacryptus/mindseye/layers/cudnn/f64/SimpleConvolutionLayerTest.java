@@ -91,7 +91,7 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
   
   public static class Image extends SimpleConvolutionLayerTest {
     public Image() {
-      super(2,3);
+      super(3,3);
     }
   }
   

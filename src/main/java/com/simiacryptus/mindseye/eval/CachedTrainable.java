@@ -33,7 +33,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   
   private final List<PointSample> history = new ArrayList<>();
   private boolean verbose = true;
-  private int historySize = 0;
+  private int historySize = 3;
   
   /**
    * Instantiates a new Cached trainable.

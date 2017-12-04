@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
-import com.simiacryptus.mindseye.layers.java.SimpleEval;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.util.Util;
@@ -135,9 +134,15 @@ public abstract class LayerTestBase {
       });
     }
   
+    log.h3("Batch Execution");
+    log.code(() -> {
+      BatchingTester batchingTester = getBatchingTester();
+      return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
+    });
+    
     log.h3("Differential Validation");
     log.code(() -> {
-      getDerivativeTester().test(layer, inputPrototype);
+      return getDerivativeTester().test(layer, inputPrototype);
     });
   
     log.h3("Performance");
@@ -145,6 +150,10 @@ public abstract class LayerTestBase {
       getPerformanceTester().test(layer, inputPrototype);
     });
   
+  }
+  
+  public BatchingTester getBatchingTester() {
+    return new BatchingTester(1e-2);
   }
   
   /**
