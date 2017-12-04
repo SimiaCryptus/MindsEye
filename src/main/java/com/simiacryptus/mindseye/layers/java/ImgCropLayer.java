@@ -81,9 +81,9 @@ public class ImgCropLayer extends NNLayer {
     int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
     assert 3 == outDim.length;
-    assert inDim[2] == outDim[2];
-    assert inDim[0] >= outDim[0];
-    assert inDim[1] >= outDim[1];
+    assert inDim[2] == outDim[2] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
+    assert inDim[0] >= outDim[0] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
+    assert inDim[1] >= outDim[1] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
     int paddingX = (inDim[0] - outDim[0]) / 2;
     int paddingY = (inDim[0] - outDim[0]) / 2;
     outputData.coordStream().forEach((c) ->

@@ -1,7 +1,7 @@
 # WeightExtractor
 ## WeightExtractorTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,10 +16,10 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.WeightExtractor",
-      "id": "370a9587-74a1-4959-b406-fa4500002cc3",
+      "id": "a864e734-2f23-44db-97c1-504000002cc3",
       "isFrozen": false,
-      "name": "WeightExtractor/370a9587-74a1-4959-b406-fa4500002cc3",
-      "innerId": "370a9587-74a1-4959-b406-fa4500002cc2",
+      "name": "WeightExtractor/a864e734-2f23-44db-97c1-504000002cc3",
+      "innerId": "a864e734-2f23-44db-97c1-504000002cc2",
       "index": 0
     }
 ```
@@ -27,7 +27,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -40,16 +40,16 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.056, -0.94, 1.868 ]]
+    [[ 1.58, -0.448, -0.3 ]]
     --------------------
     Output: 
-    [ 0.49519041300420336, 0.49179900465031084, -0.6223266772561326, 0.48458824856417365, -0.02037716242621817, 0.11601866835086934, -0.2673318131012649, 0.6122122400869938, -0.42176246414831786 ]
+    [ 0.3915732716765538, -0.1322879439526363, 0.8635784633104777, 0.5315867664987263, 0.269285408581902, 0.38329089714079567, 0.060523003668572925, 0.06876087400258976, 0.05767943698433339 ]
 ```
 
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:138](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
     BatchingTester batchingTester = getBatchingTester();
     return batchingTester==null?null:batchingTester.test(layer, inputPrototype);

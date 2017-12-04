@@ -1,7 +1,7 @@
 # BiasLayer
 ## Reducing
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.BiasLayer",
-      "id": "370a9587-74a1-4959-b406-fa4500002b8a",
+      "id": "a864e734-2f23-44db-97c1-504000002b8a",
       "isFrozen": false,
-      "name": "BiasLayer/370a9587-74a1-4959-b406-fa4500002b8a",
+      "name": "BiasLayer/a864e734-2f23-44db-97c1-504000002b8a",
       "bias": [
         0.0
       ]
@@ -28,7 +28,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -41,16 +41,16 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.628, -1.044, 1.28 ]]
+    [[ -0.956, 0.532, -0.904 ]]
     --------------------
     Output: 
-    [ 0.628, -1.044, 1.28 ]
+    [ -0.956, 0.532, -0.904 ]
 ```
 
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:138](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
     BatchingTester batchingTester = getBatchingTester();
     return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
@@ -65,19 +65,19 @@ Returns:
 
 
 ### Differential Validation
-Code from [LayerTestBase.java:144](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:144](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L144) executed in 0.00 seconds: 
 ```java
     return getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Inputs: [ 0.628, -1.044, 1.28 ]
-    Inputs Statistics: {meanExponent=-0.025376629316230706, negative=1, min=1.28, max=1.28, mean=0.288, count=3.0, positive=2, stdDev=0.978755672610211, zeros=0}
-    Output: [ 0.628, -1.044, 1.28 ]
-    Outputs Statistics: {meanExponent=-0.025376629316230706, negative=1, min=1.28, max=1.28, mean=0.288, count=3.0, positive=2, stdDev=0.978755672610211, zeros=0}
+    Inputs: [ -0.956, 0.532, -0.904 ]
+    Inputs Statistics: {meanExponent=-0.11248734831782949, negative=2, min=-0.904, max=-0.904, mean=-0.4426666666666666, count=3.0, positive=1, stdDev=0.6895202841267415, zeros=0}
+    Output: [ -0.956, 0.532, -0.904 ]
+    Outputs Statistics: {meanExponent=-0.11248734831782949, negative=2, min=-0.904, max=-0.904, mean=-0.4426666666666666, count=3.0, positive=1, stdDev=0.6895202841267415, zeros=0}
     Feedback for input 0
-    Inputs Values: [ 0.628, -1.044, 1.28 ]
-    Value Statistics: {meanExponent=-0.025376629316230706, negative=1, min=1.28, max=1.28, mean=0.288, count=3.0, positive=2, stdDev=0.978755672610211, zeros=0}
+    Inputs Values: [ -0.956, 0.532, -0.904 ]
+    Value Statistics: {meanExponent=-0.11248734831782949, negative=2, min=-0.904, max=-0.904, mean=-0.4426666666666666, count=3.0, positive=1, stdDev=0.6895202841267415, zeros=0}
     Implemented Feedback: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
     Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=0.3333333333333333, count=9.0, positive=3, stdDev=0.4714045207910317, zeros=6}
     Measured Feedback: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
@@ -107,14 +107,14 @@ Returns:
 
 
 ### Performance
-Code from [LayerTestBase.java:149](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L149) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:149](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L149) executed in 0.00 seconds: 
 ```java
     getPerformanceTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1353 +- 0.0569 [0.1140 - 0.6555]
-    Learning performance: 0.0694 +- 0.0283 [0.0485 - 0.2821]
+    Evaluation performance: 0.1823 +- 0.0598 [0.1111 - 0.5443]
+    Learning performance: 0.0702 +- 0.0318 [0.0484 - 0.2793]
     
 ```
 

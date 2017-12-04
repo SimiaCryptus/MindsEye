@@ -36,9 +36,9 @@ java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.Exe
 	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
 	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
 Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:215)
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$9(GpuController.java:219)
 	at com.simiacryptus.util.lang.StaticResourcePool.apply(StaticResourcePool.java:88)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:211)
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.run(GpuController.java:215)
 	at com.simiacryptus.mindseye.layers.DerivativeTester.testFrozen(DerivativeTester.java:181)
 	at com.simiacryptus.mindseye.layers.DerivativeTester.test(DerivativeTester.java:172)
 	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$16(LayerTestBase.java:145)
@@ -48,11 +48,11 @@ Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: 
 Caused by: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Frozen component did not pass input backwards
 	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
 	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$8(GpuController.java:213)
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$run$9(GpuController.java:217)
 	... 42 more
 Caused by: java.lang.RuntimeException: Frozen component did not pass input backwards
 	at com.simiacryptus.mindseye.layers.DerivativeTester.lambda$testFrozen$19(DerivativeTester.java:199)
-	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$7(GpuController.java:213)
+	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$8(GpuController.java:217)
 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
 	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)

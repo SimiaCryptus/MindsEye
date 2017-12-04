@@ -280,7 +280,7 @@ public class ValidatingTrainer {
       FailsafeLineSearchCursor cursor = new FailsafeLineSearchCursor(direction, previousPoint, monitor);
       lineSearchStrategy.step(cursor, monitor);
       PointSample restore = cursor.getBest(monitor).restore();
-      cursor.step(restore.rate, monitor);
+      //cursor.step(restore.rate, monitor);
       return restore;
     });
     PointSample bestPoint = timedLineSearch.result;

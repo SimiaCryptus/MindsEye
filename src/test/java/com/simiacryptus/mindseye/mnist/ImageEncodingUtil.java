@@ -171,8 +171,7 @@ class ImageEncodingUtil {
         .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
         .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(new QuantifyOrientationWrapper(orientation))
-        //.setOrientation(new QuantifyOrientationWrapper(new ValidatingOrientationWrapper(orientation)))
+        .setOrientation(orientation)
         .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
       validatingTrainer
         .run();

@@ -1,7 +1,7 @@
 # Sparse01MetaLayer
 ## Sparse01MetaLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.Sparse01MetaLayer",
-      "id": "370a9587-74a1-4959-b406-fa4500002c99",
+      "id": "a864e734-2f23-44db-97c1-504000002c99",
       "isFrozen": false,
-      "name": "Sparse01MetaLayer/370a9587-74a1-4959-b406-fa4500002c99",
+      "name": "Sparse01MetaLayer/a864e734-2f23-44db-97c1-504000002c99",
       "sparsity": 0.05
     }
 ```
@@ -26,7 +26,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -39,7 +39,7 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.712, 1.508, 1.268 ]]
+    [[ -1.396, -1.304, 1.656 ]]
     --------------------
     Output: 
     [ 0.0, 0.0, 0.0 ]
@@ -48,7 +48,7 @@ Returns:
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:138](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
     BatchingTester batchingTester = getBatchingTester();
     return batchingTester==null?null:batchingTester.test(layer, inputPrototype);

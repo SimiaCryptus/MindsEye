@@ -1,7 +1,7 @@
 # SchemaOutputLayer
 ## SchemaOutputLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.SchemaOutputLayer",
-      "id": "370a9587-74a1-4959-b406-fa4500000401",
+      "id": "a864e734-2f23-44db-97c1-504000000401",
       "isFrozen": false,
-      "name": "SchemaOutputLayer/370a9587-74a1-4959-b406-fa4500000401",
+      "name": "SchemaOutputLayer/a864e734-2f23-44db-97c1-504000000401",
       "inputBands": 2,
       "logWeightInit": -3.0,
       "selected": [
@@ -27,12 +27,12 @@ Returns:
       ],
       "features": {
         "test2": [
-          2.303187849077335E-4,
-          2.8781302927450084E-4
+          3.310386556457525E-4,
+          6.165363387301148E-5
         ],
         "test1": [
-          2.8781302927450084E-4,
-          2.8781302927450084E-4
+          4.847953177210106E-4,
+          6.165363387301148E-5
         ]
       }
     }

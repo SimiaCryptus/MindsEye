@@ -94,17 +94,17 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   public void run(NotebookOutput log) {
     //      int pretrainMinutes = 20;
 //      int timeoutMinutes = 60;
-    int pretrainMinutes = 10;
-    int timeoutMinutes = 10;
+    int pretrainMinutes = 1;
+    int timeoutMinutes = 1;
     int size = 256;
     int images = 100;
     
-    Tensor[][] trainingImages = getImages(log, size, 100, "kangaroo");
+    Tensor[][] trainingImages = getImages(log, size, 10, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 7, 3);
+        size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
     }).invoke();
     
     log.h1("Second Layer");
@@ -580,10 +580,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
           new RescaledSubnetLayer(scale,
             new PipelineNetwork(1,
               convolutionLayer,
-              biasLayer,
-              new ImgCropLayer(fromSize,fromSize)
+              biasLayer
             )
-          )
+          ), new ImgCropLayer(fromSize,fromSize)
         );
       });
     }

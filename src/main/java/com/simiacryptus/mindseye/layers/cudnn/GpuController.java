@@ -170,13 +170,17 @@ public final class GpuController {
     }
   }
   
+  private static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
   /**
    * Clean memory.
    */
   public void cleanMemory() {
-    DoubleArrays.clear();
-    System.gc();
-    System.runFinalization();
+  
+    singleThreadExecutor.submit(()->{
+      DoubleArrays.clear();
+      System.gc();
+      System.runFinalization();
+    });
   }
   
   /**

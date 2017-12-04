@@ -103,17 +103,12 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
         return new NNResult(tensors) {
           @Override
           public void accumulate(DeltaSet<NNLayer> buffer, TensorList delta) {
-            //System.out.println("Accumulating data");
             for (int index = 0; index < delta.length(); index++) {
               Tensor dt = delta.get(index);
               double[] d = dt.getData();
               Tensor t = tensors[index];
               double[] p = t.getData();
-              Delta<NNLayer> layerDelta = buffer.get(new PlaceholderLayer(p), p);
-              System.out.println(String.format("Accumulating data[%s/%s] via %s/%s: \n%s",
-                Long.toHexString(System.identityHashCode(t)), Long.toHexString(System.identityHashCode(p)), layerDelta, Long.toHexString(System.identityHashCode(layerDelta)),
-                dt.prettyPrint().replaceAll("\n","\n\t")));
-              layerDelta.addInPlace(d);
+              buffer.get(new PlaceholderLayer(p), p).addInPlace(d);
             }
           }
           

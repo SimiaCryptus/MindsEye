@@ -1,7 +1,7 @@
 # CrossDotMetaLayer
 ## CrossDotMetaLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,16 +16,16 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.CrossDotMetaLayer",
-      "id": "370a9587-74a1-4959-b406-fa4500002b9d",
+      "id": "a864e734-2f23-44db-97c1-504000002b9d",
       "isFrozen": false,
-      "name": "CrossDotMetaLayer/370a9587-74a1-4959-b406-fa4500002b9d"
+      "name": "CrossDotMetaLayer/a864e734-2f23-44db-97c1-504000002b9d"
     }
 ```
 
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -38,16 +38,16 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.216, 0.98, -1.836 ]]
+    [[ 1.468, -1.364, 1.392 ]]
     --------------------
     Output: 
-    [ [ 0.0, 1.1916799999999999, -2.232576 ], [ 1.1916799999999999, 0.0, -1.79928 ], [ -2.232576, -1.79928, 0.0 ] ]
+    [ [ 0.0, -2.002352, 2.043456 ], [ -2.002352, 0.0, -1.898688 ], [ 2.043456, -1.898688, 0.0 ] ]
 ```
 
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:138](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
     BatchingTester batchingTester = getBatchingTester();
     return batchingTester==null?null:batchingTester.test(layer, inputPrototype);

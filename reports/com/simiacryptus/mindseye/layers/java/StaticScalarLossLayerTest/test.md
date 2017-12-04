@@ -1,7 +1,7 @@
 # StaticScalarLossLayer
 ## StaticScalarLossLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,16 +16,16 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer",
-      "id": "370a9587-74a1-4959-b406-fa4500002ca1",
+      "id": "a864e734-2f23-44db-97c1-504000002ca1",
       "isFrozen": false,
-      "name": "StaticScalarLossLayer/370a9587-74a1-4959-b406-fa4500002ca1"
+      "name": "StaticScalarLossLayer/a864e734-2f23-44db-97c1-504000002ca1"
     }
 ```
 
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -38,16 +38,16 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.624 ]]
+    [[ -0.912 ]]
     --------------------
     Output: 
-    [ 0.624 ]
+    [ 0.912 ]
 ```
 
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:138](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
     BatchingTester batchingTester = getBatchingTester();
     return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
@@ -90,9 +90,9 @@ Returns:
     	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
     	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
     Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$6(GpuController.java:205)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$7(GpuController.java:209)
     	at com.simiacryptus.util.lang.StaticResourcePool.run(StaticResourcePool.java:66)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.call(GpuController.java:201)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.call(GpuController.java:205)
     	at com.simiacryptus.mindseye.layers.SimpleListEval.call(SimpleListEval.java:86)
     	at com.simiacryptus.mindseye.layers.SimpleListEval.run(SimpleListEval.java:112)
     	at com.simiacryptus.mindseye.layers.BatchingTester.test(BatchingTester.java:69)
@@ -103,12 +103,12 @@ Returns:
     Caused by: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
     	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
     	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$6(GpuController.java:203)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$7(GpuController.java:207)
     	... 43 more
     Caused by: java.lang.IllegalArgumentException
     	at com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer.eval(StaticScalarLossLayer.java:73)
     	at com.simiacryptus.mindseye.layers.SimpleListEval.lambda$call$6(SimpleListEval.java:87)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$5(GpuController.java:203)
+    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$6(GpuController.java:207)
     	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
     	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
     	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)

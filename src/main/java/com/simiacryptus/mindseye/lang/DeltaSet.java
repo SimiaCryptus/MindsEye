@@ -148,7 +148,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
   public double dot(DoubleBufferSet<K,Delta<K>> right) {
     Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
     if(100 < map.size()) stream = stream.parallel();
-    double[] components = stream.mapToDouble(entry -> {
+    return stream.mapToDouble(entry -> {
       K key = entry.getKey();
       Delta<K> value = entry.getValue();
       Delta<K> rValue = right.map.get(key);
@@ -158,8 +158,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
       else {
         return 0;
       }
-    }).toArray();
-    return Arrays.stream(components).summaryStatistics().getSum();
+    }).sum();
   }
   
   /**
@@ -168,7 +167,9 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    * @return the magnitude
    */
   public double getMagnitude() {
-    double[] elementArray = map.entrySet().stream().mapToDouble(entry -> {
+    Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
+    if(100 < map.size()) stream = stream.parallel();
+    double[] elementArray = stream.mapToDouble(entry -> {
       DoubleBuffer value = entry.getValue();
       double v = value.deltaStatistics().sumSq();
       return v;

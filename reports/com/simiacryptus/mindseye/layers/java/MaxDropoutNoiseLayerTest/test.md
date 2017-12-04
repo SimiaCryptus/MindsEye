@@ -1,7 +1,7 @@
 # MaxDropoutNoiseLayer
 ## MaxDropoutNoiseLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.MaxDropoutNoiseLayer",
-      "id": "370a9587-74a1-4959-b406-fa4500002c22",
+      "id": "a864e734-2f23-44db-97c1-504000002c22",
       "isFrozen": false,
-      "name": "MaxDropoutNoiseLayer/370a9587-74a1-4959-b406-fa4500002c22",
+      "name": "MaxDropoutNoiseLayer/a864e734-2f23-44db-97c1-504000002c22",
       "kernelSize": [
         2,
         2

@@ -1,7 +1,7 @@
 # DropoutNoiseLayer
 ## DropoutNoiseLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,49 +16,49 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.f32.DropoutNoiseLayer",
-      "id": "370a9587-74a1-4959-b406-fa45000003aa",
+      "id": "a864e734-2f23-44db-97c1-5040000003aa",
       "isFrozen": false,
-      "name": "DropoutNoiseLayer/370a9587-74a1-4959-b406-fa45000003aa",
+      "name": "DropoutNoiseLayer/a864e734-2f23-44db-97c1-5040000003aa",
       "inputs": [
-        "6f4108a9-eba1-45e3-99fa-e681168a0649"
+        "c46bacf6-be81-4b68-aab4-458602aa9980"
       ],
       "nodes": {
-        "9e0da1cf-74b8-4a68-b456-373e48864a7f": "370a9587-74a1-4959-b406-fa45000003ac",
-        "e40d9018-35e5-4ca3-886a-38388f9808f6": "370a9587-74a1-4959-b406-fa45000003ab"
+        "bce7d604-b5da-4109-875e-2ae14658b07e": "a864e734-2f23-44db-97c1-5040000003ac",
+        "a63a481e-43aa-4a13-8e21-114478b1b61c": "a864e734-2f23-44db-97c1-5040000003ab"
       },
       "layers": {
-        "370a9587-74a1-4959-b406-fa45000003ac": {
+        "a864e734-2f23-44db-97c1-5040000003ac": {
           "class": "com.simiacryptus.mindseye.layers.java.BinaryNoiseLayer",
-          "id": "370a9587-74a1-4959-b406-fa45000003ac",
+          "id": "a864e734-2f23-44db-97c1-5040000003ac",
           "isFrozen": false,
           "name": "mask",
           "value": 0.5
         },
-        "370a9587-74a1-4959-b406-fa45000003ab": {
+        "a864e734-2f23-44db-97c1-5040000003ab": {
           "class": "com.simiacryptus.mindseye.layers.cudnn.f32.ProductInputsLayer",
-          "id": "370a9587-74a1-4959-b406-fa45000003ab",
+          "id": "a864e734-2f23-44db-97c1-5040000003ab",
           "isFrozen": false,
-          "name": "ProductInputsLayer/370a9587-74a1-4959-b406-fa45000003ab"
+          "name": "ProductInputsLayer/a864e734-2f23-44db-97c1-5040000003ab"
         }
       },
       "links": {
-        "9e0da1cf-74b8-4a68-b456-373e48864a7f": [
-          "6f4108a9-eba1-45e3-99fa-e681168a0649"
+        "bce7d604-b5da-4109-875e-2ae14658b07e": [
+          "c46bacf6-be81-4b68-aab4-458602aa9980"
         ],
-        "e40d9018-35e5-4ca3-886a-38388f9808f6": [
-          "9e0da1cf-74b8-4a68-b456-373e48864a7f",
-          "6f4108a9-eba1-45e3-99fa-e681168a0649"
+        "a63a481e-43aa-4a13-8e21-114478b1b61c": [
+          "bce7d604-b5da-4109-875e-2ae14658b07e",
+          "c46bacf6-be81-4b68-aab4-458602aa9980"
         ]
       },
       "labels": {},
-      "head": "e40d9018-35e5-4ca3-886a-38388f9808f6"
+      "head": "a63a481e-43aa-4a13-8e21-114478b1b61c"
     }
 ```
 
 
 
 ### Network Diagram
-Code from [LayerTestBase.java:94](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L94) executed in 0.14 seconds: 
+Code from [LayerTestBase.java:94](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L94) executed in 0.15 seconds: 
 ```java
     return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
       .height(400).width(600).render(Format.PNG).toImage();
@@ -71,7 +71,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -85,23 +85,23 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -1.08, -1.168 ], [ -1.204, -1.432 ], [ -1.28, -0.976 ] ],
-    	[ [ 1.668, 0.88 ], [ 1.316, 0.712 ], [ -0.916, -1.624 ] ],
-    	[ [ 1.476, -1.176 ], [ -1.124, -0.232 ], [ 1.128, -0.384 ] ]
+    	[ [ 1.752, -1.264 ], [ -1.728, -0.548 ], [ -1.404, -0.128 ] ],
+    	[ [ -1.812, -0.188 ], [ -0.868, -1.684 ], [ 1.484, 0.504 ] ],
+    	[ [ -1.304, -1.952 ], [ -0.212, 0.568 ], [ -0.3, 1.328 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ -1.0800000429153442, 0.0 ], [ -1.2039999961853027, 0.0 ], [ 0.0, 0.0 ] ],
-    	[ [ 0.0, 0.8799999952316284 ], [ 0.0, 0.7120000123977661 ], [ 0.0, -1.6239999532699585 ] ],
-    	[ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 1.128000020980835, 0.0 ] ]
+    	[ [ 1.7519999742507935, 0.0 ], [ 0.0, -0.5479999780654907 ], [ 0.0, -0.12800000607967377 ] ],
+    	[ [ -1.812000036239624, -0.18799999356269836 ], [ 0.0, -1.684000015258789 ], [ 1.4839999675750732, 0.5040000081062317 ] ],
+    	[ [ 0.0, -1.9520000219345093 ], [ -0.21199999749660492, 0.0 ], [ 0.0, 1.3279999494552612 ] ]
     ]
 ```
 
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:138](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
     BatchingTester batchingTester = getBatchingTester();
     return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
@@ -110,7 +110,7 @@ Code from [LayerTestBase.java:138](../../../../../../../../../MindsEye/src/test/
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=5.7928e-01 +- 7.9971e-01 [0.0000e+00 - 2.4866e+00] (180#), relativeTol=7.4545e-01 +- 4.3561e-01 [0.0000e+00 - 1.0000e+00] (110#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=5.8818e-01 +- 8.0659e-01 [0.0000e+00 - 2.4392e+00] (180#), relativeTol=5.8451e-01 +- 4.9281e-01 [0.0000e+00 - 1.0000e+00] (142#)}
     	at com.simiacryptus.mindseye.layers.BatchingTester.test(BatchingTester.java:80)
     	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)

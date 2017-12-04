@@ -1,7 +1,7 @@
 # GaussianNoiseLayer
 ## GaussianNoiseLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.GaussianNoiseLayer",
-      "id": "370a9587-74a1-4959-b406-fa4500002bbb",
+      "id": "a864e734-2f23-44db-97c1-504000002bbb",
       "isFrozen": false,
-      "name": "GaussianNoiseLayer/370a9587-74a1-4959-b406-fa4500002bbb",
+      "name": "GaussianNoiseLayer/a864e734-2f23-44db-97c1-504000002bbb",
       "value": 1.0
     }
 ```
@@ -26,7 +26,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:120](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
@@ -40,21 +40,21 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ 1.008 ], [ -1.832 ], [ -1.136 ] ],
-    	[ [ 1.008 ], [ 1.596 ], [ -0.64 ] ]
+    	[ [ -0.9 ], [ 1.524 ], [ -0.36 ] ],
+    	[ [ -0.432 ], [ -1.884 ], [ -1.824 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 1.3852867434721234 ], [ -2.0026470965984204 ], [ 0.8820455001094516 ] ],
-    	[ [ -0.6093673517479268 ], [ 0.7362547297308564 ], [ 0.154624404090559 ] ]
+    	[ [ -0.7510895430646356 ], [ 1.3592232742476413 ], [ 0.9401737051227191 ] ],
+    	[ [ 0.2741143016889161 ], [ -0.19073541462258725 ], [ -2.5679006063595144 ] ]
     ]
 ```
 
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../../MindsEye/src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:138](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
 ```java
     BatchingTester batchingTester = getBatchingTester();
     return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
@@ -63,7 +63,7 @@ Code from [LayerTestBase.java:138](../../../../../../../../MindsEye/src/test/jav
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=1.0217e+00 +- 8.3265e-01 [0.0000e+00 - 3.4633e+00] (60#), relativeTol=4.6237e-01 +- 3.7501e-01 [0.0000e+00 - 1.0000e+00] (60#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=1.1183e+00 +- 9.6750e-01 [0.0000e+00 - 3.4829e+00] (60#), relativeTol=5.2049e-01 +- 3.7951e-01 [0.0000e+00 - 1.0000e+00] (60#)}
     	at com.simiacryptus.mindseye.layers.BatchingTester.test(BatchingTester.java:80)
     	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)

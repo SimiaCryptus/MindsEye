@@ -67,19 +67,20 @@ public class EntropyLossLayer extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    Tensor gradientA[] = new Tensor[inObj[0].getData().length()];
-    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
+    double zero_tol = 1e-12;
+    Tensor gradient[] = new Tensor[inObj[0].getData().length()];
+    final double max_prob = 1.;
+    Tensor[] output = IntStream.range(0, inObj[0].getData().length()).mapToObj(dataIndex -> {
       final Tensor l = inObj[0].getData().get(dataIndex);
       final Tensor r = inObj[1].getData().get(dataIndex);
       assert (l.dim() == r.dim()) : l.dim() + " != " + r.dim();
-      final Tensor gradient = new Tensor(l.getDimensions());
-      final double[] gradientData = gradient.getData();
-      final double descriptiveNats;
+      final Tensor gradientTensor = new Tensor(l.getDimensions());
+      final double[] gradientData = gradientTensor.getData();
       double total = 0;
       double[] ld = l.getData();
       double[] rd = r.getData();
       for (int i = 0; i < l.dim(); i++) {
-        final double lv = Math.max(Math.min(ld[i], 1.), 1e-12);
+        final double lv = Math.max(Math.min(ld[i], max_prob), zero_tol);
         final double rv = rd[i];
         if (rv > 0) {
           gradientData[i] = -rv / lv;
@@ -90,30 +91,29 @@ public class EntropyLossLayer extends NNLayer {
         }
       }
       assert (total >= 0);
-      descriptiveNats = total;
-      gradientA[dataIndex] = gradient;
-      return new Tensor(new double[]{descriptiveNats}, 1);
+      gradient[dataIndex] = gradientTensor;
+      Tensor outValue = new Tensor(new double[]{total}, 1);
+      return outValue;
     }).toArray(i -> new Tensor[i]);
-    return new NNResult(outputA) {
+    return new NNResult(output) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
-        NNResult a = inObj[0];
-        NNResult b = inObj[1];
-        if (b.isAlive()) {
-          b.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+        if (inObj[1].isAlive()) {
+          inObj[1].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
             final Tensor l = inObj[0].getData().get(dataIndex);
-            final Tensor passback = new Tensor(gradientA[dataIndex].getDimensions());
-            for (int i = 0; i < a.getData().get(0).dim(); i++) {
-              passback.set(i, -data.get(dataIndex).get(0) * l.get(i));
+            final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+            for (int i = 0; i < passback.dim(); i++) {
+              final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
+              passback.set(i, - data.get(dataIndex).get(0) * Math.log(lv));
             }
             return passback;
           }).toArray(i -> new Tensor[i])));
         }
-        if (a.isAlive()) {
-          a.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
-            final Tensor passback = new Tensor(gradientA[dataIndex].getDimensions());
-            for (int i = 0; i < a.getData().get(0).dim(); i++) {
-              passback.set(i, data.get(dataIndex).get(0) * gradientA[dataIndex].get(i));
+        if (inObj[0].isAlive()) {
+          inObj[0].accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).mapToObj(dataIndex -> {
+            final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
+            for (int i = 0; i < passback.dim(); i++) {
+              passback.set(i, data.get(dataIndex).get(0) * gradient[dataIndex].get(i));
             }
             return passback;
           }).toArray(i -> new Tensor[i])));
@@ -122,7 +122,7 @@ public class EntropyLossLayer extends NNLayer {
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive();
+        return inObj[0].isAlive() || inObj[0].isAlive();
       }
       
     };
