@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  */
 public class CifarTests {
   
-  private static final int timeoutMinutes = 1;
+  private static final int timeoutMinutes = 15;
   /**
    * The constant fwd_linear_1.
    */

@@ -159,6 +159,18 @@ public class EncodingProblem extends ImageTestUtil implements Problem {
         .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
+    
+    log.p("Some rendered unit vectors:");
+    for (int featureNumber = 0; featureNumber < features; featureNumber++) {
+      try {
+        Tensor input = new Tensor(features).set(featureNumber, 1);
+        Tensor tensor = GpuController.call(ctx -> imageNetwork.eval(ctx, input)).getData().get(0);
+        log.out(log.image(tensor.toImage(), ""));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    
     return this;
   }
   

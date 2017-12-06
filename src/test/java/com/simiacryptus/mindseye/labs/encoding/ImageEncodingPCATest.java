@@ -117,11 +117,18 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
         step1.band2, 12, 7, 4);
     }).invoke();
-    
+  
+    log.h1("Fourth Layer");
+    AddLayerStep step3 = log.code(() -> {
+      return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
+        4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
+        step2.band2, 24, 7, 1);
+    }).invoke();
+  
     log.h1("Transcoding Different Category");
-    TranscodeStep step3 = log.code(() -> {
+    TranscodeStep step4 = log.code(() -> {
       return new TranscodeStep(log, "yin_yang",
-        100, size, timeoutMinutes, step1.integrationModel, step2.toSize, step2.toSize, step2.band2);
+        100, size, timeoutMinutes*5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
     }).invoke();
   }
   

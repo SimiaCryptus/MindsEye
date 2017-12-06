@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
-import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
@@ -42,6 +41,8 @@ import org.junit.experimental.categories.Category;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -49,7 +50,7 @@ import java.util.stream.Stream;
  */
 public class MnistTests {
   
-  private static final int timeoutMinutes = 1;
+  private static final int timeoutMinutes = 15;
   /**
    * The constant fwd_linear_1.
    */
@@ -311,35 +312,28 @@ public class MnistTests {
     
   }
   
-  public static class CompareQQN extends ImageTestUtil {
-    
-    /**
-     * Classification comparison.
-     *
-     * @throws IOException the io exception
-     */
-    @Test
-    @Category(TestCategories.Report.class)
-    public void classification_compare() throws IOException {
-      try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-        if (null != originalOut) log.addCopy(originalOut);
-        log.h1("QQN-LBFGS Comparison");
-        Data data = new Data();
-        log.h2("L-BFGS");
-        FwdNetworkFactory fwdNetworkFactory = MnistTests.fwd_conv_1;
-        ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE,
-          new ClassifyProblem(fwdNetworkFactory, MnistTests.limited_memory_bfgs, data, 10)
-            .setTimeoutMinutes(timeoutMinutes).run(log).getHistory());
-        log.h2("QQN");
-        ProblemRun qqn = new ProblemRun("QQN", Color.GREEN,
-          new ClassifyProblem(fwdNetworkFactory, MnistTests.quadratic_quasi_newton, data, 10)
-            .setTimeoutMinutes(timeoutMinutes).run(log).getHistory());
-        log.h2("Comparison");
-        compare(lbfgs, qqn);
-        compareTime(lbfgs, qqn);
-      }
+  public static class CompareQQN extends OptimizerComparison {
+  
+    public CompareQQN() {
+      super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new Data());
     }
-    
+  
+    @Override
+    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
+      log.h1("QQN-LBFGS Comparison");
+      log.h2("L-BFGS");
+      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(limited_memory_bfgs));
+      log.h2("QQN");
+      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton));
+      log.h2("Comparison");
+      log.code(()->{
+        return compare(lbfgs, qqn);
+      });
+      log.code(()->{
+        return compareTime(lbfgs, qqn);
+      });
+    }
+  
   }
   
   private static class Data implements ImageData {

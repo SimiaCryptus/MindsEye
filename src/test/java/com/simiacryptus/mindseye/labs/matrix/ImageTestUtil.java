@@ -98,7 +98,7 @@ public class ImageTestUtil {
   public static PlotCanvas plotTime(List<StepRecord> history) {
     LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
     PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-      (step.iteraton-timeStats.getMin())/1000.0, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
+      (step.epochTime-timeStats.getMin())/1000.0, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
     plot.setTitle("Convergence Plot");
     plot.setAxisLabels("Time", "log10(Fitness)");
     plot.setSize(600, 400);
@@ -141,21 +141,24 @@ public class ImageTestUtil {
    * @return the plot canvas
    */
   public static PlotCanvas compareTime(ProblemRun... trials) {
-    DoubleSummaryStatistics xStatistics = Arrays.stream(trials)
-      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.epochTime))
-      .summaryStatistics();
+    DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
+      .map(x -> x.history.stream().mapToDouble(step -> step.epochTime).summaryStatistics()).toArray(i->new DoubleSummaryStatistics[i]);
+    double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
     DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
       .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> Math.log10(step.fitness)))
       .summaryStatistics();
     double[] lowerBound = new double[]{0, yStatistics.getMin()};
-    double[] upperBound = new double[]{(xStatistics.getMax()-xStatistics.getMin())/1000.0, yStatistics.getMax()};
+    double[] upperBound = new double[]{(totalTime)/1000.0, yStatistics.getMax()};
     PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
     canvas.setTitle("Convergence Plot");
     canvas.setAxisLabels("Time", "log10(Fitness)");
     canvas.setSize(600, 400);
-    for (ProblemRun trial : trials) {
-      ScatterPlot plot = new ScatterPlot(trial.history.stream().map(step -> new double[]{
-        (step.epochTime-xStatistics.getMin()) / 1000.0, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
+    for (int t=0;t<trials.length;t++) {
+      ProblemRun trial = trials[t];
+      DoubleSummaryStatistics trialStats = xStatistics[t];
+      ScatterPlot plot = new ScatterPlot(trial.history.stream().map(step -> {
+        return new double[]{ (step.epochTime - trialStats.getMin()) / 1000.0, Math.log10(step.fitness)};
+      }).toArray(i -> new double[i][]));
       plot.setID(trial.name);
       plot.setColor(trial.color);
       canvas.add(plot);
