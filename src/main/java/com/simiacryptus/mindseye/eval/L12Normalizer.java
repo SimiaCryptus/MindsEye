@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 /**
  * Abstract base class for a trainable wrapper that adds
  * per-layer L1 and L2 normalization constants. It allows
- * the implementing class to choose the coefficients 
+ * the implementing class to choose the coefficients
  * for each layer.
  */
 public abstract class L12Normalizer implements Trainable {

@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.line;
 
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.DescribeOrientationWrapper;
 
@@ -80,7 +80,8 @@ public class QuadraticSearch implements LineSearchStrategy {
       if (isSame(leftX, thisX, 1.0)) {
         monitor.log(String.format("Converged to left"));
         return filter(cursor, leftPoint.point, monitor);
-      } else if (isSame(thisX, rightX, 1.0)) {
+      }
+      else if (isSame(thisX, rightX, 1.0)) {
         monitor.log(String.format("Converged to right"));
         return filter(cursor, rightPoint.point, monitor);
       }
@@ -101,7 +102,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       else {
         isLeft = thisPoint.derivative < 0;
       }
-      monitor.log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
+      //monitor.log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
       monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
       if (loops++ > 10) {
         monitor.log(String.format("Loops = %s", loops));
@@ -169,14 +170,15 @@ public class QuadraticSearch implements LineSearchStrategy {
    * @return the boolean
    */
   protected boolean isSame(LineSearchCursor cursor, TrainingMonitor monitor, LineSearchPoint a, LineSearchPoint b) {
-    if(isSame(a.point.rate, b.point.rate, 1.0)) {
-      if(!isSame(a.point.getMean(), b.point.getMean(), 10.0)) {
+    if (isSame(a.point.rate, b.point.rate, 1.0)) {
+      if (!isSame(a.point.getMean(), b.point.getMean(), 10.0)) {
         String diagnose = diagnose(cursor, monitor, a, b);
         monitor.log(diagnose);
         throw new IterativeStopException(diagnose);
       }
       return true;
-    } else {
+    }
+    else {
       return false;
     }
   }
@@ -185,19 +187,19 @@ public class QuadraticSearch implements LineSearchStrategy {
     LineSearchPoint verifyA = cursor.step(a.point.rate, monitor);
     boolean validA = isSame(a.point.getMean(), verifyA.point.getMean(), 1.0);
     monitor.log(String.format("Verify %s: %s (%s)", a.point.rate, verifyA.point.getMean(), validA));
-    if(!validA) {
-      DescribeOrientationWrapper.render(a.point.weights,a.point.delta);
+    if (!validA) {
+      DescribeOrientationWrapper.render(a.point.weights, a.point.delta);
       return ("Non-Reproducable Point Found: " + a.point.rate);
     }
     LineSearchPoint verifyB = cursor.step(b.point.rate, monitor);
     boolean validB = isSame(b.point.getMean(), verifyB.point.getMean(), 1.0);
     monitor.log(String.format("Verify %s: %s (%s)", b.point.rate, verifyB.point.getMean(), validB));
-    if(!validA && !validB) return ("Non-Reproducable Function Found");
-    if(validA && validB)  return ("Function Discontinuity Found");
-    if(!validA) {
+    if (!validA && !validB) return ("Non-Reproducable Function Found");
+    if (validA && validB) return ("Function Discontinuity Found");
+    if (!validA) {
       return ("Non-Reproducable Point Found: " + a.point.rate);
     }
-    if(!validB) {
+    if (!validB) {
       return ("Non-Reproducable Point Found: " + b.point.rate);
     }
     return "";
@@ -354,11 +356,14 @@ public class QuadraticSearch implements LineSearchStrategy {
         if (isSame(cursor, monitor, initialPoint, thisPoint)) {
           monitor.log(String.format("%s ~= %s", initialPoint.point.rate, thisX));
           return this;
-        } else if (thisPoint.point.getMean() > initialPoint.point.getMean()) {
+        }
+        else if (thisPoint.point.getMean() > initialPoint.point.getMean()) {
           thisX = thisX / 13;
-        } else if (thisPoint.derivative < initialDerivFactor * thisPoint.derivative) {
+        }
+        else if (thisPoint.derivative < initialDerivFactor * thisPoint.derivative) {
           thisX = thisX * 7;
-        } else {
+        }
+        else {
           monitor.log(String.format("%s <= %s", thisPoint.point.getMean(), initialPoint.point.getMean()));
           return this;
         }

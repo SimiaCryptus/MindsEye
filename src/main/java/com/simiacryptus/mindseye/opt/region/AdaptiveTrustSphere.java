@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.opt.region;
 import com.simiacryptus.util.ArrayUtil;
 
 /**
- * This trust region uses recent position history 
+ * This trust region uses recent position history
  * to define an ellipsoid volume for the n+1 line search
  */
 public class AdaptiveTrustSphere implements TrustRegion {

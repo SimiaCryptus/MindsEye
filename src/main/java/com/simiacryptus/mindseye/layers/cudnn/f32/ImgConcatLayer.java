@@ -71,7 +71,7 @@ public class ImgConcatLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.addProperty("maxBands",maxBands);
+    json.addProperty("maxBands", maxBands);
     return json;
   }
   
@@ -84,14 +84,14 @@ public class ImgConcatLayer extends NNLayer {
     int length = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> 3 == x.getData().getDimensions().length && x.getData().getDimensions()[0] == dimOut[0] && x.getData().getDimensions()[1] == dimOut[1] && x.getData().length() == length);
     dimOut[2] = Arrays.stream(inObj).mapToInt(x -> x.getData().getDimensions()[2]).sum();
-    if(0 < maxBands && dimOut[2] > maxBands) dimOut[2] = maxBands;
+    if (0 < maxBands && dimOut[2] > maxBands) dimOut[2] = maxBands;
     ((CudaExecutionContext) nncontext).initThread();
     CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), length * dimOut[2] * dimOut[1] * dimOut[0] * Sizeof.FLOAT);
     int bandOffset = 0;
     for (int i = 0; i < inObj.length; i++) {
       TensorList data = inObj[i].getData();
       int[] dimensions = data.getDimensions();
-      int bands = maxBands<=0?dimensions[2]:Math.min(dimensions[2], maxBands - bandOffset);
+      int bands = maxBands <= 0 ? dimensions[2] : Math.min(dimensions[2], maxBands - bandOffset);
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
         CUDNN_DATA_FLOAT, length, bands, dimensions[1], dimensions[0],
         dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
@@ -119,7 +119,7 @@ public class ImgConcatLayer extends NNLayer {
         for (int i = 0; i < inObj.length; i++) {
           NNResult input = inObj[i];
           int[] dimensions = input.getData().getDimensions();
-          int bands = maxBands<=0?dimensions[2]:Math.min(dimensions[2], maxBands - bandOffset);
+          int bands = maxBands <= 0 ? dimensions[2] : Math.min(dimensions[2], maxBands - bandOffset);
           if (input.isAlive()) {
             int _bandOffset = bandOffset;
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), length * dimensions[2] * dimensions[1] * dimensions[0] * Sizeof.FLOAT);

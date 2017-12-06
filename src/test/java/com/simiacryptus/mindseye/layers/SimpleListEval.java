@@ -47,6 +47,29 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   }
   
   /**
+   * Accumulate.
+   *
+   * @param buffer the buffer
+   * @param data   the data
+   */
+  public static void accumulate(TensorList buffer, TensorList data) {
+    IntStream.range(0, data.length()).forEach(b -> {
+      buffer.get(b).accum(data.get(b));
+    });
+  }
+  
+  /**
+   * Run simple eval.
+   *
+   * @param layer  the layer
+   * @param tensor the tensor
+   * @return the simple eval
+   */
+  public static SimpleListEval run(NNLayer layer, TensorList... tensor) {
+    return new SimpleListEval(layer, tensor).call();
+  }
+  
+  /**
    * Get derivative TensorList [ ].
    *
    * @return the TensorList [ ]
@@ -66,23 +89,23 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   
   @Override
   public SimpleListEval call() {
-    derivative = Arrays.stream(input).map(x->new TensorArray(x.stream()
-      .map(i->new Tensor(i.getDimensions()))
-      .toArray(i->new Tensor[i]))
-    ).toArray(i->new TensorList[i]);
-    NNResult[] inputR = IntStream.range(0,input.length).mapToObj(i->{
+    derivative = Arrays.stream(input).map(x -> new TensorArray(x.stream()
+      .map(i -> new Tensor(i.getDimensions()))
+      .toArray(i -> new Tensor[i]))
+    ).toArray(i -> new TensorList[i]);
+    NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
       return new NNResult(input[i]) {
         @Override
-        public void accumulate(DeltaSet buffer, TensorList data)  {
+        public void accumulate(DeltaSet buffer, TensorList data) {
           SimpleListEval.this.accumulate(derivative[i], data);
         }
-    
+        
         @Override
         public boolean isAlive() {
           return true;
         }
       };
-    }).toArray(i->new NNResult[i]);
+    }).toArray(i -> new NNResult[i]);
     output = GpuController.call(cudaExeCtx -> {
       NNResult eval = layer.eval(cudaExeCtx, inputR);
       eval.accumulate(new DeltaSet(), getFeedback(eval.getData()));
@@ -91,24 +114,13 @@ public class SimpleListEval implements Callable<SimpleListEval> {
     return this;
   }
   
-  public static void accumulate(TensorList buffer, TensorList data) {
-    IntStream.range(0,data.length()).forEach(b->{
-      buffer.get(b).accum(data.get(b));
-    });
-  }
-  
+  /**
+   * Gets feedback.
+   *
+   * @param data the data
+   * @return the feedback
+   */
   public TensorArray getFeedback(TensorList data) {
     return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
-  }
-  
-  /**
-   * Run simple eval.
-   *
-   * @param layer  the layer
-   * @param tensor the tensor
-   * @return the simple eval
-   */
-  public static SimpleListEval run(NNLayer layer, TensorList... tensor) {
-    return new SimpleListEval(layer, tensor).call();
   }
 }

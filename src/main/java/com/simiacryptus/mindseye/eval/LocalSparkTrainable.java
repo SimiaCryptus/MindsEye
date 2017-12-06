@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A debugging class which replaces SparkTrainable with an implementation 
- * that uses direct method calls instead of RMI. This can be useful 
- * for debugging in some situations. 
+ * A debugging class which replaces SparkTrainable with an implementation
+ * that uses direct method calls instead of RMI. This can be useful
+ * for debugging in some situations.
  */
 public class LocalSparkTrainable extends SparkTrainable {
   

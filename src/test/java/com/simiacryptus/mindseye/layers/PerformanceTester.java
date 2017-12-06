@@ -43,7 +43,7 @@ public class PerformanceTester {
    * Instantiates a new Derivative tester.
    */
   public PerformanceTester() {
-
+  
   }
   
   /**
@@ -64,9 +64,11 @@ public class PerformanceTester {
     if (isTestLearning()) {
       DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
         return testLearningPerformance(component, outputPrototype, inputPrototype);
-      }).reduce((a, b) -> a.combine(b)).orElseGet(()->null);
-      if(null != statistics) System.out.println(String.format("Learning performance: %.4f +- %.4f [%.4f - %.4f]",
-        statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
+      }).reduce((a, b) -> a.combine(b)).orElseGet(() -> null);
+      if (null != statistics) {
+        System.out.println(String.format("Learning performance: %.4f +- %.4f [%.4f - %.4f]",
+          statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
+      }
     }
   }
   
@@ -79,11 +81,11 @@ public class PerformanceTester {
    * @return the double statistics
    */
   protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor... inputPrototype) {
-    return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l->
-      TimedResult.time(()-> GpuController.call(exe->{
+    return new DoubleStatistics().accept(IntStream.range(0, samples).mapToLong(l ->
+      TimedResult.time(() -> GpuController.call(exe -> {
         return component.eval(exe, inputPrototype);
       })).timeNanos
-    ).mapToDouble(x->x/1e9).toArray());
+    ).mapToDouble(x -> x / 1e9).toArray());
   }
   
   /**
@@ -95,15 +97,15 @@ public class PerformanceTester {
    * @return the double statistics
    */
   protected DoubleStatistics testLearningPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    return new DoubleStatistics().accept(IntStream.range(0,samples).mapToLong(l ->
-      GpuController.call(exe->{
+    return new DoubleStatistics().accept(IntStream.range(0, samples).mapToLong(l ->
+      GpuController.call(exe -> {
         NNResult eval = component.eval(exe, inputPrototype);
         return TimedResult.time(() -> {
           DeltaSet buffer = new DeltaSet();
           eval.accumulate(buffer, new TensorArray(outputPrototype));
           return buffer;
         });
-      }).timeNanos).mapToDouble(x->x/1e9).toArray());
+      }).timeNanos).mapToDouble(x -> x / 1e9).toArray());
   }
   
   /**

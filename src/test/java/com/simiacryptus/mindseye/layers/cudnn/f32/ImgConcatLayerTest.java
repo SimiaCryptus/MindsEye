@@ -39,7 +39,7 @@ public class ImgConcatLayerTest extends F32LayerTestBase {
   }
   
   /**
-   * The type Band limit test.
+   * The type Band limit run.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
     

@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -47,20 +46,6 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
     this.inner = inner;
   }
   
-  @Override
-  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
-    LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
-    if(cursor instanceof SimpleLineSearchCursor) {
-      DeltaSet direction = ((SimpleLineSearchCursor) cursor).direction;
-      StateSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
-      String asString = render(weights, direction);
-      monitor.log(String.format("Orientation Details: %s", asString));
-    } else {
-      monitor.log(String.format("Non-simple cursor: %s", cursor));
-    }
-    return cursor;
-  }
-  
   /**
    * Render string.
    *
@@ -76,7 +61,8 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
         if (1 == deltaList.size()) {
           State weightDelta = deltaList.get(0);
           return render(weightDelta, direction.getMap().get(weightDelta.layer));
-        } else {
+        }
+        else {
           return deltaList.stream().map(weightDelta -> {
             return render(weightDelta, direction.getMap().get(weightDelta.layer));
           }).limit(10)
@@ -84,7 +70,7 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
         }
       }));
     return data.entrySet().stream().map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
-      .map(str->str.replaceAll("\n","\n\t"))
+      .map(str -> str.replaceAll("\n", "\n\t"))
       .reduce((a, b) -> a + "\n" + b).orElse("");
   }
   
@@ -110,11 +96,26 @@ public class DescribeOrientationWrapper implements OrientationStrategy<LineSearc
   public static String getId(DoubleBuffer<NNLayer> x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
-    return name.contains(className)?className:name;
+    return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
 //    }
 //    return x.layer.toString();
+  }
+  
+  @Override
+  public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
+    LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
+    if (cursor instanceof SimpleLineSearchCursor) {
+      DeltaSet direction = ((SimpleLineSearchCursor) cursor).direction;
+      StateSet weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      String asString = render(weights, direction);
+      monitor.log(String.format("Orientation Details: %s", asString));
+    }
+    else {
+      monitor.log(String.format("Non-simple cursor: %s", cursor));
+    }
+    return cursor;
   }
   
   @Override

@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * This class handles dispatching network evaluations, 
+ * This class handles dispatching network evaluations,
  * and distributing the evaluations to the system GPU(s).
  * This is the main class the handles actual execution for training purposes.
  */
@@ -52,16 +52,19 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
    */
   protected final NNLayer network;
   /**
-   * Between each iteration we have the option to initiate a garbage collection. 
-   * This is a good opportunity since the reachable object count will be at a minimum 
-   * between collections, making GC more efficient. 
-   * This can be configured as a non-blocking operation by using the 
+   * Between each iteration we have the option to initiate a garbage collection.
+   * This is a good opportunity since the reachable object count will be at a minimum
+   * between collections, making GC more efficient.
+   * This can be configured as a non-blocking operation by using the
    * JVM flags "-XX:+ExplicitGCInvokesConcurrent -XX:+UseConcMarkSweepGC"
    */
   protected boolean gcEachIteration = true;
   
+  /**
+   * The Gc period.
+   */
   protected double gcPeriod = 5.0;
-
+  
   /**
    * The Data.
    */
@@ -137,13 +140,13 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
   public PointSample measure(int retries, boolean isStatic, TrainingMonitor monitor) {
     try {
       assert !data.isEmpty();
-  
+      
       TimedResult<PointSample> timedResult = TimedResult.time(() -> GpuController.INSTANCE.distribute(data,
         (list, dev) -> eval(list, dev, isStatic, monitor),
         (a, b) -> a.add(b)
       ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
-      if(null != monitor && verbosity() > 1) {
+      if (null != monitor && verbosity() > 1) {
         monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
       }
       assert (null != timedResult.result);
@@ -207,7 +210,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       double sum = statistics.getSum();
       DeltaSet<NNLayer> deltaSet = new DeltaSet();
       result.accumulate(deltaSet, 1.0);
-      System.out.println(String.format("Evaluated to %s delta buffers, %s mag", deltaSet.getMap().size(), deltaSet.getMagnitude()));
+      //System.out.println(String.format("Evaluated to %s delta buffers, %s mag", deltaSet.getMap().size(), deltaSet.getMagnitude()));
       return new PointSample(deltaSet, new StateSet(deltaSet), sum, 0.0, list.size());
     });
     if (null != monitor && verbosity() > 0) {
@@ -285,10 +288,20 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
     return this;
   }
   
+  /**
+   * Gets gc period.
+   *
+   * @return the gc period
+   */
   public double getGcPeriod() {
     return gcPeriod;
   }
   
+  /**
+   * Sets gc period.
+   *
+   * @param gcPeriod the gc period
+   */
   public void setGcPeriod(double gcPeriod) {
     this.gcPeriod = gcPeriod;
   }

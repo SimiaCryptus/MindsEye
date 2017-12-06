@@ -59,7 +59,7 @@ public class PoolingLayer extends NNLayer {
    */
   protected PoolingLayer(JsonObject json) {
     super(json);
-    mode = Arrays.stream(PoolingMode.values()).filter(i->i.id == json.get("mode").getAsInt()).findFirst().get();
+    mode = Arrays.stream(PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     windowX = json.get("windowX").getAsInt();
     windowY = json.get("windowY").getAsInt();
     paddingX = json.get("paddingX").getAsInt();
@@ -84,7 +84,7 @@ public class PoolingLayer extends NNLayer {
   public static PoolingLayer fromJson(JsonObject json) {
     return new PoolingLayer(json);
   }
-
+  
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
@@ -180,6 +180,7 @@ public class PoolingLayer extends NNLayer {
    * Sets mode.
    *
    * @param mode the mode
+   * @return the mode
    */
   public PoolingLayer setMode(PoolingMode mode) {
     this.mode = mode;

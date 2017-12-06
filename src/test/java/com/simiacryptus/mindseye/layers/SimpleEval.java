@@ -47,6 +47,17 @@ public class SimpleEval implements Callable<SimpleEval> {
   }
   
   /**
+   * Run simple eval.
+   *
+   * @param layer  the layer
+   * @param tensor the tensor
+   * @return the simple eval
+   */
+  public static SimpleEval run(NNLayer layer, Tensor... tensor) {
+    return new SimpleEval(layer, tensor).call();
+  }
+  
+  /**
    * Get derivative tensor [ ].
    *
    * @return the tensor [ ]
@@ -66,20 +77,20 @@ public class SimpleEval implements Callable<SimpleEval> {
   
   @Override
   public SimpleEval call() {
-    derivative = Arrays.stream(input).map(input->new Tensor(input.getDimensions())).toArray(i->new Tensor[i]);
-    NNResult[] inputR = IntStream.range(0,input.length).mapToObj(i->{
+    derivative = Arrays.stream(input).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
+    NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
       return new NNResult(input[i]) {
         @Override
-        public void accumulate(DeltaSet buffer, TensorList data)  {
-          data.stream().forEach(t->derivative[i].accum(t));
+        public void accumulate(DeltaSet buffer, TensorList data) {
+          data.stream().forEach(t -> derivative[i].accum(t));
         }
-    
+        
         @Override
         public boolean isAlive() {
           return true;
         }
       };
-    }).toArray(i->new NNResult[i]);
+    }).toArray(i -> new NNResult[i]);
     NNResult result = GpuController.call(cudaExeCtx -> {
       NNResult eval = layer.eval(cudaExeCtx, inputR);
       eval.accumulate(new DeltaSet(), getFeedback(eval.getData()));
@@ -89,18 +100,13 @@ public class SimpleEval implements Callable<SimpleEval> {
     return this;
   }
   
+  /**
+   * Gets feedback.
+   *
+   * @param data the data
+   * @return the feedback
+   */
   public TensorArray getFeedback(TensorList data) {
     return new TensorArray(data.stream().map(t -> t.map(v -> 1.0)).toArray(i -> new Tensor[i]));
-  }
-  
-  /**
-   * Run simple eval.
-   *
-   * @param layer  the layer
-   * @param tensor the tensor
-   * @return the simple eval
-   */
-  public static SimpleEval run(NNLayer layer, Tensor... tensor) {
-    return new SimpleEval(layer, tensor).call();
   }
 }

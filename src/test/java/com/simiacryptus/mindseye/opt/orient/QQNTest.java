@@ -23,11 +23,9 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.*;
-import com.simiacryptus.mindseye.mnist.MnistTestBase;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.network.SimpleLossNetwork;
-import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -38,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  * The type Qqn run.
  */
 public class QQNTest extends MnistTestBase {
- 
+
   @Override
   public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {

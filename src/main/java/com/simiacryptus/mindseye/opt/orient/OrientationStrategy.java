@@ -28,6 +28,8 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
  * Base class for the "orientation" optimization sub-component.
  * This class interprets the result of the differential function evaluation result at the start of a training iteration,
  * transforming the multi-dimensional point-vector-function entity into a one-dimensional search sub-problem.
+ *
+ * @param <T> the type parameter
  */
 public interface OrientationStrategy<T extends LineSearchCursor> {
   

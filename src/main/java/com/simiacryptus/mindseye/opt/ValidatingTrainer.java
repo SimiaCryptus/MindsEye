@@ -19,12 +19,15 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.eval.*;
 import com.simiacryptus.mindseye.eval.SampledCachedTrainable;
 import com.simiacryptus.mindseye.eval.SampledTrainable;
-import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.eval.TrainableWrapper;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.opt.line.*;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
+import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
+import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.FastRandom;
@@ -54,24 +57,23 @@ public class ValidatingTrainer {
   
   
   private final List<TrainingPhase> regimen;
-  private TrainingMonitor monitor = new TrainingMonitor();
   private final Trainable validationSubject;
-  
   private final AtomicInteger disappointments = new AtomicInteger(0);
   private final AtomicLong trainingMeasurementTime = new AtomicLong(0);
   private final AtomicLong validatingMeasurementTime = new AtomicLong(0);
+  private TrainingMonitor monitor = new TrainingMonitor();
   private Duration timeout;
   private double terminateThreshold;
   private int maxIterations = Integer.MAX_VALUE;
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int epochIterations = 1;
   private int trainingSize = 10000;
-  private double trainingTarget = 0.9;
+  private double trainingTarget = 0.7;
   private double overtrainingTarget = 2;
   private int minEpochIterations = 1;
-  private int maxEpochIterations = 50;
+  private int maxEpochIterations = 20;
   private int minTrainingSize = 100;
-  private int maxTrainingSize = 1000000;
+  private int maxTrainingSize = Integer.MAX_VALUE;
   private double adjustmentTolerance = 0.1;
   private double adjustmentFactor = 0.5;
   private int disappointmentThreshold = 0;
@@ -85,7 +87,7 @@ public class ValidatingTrainer {
    * @param validationSubject the validation subject
    */
   public ValidatingTrainer(SampledTrainable trainingSubject, Trainable validationSubject) {
-    this.regimen = new ArrayList(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject).cached())));
+    this.regimen = new ArrayList(Arrays.asList(new TrainingPhase(new PerformanceWrapper(trainingSubject))));
     this.validationSubject = new Trainable() {
       @Override
       public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
@@ -95,15 +97,21 @@ public class ValidatingTrainer {
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-  
+      
       @Override
       public boolean reseed(long seed) {
         return validationSubject.reseed(seed);
       }
-    }.cached();
+    };
     this.trainingSize = trainingSubject.getTrainingSize();
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = Double.NEGATIVE_INFINITY;
+  }
+  
+  private static String getId(DoubleBuffer<NNLayer> x) {
+    String name = x.layer.getName();
+    String className = x.layer.getClass().getSimpleName();
+    return name.contains(className) ? className : name;
   }
   
   /**
@@ -146,7 +154,7 @@ public class ValidatingTrainer {
       monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
       List<TrainingPhase> regimen = getRegimen();
       long seed = System.nanoTime();
-      List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i->{
+      List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i -> {
         TrainingPhase phase = getRegimen().get(i);
         return runPhase(epochParams, phase, i, seed);
       }).collect(Collectors.toList());
@@ -198,10 +206,11 @@ public class ValidatingTrainer {
           epochParams.iterations = Math.max(getMinEpochIterations(), Math.min(getMaxEpochIterations(), (int) (primaryPhase.iterations * adj1)));
         }
         if (adj2 < (1 + adjustmentTolerance) || adj2 > (1 - adjustmentTolerance)) {
-          epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2)));
+          epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2))), epochParams.trainingSize));
         }
-      } else {
-        epochParams.trainingSize = Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 5));
+      }
+      else {
+        epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 5)), epochParams.trainingSize));
         epochParams.iterations = 1;
       }
       epochParams.validation = currentValidation;
@@ -221,7 +230,7 @@ public class ValidatingTrainer {
   protected EpochResult runPhase(EpochParams epochParams, TrainingPhase phase, int i, long seed) {
     monitor.log(String.format("Phase %d: %s", i, phase));
     phase.trainingSubject.setTrainingSize(epochParams.trainingSize);
-    monitor.log(String.format("resetAndMeasure; trainingSize=%s",epochParams.trainingSize));
+    monitor.log(String.format("resetAndMeasure; trainingSize=%s", epochParams.trainingSize));
     PointSample currentPoint = reset(phase, seed).measure(phase);
     PointSample priorPoint = currentPoint.copyDelta();
     assert (0 < currentPoint.delta.getMap().size()) : "Nothing to optimize";
@@ -271,7 +280,8 @@ public class ValidatingTrainer {
     LineSearchStrategy lineSearchStrategy;
     if (phase.lineSearchStrategyMap.containsKey(directionType)) {
       lineSearchStrategy = phase.lineSearchStrategyMap.get(directionType);
-    } else {
+    }
+    else {
       monitor.log(String.format("Constructing line search parameters: %s", directionType));
       lineSearchStrategy = phase.lineSearchFactory.apply(direction.getDirectionType());
       phase.lineSearchStrategyMap.put(directionType, lineSearchStrategy);
@@ -300,18 +310,12 @@ public class ValidatingTrainer {
         List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
           DoubleBuffer dirDelta = nextWeights.getMap().get(prevWeight.layer);
           double numerator = prevWeight.deltaStatistics().rms();
-          double denominator = null==dirDelta?0:dirDelta.deltaStatistics().rms();
-          return (numerator / (0==denominator?1:denominator));
+          double denominator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
+          return (numerator / (0 == denominator ? 1 : denominator));
         }).collect(Collectors.toList());
-        if(1 == doubleList.size()) return Double.toString(doubleList.get(0));
-        return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x->x).toArray()).toString();
+        if (1 == doubleList.size()) return Double.toString(doubleList.get(0));
+        return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
       })));
-  }
-  
-  private static String getId(DoubleBuffer<NNLayer> x) {
-    String name = x.layer.getName();
-    String className = x.layer.getClass().getSimpleName();
-    return name.contains(className)?className:name;
   }
   
   /**
@@ -815,38 +819,8 @@ public class ValidatingTrainer {
       this.continueTraining = continueTraining;
       this.iterations = iterations;
     }
-  
-  }
-  
-  private class StepResult {
-    /**
-     * The Performance.
-     */
-    final double[] performance;
-    /**
-     * The Current point.
-     */
-    final PointSample currentPoint;
-    /**
-     * The Previous.
-     */
-    final PointSample previous;
-  
-    /**
-     * Instantiates a new Step result.
-     *
-     * @param previous     the previous
-     * @param currentPoint the current point
-     * @param performance  the performance
-     */
-    public StepResult(PointSample previous, PointSample currentPoint, double[] performance) {
-      this.currentPoint = currentPoint;
-      this.previous = previous;
-      this.performance = performance;
-    }
     
   }
-  
   
   /**
    * The type Training phase.
@@ -946,7 +920,7 @@ public class ValidatingTrainer {
       this.lineSearchStrategyMap = lineSearchStrategyMap;
       return this;
     }
-  
+    
     @Override
     public String toString() {
       return "TrainingPhase{" +
@@ -956,6 +930,34 @@ public class ValidatingTrainer {
     }
   }
   
+  private class StepResult {
+    /**
+     * The Performance.
+     */
+    final double[] performance;
+    /**
+     * The Current point.
+     */
+    final PointSample currentPoint;
+    /**
+     * The Previous.
+     */
+    final PointSample previous;
+  
+    /**
+     * Instantiates a new Step result.
+     *
+     * @param previous     the previous
+     * @param currentPoint the current point
+     * @param performance  the performance
+     */
+    public StepResult(PointSample previous, PointSample currentPoint, double[] performance) {
+      this.currentPoint = currentPoint;
+      this.previous = previous;
+      this.performance = performance;
+    }
+    
+  }
   
   private class PerformanceWrapper extends TrainableWrapper<SampledTrainable> implements SampledTrainable {
   
@@ -978,12 +980,12 @@ public class ValidatingTrainer {
       getInner().setTrainingSize(trainingSize);
       return this;
     }
-  
+    
     @Override
     public SampledCachedTrainable<? extends SampledTrainable> cached() {
       return new SampledCachedTrainable<>(this);
     }
-  
+    
     @Override
     public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
       TimedResult<PointSample> time = TimedResult.time(() ->

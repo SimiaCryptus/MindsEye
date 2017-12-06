@@ -765,7 +765,7 @@ public class Tensor implements Serializable {
    * @return the tensor
    */
   public Tensor scale(final double d) {
-    return map(v->v*d);
+    return map(v -> v * d);
   }
   
   /**
@@ -1050,17 +1050,19 @@ public class Tensor implements Serializable {
         list = list.subList(0, 8);
         list.add("...");
       }
-      if(prettyPrint) {
-        if(coords.length < this.dimensions.length-2) {
+      if (prettyPrint) {
+        if (coords.length < this.dimensions.length - 2) {
           final String str = list.stream().limit(10)
-            .map(s->"\t"+s.replaceAll("\n","\n\t"))
+            .map(s -> "\t" + s.replaceAll("\n", "\n\t"))
             .reduce((a, b) -> a + ",\n" + b).get();
           return "[\n" + str + "\n]";
-        } else {
+        }
+        else {
           final String str = list.stream().reduce((a, b) -> a + ", " + b).get();
           return "[ " + str + " ]";
         }
-      } else {
+      }
+      else {
         final String str = list.stream().reduce((a, b) -> a + "," + b).get();
         return "[ " + str + " ]";
       }

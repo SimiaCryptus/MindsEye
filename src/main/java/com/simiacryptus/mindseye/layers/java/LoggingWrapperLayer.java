@@ -21,16 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.util.MonitoredItem;
-import com.simiacryptus.util.MonitoredObject;
-import com.simiacryptus.util.data.PercentileStatistics;
-import com.simiacryptus.util.data.ScalarStatistics;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 /**
@@ -70,7 +61,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    NNResult[] wrappedInput = IntStream.range(0,inObj.length).mapToObj(i->{
+    NNResult[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       NNResult result = inObj[i];
       return new NNResult(result.getData()) {
         @Override
@@ -80,14 +71,14 @@ public final class LoggingWrapperLayer extends WrapperLayer {
           System.out.println(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
           result.accumulate(buffer, data);
         }
-    
+        
         @Override
         public boolean isAlive() {
           return result.isAlive();
         }
       };
     }).toArray(i -> new NNResult[i]);
-    for(int i=0;i<inObj.length;i++) {
+    for (int i = 0; i < inObj.length; i++) {
       TensorList tensorList = inObj[i].getData();
       String formatted = tensorList.stream().map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).get();
       System.out.println(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));

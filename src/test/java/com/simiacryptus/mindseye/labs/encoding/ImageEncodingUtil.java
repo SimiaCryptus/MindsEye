@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.mnist;
+package com.simiacryptus.mindseye.labs.encoding;
 
 import com.simiacryptus.mindseye.data.Caltech101;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
@@ -27,20 +27,18 @@ import com.simiacryptus.mindseye.eval.TrainableDataMask;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f64.SimpleConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.opt.orient.QuantifyOrientationWrapper;
 import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.MonitoredObject;
@@ -77,6 +75,59 @@ class ImageEncodingUtil {
    * The constant out.
    */
   protected static PrintStream rawOut = SysOutInterceptor.INSTANCE.getInner();
+  
+  /**
+   * Add monitoring.
+   *
+   * @param network        the network
+   * @param monitoringRoot the monitoring root
+   */
+  public static void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
+      }
+    });
+  }
+  
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
+  public static void removeMonitoring(DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
+      }
+    });
+  }
+  
+  /**
+   * Add logging.
+   *
+   * @param network the network
+   */
+  public static void addLogging(DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
+        node.setLayer(new LoggingWrapperLayer(node.getLayer()));
+      }
+    });
+  }
+  
+  /**
+   * Remove monitoring.
+   *
+   * @param network the network
+   */
+  public static void removeLogging(DAGNetwork network) {
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof LoggingWrapperLayer) {
+        node.setLayer(((LoggingWrapperLayer) node.getLayer()).getInner());
+      }
+    });
+  }
   
   /**
    * Print model.
@@ -151,7 +202,8 @@ class ImageEncodingUtil {
   
   /**
    * Train.
-   *  @param log            the log
+   *
+   * @param log            the log
    * @param monitor        the monitor
    * @param network        the network
    * @param data           the data
@@ -242,7 +294,7 @@ class ImageEncodingUtil {
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
     });
     Tensor[] featureSpaceVectors = featureSpace.getVectors();
-    for(Tensor t : featureSpaceVectors) System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
+    for (Tensor t : featureSpaceVectors) System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
     convolutionLayer.kernel.fillByCoord(c -> {
       int kband = c.coords[2];
       int outband = kband % outputBands;
@@ -497,6 +549,40 @@ class ImageEncodingUtil {
   }
   
   /**
+   * To 32.
+   *
+   * @param network the network
+   */
+  public void to32(DAGNetwork network) {
+    network.visitNodes(node -> {
+      NNLayer layer = node.getLayer();
+      if (layer instanceof ConvolutionLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer.class));
+      }
+      else if (layer instanceof PoolingLayer) {
+        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer.class));
+      }
+    });
+  }
+  
+  /**
+   * To 64.
+   *
+   * @param network the network
+   */
+  public void to64(DAGNetwork network) {
+    network.visitNodes(node -> {
+      NNLayer layer = node.getLayer();
+      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
+        node.setLayer(layer.as(ConvolutionLayer.class));
+      }
+      else if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer) {
+        node.setLayer(layer.as(PoolingLayer.class));
+      }
+    });
+  }
+  
+  /**
    * The type Find feature space.
    */
   protected class FindFeatureSpace {
@@ -617,46 +703,5 @@ class ImageEncodingUtil {
       });
     }
     
-  }
-  public static void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
-      }
-    });
-  }
-  
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
-  public static void removeMonitoring(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
-      }
-    });
-  }
-  
-  public static void addLogging(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
-        node.setLayer(new LoggingWrapperLayer(node.getLayer()));
-      }
-    });
-  }
-  
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
-  public static void removeLogging(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof LoggingWrapperLayer) {
-        node.setLayer(((LoggingWrapperLayer) node.getLayer()).getInner());
-      }
-    });
   }
 }

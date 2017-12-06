@@ -23,9 +23,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.mindseye.lang.DoubleArrays;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.GpuError;
 import com.simiacryptus.util.test.SysOutInterceptor;
 
 import java.io.PrintStream;
@@ -48,7 +47,7 @@ public final class GpuController {
    * The constant INSTANCE.
    */
   public static final GpuController INSTANCE = new GpuController();
-  
+  private static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
   /**
    * The Device weight.
    */
@@ -80,6 +79,38 @@ public final class GpuController {
     //if (t instanceof com.simiacryptus.mindseye.lang.GpuError) return true;
     if (null != t.getCause() && t != t.getCause()) return isOom(t.getCause());
     return false;
+  }
+  
+  /**
+   * Call t.
+   *
+   * @param <T> the type parameter
+   * @param fn  the fn
+   * @return the t
+   */
+  public static <T> T call(Function<CudaExecutionContext, T> fn) {
+    return CudaExecutionContext.gpuContexts.<T>run(exe -> {
+      try {
+        return INSTANCE.getGpuDriverThreads().get(exe).submit(() -> fn.apply(exe)).get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+  
+  /**
+   * Run.
+   *
+   * @param fn the fn
+   */
+  public static void run(Consumer<CudaExecutionContext> fn) {
+    CudaExecutionContext.gpuContexts.apply(exe -> {
+      try {
+        INSTANCE.getGpuDriverThreads().get(exe).submit(() -> fn.accept(exe)).get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
   
   /**
@@ -170,13 +201,12 @@ public final class GpuController {
     }
   }
   
-  private static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
   /**
    * Clean memory.
    */
   public void cleanMemory() {
-  
-    singleThreadExecutor.submit(()->{
+    
+    singleThreadExecutor.submit(() -> {
       DoubleArrays.clear();
       System.gc();
       System.runFinalization();
@@ -199,25 +229,5 @@ public final class GpuController {
    */
   public void setGpuDriverThreads(LoadingCache<CudaExecutionContext, ExecutorService> gpuDriverThreads) {
     this.gpuDriverThreads = gpuDriverThreads;
-  }
-  
-  public static <T> T call(Function<CudaExecutionContext, T> fn) {
-    return CudaExecutionContext.gpuContexts.<T>run(exe->{
-      try {
-        return INSTANCE.getGpuDriverThreads().get(exe).submit(()->fn.apply(exe)).get();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
-  }
-  
-  public static void run(Consumer<CudaExecutionContext> fn) {
-    CudaExecutionContext.gpuContexts.apply(exe->{
-      try {
-        INSTANCE.getGpuDriverThreads().get(exe).submit(()->fn.accept(exe)).get();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
   }
 }

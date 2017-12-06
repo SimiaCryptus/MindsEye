@@ -84,7 +84,7 @@ public final class WeightExtractor extends NNLayer {
   
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
-    double[] doubles = null==getInner()?new double[]{}:getInner().state().get(index);
+    double[] doubles = null == getInner() ? new double[]{} : getInner().state().get(index);
     return new NNResult(new Tensor(doubles)) {
       
       @Override

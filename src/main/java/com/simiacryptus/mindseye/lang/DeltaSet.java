@@ -29,8 +29,10 @@ import java.util.stream.Stream;
  * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
  * and based on logical referants (i.e. layers)
  * Provides collection-arithmetic operations appropriate to the Delta's vector geometric archtype.
+ *
+ * @param <K> the type parameter
  */
-public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
+public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
   
   /**
    * Instantiates a new Delta set.
@@ -43,9 +45,9 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    *
    * @param toCopy the to copy
    */
-  public DeltaSet(DoubleBufferSet<K,Delta<K>> toCopy) {
+  public DeltaSet(DoubleBufferSet<K, Delta<K>> toCopy) {
     super(toCopy);
-    assert stream().allMatch(x->x instanceof Delta);
+    assert stream().allMatch(x -> x instanceof Delta);
   }
   
   /**
@@ -55,7 +57,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    */
   public DeltaSet(Map<K, ? extends Delta<K>> collect) {
     super(collect);
-    assert stream().allMatch(x->x instanceof Delta);
+    assert stream().allMatch(x -> x instanceof Delta);
   }
   
   @Override
@@ -108,7 +110,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
   
   @Override
   public DeltaSet<K> copy() {
-    return this.map(x->x.copy());
+    return this.map(x -> x.copy());
   }
   
   /**
@@ -131,6 +133,11 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
     return scale(1.0 / getMagnitude());
   }
   
+  /**
+   * As state state set.
+   *
+   * @return the state set
+   */
   public StateSet<K> asState() {
     StateSet<K> returnValue = new StateSet<>();
     map.forEach((layer, delta) -> {
@@ -145,9 +152,9 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    * @param right the right
    * @return the double
    */
-  public double dot(DoubleBufferSet<K,Delta<K>> right) {
+  public double dot(DoubleBufferSet<K, Delta<K>> right) {
     Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
-    if(100 < map.size()) stream = stream.parallel();
+    if (100 < map.size()) stream = stream.parallel();
     return stream.mapToDouble(entry -> {
       K key = entry.getKey();
       Delta<K> value = entry.getValue();
@@ -168,7 +175,7 @@ public class DeltaSet<K> extends DoubleBufferSet<K,Delta<K>> {
    */
   public double getMagnitude() {
     Stream<Map.Entry<K, Delta<K>>> stream = map.entrySet().stream();
-    if(100 < map.size()) stream = stream.parallel();
+    if (100 < map.size()) stream = stream.parallel();
     double[] elementArray = stream.mapToDouble(entry -> {
       DoubleBuffer value = entry.getValue();
       double v = value.deltaStatistics().sumSq();

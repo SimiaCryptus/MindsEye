@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
@@ -126,8 +126,8 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
           if (null != region) {
             double[][] historyData = history.stream().map((PointSample x) -> {
               DoubleBuffer d = x.weights.getMap().get(layer);
-              return null==d?null:d.getDelta();
-            }).filter(x->null!=x).toArray(i -> new double[i][]);
+              return null == d ? null : d.getDelta();
+            }).filter(x -> null != x).toArray(i -> new double[i][]);
             double[] projectedPosition = region.project(historyData, proposedPosition);
             if (projectedPosition != proposedPosition) {
               for (int i = 0; i < projectedPosition.length; i++) {

@@ -20,10 +20,10 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -31,7 +31,7 @@ import com.simiacryptus.util.ArrayUtil;
 
 /**
  * A simple momentum module which uses a cumulative decay algorithm
- * to add a momentum term to any orientation strategy 
+ * to add a momentum term to any orientation strategy
  * (if it yields a SimpleLineSearch cursor)
  */
 public class MomentumStrategy implements OrientationStrategy<SimpleLineSearchCursor> {

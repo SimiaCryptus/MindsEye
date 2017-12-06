@@ -25,6 +25,8 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * Alternate version being staged to effect an in-memory change to a double[] array.
  * In comparison with the Delta class via geometric analogy, this would be a point whereas Delta is a vector.
+ *
+ * @param <K> the type parameter
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class State<K> extends DoubleBuffer<K> {
@@ -38,7 +40,7 @@ public class State<K> extends DoubleBuffer<K> {
    * @param delta  the delta
    */
   public State(final K layer, final double[] target, final double[] delta) {
-    super(layer, target,delta);
+    super(layer, target, delta);
   }
   
   /**
@@ -57,7 +59,7 @@ public class State<K> extends DoubleBuffer<K> {
    * @return the double buffer
    */
   public final synchronized State<K> backup() {
-    System.arraycopy(target,0, getDelta(),0,target.length);
+    System.arraycopy(target, 0, getDelta(), 0, target.length);
     return this;
   }
   
@@ -67,7 +69,7 @@ public class State<K> extends DoubleBuffer<K> {
    * @return the double buffer
    */
   public final synchronized State<K> restore() {
-    System.arraycopy(getDelta(),0,target,0,target.length);
+    System.arraycopy(getDelta(), 0, target, 0, target.length);
     return this;
   }
   
@@ -89,5 +91,5 @@ public class State<K> extends DoubleBuffer<K> {
   public boolean areEqual() {
     return areEqual(getDelta(), target);
   }
-
+  
 }

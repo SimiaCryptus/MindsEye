@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import org.apache.spark.api.java.JavaRDD;
@@ -35,7 +34,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * A training implementation which holds data as a Spark RDD 
+ * A training implementation which holds data as a Spark RDD
  * and distributes network evaluation over the partitions.
  */
 public class SparkTrainable implements Trainable {
@@ -248,12 +247,16 @@ public class SparkTrainable implements Trainable {
      * The Sum.
      */
     public final double sum;
+    /**
+     * The Count.
+     */
     public final int count;
   
     /**
      * Instantiates a new Reducable result.
      *
      * @param deltas the deltas
+     * @param count  the count
      * @param sum    the sum
      */
     public ReducableResult(Map<String, double[]> deltas, int count, double sum) {
@@ -302,7 +305,7 @@ public class SparkTrainable implements Trainable {
           map.put(key, l);
         }
       }
-      return new SparkTrainable.ReducableResult(map, count+right.count, sum + right.sum);
+      return new SparkTrainable.ReducableResult(map, count + right.count, sum + right.sum);
     }
     
   }

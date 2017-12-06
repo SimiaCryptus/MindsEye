@@ -355,7 +355,7 @@ public class FullyConnectedLayer extends NNLayer {
     private void learn(final TensorList delta, final DeltaSet<NNLayer> buffer) {
       Delta<NNLayer> deltaBuffer = buffer.get(FullyConnectedLayer.this, FullyConnectedLayer.this.getWeights().getData());
       int threads = 4;
-      IntStream.range(0, threads).parallel().mapToObj(x->x).flatMap(thread -> {
+      IntStream.range(0, threads).parallel().mapToObj(x -> x).flatMap(thread -> {
         final Tensor weightDelta = new Tensor(Tensor.dim(inputDims), Tensor.dim(outputDims));
         try {
           return IntStream.range(0, inObj.getData().length()).filter(i -> thread == (i % threads)).mapToObj(dataIndex -> {
@@ -369,7 +369,7 @@ public class FullyConnectedLayer extends NNLayer {
         } finally {
           weightDelta.release();
         }
-      }).reduce((a,b)-> ArrayUtil.add(a,b)).map(data->deltaBuffer.addInPlace(data));
+      }).reduce((a, b) -> ArrayUtil.add(a, b)).map(data -> deltaBuffer.addInPlace(data));
     }
     
   }

@@ -20,13 +20,10 @@
 package com.simiacryptus.mindseye.opt.line;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-
-import java.util.List;
-import java.util.stream.IntStream;
 
 /**
  * A basic line search cursor representing a linear parametric path.
@@ -79,36 +76,10 @@ public class SimpleLineSearchCursor implements LineSearchCursor {
   public LineSearchPoint step(double alpha, TrainingMonitor monitor) {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
     reset();
-    if(0.0 != alpha) direction.accumulate(alpha);
+    if (0.0 != alpha) direction.accumulate(alpha);
     PointSample sample = subject.measure(true, monitor).setRate(alpha);
     double dot = direction.dot(sample.delta);
-    //logTemp(sample, dot);
     return new LineSearchPoint(sample, dot);
-  }
-  
-  public void logTemp(PointSample sample, double dot) {
-    DeltaSet deltaDelta = sample.delta.subtract(origin.delta);
-    double deltaDeltaMagnitude = deltaDelta.getMagnitude();
-    double directionMagnitude = direction.getMagnitude();
-    double originDeltaMagnitude = origin.delta.getMagnitude();
-    double sampleDeltaMagnitude = sample.delta.getMagnitude();
-    double dot1 = origin.delta.dot(sample.delta);
-    System.out.println(String.format("Delta Delta L2 Magnitude: %s; %s . (%s to %s) = %s / %s",
-      deltaDeltaMagnitude, directionMagnitude, originDeltaMagnitude, sampleDeltaMagnitude, dot, dot1));
-    sample.delta.getMap().forEach((layer,delta)->{
-      if(layer instanceof ConvolutionLayer) {
-        System.out.println(String.format("Layer %s state: %s", layer.getName(), new Tensor(delta.target,((ConvolutionLayer)layer).kernel.getDimensions()).prettyPrint()));
-        System.out.println(String.format("Layer %s delta: %s", layer.getName(), new Tensor(delta.getDelta(),((ConvolutionLayer)layer).kernel.getDimensions()).prettyPrint()));
-      } else if(layer instanceof PlaceholderLayer) {
-        System.out.println(String.format("Layer %s state: %s", layer.getName(), new Tensor(delta.target, 8,8,3).prettyPrint()));
-        System.out.println(String.format("Layer %s delta: %s", layer.getName(), new Tensor(delta.getDelta(), 8,8,3).prettyPrint()));
-      } else {
-        System.out.println(String.format("Layer %s state: %s", layer.getName(), new Tensor(delta.target).prettyPrint()));
-        System.out.println(String.format("Layer %s delta: %s", layer.getName(), new Tensor(delta.getDelta()).prettyPrint()));
-      }
-      
-    });
-  
   }
   
   @Override

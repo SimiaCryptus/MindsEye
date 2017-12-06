@@ -26,8 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A wrapper which maintains a hisotry of N prior evaluations. 
+ * A wrapper which maintains a hisotry of N prior evaluations.
  * If a detectable repeated evaluation is requested, the cached result is used.
+ *
+ * @param <T> the type parameter
  */
 public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   
@@ -53,8 +55,10 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   public PointSample measure(boolean isStatic, TrainingMonitor monitor) {
     for (PointSample result : history) {
       if (!result.weights.isDifferent()) {
-        if (isVerbose()) System.out.println(String.format("Returning cached value; %s buffers unchanged since %s => %s",
-          result.weights.getMap().size(), result.rate, result.getMean()));
+        if (isVerbose()) {
+          System.out.println(String.format("Returning cached value; %s buffers unchanged since %s => %s",
+            result.weights.getMap().size(), result.rate, result.getMean()));
+        }
         return result.copyFull();
       }
     }

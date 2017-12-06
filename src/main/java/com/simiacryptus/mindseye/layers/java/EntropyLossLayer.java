@@ -104,7 +104,7 @@ public class EntropyLossLayer extends NNLayer {
             final Tensor passback = new Tensor(gradient[dataIndex].getDimensions());
             for (int i = 0; i < passback.dim(); i++) {
               final double lv = Math.max(Math.min(l.get(i), max_prob), zero_tol);
-              passback.set(i, - data.get(dataIndex).get(0) * Math.log(lv));
+              passback.set(i, -data.get(dataIndex).get(0) * Math.log(lv));
             }
             return passback;
           }).toArray(i -> new Tensor[i])));

@@ -239,7 +239,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * The Factor.
      */
     public final NNLayer factor;
-  
+
     /**
      * Instantiates a new Correcton.
      *
@@ -252,7 +252,7 @@ public class PolynomialNetwork extends DAGNetwork {
       this.bias = bias;
       this.factor = factor;
     }
-  
+
     /**
      * Instantiates a new Correcton.
      *
@@ -263,7 +263,7 @@ public class PolynomialNetwork extends DAGNetwork {
       this.bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
       this.factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
     }
-  
+
     /**
      * Add dag node.
      *
@@ -273,7 +273,7 @@ public class PolynomialNetwork extends DAGNetwork {
     public DAGNode add(DAGNode input) {
       return PolynomialNetwork.this.add(newNthPowerLayer(power), PolynomialNetwork.this.add(bias, PolynomialNetwork.this.add(factor, input)));
     }
-  
+
     /**
      * Gets json.
      *

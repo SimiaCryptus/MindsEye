@@ -40,7 +40,7 @@ public class ImgConcatLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Band limit test.
+   * The type Band limit run.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
     

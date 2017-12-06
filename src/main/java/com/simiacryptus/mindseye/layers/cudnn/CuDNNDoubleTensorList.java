@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.simiacryptus.mindseye.lang.DoubleArrays;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.DoubleArrays;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnTensorDescriptor;

@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
@@ -29,12 +29,12 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 /**
  * Quadratic Quasi-Newton optimization
- * 
- * This method hybridizes pure gradient descent with higher-order quasinewton 
- * implementations such as L-BFGS. During each iteration, a quadratic curve is 
- * interpolated which aligns with the gradient's direction prediction and 
- * intersects with the quasinewton's optimal point prediction. A simple 
- * parameteric quadratic function blends both inner cursors into a simple 
+ * <p>
+ * This method hybridizes pure gradient descent with higher-order quasinewton
+ * implementations such as L-BFGS. During each iteration, a quadratic curve is
+ * interpolated which aligns with the gradient's direction prediction and
+ * intersects with the quasinewton's optimal point prediction. A simple
+ * parameteric quadratic function blends both inner cursors into a simple
  * nonlinear path which should combine the stability of both methods.
  */
 public class QQN implements OrientationStrategy<LineSearchCursor> {

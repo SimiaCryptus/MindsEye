@@ -40,7 +40,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Upsize test.
+   * The type Upsize run.
    */
   public static class UpsizeTest extends ConvolutionLayerTest {
     
@@ -67,13 +67,13 @@ public class ConvolutionLayerTest extends LayerTestBase {
     public NNLayer getLayer() {
       return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(this::random);
     }
-  
+
     @Override
     public int[][] getInputDims() {
       return new int[][]{
         {3, 3, 7}
       };
     }
-  
+
   }
 }

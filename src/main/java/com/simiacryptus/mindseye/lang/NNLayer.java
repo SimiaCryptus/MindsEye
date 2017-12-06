@@ -63,6 +63,12 @@ public abstract class NNLayer implements Serializable {
     this.name = getClass().getSimpleName() + "/" + getId();
   }
   
+  /**
+   * Instantiates a new Nn layer.
+   *
+   * @param id   the id
+   * @param name the name
+   */
   protected NNLayer(UUID id, String name) {
     this.id = id;
     this.name = name;

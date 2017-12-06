@@ -40,7 +40,7 @@ public class ToleranceStatistics {
    * Instantiates a new Tolerance statistics.
    */
   public ToleranceStatistics() {
-    this(new DoubleStatistics(),new DoubleStatistics());
+    this(new DoubleStatistics(), new DoubleStatistics());
   }
   
   /**
@@ -62,13 +62,23 @@ public class ToleranceStatistics {
    * @return the tolerance statistics
    */
   public ToleranceStatistics accumulate(double target, double val) {
-    absoluteTol.accept(Math.abs(target-val));
-    if(Double.isFinite(val+target) && val!=-target) relativeTol.accept(Math.abs(target-val) / (Math.abs(val)+Math.abs(target)));
+    absoluteTol.accept(Math.abs(target - val));
+    if (Double.isFinite(val + target) && val != -target) {
+      relativeTol.accept(Math.abs(target - val) / (Math.abs(val) + Math.abs(target)));
+    }
     return this;
   }
+  
+  /**
+   * Accumulate tolerance statistics.
+   *
+   * @param target the target
+   * @param val    the val
+   * @return the tolerance statistics
+   */
   public ToleranceStatistics accumulate(double[] target, double[] val) {
     if (target.length != val.length) throw new IllegalArgumentException();
-    IntStream.range(0, target.length).forEach(i->accumulate(target[i],val[i]));
+    IntStream.range(0, target.length).forEach(i -> accumulate(target[i], val[i]));
     return this;
   }
   

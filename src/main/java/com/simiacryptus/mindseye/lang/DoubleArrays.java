@@ -109,9 +109,9 @@ public class DoubleArrays {
    * @return the double [ ]
    */
   public static double[] copyOf(double[] original) {
-    if(null == original) return null;
+    if (null == original) return null;
     double[] copy = obtain(original.length);
-    System.arraycopy(original,0,copy,0,original.length);
+    System.arraycopy(original, 0, copy, 0, original.length);
     return copy;
   }
 }

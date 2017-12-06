@@ -36,16 +36,25 @@ public class CudaResource<T> {
    */
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   /**
+   * The constant debugLifecycle.
+   */
+  public static boolean debugLifecycle = true;
+  /**
    * The Obj generation.
    */
   public final int objGeneration = gpuGeneration.get();
+  /**
+   * The Created by.
+   */
+  public final StackTraceElement[] createdBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
   private final T ptr;
-  public static boolean debugLifecycle = true;
-  public final StackTraceElement[] createdBy = debugLifecycle?Thread.currentThread().getStackTrace():null;
-  public StackTraceElement[] finalizedBy = null;
   private final ToIntFunction<T> destructor;
   //private final StackTraceElement[] createdBy = Thread.currentThread().getStackTrace();
   private final int device = CuDNN.getDevice();
+  /**
+   * The Finalized by.
+   */
+  public StackTraceElement[] finalizedBy = null;
   private volatile boolean finalized = false;
   
   /**
@@ -73,7 +82,7 @@ public class CudaResource<T> {
     try {
       if (!this.finalized && isActiveObj()) {
         if (null != this.destructor) free();
-        finalizedBy = debugLifecycle?Thread.currentThread().getStackTrace():null;
+        finalizedBy = debugLifecycle ? Thread.currentThread().getStackTrace() : null;
         this.finalized = true;
       }
       super.finalize();

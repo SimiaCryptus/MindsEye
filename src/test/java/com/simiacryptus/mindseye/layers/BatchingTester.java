@@ -60,8 +60,8 @@ public class BatchingTester {
    * @return the tolerance statistics
    */
   public ToleranceStatistics test(final NNLayer reference, final Tensor... inputPrototype) {
-    if(null == reference) return new ToleranceStatistics();
-  
+    if (null == reference) return new ToleranceStatistics();
+    
     int batchSize = 10;
     TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
       new TensorArray(IntStream.range(0, batchSize).mapToObj(i -> t.map(v -> getRandom()))
@@ -71,25 +71,32 @@ public class BatchingTester {
       SimpleEval.run(reference, IntStream.range(0, inputTensorLists.length)
         .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]))
     ).collect(Collectors.toList());
-  
+    
     ToleranceStatistics outputAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
       new ToleranceStatistics().accumulate(
         asABatch.getOutput().get(batch).getData(),
         oneAtATime.get(batch).getOutput().getData())
     ).reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) throw new AssertionError(outputAgreement.toString());
-  
+    
     ToleranceStatistics derivativeAgreement = IntStream.range(0, batchSize).mapToObj(batch ->
       IntStream.range(0, inputTensorLists.length).mapToObj(input ->
         new ToleranceStatistics().accumulate(
           asABatch.getDerivative()[input].get(batch).getData(),
           oneAtATime.get(batch).getDerivative()[input].getData())
-      ).reduce((a, b)->a.combine(b)).get()).reduce((a,b)->a.combine(b)).get();
-    if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) throw new AssertionError(derivativeAgreement.toString());
+      ).reduce((a, b) -> a.combine(b)).get()).reduce((a, b) -> a.combine(b)).get();
+    if (!(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
+      throw new AssertionError(derivativeAgreement.toString());
+    }
     
     return derivativeAgreement.combine(outputAgreement);
   }
   
+  /**
+   * Gets random.
+   *
+   * @return the random
+   */
   public double getRandom() {
     return 5 * (Math.random() - 0.5);
   }

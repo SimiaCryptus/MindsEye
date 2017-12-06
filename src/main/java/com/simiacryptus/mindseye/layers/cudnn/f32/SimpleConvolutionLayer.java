@@ -72,7 +72,7 @@ public class SimpleConvolutionLayer extends NNLayer {
    * Instantiates a new Convolution layer.
    */
   protected SimpleConvolutionLayer() {
-    this((Tensor)null);
+    this((Tensor) null);
   }
   
   /**
@@ -279,9 +279,10 @@ public class SimpleConvolutionLayer extends NNLayer {
   protected boolean verifyOutputDims(CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     boolean cmp = cmp(outputSize, outputDims);
-    if(cmp) {
+    if (cmp) {
       return true;
-    } else {
+    }
+    else {
       return false;
     }
   }

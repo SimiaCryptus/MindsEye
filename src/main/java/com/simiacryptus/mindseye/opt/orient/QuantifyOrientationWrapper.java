@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -49,7 +49,7 @@ public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearc
   @Override
   public LineSearchCursor orient(Trainable subject, PointSample measurement, TrainingMonitor monitor) {
     LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
-    if(cursor instanceof SimpleLineSearchCursor) {
+    if (cursor instanceof SimpleLineSearchCursor) {
       DeltaSet<NNLayer> direction = ((SimpleLineSearchCursor) cursor).direction;
       StateSet<NNLayer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       Map<String, String> dataMap = weights.stream()
@@ -65,7 +65,8 @@ public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearc
           return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
         }));
       monitor.log(String.format("Line search stats: %s", dataMap));
-    } else {
+    }
+    else {
       monitor.log(String.format("Non-simple cursor: %s", cursor));
     }
     return cursor;
@@ -80,7 +81,7 @@ public class QuantifyOrientationWrapper implements OrientationStrategy<LineSearc
   public String getId(DoubleBuffer<NNLayer> x) {
     String name = x.layer.getName();
     String className = x.layer.getClass().getSimpleName();
-    return name.contains(className)?className:name;
+    return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
 //    }

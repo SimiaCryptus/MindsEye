@@ -23,9 +23,9 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 /**
- * Base class for an object which can be evaluated using differential weights. 
- * This represents a function without inputs and with only one output. 
- * The internal weights, effectively the function's input, 
+ * Base class for an object which can be evaluated using differential weights.
+ * This represents a function without inputs and with only one output.
+ * The internal weights, effectively the function's input,
  * are adjusted to minimize this output.
  */
 public interface Trainable {

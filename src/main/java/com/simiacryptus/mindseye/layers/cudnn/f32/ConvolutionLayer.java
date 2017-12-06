@@ -166,7 +166,7 @@ public class ConvolutionLayer extends NNLayer {
       subLayers.stream().map(l -> {
         return network.add(l, input);
       }).toArray(i -> new DAGNode[i]));
-    if(isFrozen()) network.freeze();
+    if (isFrozen()) network.freeze();
     NNResult innerResult = network.eval(nncontext, inObj);
     return new NNResult(innerResult.getData()) {
       @Override
@@ -177,9 +177,9 @@ public class ConvolutionLayer extends NNLayer {
         for (int batchNumber = 0; batchNumber < subLayers.size(); batchNumber++) {
           SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
           Delta<NNLayer> subnetDelta = deltaSet.getMap().remove(batchLayer);
-          if(null != subnetDelta) {
+          if (null != subnetDelta) {
             int[] batchDimensions = batchLayer.filter.getDimensions();
-            Tensor batchDelta = new Tensor(null==subnetDelta?null:subnetDelta.getDelta(), batchDimensions);
+            Tensor batchDelta = new Tensor(null == subnetDelta ? null : subnetDelta.getDelta(), batchDimensions);
             int offset = batchNumber * inputBandsSq;
             batchDelta.coordStream().forEach(batchCoord -> {
               if (offset + batchCoord.coords[2] < filterDimensions[2]) {
@@ -199,6 +199,15 @@ public class ConvolutionLayer extends NNLayer {
     };
   }
   
+  /**
+   * Gets filter band.
+   *
+   * @param inputBands  the input bands
+   * @param outputBands the output bands
+   * @param offset      the offset
+   * @param coord       the coord
+   * @return the filter band
+   */
   public int getFilterBand(int inputBands, int outputBands, int offset, Coordinate coord) {
     int filterBand = offset + coord.coords[2];
     int filterBandX = filterBand % inputBands;
@@ -239,12 +248,25 @@ public class ConvolutionLayer extends NNLayer {
   }
   
   
+  /**
+   * Sets weights log.
+   *
+   * @param w the w
+   * @return the weights log
+   */
   public ConvolutionLayer setWeightsLog(double w) {
-    setWeights(()->Math.exp(w)*(Math.random()-0.5));
+    setWeights(() -> Math.exp(w) * (Math.random() - 0.5));
     return this;
   }
   
-  public ConvolutionLayer setStrideXY(int x,int y) {
+  /**
+   * Sets stride xy.
+   *
+   * @param x the x
+   * @param y the y
+   * @return the stride xy
+   */
+  public ConvolutionLayer setStrideXY(int x, int y) {
     strideX = x;
     strideY = y;
     return this;

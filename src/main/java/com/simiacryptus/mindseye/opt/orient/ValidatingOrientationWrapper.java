@@ -19,16 +19,16 @@
 
 package com.simiacryptus.mindseye.opt.orient;
 
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.DeltaSet;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 
 /**
- * This strategy uses finite-difference methods to estimate a numerical derivative, 
- * and compares it with the derivative supplied by the inner's cursor. This is a 
+ * This strategy uses finite-difference methods to estimate a numerical derivative,
+ * and compares it with the derivative supplied by the inner's cursor. This is a
  * diagnostic tool; extra processing is used to estimate derivatives which should
  * agree with the programmatic derivatives to an appropriate degree.
  */

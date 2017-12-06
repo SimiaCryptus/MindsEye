@@ -19,7 +19,8 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class EquivalencyTester {
    * @return the tolerance statistics
    */
   public ToleranceStatistics test(final NNLayer reference, final NNLayer subject, final Tensor... inputPrototype) {
-    if(null == reference || null == subject) return new ToleranceStatistics();
+    if (null == reference || null == subject) return new ToleranceStatistics();
     ToleranceStatistics result1;
     final Tensor subjectOutput = SimpleEval.run(subject, inputPrototype).getOutput();
     final Tensor referenceOutput = SimpleEval.run(reference, inputPrototype).getOutput();
@@ -68,7 +69,7 @@ public class EquivalencyTester {
       if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
       result1 = result;
     } catch (Throwable e) {
-      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a, b)->a+",\n"+b)));
+      System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b)));
       System.out.println(String.format("Subject Output: %s", subjectOutput.prettyPrint()));
       System.out.println(String.format("Reference Output: %s", referenceOutput.prettyPrint()));
       System.out.println(String.format("Error: %s", error.prettyPrint()));
@@ -76,7 +77,7 @@ public class EquivalencyTester {
       throw e;
     }
     ToleranceStatistics statistics = result1;
-    System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a, b)->a+",\n"+b).get()));
+    System.out.println(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
     System.out.println(String.format("Error: %s", error.prettyPrint()));
     System.out.println(String.format("Accuracy:"));
     System.out.println(String.format("absoluteTol: %s", statistics.absoluteTol.toString()));

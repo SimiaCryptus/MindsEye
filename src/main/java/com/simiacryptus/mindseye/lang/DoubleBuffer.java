@@ -28,6 +28,8 @@ import java.util.stream.IntStream;
 
 /**
  * A generic alternate memory buffer being staged in relation to an existing double[] array.
+ *
+ * @param <K> the type parameter
  */
 public class DoubleBuffer<K> {
   @SuppressWarnings("unused")
@@ -188,9 +190,9 @@ public class DoubleBuffer<K> {
    * @return the double [ ]
    */
   public double[] getDelta() {
-    if(null == delta) {
+    if (null == delta) {
       synchronized (this) {
-        if(null == delta) {
+        if (null == delta) {
           delta = DoubleArrays.obtain(target.length);
         }
       }

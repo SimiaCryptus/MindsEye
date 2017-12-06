@@ -20,11 +20,9 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
@@ -49,7 +47,7 @@ public class LBFGS implements OrientationStrategy<SimpleLineSearchCursor> {
   private int minHistory = 3;
   private int maxHistory = 30;
   
-  private static boolean isFinite(DoubleBufferSet<?,?> delta) {
+  private static boolean isFinite(DoubleBufferSet<?, ?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
   

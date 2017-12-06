@@ -33,6 +33,7 @@ import java.util.stream.Stream;
  * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
  * and based on logical referants (i.e. layers)
  *
+ * @param <K> the type parameter
  * @param <T> the type parameter
  */
 public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
@@ -52,7 +53,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
    *
    * @param toCopy the to copy
    */
-  public DoubleBufferSet(DoubleBufferSet<K,T> toCopy) {
+  public DoubleBufferSet(DoubleBufferSet<K, T> toCopy) {
     this(toCopy.map);
   }
   
@@ -119,10 +120,10 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
    * @param mapper the mapper
    * @return the delta set
    */
-  public DoubleBufferSet<K,T> map(final Function<T, T> mapper) {
-    DoubleBufferSet<K,T> parent = this;
+  public DoubleBufferSet<K, T> map(final Function<T, T> mapper) {
+    DoubleBufferSet<K, T> parent = this;
     Stream<Map.Entry<K, T>> stream = map.entrySet().stream();
-    if(map.size() > 100) stream = stream.parallel();
+    if (map.size() > 100) stream = stream.parallel();
     Map<K, T> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
     return new Delegate(parent, newMap);
   }
@@ -142,7 +143,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
    *
    * @return the delta set
    */
-  public DoubleBufferSet<K,T> copy() {
+  public DoubleBufferSet<K, T> copy() {
     return map(x -> (T) x.copy());
   }
   
@@ -158,8 +159,8 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
   /**
    * The type Delegate.
    */
-  protected class Delegate extends DoubleBufferSet<K,T> {
-    private final DoubleBufferSet<K,T> parent;
+  protected class Delegate extends DoubleBufferSet<K, T> {
+    private final DoubleBufferSet<K, T> parent;
   
     /**
      * Instantiates a new Delegate.
@@ -167,7 +168,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
      * @param parent the parent
      * @param newMap the new map
      */
-    public Delegate(DoubleBufferSet<K,T> parent, Map<K, T> newMap) {
+    public Delegate(DoubleBufferSet<K, T> parent, Map<K, T> newMap) {
       super(newMap);
       this.parent = parent;
     }
@@ -177,13 +178,13 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
      *
      * @param parent the parent
      */
-    public Delegate(DoubleBufferSet<K,T> parent) {
+    public Delegate(DoubleBufferSet<K, T> parent) {
       this(parent, new HashMap<>());
     }
-  
+    
     @Override
     protected T factory(K layer, double[] ptr) {
-      return parent.factory(layer,ptr);
+      return parent.factory(layer, ptr);
     }
   }
 }

@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.opt.region;
 
 /**
- * A Single-orthant trust region. These are used in 
+ * A Single-orthant trust region. These are used in
  * OWL-QN to proven effect in training sparse models
  * where an exact value of zero for many weights is desired.
  */

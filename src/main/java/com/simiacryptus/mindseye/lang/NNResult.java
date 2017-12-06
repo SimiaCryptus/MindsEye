@@ -19,11 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -105,7 +101,7 @@ public abstract class NNResult {
    * @param value  the value
    */
   public final void accumulate(DeltaSet<NNLayer> buffer, double value) {
-    Tensor[] defaultVector = getData().stream().map(t->t.map(v->value)).toArray(i -> new Tensor[i]);
+    Tensor[] defaultVector = getData().stream().map(t -> t.map(v -> value)).toArray(i -> new Tensor[i]);
     accumulate(buffer, new TensorArray(defaultVector));
   }
   

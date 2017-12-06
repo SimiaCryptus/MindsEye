@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.State;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.State;
 import com.simiacryptus.mindseye.lang.Tensor;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnTensorDescriptor;

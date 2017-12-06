@@ -52,14 +52,17 @@ public class EntropyLossLayerTest extends LayerTestBase {
     return Util.R.get().nextDouble();
   }
   
+  /**
+   * The type Probability test.
+   */
   public class ProbabilityTest extends LayerTestBase {
     
     @Override
     public NNLayer getLayer() {
       PipelineNetwork network = new PipelineNetwork(2);
       network.add(new EntropyLossLayer(),
-        network.add(new SoftmaxActivationLayer(),network.getInput(0)),
-        network.add(new SoftmaxActivationLayer(),network.getInput(1)));
+        network.add(new SoftmaxActivationLayer(), network.getInput(0)),
+        network.add(new SoftmaxActivationLayer(), network.getInput(1)));
       return network;
     }
     
@@ -74,6 +77,7 @@ public class EntropyLossLayerTest extends LayerTestBase {
     public DerivativeTester getDerivativeTester() {
       return new DerivativeTester(1e-4, 1e-8);
     }
+    
     @Override
     public double random() {
       return Util.R.get().nextDouble();

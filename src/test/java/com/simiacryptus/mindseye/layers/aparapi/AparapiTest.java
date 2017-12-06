@@ -262,7 +262,7 @@ public class AparapiTest {
    * The type Test kernel.
    */
   public static class TestKernel extends Kernel {
-  
+
     /**
      * The Input.
      */

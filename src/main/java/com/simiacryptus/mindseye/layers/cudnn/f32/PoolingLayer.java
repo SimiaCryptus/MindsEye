@@ -83,7 +83,7 @@ public class PoolingLayer extends NNLayer {
   public static PoolingLayer fromJson(JsonObject json) {
     return new PoolingLayer(json);
   }
-
+  
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode);
@@ -95,7 +95,7 @@ public class PoolingLayer extends NNLayer {
     json.addProperty("strideY", strideY);
     return json;
   }
-
+  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     final int poolDims = 2;

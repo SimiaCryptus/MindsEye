@@ -25,6 +25,8 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * An arithmetic delta being staged to effect an in-memory change to a double[] array.
  * In comparison with the State class via geometric analogy, this would be a vector whereas State is a point.
+ *
+ * @param <K> the type parameter
  */
 public class Delta<K> extends DoubleBuffer<K> {
   /**
@@ -50,9 +52,17 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param target the target
    */
   public Delta(final K layer, final double[] target) {
-    this(layer, target,null==target?null:DoubleArrays.obtain(target.length));
+    this(layer, target, null == target ? null : DoubleArrays.obtain(target.length));
   }
   
+  /**
+   * Instantiates a new Delta.
+   *
+   * @param layer             the layer
+   * @param target            the target
+   * @param doubles           the doubles
+   * @param deltaCompensation the delta compensation
+   */
   protected Delta(K layer, double[] target, double[] doubles, double[] deltaCompensation) {
     super(layer, target, doubles);
     if (null == target) throw new IllegalArgumentException();
@@ -71,19 +81,20 @@ public class Delta<K> extends DoubleBuffer<K> {
     for (int i = 0; i < data.length; i++) {
       double sum = data[i];
       double input = delta[i];
-      double c = null==dataCompensation?0:dataCompensation[i];
-      if(Math.abs(sum) >= Math.abs(input)) {
+      double c = null == dataCompensation ? 0 : dataCompensation[i];
+      if (Math.abs(sum) >= Math.abs(input)) {
         double y = sum - c;
         double t = input + y;
-        c = (t-input) - y;
+        c = (t - input) - y;
         data[i] = t;
-        if(null != dataCompensation) dataCompensation[i] = c;
-      } else {
+        if (null != dataCompensation) dataCompensation[i] = c;
+      }
+      else {
         double y = input - c;
         double t = sum + y;
-        c = (t-sum) - y;
+        c = (t - sum) - y;
         data[i] = t;
-        if(null != dataCompensation) dataCompensation[i] = c;
+        if (null != dataCompensation) dataCompensation[i] = c;
       }
     }
   }
@@ -132,11 +143,11 @@ public class Delta<K> extends DoubleBuffer<K> {
   
   @Override
   protected void finalize() throws Throwable {
-    if(null != delta) {
+    if (null != delta) {
       DoubleArrays.recycle(delta);
       delta = null;
     }
-    if(null != deltaCompensation) {
+    if (null != deltaCompensation) {
       DoubleArrays.recycle(deltaCompensation);
       deltaCompensation = null;
     }
@@ -154,6 +165,12 @@ public class Delta<K> extends DoubleBuffer<K> {
     return new Delta(layer, target, DoubleArrays.copyOf(delta), DoubleArrays.copyOf(deltaCompensation));
   }
   
+  /**
+   * Add in place delta.
+   *
+   * @param buffer the buffer
+   * @return the delta
+   */
   public Delta<K> addInPlace(Delta<K> buffer) {
     return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }

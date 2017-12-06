@@ -17,11 +17,11 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.mnist;
+package com.simiacryptus.mindseye.labs.encoding;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
 import com.simiacryptus.mindseye.eval.TrainableDataMask;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -34,9 +34,8 @@ import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.opt.orient.*;
-import com.simiacryptus.mindseye.opt.region.StaticConstraint;
-import com.simiacryptus.mindseye.opt.region.TrustRegion;
+import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
+import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.Util;
@@ -55,7 +54,7 @@ import java.util.stream.IntStream;
  * The type Image encoding nn run.
  */
 public class ImageEncodingNNTest extends ImageEncodingPCATest {
-
+  
   /**
    * The Pretrain minutes.
    */
@@ -72,32 +71,32 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
    * The Size.
    */
   int size = 256;
-
+  
   @Override
   public void run(NotebookOutput log) {
-    Tensor[][] trainingImages = getImages(log, size, 50, "kangaroo", "yin_yang");
-
+    Tensor[][] trainingImages = getImages(log, size, 30, "kangaroo", "yin_yang");
+    
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 7, 5);
-    }).invoke();
-
+        size, pretrainMinutes, timeoutMinutes, 3, 11, 5);
+    }).invoke(); // 252
+    
     log.h1("Second Layer");
     AddLayerStep step1 = log.code(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
         2, step0.toSize, pretrainMinutes, timeoutMinutes,
-        step0.band1, 11, 5, 2);
-    }).invoke();
-
+        step0.band1, 17, 7, 4);
+    }).invoke(); // 224
+    
     log.h1("Third Layer");
     AddLayerStep step2 = log.code(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
         3, step1.toSize, pretrainMinutes, timeoutMinutes,
-        step1.band2, 11, 5, 4);
+        step1.band2, 13, 5, 2);
     }).invoke();
   }
-
+  
   @Override
   public HtmlNotebookOutput getLog() {
     try {
@@ -113,7 +112,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
       throw new RuntimeException(e);
     }
   }
-
+  
   @Override
   protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
     return new FindFeatureSpace(log, features, inputBands) {
@@ -123,23 +122,23 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
         TrainingMonitor monitor = getMonitor(history);
         int[] featureDimensions = features[0][1].getDimensions();
         int[] categoryDimensions = features[0][0].getDimensions();
-        FullyConnectedLayer decodeMatrix = (FullyConnectedLayer) new FullyConnectedLayer(new int[]{inputBands}, featureDimensions).setWeights(()->0.001*(FastRandom.random()-0.5))
+        FullyConnectedLayer decodeMatrix = (FullyConnectedLayer) new FullyConnectedLayer(new int[]{inputBands}, featureDimensions).setWeights(() -> 0.001 * (FastRandom.random() - 0.5))
           .setName("renderMatrix");
         ImgBandBiasLayer bandBiasLayer = new ImgBandBiasLayer(featureDimensions[2]);
-
+        
         PipelineNetwork network = log.code(() -> {
           PipelineNetwork pipelineNetwork = new PipelineNetwork(3);
           pipelineNetwork.add(decodeMatrix);
           pipelineNetwork.add(bandBiasLayer);
           DAGNode sqLoss = pipelineNetwork.add(new MeanSqLossLayer(), pipelineNetwork.getHead(), pipelineNetwork.getInput(1));
-
+          
           pipelineNetwork.add(new FullyConnectedLayer(new int[]{inputBands}, categoryDimensions)
-            .setWeights(()->0.00001*(FastRandom.random()-0.5))
+            .setWeights(() -> 0.00001 * (FastRandom.random() - 0.5))
             .setName("categoryMatrix"), pipelineNetwork.getInput(0));
           DAGNode predictionVector = pipelineNetwork.add(new BiasLayer(categoryDimensions));
           pipelineNetwork.add(new SoftmaxActivationLayer());
           DAGNode entropy = pipelineNetwork.add(new EntropyLossLayer(), pipelineNetwork.getHead(), pipelineNetwork.getInput(2));
-
+          
           pipelineNetwork.add(new SumInputsLayer(),
             pipelineNetwork.add(new LinearActivationLayer().setScale(0.1).freeze(),
               pipelineNetwork.add(new SumReducerLayer(),
@@ -151,7 +150,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
             pipelineNetwork.add(new LinearActivationLayer().freeze(), entropy));
           return pipelineNetwork;
         });
-
+        
         addPerformanceWrappers(log, network);
         log.p(String.format("Training feature network for feature dims %s, category dims %s", Arrays.toString(featureDimensions), Arrays.toString(categoryDimensions)));
         Tensor[][] trainingData = log.code(() -> {
@@ -168,29 +167,8 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
             .setMonitor(monitor)
             .setTimeout(spaceTrainingMinutes, TimeUnit.MINUTES)
             .setMaxIterations(1000);
-//          validatingTrainer.getRegimen().get(0)
-//            //.setOrientation(new ValidatingOrientationWrapper(new QuantifyOrientationWrapper(new QQN())))
-//            .setOrientation(new DescribeOrientationWrapper(new QuantifyOrientationWrapper(new QQN())))
-//            .setLineSearchFactory(name -> {
-//              if (name.contains("LBFGS") || name.contains("QQN")) {
-//                return new QuadraticSearch().setCurrentRate(1.0);
-//                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
-//              }
-//              else {
-//                return new QuadraticSearch().setCurrentRate(1.0);
-//                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
-//              }
-//            });
-
           validatingTrainer.getRegimen().get(0)
-            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
-              @Override
-              public TrustRegion getRegionPolicy(NNLayer layer) {
-                if(layer instanceof BiasLayer) return null;
-                if(layer instanceof ImgBandBiasLayer) return null;
-                return new StaticConstraint();
-              }
-            })
+            .setOrientation(new QQN())
             .setLineSearchFactory(name -> {
               if (name.contains("LBFGS") || name.contains("QQN")) {
                 return new QuadraticSearch().setCurrentRate(1.0);
@@ -201,49 +179,69 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
                 //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
               }
             });
-          validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
-            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
-              @Override
-              public TrustRegion getRegionPolicy(NNLayer layer) {
-                if(layer instanceof PlaceholderLayer) return null;
-                return new StaticConstraint();
-              }
-            })
-            .setLineSearchFactory(name -> {
-              if (name.contains("LBFGS") || name.contains("QQN")) {
-                return new QuadraticSearch().setCurrentRate(1.0);
-                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
-              }
-              else {
-                return new QuadraticSearch().setCurrentRate(1.0);
-                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
-              }
-            }));
-          validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
-            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
-              @Override
-              public TrustRegion getRegionPolicy(NNLayer layer) {
-                if(layer instanceof FullyConnectedLayer) return null;
-                return new StaticConstraint();
-              }
-            })
-            .setLineSearchFactory(name -> {
-              if (name.contains("LBFGS") || name.contains("QQN")) {
-                return new QuadraticSearch().setCurrentRate(1.0);
-                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
-              }
-              else {
-                return new QuadraticSearch().setCurrentRate(1.0);
-                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
-              }
-            }));
+
+//          validatingTrainer.getRegimen().get(0)
+//            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
+//              @Override
+//              public TrustRegion getRegionPolicy(NNLayer layer) {
+//                if(layer instanceof BiasLayer) return null;
+//                if(layer instanceof ImgBandBiasLayer) return null;
+//                return new StaticConstraint();
+//              }
+//            })
+//            .setLineSearchFactory(name -> {
+//              if (name.contains("LBFGS") || name.contains("QQN")) {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
+//              }
+//              else {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
+//              }
+//            });
+//          validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
+//            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
+//              @Override
+//              public TrustRegion getRegionPolicy(NNLayer layer) {
+//                if(layer instanceof PlaceholderLayer) return null;
+//                return new StaticConstraint();
+//              }
+//            })
+//            .setLineSearchFactory(name -> {
+//              if (name.contains("LBFGS") || name.contains("QQN")) {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
+//              }
+//              else {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
+//              }
+//            }));
+//          validatingTrainer.getRegimen().add(new ValidatingTrainer.TrainingPhase(trainingSubject)
+//            .setOrientation(new TrustRegionStrategy(new LBFGS()) {
+//              @Override
+//              public TrustRegion getRegionPolicy(NNLayer layer) {
+//                if(layer instanceof FullyConnectedLayer) return null;
+//                return new StaticConstraint();
+//              }
+//            })
+//            .setLineSearchFactory(name -> {
+//              if (name.contains("LBFGS") || name.contains("QQN")) {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setAlpha(1.0).setMaxAlpha(1e8);
+//              }
+//              else {
+//                return new QuadraticSearch().setCurrentRate(1.0);
+//                //return new ArmijoWolfeSearch().setMaxAlpha(1e6);
+//              }
+//            }));
           validatingTrainer
             .run();
-
+          
           averages = Arrays.copyOf(bandBiasLayer.getBias(), bandBiasLayer.getBias().length);
           vectors = IntStream.range(0, inputBands).mapToObj(inputBand -> {
             Tensor to = new Tensor(featureDimensions);
-            to.fillByCoord(c -> decodeMatrix.getWeights().get(inputBand, c.index));
+            to.fillByCoord(c -> decodeMatrix.getWeights().get(c.index, inputBand));
             return to;
           }).toArray(i -> new Tensor[i]);
         });
@@ -253,7 +251,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
       }
     }.invoke();
   }
-
+  
   /**
    * Add performance wrappers.
    *
@@ -273,7 +271,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
       });
     });
   }
-
+  
   /**
    * Remove performance wrappers.
    *
@@ -308,7 +306,7 @@ public class ImageEncodingNNTest extends ImageEncodingPCATest {
       });
     });
   }
-
+  
   @Override
   protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, boolean... mask) {
     if (network instanceof DAGNetwork) addPerformanceWrappers(log, (DAGNetwork) network);

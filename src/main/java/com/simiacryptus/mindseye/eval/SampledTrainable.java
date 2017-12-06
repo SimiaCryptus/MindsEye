@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.eval;
 
 /**
- * A trainable contract for variable sample size; smaller values 
+ * A trainable contract for variable sample size; smaller values
  * result in faster but less representative evaluations.
  */
 public interface SampledTrainable extends Trainable {
@@ -38,5 +38,6 @@ public interface SampledTrainable extends Trainable {
    * @return the training size
    */
   SampledTrainable setTrainingSize(int trainingSize);
+  
   SampledCachedTrainable<? extends SampledTrainable> cached();
 }

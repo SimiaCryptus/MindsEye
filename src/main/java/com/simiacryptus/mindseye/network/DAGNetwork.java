@@ -466,7 +466,7 @@ public abstract class DAGNetwork extends NNLayer {
   @Override
   public DAGNetwork setFrozen(boolean frozen) {
     super.setFrozen(frozen);
-    if(null != layersById) visitLayers(layer -> layer.setFrozen(frozen));
+    if (null != layersById) visitLayers(layer -> layer.setFrozen(frozen));
     return this;
   }
   

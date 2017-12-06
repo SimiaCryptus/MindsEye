@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.util.data.DoubleStatistics;
-
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.stream.DoubleStream;
@@ -33,7 +31,7 @@ public class DoubleArrayStatsFacade {
    * The Data.
    */
   private final double[] data;
-
+  
   /**
    * Instantiates a new Double array stats facade.
    *
@@ -42,8 +40,8 @@ public class DoubleArrayStatsFacade {
   public DoubleArrayStatsFacade(double[] data) {
     this.data = data;
   }
-
-
+  
+  
   /**
    * Sum double.
    *
@@ -53,7 +51,7 @@ public class DoubleArrayStatsFacade {
     DoubleSummaryStatistics statistics = Arrays.stream(data).summaryStatistics();
     return statistics.getSum();
   }
-
+  
   /**
    * Sum sq double.
    *
@@ -64,7 +62,7 @@ public class DoubleArrayStatsFacade {
     DoubleSummaryStatistics statistics = doubleStream.summaryStatistics();
     return statistics.getSum();
   }
-
+  
   /**
    * Rms double.
    *
@@ -73,7 +71,7 @@ public class DoubleArrayStatsFacade {
   public double rms() {
     return Math.sqrt(sumSq() / length());
   }
-
+  
   /**
    * Length int.
    *

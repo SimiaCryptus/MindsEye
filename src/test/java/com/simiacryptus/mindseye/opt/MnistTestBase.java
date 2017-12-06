@@ -17,21 +17,18 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.mnist;
+package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.data.MNIST;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.mindseye.opt.Step;
-import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.JsonUtil;
@@ -137,7 +134,7 @@ public abstract class MnistTestBase {
    * @param network        the network
    */
   public void report(NotebookOutput log, MonitoredObject monitoringRoot, List<Step> history, NNLayer network) {
-
+    
     if (!history.isEmpty()) {
       log.code(() -> {
         PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
@@ -147,10 +144,10 @@ public abstract class MnistTestBase {
         return plot;
       });
     }
-  
+    
     String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-  
+    
     log.h3("Metrics");
     log.code(() -> {
       try {

@@ -31,8 +31,10 @@ import java.util.stream.Stream;
  * Provides indexing capabilities to reference the deltas based on physical references (to double[] objects)
  * and based on logical referants (i.e. layers)
  * Provides collection-arithmetic operations appropriate to the State's 'point' geometric archtype.
+ *
+ * @param <K> the type parameter
  */
-public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
+public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
   
   /**
    * Instantiates a new State set.
@@ -45,9 +47,9 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
    *
    * @param toCopy the to copy
    */
-  public StateSet(DoubleBufferSet<K,State<K>> toCopy) {
+  public StateSet(DoubleBufferSet<K, State<K>> toCopy) {
     super(toCopy);
-    assert stream().allMatch(x->x instanceof State);
+    assert stream().allMatch(x -> x instanceof State);
   }
   
   /**
@@ -61,7 +63,7 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
       this.get(layer, layerDelta.target).backup();
     });
     assert (this.stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite)));
-    assert stream().allMatch(x->x instanceof State);
+    assert stream().allMatch(x -> x instanceof State);
   }
   
   /**
@@ -73,29 +75,15 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
     super(collect);
   }
   
-  @Override
-  protected State factory(K layer, double[] ptr) {
-    return new State(layer, ptr);
-  }
-  
-  /**
-   * Union delta set.
-   *
-   * @param right the right
-   * @return the delta set
-   */
-  public DoubleBufferSet<K,State<K>> union(DoubleBufferSet<K,State<K>> right) {
-    return union(this, right);
-  }
-  
   /**
    * Union state set.
    *
+   * @param <K>   the type parameter
    * @param left  the left
    * @param right the right
    * @return the state set
    */
-  public static <K> StateSet<K> union(DoubleBufferSet<K,State<K>> left, DoubleBufferSet<K,State<K>> right) {
+  public static <K> StateSet<K> union(DoubleBufferSet<K, State<K>> left, DoubleBufferSet<K, State<K>> right) {
     Map<K, State<K>> collect = Stream.concat(
       left.map.entrySet().stream(),
       right.map.entrySet().stream()
@@ -109,6 +97,20 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
     return new StateSet(collect);
   }
   
+  @Override
+  protected State factory(K layer, double[] ptr) {
+    return new State(layer, ptr);
+  }
+  
+  /**
+   * Union delta set.
+   *
+   * @param right the right
+   * @return the delta set
+   */
+  public DoubleBufferSet<K, State<K>> union(DoubleBufferSet<K, State<K>> right) {
+    return union(this, right);
+  }
   
   /**
    * Subtract delta set.
@@ -120,9 +122,14 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
     return this.add(right.asVector().scale(-1)).asVector();
   }
   
+  /**
+   * As vector delta set.
+   *
+   * @return the delta set
+   */
   public DeltaSet<K> asVector() {
     HashMap<K, Delta> newMap = new HashMap<>();
-    map.forEach((layer, state)->new Delta(layer, state.target, state.delta));
+    map.forEach((layer, state) -> new Delta(layer, state.target, state.delta));
     return new DeltaSet(newMap);
   }
   
@@ -161,7 +168,7 @@ public class StateSet<K> extends DoubleBufferSet<K,State<K>> {
   @Override
   public StateSet<K> map(Function<State<K>, State<K>> mapper) {
     Stream<Map.Entry<K, State<K>>> stream = map.entrySet().stream();
-    if(map.size() > 100) stream = stream.parallel();
+    if (map.size() > 100) stream = stream.parallel();
     Map<K, State<K>> newMap = stream.collect(Collectors.toMap(e -> e.getKey(), e -> mapper.apply(e.getValue())));
     return new StateSet<>(newMap);
   }

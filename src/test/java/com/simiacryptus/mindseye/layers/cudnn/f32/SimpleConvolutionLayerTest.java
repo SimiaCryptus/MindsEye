@@ -37,16 +37,22 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   SimpleConvolutionLayer layer;
   
   /**
-   * Instantiates a new Simple convolution layer test.
+   * Instantiates a new Simple convolution layer run.
    */
   public SimpleConvolutionLayerTest() {
-    this(1,1);
+    this(1, 1);
   }
   
+  /**
+   * Instantiates a new Simple convolution layer test.
+   *
+   * @param radius the radius
+   * @param bands  the bands
+   */
   protected SimpleConvolutionLayerTest(int radius, int bands) {
     this.radius = radius;
     this.bands = bands;
-    layer = new SimpleConvolutionLayer(radius, radius, bands*bands);
+    layer = new SimpleConvolutionLayer(radius, radius, bands * bands);
     layer.filter.fill(() -> random());
   }
   
@@ -59,13 +65,13 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
   public NNLayer getReferenceLayer() {
     ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
     Tensor tensor = new Tensor(layer.filter.getDimensions());
-    tensor.fillByCoord(c->{
+    tensor.fillByCoord(c -> {
       int band = c.coords[2];
       int bandX = band % bands;
-      int bandY = (band-bandX) / bands;
+      int bandY = (band - bandX) / bands;
       assert band == bandX + bandY * bands;
       int bandT = bandY + bandX * bands;
-      return layer.filter.get(c.coords[0],c.coords[1], bandT);
+      return layer.filter.get(c.coords[0], c.coords[1], bandT);
     });
     convolutionLayer.kernel.set(tensor);
     return convolutionLayer;
@@ -83,30 +89,48 @@ public class SimpleConvolutionLayerTest extends F32LayerTestBase {
     return new DerivativeTester(1e-2, 1e-3);
   }
   
+  /**
+   * The type Multi band.
+   */
   public static class MultiBand extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Multi band.
+     */
     public MultiBand() {
-      super(1,3);
+      super(1, 3);
     }
   }
   
+  /**
+   * The type Matrix.
+   */
   public static class Matrix extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Matrix.
+     */
     public Matrix() {
-      super(3,1);
+      super(3, 1);
     }
   }
   
+  /**
+   * The type Image.
+   */
   public static class Image extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Image.
+     */
     public Image() {
-      super(3,3);
+      super(3, 3);
     }
-  
+    
     @Override
     public int[][] getInputDims() {
       return new int[][]{
         {4, 4, 3}
       };
     }
-  
+    
   }
   
 }

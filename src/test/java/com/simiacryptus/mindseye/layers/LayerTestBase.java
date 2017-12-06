@@ -50,12 +50,48 @@ import java.util.stream.Stream;
  * The type Layer run base.
  */
 public abstract class LayerTestBase {
-  private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);
-  
   /**
    * The constant originalOut.
    */
   protected static final PrintStream originalOut = System.out;
+  private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);
+  
+  /**
+   * To graph graph.
+   *
+   * @param network the network
+   * @return the graph
+   */
+  public static Graph toGraph(DAGNetwork network) {
+    List<DAGNode> nodes = network.getNodes();
+    Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
+      String name;
+      NNLayer layer = node.getLayer();
+      if (null == layer) {
+        name = node.getId().toString();
+      }
+      else {
+        Class<? extends NNLayer> layerClass = layer.getClass();
+        name = layerClass.getSimpleName() + "\n" + layer.getId();
+      }
+      return Factory.mutNode(name);
+    }));
+    Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
+      return Arrays.stream(to.getInputs()).map(from -> {
+        return new UUID[]{from.getId(), to.getId()};
+      });
+    });
+    Map<UUID, List<UUID>> idMap = stream.collect(Collectors.groupingBy(x -> x[0],
+      Collectors.mapping(x -> x[1], Collectors.toList())));
+    nodes.forEach(to -> {
+      graphNodes.get(to.getId()).addLink(
+        idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
+          return Link.to(graphNodes.get(from));
+        }).<LinkTarget>toArray(i -> new LinkTarget[i]));
+    });
+    LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
+    return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+  }
   
   /**
    * Test derivatives.
@@ -89,9 +125,9 @@ public abstract class LayerTestBase {
       return new GsonBuilder().setPrettyPrinting().create().toJson(json);
     });
     
-    if(layer instanceof DAGNetwork) {
+    if (layer instanceof DAGNetwork) {
       log.h3("Network Diagram");
-      log.code(()->{
+      log.code(() -> {
         return Graphviz.fromGraph(toGraph((DAGNetwork) layer))
           .height(400).width(600).render(Format.PNG).toImage();
       });
@@ -104,92 +140,62 @@ public abstract class LayerTestBase {
       (a, b) -> a.add(b));
     
     HashMap<Tensor[], Tensor> referenceIO = getReferenceIO();
-    if(!referenceIO.isEmpty()) {
+    if (!referenceIO.isEmpty()) {
       log.h3("Reference Input/Output Pairs");
-      referenceIO.forEach((input, output)->{
-        log.code(()->{
+      referenceIO.forEach((input, output) -> {
+        log.code(() -> {
           SimpleEval eval = SimpleEval.run(layer, input);
           DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
           return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s",
-            Arrays.stream(input).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+            Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
             eval.getOutput().prettyPrint(), error);
         });
       });
-    } else {
+    }
+    else {
       log.h3("Example Input/Output Pair");
       log.code(() -> {
         SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
-          Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
           eval.getOutput().prettyPrint());
       });
     }
-  
+    
     NNLayer referenceLayer = getReferenceLayer();
-    if(null != referenceLayer) {
+    if (null != referenceLayer) {
       log.h3("Reference Implementation");
       log.code(() -> {
         System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
         getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
       });
     }
-  
+    
     log.h3("Batch Execution");
     log.code(() -> {
       BatchingTester batchingTester = getBatchingTester();
-      return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
+      return batchingTester == null ? null : batchingTester.test(layer, inputPrototype);
     });
     
     log.h3("Differential Validation");
     log.code(() -> {
       return getDerivativeTester().test(layer, inputPrototype);
     });
-  
+    
     log.h3("Performance");
     log.code(() -> {
       getPerformanceTester().test(layer, inputPrototype);
     });
-  
-  }
-  
-  public BatchingTester getBatchingTester() {
-    return new BatchingTester(1e-2);
+    
   }
   
   /**
-   * To graph graph.
+   * Gets batching tester.
    *
-   * @param network the network
-   * @return the graph
+   * @return the batching tester
    */
-  public static Graph toGraph(DAGNetwork network) {
-    List<DAGNode> nodes = network.getNodes();
-    Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
-      String name;
-      NNLayer layer = node.getLayer();
-      if(null == layer) {
-        name = node.getId().toString();
-      } else {
-        Class<? extends NNLayer> layerClass = layer.getClass();
-        name = layerClass.getSimpleName() + "\n" + layer.getId();
-      }
-      return Factory.mutNode(name);
-    }));
-    Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
-      return Arrays.stream(to.getInputs()).map(from -> {
-        return new UUID[]{from.getId(), to.getId()};
-      });
-    });
-    Map<UUID, List<UUID>> idMap = stream.collect(Collectors.groupingBy(x -> x[0],
-      Collectors.mapping(x -> x[1], Collectors.toList())));
-    nodes.forEach(to->{
-      graphNodes.get(to.getId()).addLink(
-        idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
-          return Link.to(graphNodes.get(from));
-        }).<LinkTarget>toArray(i -> new LinkTarget[i]));
-    });
-    LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
-    return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+  public BatchingTester getBatchingTester() {
+    return new BatchingTester(1e-2);
   }
   
   /**

@@ -72,7 +72,7 @@ public class AvgMetaLayer extends NNLayer {
   public static AvgMetaLayer fromJson(JsonObject json) {
     return new AvgMetaLayer(json);
   }
-
+  
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     if (null != lastResult) json.add("lastResult", lastResult.getJson());

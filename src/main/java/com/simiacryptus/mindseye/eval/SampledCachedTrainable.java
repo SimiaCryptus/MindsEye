@@ -36,15 +36,15 @@ public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTr
   public SampledCachedTrainable(T inner) {
     super(inner);
   }
-
+  
   @Override
   public int getTrainingSize() {
     return getInner().getTrainingSize();
   }
-
+  
   @Override
   public SampledTrainable setTrainingSize(int trainingSize) {
-    if(trainingSize != getTrainingSize()) {
+    if (trainingSize != getTrainingSize()) {
       getInner().setTrainingSize(trainingSize);
       reseed(seed);
     }

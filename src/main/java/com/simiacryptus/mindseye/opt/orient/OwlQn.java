@@ -20,9 +20,9 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 /**
  * Orthant-Wise Limited-memory Quasi-Newton optimization
- * This is a modified L-BFGS algorithm which uses orthant trust regions 
+ * This is a modified L-BFGS algorithm which uses orthant trust regions
  * to bound the cursor path during the line search phase of each iteration
  */
 public class OwlQn implements OrientationStrategy<LineSearchCursor> {

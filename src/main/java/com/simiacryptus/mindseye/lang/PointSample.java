@@ -59,7 +59,7 @@ public final class PointSample {
     assert (delta.getMap().size() == weights.getMap().size());
     this.delta = new DeltaSet<NNLayer>(delta);
     this.weights = new StateSet<NNLayer>(weights);
-    assert delta.getMap().keySet().stream().allMatch(x->weights.getMap().containsKey(x));
+    assert delta.getMap().keySet().stream().allMatch(x -> weights.getMap().containsKey(x));
     this.sum = sum;
     this.count = count;
     this.setRate(rate);
@@ -158,8 +158,17 @@ public final class PointSample {
     return add(this, right);
   }
   
+  /**
+   * Normalize point sample.
+   *
+   * @return the point sample
+   */
   public PointSample normalize() {
-    if(count==1) return this;
-    else return new PointSample(delta.scale(1.0/count), weights, sum / count, rate, 1);
+    if (count == 1) {
+      return this;
+    }
+    else {
+      return new PointSample(delta.scale(1.0 / count), weights, sum / count, rate, 1);
+    }
   }
 }

@@ -22,9 +22,9 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.simiacryptus.mindseye.lang.DoubleArrays;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.DoubleArrays;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnHandle;
@@ -147,7 +147,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     if (data instanceof CuDNNDoubleTensorList) {
       CudaPtr ptr = ((CuDNNDoubleTensorList) data).ptr;
       assert null != ptr;
-      assert null != ptr.getPtr() : null==ptr.finalizedBy?"":Arrays.stream(ptr.finalizedBy).map(x->x.toString()).reduce((a,b)->a+"; "+b).get();
+      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
       return ptr;
     }
     else {
@@ -177,7 +177,7 @@ public class CudaPtr extends CudaResource<Pointer> {
     if (data instanceof CuDNNFloatTensorList) {
       CudaPtr ptr = ((CuDNNFloatTensorList) data).ptr;
       assert null != ptr;
-      assert null != ptr.getPtr() : null==ptr.finalizedBy?"":Arrays.stream(ptr.finalizedBy).map(x->x.toString()).reduce((a,b)->a+"; "+b).get();
+      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
       return ptr;
 //        } else if(data instanceof CuDNNDoubleTensorList) {
 //            return ((CuDNNDoubleTensorList)data).ptr;

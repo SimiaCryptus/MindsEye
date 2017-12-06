@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
+import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
@@ -296,8 +296,8 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = lineSearchFactory;
+  public RoundRobinTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = s -> lineSearchFactory.get();
     return this;
   }
   
@@ -307,8 +307,8 @@ public class RoundRobinTrainer {
    * @param lineSearchFactory the line search factory
    * @return the line search factory
    */
-  public RoundRobinTrainer setLineSearchFactory(Supplier<LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = s -> lineSearchFactory.get();
+  public RoundRobinTrainer setLineSearchFactory(Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = lineSearchFactory;
     return this;
   }
   
