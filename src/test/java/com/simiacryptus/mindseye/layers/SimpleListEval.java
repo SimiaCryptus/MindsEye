@@ -30,8 +30,8 @@ import java.util.stream.IntStream;
  * The type Simple eval.
  */
 public class SimpleListEval implements Callable<SimpleListEval> {
-  private NNLayer layer;
-  private TensorList[] input;
+  private final NNLayer layer;
+  private final TensorList[] input;
   private TensorList[] derivative;
   private TensorList output;
   
@@ -97,7 +97,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
       return new NNResult(input[i]) {
         @Override
         public void accumulate(DeltaSet buffer, TensorList data) {
-          SimpleListEval.this.accumulate(derivative[i], data);
+          SimpleListEval.accumulate(derivative[i], data);
         }
         
         @Override

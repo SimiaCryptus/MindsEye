@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -25,21 +25,18 @@ import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.JsonUtil;
-import smile.math.Math;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
-import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
-import java.util.List;
 
 /**
  * The type Image test util.
  */
-public class ImageTestUtil {
+public class TestUtil {
   
   /**
    * The constant originalOut.
@@ -82,7 +79,7 @@ public class ImageTestUtil {
    */
   public static PlotCanvas plot(List<StepRecord> history) {
     PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-      step.iteraton, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
+      step.iteraton, java.lang.Math.log10(step.fitness)}).toArray(i -> new double[i][]));
     plot.setTitle("Convergence Plot");
     plot.setAxisLabels("Iteration", "log10(Fitness)");
     plot.setSize(600, 400);
@@ -98,7 +95,7 @@ public class ImageTestUtil {
   public static PlotCanvas plotTime(List<StepRecord> history) {
     LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
     PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-      (step.epochTime-timeStats.getMin())/1000.0, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
+      (step.epochTime-timeStats.getMin())/1000.0, java.lang.Math.log10(step.fitness)}).toArray(i -> new double[i][]));
     plot.setTitle("Convergence Plot");
     plot.setAxisLabels("Time", "log10(Fitness)");
     plot.setSize(600, 400);
@@ -116,17 +113,17 @@ public class ImageTestUtil {
       .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> step.iteraton))
       .summaryStatistics();
     DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
-      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> Math.log10(step.fitness)))
+      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> java.lang.Math.log10(step.fitness)))
       .summaryStatistics();
-    double[] lowerBound = new double[]{xStatistics.getMin(), yStatistics.getMin()};
-    double[] upperBound = new double[]{xStatistics.getMax(), yStatistics.getMax()};
+    double[] lowerBound = {xStatistics.getMin(), yStatistics.getMin()};
+    double[] upperBound = {xStatistics.getMax(), yStatistics.getMax()};
     PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
     canvas.setTitle("Convergence Plot");
     canvas.setAxisLabels("Iteration", "log10(Fitness)");
     canvas.setSize(600, 400);
     for (ProblemRun trial : trials) {
       ScatterPlot plot = new ScatterPlot(trial.history.stream().map(step -> new double[]{
-        step.iteraton, Math.log10(step.fitness)}).toArray(i -> new double[i][]));
+        step.iteraton, java.lang.Math.log10(step.fitness)}).toArray(i -> new double[i][]));
       plot.setID(trial.name);
       plot.setColor(trial.color);
       canvas.add(plot);
@@ -145,10 +142,10 @@ public class ImageTestUtil {
       .map(x -> x.history.stream().mapToDouble(step -> step.epochTime).summaryStatistics()).toArray(i->new DoubleSummaryStatistics[i]);
     double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
     DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
-      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> Math.log10(step.fitness)))
+      .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> java.lang.Math.log10(step.fitness)))
       .summaryStatistics();
-    double[] lowerBound = new double[]{0, yStatistics.getMin()};
-    double[] upperBound = new double[]{(totalTime)/1000.0, yStatistics.getMax()};
+    double[] lowerBound = {0, yStatistics.getMin()};
+    double[] upperBound = {(totalTime)/1000.0, yStatistics.getMax()};
     PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
     canvas.setTitle("Convergence Plot");
     canvas.setAxisLabels("Time", "log10(Fitness)");
@@ -157,7 +154,7 @@ public class ImageTestUtil {
       ProblemRun trial = trials[t];
       DoubleSummaryStatistics trialStats = xStatistics[t];
       ScatterPlot plot = new ScatterPlot(trial.history.stream().map(step -> {
-        return new double[]{ (step.epochTime - trialStats.getMin()) / 1000.0, Math.log10(step.fitness)};
+        return new double[]{ (step.epochTime - trialStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)};
       }).toArray(i -> new double[i][]));
       plot.setID(trial.name);
       plot.setColor(trial.color);
@@ -206,67 +203,6 @@ public class ImageTestUtil {
       return out.toString();
     } catch (IOException e1) {
       throw new RuntimeException(e1);
-    }
-  }
-  
-  /**
-   * The type Step record.
-   */
-  public static class StepRecord {
-    /**
-     * The Fitness.
-     */
-    public final double fitness;
-    /**
-     * The Epoch time.
-     */
-    public final long epochTime;
-    /**
-     * The Iteraton.
-     */
-    public final long iteraton;
-  
-    /**
-     * Instantiates a new Step record.
-     *
-     * @param fitness   the fitness
-     * @param epochTime the epoch time
-     * @param iteraton  the iteraton
-     */
-    public StepRecord(double fitness, long epochTime, long iteraton) {
-      this.fitness = fitness;
-      this.epochTime = epochTime;
-      this.iteraton = iteraton;
-    }
-  }
-  
-  /**
-   * The type Problem run.
-   */
-  public static class ProblemRun {
-    /**
-     * The History.
-     */
-    public final List<StepRecord> history;
-    /**
-     * The Name.
-     */
-    public final String name;
-    /**
-     * The Color.
-     */
-    public final Color color;
-  
-    /**
-     * Instantiates a new Problem run.
-     *  @param name    the name
-     * @param color   the color
-     * @param history the history
-     */
-    public ProblemRun(String name, Color color, List<StepRecord> history) {
-      this.history = history;
-      this.name = name;
-      this.color = color;
     }
   }
   

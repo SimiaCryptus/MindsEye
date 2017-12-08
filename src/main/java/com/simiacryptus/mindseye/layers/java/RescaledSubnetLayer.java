@@ -87,6 +87,7 @@ public class RescaledSubnetLayer extends NNLayer {
     final TensorList batch = input.getData();
     final int[] inputDims = batch.get(0).getDimensions();
     assert (3 == inputDims.length);
+    if(1 == scale) return input;
     
     PipelineNetwork network = new PipelineNetwork();
     DAGNode condensed = network.add(new ImgReshapeLayer(scale, scale, false));

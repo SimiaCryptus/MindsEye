@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Mnist run base.
  */
-public class AutoencodingProblem extends ImageTestUtil implements Problem {
+public class AutoencodingProblem implements Problem {
   
   private static int modelNo = 0;
   
@@ -53,7 +53,7 @@ public class AutoencodingProblem extends ImageTestUtil implements Problem {
   private final OptimizationStrategy optimizer;
   private final RevNetworkFactory revFactory;
   private final List<StepRecord> history = new ArrayList<>();
-  private final ImageData data;
+  private final ImageProblemData data;
   private int timeoutMinutes = 1;
   
   /**
@@ -64,7 +64,7 @@ public class AutoencodingProblem extends ImageTestUtil implements Problem {
    * @param revFactory the rev factory
    * @param data       the data
    */
-  public AutoencodingProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, RevNetworkFactory revFactory, ImageData data) {
+  public AutoencodingProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, RevNetworkFactory revFactory, ImageProblemData data) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.revFactory = revFactory;
@@ -92,7 +92,7 @@ public class AutoencodingProblem extends ImageTestUtil implements Problem {
       supervisedNetwork.getInput(0));
     
     TrainingMonitor monitor = new TrainingMonitor() {
-      TrainingMonitor inner = getMonitor(history);
+      TrainingMonitor inner = TestUtil.getMonitor(history);
       
       @Override
       public void log(String msg) {
@@ -107,7 +107,7 @@ public class AutoencodingProblem extends ImageTestUtil implements Problem {
     };
     
     Tensor[][] trainingData = getTrainingData(log);
-    addMonitoring(supervisedNetwork, monitoringRoot);
+    TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
     
     log.h3("Training");
     ValidatingTrainer trainer = optimizer.train(log,
@@ -118,10 +118,10 @@ public class AutoencodingProblem extends ImageTestUtil implements Problem {
     });
     if (!history.isEmpty()) {
       log.code(() -> {
-        return plot(history);
+        return TestUtil.plot(history);
       });
       log.code(() -> {
-        return plotTime(history);
+        return TestUtil.plotTime(history);
       });
     }
     
@@ -129,15 +129,13 @@ public class AutoencodingProblem extends ImageTestUtil implements Problem {
       String modelName = "encoder_model" + modelNo++ + ".json";
       log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
     }
-    
-    {
-      String modelName = "decoder_model" + modelNo++ + ".json";
-      log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
-    }
-    
+  
+    String modelName = "decoder_model" + modelNo++ + ".json";
+    log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
+  
     log.h3("Metrics");
     log.code(() -> {
-      return toFormattedJson(monitoringRoot.getMetrics());
+      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
     });
     
     log.h3("Validation");

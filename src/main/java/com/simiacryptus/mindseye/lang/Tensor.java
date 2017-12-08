@@ -1035,7 +1035,7 @@ public class Tensor implements Serializable {
   
   @Override
   public String toString() {
-    return toString(false, new int[]{});
+    return toString(false);
   }
   
   private String toString(boolean prettyPrint, final int... coords) {
@@ -1075,7 +1075,7 @@ public class Tensor implements Serializable {
    * @return the string
    */
   public String prettyPrint() {
-    return toString(true, new int[]{});
+    return toString(true);
   }
   
   /**

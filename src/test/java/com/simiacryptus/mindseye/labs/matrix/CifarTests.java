@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
-import com.simiacryptus.mindseye.data.CIFAR10;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
@@ -35,16 +33,14 @@ import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.MomentumStrategy;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
+import com.simiacryptus.mindseye.test.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.io.IOException;
-import java.util.stream.Stream;
 
 /**
  * The type Mnist run base.
@@ -313,29 +309,13 @@ public class CifarTests {
     
   }
   
-  private static class Data implements ImageData {
-    
-    @Override
-    public Stream<LabeledObject<Tensor>> validationData() throws IOException {
-      return CIFAR10.trainingDataStream();
-    }
-    
-    @Override
-    public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-      System.out.println(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
-      return CIFAR10.trainingDataStream();
-    }
-    
-  }
-  
-  private abstract static class AllTests extends ImageTestUtil {
+  private abstract static class AllTests {
     
     
     private final RevNetworkFactory revFactory;
     private final OptimizationStrategy optimizationStrategy;
     private final FwdNetworkFactory fwdFactory;
-    private final Data data = new Data();
-    ;
+    private final CIFARProblemData data = new CIFARProblemData();
   
     /**
      * Instantiates a new All tests.
@@ -359,7 +339,7 @@ public class CifarTests {
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-        if (null != originalOut) log.addCopy(originalOut);
+        if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("CIFAR10 Image-to-Vector Encoding");
         intro(log);
         new EncodingProblem(revFactory, optimizationStrategy, data).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -382,7 +362,7 @@ public class CifarTests {
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-        if (null != originalOut) log.addCopy(originalOut);
+        if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("CIFAR10 Classification");
         intro(log);
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
@@ -398,7 +378,7 @@ public class CifarTests {
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-        if (null != originalOut) log.addCopy(originalOut);
+        if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("CIFAR10 Denoising Autoencoder");
         intro(log);
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data).setTimeoutMinutes(timeoutMinutes).run(log);

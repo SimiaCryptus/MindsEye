@@ -37,7 +37,7 @@ public class PerformanceTester {
   
   private boolean testLearning = true;
   private boolean testEvaluation = true;
-  private int samples = 10;
+  private final int samples = 10;
   
   /**
    * Instantiates a new Derivative tester.

@@ -80,7 +80,7 @@ final class InnerNode extends LazyResult {
     if (1 == this.inputNodes.length) {
       DAGNode inputNode = this.inputNodes[0];
       final NNResult in = null == inputNode ? null : inputNode.get(nncontext, ctx);
-      final NNResult output = innerLayer.eval(nncontext, new NNResult[]{in});
+      final NNResult output = innerLayer.eval(nncontext, in);
       return output;
     }
     else {

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -34,18 +34,18 @@ import java.util.stream.Stream;
 /**
  * The type Linear run.
  */
-public class SupplementedData implements ImageData {
+public class SupplementedProblemData implements ImageProblemData {
   
-  private final ImageData inner;
+  private final ImageProblemData inner;
   private final Random random = new Random();
-  private int expansion = 10;
+  private final int expansion = 10;
   
   /**
    * Instantiates a new Supplemented data.
    *
    * @param inner the inner
    */
-  public SupplementedData(ImageData inner) {
+  public SupplementedProblemData(ImageProblemData inner) {
     this.inner = inner;
   }
   

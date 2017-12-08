@@ -30,8 +30,8 @@ import java.util.stream.IntStream;
  * The type Simple eval.
  */
 public class SimpleEval implements Callable<SimpleEval> {
-  private NNLayer layer;
-  private Tensor[] input;
+  private final NNLayer layer;
+  private final Tensor[] input;
   private Tensor[] derivative;
   private Tensor output;
   

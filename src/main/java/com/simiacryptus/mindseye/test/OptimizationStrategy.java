@@ -17,28 +17,26 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.mindseye.eval.SampledTrainable;
+import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.util.io.NotebookOutput;
 
-import java.util.List;
-
 /**
- * The interface Problem.
+ * The interface Optimization strategy.
  */
-public interface Problem {
+public interface OptimizationStrategy {
   /**
-   * Run problem.
+   * Train validating trainer.
    *
-   * @param log the log
-   * @return the problem
+   * @param log               the log
+   * @param trainingSubject   the training subject
+   * @param validationSubject the validation subject
+   * @param monitor           the monitor
+   * @return the validating trainer
    */
-  Problem run(NotebookOutput log);
-  
-  /**
-   * Gets history.
-   *
-   * @return the history
-   */
-  List<ImageTestUtil.StepRecord> getHistory();
+  ValidatingTrainer train(NotebookOutput log, SampledTrainable trainingSubject, Trainable validationSubject, TrainingMonitor monitor);
 }

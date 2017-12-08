@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
 /**
  * The type Mnist run base.
  */
-public class ClassifyProblem extends ImageTestUtil implements Problem {
+public class ClassifyProblem implements Problem {
   
   private static int modelNo = 0;
   
@@ -51,7 +51,7 @@ public class ClassifyProblem extends ImageTestUtil implements Problem {
   private final FwdNetworkFactory fwdFactory;
   private final OptimizationStrategy optimizer;
   private final List<StepRecord> history = new ArrayList<>();
-  private final ImageData data;
+  private final ImageProblemData data;
   private int timeoutMinutes = 1;
   
   /**
@@ -62,7 +62,7 @@ public class ClassifyProblem extends ImageTestUtil implements Problem {
    * @param data       the data
    * @param categories the categories
    */
-  public ClassifyProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, ImageData data, int categories) {
+  public ClassifyProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, ImageProblemData data, int categories) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.data = data;
@@ -72,11 +72,11 @@ public class ClassifyProblem extends ImageTestUtil implements Problem {
   
   public ClassifyProblem run(NotebookOutput log) {
     MonitoredObject monitoringRoot = new MonitoredObject();
-    TrainingMonitor monitor = getMonitor(history);
+    TrainingMonitor monitor = TestUtil.getMonitor(history);
     Tensor[][] trainingData = getTrainingData(log);
     DAGNetwork network = fwdFactory.imageToVector(log, categories);
     SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-    addMonitoring(network, monitoringRoot);
+    TestUtil.addMonitoring(network, monitoringRoot);
     log.h3("Training");
     ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
@@ -86,17 +86,17 @@ public class ClassifyProblem extends ImageTestUtil implements Problem {
     });
     if (!history.isEmpty()) {
       log.code(() -> {
-        return plot(history);
+        return TestUtil.plot(history);
       });
       log.code(() -> {
-        return plotTime(history);
+        return TestUtil.plotTime(history);
       });
     }
     String modelName = "classification_model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
     log.h3("Metrics");
     log.code(() -> {
-      return toFormattedJson(monitoringRoot.getMetrics());
+      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
     });
     
     log.h3("Validation");

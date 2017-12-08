@@ -89,7 +89,7 @@ public final class GpuController {
    * @return the t
    */
   public static <T> T call(Function<CudaExecutionContext, T> fn) {
-    return CudaExecutionContext.gpuContexts.<T>run(exe -> {
+    return CudaExecutionContext.gpuContexts.run(exe -> {
       try {
         return INSTANCE.getGpuDriverThreads().get(exe).submit(() -> fn.apply(exe)).get();
       } catch (Exception e) {

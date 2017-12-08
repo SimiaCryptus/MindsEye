@@ -67,7 +67,7 @@ public abstract class MnistTestBase {
   public void test() throws IOException {
     PrintStream originalOut = System.out;
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-      if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
+      if (null != originalOut) log.addCopy(originalOut);
       List<Step> history = new ArrayList<>();
       MonitoredObject monitoringRoot = new MonitoredObject();
       TrainingMonitor monitor = getMonitor(originalOut, history);

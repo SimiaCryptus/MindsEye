@@ -279,12 +279,7 @@ public class SimpleConvolutionLayer extends NNLayer {
   protected boolean verifyOutputDims(CudaResource<cudnnTensorDescriptor> inputDescriptor, CudaResource<cudnnFilterDescriptor> filterDescriptor, CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, int[] outputSize) {
     int[] outputDims = CuDNN.getOutputDims(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr());
     boolean cmp = cmp(outputSize, outputDims);
-    if (cmp) {
-      return true;
-    }
-    else {
-      return false;
-    }
+    return cmp;
   }
   
   private boolean cmp(int[] outputSize, int[] outputDims) {

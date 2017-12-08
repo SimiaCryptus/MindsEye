@@ -111,7 +111,7 @@ public abstract class LayerTestBase {
    * @param log the log
    */
   public void test(NotebookOutput log) {
-    if (null != originalOut) ((MarkdownNotebookOutput) log).addCopy(originalOut);
+    if (null != originalOut) log.addCopy(originalOut);
     NNLayer layer = getLayer();
     log.h1("%s", layer.getClass().getSimpleName());
     log.h2("%s", getClass().getSimpleName());

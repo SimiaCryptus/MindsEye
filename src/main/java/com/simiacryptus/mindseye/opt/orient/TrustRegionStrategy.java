@@ -87,7 +87,7 @@ public abstract class TrustRegionStrategy implements OrientationStrategy<LineSea
   public LineSearchCursor orient(Trainable subject, PointSample origin, TrainingMonitor monitor) {
     history.add(0, origin);
     while (history.size() > maxHistory) history.remove(history.size() - 1);
-    SimpleLineSearchCursor cursor = (SimpleLineSearchCursor) inner.orient(subject, origin, monitor);
+    SimpleLineSearchCursor cursor = inner.orient(subject, origin, monitor);
     return new LineSearchCursor() {
       @Override
       public String getDirectionType() {

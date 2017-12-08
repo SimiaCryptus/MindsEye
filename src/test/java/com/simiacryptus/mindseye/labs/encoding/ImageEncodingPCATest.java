@@ -19,6 +19,10 @@
 
 package com.simiacryptus.mindseye.labs.encoding;
 
+import com.simiacryptus.mindseye.eval.ArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
+import com.simiacryptus.mindseye.eval.SampledTrainable;
+import com.simiacryptus.mindseye.eval.TrainableDataMask;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ActivationLayer;
@@ -30,6 +34,9 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.opt.ValidatingTrainer;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
+import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
@@ -42,15 +49,16 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
  * The type Image encoding pca run.
  */
-public class ImageEncodingPCATest extends ImageEncodingUtil {
+public class ImageEncodingPCATest {
   
   /**
-   * The Data pipeline.
+   * The MnistProblemData pipeline.
    */
   public List<NNLayer> dataPipeline = new ArrayList<>();
   /**
@@ -70,7 +78,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
   @Test
   @Category(TestCategories.Report.class)
   public void test() throws Exception {
-    try (NotebookOutput log = getLog()) {
+    try (NotebookOutput log = report()) {
       run(log);
     }
   }
@@ -80,9 +88,9 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
    *
    * @return the log
    */
-  public NotebookOutput getLog() {
+  public NotebookOutput report() {
     MarkdownNotebookOutput log = MarkdownNotebookOutput.get(this);
-    log.addCopy(rawOut);
+    log.addCopy(TestUtil.rawOut);
     return log;
   }
   
@@ -96,34 +104,34 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     int timeoutMinutes = 30;
     int size = 256;
     
-    Tensor[][] trainingImages = getImages(log, size, 20, "kangaroo");
+    Tensor[][] trainingImages = TestUtil.getImages(log, size, 5, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 12, 7);
-    }).invoke();
+        size, pretrainMinutes, timeoutMinutes, 3, 12, 5);
+    }).invoke(); // output: 260
     
     log.h1("Second Layer");
     AddLayerStep step1 = log.code(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
         2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
-        step0.band1, 24, 7, 2);
-    }).invoke();
+        step0.band1, 24, 5, 4);
+    }).invoke(); // output: 274
     
     log.h1("Third Layer");
     AddLayerStep step2 = log.code(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
-        step1.band2, 12, 7, 4);
-    }).invoke();
+        step1.band2, 24, 5, 1);
+    }).invoke(); // 276
   
     log.h1("Fourth Layer");
     AddLayerStep step3 = log.code(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
         4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
-        step2.band2, 24, 7, 1);
-    }).invoke();
+        step2.band2, 24, 5, 4);
+    }).invoke(); // 278
   
     log.h1("Transcoding Different Category");
     TranscodeStep step4 = log.code(() -> {
@@ -190,8 +198,8 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.log = log;
       this.size = size;
       this.model = model;
-      this.trainingData = addColumn(getImages(log, size, imageCount, category), representationDims);
-      this.monitor = getMonitor(history);
+      this.trainingData = TestUtil.addColumn(TestUtil.getImages(log, size, imageCount, category), representationDims);
+      this.monitor = TestUtil.getMonitor(history);
       this.trainMinutes = trainMinutes;
     }
     
@@ -211,12 +219,12 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
      */
     public TranscodeStep invoke() {
       log.h3("Training");
-      DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2);
+      DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
       train(log, monitor, trainingModel0, trainingData, new QQN(), trainMinutes, false, false, true);
-      printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
-      validationReport(log, trainingData, Arrays.asList(this.model), imageCount);
-      printDataStatistics(log, trainingData);
+      TestUtil.validationReport(log, trainingData, Arrays.asList(this.model), imageCount);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       return this;
     }
@@ -299,12 +307,12 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       this.band1 = band1;
       this.band0 = band0;
       this.log = log;
-      this.monitor = getMonitor(history);
+      this.monitor = TestUtil.getMonitor(history);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
       this.fromSize = fromSize;
       this.toSize = (fromSize + (radius - 1));
-      this.trainingData = addColumn(originalTrainingData, toSize, toSize, band1);
+      this.trainingData = TestUtil.addColumn(originalTrainingData, toSize, toSize, band1);
       this.radius = radius;
       this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0).setWeights(() -> 0.1 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band0);
@@ -349,31 +357,31 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     public InitializationStep invoke() {
       dataPipeline.add(model);
       log.code(() -> {
-        initialize(log, convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
+        initialize(log, TestUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
       });
       
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(model.copy().freeze(), 1, 2);
+        DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
         train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, false, false, true);
-        printHistory(log, history);
+        TestUtil.printHistory(log, history);
         log.h3("Results");
-        validationReport(log, trainingData, dataPipeline, displayImage);
-        printModel(log, model, modelNo++);
-        printDataStatistics(log, trainingData);
+        TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+        TestUtil.printModel(log, model, modelNo++);
+        TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
       
       log.h2("Tuning");
       log.h3("Training");
-      DAGNetwork trainingModel0 = buildTrainingModel(model, 1, 2);
+      DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model, 1, 2);
       train(log, monitor, trainingModel0, trainingData, new OwlQn(), timeoutMinutes, false, false, true);
-      printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
-      validationReport(log, trainingData, dataPipeline, displayImage);
-      printModel(log, model, modelNo++);
-      printDataStatistics(log, trainingData);
+      TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+      TestUtil.printModel(log, model, modelNo++);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       
       return this;
@@ -471,7 +479,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
      * @param scale           the scale
      */
     public AddLayerStep(NotebookOutput log, Tensor[][] trainingData, DAGNetwork priorModel, int layerNumber, int fromSize, int pretrainMinutes, int timeoutMinutes, int band1, int band2, int radius, int scale) {
-      this.originalOut = rawOut;
+      this.originalOut = TestUtil.rawOut;
       this.log = log;
       this.band1 = band1;
       this.band2 = band2;
@@ -480,12 +488,12 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       if (0 != fromSize % scale) throw new IllegalArgumentException(fromSize + " % " + scale);
       this.fromSize = fromSize;
       this.toSize = (fromSize / scale + (radius - 1)) * scale; // 70
-      this.trainingData = addColumn(trainingData, toSize, toSize, band2);
+      this.trainingData = TestUtil.addColumn(trainingData, toSize, toSize, band2);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
       this.radius = radius;
       this.history = new ArrayList<>();
-      this.monitor = getMonitor(history);
+      this.monitor = TestUtil.getMonitor(history);
       this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1).setWeights(() -> 0.01 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band1);
       this.innerModel = buildNetwork();
@@ -519,7 +527,7 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
     public AddLayerStep invoke() {
       dataPipeline.add(innerModel);
       Stream<Tensor[]> inputColumn = Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]});
-      Tensor[][] convolutionFeatures = convolutionFeatures(downExplodeTensors(inputColumn, scale), radius);
+      Tensor[][] convolutionFeatures = TestUtil.convolutionFeatures(TestUtil.downExplodeTensors(inputColumn, scale), radius);
       log.code(() -> {
         initialize(log, convolutionFeatures, convolutionLayer, biasLayer);
       });
@@ -528,36 +536,36 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
+        DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
         train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, mask);
-        printHistory(log, history);
+        TestUtil.printHistory(log, history);
         log.h3("Results");
-        validationReport(log, trainingData, dataPipeline, displayImage);
-        printModel(log, innerModel, modelNo++);
-        printDataStatistics(log, trainingData);
+        TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+        TestUtil.printModel(log, innerModel, modelNo++);
+        TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
       
       log.h2("Tuning");
       log.h3("Training");
-      DAGNetwork trainingModel0 = buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
+      DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
       train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, mask);
-      printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
-      validationReport(log, trainingData, dataPipeline, displayImage);
-      printModel(log, innerModel, modelNo++);
-      printDataStatistics(log, trainingData);
+      TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+      TestUtil.printModel(log, innerModel, modelNo++);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       
       log.h2("Integration Training");
       log.h3("Training");
-      DAGNetwork trainingModel1 = buildTrainingModel(integrationModel, 1, layerNumber + 1);
+      DAGNetwork trainingModel1 = TestUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);
       train(log, monitor, trainingModel1, trainingData, new QQN(), timeoutMinutes, mask);
-      printHistory(log, history);
+      TestUtil.printHistory(log, history);
       log.h3("Results");
-      validationReport(log, trainingData, dataPipeline, displayImage);
-      printModel(log, innerModel, modelNo++);
-      printDataStatistics(log, trainingData);
+      TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+      TestUtil.printModel(log, innerModel, modelNo++);
+      TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       return this;
     }
@@ -600,4 +608,68 @@ public class ImageEncodingPCATest extends ImageEncodingUtil {
       return integrationModel;
     }
   }
+  
+  /**
+   * Initialize.
+   *
+   * @param log              the log
+   * @param features         the features
+   * @param convolutionLayer the convolution layer
+   * @param biasLayer        the bias layer
+   */
+  protected void initialize(NotebookOutput log, Tensor[][] features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
+    Tensor prototype = features[0][1];
+    int[] dimensions = prototype.getDimensions();
+    int[] filterDimensions = convolutionLayer.kernel.getDimensions();
+    assert filterDimensions[0] == dimensions[0];
+    assert filterDimensions[1] == dimensions[1];
+    int outputBands = dimensions[2];
+    assert outputBands == biasLayer.getBias().length;
+    int inputBands = filterDimensions[2] / outputBands;
+    FindFeatureSpace findFeatureSpace = findFeatureSpace(log, features, inputBands);
+    TestUtil.setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
+  }
+  
+  /**
+   * Find feature space find feature space.
+   *
+   * @param log        the log
+   * @param features   the features
+   * @param inputBands the input bands
+   * @return the find feature space
+   */
+  protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
+    return new FindPCAFeatures(log, inputBands, features).invoke();
+  }
+  
+  /**
+   * Train.
+   *
+   * @param log            the log
+   * @param monitor        the monitor
+   * @param network        the network
+   * @param data           the data
+   * @param orientation    the orientation
+   * @param timeoutMinutes the timeout minutes
+   * @param mask           the mask
+   */
+  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, boolean... mask) {
+    log.out("Training for %s minutes, mask=%s", timeoutMinutes, Arrays.toString(mask));
+    log.code(() -> {
+      SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
+      trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
+      ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
+        .setMaxTrainingSize(data.length)
+        .setMinTrainingSize(1)
+        .setMonitor(monitor)
+        .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
+        .setMaxIterations(1000);
+      validatingTrainer.getRegimen().get(0)
+        .setOrientation(orientation)
+        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
+      validatingTrainer
+        .run();
+    });
+  }
+  
 }

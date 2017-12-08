@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.util.io.NotebookOutput;

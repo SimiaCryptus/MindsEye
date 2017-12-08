@@ -19,11 +19,12 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
-import com.simiacryptus.mindseye.data.MNIST;
-import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer;
-import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.layers.java.BiasLayer;
+import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
@@ -32,18 +33,14 @@ import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.MomentumStrategy;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
+import com.simiacryptus.mindseye.test.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.awt.*;
 import java.io.IOException;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * The type Mnist run base.
@@ -312,54 +309,26 @@ public class MnistTests {
     
   }
   
-  public static class CompareQQN extends OptimizerComparison {
+  private abstract static class AllTests {
   
-    public CompareQQN() {
-      super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new Data());
-    }
   
-    @Override
-    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
-      log.h1("QQN-LBFGS Comparison");
-      log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(limited_memory_bfgs));
-      log.h2("QQN");
-      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton));
-      log.h2("Comparison");
-      log.code(()->{
-        return compare(lbfgs, qqn);
-      });
-      log.code(()->{
-        return compareTime(lbfgs, qqn);
-      });
-    }
-  
-  }
-  
-  private static class Data implements ImageData {
-    
-    @Override
-    public Stream<LabeledObject<Tensor>> validationData() throws IOException {
-      return MNIST.validationDataStream();
-    }
-    
-    @Override
-    public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
-      System.out.println(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
-      return MNIST.trainingDataStream();
-    }
-    
-  }
-  
-  private abstract static class AllTests extends ImageTestUtil {
-    
-    
+    /**
+     * The Rev factory.
+     */
     protected final RevNetworkFactory revFactory;
+    /**
+     * The Optimization strategy.
+     */
     protected final OptimizationStrategy optimizationStrategy;
+    /**
+     * The Fwd factory.
+     */
     protected final FwdNetworkFactory fwdFactory;
-    protected final Data data = new Data();
-    ;
-    
+    /**
+     * The Data.
+     */
+    protected final MnistProblemData data = new MnistProblemData();
+  
     /**
      * Instantiates a new All tests.
      *
@@ -372,7 +341,7 @@ public class MnistTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-    
+  
     /**
      * Encoding test.
      *
@@ -382,20 +351,20 @@ public class MnistTests {
     @Category(TestCategories.Report.class)
     public void encoding_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-        if (null != originalOut) log.addCopy(originalOut);
+        if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("MNIST Image-to-Vector Encoding");
         intro(log);
         new EncodingProblem(revFactory, optimizationStrategy, data).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-    
+  
     /**
      * Intro.
      *
      * @param log the log
      */
     protected abstract void intro(NotebookOutput log);
-    
+  
     /**
      * Classification test.
      *
@@ -405,13 +374,13 @@ public class MnistTests {
     @Category(TestCategories.Report.class)
     public void classification_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-        if (null != originalOut) log.addCopy(originalOut);
+        if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("MNIST Digit Classification");
         intro(log);
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-    
+  
     /**
      * Autoencoder test.
      *
@@ -421,7 +390,7 @@ public class MnistTests {
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
-        if (null != originalOut) log.addCopy(originalOut);
+        if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("MNIST Denoising Autoencoder");
         intro(log);
         new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data).setTimeoutMinutes(timeoutMinutes).run(log);

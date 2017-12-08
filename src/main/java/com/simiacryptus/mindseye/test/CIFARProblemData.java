@@ -17,8 +17,9 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.mindseye.data.CIFAR10;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.LabeledObject;
 
@@ -26,22 +27,19 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 /**
- * The interface Image data.
+ * The type Cifar problem data.
  */
-public interface ImageData {
-  /**
-   * Validation data stream.
-   *
-   * @return the stream
-   * @throws IOException the io exception
-   */
-  Stream<LabeledObject<Tensor>> validationData() throws IOException;
+public class CIFARProblemData implements ImageProblemData {
   
-  /**
-   * Training data stream.
-   *
-   * @return the stream
-   * @throws IOException the io exception
-   */
-  Stream<LabeledObject<Tensor>> trainingData() throws IOException;
+  @Override
+  public Stream<LabeledObject<Tensor>> validationData() throws IOException {
+    return CIFAR10.trainingDataStream();
+  }
+  
+  @Override
+  public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
+    System.out.println(String.format("Loaded %d items", CIFAR10.trainingDataStream().count()));
+    return CIFAR10.trainingDataStream();
+  }
+  
 }

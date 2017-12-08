@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Mnist encoding run.
  */
-public class EncodingProblem extends ImageTestUtil implements Problem {
+public class EncodingProblem implements Problem {
   
   private static int modelNo = 0;
   
@@ -52,7 +52,7 @@ public class EncodingProblem extends ImageTestUtil implements Problem {
   private final RevNetworkFactory revFactory;
   private final OptimizationStrategy optimizer;
   private final List<StepRecord> history = new ArrayList<>();
-  private final ImageData data;
+  private final ImageProblemData data;
   private int timeoutMinutes = 1;
   private int features = 10;
   
@@ -63,7 +63,7 @@ public class EncodingProblem extends ImageTestUtil implements Problem {
    * @param optimizer  the optimizer
    * @param data       the data
    */
-  public EncodingProblem(RevNetworkFactory revFactory, OptimizationStrategy optimizer, ImageData data) {
+  public EncodingProblem(RevNetworkFactory revFactory, OptimizationStrategy optimizer, ImageProblemData data) {
     this.revFactory = revFactory;
     this.optimizer = optimizer;
     this.data = data;
@@ -72,7 +72,7 @@ public class EncodingProblem extends ImageTestUtil implements Problem {
   
   @Override
   public EncodingProblem run(NotebookOutput log) {
-    TrainingMonitor monitor = getMonitor(history);
+    TrainingMonitor monitor = TestUtil.getMonitor(history);
     Tensor[][] trainingData;
     try {
       trainingData = data.trainingData().map(labeledObject -> {
@@ -115,10 +115,10 @@ public class EncodingProblem extends ImageTestUtil implements Problem {
     
     if (!history.isEmpty()) {
       log.code(() -> {
-        return plot(history);
+        return TestUtil.plot(history);
       });
       log.code(() -> {
-        return plotTime(history);
+        return TestUtil.plotTime(history);
       });
     }
     String modelName = "encoding_model" + modelNo++ + ".json";

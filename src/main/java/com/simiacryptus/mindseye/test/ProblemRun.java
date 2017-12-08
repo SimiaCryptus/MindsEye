@@ -17,21 +17,38 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.matrix;
+package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.util.io.NotebookOutput;
+import java.awt.*;
+import java.util.List;
 
 /**
- * The interface Fwd network factory.
+ * The type Problem run.
  */
-public interface FwdNetworkFactory {
+public class ProblemRun {
   /**
-   * Image to vector dag network.
-   *
-   * @param log      the log
-   * @param features the features
-   * @return the dag network
+   * The History.
    */
-  DAGNetwork imageToVector(NotebookOutput log, int features);
+  public final List<StepRecord> history;
+  /**
+   * The Name.
+   */
+  public final String name;
+  /**
+   * The Color.
+   */
+  public final Color color;
+  
+  /**
+   * Instantiates a new Problem run.
+   *
+   * @param name    the name
+   * @param color   the color
+   * @param history the history
+   */
+  public ProblemRun(String name, Color color, List<StepRecord> history) {
+    this.history = history;
+    this.name = name;
+    this.color = color;
+  }
 }
