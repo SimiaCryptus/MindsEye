@@ -20,14 +20,24 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.SimpleEval;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
+import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
+import com.simiacryptus.util.io.NotebookOutput;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The type Activation layer re lu run.
  */
-public abstract class ActivationLayerTest extends LayerTestBase {
+public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   
   private Precision precision;
   
@@ -35,11 +45,21 @@ public abstract class ActivationLayerTest extends LayerTestBase {
     public ReLu_Double() {
       super(ActivationLayer.Mode.RELU, Precision.Double);
     }
+  
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new ReLuActivationLayer();
+    }
   }
   
   public static class ReLu_Float extends ActivationLayerTest {
     public ReLu_Float() {
       super(ActivationLayer.Mode.RELU, Precision.Float);
+    }
+  
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new ReLuActivationLayer();
     }
   }
   
@@ -47,11 +67,21 @@ public abstract class ActivationLayerTest extends LayerTestBase {
     public Sigmoid_Double() {
       super(ActivationLayer.Mode.SIGMOID, Precision.Double);
     }
+  
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new SigmoidActivationLayer();
+    }
   }
   
   public static class Sigmoid_Float extends ActivationLayerTest {
     public Sigmoid_Float() {
       super(ActivationLayer.Mode.SIGMOID, Precision.Float);
+    }
+  
+    @Override
+    public NNLayer getReferenceLayer() {
+      return new SigmoidActivationLayer();
     }
   }
   
@@ -69,11 +99,33 @@ public abstract class ActivationLayerTest extends LayerTestBase {
   
   @Override
   public int[][] getInputDims() {
-    return new int[][]{{1, 1, 3}};
+    return new int[][]{{1, 1, 1}};
   }
   
   @Override
   public DerivativeTester getDerivativeTester() {
     return new DerivativeTester(1e-2, 1e-4);
   }
+  
+  @Override
+  public void test(NotebookOutput log) {
+    super.test(log);
+    
+    log.h3("Function Plots");
+    NNLayer layer = getLayer();
+    List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
+      SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, new int[]{1,1,1}));
+      return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
+    }).collect(Collectors.toList());
+    
+    log.code(() -> {
+      return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
+    });
+    
+    log.code(() -> {
+      return ActivationLayerTestBase.plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
+    });
+    
+  }
+  
 }

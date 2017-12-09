@@ -36,7 +36,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 /**
  * The type Product inputs layer.
  */
-public class ProductInputsLayer extends NNLayer implements LayerPrecision<ProductInputsLayer> {
+public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer> {
   
   private Precision precision = Precision.Float;
   
@@ -45,14 +45,14 @@ public class ProductInputsLayer extends NNLayer implements LayerPrecision<Produc
    *
    * @param id the id
    */
-  protected ProductInputsLayer(JsonObject id) {
+  protected ProductLayer(JsonObject id) {
     super(id);
   }
   
   /**
    * Instantiates a new Product inputs layer.
    */
-  public ProductInputsLayer() {
+  public ProductLayer() {
   }
   
   /**
@@ -61,8 +61,8 @@ public class ProductInputsLayer extends NNLayer implements LayerPrecision<Produc
    * @param json the json
    * @return the product inputs layer
    */
-  public static ProductInputsLayer fromJson(JsonObject json) {
-    return new ProductInputsLayer(json);
+  public static ProductLayer fromJson(JsonObject json) {
+    return new ProductLayer(json);
   }
   
   public JsonObject getJson() {
@@ -141,7 +141,7 @@ public class ProductInputsLayer extends NNLayer implements LayerPrecision<Produc
     return precision;
   }
   
-  public ProductInputsLayer setPrecision(Precision precision) {
+  public ProductLayer setPrecision(Precision precision) {
     this.precision = precision;
     return this;
   }

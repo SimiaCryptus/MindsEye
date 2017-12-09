@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
@@ -32,15 +33,39 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 /**
  * The type Convolution layer run.
  */
-public class ConvolutionNetworkTest extends CudnnLayerTestBase {
+public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
+  
+  public static class Double extends ConvolutionNetworkTest {
+    public Double() {
+      super(Precision.Double);
+    }
+  }
+  
+  public static class Float extends ConvolutionNetworkTest {
+    public Float() {
+      super(Precision.Float);
+    }
+    
+    @Override
+    public DerivativeTester getDerivativeTester() {
+      return new DerivativeTester(1e-2, 1e-3);
+    }
+    
+  }
+  
+  final Precision precision;
+  
+  public ConvolutionNetworkTest(Precision precision) {
+    this.precision = precision;
+  }
   
   @Override
   public NNLayer getLayer() {
     
     PipelineNetwork network = new PipelineNetwork(2);
-    network.add(new ConvolutionLayer(3, 3, 7, 3).setWeights(this::random), network.getInput(1));
-    network.add(new ImgBandBiasLayer(3));
-    network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    network.add(new ConvolutionLayer(3, 3, 7, 3).setWeights(this::random).setPrecision(precision), network.getInput(1));
+    network.add(new ImgBandBiasLayer(3).setPrecision(precision));
+    network.add(new ActivationLayer(ActivationLayer.Mode.RELU).setPrecision(precision));
     network.add(new ImgCropLayer(4, 4));
     network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
       network.add(new MeanSqLossLayer(), network.getHead(), network.getInput(0))

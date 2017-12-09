@@ -25,15 +25,15 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Img concat layer run.
  */
-public abstract class ImgConcatLayerTest extends LayerTestBase {
+public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   
-  public static class Double extends PoolingLayerTest {
+  public static class Double extends ImgConcatLayerTest {
     public Double() {
       super(Precision.Double);
     }
   }
   
-  public static class Float extends PoolingLayerTest {
+  public static class Float extends ImgConcatLayerTest {
     public Float() {
       super(Precision.Float);
     }

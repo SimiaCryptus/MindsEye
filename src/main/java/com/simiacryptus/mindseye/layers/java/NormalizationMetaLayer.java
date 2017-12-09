@@ -72,7 +72,7 @@ public class NormalizationMetaLayer extends DAGNetwork {
 //        )
 //      )
 //    );
-//    DAGNode rescaled = fn(new ProductInputsLayer(),
+//    DAGNode rescaled = fn(new ProductLayer(),
 //      recentered,
 //      fn(new NthPowerActivationLayer().setPower(-0.5),
 //        variance

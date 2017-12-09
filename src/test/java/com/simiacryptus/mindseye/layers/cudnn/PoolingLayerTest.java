@@ -20,12 +20,13 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Pooling layer run.
  */
-public abstract class PoolingLayerTest extends LayerTestBase {
+public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   
   public static class Double extends PoolingLayerTest {
     public Double() {
@@ -37,6 +38,12 @@ public abstract class PoolingLayerTest extends LayerTestBase {
     public Float() {
       super(Precision.Float);
     }
+  
+    @Override
+    public DerivativeTester getDerivativeTester() {
+      return new DerivativeTester(1e-2, 1e-3);
+    }
+
   }
   
   final Precision precision;

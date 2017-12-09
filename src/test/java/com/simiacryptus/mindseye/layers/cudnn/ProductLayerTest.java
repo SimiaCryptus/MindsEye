@@ -24,17 +24,17 @@ import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Img band bias layer run.
+ * The type Pooling layer run.
  */
-public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
+public abstract class ProductLayerTest extends CudnnLayerTestBase {
   
-  public static class Double extends ImgBandBiasLayerTest {
+  public static class Double extends ProductLayerTest {
     public Double() {
       super(Precision.Double);
     }
   }
   
-  public static class Float extends ImgBandBiasLayerTest {
+  public static class Float extends ProductLayerTest {
     public Float() {
       super(Precision.Float);
     }
@@ -43,23 +43,24 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
     public DerivativeTester getDerivativeTester() {
       return new DerivativeTester(1e-2, 1e-3);
     }
+
   }
   
   final Precision precision;
   
-  public ImgBandBiasLayerTest(Precision precision) {
+  public ProductLayerTest(Precision precision) {
     this.precision = precision;
   }
   
   @Override
   public NNLayer getLayer() {
-    return new ImgBandBiasLayer(2).setPrecision(precision);
+    return new ProductLayer().setPrecision(precision);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 2}
+      {4, 4, 2}
     };
   }
 }

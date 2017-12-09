@@ -27,7 +27,20 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 /**
  * The type Convolution layer run.
  */
-public class ConvolutionLayerTest extends LayerTestBase {
+public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
+  
+  public static class Double extends ConvolutionLayerTest {
+    public Double() {
+      super(1, 2, 2, Precision.Double);
+    }
+  }
+  
+  public static class Float extends ConvolutionLayerTest {
+    public Float() {
+      super(1, 2, 2, Precision.Float);
+    }
+  }
+  
   /**
    * The Radius.
    */
@@ -44,13 +57,6 @@ public class ConvolutionLayerTest extends LayerTestBase {
    * The Convolution layer.
    */
   ConvolutionLayer convolutionLayer;
-  
-  /**
-   * Instantiates a new Convolution layer test.
-   */
-  public ConvolutionLayerTest() {
-    this(1, 2, 2, Precision.Double);
-  }
   
   /**
    * Instantiates a new Convolution layer test.

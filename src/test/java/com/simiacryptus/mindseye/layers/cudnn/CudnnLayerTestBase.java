@@ -28,6 +28,9 @@ import java.util.zip.GZIPOutputStream;
 
 public abstract class CudnnLayerTestBase extends LayerTestBase {
   
+  public CudnnLayerTestBase() {
+  }
+  
   @Override
   public void test(NotebookOutput log) {
     try {
