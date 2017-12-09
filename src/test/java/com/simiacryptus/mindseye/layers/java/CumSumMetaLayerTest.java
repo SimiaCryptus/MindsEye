@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import org.junit.Ignore;
 
 /**
- * The type Cum sum meta layer run.
+ * The type Cum sum meta layer test.
  */
 @Ignore
 public class CumSumMetaLayerTest extends LayerTestBase {

@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Avg meta layer run.
+ * The type Avg meta layer test.
  */
 public class AvgMetaLayerTest extends LayerTestBase {
   

@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * The type Aparapi run.
+ * The type Aparapi test.
  */
 public class AparapiTest {
   
@@ -51,7 +51,7 @@ public class AparapiTest {
   static final Logger log = LoggerFactory.getLogger(AparapiTest.class);
   
   /**
-   * Instantiates a new Aparapi run.
+   * Instantiates a new Aparapi test.
    */
   public AparapiTest() {
     super();
@@ -234,7 +234,7 @@ public class AparapiTest {
   @Resource("com/amd/aparapi/sample/convolution/convolution.cl")
   interface Convolution extends com.aparapi.opencl.OpenCL<AparapiTest.Convolution> {
     /**
-     * Apply convolution aparapi run . convolution.
+     * Apply convolution aparapi test . convolution.
      *
      * @param range          the range
      * @param _convMatrix3x3 the conv matrix 3 x 3
@@ -242,7 +242,7 @@ public class AparapiTest {
      * @param _imageOut      the image out
      * @param _width         the width
      * @param _height        the height
-     * @return the aparapi run . convolution
+     * @return the aparapi test . convolution
      */
     AparapiTest.Convolution applyConvolution(//
                                              Range range, //

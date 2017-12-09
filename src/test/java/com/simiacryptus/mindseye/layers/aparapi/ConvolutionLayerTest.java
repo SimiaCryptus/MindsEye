@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Convolution layer run.
+ * The type Convolution layer test.
  */
 public class ConvolutionLayerTest extends LayerTestBase {
   
@@ -40,7 +40,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Upsize run.
+   * The type Upsize test.
    */
   public static class UpsizeTest extends ConvolutionLayerTest {
     
@@ -59,7 +59,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   }
   
   /**
-   * The type Downsize run.
+   * The type Downsize test.
    */
   public static class DownsizeTest extends ConvolutionLayerTest {
     

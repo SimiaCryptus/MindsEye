@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Normalization meta layer run.
+ * The type Normalization meta layer test.
  */
 public class NormalizationMetaLayerTest extends LayerTestBase {
   

@@ -20,27 +20,22 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Img concat layer run.
+ * The type Img concat layer test.
  */
 public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   
-  public static class Double extends ImgConcatLayerTest {
-    public Double() {
-      super(Precision.Double);
-    }
-  }
-  
-  public static class Float extends ImgConcatLayerTest {
-    public Float() {
-      super(Precision.Float);
-    }
-  }
-  
+  /**
+   * The Precision.
+   */
   final Precision precision;
   
+  /**
+   * Instantiates a new Img concat layer test.
+   *
+   * @param precision the precision
+   */
   public ImgConcatLayerTest(Precision precision) {
     this.precision = precision;
   }
@@ -58,14 +53,41 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Band limit run.
+   * The type Double.
+   */
+  public static class Double extends ImgConcatLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Double() {
+      super(Precision.Double);
+    }
+  }
+  
+  /**
+   * The type Float.
+   */
+  public static class Float extends ImgConcatLayerTest {
+    /**
+     * Instantiates a new Float.
+     */
+    public Float() {
+      super(Precision.Float);
+    }
+  }
+  
+  /**
+   * The type Band limit test.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
   
+    /**
+     * Instantiates a new Band limit test.
+     */
     public BandLimitTest() {
       super(Precision.Double);
     }
-  
+    
     @Override
     public NNLayer getLayer() {
       return new ImgConcatLayer().setMaxBands(3);

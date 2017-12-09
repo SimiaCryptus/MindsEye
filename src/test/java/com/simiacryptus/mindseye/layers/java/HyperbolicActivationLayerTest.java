@@ -24,11 +24,11 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import java.util.HashMap;
 
 /**
- * The type Hyperbolic activation layer run.
+ * The type Hyperbolic activation layer test.
  */
 public class HyperbolicActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Hyperbolic activation layer run.
+   * Instantiates a new Hyperbolic activation layer test.
    */
   public HyperbolicActivationLayerTest() {
     super(new HyperbolicActivationLayer());

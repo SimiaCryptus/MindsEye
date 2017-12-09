@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Fully connected layer run.
+ * The type Fully connected layer test.
  */
 public class FullyConnectedLayerTest extends LayerTestBase {
   

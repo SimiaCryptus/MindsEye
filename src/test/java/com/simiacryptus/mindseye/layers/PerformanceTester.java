@@ -29,18 +29,17 @@ import org.slf4j.LoggerFactory;
 import java.util.stream.IntStream;
 
 /**
- * The type Derivative tester.
+ * The type Performance tester.
  */
 public class PerformanceTester {
   
   private static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
-  
+  private final int samples = 10;
   private boolean testLearning = true;
   private boolean testEvaluation = true;
-  private final int samples = 10;
   
   /**
-   * Instantiates a new Derivative tester.
+   * Instantiates a new Performance tester.
    */
   public PerformanceTester() {
   
@@ -74,7 +73,7 @@ public class PerformanceTester {
   
   
   /**
-   * Test feedback.
+   * Test evaluation performance double statistics.
    *
    * @param component      the component
    * @param inputPrototype the input prototype
@@ -89,7 +88,7 @@ public class PerformanceTester {
   }
   
   /**
-   * Test learning.
+   * Test learning performance double statistics.
    *
    * @param component       the component
    * @param outputPrototype the output prototype
@@ -109,7 +108,7 @@ public class PerformanceTester {
   }
   
   /**
-   * Is run learning boolean.
+   * Is test learning boolean.
    *
    * @return the boolean
    */
@@ -118,10 +117,10 @@ public class PerformanceTester {
   }
   
   /**
-   * Sets run learning.
+   * Sets test learning.
    *
-   * @param testLearning the run learning
-   * @return the run learning
+   * @param testLearning the test learning
+   * @return the test learning
    */
   public PerformanceTester setTestLearning(boolean testLearning) {
     this.testLearning = testLearning;
@@ -129,7 +128,7 @@ public class PerformanceTester {
   }
   
   /**
-   * Is run feedback boolean.
+   * Is test evaluation boolean.
    *
    * @return the boolean
    */
@@ -138,10 +137,10 @@ public class PerformanceTester {
   }
   
   /**
-   * Sets run feedback.
+   * Sets test evaluation.
    *
-   * @param testEvaluation the run feedback
-   * @return the run feedback
+   * @param testEvaluation the test evaluation
+   * @return the test evaluation
    */
   public PerformanceTester setTestEvaluation(boolean testEvaluation) {
     this.testEvaluation = testEvaluation;

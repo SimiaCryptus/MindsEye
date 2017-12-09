@@ -22,39 +22,26 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 /**
- * The type Convolution layer run.
+ * The type Convolution network test.
  */
 public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   
-  public static class Double extends ConvolutionNetworkTest {
-    public Double() {
-      super(Precision.Double);
-    }
-  }
-  
-  public static class Float extends ConvolutionNetworkTest {
-    public Float() {
-      super(Precision.Float);
-    }
-    
-    @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-2, 1e-3);
-    }
-    
-  }
-  
+  /**
+   * The Precision.
+   */
   final Precision precision;
   
+  /**
+   * Instantiates a new Convolution network test.
+   *
+   * @param precision the precision
+   */
   public ConvolutionNetworkTest(Precision precision) {
     this.precision = precision;
   }
@@ -80,6 +67,36 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
     return new int[][]{
       {4, 4, 3}, {5, 5, 7}
     };
+  }
+  
+  /**
+   * The type Double.
+   */
+  public static class Double extends ConvolutionNetworkTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Double() {
+      super(Precision.Double);
+    }
+  }
+  
+  /**
+   * The type Float.
+   */
+  public static class Float extends ConvolutionNetworkTest {
+    /**
+     * Instantiates a new Float.
+     */
+    public Float() {
+      super(Precision.Float);
+    }
+    
+    @Override
+    public DerivativeTester getDerivativeTester() {
+      return new DerivativeTester(1e-2, 1e-3);
+    }
+    
   }
   
   /**

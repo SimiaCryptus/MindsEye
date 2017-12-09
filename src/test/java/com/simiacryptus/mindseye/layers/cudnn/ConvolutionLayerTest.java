@@ -25,21 +25,9 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 /**
- * The type Convolution layer run.
+ * The type Convolution layer test.
  */
 public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
-  
-  public static class Double extends ConvolutionLayerTest {
-    public Double() {
-      super(1, 2, 2, Precision.Double);
-    }
-  }
-  
-  public static class Float extends ConvolutionLayerTest {
-    public Float() {
-      super(1, 2, 2, Precision.Float);
-    }
-  }
   
   /**
    * The Radius.
@@ -60,10 +48,11 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   
   /**
    * Instantiates a new Convolution layer test.
-   *  @param radius      the radius
+   *
+   * @param radius      the radius
    * @param inputBands  the input bands
    * @param outputBands the output bands
-   * @param precision
+   * @param precision   the precision
    */
   protected ConvolutionLayerTest(int radius, int inputBands, int outputBands, Precision precision) {
     this.radius = radius;
@@ -72,7 +61,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
     convolutionLayer.kernel.fill(() -> random());
   }
-  
+
   @Override
   public NNLayer getLayer() {
     return convolutionLayer;
@@ -93,7 +82,31 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Asymmetric run.
+   * The type Double.
+   */
+  public static class Double extends ConvolutionLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Double() {
+      super(1, 2, 2, Precision.Double);
+    }
+  }
+  
+  /**
+   * The type Float.
+   */
+  public static class Float extends ConvolutionLayerTest {
+    /**
+     * Instantiates a new Float.
+     */
+    public Float() {
+      super(1, 2, 2, Precision.Float);
+    }
+  }
+  
+  /**
+   * The type Asymmetric test.
    */
   public static class AsymmetricTest extends ConvolutionLayerTest {
   
@@ -107,12 +120,12 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Irregular run.
+   * The type Irregular test float.
    */
   public static class IrregularTest_Float extends ConvolutionLayerTest {
-    
+  
     /**
-     * Instantiates a new Irregular test.
+     * Instantiates a new Irregular test float.
      */
     public IrregularTest_Float() {
       super(3, 7, 5, Precision.Float);
@@ -120,10 +133,10 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Irregular run.
+   * The type Irregular test.
    */
   public static class IrregularTest extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Irregular test.
      */
@@ -133,10 +146,10 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Asymmetric run.
+   * The type Asymmetric exploded test.
    */
   public static class AsymmetricExplodedTest extends LayerTestBase {
-  
+    
     private Precision precision = Precision.Double;
   
     /**

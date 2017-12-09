@@ -28,19 +28,16 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
- * The type Derivative tester.
+ * The type Equivalency tester.
  */
 public class EquivalencyTester {
   
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
   
-  /**
-   * The Probe size.
-   */
   private final double tolerance;
   
   /**
-   * Instantiates a new Derivative tester.
+   * Instantiates a new Equivalency tester.
    *
    * @param tolerance the tolerance
    */
@@ -49,9 +46,9 @@ public class EquivalencyTester {
   }
   
   /**
-   * Test.
+   * Test tolerance statistics.
    *
-   * @param reference      the component
+   * @param reference      the reference
    * @param subject        the subject
    * @param inputPrototype the input prototype
    * @return the tolerance statistics

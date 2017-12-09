@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Abs activation layer run.
+ * The type Abs activation layer test.
  */
 public class AbsActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Abs activation layer run.
+   * Instantiates a new Abs activation layer test.
    */
   public AbsActivationLayerTest() {
     super(new AbsActivationLayer());

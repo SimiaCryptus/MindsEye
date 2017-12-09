@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
 /**
- * The type Simple eval.
+ * The type Simple list eval.
  */
 public class SimpleListEval implements Callable<SimpleListEval> {
   private final NNLayer layer;
@@ -36,7 +36,7 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   private TensorList output;
   
   /**
-   * Instantiates a new Simple eval.
+   * Instantiates a new Simple list eval.
    *
    * @param layer the layer
    * @param input the input
@@ -59,20 +59,20 @@ public class SimpleListEval implements Callable<SimpleListEval> {
   }
   
   /**
-   * Run simple eval.
+   * Run simple list eval.
    *
    * @param layer  the layer
    * @param tensor the tensor
-   * @return the simple eval
+   * @return the simple list eval
    */
   public static SimpleListEval run(NNLayer layer, TensorList... tensor) {
     return new SimpleListEval(layer, tensor).call();
   }
   
   /**
-   * Get derivative TensorList [ ].
+   * Get derivative tensor list [ ].
    *
-   * @return the TensorList [ ]
+   * @return the tensor list [ ]
    */
   public TensorList[] getDerivative() {
     return derivative;

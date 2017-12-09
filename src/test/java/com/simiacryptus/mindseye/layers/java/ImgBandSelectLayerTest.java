@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Img band select layer run.
+ * The type Img band select layer test.
  */
 public class ImgBandSelectLayerTest extends LayerTestBase {
   

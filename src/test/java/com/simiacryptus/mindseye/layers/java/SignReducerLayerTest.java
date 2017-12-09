@@ -23,19 +23,25 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Monitoring wrapper test.
+ * The type Sign reducer layer test.
  */
-public class MonitoringWrapperTest extends LayerTestBase {
-  
-  @Override
-  public NNLayer getLayer() {
-    return new MonitoringWrapperLayer(new MonitoringSynapse());
+public class SignReducerLayerTest {
+  /**
+   * The type Normal.
+   */
+  public static class Normal extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new SignReducerLayer();
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {3}
+      };
+    }
   }
   
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}
-    };
-  }
 }

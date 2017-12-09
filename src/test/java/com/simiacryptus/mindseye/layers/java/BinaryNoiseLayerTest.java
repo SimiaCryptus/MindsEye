@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import org.junit.Ignore;
 
 /**
- * The type Binary noise layer run.
+ * The type Binary noise layer test.
  */
 @Ignore
 public class BinaryNoiseLayerTest extends LayerTestBase {

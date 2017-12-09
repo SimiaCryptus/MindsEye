@@ -25,7 +25,7 @@ import org.junit.Ignore;
 
 
 /**
- * The type Img crop layer run.
+ * The type Img crop layer test.
  */
 @Ignore
 public class ImgCropLayerTest extends LayerTestBase {

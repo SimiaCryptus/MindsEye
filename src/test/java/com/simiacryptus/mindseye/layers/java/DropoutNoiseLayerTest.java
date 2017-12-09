@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Dropout noise layer run.
+ * The type Dropout noise layer test.
  */
 public class DropoutNoiseLayerTest extends LayerTestBase {
   

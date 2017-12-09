@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Bias meta layer run.
+ * The type Bias meta layer test.
  */
 public class BiasMetaLayerTest extends LayerTestBase {
   

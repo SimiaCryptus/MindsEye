@@ -22,12 +22,16 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
 
-import java.io.IOException;
 import java.io.PrintStream;
-import java.util.zip.GZIPOutputStream;
 
+/**
+ * The type Cudnn layer test base.
+ */
 public abstract class CudnnLayerTestBase extends LayerTestBase {
   
+  /**
+   * Instantiates a new Cudnn layer test base.
+   */
   public CudnnLayerTestBase() {
   }
   
@@ -37,7 +41,7 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
       CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
       super.test(log);
     } finally {
-      log.p(log.file(null,"cuda.log","GPU Log"));
+      log.p(log.file(null, "cuda.log", "GPU Log"));
       CuDNN.apiLog.close();
       CuDNN.apiLog = null;
     }

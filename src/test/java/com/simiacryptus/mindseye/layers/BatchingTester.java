@@ -32,19 +32,16 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Derivative tester.
+ * The type Batching tester.
  */
 public class BatchingTester {
   
   private static final Logger log = LoggerFactory.getLogger(BatchingTester.class);
   
-  /**
-   * The Probe size.
-   */
   private final double tolerance;
   
   /**
-   * Instantiates a new Derivative tester.
+   * Instantiates a new Batching tester.
    *
    * @param tolerance the tolerance
    */
@@ -53,9 +50,9 @@ public class BatchingTester {
   }
   
   /**
-   * Test.
+   * Test tolerance statistics.
    *
-   * @param reference      the component
+   * @param reference      the reference
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */

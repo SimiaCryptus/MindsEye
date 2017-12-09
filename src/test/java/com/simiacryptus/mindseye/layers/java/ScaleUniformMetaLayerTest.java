@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import org.junit.Ignore;
 
 /**
- * The type Scale uniform meta layer run.
+ * The type Scale uniform meta layer test.
  */
 @Ignore
 public class ScaleUniformMetaLayerTest extends LayerTestBase {

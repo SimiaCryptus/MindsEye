@@ -33,14 +33,14 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer run base.
+ * The type Activation layer test base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
   
   private final NNLayer layer;
   
   /**
-   * Instantiates a new Activation layer run base.
+   * Instantiates a new Activation layer test base.
    *
    * @param layer the layer
    */

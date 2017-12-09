@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Softmax activation layer run.
+ * The type Softmax activation layer test.
  */
 public class SoftmaxActivationLayerTest extends LayerTestBase {
   

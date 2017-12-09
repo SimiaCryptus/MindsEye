@@ -21,21 +21,28 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 
 /**
- * The type Monitoring wrapper test.
+ * The type Rascaled subnet layer test.
  */
-public class MonitoringWrapperTest extends LayerTestBase {
-  
-  @Override
-  public NNLayer getLayer() {
-    return new MonitoringWrapperLayer(new MonitoringSynapse());
+public class RascaledSubnetLayerTest {
+  /**
+   * The type Normal.
+   */
+  public static class Normal extends LayerTestBase {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1));
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {6, 6, 1}
+      };
+    }
   }
   
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}
-    };
-  }
 }

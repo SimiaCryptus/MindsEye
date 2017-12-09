@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Max meta layer run.
+ * The type Max meta layer test.
  */
 public class MaxMetaLayerTest extends LayerTestBase {
   

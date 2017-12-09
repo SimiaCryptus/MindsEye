@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Img concat layer run.
+ * The type Img concat layer test.
  */
 public class ImgConcatLayerTest extends LayerTestBase {
   

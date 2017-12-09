@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Layer run base.
+ * The type Layer test base.
  */
 public abstract class LayerTestBase {
   /**
@@ -94,7 +94,7 @@ public abstract class LayerTestBase {
   }
   
   /**
-   * Test derivatives.
+   * Test.
    *
    * @throws Throwable the throwable
    */

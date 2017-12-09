@@ -21,33 +21,22 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Pooling layer run.
+ * The type Product layer test.
  */
 public abstract class ProductLayerTest extends CudnnLayerTestBase {
   
-  public static class Double extends ProductLayerTest {
-    public Double() {
-      super(Precision.Double);
-    }
-  }
-  
-  public static class Float extends ProductLayerTest {
-    public Float() {
-      super(Precision.Float);
-    }
-  
-    @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-2, 1e-3);
-    }
-
-  }
-  
+  /**
+   * The Precision.
+   */
   final Precision precision;
   
+  /**
+   * Instantiates a new Product layer test.
+   *
+   * @param precision the precision
+   */
   public ProductLayerTest(Precision precision) {
     this.precision = precision;
   }
@@ -62,5 +51,35 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
     return new int[][]{
       {4, 4, 2}
     };
+  }
+  
+  /**
+   * The type Double.
+   */
+  public static class Double extends ProductLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Double() {
+      super(Precision.Double);
+    }
+  }
+  
+  /**
+   * The type Float.
+   */
+  public static class Float extends ProductLayerTest {
+    /**
+     * Instantiates a new Float.
+     */
+    public Float() {
+      super(Precision.Float);
+    }
+    
+    @Override
+    public DerivativeTester getDerivativeTester() {
+      return new DerivativeTester(1e-2, 1e-3);
+    }
+    
   }
 }

@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.Util;
 
 /**
- * The type Entropy loss layer run.
+ * The type Entropy loss layer test.
  */
 public class EntropyLossLayerTest extends LayerTestBase {
   

@@ -22,11 +22,10 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 
 /**
- * The type Convolution layer run.
+ * The type Simple convolution layer test.
  */
 public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   
@@ -38,7 +37,7 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   SimpleConvolutionLayer layer;
   
   /**
-   * Instantiates a new Simple convolution layer run.
+   * Instantiates a new Simple convolution layer test.
    */
   public SimpleConvolutionLayerTest() {
     this(1, 1, Precision.Double);
@@ -47,8 +46,9 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   /**
    * Instantiates a new Simple convolution layer test.
    *
-   * @param radius the radius
-   * @param bands  the bands
+   * @param radius    the radius
+   * @param bands     the bands
+   * @param precision the precision
    */
   protected SimpleConvolutionLayerTest(int radius, int bands, Precision precision) {
     this.radius = radius;
@@ -122,21 +122,21 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   /**
-   * The type Image.
+   * The type Image float.
    */
   public static class Image_Float extends SimpleConvolutionLayerTest {
     /**
-     * Instantiates a new Image.
+     * Instantiates a new Image float.
      */
     public Image_Float() {
       super(3, 3, Precision.Float);
     }
-  
+    
     @Override
     public DerivativeTester getDerivativeTester() {
       return new DerivativeTester(1e-2, 1e-3);
     }
-
+    
   }
   
 }

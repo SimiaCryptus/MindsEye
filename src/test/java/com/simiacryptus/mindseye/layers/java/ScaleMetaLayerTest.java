@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Scale meta layer run.
+ * The type Scale meta layer test.
  */
 public class ScaleMetaLayerTest extends LayerTestBase {
   

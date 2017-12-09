@@ -21,15 +21,17 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.junit.Ignore;
 
 /**
- * The type Monitoring wrapper test.
+ * The type Cum normalization meta layer test.
  */
-public class MonitoringWrapperTest extends LayerTestBase {
+@Ignore
+public class CumNormalizationMetaLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new MonitoringWrapperLayer(new MonitoringSynapse());
+    return new CumNormalizationMetaLayer();
   }
   
   @Override

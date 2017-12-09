@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Weight extractor run.
+ * The type Weight extractor test.
  */
 public class WeightExtractorTest extends LayerTestBase {
   

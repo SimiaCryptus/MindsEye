@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Static scalar loss layer run.
+ * The type Static scalar loss layer test.
  */
 public class StaticScalarLossLayerTest extends LayerTestBase {
   

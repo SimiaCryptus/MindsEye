@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type L 1 normalization layer run.
+ * The type L 1 normalization layer test.
  */
 public class L1NormalizationLayerTest extends LayerTestBase {
   
