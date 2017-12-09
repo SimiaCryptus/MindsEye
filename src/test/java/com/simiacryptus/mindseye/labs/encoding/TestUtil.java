@@ -221,7 +221,7 @@ class TestUtil {
       String name;
       try {
         name = String.format("component_%s.png", imageNumber++);
-        ImageIO.write(signedComponents.get(i).map(v -> v > 0 ? (v*(0xFF/componentStats.get(i).getMax())) : 0).toImage(), "png", log.file(name));
+        ImageIO.write(signedComponents.get(i).map(v -> v > 0 ? (v * (0xFF / componentStats.get(i).getMax())) : 0).toImage(), "png", log.file(name));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -232,16 +232,19 @@ class TestUtil {
       String name;
       try {
         name = String.format("component_%s.png", imageNumber++);
-        ImageIO.write(signedComponents.get(i).map(v -> v < 0 ? (v*(0xFF/componentStats.get(i).getMin())) : 0).toImage(), "png", log.file(name));
+        ImageIO.write(signedComponents.get(i).map(v -> v < 0 ? (0xFF - (v * (0xFF / componentStats.get(i).getMin()))) : 0).toImage(), "png", log.file(name));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
       return String.format("  <feImage xlink:href=\"%s\" result=\"neg_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
     
-    String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i ->
-      "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\""+(componentStats.get(i).getMin()/0xFF)+"\" k4=\"0.0\"/>\n" +
-        "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\""+(componentStats.get(i).getMax()/0xFF)+"\" k4=\"0.0\"/>\n").reduce((a, b) -> a + "\n" + b).get();
+    String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+      double fPos = componentStats.get(i).getMax() / 0xFF;
+      double fNeg = componentStats.get(i).getMin() / 0xFF;
+      return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fNeg + "\" k4=\"0.0\"/>\n" +
+        "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fPos + "\" k4=\"" + fPos + "\"/>\n";
+    }).reduce((a, b) -> a + "\n" + b).get();
     
     int red = (int) baseline.get(0, 0, 0);
     int green = (int) baseline.get(0, 0, 1);

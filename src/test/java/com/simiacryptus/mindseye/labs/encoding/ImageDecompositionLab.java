@@ -39,15 +39,22 @@ import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
 import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.util.StreamNanoHTTPD;
+import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -55,7 +62,7 @@ import java.util.stream.Stream;
 /**
  * The type Image encoding pca run.
  */
-public class ImageEncodingPCATest {
+public class ImageDecompositionLab {
   
   /**
    * The MnistProblemData pipeline.
@@ -88,10 +95,19 @@ public class ImageEncodingPCATest {
    *
    * @return the log
    */
-  public NotebookOutput report() {
-    MarkdownNotebookOutput log = MarkdownNotebookOutput.get(this);
-    log.addCopy(TestUtil.rawOut);
-    return log;
+  public HtmlNotebookOutput report() {
+    try {
+      String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+      File path = new File(Util.mkString(File.separator, "www", directoryName));
+      path.mkdirs();
+      File logFile = new File(path, "index.html");
+      StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
+      HtmlNotebookOutput log = new HtmlNotebookOutput(path, server.dataReciever);
+      log.addCopy(TestUtil.rawOut);
+      return log;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   /**
@@ -100,11 +116,11 @@ public class ImageEncodingPCATest {
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    int pretrainMinutes = 15;
-    int timeoutMinutes = 30;
+    int pretrainMinutes = 30;
+    int timeoutMinutes = 45;
     int size = 256;
     
-    Tensor[][] trainingImages = TestUtil.getImages(log, size, 5, "kangaroo");
+    Tensor[][] trainingImages = TestUtil.getImages(log, size, 30, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
@@ -139,7 +155,6 @@ public class ImageEncodingPCATest {
         100, size, timeoutMinutes*5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
     }).invoke();
   }
-  
   /**
    * The type Transcode runStep.
    */

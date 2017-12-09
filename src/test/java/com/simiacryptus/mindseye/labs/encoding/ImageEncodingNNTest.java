@@ -37,7 +37,7 @@ import java.util.Date;
 /**
  * The type Image encoding nn run.
  */
-public class ImageEncodingNNTest extends ImageEncodingPCATest {
+public class ImageEncodingNNTest extends ImageDecompositionLab {
   
   /**
    * The Pretrain minutes.
