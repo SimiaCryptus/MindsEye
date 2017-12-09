@@ -24,9 +24,8 @@ import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
-import com.simiacryptus.mindseye.layers.cudnn.f64.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f64.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f64.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -198,7 +197,7 @@ class TestUtil {
         .mapToObj(band -> rawComponents.get(band).minus(baseline))
         .collect(Collectors.toList());
       
-      row.put("SVG_" + col, log.file(toSvg(log, baseline, signedComponents), "svg" + svgNumber++ + ".svg", "SVG Composite Image"));
+      row.put("SVG_" + col, log.file(decompositionSvg(log, baseline, signedComponents), "svg" + svgNumber++ + ".svg", "SVG Composite Image"));
       
       String render = signedComponents.stream()
         .map(signedContribution -> render(log, signedContribution, true))
@@ -215,7 +214,7 @@ class TestUtil {
    * @param signedComponents the signed components
    * @return the string
    */
-  public static String toSvg(NotebookOutput log, Tensor baseline, List<Tensor> signedComponents) {
+  public static String decompositionSvg(NotebookOutput log, Tensor baseline, List<Tensor> signedComponents) {
     List<DoubleStatistics> componentStats = signedComponents.stream().map(t -> new DoubleStatistics().accept(t.getData())).collect(Collectors.toList());
     String positiveFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
@@ -631,40 +630,6 @@ class TestUtil {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-  
-  /**
-   * To 32.
-   *
-   * @param network the network
-   */
-  public static void to32(DAGNetwork network) {
-    network.visitNodes(node -> {
-      NNLayer layer = node.getLayer();
-      if (layer instanceof ConvolutionLayer) {
-        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer.class));
-      }
-      else if (layer instanceof PoolingLayer) {
-        node.setLayer(layer.as(com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer.class));
-      }
-    });
-  }
-  
-  /**
-   * To 64.
-   *
-   * @param network the network
-   */
-  public static void to64(DAGNetwork network) {
-    network.visitNodes(node -> {
-      NNLayer layer = node.getLayer();
-      if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer) {
-        node.setLayer(layer.as(ConvolutionLayer.class));
-      }
-      else if (layer instanceof com.simiacryptus.mindseye.layers.cudnn.f32.PoolingLayer) {
-        node.setLayer(layer.as(PoolingLayer.class));
-      }
-    });
   }
   
   /**

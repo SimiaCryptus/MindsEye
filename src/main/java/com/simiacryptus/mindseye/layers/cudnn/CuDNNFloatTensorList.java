@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
+import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnAddTensor;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -87,7 +87,7 @@ public class CuDNNFloatTensorList implements TensorList {
           assert (ptr.size == this.length * 1l * itemLength * Sizeof.FLOAT);
           
           //Arrays.stream(output).mapCoords(x -> x.getDataAsFloats()).toArray(i -> new float[i][]);
-          ptr.read(buffer);
+          ptr.read(Precision.Float, buffer);
           //assert IntStream.range(0,buffer.length).mapToDouble(ii->buffer[ii]).allMatch(Double::isFinite);
           float[][] floats = IntStream.range(0, length)
             .mapToObj(dataIndex -> new float[itemLength])

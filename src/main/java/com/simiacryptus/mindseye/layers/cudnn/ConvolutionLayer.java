@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
@@ -36,11 +36,10 @@ import java.util.function.ToDoubleFunction;
  */
 public class ConvolutionLayer extends NNLayer {
   
-  
   /**
    * The Filter.
    */
-  public final Tensor filter;
+  public final Tensor kernel;
   /**
    * The Stride x.
    */
@@ -57,7 +56,7 @@ public class ConvolutionLayer extends NNLayer {
    */
   protected ConvolutionLayer(JsonObject json) {
     super(json);
-    this.filter = Tensor.fromJson(json.getAsJsonObject("filter"));
+    this.kernel = Tensor.fromJson(json.getAsJsonObject("filter"));
     this.strideX = json.get("strideX").getAsInt();
     this.strideY = json.get("strideY").getAsInt();
   }
@@ -72,15 +71,15 @@ public class ConvolutionLayer extends NNLayer {
   /**
    * Instantiates a new Convolution layer.
    *
-   * @param filter the filter
+   * @param kernel the filter
    */
-  protected ConvolutionLayer(Tensor filter) {
+  protected ConvolutionLayer(Tensor kernel) {
     super();
-    if (filter.getDimensions().length != 3) throw new IllegalArgumentException();
-    if (filter.getDimensions()[0] <= 0) throw new IllegalArgumentException();
-    if (filter.getDimensions()[1] <= 0) throw new IllegalArgumentException();
-    if (filter.getDimensions()[2] <= 0) throw new IllegalArgumentException();
-    this.filter = filter;
+    if (kernel.getDimensions().length != 3) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[0] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[1] <= 0) throw new IllegalArgumentException();
+    if (kernel.getDimensions()[2] <= 0) throw new IllegalArgumentException();
+    this.kernel = kernel;
   }
   
   /**
@@ -118,7 +117,7 @@ public class ConvolutionLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("filter", filter.getJson());
+    json.add("filter", kernel.getJson());
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     return json;
@@ -131,7 +130,7 @@ public class ConvolutionLayer extends NNLayer {
    * @return the convolution layer
    */
   public ConvolutionLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.filter.getData());
+    Util.add(f, this.kernel.getData());
     return this;
   }
   
@@ -140,7 +139,7 @@ public class ConvolutionLayer extends NNLayer {
     PipelineNetwork network = new PipelineNetwork();
     List<SimpleConvolutionLayer> subLayers = new ArrayList<>();
     // Extract Weights
-    int[] filterDimensions = filter.getDimensions();
+    int[] filterDimensions = kernel.getDimensions();
     int[] inputDimensions = inObj[0].getData().getDimensions();
     int inputBands = inputDimensions[2];
     int outputBands = filterDimensions[2] / inputBands;
@@ -151,7 +150,7 @@ public class ConvolutionLayer extends NNLayer {
       batchKernel.fillByCoord(batchCoord -> {
         int filterBandT = getFilterBand(inputBands, outputBands, _offset, batchCoord);
         if (_offset + batchCoord.coords[2] < filterDimensions[2]) {
-          return filter.get(batchCoord.coords[0], batchCoord.coords[1], filterBandT);
+          return kernel.get(batchCoord.coords[0], batchCoord.coords[1], filterBandT);
         }
         else {
           return 0;
@@ -178,7 +177,7 @@ public class ConvolutionLayer extends NNLayer {
           SimpleConvolutionLayer batchLayer = subLayers.get(batchNumber);
           Delta<NNLayer> subnetDelta = deltaSet.getMap().remove(batchLayer);
           if (null != subnetDelta) {
-            int[] batchDimensions = batchLayer.filter.getDimensions();
+            int[] batchDimensions = batchLayer.kernel.getDimensions();
             Tensor batchDelta = new Tensor(null == subnetDelta ? null : subnetDelta.getDelta(), batchDimensions);
             int offset = batchNumber * inputBandsSq;
             batchDelta.coordStream().forEach(batchCoord -> {
@@ -189,7 +188,7 @@ public class ConvolutionLayer extends NNLayer {
             });
           }
         }
-        deltaSet.get(ConvolutionLayer.this, ConvolutionLayer.this.filter.getData()).addInPlace(filterDelta.getData());
+        deltaSet.get(ConvolutionLayer.this, ConvolutionLayer.this.kernel.getData()).addInPlace(filterDelta.getData());
       }
       
       @Override
@@ -223,8 +222,8 @@ public class ConvolutionLayer extends NNLayer {
    * @return the weights
    */
   public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
-    this.filter.coordStream().parallel().forEach(c -> {
-      this.filter.set(c, f.applyAsDouble(c));
+    this.kernel.coordStream().parallel().forEach(c -> {
+      this.kernel.set(c, f.applyAsDouble(c));
     });
     return this;
   }
@@ -236,15 +235,15 @@ public class ConvolutionLayer extends NNLayer {
    * @return the weights
    */
   public ConvolutionLayer setWeights(final DoubleSupplier f) {
-    this.filter.coordStream().parallel().forEach(c -> {
-      this.filter.set(c, f.getAsDouble());
+    this.kernel.coordStream().parallel().forEach(c -> {
+      this.kernel.set(c, f.getAsDouble());
     });
     return this;
   }
   
   @Override
   public List<double[]> state() {
-    return Arrays.asList(this.filter.getData());
+    return Arrays.asList(this.kernel.getData());
   }
   
   

@@ -20,14 +20,10 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
+import com.simiacryptus.mindseye.layers.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.lang.TimedResult;
-import jcuda.runtime.JCuda;
 
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
@@ -167,7 +163,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
             try {
               entry.getValue().submit(() -> {
                 CudaPtr.getGpuStats(entry.getKey().getDeviceNumber()).usedMemory.set(0);
-                return JCuda.cudaDeviceReset();
+                return CuDNN.cudaDeviceReset();
               }).get();
             } catch (InterruptedException e1) {
               throw new GpuError(e1);

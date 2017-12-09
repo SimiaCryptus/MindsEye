@@ -8,3 +8,4 @@ logs/
 *.iml
 *.gz
 *.zip
+cuda.log

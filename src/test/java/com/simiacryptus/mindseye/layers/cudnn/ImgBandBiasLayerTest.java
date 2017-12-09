@@ -17,44 +17,26 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f64;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 
 /**
- * The type Img concat layer run.
+ * The type Img band bias layer run.
  */
-public class ImgConcatLayerTest extends LayerTestBase {
+public class ImgBandBiasLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ImgConcatLayer();
+    return new ImgBandBiasLayer(2);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 1}, {2, 2, 1}
+      {3, 3, 2}
     };
   }
-  
-  /**
-   * The type Band limit run.
-   */
-  public static class BandLimitTest extends ImgConcatLayerTest {
-    
-    @Override
-    public NNLayer getLayer() {
-      return new ImgConcatLayer().setMaxBands(3);
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {2, 2, 2}, {2, 2, 2}
-      };
-    }
-  }
-  
 }

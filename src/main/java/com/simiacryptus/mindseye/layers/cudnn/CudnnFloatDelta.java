@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
-import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
+import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnAddTensor;
 
 /**
  * The type Cudnn float delta.
@@ -69,7 +69,7 @@ public class CudnnFloatDelta extends State {
   public double[] getDelta() {
     if (null == delta) {
       float[] data = new float[length()];
-      buffer.read(data);
+      buffer.read(Precision.Float, data);
       this.delta = Tensor.toDoubles(data);
     }
     return super.getDelta();

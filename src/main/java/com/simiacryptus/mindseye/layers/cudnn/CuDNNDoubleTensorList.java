@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
+import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnAddTensor;
 import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -95,7 +95,7 @@ public class CuDNNDoubleTensorList implements TensorList {
             .toArray(i -> new Tensor[i]);
           double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
           assert (length == outputBuffers.length);
-          ptr.read(outputBuffer);
+          ptr.read(Precision.Double, outputBuffer);
           for (int i = 0; i < length; i++) {
             assert itemLength == outputBuffers[0 + i].length;
             System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);

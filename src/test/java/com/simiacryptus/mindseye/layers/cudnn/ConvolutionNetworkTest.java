@@ -17,10 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f64;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
@@ -29,7 +32,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 /**
  * The type Convolution layer run.
  */
-public class ConvolutionNetworkTest extends LayerTestBase {
+public class ConvolutionNetworkTest extends CudnnLayerTestBase {
   
   @Override
   public NNLayer getLayer() {

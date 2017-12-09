@@ -17,29 +17,26 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f64;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 
 /**
- * The type Activation layer re lu run.
+ * The type Pooling layer run.
  */
-public class ActivationLayerReLuTest extends LayerTestBase {
+public class PoolingLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ActivationLayer(ActivationLayer.Mode.RELU);
+    return new PoolingLayer();
   }
   
   @Override
   public int[][] getInputDims() {
-    return new int[][]{{1, 1, 3}};
-  }
-  
-  @Override
-  public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-2, 1e-4);
+    return new int[][]{
+      {2, 2, 2}
+    };
   }
 }

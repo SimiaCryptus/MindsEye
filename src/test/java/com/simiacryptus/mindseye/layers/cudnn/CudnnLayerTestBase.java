@@ -17,16 +17,27 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.layers.DerivativeTester;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.util.io.NotebookOutput;
 
-/**
- * The type F 32 layer run base.
- */
-public abstract class F32LayerTestBase extends com.simiacryptus.mindseye.layers.LayerTestBase {
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.zip.GZIPOutputStream;
+
+public abstract class CudnnLayerTestBase extends LayerTestBase {
+  
   @Override
-  public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-2, 1e-4);
+  public void test(NotebookOutput log) {
+    try {
+      CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
+      super.test(log);
+    } finally {
+      log.p(log.file(null,"cuda.log","GPU Log"));
+      CuDNN.apiLog.close();
+      CuDNN.apiLog = null;
+    }
   }
+  
 }

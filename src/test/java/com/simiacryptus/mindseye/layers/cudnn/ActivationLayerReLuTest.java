@@ -17,24 +17,30 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.DerivativeTester;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 
 /**
- * The type Schema bias layer run.
+ * The type Activation layer re lu run.
  */
-public class SchemaBiasLayerTest extends F32LayerTestBase {
+public class ActivationLayerReLuTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new SchemaBiasLayer().setSchema("test1", "test2");
+    return new ActivationLayer(ActivationLayer.Mode.RELU);
   }
   
   @Override
   public int[][] getInputDims() {
-    return new int[][]{
-      {3, 3, 2}
-    };
+    return new int[][]{{1, 1, 3}};
+  }
+  
+  @Override
+  public DerivativeTester getDerivativeTester() {
+    return new DerivativeTester(1e-2, 1e-4);
   }
 }

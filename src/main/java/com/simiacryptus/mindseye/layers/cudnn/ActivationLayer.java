@@ -17,27 +17,23 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
-import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnActivationDescriptor;
+import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static jcuda.jcudnn.JCudnn.cudnnActivationBackward;
-import static jcuda.jcudnn.JCudnn.cudnnActivationForward;
+import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnActivationBackward;
+import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnActivationForward;
 import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_RELU;
 import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_SIGMOID;
-import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
+import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
@@ -101,7 +97,7 @@ public class ActivationLayer extends NNLayer {
     //assert Arrays.stream(inObj).flatMapToDouble(input->input.data.stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     final NNResult input = inObj[0];
     final TensorList batch = input.getData();
-    final int[] inputSize = batch.getDimensions();
+    final int[] inputSize = batch.get(0).getDimensions();
     int[] outputSize = inputSize;
     int length = batch.length();
     int inputDims = Tensor.dim(inputSize);
@@ -109,21 +105,24 @@ public class ActivationLayer extends NNLayer {
     try {
       
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+        CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      CudaPtr alpha = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), Precision.Double, 1.0);
+      CudaPtr beta = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), Precision.Double, 0.0);
       
-      CudaPtr inputData = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), batch);
-      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.FLOAT * 1l * inputDims * length);
+      CudaPtr inputData = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), batch, Precision.Double);
+      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.DOUBLE * 1l * inputDims * length);
       CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
+      final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
         CuDNN.handle(cudnnActivationForward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
-          Pointer.to(new float[]{1.0f}),
+          alpha.getPtr(),
           inputDescriptor.getPtr(), inputData.getPtr(),
-          Pointer.to(new float[]{0.0f}),
+          beta.getPtr(),
           inputDescriptor.getPtr(), outputData.getPtr()));
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
-      TensorList output = CudaPtr.fromDeviceFloat(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle);
+      TensorList output = CudaPtr.fromDevice(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle, Precision.Double);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       return new NNResult(output) {
         @Override
@@ -131,24 +130,22 @@ public class ActivationLayer extends NNLayer {
           //assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           ((CudaExecutionContext) nncontext).initThread();
-          CudaPtr errorPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), error);
+          CudaPtr errorPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), error, Precision.Double);
           if (input.isAlive()) {
-            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.FLOAT * length);
+            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.DOUBLE * length);
             try {
               CuDNN.handle(cudnnActivationBackward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
-                Pointer.to(new float[]{1.0f}),
+                alpha.getPtr(),
                 inputDescriptor.getPtr(), outputData.getPtr(),
                 inputDescriptor.getPtr(), errorPtr.getPtr(),
                 inputDescriptor.getPtr(), inputData.getPtr(),
-                Pointer.to(new float[]{0.0f}),
+                beta.getPtr(),
                 inputDescriptor.getPtr(), passbackBuffer.getPtr()));
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            input.accumulate(buffer, CudaPtr.fromDeviceFloat(passbackBuffer, length, inputSize, ((CuDNN) nncontext).cudnnHandle));
-            passbackBuffer.finalize();
+            input.accumulate(buffer, CudaPtr.fromDevice(passbackBuffer, length, inputSize, cudnnHandle, Precision.Double));
           }
-          outputData.finalize();
         }
         
         @Override

@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f32.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.f32.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 
 /**
  * The type Polynomial convolution network.
@@ -74,7 +74,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   
   @Override
   public NNLayer newProductLayer() {
-    return new com.simiacryptus.mindseye.layers.cudnn.f32.ProductInputsLayer();
+    return new com.simiacryptus.mindseye.layers.cudnn.ProductInputsLayer();
   }
   
   @Override

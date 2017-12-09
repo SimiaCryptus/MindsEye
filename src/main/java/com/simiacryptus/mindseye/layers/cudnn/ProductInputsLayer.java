@@ -17,14 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.cudnn.CuDNN;
-import com.simiacryptus.mindseye.layers.cudnn.CudaExecutionContext;
-import com.simiacryptus.mindseye.layers.cudnn.CudaPtr;
-import com.simiacryptus.mindseye.layers.cudnn.CudaResource;
 import jcuda.Pointer;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -88,15 +84,15 @@ public class ProductInputsLayer extends NNLayer {
     CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
       CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
     TensorList result = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
-      CudaPtr lPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), l);
-      CudaPtr rPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), r);
+      CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, Precision.Float);
+      CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, Precision.Float);
       assert lPtr.size == rPtr.size;
       CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
       CuDNN.handle(cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
         Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
         Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
         Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-      return CudaPtr.fromDeviceFloat(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle);
+      return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, Precision.Float);
     }).get();
     
     return new NNResult(result) {
@@ -109,15 +105,15 @@ public class ProductInputsLayer extends NNLayer {
           if (input.isAlive()) {
             int _index = index;
             input.accumulate(buffer, IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
-              CudaPtr lPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), l);
-              CudaPtr rPtr = CudaPtr.toDeviceAsFloat(((CudaExecutionContext) nncontext).getDeviceNumber(), r);
+              CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, Precision.Float);
+              CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, Precision.Float);
               assert lPtr.size == rPtr.size;
               CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
               CuDNN.handle(cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
                 Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
                 Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
                 Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              return CudaPtr.fromDeviceFloat(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle);
+              return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, Precision.Float);
             }).get());
           }
         }

@@ -17,18 +17,20 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 
 /**
- * The type Dropout noise layer run.
+ * The type Activation layer sigmoid run.
  */
-public class DropoutNoiseLayerTest extends F32LayerTestBase {
+public class ActivationLayerSigmoidTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new DropoutNoiseLayer();
+    return new ActivationLayer(ActivationLayer.Mode.SIGMOID);
   }
   
   @Override

@@ -17,24 +17,44 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.f32;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
- * The type Pooling layer run.
+ * The type Img concat layer run.
  */
-public class PoolingLayerTest extends F32LayerTestBase {
+public class ImgConcatLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new PoolingLayer();
+    return new ImgConcatLayer();
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 2}
+      {2, 2, 1}, {2, 2, 1}
     };
   }
+  
+  /**
+   * The type Band limit run.
+   */
+  public static class BandLimitTest extends ImgConcatLayerTest {
+    
+    @Override
+    public NNLayer getLayer() {
+      return new ImgConcatLayer().setMaxBands(3);
+    }
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {2, 2, 2}, {2, 2, 2}
+      };
+    }
+  }
+  
 }

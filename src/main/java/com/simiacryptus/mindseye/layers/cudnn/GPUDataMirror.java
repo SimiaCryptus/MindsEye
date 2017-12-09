@@ -52,7 +52,7 @@ public class GPUDataMirror {
     long inputHash = hashFunction(data);
     if (null != ptr && inputHash == fingerprint) return ptr;
     this.fingerprint = inputHash;
-    return ptr = CuDNN.write(device, data);
+    return ptr = CudaPtr.write(device, Precision.Float, data);
   }
   
   /**
@@ -66,7 +66,7 @@ public class GPUDataMirror {
     long inputHash = hashFunction(data);
     if (null != ptr && inputHash == fingerprint) return ptr;
     this.fingerprint = inputHash;
-    return ptr = CuDNN.write(device, data);
+    return ptr = CudaPtr.write(device, Precision.Double, data);
   }
   
   /**
@@ -80,7 +80,7 @@ public class GPUDataMirror {
     long inputHash = hashFunction(data);
     if (null != ptr && inputHash == fingerprint) return ptr;
     this.fingerprint = inputHash;
-    return ptr = CuDNN.write(device, Tensor.toFloats(data));
+    return ptr = CudaPtr.write(device, Precision.Float, Tensor.toFloats(data));
   }
   
   /**
