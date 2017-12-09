@@ -49,21 +49,21 @@ public class ConvolutionLayerTest extends LayerTestBase {
    * Instantiates a new Convolution layer test.
    */
   public ConvolutionLayerTest() {
-    this(1, 2, 2);
+    this(1, 2, 2, Precision.Double);
   }
   
   /**
    * Instantiates a new Convolution layer test.
-   *
-   * @param radius      the radius
+   *  @param radius      the radius
    * @param inputBands  the input bands
    * @param outputBands the output bands
+   * @param precision
    */
-  protected ConvolutionLayerTest(int radius, int inputBands, int outputBands) {
+  protected ConvolutionLayerTest(int radius, int inputBands, int outputBands, Precision precision) {
     this.radius = radius;
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands);
+    convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
     convolutionLayer.kernel.fill(() -> random());
   }
   
@@ -95,7 +95,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
      * Instantiates a new Asymmetric test.
      */
     public AsymmetricTest() {
-      super(3, 7, 5);
+      super(3, 3, 6, Precision.Double);
     }
     
   }
@@ -103,13 +103,26 @@ public class ConvolutionLayerTest extends LayerTestBase {
   /**
    * The type Irregular run.
    */
-  public static class IrregularTest extends ConvolutionLayerTest {
+  public static class IrregularTest_Float extends ConvolutionLayerTest {
+    
+    /**
+     * Instantiates a new Irregular test.
+     */
+    public IrregularTest_Float() {
+      super(3, 7, 5, Precision.Float);
+    }
+  }
   
+  /**
+   * The type Irregular run.
+   */
+  public static class IrregularTest extends ConvolutionLayerTest {
+    
     /**
      * Instantiates a new Irregular test.
      */
     public IrregularTest() {
-      super(3, 3, 6);
+      super(3, 7, 5, Precision.Double);
     }
   }
   
@@ -117,6 +130,8 @@ public class ConvolutionLayerTest extends LayerTestBase {
    * The type Asymmetric run.
    */
   public static class AsymmetricExplodedTest extends LayerTestBase {
+  
+    private Precision precision = Precision.Double;
   
     /**
      * Instantiates a new Asymmetric exploded test.
@@ -129,9 +144,9 @@ public class ConvolutionLayerTest extends LayerTestBase {
     public NNLayer getLayer() {
       PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
-      network.add(new ImgConcatLayer().setMaxBands(3),
-        network.add(new SimpleConvolutionLayer(1, 1, 4).setWeights(this::random), input),
-        network.add(new SimpleConvolutionLayer(1, 1, 4).setWeights(this::random), input));
+      network.add(new ImgConcatLayer().setMaxBands(3).setPrecision(precision),
+        network.add(new SimpleConvolutionLayer(1, 1, 4).setWeights(this::random).setPrecision(precision), input),
+        network.add(new SimpleConvolutionLayer(1, 1, 4).setWeights(this::random).setPrecision(precision), input));
       return network;
     }
     

@@ -30,14 +30,15 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static jcuda.jcudnn.JCudnn.cudnnOpTensor;
-import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_FLOAT;
 import static jcuda.jcudnn.cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
  * The type Product inputs layer.
  */
-public class ProductInputsLayer extends NNLayer {
+public class ProductInputsLayer extends NNLayer implements LayerPrecision<ProductInputsLayer> {
+  
+  private Precision precision = Precision.Float;
   
   /**
    * Instantiates a new Product inputs layer.
@@ -80,19 +81,19 @@ public class ProductInputsLayer extends NNLayer {
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));
       }
     }
-    final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(CUDNN_OP_TENSOR_MUL, CUDNN_DATA_FLOAT);
+    final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(CUDNN_OP_TENSOR_MUL, precision.code);
     CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
-      CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
+      precision.code, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
     TensorList result = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
-      CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, Precision.Float);
-      CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, Precision.Float);
+      CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, precision);
+      CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, precision);
       assert lPtr.size == rPtr.size;
       CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
       CuDNN.handle(cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
         Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
         Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
         Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-      return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, Precision.Float);
+      return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
     }).get();
     
     return new NNResult(result) {
@@ -105,15 +106,15 @@ public class ProductInputsLayer extends NNLayer {
           if (input.isAlive()) {
             int _index = index;
             input.accumulate(buffer, IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
-              CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, Precision.Float);
-              CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, Precision.Float);
+              CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, precision);
+              CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, precision);
               assert lPtr.size == rPtr.size;
               CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
               CuDNN.handle(cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
                 Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
                 Pointer.to(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
                 Pointer.to(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, Precision.Float);
+              return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
             }).get());
           }
         }
@@ -134,5 +135,14 @@ public class ProductInputsLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  public ProductInputsLayer setPrecision(Precision precision) {
+    this.precision = precision;
+    return this;
   }
 }

@@ -38,7 +38,7 @@ public class CudaResource<T> {
   /**
    * The constant debugLifecycle.
    */
-  public static boolean debugLifecycle = true;
+  public static boolean debugLifecycle = false;
   /**
    * The Obj generation.
    */

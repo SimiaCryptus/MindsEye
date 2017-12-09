@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnActivationDescriptor;
 import jcuda.jcudnn.cudnnHandle;
 import jcuda.jcudnn.cudnnTensorDescriptor;
@@ -33,18 +32,18 @@ import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnActivationBackwa
 import static com.simiacryptus.mindseye.layers.cudnn.CuDNN.cudnnActivationForward;
 import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_RELU;
 import static jcuda.jcudnn.cudnnActivationMode.CUDNN_ACTIVATION_SIGMOID;
-import static jcuda.jcudnn.cudnnDataType.CUDNN_DATA_DOUBLE;
 import static jcuda.jcudnn.cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
  * The type Activation layer.
  */
-public class ActivationLayer extends NNLayer {
+public class ActivationLayer extends NNLayer implements LayerPrecision<ActivationLayer> {
   /**
    * The Mode.
    */
   final int mode;
+  private Precision precision = Precision.Double;
   
   
   /**
@@ -105,12 +104,12 @@ public class ActivationLayer extends NNLayer {
     try {
       
       CudaResource<cudnnTensorDescriptor> inputDescriptor = CuDNN.newTensorDescriptor(
-        CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
-      CudaPtr alpha = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), Precision.Double, 1.0);
-      CudaPtr beta = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), Precision.Double, 0.0);
+        precision.code, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
+      CudaPtr alpha = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 1.0);
+      CudaPtr beta = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 0.0);
       
-      CudaPtr inputData = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), batch, Precision.Double);
-      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Sizeof.DOUBLE * 1l * inputDims * length);
+      CudaPtr inputData = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), batch, precision);
+      CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * inputDims * length);
       CudaResource<cudnnActivationDescriptor> activationDesc = CuDNN.newActivationDescriptor(mode, CUDNN_NOT_PROPAGATE_NAN, 0);
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
@@ -122,7 +121,7 @@ public class ActivationLayer extends NNLayer {
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
-      TensorList output = CudaPtr.fromDevice(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle, Precision.Double);
+      TensorList output = CudaPtr.fromDevice(outputData, length, outputSize, ((CuDNN) nncontext).cudnnHandle, precision);
       //assert output.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       return new NNResult(output) {
         @Override
@@ -130,9 +129,9 @@ public class ActivationLayer extends NNLayer {
           //assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           ((CudaExecutionContext) nncontext).initThread();
-          CudaPtr errorPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), error, Precision.Double);
+          CudaPtr errorPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), error, precision);
           if (input.isAlive()) {
-            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * Sizeof.DOUBLE * length);
+            CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
             try {
               CuDNN.handle(cudnnActivationBackward(((CuDNN) nncontext).cudnnHandle, activationDesc.getPtr(),
                 alpha.getPtr(),
@@ -144,7 +143,7 @@ public class ActivationLayer extends NNLayer {
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            input.accumulate(buffer, CudaPtr.fromDevice(passbackBuffer, length, inputSize, cudnnHandle, Precision.Double));
+            input.accumulate(buffer, CudaPtr.fromDevice(passbackBuffer, length, inputSize, cudnnHandle, precision));
           }
         }
         
@@ -161,6 +160,17 @@ public class ActivationLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  @Override
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  @Override
+  public ActivationLayer setPrecision(Precision precision) {
+    this.precision = precision;
+    return this;
   }
   
   

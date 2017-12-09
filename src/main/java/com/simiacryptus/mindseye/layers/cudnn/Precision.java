@@ -23,18 +23,40 @@ import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcudnn.cudnnDataType;
 
+/**
+ * The enum Precision.
+ */
 public enum Precision {
+  /**
+   * Double precision.
+   */
   Double(cudnnDataType.CUDNN_DATA_DOUBLE, Sizeof.DOUBLE),
+  /**
+   * Float precision.
+   */
   Float(cudnnDataType.CUDNN_DATA_FLOAT, Sizeof.FLOAT);
-
+  
+  /**
+   * The Code.
+   */
   public final int code;
+  /**
+   * The Size.
+   */
   public final int size;
-
+  
   Precision(int code, int size) {
     this.code = code;
     this.size = size;
   }
   
+  /**
+   * Gets pointer.
+   *
+   * @param precision the precision
+   * @param data      the data
+   * @return the pointer
+   */
   public static Pointer getPointer(Precision precision, float[] data) {
     switch (precision) {
       case Float: {
@@ -48,18 +70,37 @@ public enum Precision {
     }
   }
   
+  /**
+   * Get floats float [ ].
+   *
+   * @param data the data
+   * @return the float [ ]
+   */
   public static float[] getFloats(double[] data) {
     float[] floats = new float[data.length];
-    for(int i=0;i<data.length;i++) floats[i] = (float) data[i];
+    for (int i = 0; i < data.length; i++) floats[i] = (float) data[i];
     return floats;
   }
   
+  /**
+   * Get doubles double [ ].
+   *
+   * @param data the data
+   * @return the double [ ]
+   */
   public static double[] getDoubles(float[] data) {
     double[] doubles = new double[data.length];
-    for(int i=0;i<data.length;i++) doubles[i] = (double) data[i];
+    for (int i = 0; i < data.length; i++) doubles[i] = (double) data[i];
     return doubles;
   }
   
+  /**
+   * Gets pointer.
+   *
+   * @param precision the precision
+   * @param data      the data
+   * @return the pointer
+   */
   public static Pointer getPointer(Precision precision, double[] data) {
     switch (precision) {
       case Float: {

@@ -25,7 +25,25 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 /**
  * The type Img concat layer run.
  */
-public class ImgConcatLayerTest extends LayerTestBase {
+public abstract class ImgConcatLayerTest extends LayerTestBase {
+  
+  public static class Double extends PoolingLayerTest {
+    public Double() {
+      super(Precision.Double);
+    }
+  }
+  
+  public static class Float extends PoolingLayerTest {
+    public Float() {
+      super(Precision.Float);
+    }
+  }
+  
+  final Precision precision;
+  
+  public ImgConcatLayerTest(Precision precision) {
+    this.precision = precision;
+  }
   
   @Override
   public NNLayer getLayer() {
@@ -43,7 +61,11 @@ public class ImgConcatLayerTest extends LayerTestBase {
    * The type Band limit run.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
-    
+  
+    public BandLimitTest() {
+      super(Precision.Double);
+    }
+  
     @Override
     public NNLayer getLayer() {
       return new ImgConcatLayer().setMaxBands(3);

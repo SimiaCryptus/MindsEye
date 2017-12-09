@@ -34,7 +34,7 @@ import java.util.function.ToDoubleFunction;
 /**
  * The type Convolution layer.
  */
-public class ConvolutionLayer extends NNLayer {
+public class ConvolutionLayer extends NNLayer implements LayerPrecision<ConvolutionLayer> {
   
   /**
    * The Filter.
@@ -48,6 +48,8 @@ public class ConvolutionLayer extends NNLayer {
    * The Stride y.
    */
   int strideY = 1;
+  
+  private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Convolution layer.
@@ -157,11 +159,10 @@ public class ConvolutionLayer extends NNLayer {
         }
       });
       subLayers.add(new SimpleConvolutionLayer(batchKernel)
-        .setStrideX(strideX).setStrideY(strideY));
+        .setStrideX(strideX).setStrideY(strideY).setPrecision(precision));
     }
-    
     DAGNode input = network.getHead();
-    network.add(new ImgConcatLayer().setMaxBands(outputBands),
+    network.add(new ImgConcatLayer().setMaxBands(outputBands).setPrecision(precision),
       subLayers.stream().map(l -> {
         return network.add(l, input);
       }).toArray(i -> new DAGNode[i]));
@@ -271,4 +272,12 @@ public class ConvolutionLayer extends NNLayer {
     return this;
   }
   
+  public Precision getPrecision() {
+    return precision;
+  }
+  
+  public ConvolutionLayer setPrecision(Precision precision) {
+    this.precision = precision;
+    return this;
+  }
 }

@@ -21,22 +21,39 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 
 /**
  * The type Pooling layer run.
  */
-public class PoolingLayerTest extends LayerTestBase {
+public abstract class PoolingLayerTest extends LayerTestBase {
+  
+  public static class Double extends PoolingLayerTest {
+    public Double() {
+      super(Precision.Double);
+    }
+  }
+  
+  public static class Float extends PoolingLayerTest {
+    public Float() {
+      super(Precision.Float);
+    }
+  }
+  
+  final Precision precision;
+  
+  public PoolingLayerTest(Precision precision) {
+    this.precision = precision;
+  }
   
   @Override
   public NNLayer getLayer() {
-    return new PoolingLayer();
+    return new PoolingLayer().setPrecision(precision);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 2}
+      {4, 4, 2}
     };
   }
 }

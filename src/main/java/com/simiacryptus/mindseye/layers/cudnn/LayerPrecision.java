@@ -19,24 +19,24 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
-
 /**
- * The type Activation layer sigmoid run.
+ * The interface Layer precision.
+ *
+ * @param <T> the type parameter
  */
-public class ActivationLayerSigmoidTest extends LayerTestBase {
+public interface LayerPrecision<T> {
+  /**
+   * Gets precision.
+   *
+   * @return the precision
+   */
+  Precision getPrecision();
   
-  @Override
-  public NNLayer getLayer() {
-    return new ActivationLayer(ActivationLayer.Mode.SIGMOID);
-  }
-  
-  @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3, 3, 2}
-    };
-  }
+  /**
+   * Sets precision.
+   *
+   * @param precision the precision
+   * @return the precision
+   */
+  T setPrecision(Precision precision);
 }

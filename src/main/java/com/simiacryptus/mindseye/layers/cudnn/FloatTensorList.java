@@ -37,7 +37,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 /**
  * The type Cu dnn float tensor list.
  */
-public class CuDNNFloatTensorList implements TensorList {
+public class FloatTensorList implements TensorList {
   /**
    * The Ptr.
    */
@@ -61,7 +61,7 @@ public class CuDNNFloatTensorList implements TensorList {
    * @param dimensions  the dimensions
    * @param cudnnHandle the cudnn handle
    */
-  public CuDNNFloatTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
+  public FloatTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
     this.ptr = ptr;
@@ -130,13 +130,13 @@ public class CuDNNFloatTensorList implements TensorList {
   @Override
   public TensorList add(TensorList right) {
     assert (length() == right.length());
-    if (right instanceof CuDNNFloatTensorList) {
-      CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
+    if (right instanceof FloatTensorList) {
+      FloatTensorList nativeRight = (FloatTensorList) right;
       assert (cudnnHandle == nativeRight.cudnnHandle);
       CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(cudnnAddTensor(cudnnHandle,
         Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
-        Pointer.to(new float[]{1.0f}), size.getPtr(), CuDNNFloatTensorList.this.ptr.getPtr()));
+        Pointer.to(new float[]{1.0f}), size.getPtr(), FloatTensorList.this.ptr.getPtr()));
       size.finalize();
       nativeRight.ptr.finalize(); // Make this function destructive to both arguments
       return this;
@@ -151,13 +151,13 @@ public class CuDNNFloatTensorList implements TensorList {
   @Override
   public void accum(TensorList right) {
     assert (length() == right.length());
-    if (right instanceof CuDNNFloatTensorList) {
-      CuDNNFloatTensorList nativeRight = (CuDNNFloatTensorList) right;
+    if (right instanceof FloatTensorList) {
+      FloatTensorList nativeRight = (FloatTensorList) right;
       assert (cudnnHandle == nativeRight.cudnnHandle);
       CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(cudnnAddTensor(cudnnHandle,
         Pointer.to(new float[]{1.0f}), size.getPtr(), nativeRight.ptr.getPtr(),
-        Pointer.to(new float[]{1.0f}), size.getPtr(), CuDNNFloatTensorList.this.ptr.getPtr()));
+        Pointer.to(new float[]{1.0f}), size.getPtr(), FloatTensorList.this.ptr.getPtr()));
       size.finalize();
       nativeRight.ptr.finalize(); // Make this function destructive to both arguments
     }
@@ -170,6 +170,6 @@ public class CuDNNFloatTensorList implements TensorList {
   
   @Override
   public TensorList copy() {
-    return new CuDNNFloatTensorList(ptr.copy(), length, dimensions, cudnnHandle);
+    return new FloatTensorList(ptr.copy(), length, dimensions, cudnnHandle);
   }
 }

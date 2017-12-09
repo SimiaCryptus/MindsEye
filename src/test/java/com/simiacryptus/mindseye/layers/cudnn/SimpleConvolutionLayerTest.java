@@ -40,7 +40,7 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
    * Instantiates a new Simple convolution layer run.
    */
   public SimpleConvolutionLayerTest() {
-    this(1, 1);
+    this(1, 1, Precision.Double);
   }
   
   /**
@@ -49,10 +49,10 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
    * @param radius the radius
    * @param bands  the bands
    */
-  protected SimpleConvolutionLayerTest(int radius, int bands) {
+  protected SimpleConvolutionLayerTest(int radius, int bands, Precision precision) {
     this.radius = radius;
     this.bands = bands;
-    layer = new SimpleConvolutionLayer(radius, radius, bands * bands);
+    layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision);
     layer.kernel.fill(() -> random());
   }
   
@@ -92,7 +92,7 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
      * Instantiates a new Multi band.
      */
     public MultiBand() {
-      super(1, 3);
+      super(1, 3, Precision.Double);
     }
   }
   
@@ -104,7 +104,7 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
      * Instantiates a new Matrix.
      */
     public Matrix() {
-      super(3, 1);
+      super(3, 1, Precision.Double);
     }
   }
   
@@ -116,7 +116,19 @@ public class SimpleConvolutionLayerTest extends LayerTestBase {
      * Instantiates a new Image.
      */
     public Image() {
-      super(3, 3);
+      super(3, 3, Precision.Double);
+    }
+  }
+  
+  /**
+   * The type Image.
+   */
+  public static class Image_Float extends SimpleConvolutionLayerTest {
+    /**
+     * Instantiates a new Image.
+     */
+    public Image_Float() {
+      super(3, 3, Precision.Float);
     }
   }
   

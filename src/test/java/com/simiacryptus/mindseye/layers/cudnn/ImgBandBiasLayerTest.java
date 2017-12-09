@@ -26,11 +26,29 @@ import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 /**
  * The type Img band bias layer run.
  */
-public class ImgBandBiasLayerTest extends LayerTestBase {
+public abstract class ImgBandBiasLayerTest extends LayerTestBase {
+  
+  public static class Double extends PoolingLayerTest {
+    public Double() {
+      super(Precision.Double);
+    }
+  }
+  
+  public static class Float extends PoolingLayerTest {
+    public Float() {
+      super(Precision.Float);
+    }
+  }
+  
+  final Precision precision;
+  
+  public ImgBandBiasLayerTest(Precision precision) {
+    this.precision = precision;
+  }
   
   @Override
   public NNLayer getLayer() {
-    return new ImgBandBiasLayer(2);
+    return new ImgBandBiasLayer(2).setPrecision(precision);
   }
   
   @Override

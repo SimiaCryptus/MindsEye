@@ -27,11 +27,44 @@ import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 /**
  * The type Activation layer re lu run.
  */
-public class ActivationLayerReLuTest extends LayerTestBase {
+public abstract class ActivationLayerTest extends LayerTestBase {
+  
+  private Precision precision;
+  
+  public static class ReLu_Double extends ActivationLayerTest {
+    public ReLu_Double() {
+      super(ActivationLayer.Mode.RELU, Precision.Double);
+    }
+  }
+  
+  public static class ReLu_Float extends ActivationLayerTest {
+    public ReLu_Float() {
+      super(ActivationLayer.Mode.RELU, Precision.Float);
+    }
+  }
+  
+  public static class Sigmoid_Double extends ActivationLayerTest {
+    public Sigmoid_Double() {
+      super(ActivationLayer.Mode.SIGMOID, Precision.Double);
+    }
+  }
+  
+  public static class Sigmoid_Float extends ActivationLayerTest {
+    public Sigmoid_Float() {
+      super(ActivationLayer.Mode.SIGMOID, Precision.Float);
+    }
+  }
+  
+  final ActivationLayer.Mode mode;
+  
+  public ActivationLayerTest(ActivationLayer.Mode mode, Precision precision) {
+    this.mode = mode;
+    this.precision = precision;
+  }
   
   @Override
   public NNLayer getLayer() {
-    return new ActivationLayer(ActivationLayer.Mode.RELU);
+    return new ActivationLayer(mode).setPrecision(precision);
   }
   
   @Override

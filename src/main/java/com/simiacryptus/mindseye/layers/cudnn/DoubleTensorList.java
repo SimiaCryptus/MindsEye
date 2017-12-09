@@ -38,7 +38,7 @@ import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 /**
  * The type Cu dnn double tensor list.
  */
-public class CuDNNDoubleTensorList implements TensorList {
+public class DoubleTensorList implements TensorList {
   /**
    * The Ptr.
    */
@@ -65,7 +65,7 @@ public class CuDNNDoubleTensorList implements TensorList {
    * @param dimensions  the dimensions
    * @param cudnnHandle the cudnn handle
    */
-  public CuDNNDoubleTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
+  public DoubleTensorList(CudaPtr ptr, int length, int[] dimensions, jcuda.jcudnn.cudnnHandle cudnnHandle) {
     if (null == ptr) throw new IllegalArgumentException("ptr");
     if (null == ptr.getPtr()) throw new IllegalArgumentException("ptr.getPtr()");
     this.ptr = ptr;
@@ -112,13 +112,13 @@ public class CuDNNDoubleTensorList implements TensorList {
   @Override
   public TensorList add(TensorList right) {
     assert (length() == right.length());
-    if (right instanceof CuDNNDoubleTensorList) {
-      CuDNNDoubleTensorList nativeRight = (CuDNNDoubleTensorList) right;
+    if (right instanceof DoubleTensorList) {
+      DoubleTensorList nativeRight = (DoubleTensorList) right;
       assert (cudnnHandle == nativeRight.cudnnHandle);
       CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(cudnnAddTensor(cudnnHandle,
         Pointer.to(new double[]{1.0}), size.getPtr(), nativeRight.ptr.getPtr(),
-        Pointer.to(new double[]{1.0}), size.getPtr(), CuDNNDoubleTensorList.this.ptr.getPtr()));
+        Pointer.to(new double[]{1.0}), size.getPtr(), DoubleTensorList.this.ptr.getPtr()));
       size.finalize();
       nativeRight.ptr.finalize(); // Make this function destructive to both arguments
       return this;
@@ -133,13 +133,13 @@ public class CuDNNDoubleTensorList implements TensorList {
   @Override
   public void accum(TensorList right) {
     assert (length() == right.length());
-    if (right instanceof CuDNNDoubleTensorList) {
-      CuDNNDoubleTensorList nativeRight = (CuDNNDoubleTensorList) right;
+    if (right instanceof DoubleTensorList) {
+      DoubleTensorList nativeRight = (DoubleTensorList) right;
       assert (cudnnHandle == nativeRight.cudnnHandle);
       CudaResource<cudnnTensorDescriptor> size = CuDNN.newTensorDescriptor(CUDNN_DATA_DOUBLE, CUDNN_TENSOR_NCHW, length(), dimensions[2], dimensions[1], dimensions[0]);
       CuDNN.handle(cudnnAddTensor(cudnnHandle,
         Pointer.to(new double[]{1.0}), size.getPtr(), nativeRight.ptr.getPtr(),
-        Pointer.to(new double[]{1.0}), size.getPtr(), CuDNNDoubleTensorList.this.ptr.getPtr()));
+        Pointer.to(new double[]{1.0}), size.getPtr(), DoubleTensorList.this.ptr.getPtr()));
       size.finalize();
       nativeRight.ptr.finalize(); // Make this function destructive to both arguments
     }
