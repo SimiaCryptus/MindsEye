@@ -29,6 +29,7 @@ import org.junit.Ignore;
 public class WeightExtractorTest extends LayerTestBase {
   
   public WeightExtractorTest() {
+    this.validateDifferentials = false;
     this.validateBatchExecution = false;
   }
   

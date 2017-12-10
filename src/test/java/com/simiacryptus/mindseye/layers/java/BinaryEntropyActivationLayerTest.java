@@ -40,6 +40,6 @@ public class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
   
   @Override
   public DoubleStream scan() {
-    return IntStream.range(1, 1000).mapToDouble(x -> x / 300.0);
+    return IntStream.range(1, 499).mapToDouble(x -> x * 1.0 / 500.0);
   }
 }

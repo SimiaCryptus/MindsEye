@@ -39,15 +39,17 @@ public class SumMetaLayer extends NNLayer {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumMetaLayer.class);
   private Tensor lastResult;
+  private int minBatches = 1;
   
   /**
    * Instantiates a new Sum meta layer.
    *
-   * @param id the id
+   * @param json the id
    */
-  protected SumMetaLayer(JsonObject id) {
-    super(id);
-    lastResult = Tensor.fromJson(id.getAsJsonObject("lastResult"));
+  protected SumMetaLayer(JsonObject json) {
+    super(json);
+    lastResult = Tensor.fromJson(json.getAsJsonObject("lastResult"));
+    minBatches = json.get("minBatches").getAsInt();
   }
   
   /**
@@ -69,6 +71,7 @@ public class SumMetaLayer extends NNLayer {
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     if(null!=lastResult) json.add("lastResult", lastResult.getJson());
+    json.addProperty("minBatches",minBatches);
     return json;
   }
   
@@ -76,7 +79,7 @@ public class SumMetaLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
-    if (1 < itemCnt) {
+    if (null==lastResult||minBatches < itemCnt) {
       final ToDoubleBiFunction<Double, Coordinate> f = (v, c) ->
         IntStream.range(0, itemCnt)
           .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
@@ -112,5 +115,14 @@ public class SumMetaLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  public int getMinBatches() {
+    return minBatches;
+  }
+  
+  public SumMetaLayer setMinBatches(int minBatches) {
+    this.minBatches = minBatches;
+    return this;
   }
 }

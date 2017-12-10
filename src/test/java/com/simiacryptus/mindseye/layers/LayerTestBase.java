@@ -56,6 +56,7 @@ public abstract class LayerTestBase {
   protected static final PrintStream originalOut = System.out;
   private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);
   protected boolean validateBatchExecution = true;
+  protected boolean validateDifferentials = true;
   
   /**
    * To graph graph.
@@ -179,11 +180,13 @@ public abstract class LayerTestBase {
         return batchingTester == null ? null : batchingTester.test(layer, inputPrototype);
       });
     }
-    
-    log.h3("Differential Validation");
-    log.code(() -> {
-      return getDerivativeTester().test(layer, inputPrototype);
-    });
+
+    if(validateDifferentials) {
+      log.h3("Differential Validation");
+      log.code(() -> {
+        return getDerivativeTester().test(layer, inputPrototype);
+      });
+    }
     
     log.h3("Performance");
     log.code(() -> {
@@ -273,4 +276,5 @@ public abstract class LayerTestBase {
    * @return the int [ ] [ ]
    */
   public abstract int[][] getInputDims();
+  
 }

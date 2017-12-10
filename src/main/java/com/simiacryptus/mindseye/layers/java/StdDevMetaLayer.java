@@ -52,10 +52,18 @@ public class StdDevMetaLayer extends DAGNetwork {
    * Instantiates a new Std dev meta layer.
    */
   public StdDevMetaLayer() {
+    this(1);
+  }
+  
+  /**
+   * Instantiates a new Std dev meta layer.
+   * @param minBatchCount
+   */
+  public StdDevMetaLayer(int minBatchCount) {
     super(1);
     this.head = add(new NthPowerActivationLayer().setPower(0.5),
       add(new SumInputsLayer(),
-        add(new AvgMetaLayer(), add(new SqActivationLayer(), getInput(0))),
+        add(new AvgMetaLayer().setMinBatchCount(minBatchCount), add(new SqActivationLayer(), getInput(0))),
         add(new LinearActivationLayer().setScale(-1).freeze(),
           add(new SqActivationLayer(),
             add(new AvgMetaLayer(),

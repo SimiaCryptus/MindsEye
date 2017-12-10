@@ -35,7 +35,7 @@ public class AvgMetaLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new AvgMetaLayer().setMinBatchCount(1);
+    return new AvgMetaLayer().setMinBatchCount(0);
   }
   
   @Override

@@ -34,7 +34,7 @@ public class SumMetaLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new SumMetaLayer();
+    return new SumMetaLayer().setMinBatches(0);
   }
   
   @Override

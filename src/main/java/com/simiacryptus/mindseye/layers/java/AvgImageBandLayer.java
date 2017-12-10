@@ -73,14 +73,13 @@ public class AvgImageBandLayer extends NNLayer {
     
     assert (1 == inObj.length);
     final NNResult in = inObj[0];
-    int itemCnt = in.getData().length();
-    final int[] inputDims = in.getData().get(0).getDimensions();
+    final TensorList inData = in.getData();
+    final int[] inputDims = inData.get(0).getDimensions();
     assert (3 == inputDims.length);
     
-    Tensor[] results = in.getData().stream().map(data -> {
+    Tensor[] results = inData.stream().map(data -> {
       DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
-        int pixels = data.getDimensions()[0] * data.getDimensions()[1];
-        return data.coordStream().filter(e -> e.coords[2] == band).mapToDouble(c -> data.get(c)).sum() / pixels;
+        return data.coordStream().filter(e -> e.coords[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);
@@ -89,15 +88,14 @@ public class AvgImageBandLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (in.isAlive()) {
-          final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
-            int[] inputDim = in.getData().get(dataIndex).getDimensions();
+          in.accumulate(buffer, new TensorArray(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+            Tensor tensor = inData.get(dataIndex);
+            int[] inputDim = tensor.getDimensions();
             Tensor backprop = data.get(dataIndex);
             return new Tensor(inputDim).mapCoords((v, c) -> {
-              int pixels = inputDim[0] * inputDim[1];
-              return backprop.get(0, 0, c.coords[2]) / pixels;
+              return backprop.get(0, 0, c.coords[2]) / (inputDim[0] * inputDim[1]);
             });
-          }).toArray(i -> new Tensor[i]);
-          in.accumulate(buffer, new TensorArray(data1));
+          }).toArray(i -> new Tensor[i])));
         }
       }
       
