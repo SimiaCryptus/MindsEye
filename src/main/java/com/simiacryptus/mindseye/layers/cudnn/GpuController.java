@@ -181,7 +181,7 @@ public final class GpuController {
     try {
       long startNanos = System.nanoTime();
       List<List<U>> batches = (data.size() > batchSize) ? Lists.partition(data, batchSize) : Arrays.asList(data);
-      T deviceResult = batches.stream().map(x -> mapper.apply(x, gpu)).filter(x -> null != x).reduce(reducer).get();
+      T deviceResult = batches.stream().map(x -> mapper.apply(x, gpu)).filter(x -> null != x).reduce(reducer).orElse(null);
       double time = (System.nanoTime() - startNanos) * 1.0 / 1e9;
       deviceWeight.put(gpu.toString(), data.size() / time);
       return deviceResult;

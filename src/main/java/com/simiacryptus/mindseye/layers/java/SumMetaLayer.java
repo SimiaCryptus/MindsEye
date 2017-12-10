@@ -68,7 +68,7 @@ public class SumMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("lastResult", lastResult.getJson());
+    if(null!=lastResult) json.add("lastResult", lastResult.getJson());
     return json;
   }
   

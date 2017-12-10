@@ -23,11 +23,16 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.BatchingTester;
 import com.simiacryptus.mindseye.layers.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.junit.Ignore;
 
 /**
  * The type Std dev meta layer test.
  */
 public class StdDevMetaLayerTest extends LayerTestBase {
+  
+  public StdDevMetaLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

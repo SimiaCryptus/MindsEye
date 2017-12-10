@@ -30,6 +30,7 @@ import smile.plot.ScatterPlot;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
@@ -94,7 +95,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     
     log.h3("Function Plots");
     NNLayer layer = getLayer();
-    List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
+    List<double[]> plotData = scan().mapToObj(x -> {
       SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
     }).collect(Collectors.toList());
@@ -107,6 +108,10 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       return plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
     });
     
+  }
+  
+  public DoubleStream scan() {
+    return IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
   }
   
 }

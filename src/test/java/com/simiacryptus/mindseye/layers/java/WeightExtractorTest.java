@@ -21,11 +21,16 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.junit.Ignore;
 
 /**
  * The type Weight extractor test.
  */
 public class WeightExtractorTest extends LayerTestBase {
+  
+  public WeightExtractorTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {
@@ -35,7 +40,7 @@ public class WeightExtractorTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}
+      {0}
     };
   }
 }

@@ -19,6 +19,9 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+
 /**
  * The type Binary entropy activation layer test.
  */
@@ -28,5 +31,15 @@ public class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
    */
   public BinaryEntropyActivationLayerTest() {
     super(new BinaryEntropyActivationLayer());
+  }
+  
+  @Override
+  public double random() {
+    return 0.2*Math.random() + 0.1;
+  }
+  
+  @Override
+  public DoubleStream scan() {
+    return IntStream.range(1, 1000).mapToDouble(x -> x / 300.0);
   }
 }

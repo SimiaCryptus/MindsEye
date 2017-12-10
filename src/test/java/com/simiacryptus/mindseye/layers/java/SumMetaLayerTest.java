@@ -26,8 +26,11 @@ import org.junit.Ignore;
 /**
  * The type Sum meta layer test.
  */
-@Ignore
 public class SumMetaLayerTest extends LayerTestBase {
+  
+  public SumMetaLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

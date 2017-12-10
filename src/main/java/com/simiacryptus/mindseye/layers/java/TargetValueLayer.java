@@ -75,7 +75,7 @@ public class TargetValueLayer extends DAGNetwork {
   @Override
   public JsonObject getJson() {
     JsonObject json = super.getJson();
-    json.addProperty("target", target.toString());
+    json.addProperty("target", target.getId().toString());
     return json;
   }
   

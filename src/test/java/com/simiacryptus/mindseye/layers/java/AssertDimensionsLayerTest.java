@@ -26,18 +26,17 @@ import org.junit.Ignore;
 /**
  * The type Assert dimensions layer test.
  */
-@Ignore
 public class AssertDimensionsLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new AssertDimensionsLayer();
+    return new AssertDimensionsLayer(2,2);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}
+      {2,2}
     };
   }
 }

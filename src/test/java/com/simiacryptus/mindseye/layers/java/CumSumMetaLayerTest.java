@@ -29,6 +29,10 @@ import org.junit.Ignore;
 @Ignore
 public class CumSumMetaLayerTest extends LayerTestBase {
   
+  public CumSumMetaLayerTest() {
+    this.validateBatchExecution = false;
+  }
+  
   @Override
   public NNLayer getLayer() {
     return new CumSumMetaLayer();

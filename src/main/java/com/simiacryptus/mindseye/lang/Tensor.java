@@ -1054,16 +1054,16 @@ public class Tensor implements Serializable {
         if (coords.length < this.dimensions.length - 2) {
           final String str = list.stream().limit(10)
             .map(s -> "\t" + s.replaceAll("\n", "\n\t"))
-            .reduce((a, b) -> a + ",\n" + b).get();
+            .reduce((a, b) -> a + ",\n" + b).orElse("");
           return "[\n" + str + "\n]";
         }
         else {
-          final String str = list.stream().reduce((a, b) -> a + ", " + b).get();
+          final String str = list.stream().reduce((a, b) -> a + ", " + b).orElse("");
           return "[ " + str + " ]";
         }
       }
       else {
-        final String str = list.stream().reduce((a, b) -> a + "," + b).get();
+        final String str = list.stream().reduce((a, b) -> a + "," + b).orElse("");
         return "[ " + str + " ]";
       }
     }

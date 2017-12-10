@@ -21,11 +21,16 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.junit.Ignore;
 
 /**
  * The type Sparse 01 meta layer test.
  */
 public class Sparse01MetaLayerTest extends LayerTestBase {
+  
+  public Sparse01MetaLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

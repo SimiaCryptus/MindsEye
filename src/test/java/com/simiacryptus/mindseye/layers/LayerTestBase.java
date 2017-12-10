@@ -55,6 +55,7 @@ public abstract class LayerTestBase {
    */
   protected static final PrintStream originalOut = System.out;
   private static final Logger log = LoggerFactory.getLogger(ActivationLayerTestBase.class);
+  protected boolean validateBatchExecution = true;
   
   /**
    * To graph graph.
@@ -171,11 +172,13 @@ public abstract class LayerTestBase {
       });
     }
     
-    log.h3("Batch Execution");
-    log.code(() -> {
-      BatchingTester batchingTester = getBatchingTester();
-      return batchingTester == null ? null : batchingTester.test(layer, inputPrototype);
-    });
+    if(validateBatchExecution) {
+      log.h3("Batch Execution");
+      log.code(() -> {
+        BatchingTester batchingTester = getBatchingTester();
+        return batchingTester == null ? null : batchingTester.test(layer, inputPrototype);
+      });
+    }
     
     log.h3("Differential Validation");
     log.code(() -> {
@@ -195,7 +198,12 @@ public abstract class LayerTestBase {
    * @return the batching tester
    */
   public BatchingTester getBatchingTester() {
-    return new BatchingTester(1e-2);
+    return new BatchingTester(1e-2) {
+      @Override
+      public double getRandom() {
+        return random();
+      }
+    };
   }
   
   /**

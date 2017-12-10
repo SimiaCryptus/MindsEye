@@ -21,11 +21,16 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import org.junit.Ignore;
 
 /**
  * The type Static scalar loss layer test.
  */
 public class StaticScalarLossLayerTest extends LayerTestBase {
+  
+  public StaticScalarLossLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

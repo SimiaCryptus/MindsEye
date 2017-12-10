@@ -123,8 +123,8 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
-    Random random = new Random(seed);
     Tensor[] mask = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      Random random = new Random(seed);
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = input.map(x -> {
         return (random.nextDouble() < getValue()) ? 0 : 1;

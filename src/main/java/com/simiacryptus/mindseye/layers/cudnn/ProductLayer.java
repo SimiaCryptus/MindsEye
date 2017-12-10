@@ -72,10 +72,14 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     ((CudaExecutionContext) nncontext).initThread();
-    assert inObj.length > 1;
-    assert inObj.length < 3;
+    if (inObj.length != 2) {
+      throw new IllegalArgumentException("inObj.length=" + inObj.length);
+    }
     int[] dimensions = inObj[0].getData().getDimensions();
     int length = inObj[0].getData().length();
+    if (3 != dimensions.length) {
+      throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
+    }
     for (int i = 1; i < inObj.length; i++) {
       if (Tensor.dim(dimensions) != Tensor.dim(inObj[i].getData().getDimensions())) {
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(inObj[i].getData().getDimensions()));

@@ -28,6 +28,10 @@ import org.junit.Ignore;
  */
 @Ignore
 public class CumAvgMetaLayerTest extends LayerTestBase {
+
+  public CumAvgMetaLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

@@ -137,7 +137,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     
     @Override
     public NNLayer getReferenceLayer() {
-      return new SigmoidActivationLayer();
+      return new SigmoidActivationLayer().setBalanced(false);
     }
   }
   
@@ -154,7 +154,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     
     @Override
     public NNLayer getReferenceLayer() {
-      return new SigmoidActivationLayer();
+      return new SigmoidActivationLayer().setBalanced(false);
     }
   }
   

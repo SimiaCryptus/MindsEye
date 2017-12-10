@@ -42,10 +42,7 @@ public class AvgMetaLayer extends NNLayer {
    * The Last result.
    */
   public Tensor lastResult;
-  /**
-   * The Min batch count.
-   */
-  int minBatchCount = 1;
+  private int minBatchCount = 1;
   
   /**
    * Instantiates a new Avg meta layer.
@@ -125,5 +122,17 @@ public class AvgMetaLayer extends NNLayer {
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  /**
+   * The Min batch count.
+   */
+  public int getMinBatchCount() {
+    return minBatchCount;
+  }
+  
+  public AvgMetaLayer setMinBatchCount(int minBatchCount) {
+    this.minBatchCount = minBatchCount;
+    return this;
   }
 }

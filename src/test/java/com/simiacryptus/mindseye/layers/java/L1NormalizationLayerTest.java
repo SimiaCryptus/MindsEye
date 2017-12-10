@@ -36,4 +36,9 @@ public class L1NormalizationLayerTest extends LayerTestBase {
   public int[][] getInputDims() {
     return new int[][]{{4}};
   }
+  
+  @Override
+  public double random() {
+    return super.random() * 100;
+  }
 }

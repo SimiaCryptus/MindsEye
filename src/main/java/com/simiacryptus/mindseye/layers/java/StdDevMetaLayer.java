@@ -56,7 +56,10 @@ public class StdDevMetaLayer extends DAGNetwork {
     this.head = add(new NthPowerActivationLayer().setPower(0.5),
       add(new SumInputsLayer(),
         add(new AvgMetaLayer(), add(new SqActivationLayer(), getInput(0))),
-        add(new LinearActivationLayer().setScale(-1), add(new SqActivationLayer(), add(new AvgMetaLayer(), getInput(0))))
+        add(new LinearActivationLayer().setScale(-1).freeze(),
+          add(new SqActivationLayer(),
+            add(new AvgMetaLayer(),
+              getInput(0))))
       ));
   }
   

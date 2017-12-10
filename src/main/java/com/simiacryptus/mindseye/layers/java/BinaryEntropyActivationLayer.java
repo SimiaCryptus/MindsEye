@@ -58,7 +58,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
-    final double d = 0 == x ? Double.NaN : (Math.log(x) - Math.log(1 - x));
+    final double d = 0 >= x ? Double.NaN : (Math.log(x) - Math.log(1 - x));
     final double f = (0 >= x || 1 <= x) ? Double.POSITIVE_INFINITY : (x * Math.log(x) + (1 - x) * Math.log(1 - x));
     assert Double.isFinite(d);
     assert minDeriv <= Math.abs(d);

@@ -205,7 +205,8 @@ public class DerivativeTester {
       if (!deltas.isEmpty() && !component.state().isEmpty()) {
         throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
       }
-      if (!reachedInputFeedback.get()) throw new RuntimeException("Frozen component did not pass input backwards");
+      int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.dim()).sum();
+      if (!reachedInputFeedback.get() && 0<inElements) throw new RuntimeException("Frozen component did not pass input backwards");
     });
   }
   

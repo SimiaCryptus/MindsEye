@@ -106,8 +106,8 @@ public class GaussianNoiseLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     int itemCnt = inObj[0].getData().length();
-    Random random = new Random(seed);
     Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
+      Random random = new Random(seed);
       final Tensor input = inObj[0].getData().get(dataIndex);
       final Tensor output = input.map(x -> {
         return x + random.nextGaussian() * getValue();

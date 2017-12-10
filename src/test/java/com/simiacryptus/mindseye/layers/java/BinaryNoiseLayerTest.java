@@ -26,8 +26,11 @@ import org.junit.Ignore;
 /**
  * The type Binary noise layer test.
  */
-@Ignore
 public class BinaryNoiseLayerTest extends LayerTestBase {
+  
+  public BinaryNoiseLayerTest() {
+    validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

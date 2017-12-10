@@ -49,7 +49,7 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4, 4, 2}
+      {2,2,1}, {2,2,1}
     };
   }
   

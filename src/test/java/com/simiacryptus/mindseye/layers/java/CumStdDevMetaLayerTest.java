@@ -29,6 +29,10 @@ import org.junit.Ignore;
 @Ignore
 public class CumStdDevMetaLayerTest extends LayerTestBase {
   
+  public CumStdDevMetaLayerTest() {
+    this.validateBatchExecution = false;
+  }
+  
   @Override
   public NNLayer getLayer() {
     return new CumStdDevMetaLayer();

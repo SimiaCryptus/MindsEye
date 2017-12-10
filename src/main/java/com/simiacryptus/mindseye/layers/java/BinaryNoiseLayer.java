@@ -47,8 +47,6 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
   };
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BinaryNoiseLayer.class);
-  private final int[] lastDim = {};
-  private final int lastLength = 0;
   /**
    * The Mask list.
    */
@@ -138,7 +136,7 @@ public class BinaryNoiseLayer extends NNLayer implements StochasticComponent {
     return new NNResult(mask) {
       @Override
       public void accumulate(DeltaSet buffer, TensorList data) {
-        input.accumulate(buffer, new TensorArray());
+        input.accumulate(buffer, data);
       }
       
       @Override

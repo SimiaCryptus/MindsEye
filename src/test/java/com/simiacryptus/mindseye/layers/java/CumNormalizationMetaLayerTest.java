@@ -26,8 +26,13 @@ import org.junit.Ignore;
 /**
  * The type Cum normalization meta layer test.
  */
+
 @Ignore
 public class CumNormalizationMetaLayerTest extends LayerTestBase {
+  
+  public CumNormalizationMetaLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

@@ -27,8 +27,11 @@ import org.junit.Ignore;
 /**
  * The type Img crop layer test.
  */
-@Ignore
 public class ImgCropLayerTest extends LayerTestBase {
+  
+  public ImgCropLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The type Mean sq loss layer.
@@ -68,11 +69,13 @@ public class MeanSqLossLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     if (2 != inObj.length) throw new IllegalArgumentException();
-    if (inObj[0].getData().length() != inObj[1].getData().length()) throw new IllegalArgumentException();
-    Tensor diffs[] = new Tensor[inObj[0].getData().length()];
-    Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
-      final Tensor a = inObj[0].getData().get(dataIndex);
-      final Tensor b = inObj[1].getData().get(dataIndex);
+    int leftLength = inObj[0].getData().length();
+    int rightLength = inObj[1].getData().length();
+    if (leftLength != rightLength && leftLength != 1 && rightLength != 1) throw new IllegalArgumentException(leftLength +" != "+ rightLength);
+    Tensor diffs[] = new Tensor[leftLength];
+    Tensor[] outputA = IntStream.range(0, leftLength).parallel().mapToObj(dataIndex -> {
+      final Tensor a = inObj[0].getData().get(1==leftLength?0:dataIndex);
+      final Tensor b = inObj[1].getData().get(1==rightLength?0:dataIndex);
       if (a.dim() != b.dim()) {
         throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       }
@@ -84,22 +87,30 @@ public class MeanSqLossLayer extends NNLayer {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList data) {
         if (inObj[0].isAlive() || inObj[1].isAlive()) {
-          Tensor[] passback = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
-            return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
-          }).toArray(i -> new Tensor[i]);
           if (inObj[0].isAlive()) {
-            inObj[0].accumulate(buffer, new TensorArray(passback));
+            Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+              return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
+            });
+            if(1 == leftLength){
+              tensorStream = Stream.of(tensorStream.reduce((a,b)->a.add(b)).get());
+            }
+            inObj[0].accumulate(buffer, new TensorArray(tensorStream.toArray(i -> new Tensor[i])));
           }
           if (inObj[1].isAlive()) {
-            final Tensor[] negative = Arrays.stream(passback).map(x -> x.scale(-1)).toArray(i -> new Tensor[i]);
-            inObj[1].accumulate(buffer, new TensorArray(negative));
+            Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
+              return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
+            });
+            if(1 == rightLength){
+              tensorStream = Stream.of(tensorStream.reduce((a,b)->a.add(b)).get());
+            }
+            inObj[1].accumulate(buffer, new TensorArray(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i])));
           }
         }
       }
       
       @Override
       public boolean isAlive() {
-        return inObj[0].isAlive();
+        return inObj[0].isAlive() || inObj[1].isAlive();
       }
       
     };

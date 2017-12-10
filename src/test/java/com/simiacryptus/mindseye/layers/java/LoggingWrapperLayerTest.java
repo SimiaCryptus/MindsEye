@@ -26,8 +26,11 @@ import org.junit.Ignore;
 /**
  * The type Logging wrapper layer test.
  */
-@Ignore
 public class LoggingWrapperLayerTest extends LayerTestBase {
+  
+  public LoggingWrapperLayerTest() {
+    this.validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {
