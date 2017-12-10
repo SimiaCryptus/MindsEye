@@ -241,8 +241,8 @@ class TestUtil {
     String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       double fPos = componentStats.get(i).getMax() / 0xFF;
       double fNeg = componentStats.get(i).getMin() / 0xFF;
-      return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fNeg + "\" k4=\"0.0\"/>\n" +
-        "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fPos + "\" k4=\"" + fPos + "\"/>\n";
+      return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fNeg + "\" k4=\""+ -fNeg+"\"/>\n" +
+        "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fPos + "\" k4=\"" + 0.0 + "\"/>\n";
     }).reduce((a, b) -> a + "\n" + b).get();
     
     int red = (int) baseline.get(0, 0, 0);

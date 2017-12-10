@@ -116,11 +116,11 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    int pretrainMinutes = 1;
-    int timeoutMinutes = 1;
+    int pretrainMinutes = 30;
+    int timeoutMinutes = 45;
     int size = 256;
     
-    Tensor[][] trainingImages = TestUtil.getImages(log, size, 30, "kangaroo");
+    Tensor[][] trainingImages = TestUtil.getImages(log, size, 100, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
@@ -139,14 +139,14 @@ public class ImageDecompositionLab {
     AddLayerStep step2 = log.code(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
-        step1.band2, 24, 5, 1);
+        step1.band2, 48, 5, 1);
     }).invoke(); // 276
   
     log.h1("Fourth Layer");
     AddLayerStep step3 = log.code(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
         4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
-        step2.band2, 24, 5, 4);
+        step2.band2, 48, 5, 4);
     }).invoke(); // 278
   
     log.h1("Transcoding Different Category");
