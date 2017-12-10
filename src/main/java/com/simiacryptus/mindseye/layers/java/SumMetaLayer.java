@@ -48,7 +48,7 @@ public class SumMetaLayer extends NNLayer {
    */
   protected SumMetaLayer(JsonObject json) {
     super(json);
-    lastResult = Tensor.fromJson(json.getAsJsonObject("lastResult"));
+    lastResult = Tensor.fromJson(json.get("lastResult"));
     minBatches = json.get("minBatches").getAsInt();
   }
   
@@ -70,7 +70,7 @@ public class SumMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    if(null!=lastResult) json.add("lastResult", lastResult.getJson());
+    if(null!=lastResult) json.add("lastResult", lastResult.toJson());
     json.addProperty("minBatches",minBatches);
     return json;
   }

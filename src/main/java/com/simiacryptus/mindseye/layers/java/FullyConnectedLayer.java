@@ -66,7 +66,7 @@ public class FullyConnectedLayer extends NNLayer {
     super(json);
     this.outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     this.inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
-    this.weights = Tensor.fromJson(json.getAsJsonObject("weights"));
+    this.weights = Tensor.fromJson(json.get("weights"));
   }
   
   /**
@@ -184,7 +184,7 @@ public class FullyConnectedLayer extends NNLayer {
     JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));
-    json.add("weights", weights.getJson());
+    json.add("weights", weights.toJson());
     return json;
   }
   

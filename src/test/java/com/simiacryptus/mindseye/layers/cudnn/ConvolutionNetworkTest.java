@@ -48,15 +48,10 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    
-    PipelineNetwork network = new PipelineNetwork(2);
-    network.add(new ConvolutionLayer(3, 3, 7, 3).setWeights(this::random).setPrecision(precision), network.getInput(1));
-    network.add(new ImgBandBiasLayer(3).setPrecision(precision));
+    PipelineNetwork network = new PipelineNetwork(1);
+    network.add(new ImgConcatLayer().setPrecision(precision));
+    network.add(new ImgBandBiasLayer(1).setPrecision(precision));
     network.add(new ActivationLayer(ActivationLayer.Mode.RELU).setPrecision(precision));
-    network.add(new ImgCropLayer(4, 4));
-    network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
-      network.add(new MeanSqLossLayer(), network.getHead(), network.getInput(0))
-    );
     return network;
     
     
@@ -65,7 +60,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4, 4, 3}, {5, 5, 7}
+      {1,1,1}
     };
   }
   
@@ -95,37 +90,6 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
     @Override
     public DerivativeTester getDerivativeTester() {
       return new DerivativeTester(1e-2, 1e-3);
-    }
-    
-  }
-  
-  /**
-   * The type Debug.
-   */
-  public static class Debug extends LayerTestBase {
-    
-    @Override
-    public NNLayer getLayer() {
-      
-      PipelineNetwork network = new PipelineNetwork(2);
-//      network.add(new ConvolutionLayer(3, 3, 3, 3).setWeights(this::random), network.getInput(1));
-//      network.add(new ImgBandBiasLayer(3));
-//      network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      network.add(new ImgCropLayer(4, 4));
-      network.add(new MeanSqLossLayer(), network.getHead(), network.getInput(0));
-//      network.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
-//        network.add(new MeanSqLossLayer(), network.getHead(), network.getInput(0))
-//      );
-      return network;
-      
-      
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{
-        {4, 4, 3}, {5, 5, 3}
-      };
     }
     
   }

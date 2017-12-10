@@ -58,7 +58,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    */
   protected ConvolutionLayer(JsonObject json) {
     super(json);
-    this.kernel = Tensor.fromJson(json.getAsJsonObject("filter"));
+    this.kernel = Tensor.fromJson(json.get("filter"));
     this.strideX = json.get("strideX").getAsInt();
     this.strideY = json.get("strideY").getAsInt();
   }
@@ -119,7 +119,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.getJson());
+    json.add("filter", kernel.toJson());
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     return json;

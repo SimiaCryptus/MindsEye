@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.simiacryptus.util.io.JsonUtil;
+import com.google.gson.JsonPrimitive;
 
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
@@ -51,6 +51,7 @@ public class Tensor implements Serializable {
    */
   protected volatile double[] data;
   private byte references = 1;
+  public static int JSON_PRECISION = 16;
   
   /**
    * Instantiates a new Tensor.
@@ -197,19 +198,6 @@ public class Tensor implements Serializable {
   }
   
   /**
-   * From json tensor.
-   *
-   * @param json the json
-   * @return the tensor
-   */
-  public static Tensor fromJson(JsonObject json) {
-    if (null == json) return null;
-    int[] dims = JsonUtil.getIntArray(json.getAsJsonArray("dimensions"));
-    double[] data = json.has("data") ? JsonUtil.getDoubleArray(json.getAsJsonArray("data")) : null;
-    return new Tensor(data, dims);
-  }
-  
-  /**
    * Add tensor.
    *
    * @param left  the left
@@ -309,14 +297,6 @@ public class Tensor implements Serializable {
       }
     }
     return false;
-  }
-  
-  private int[] _add(final int[] base, final int... extra) {
-    final int[] copy = Arrays.copyOf(base, base.length + extra.length);
-    for (int i = 0; i < extra.length; i++) {
-      copy[i + base.length] = extra[i];
-    }
-    return copy;
   }
   
   /**
@@ -1044,7 +1024,9 @@ public class Tensor implements Serializable {
     }
     else {
       List<String> list = IntStream.range(0, this.dimensions[coords.length]).mapToObj(i -> {
-        return toString(prettyPrint, _add(coords, i));
+        final int[] newCoord = Arrays.copyOf(coords, coords.length + 1);
+        newCoord[coords.length] = i;
+        return toString(prettyPrint, newCoord);
       }).collect(Collectors.toList());
       if (list.size() > 10) {
         list = list.subList(0, 8);
@@ -1066,6 +1048,79 @@ public class Tensor implements Serializable {
         final String str = list.stream().reduce((a, b) -> a + "," + b).orElse("");
         return "[ " + str + " ]";
       }
+    }
+  }
+  
+  public Tensor round(int precision) {
+    if(precision > 8) return this;
+    if(precision < 1) throw new IllegalArgumentException();
+    return round(precision, 10);
+  }
+  
+  public Tensor round(int precision, int base) {
+    return this.map(v -> {
+      double units = Math.pow(base, Math.ceil(Math.log(v) / Math.log(base)) - precision);
+      return Math.round(v / units) * units;
+    });
+  }
+  
+  public static Tensor fromJson(JsonElement json) {
+    if(null == json) return null;
+    if (json.isJsonArray()) {
+      JsonArray array = json.getAsJsonArray();
+      int size = array.size();
+      if (array.get(0).isJsonPrimitive()) {
+        double[] doubles = IntStream.range(0, size).mapToObj(i -> {
+          return array.get(i);
+        }).mapToDouble(element -> {
+          return element.getAsDouble();
+        }).toArray();
+        return new Tensor(doubles);
+      }
+      else {
+        List<Tensor> elements = IntStream.range(0, size).mapToObj(i -> {
+          return array.get(i);
+        }).map(element -> {
+          return fromJson(element);
+        }).collect(Collectors.toList());
+        int[] dimensions = elements.get(0).getDimensions();
+        if (!elements.stream().allMatch(t -> Arrays.equals(dimensions, t.getDimensions()))) {
+          throw new IllegalArgumentException();
+        }
+        int[] newDdimensions = Arrays.copyOf(dimensions,dimensions.length+1);
+        newDdimensions[dimensions.length] = size;
+        Tensor tensor = new Tensor(newDdimensions);
+        double[] data = tensor.getData();
+        for(int i=0;i<size;i++) {
+          double[] e = elements.get(i).getData();
+          System.arraycopy(e, 0, data, i*e.length, e.length);
+        }
+        return tensor;
+      }
+    }
+    else {
+      return new Tensor(json.getAsJsonPrimitive().getAsDouble());
+    }
+  }
+  
+  public JsonElement toJson() {
+    return round(JSON_PRECISION).toJson(new int[]{});
+  }
+  
+  private JsonElement toJson(final int[] coords) {
+    if (coords.length == this.dimensions.length) {
+      double d = get(coords);
+      return new JsonPrimitive(d);
+    }
+    else {
+      JsonArray jsonArray = new JsonArray();
+      IntStream.range(0, this.dimensions[this.dimensions.length-(coords.length+1)]).mapToObj(i -> {
+        int[] newCoord = new int[coords.length + 1];
+        System.arraycopy(coords, 0, newCoord, 1, coords.length);
+        newCoord[0] = i;
+        return toJson(newCoord);
+      }).forEach(l -> jsonArray.add(l));
+      return jsonArray;
     }
   }
   
@@ -1097,18 +1152,6 @@ public class Tensor implements Serializable {
    */
   public int size() {
     return null == data ? Tensor.dim(this.dimensions) : data.length;
-  }
-  
-  /**
-   * Gets json.
-   *
-   * @return the json
-   */
-  public JsonElement getJson() {
-    JsonObject json = new JsonObject();
-    json.add("dimensions", JsonUtil.getJson(dimensions));
-    if (data != null) json.add("data", JsonUtil.getJson(data));
-    return json;
   }
   
   /**

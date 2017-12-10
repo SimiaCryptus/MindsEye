@@ -39,7 +39,7 @@ public class ConstNNLayer extends NNLayer {
    */
   protected ConstNNLayer(JsonObject json) {
     super(json);
-    this.data = Tensor.fromJson(json.getAsJsonObject("value"));
+    this.data = Tensor.fromJson(json.get("value"));
   }
   
   /**
@@ -66,7 +66,7 @@ public class ConstNNLayer extends NNLayer {
   @Override
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("value", data.getJson());
+    json.add("value", data.toJson());
     return json;
   }
   

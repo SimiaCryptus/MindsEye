@@ -56,8 +56,8 @@ public class ConvolutionLayer extends NNLayer {
    */
   protected ConvolutionLayer(JsonObject json) {
     super(json);
-    this.kernel = Tensor.fromJson(json.getAsJsonObject("filter"));
-    this.skip = Tensor.fromJson(json.getAsJsonObject("skip"));
+    this.kernel = Tensor.fromJson(json.get("filter"));
+    this.skip = Tensor.fromJson(json.get("skip"));
     this.simple = json.getAsJsonPrimitive("simple").getAsBoolean();
   }
   
@@ -148,8 +148,8 @@ public class ConvolutionLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.getJson());
-    json.add("skip", skip.getJson());
+    json.add("filter", kernel.toJson());
+    json.add("skip", skip.toJson());
     json.addProperty("simple", simple);
     return json;
   }

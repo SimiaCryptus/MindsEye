@@ -58,7 +58,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
    */
   protected SimpleConvolutionLayer(JsonObject json) {
     super(json);
-    this.kernel = Tensor.fromJson(json.getAsJsonObject("filter"));
+    this.kernel = Tensor.fromJson(json.get("filter"));
     this.strideX = json.get("strideX").getAsInt();
     this.strideY = json.get("strideY").getAsInt();
   }
@@ -109,7 +109,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    json.add("filter", kernel.getJson());
+    json.add("filter", kernel.toJson());
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     json.addProperty("simple", false);

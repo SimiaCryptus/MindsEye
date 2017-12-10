@@ -19,8 +19,11 @@
 
 package com.simiacryptus.mindseye.data;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.TestCategories;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -45,6 +48,26 @@ public class TensorTest {
     for (String c : coordinates) {
       System.out.println(c);
     }
+  }
+
+  @Test
+  @Category(TestCategories.UnitTest.class)
+  public void testToJson() throws Exception {
+    test(new Tensor(3, 3, 1).map(v->Math.random()));
+    test(new Tensor(1, 3, 3).map(v->Math.random()));
+  }
+  
+  public void test(Tensor t) {
+    JsonElement json = t.toJson();
+    Assert.assertEquals(Tensor.fromJson(json), t);
+    parse(json.toString());
+  }
+  
+  public Tensor parse(String str) {
+    JsonElement json = new GsonBuilder().create().fromJson(str, JsonElement.class);
+    Tensor tensor = Tensor.fromJson(json);
+    Assert.assertEquals(json, tensor.toJson());
+    return tensor;
   }
   
 }

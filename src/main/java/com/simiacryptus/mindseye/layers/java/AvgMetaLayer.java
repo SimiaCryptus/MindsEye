@@ -51,7 +51,7 @@ public class AvgMetaLayer extends NNLayer {
    */
   protected AvgMetaLayer(JsonObject json) {
     super(json);
-    this.lastResult = Tensor.fromJson(json.getAsJsonObject("lastResult"));
+    this.lastResult = Tensor.fromJson(json.get("lastResult"));
     this.minBatchCount = json.get("minBatchCount").getAsInt();
   }
   
@@ -73,7 +73,7 @@ public class AvgMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    if (null != lastResult) json.add("lastResult", lastResult.getJson());
+    if (null != lastResult) json.add("lastResult", lastResult.toJson());
     json.addProperty("minBatchCount", minBatchCount);
     return json;
   }

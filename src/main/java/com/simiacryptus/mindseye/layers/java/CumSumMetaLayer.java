@@ -70,7 +70,7 @@ public class CumSumMetaLayer extends NNLayer implements CumSum {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    if (null != accumulation) json.add("state", accumulation.getJson());
+    if (null != accumulation) json.add("state", accumulation.toJson());
     return json;
   }
   
