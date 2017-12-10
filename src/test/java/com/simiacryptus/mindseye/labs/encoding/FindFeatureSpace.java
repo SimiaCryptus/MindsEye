@@ -22,6 +22,8 @@ package com.simiacryptus.mindseye.labs.encoding;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.io.NotebookOutput;
 
+import java.util.stream.Stream;
+
 /**
  * The type Find feature space.
  */
@@ -30,10 +32,6 @@ public abstract class FindFeatureSpace {
    * The Log.
    */
   protected final NotebookOutput log;
-  /**
-   * The Features.
-   */
-  protected final Tensor[][] features;
   /**
    * The Input bands.
    */
@@ -52,12 +50,10 @@ public abstract class FindFeatureSpace {
    *
    * @param log        the log
    * @param inputBands the input bands
-   * @param features   the features
    */
-  public FindFeatureSpace(NotebookOutput log, int inputBands, Tensor[][] features) {
+  public FindFeatureSpace(NotebookOutput log, int inputBands) {
     this.log = log;
     this.inputBands = inputBands;
-    this.features = features;
   }
   
   /**
@@ -85,4 +81,8 @@ public abstract class FindFeatureSpace {
    */
   public abstract FindFeatureSpace invoke();
   
+  /**
+   * The Features.
+   */
+  public abstract Stream<Tensor[]> getFeatures();
 }

@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.labs.matrix;
 
+import com.simiacryptus.mindseye.opt.ValidatingTrainer;
+import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.test.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -38,6 +40,23 @@ public abstract class OptimizerComparison {
   
   
   /**
+   * The constant quadratic_quasi_newton.
+   */
+  public static OptimizationStrategy quadratic_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
+    log.p("Optimized via the Quadratic Quasi-Newton method:");
+    return log.code(() -> {
+      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
+        .setMonitor(monitor);
+      trainer.getRegimen().get(0)
+        .setOrientation(new com.simiacryptus.mindseye.opt.orient.QQN())
+        .setLineSearchFactory(name -> new QuadraticSearch()
+          .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
+          .setRelativeTolerance(2e-1));
+      return trainer;
+    });
+  };
+  
+  /**
    * The type Compare qqn.
    */
   public static class CompareQQN extends OptimizerComparison {
@@ -53,9 +72,9 @@ public abstract class OptimizerComparison {
     public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
       log.h1("QQN-LBFGS Comparison");
       log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(MnistTests.limited_memory_bfgs));
+      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(TextbookOptimizers.limited_memory_bfgs));
       log.h2("QQN");
-      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(MnistTests.quadratic_quasi_newton));
+      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton));
       log.h2("Comparison");
       log.code(()->{
         return TestUtil.compare(lbfgs, qqn);
@@ -83,15 +102,15 @@ public abstract class OptimizerComparison {
     public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
       log.h1("Textbook Optimizer Comparison");
       log.h2("GD");
-      ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(MnistTests.simple_gradient_descent));
+      ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(TextbookOptimizers.simple_gradient_descent));
       log.h2("SGD");
-      ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(MnistTests.stochastic_gradient_descent));
+      ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent));
       log.h2("CGD");
-      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(MnistTests.stochastic_gradient_descent));
+      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.stochastic_gradient_descent));
       log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(MnistTests.limited_memory_bfgs));
+      ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs));
       log.h2("OWL-QN");
-      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(MnistTests.limited_memory_bfgs));
+      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.limited_memory_bfgs));
       log.h2("Comparison");
       log.code(()->{
         return TestUtil.compare(gd, sgd, cgd, lbfgs, owlqn);

@@ -32,7 +32,9 @@ import com.simiacryptus.util.io.NotebookOutput;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.stream.Stream;
 
 /**
  * The type Image encoding nn run.
@@ -97,9 +99,13 @@ public class ImageEncodingNNTest extends ImageDecompositionLab {
     }
   }
   
-  @Override
   protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
-    return new FindNNFeatures(log, inputBands, features, spaceTrainingMinutes).invoke();
+    return new FindNNFeatures(log, inputBands, spaceTrainingMinutes){
+      @Override
+      public Stream<Tensor[]> getFeatures() {
+        return Arrays.stream(features);
+      }
+    }.invoke();
   }
   
   @Override

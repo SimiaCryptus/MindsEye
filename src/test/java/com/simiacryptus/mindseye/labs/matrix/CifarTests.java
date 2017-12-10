@@ -26,13 +26,6 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.opt.ValidatingTrainer;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
-import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
-import com.simiacryptus.mindseye.opt.orient.GradientDescent;
-import com.simiacryptus.mindseye.opt.orient.MomentumStrategy;
-import com.simiacryptus.mindseye.opt.orient.OwlQn;
 import com.simiacryptus.mindseye.test.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -79,102 +72,7 @@ public class CifarTests {
       return network;
     });
   };
-  /**
-   * The constant simple_gradient_descent.
-   */
-  public static OptimizationStrategy simple_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Stochastic Gradient Descent method:");
-    return log.code(() -> {
-      double rate = 0.05;
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMaxEpochIterations(100)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> new StaticLearningRate().setRate(rate));
-      return trainer;
-    });
-  };
-  /**
-   * The constant stochastic_gradient_descent.
-   */
-  public static OptimizationStrategy stochastic_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Stochastic Gradient Descent method with momentum and adaptve learning rate:");
-    return log.code(() -> {
-      double carryOver = 0.5;
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMaxEpochIterations(100)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new MomentumStrategy(new GradientDescent()).setCarryOver(carryOver))
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch());
-      return trainer;
-    });
-  };
-  /**
-   * The constant conjugate_gradient_descent.
-   */
-  public static OptimizationStrategy conjugate_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Conjugate Gradient Descent method:");
-    return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-5));
-      return trainer;
-    });
-  };
-  /**
-   * The constant limited_memory_bfgs.
-   */
-  public static OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Limited-Memory BFGS method:");
-    return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new com.simiacryptus.mindseye.opt.orient.LBFGS())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch()
-          .setAlpha(name.contains("LBFGS") ? 1.0 : 1e-6));
-      return trainer;
-    });
-  };
-  /**
-   * The constant orthantwise_quasi_newton.
-   */
-  public static OptimizationStrategy orthantwise_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Orthantwise Quasi-Newton search method:");
-    return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new OwlQn())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch()
-          .setAlpha(name.contains("OWL") ? 1.0 : 1e-6));
-      return trainer;
-    });
-  };
-  /**
-   * The constant quadratic_quasi_newton.
-   */
-  public static OptimizationStrategy quadratic_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Quadratic Quasi-Newton method:");
-    return log.code(() -> {
-      ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMonitor(monitor);
-      trainer.getRegimen().get(0)
-        .setOrientation(new com.simiacryptus.mindseye.opt.orient.QQN())
-        .setLineSearchFactory(name -> new QuadraticSearch()
-          .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
-          .setRelativeTolerance(2e-1));
-      return trainer;
-    });
-  };
+  
   /**
    * The constant rev_linear_1.
    */
@@ -214,7 +112,7 @@ public class CifarTests {
      * Instantiates a new Gd.
      */
     public GD() {
-      super(CifarTests.simple_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
+      super(TextbookOptimizers.simple_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
     }
     
     @Override
@@ -231,7 +129,7 @@ public class CifarTests {
      * Instantiates a new Sgd.
      */
     public SGD() {
-      super(CifarTests.stochastic_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
+      super(TextbookOptimizers.stochastic_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
     }
     
     @Override
@@ -248,7 +146,7 @@ public class CifarTests {
      * Instantiates a new Cj gd.
      */
     public CjGD() {
-      super(CifarTests.conjugate_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
+      super(TextbookOptimizers.conjugate_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
     }
     
     @Override
@@ -265,7 +163,7 @@ public class CifarTests {
      * Instantiates a new Lbfgs.
      */
     public LBFGS() {
-      super(CifarTests.limited_memory_bfgs, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
+      super(TextbookOptimizers.limited_memory_bfgs, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
     }
     
     @Override
@@ -282,7 +180,7 @@ public class CifarTests {
      * Instantiates a new Owl qn.
      */
     public OWL_QN() {
-      super(CifarTests.orthantwise_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
+      super(TextbookOptimizers.orthantwise_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
     }
     
     @Override
@@ -299,7 +197,7 @@ public class CifarTests {
      * Instantiates a new Qqn.
      */
     public QQN() {
-      super(CifarTests.quadratic_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
+      super(OptimizerComparison.quadratic_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
     }
     
     @Override

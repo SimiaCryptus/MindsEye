@@ -40,11 +40,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The type Find nn features.
  */
-public class FindNNFeatures extends FindFeatureSpace {
+public abstract class FindNNFeatures extends FindFeatureSpace {
   
   /**
    * The Space training minutes.
@@ -56,11 +57,10 @@ public class FindNNFeatures extends FindFeatureSpace {
    *
    * @param log                  the log
    * @param inputBands           the input bands
-   * @param features             the features
    * @param spaceTrainingMinutes the space training minutes
    */
-  public FindNNFeatures(NotebookOutput log, int inputBands, Tensor[][] features, int spaceTrainingMinutes) {
-    super(log, inputBands, features);
+  public FindNNFeatures(NotebookOutput log, int inputBands, int spaceTrainingMinutes) {
+    super(log, inputBands);
     this.spaceTrainingMinutes = spaceTrainingMinutes;
   }
   
@@ -68,6 +68,8 @@ public class FindNNFeatures extends FindFeatureSpace {
   public FindFeatureSpace invoke() {
     ArrayList<Step> history = new ArrayList<>();
     TrainingMonitor monitor = TestUtil.getMonitor(history);
+    Stream<Tensor[]> stream = getFeatures();
+    Tensor[][] features = stream.toArray(i->new Tensor[i][]);
     int[] featureDimensions = features[0][1].getDimensions();
     int[] categoryDimensions = features[0][0].getDimensions();
     FullyConnectedLayer decodeMatrix = (FullyConnectedLayer) new FullyConnectedLayer(new int[]{inputBands}, featureDimensions).setWeights(() -> 0.001 * (FastRandom.random() - 0.5))

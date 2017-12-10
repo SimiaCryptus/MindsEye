@@ -364,23 +364,11 @@ class TestUtil {
    * @param radius  the radius
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius) {
-    return convolutionFeatures(tensors, radius, Math.max(3, radius));
-  }
-  
-  /**
-   * Convolution features tensor [ ] [ ].
-   *
-   * @param tensors the tensors
-   * @param radius  the radius
-   * @param padding the padding
-   * @return the tensor [ ] [ ]
-   */
-  public static Tensor[][] convolutionFeatures(Stream<Tensor[]> tensors, int radius, int padding) {
+  public static Stream<Tensor[]> convolutionFeatures(Stream<Tensor[]> tensors, int radius) {
     int column = 1;
     return tensors.parallel().flatMap(image -> {
-      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).filter(x -> 1 == radius || 0 == x % padding).mapToObj(x -> x).flatMap(x -> {
-        return IntStream.range(0, image[column].getDimensions()[column] - (radius - 1)).filter(y -> 1 == radius || 0 == y % padding).mapToObj(y -> {
+      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).flatMap(x -> {
+        return IntStream.range(0, image[column].getDimensions()[column] - (radius - 1)).mapToObj(y -> {
           Tensor region = new Tensor(radius, radius, image[column].getDimensions()[2]);
           final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> {
             return image[column].get(c.coords[0] + x, c.coords[column] + y, c.coords[2]);
@@ -388,7 +376,7 @@ class TestUtil {
           return new Tensor[]{image[0], region.mapCoords(f)};
         });
       });
-    }).toArray(i -> new Tensor[i][]);
+    });
   }
   
   /**

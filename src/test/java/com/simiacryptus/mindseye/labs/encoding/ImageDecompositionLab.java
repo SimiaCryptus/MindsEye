@@ -56,6 +56,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -115,8 +116,8 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    int pretrainMinutes = 30;
-    int timeoutMinutes = 45;
+    int pretrainMinutes = 1;
+    int timeoutMinutes = 1;
     int size = 256;
     
     Tensor[][] trainingImages = TestUtil.getImages(log, size, 30, "kangaroo");
@@ -371,7 +372,7 @@ public class ImageDecompositionLab {
     public InitializationStep invoke() {
       dataPipeline.add(model);
       log.code(() -> {
-        initialize(log, TestUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
+        initialize(log, ()->TestUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
       });
       
       {
@@ -540,10 +541,11 @@ public class ImageDecompositionLab {
      */
     public AddLayerStep invoke() {
       dataPipeline.add(innerModel);
-      Stream<Tensor[]> inputColumn = Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]});
-      Tensor[][] convolutionFeatures = TestUtil.convolutionFeatures(TestUtil.downExplodeTensors(inputColumn, scale), radius);
       log.code(() -> {
-        initialize(log, convolutionFeatures, convolutionLayer, biasLayer);
+        initialize(log, () -> {
+          Stream<Tensor[]> tensors = TestUtil.downExplodeTensors(Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]}), scale);
+          return TestUtil.convolutionFeatures(tensors, radius);
+        }, convolutionLayer, biasLayer);
       });
       final boolean[] mask = getTrainingMask();
       
@@ -631,8 +633,8 @@ public class ImageDecompositionLab {
    * @param convolutionLayer the convolution layer
    * @param biasLayer        the bias layer
    */
-  protected void initialize(NotebookOutput log, Tensor[][] features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
-    Tensor prototype = features[0][1];
+  protected void initialize(NotebookOutput log, Supplier<Stream<Tensor[]>> features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
+    Tensor prototype = features.get().findAny().get()[1];
     int[] dimensions = prototype.getDimensions();
     int[] filterDimensions = convolutionLayer.kernel.getDimensions();
     assert filterDimensions[0] == dimensions[0];
@@ -640,20 +642,13 @@ public class ImageDecompositionLab {
     int outputBands = dimensions[2];
     assert outputBands == biasLayer.getBias().length;
     int inputBands = filterDimensions[2] / outputBands;
-    FindFeatureSpace findFeatureSpace = findFeatureSpace(log, features, inputBands);
+    FindFeatureSpace findFeatureSpace = new FindPCAFeatures(log, inputBands) {
+      @Override
+      public Stream<Tensor[]> getFeatures() {
+        return features.get();
+      }
+    }.invoke();
     TestUtil.setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
-  }
-  
-  /**
-   * Find feature space find feature space.
-   *
-   * @param log        the log
-   * @param features   the features
-   * @param inputBands the input bands
-   * @return the find feature space
-   */
-  protected FindFeatureSpace findFeatureSpace(NotebookOutput log, Tensor[][] features, int inputBands) {
-    return new FindPCAFeatures(log, inputBands, features).invoke();
   }
   
   /**
