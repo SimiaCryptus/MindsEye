@@ -1,7 +1,7 @@
 # StaticScalarLossLayer
 ## StaticScalarLossLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:121](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,20 +16,20 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer",
-      "id": "a864e734-2f23-44db-97c1-504000002ca1",
+      "id": "e2a3bda5-e7e7-4c05-aeb3-4ede00003670",
       "isFrozen": false,
-      "name": "StaticScalarLossLayer/a864e734-2f23-44db-97c1-504000002ca1"
+      "name": "StaticScalarLossLayer/e2a3bda5-e7e7-4c05-aeb3-4ede00003670"
     }
 ```
 
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:159](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L159) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
-      Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
       eval.getOutput().prettyPrint());
 ```
 
@@ -38,83 +38,57 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.912 ]]
+    [[ -1.204 ]]
     --------------------
     Output: 
-    [ 0.912 ]
+    [ 1.204 ]
 ```
 
 
 
-### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+### Differential Validation
+Code from [LayerTestBase.java:186](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L186) executed in 0.00 seconds: 
 ```java
-    BatchingTester batchingTester = getBatchingTester();
-    return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
+    return getDerivativeTester().test(layer, inputPrototype);
+```
+Logging: 
+```
+    Inputs: [ -1.204 ]
+    Inputs Statistics: {meanExponent=0.08062648692180573, negative=1, min=-1.204, max=-1.204, mean=-1.204, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Output: [ 1.204 ]
+    Outputs Statistics: {meanExponent=0.08062648692180573, negative=0, min=1.204, max=1.204, mean=1.204, count=1.0, positive=1, stdDev=0.0, zeros=0}
+    Feedback for input 0
+    Inputs Values: [ -1.204 ]
+    Value Statistics: {meanExponent=0.08062648692180573, negative=1, min=-1.204, max=-1.204, mean=-1.204, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Implemented Feedback: [ [ -1.0 ] ]
+    Implemented Statistics: {meanExponent=0.0, negative=1, min=-1.0, max=-1.0, mean=-1.0, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Measured Feedback: [ [ -0.9999999999998899 ] ]
+    Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=1, min=-0.9999999999998899, max=-0.9999999999998899, mean=-0.9999999999998899, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Feedback Error: [ [ 1.1013412404281553E-13 ] ]
+    Error Statistics: {meanExponent=-12.958078098036825, negative=0, min=1.1013412404281553E-13, max=1.1013412404281553E-13, mean=1.1013412404281553E-13, count=1.0, positive=1, stdDev=0.0, zeros=0}
+    Finite-Difference Derivative Accuracy:
+    absoluteTol: 1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (1#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)
+    
 ```
 
 Returns: 
 
 ```
-    java.lang.RuntimeException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:83)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:138)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:68)
-    	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
-    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-    	at java.lang.reflect.Method.invoke(Method.java:498)
-    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-    	at org.junit.runners.Suite.runChild(Suite.java:128)
-    	at org.junit.runners.Suite.runChild(Suite.java:27)
-    	at org.jun
+    ToleranceStatistics{absoluteTol=1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (1#), relativeTol=5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)}
 ```
-...[skipping 616 bytes](etc/1.txt)...
+
+
+
+### Performance
+Code from [LayerTestBase.java:192](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L192) executed in 0.00 seconds: 
+```java
+    getPerformanceTester().test(layer, inputPrototype);
 ```
-    nerWithArgs(IdeaTestRunner.java:47)
-    	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
-    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-    Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$7(GpuController.java:209)
-    	at com.simiacryptus.util.lang.StaticResourcePool.run(StaticResourcePool.java:66)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.call(GpuController.java:205)
-    	at com.simiacryptus.mindseye.layers.SimpleListEval.call(SimpleListEval.java:86)
-    	at com.simiacryptus.mindseye.layers.SimpleListEval.run(SimpleListEval.java:112)
-    	at com.simiacryptus.mindseye.layers.BatchingTester.test(BatchingTester.java:69)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 35 more
-    Caused by: java.util.concurrent.ExecutionException: java.lang.IllegalArgumentException
-    	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
-    	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$call$7(GpuController.java:207)
-    	... 43 more
-    Caused by: java.lang.IllegalArgumentException
-    	at com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer.eval(StaticScalarLossLayer.java:73)
-    	at com.simiacryptus.mindseye.layers.SimpleListEval.lambda$call$6(SimpleListEval.java:87)
-    	at com.simiacryptus.mindseye.layers.cudnn.GpuController.lambda$null$6(GpuController.java:207)
-    	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
-    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-    	at java.lang.Thread.run(Thread.java:748)
+Logging: 
+```
+    Evaluation performance: 0.1865 +- 0.0913 [0.1453 - 0.8549]
+    Learning performance: 0.0100 +- 0.0029 [0.0057 - 0.0314]
     
 ```
-
-
 

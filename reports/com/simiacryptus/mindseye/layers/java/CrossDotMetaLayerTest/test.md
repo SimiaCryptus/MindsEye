@@ -1,7 +1,7 @@
 # CrossDotMetaLayer
 ## CrossDotMetaLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:83](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L83) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:121](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,20 +16,20 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.CrossDotMetaLayer",
-      "id": "a864e734-2f23-44db-97c1-504000002b9d",
+      "id": "e2a3bda5-e7e7-4c05-aeb3-4ede00001e32",
       "isFrozen": false,
-      "name": "CrossDotMetaLayer/a864e734-2f23-44db-97c1-504000002b9d"
+      "name": "CrossDotMetaLayer/e2a3bda5-e7e7-4c05-aeb3-4ede00001e32"
     }
 ```
 
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:120](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L120) executed in 0.00 seconds: 
+Code from [LayerTestBase.java:159](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L159) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
-      Arrays.stream(inputPrototype).map(t->t.prettyPrint()).reduce((a,b)->a+",\n"+b).get(),
+      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
       eval.getOutput().prettyPrint());
 ```
 
@@ -38,79 +38,60 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 1.468, -1.364, 1.392 ]]
+    [[ 1.372, -1.456, 1.304 ]]
     --------------------
     Output: 
-    [ [ 0.0, -2.002352, 2.043456 ], [ -2.002352, 0.0, -1.898688 ], [ 2.043456, -1.898688, 0.0 ] ]
+    [ [ 0.0, -1.997632, 1.7890880000000002 ], [ -1.997632, 0.0, -1.898624 ], [ 1.7890880000000002, -1.898624, 0.0 ] ]
 ```
 
 
 
-### Batch Execution
-Code from [LayerTestBase.java:138](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L138) executed in 0.00 seconds: 
+### Differential Validation
+Code from [LayerTestBase.java:186](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L186) executed in 0.00 seconds: 
 ```java
-    BatchingTester batchingTester = getBatchingTester();
-    return batchingTester==null?null:batchingTester.test(layer, inputPrototype);
+    return getDerivativeTester().test(layer, inputPrototype);
+```
+Logging: 
+```
+    Inputs: [ 1.372, -1.456, 1.304 ]
+    Inputs Statistics: {meanExponent=0.13859769258121757, negative=1, min=1.304, max=1.304, mean=0.40666666666666673, count=3.0, positive=2, stdDev=1.3173967596066958, zeros=0}
+    Output: [ [ 0.0, -1.997632, 1.7890880000000002 ], [ -1.997632, 0.0, -1.898624 ], [ 1.7890880000000002, -1.898624, 0.0 ] ]
+    Outputs Statistics: {meanExponent=0.27719538516243514, negative=4, min=0.0, max=0.0, mean=-0.4682595555555555, count=9.0, positive=2, stdDev=1.4764402400807086, zeros=3}
+    Feedback for input 0
+    Inputs Values: [ 1.372, -1.456, 1.304 ]
+    Value Statistics: {meanExponent=0.13859769258121757, negative=1, min=1.304, max=1.304, mean=0.40666666666666673, count=3.0, positive=2, stdDev=1.3173967596066958, zeros=0}
+    Implemented Feedback: [ [ 0.0, -1.456, 1.304, -1.456, 0.0, 0.0, 1.304, 0.0, 0.0 ], [ 0.0, 1.372, 0.0, 1.372, 0.0, 1.304, 0.0, 1.304, 0.0 ], [ 0.0, 0.0, 1.372, 0.0, 0.0, -1.456, 1.372, -1.456, 0.0 ] ]
+    Implemented Statistics: {meanExponent=0.13859769258121757, negative=4, min=0.0, max=0
+```
+...[skipping 348 bytes](etc/51.txt)...
+```
+    719999999994847, 0.0, 0.0, -1.4559999999996798, 1.3719999999994847, -1.4559999999996798, 0.0 ] ]
+    Measured Statistics: {meanExponent=0.1385976925811036, negative=4, min=0.0, max=0.0, mean=0.18074074074067478, count=27.0, positive=8, stdDev=0.9012117189727649, zeros=15}
+    Feedback Error: [ [ 0.0, 3.2018832030189515E-13, -2.502442697505103E-13, 3.2018832030189515E-13, 0.0, 0.0, -2.502442697505103E-13, 0.0, 0.0 ], [ 0.0, -5.153655280309977E-13, 0.0, -5.153655280309977E-13, 0.0, -2.502442697505103E-13, 0.0, -2.502442697505103E-13, 0.0 ], [ 0.0, 0.0, -5.153655280309977E-13, 0.0, 0.0, 3.2018832030189515E-13, -5.153655280309977E-13, 3.2018832030189515E-13, 0.0 ] ]
+    Error Statistics: {meanExponent=-12.461371668898545, negative=8, min=0.0, max=0.0, mean=-6.598836703401671E-14, count=27.0, positive=4, stdDev=2.43843224237039E-13, zeros=15}
+    Finite-Difference Derivative Accuracy:
+    absoluteTol: 1.6086e-13 +- 1.9478e-13 [0.0000e+00 - 5.1537e-13] (27#)
+    relativeTol: 1.3124e-13 +- 4.0411e-14 [9.5953e-14 - 1.8782e-13] (12#)
+    
 ```
 
 Returns: 
 
 ```
-    java.lang.RuntimeException: java.lang.ArrayIndexOutOfBoundsException: 1
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:61)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:83)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:134)
-    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:138)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.java:68)
-    	at sun.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
-    	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-    	at java.lang.reflect.Method.invoke(Method.java:498)
-    	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-    	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-    	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-    	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-    	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-    	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-    	at org.junit.runners.Suite.runChild(Suite.java:128)
-    	at org.junit.runners.Suite.runChild(Suite.java:27)
-    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-    	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
-    	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
-    	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
-    	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
-    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
-    Caused by: java.lang.ArrayIndexOutOfBoundsException: 1
-    	at com.simiacryptus.mindseye.lang.TensorArray.get(TensorArray.java:42)
-    	at com.simiacryptus.mindseye.layers.BatchingTester.lambda$test$8(BatchingTester.java:77)
-    	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
-    	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
-    	at java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:693)
-    	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481)
-    	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:471)
-    	at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
-    	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
-    	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
-    	at com.simiacryptus.mindseye.layers.BatchingTester.test(BatchingTester.java:79)
-    	at com.simiacryptus.mindseye.layers.LayerTestBase.lambda$test$15(LayerTestBase.java:140)
-    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:136)
-    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 35 more
-    
+    ToleranceStatistics{absoluteTol=1.6086e-13 +- 1.9478e-13 [0.0000e+00 - 5.1537e-13] (27#), relativeTol=1.3124e-13 +- 4.0411e-14 [9.5953e-14 - 1.8782e-13] (12#)}
 ```
 
 
+
+### Performance
+Code from [LayerTestBase.java:192](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L192) executed in 0.00 seconds: 
+```java
+    getPerformanceTester().test(layer, inputPrototype);
+```
+Logging: 
+```
+    Evaluation performance: 0.1377 +- 0.0556 [0.0997 - 0.5899]
+    Learning performance: 0.0040 +- 0.0027 [0.0000 - 0.0200]
+    
+```
 
