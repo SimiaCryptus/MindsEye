@@ -94,6 +94,14 @@ public enum Precision {
     return doubles;
   }
   
+  
+  public Pointer getPointer(float... data) {
+    return getPointer(this, data);
+  }
+  
+  public Pointer getPointer(double... data) {
+    return getPointer(this, data);
+  }
   /**
    * Gets pointer.
    *

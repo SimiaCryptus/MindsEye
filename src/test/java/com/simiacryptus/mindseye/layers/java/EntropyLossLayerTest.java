@@ -20,9 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.DerivativeTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.DerivativeTester;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.Util;
 
 /**

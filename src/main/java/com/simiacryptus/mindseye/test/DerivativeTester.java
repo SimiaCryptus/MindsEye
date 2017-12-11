@@ -17,14 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.KryoUtil;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -266,11 +265,13 @@ public class DerivativeTester {
       copyInput[inputIndex] = new NNResult(inputTensor) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList data) {
-          Assert.assertEquals(1, data.length());
-          assert data.length() == 1;
+          if ((1 != data.length())) throw new AssertionError();
+          if (data.length() != 1) throw new AssertionError();
           final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.dim());
           IntStream.range(0, data.length()).forEach(dataIndex -> {
-            Assert.assertArrayEquals(inputTensor.getDimensions(), data.get(dataIndex).getDimensions());
+            if (!Arrays.equals(inputTensor.getDimensions(), data.get(dataIndex).getDimensions())) {
+              throw new AssertionError();
+            }
             for (int i = 0; i < inputDims; i++) {
               gradientBuffer.set(new int[]{i, j_}, data.get(dataIndex).getData()[i]);
             }

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.SimpleEval;
+import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.util.io.NotebookOutput;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;

@@ -41,6 +41,7 @@ public class SampledArrayTrainable extends CachedTrainable<ArrayTrainable> imple
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private int trainingSize;
   private long seed = Util.R.get().nextInt();
+  private int minSamples = 0;
   
   /**
    * Instantiates a new Stochastic array trainable.
@@ -106,7 +107,7 @@ public class SampledArrayTrainable extends CachedTrainable<ArrayTrainable> imple
   
   @Override
   public int getTrainingSize() {
-    return this.trainingSize;
+    return Math.max(minSamples, Math.min(this.trainingData.size(), this.trainingSize));
   }
   
   @Override
@@ -151,4 +152,12 @@ public class SampledArrayTrainable extends CachedTrainable<ArrayTrainable> imple
     return new SampledCachedTrainable<>(this);
   }
   
+  public int getMinSamples() {
+    return minSamples;
+  }
+  
+  public SampledArrayTrainable setMinSamples(int minSamples) {
+    this.minSamples = minSamples;
+    return this;
+  }
 }

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import org.junit.Ignore;
 
 /**
  * The type Cross dot meta layer test.

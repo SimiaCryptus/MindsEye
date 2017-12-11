@@ -241,8 +241,8 @@ class TestUtil {
     String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       double fPos = componentStats.get(i).getMax() / 0xFF;
       double fNeg = componentStats.get(i).getMin() / 0xFF;
-      return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fNeg + "\" k4=\""+ -fNeg+"\"/>\n" +
-        "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fPos + "\" k4=\"" + 0.0 + "\"/>\n";
+      return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fNeg + "\" k4=\""+ fNeg+"\"/>\n" +
+        "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fPos + "\" k4=\"" + 0.0 + "\"/>\n";
     }).reduce((a, b) -> a + "\n" + b).get();
     
     int red = (int) baseline.get(0, 0, 0);
@@ -620,58 +620,4 @@ class TestUtil {
     }
   }
   
-  /**
-   * Remove performance wrappers.
-   *
-   * @param log     the log
-   * @param network the network
-   */
-  public static void removePerformanceWrappers(NotebookOutput log, DAGNetwork network) {
-    log.p("Per-layer Performance Metrics:");
-    log.code(() -> {
-      Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
-      network.visitNodes(node -> {
-        if ((node.getLayer() instanceof MonitoringWrapperLayer)) {
-          MonitoringWrapperLayer layer = node.getLayer();
-          metrics.put(layer.getInner(), layer);
-        }
-      });
-      System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-        PercentileStatistics performance = e.getValue().getForwardPerformance();
-        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
-      }).reduce((a, b) -> a + "\n\t" + b));
-      System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-        PercentileStatistics performance = e.getValue().getBackwardPerformance();
-        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
-      }).reduce((a, b) -> a + "\n\t" + b));
-    });
-    log.p("Removing performance wrappers");
-    log.code(() -> {
-      network.visitNodes(node -> {
-        if (node.getLayer() instanceof MonitoringWrapperLayer) {
-          node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
-        }
-      });
-    });
-  }
-  
-  /**
-   * Add performance wrappers.
-   *
-   * @param log     the log
-   * @param network the network
-   */
-  public static void addPerformanceWrappers(NotebookOutput log, DAGNetwork network) {
-    log.p("Adding performance wrappers");
-    log.code(() -> {
-      network.visitNodes(node -> {
-        if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-          node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
-        }
-        else {
-          ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);
-        }
-      });
-    });
-  }
 }

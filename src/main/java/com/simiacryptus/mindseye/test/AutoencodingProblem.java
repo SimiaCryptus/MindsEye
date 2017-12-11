@@ -34,6 +34,8 @@ import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,6 +56,8 @@ public class AutoencodingProblem implements Problem {
   private final RevNetworkFactory revFactory;
   private final List<StepRecord> history = new ArrayList<>();
   private final ImageProblemData data;
+  private final int features;
+  private final double dropout;
   private int timeoutMinutes = 1;
   
   /**
@@ -63,18 +67,20 @@ public class AutoencodingProblem implements Problem {
    * @param optimizer  the optimizer
    * @param revFactory the rev factory
    * @param data       the data
+   * @param features
+   * @param dropout
    */
-  public AutoencodingProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, RevNetworkFactory revFactory, ImageProblemData data) {
+  public AutoencodingProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, RevNetworkFactory revFactory, ImageProblemData data, int features, double dropout) {
     this.fwdFactory = fwdFactory;
     this.optimizer = optimizer;
     this.revFactory = revFactory;
     this.data = data;
+    this.features = features;
+    this.dropout = dropout;
   }
   
   public AutoencodingProblem run(NotebookOutput log) {
-    MonitoredObject monitoringRoot = new MonitoredObject();
     
-    int features = 100;
     DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
     DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
     
@@ -84,12 +90,26 @@ public class AutoencodingProblem implements Problem {
     
     PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
     supervisedNetwork.add(fwdNetwork);
-    DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(0.8);
+    DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
     supervisedNetwork.add(dropoutNoiseLayer);
     supervisedNetwork.add(revNetwork);
     supervisedNetwork.add(new MeanSqLossLayer(),
       supervisedNetwork.getHead(),
       supervisedNetwork.getInput(0));
+
+    log.h3("Network Diagrams");
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
     
     TrainingMonitor monitor = new TrainingMonitor() {
       TrainingMonitor inner = TestUtil.getMonitor(history);
@@ -107,9 +127,12 @@ public class AutoencodingProblem implements Problem {
     };
     
     Tensor[][] trainingData = getTrainingData(log);
-    TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
+
+    //MonitoredObject monitoringRoot = new MonitoredObject();
+    //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
     
     log.h3("Training");
+    TestUtil.instrumentPerformance(log, supervisedNetwork);
     ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
       new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
@@ -124,6 +147,7 @@ public class AutoencodingProblem implements Problem {
         return TestUtil.plotTime(history);
       });
     }
+    TestUtil.extractPerformance(log, supervisedNetwork);
     
     {
       String modelName = "encoder_model" + modelNo++ + ".json";
@@ -133,10 +157,10 @@ public class AutoencodingProblem implements Problem {
     String modelName = "decoder_model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
   
-    log.h3("Metrics");
-    log.code(() -> {
-      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
-    });
+//    log.h3("Metrics");
+//    log.code(() -> {
+//      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
+//    });
     
     log.h3("Validation");
     

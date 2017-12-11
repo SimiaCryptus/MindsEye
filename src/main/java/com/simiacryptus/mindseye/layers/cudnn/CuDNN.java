@@ -638,9 +638,51 @@ public class CuDNN {
     Pointer C) {
     int result = JCudnn.cudnnAddTensor(handle, alpha, aDesc, A, beta, cDesc, C);
     log("cudnnAddTensor", result, handle, alpha, aDesc, A, beta, cDesc, C);
+    handle(result);
+    return result;
+  }
+  public static int cudnnReduceTensor(
+    cudnnHandle handle,
+    cudnnReduceTensorDescriptor reduceTensorDesc,
+    Pointer indices,
+    long indicesSizeInBytes,
+    Pointer workspace,
+    long workspaceSizeInBytes,
+    Pointer alpha,
+    cudnnTensorDescriptor aDesc,
+    Pointer A,
+    Pointer beta,
+    cudnnTensorDescriptor cDesc,
+    Pointer C)
+  {
+    int result = JCudnn.cudnnReduceTensor(handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
+    log("cudnnReduceTensor", result, handle, reduceTensorDesc, indices, indicesSizeInBytes, workspace, workspaceSizeInBytes, alpha, aDesc, A, beta, cDesc, C);
+    handle(result);
     return result;
   }
   
+  public static int cudnnCreateReduceTensorDescriptor(
+    cudnnReduceTensorDescriptor reduceTensorDesc)
+  {
+    int result = JCudnn.cudnnCreateReduceTensorDescriptor(reduceTensorDesc);
+    log("cudnnCreateReduceTensorDescriptor", result, reduceTensorDesc);
+    handle(result);
+    return result;
+  }
+  
+  public static int cudnnSetReduceTensorDescriptor(
+    cudnnReduceTensorDescriptor reduceTensorDesc,
+    int reduceTensorOp,
+    int reduceTensorCompType,
+    int reduceTensorNanOpt,
+    int reduceTensorIndices,
+    int reduceTensorIndicesType)
+  {
+    int result = JCudnn.cudnnSetReduceTensorDescriptor(reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
+    log("cudnnSetReduceTensorDescriptor", result, reduceTensorDesc, reduceTensorOp, reduceTensorCompType, reduceTensorNanOpt, reduceTensorIndices, reduceTensorIndicesType);
+    handle(result);
+    return result;
+  }
   /**
    * Cudnn convolution backward bias int.
    *

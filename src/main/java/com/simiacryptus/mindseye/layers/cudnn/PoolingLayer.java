@@ -196,8 +196,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    *
    * @param windowX the window x
    */
-  public void setWindowX(int windowX) {
+  public PoolingLayer setWindowX(int windowX) {
     this.windowX = windowX;
+    return this;
   }
   
   /**
@@ -214,8 +215,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    *
    * @param windowY the window y
    */
-  public void setWindowY(int windowY) {
+  public PoolingLayer setWindowY(int windowY) {
     this.windowY = windowY;
+    return this;
   }
   
   /**
@@ -232,8 +234,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    *
    * @param paddingX the padding x
    */
-  public void setPaddingX(int paddingX) {
+  public PoolingLayer setPaddingX(int paddingX) {
     this.paddingX = paddingX;
+    return this;
   }
   
   /**
@@ -250,8 +253,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    *
    * @param paddingY the padding y
    */
-  public void setPaddingY(int paddingY) {
+  public PoolingLayer setPaddingY(int paddingY) {
     this.paddingY = paddingY;
+    return this;
   }
   
   /**
@@ -268,8 +272,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    *
    * @param strideX the stride x
    */
-  public void setStrideX(int strideX) {
+  public PoolingLayer setStrideX(int strideX) {
     this.strideX = strideX;
+    return this;
   }
   
   /**
@@ -286,8 +291,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    *
    * @param strideY the stride y
    */
-  public void setStrideY(int strideY) {
+  public PoolingLayer setStrideY(int strideY) {
     this.strideY = strideY;
+    return this;
   }
   
   public Precision getPrecision() {

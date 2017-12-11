@@ -23,9 +23,9 @@ import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.test.DerivativeTester;
 
 /**
- * The type Img band bias layer test.
+ * The type Product layer test.
  */
-public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
+public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   
   /**
    * The Precision.
@@ -33,46 +33,64 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Img band bias layer test.
+   * Instantiates a new Product layer test.
    *
    * @param precision the precision
    */
-  public ImgBandBiasLayerTest(Precision precision) {
+  public BinarySumLayerTest(Precision precision) {
     this.precision = precision;
   }
   
   @Override
   public NNLayer getLayer() {
-    return new ImgBandBiasLayer(2).setPrecision(precision);
+    return new BinarySumLayer().setPrecision(precision);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3, 3, 2}
+      {2,2,1}, {2,2,1}
     };
   }
   
   /**
    * The type Double.
    */
-  public static class Double extends ImgBandBiasLayerTest {
+  public static class Double_Add extends BinarySumLayerTest {
     /**
      * Instantiates a new Double.
      */
-    public Double() {
+    public Double_Add() {
       super(Precision.Double);
     }
   }
   
   /**
+   * The type Double.
+   */
+  public static class Double_Subtract extends BinarySumLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Double_Subtract() {
+      super(Precision.Double);
+    }
+    
+    @Override
+    public NNLayer getLayer() {
+      return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
+    }
+  
+  }
+  
+  /**
    * The type Float.
    */
-  public static class Float extends ImgBandBiasLayerTest {
+  public static class Float_Avg extends BinarySumLayerTest {
     /**
      * Instantiates a new Float.
      */
-    public Float() {
+    public Float_Avg() {
       super(Precision.Float);
     }
     
@@ -80,5 +98,29 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
     public DerivativeTester getDerivativeTester() {
       return new DerivativeTester(1e-2, 1e-3);
     }
+  
+    @Override
+    public NNLayer getLayer() {
+      return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
+    }
+  
+  }
+  
+  /**
+   * The type Float.
+   */
+  public static class Float_Add extends BinarySumLayerTest {
+    /**
+     * Instantiates a new Float.
+     */
+    public Float_Add() {
+      super(Precision.Float);
+    }
+    
+    @Override
+    public DerivativeTester getDerivativeTester() {
+      return new DerivativeTester(1e-2, 1e-3);
+    }
+    
   }
 }

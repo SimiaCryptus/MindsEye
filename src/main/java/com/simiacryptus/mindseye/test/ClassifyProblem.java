@@ -33,6 +33,8 @@ import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
 
 import java.io.IOException;
 import java.util.*;
@@ -71,13 +73,19 @@ public class ClassifyProblem implements Problem {
   
   
   public ClassifyProblem run(NotebookOutput log) {
-    MonitoredObject monitoringRoot = new MonitoredObject();
     TrainingMonitor monitor = TestUtil.getMonitor(history);
     Tensor[][] trainingData = getTrainingData(log);
+  
     DAGNetwork network = fwdFactory.imageToVector(log, categories);
-    SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-    TestUtil.addMonitoring(network, monitoringRoot);
+    log.h3("Network Diagram");
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(network))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+    
     log.h3("Training");
+    SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
+    TestUtil.instrumentPerformance(log, supervisedNetwork);
     ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
       new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
@@ -92,12 +100,9 @@ public class ClassifyProblem implements Problem {
         return TestUtil.plotTime(history);
       });
     }
+    TestUtil.extractPerformance(log, supervisedNetwork);
     String modelName = "classification_model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-    log.h3("Metrics");
-    log.code(() -> {
-      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
-    });
     
     log.h3("Validation");
     log.p("If we run our model against the entire validation dataset, we get this accuracy:");

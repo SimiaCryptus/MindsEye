@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.layers.DerivativeTester;
+import com.simiacryptus.mindseye.test.DerivativeTester;
 
 /**
  * The type Log activation layer test.

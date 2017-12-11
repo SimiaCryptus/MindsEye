@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.BatchingTester;
+import com.simiacryptus.mindseye.test.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.util.data.DoubleStatistics;
 

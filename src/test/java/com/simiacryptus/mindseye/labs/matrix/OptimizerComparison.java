@@ -38,6 +38,7 @@ import java.util.function.Function;
  */
 public abstract class OptimizerComparison {
   
+  private int timeoutMinutes = 1;
   
   /**
    * The constant quadratic_quasi_newton.
@@ -95,7 +96,7 @@ public abstract class OptimizerComparison {
      * Instantiates a new Compare textbook.
      */
     public CompareTextbook() {
-      super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new MnistProblemData());
+      super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
     }
     
     @Override
@@ -106,11 +107,11 @@ public abstract class OptimizerComparison {
       log.h2("SGD");
       ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent));
       log.h2("CGD");
-      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.stochastic_gradient_descent));
+      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.conjugate_gradient_descent));
       log.h2("L-BFGS");
       ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs));
       log.h2("OWL-QN");
-      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.limited_memory_bfgs));
+      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.orthantwise_quasi_newton));
       log.h2("Comparison");
       log.code(()->{
         return TestUtil.compare(gd, sgd, cgd, lbfgs, owlqn);
@@ -123,7 +124,6 @@ public abstract class OptimizerComparison {
   }
   
   
-  private int timeoutMinutes = 1;
   private final FwdNetworkFactory fwdFactory;
   private final RevNetworkFactory revFactory;
   private final ImageProblemData data;
@@ -169,8 +169,8 @@ public abstract class OptimizerComparison {
     try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
       if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
       compare(log, opt -> {
-        return new EncodingProblem(revFactory, opt, data)
-          .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
+        return new EncodingProblem(revFactory, opt, data, 10)
+          .setTimeoutMinutes(timeoutMinutes).setTrainingSize(5000).run(log).getHistory();
       });
     }
   }

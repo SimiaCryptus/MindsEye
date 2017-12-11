@@ -19,12 +19,18 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.util.io.NotebookOutput;
+import guru.nidi.graphviz.attribute.RankDir;
+import guru.nidi.graphviz.model.*;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
@@ -32,6 +38,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Image test util.
@@ -206,4 +214,95 @@ public class TestUtil {
     }
   }
   
+  /**
+   * Remove performance wrappers.
+   *
+   * @param log     the log
+   * @param network the network
+   */
+  public static void extractPerformance(NotebookOutput log, DAGNetwork network) {
+    log.p("Per-layer Performance Metrics:");
+    log.code(() -> {
+      Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
+      network.visitNodes(node -> {
+        if ((node.getLayer() instanceof MonitoringWrapperLayer)) {
+          MonitoringWrapperLayer layer = node.getLayer();
+          metrics.put(layer.getInner(), layer);
+        }
+      });
+      System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+        PercentileStatistics performance = e.getValue().getForwardPerformance();
+        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+      }).reduce((a, b) -> a + "\n\t" + b));
+      System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+        PercentileStatistics performance = e.getValue().getBackwardPerformance();
+        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+      }).reduce((a, b) -> a + "\n\t" + b));
+    });
+    log.p("Removing performance wrappers");
+    log.code(() -> {
+      network.visitNodes(node -> {
+        if (node.getLayer() instanceof MonitoringWrapperLayer) {
+          node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
+        }
+      });
+    });
+  }
+  
+  /**
+   * Add performance wrappers.
+   *
+   * @param log     the log
+   * @param network the network
+   */
+  public static void instrumentPerformance(NotebookOutput log, DAGNetwork network) {
+    log.p("Adding performance wrappers");
+    log.code(() -> {
+      network.visitNodes(node -> {
+        if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+          node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
+        }
+        else {
+          ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);
+        }
+      });
+    });
+  }
+  
+  /**
+   * To graph graph.
+   *
+   * @param network the network
+   * @return the graph
+   */
+  public static Graph toGraph(DAGNetwork network) {
+    List<DAGNode> nodes = network.getNodes();
+    Map<UUID, MutableNode> graphNodes = nodes.stream().collect(Collectors.toMap(node -> node.getId(), node -> {
+      String name;
+      NNLayer layer = node.getLayer();
+      if (null == layer) {
+        name = node.getId().toString();
+      }
+      else {
+        Class<? extends NNLayer> layerClass = layer.getClass();
+        name = layerClass.getSimpleName() + "\n" + layer.getId();
+      }
+      return Factory.mutNode(name);
+    }));
+    Stream<UUID[]> stream = nodes.stream().flatMap(to -> {
+      return Arrays.stream(to.getInputs()).map(from -> {
+        return new UUID[]{from.getId(), to.getId()};
+      });
+    });
+    Map<UUID, List<UUID>> idMap = stream.collect(Collectors.groupingBy(x -> x[0],
+      Collectors.mapping(x -> x[1], Collectors.toList())));
+    nodes.forEach(to -> {
+      graphNodes.get(to.getId()).addLink(
+        idMap.getOrDefault(to.getId(), Arrays.asList()).stream().map(from -> {
+          return Link.to(graphNodes.get(from));
+        }).<LinkTarget>toArray(i -> new LinkTarget[i]));
+    });
+    LinkSource[] nodeArray = graphNodes.values().stream().map(x -> (LinkSource) x).toArray(i -> new LinkSource[i]);
+    return Factory.graph().with(nodeArray).generalAttr().with(RankDir.TOP_TO_BOTTOM).directed();
+  }
 }

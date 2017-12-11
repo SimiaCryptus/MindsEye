@@ -33,6 +33,8 @@ import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.text.TableOutput;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,13 +50,14 @@ public class EncodingProblem implements Problem {
   
   private static int modelNo = 0;
   
-  private final int batchSize = 10000;
+  private int batchSize = 10000;
+  private int trainingSize = 15000;
   private final RevNetworkFactory revFactory;
   private final OptimizationStrategy optimizer;
   private final List<StepRecord> history = new ArrayList<>();
   private final ImageProblemData data;
+  private int features;
   private int timeoutMinutes = 1;
-  private int features = 10;
   
   /**
    * Instantiates a new Encoding problem.
@@ -62,11 +65,13 @@ public class EncodingProblem implements Problem {
    * @param revFactory the rev factory
    * @param optimizer  the optimizer
    * @param data       the data
+   * @param features
    */
-  public EncodingProblem(RevNetworkFactory revFactory, OptimizationStrategy optimizer, ImageProblemData data) {
+  public EncodingProblem(RevNetworkFactory revFactory, OptimizationStrategy optimizer, ImageProblemData data, int features) {
     this.revFactory = revFactory;
     this.optimizer = optimizer;
     this.data = data;
+    this.features = features;
   }
   
   
@@ -83,7 +88,12 @@ public class EncodingProblem implements Problem {
     }
     
     DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
-    
+    log.h3("Network Diagram");
+    log.code(() -> {
+      return Graphviz.fromGraph(TestUtil.toGraph(imageNetwork))
+        .height(400).width(600).render(Format.PNG).toImage();
+    });
+  
     PipelineNetwork trainingNetwork = new PipelineNetwork(2);
     DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
     DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
@@ -94,24 +104,27 @@ public class EncodingProblem implements Problem {
         trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
       )
     );
-    
     log.h3("Training");
-    log.p("We start by training with a very small population to improve intial convergence performance:");
+    log.p("We start by training with a very small population to improve initial convergence performance:");
+    TestUtil.instrumentPerformance(log, trainingNetwork);
     Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
     ValidatingTrainer preTrainer = optimizer.train(log,
-      (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, 1000, batchSize).setMask(true, false),
+      (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
       new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
     log.code(() -> {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
+    TestUtil.extractPerformance(log, trainingNetwork);
     
     log.p("Then our main training phase:");
+    TestUtil.instrumentPerformance(log, trainingNetwork);
     ValidatingTrainer mainTrainer = optimizer.train(log,
-      (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, 1000, batchSize).setMask(true, false),
+      (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
       new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
     log.code(() -> {
       mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
+    TestUtil.extractPerformance(log, trainingNetwork);
     
     if (!history.isEmpty()) {
       log.code(() -> {
@@ -218,5 +231,23 @@ public class EncodingProblem implements Problem {
   @Override
   public List<StepRecord> getHistory() {
     return history;
+  }
+  
+  public int getTrainingSize() {
+    return trainingSize;
+  }
+  
+  public int getBatchSize() {
+    return batchSize;
+  }
+  
+  public EncodingProblem setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+    return this;
+  }
+  
+  public EncodingProblem setTrainingSize(int trainingSize) {
+    this.trainingSize = trainingSize;
+    return this;
   }
 }

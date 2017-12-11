@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.test.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -39,7 +40,7 @@ import java.io.IOException;
  * The type Mnist run base.
  */
 public class MnistTests {
-  private static final int timeoutMinutes = 15;
+  private static final int timeoutMinutes = 10;
   /**
    * The constant fwd_linear_1.
    */
@@ -129,7 +130,27 @@ public class MnistTests {
     public SGD() {
       super(TextbookOptimizers.stochastic_gradient_descent, MnistTests.rev_linear_1, MnistTests.fwd_linear_1);
     }
-    
+  
+    @Override
+    @Ignore
+    @Test
+    public void encoding_test() throws IOException {
+      super.encoding_test();
+    }
+  
+    @Override
+    @Ignore
+    @Test
+    public void classification_test() throws IOException {
+      super.classification_test();
+    }
+  
+    @Override
+    @Test
+    public void autoencoder_test() throws IOException {
+      super.autoencoder_test();
+    }
+  
     @Override
     protected void intro(NotebookOutput log) {
       log.p("");
@@ -250,7 +271,7 @@ public class MnistTests {
         if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("MNIST Image-to-Vector Encoding");
         intro(log);
-        new EncodingProblem(revFactory, optimizationStrategy, data).setTimeoutMinutes(timeoutMinutes).run(log);
+        new EncodingProblem(revFactory, optimizationStrategy, data, 20).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
   
@@ -283,13 +304,14 @@ public class MnistTests {
      * @throws IOException the io exception
      */
     @Test
+    @Ignore
     @Category(TestCategories.Report.class)
     public void autoencoder_test() throws IOException {
       try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
         if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("MNIST Denoising Autoencoder");
         intro(log);
-        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data).setTimeoutMinutes(timeoutMinutes).run(log);
+        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.2).setTimeoutMinutes(5*timeoutMinutes).run(log);
       }
     }
     

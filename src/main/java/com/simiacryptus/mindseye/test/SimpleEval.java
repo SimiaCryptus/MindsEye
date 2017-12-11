@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
@@ -27,54 +27,42 @@ import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
 /**
- * The type Simple list eval.
+ * The type Simple eval.
  */
-public class SimpleListEval implements Callable<SimpleListEval> {
+public class SimpleEval implements Callable<SimpleEval> {
   private final NNLayer layer;
-  private final TensorList[] input;
-  private TensorList[] derivative;
-  private TensorList output;
+  private final Tensor[] input;
+  private Tensor[] derivative;
+  private Tensor output;
   
   /**
-   * Instantiates a new Simple list eval.
+   * Instantiates a new Simple eval.
    *
    * @param layer the layer
    * @param input the input
    */
-  public SimpleListEval(NNLayer layer, TensorList... input) {
+  public SimpleEval(NNLayer layer, Tensor... input) {
     this.layer = layer;
     this.input = input;
   }
   
   /**
-   * Accumulate.
-   *
-   * @param buffer the buffer
-   * @param data   the data
-   */
-  public static void accumulate(TensorList buffer, TensorList data) {
-    IntStream.range(0, data.length()).forEach(b -> {
-      buffer.get(b).accum(data.get(b));
-    });
-  }
-  
-  /**
-   * Run simple list eval.
+   * Run simple eval.
    *
    * @param layer  the layer
    * @param tensor the tensor
-   * @return the simple list eval
+   * @return the simple eval
    */
-  public static SimpleListEval run(NNLayer layer, TensorList... tensor) {
-    return new SimpleListEval(layer, tensor).call();
+  public static SimpleEval run(NNLayer layer, Tensor... tensor) {
+    return new SimpleEval(layer, tensor).call();
   }
   
   /**
-   * Get derivative tensor list [ ].
+   * Get derivative tensor [ ].
    *
-   * @return the tensor list [ ]
+   * @return the tensor [ ]
    */
-  public TensorList[] getDerivative() {
+  public Tensor[] getDerivative() {
     return derivative;
   }
   
@@ -83,21 +71,18 @@ public class SimpleListEval implements Callable<SimpleListEval> {
    *
    * @return the output
    */
-  public TensorList getOutput() {
+  public Tensor getOutput() {
     return output;
   }
   
   @Override
-  public SimpleListEval call() {
-    derivative = Arrays.stream(input).map(x -> new TensorArray(x.stream()
-      .map(i -> new Tensor(i.getDimensions()))
-      .toArray(i -> new Tensor[i]))
-    ).toArray(i -> new TensorList[i]);
+  public SimpleEval call() {
+    derivative = Arrays.stream(input).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
     NNResult[] inputR = IntStream.range(0, input.length).mapToObj(i -> {
       return new NNResult(input[i]) {
         @Override
         public void accumulate(DeltaSet buffer, TensorList data) {
-          SimpleListEval.accumulate(derivative[i], data);
+          data.stream().forEach(t -> derivative[i].accum(t));
         }
         
         @Override
@@ -106,11 +91,12 @@ public class SimpleListEval implements Callable<SimpleListEval> {
         }
       };
     }).toArray(i -> new NNResult[i]);
-    output = GpuController.call(cudaExeCtx -> {
+    NNResult result = GpuController.call(cudaExeCtx -> {
       NNResult eval = layer.eval(cudaExeCtx, inputR);
       eval.accumulate(new DeltaSet(), getFeedback(eval.getData()));
       return eval;
-    }).getData();
+    });
+    output = result.getData().get(0);
     return this;
   }
   

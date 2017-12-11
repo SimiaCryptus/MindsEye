@@ -40,7 +40,7 @@ import java.io.IOException;
  */
 public class CifarTests {
   
-  private static final int timeoutMinutes = 15;
+  private static final int timeoutMinutes = 10;
   /**
    * The constant fwd_linear_1.
    */
@@ -240,7 +240,7 @@ public class CifarTests {
         if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("CIFAR10 Image-to-Vector Encoding");
         intro(log);
-        new EncodingProblem(revFactory, optimizationStrategy, data).setTimeoutMinutes(timeoutMinutes).run(log);
+        new EncodingProblem(revFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
   
@@ -279,7 +279,7 @@ public class CifarTests {
         if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("CIFAR10 Denoising Autoencoder");
         intro(log);
-        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data).setTimeoutMinutes(timeoutMinutes).run(log);
+        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
     
