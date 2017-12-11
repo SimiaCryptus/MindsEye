@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.text.TableOutput;
+import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;

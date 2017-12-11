@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.lang;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.simiacryptus.util.Util;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -59,7 +58,7 @@ public abstract class NNLayer implements Serializable {
    * Instantiates a new Nn layer.
    */
   protected NNLayer() {
-    this.id = Util.uuid();
+    this.id = UUID.randomUUID();
     this.name = getClass().getSimpleName() + "/" + getId();
   }
   

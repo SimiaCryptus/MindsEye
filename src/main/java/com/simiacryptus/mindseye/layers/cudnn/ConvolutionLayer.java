@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -132,8 +131,14 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @return the convolution layer
    */
   public ConvolutionLayer addWeights(final DoubleSupplier f) {
-    Util.add(f, this.kernel.getData());
+    add(f, this.kernel.getData());
     return this;
+  }
+  
+  public static void add(final DoubleSupplier f, final double[] data) {
+    for (int i = 0; i < data.length; i++) {
+      data[i] += f.getAsDouble();
+    }
   }
   
   @Override
