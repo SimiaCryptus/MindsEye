@@ -53,6 +53,13 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 1}, {100, 100, 1}
+    };
+  }
+  
   /**
    * The type Double.
    */

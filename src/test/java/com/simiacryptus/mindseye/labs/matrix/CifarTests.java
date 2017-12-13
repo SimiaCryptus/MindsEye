@@ -41,7 +41,6 @@ import java.io.IOException;
  */
 public class CifarTests {
   
-  private static final int timeoutMinutes = 10;
   /**
    * The constant fwd_linear_1.
    */
@@ -209,8 +208,9 @@ public class CifarTests {
   }
   
   private abstract static class AllTests {
-    
-    
+  
+    protected int timeoutMinutes = 10;
+  
     private final RevNetworkFactory revFactory;
     private final OptimizationStrategy optimizationStrategy;
     private final FwdNetworkFactory fwdFactory;

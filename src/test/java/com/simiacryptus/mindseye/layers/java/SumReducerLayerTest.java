@@ -38,4 +38,12 @@ public class SumReducerLayerTest extends LayerTestBase {
       {3}
     };
   }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 1}
+    };
+  }
+  
 }

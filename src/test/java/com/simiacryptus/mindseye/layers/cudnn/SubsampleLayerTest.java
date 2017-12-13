@@ -20,12 +20,11 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 
 /**
- * The type Pooling layer test.
+ * The type Img concat layer test.
  */
-public abstract class PoolingLayerTest extends CudnnLayerTestBase {
+public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   
   /**
    * The Precision.
@@ -33,37 +32,30 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Pooling layer test.
+   * Instantiates a new Img concat layer test.
    *
    * @param precision the precision
    */
-  public PoolingLayerTest(Precision precision) {
+  public SubsampleLayerTest(Precision precision) {
     this.precision = precision;
   }
   
   @Override
   public NNLayer getLayer() {
-    return new PoolingLayer().setPrecision(precision);
+    return new SubsampleLayer();
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {4, 4, 2}
-    };
-  }
-  
-  @Override
-  public int[][] getPerfDims() {
-    return new int[][]{
-      {100, 100, 2}
+      {2, 2, 1}, {2, 2, 1}
     };
   }
   
   /**
    * The type Double.
    */
-  public static class Double extends PoolingLayerTest {
+  public static class Double extends SubsampleLayerTest {
     /**
      * Instantiates a new Double.
      */
@@ -75,18 +67,14 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   /**
    * The type Float.
    */
-  public static class Float extends PoolingLayerTest {
+  public static class Float extends SubsampleLayerTest {
     /**
      * Instantiates a new Float.
      */
     public Float() {
       super(Precision.Float);
     }
-    
-    @Override
-    public SingleDerivativeTester getDerivativeTester() {
-      return new SingleDerivativeTester(1e-2, 1e-3);
-    }
-    
   }
+  
+  
 }

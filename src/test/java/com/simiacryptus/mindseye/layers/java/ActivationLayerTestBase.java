@@ -90,6 +90,13 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 1}
+    };
+  }
+  
+  @Override
   public void test(NotebookOutput log) {
     super.test(log);
     

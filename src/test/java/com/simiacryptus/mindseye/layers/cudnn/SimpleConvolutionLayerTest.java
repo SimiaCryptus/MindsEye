@@ -85,6 +85,13 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, bands}
+    };
+  }
+  
   /**
    * The type Multi band.
    */

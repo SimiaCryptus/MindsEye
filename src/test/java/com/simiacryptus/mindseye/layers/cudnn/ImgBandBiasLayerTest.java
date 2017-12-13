@@ -53,6 +53,13 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 3}
+    };
+  }
+  
   /**
    * The type Double.
    */

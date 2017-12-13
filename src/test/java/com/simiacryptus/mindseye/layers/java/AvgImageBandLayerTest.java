@@ -38,4 +38,12 @@ public class AvgImageBandLayerTest extends LayerTestBase {
       {2, 2, 3}
     };
   }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 1}
+    };
+  }
+  
 }

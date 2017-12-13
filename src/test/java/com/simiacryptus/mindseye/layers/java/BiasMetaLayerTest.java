@@ -46,8 +46,4 @@ public class BiasMetaLayerTest extends LayerTestBase {
     };
   }
   
-  @Override
-  public BatchingTester getBatchingTester() {
-    return null;
-  }
 }

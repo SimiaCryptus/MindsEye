@@ -78,6 +78,13 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, inputBands}
+    };
+  }
+  
   /**
    * The type Double.
    */

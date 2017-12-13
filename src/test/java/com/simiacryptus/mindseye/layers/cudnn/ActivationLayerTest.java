@@ -65,6 +65,13 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 1}, {100, 100, 1}
+    };
+  }
+  
+  @Override
   public SingleDerivativeTester getDerivativeTester() {
     return new SingleDerivativeTester(1e-2, 1e-4);
   }

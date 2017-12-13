@@ -57,7 +57,7 @@ public class StdDevMetaLayerTest extends MetaLayerTestBase {
   @Override
   public int[][] getPerfDims() {
     return new int[][]{
-      {10}
+      {100}
     };
   }
   

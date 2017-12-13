@@ -54,10 +54,12 @@ public abstract class OptimizerComparison {
       return trainer;
     });
   };
+  
+  
   private final FwdNetworkFactory fwdFactory;
   private final RevNetworkFactory revFactory;
   private final ImageProblemData data;
-  private int timeoutMinutes = 1;
+  private int timeoutMinutes = 15;
   /**
    * Instantiates a new Optimizer comparison.
    *

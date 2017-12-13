@@ -40,7 +40,6 @@ import java.io.IOException;
  * The type Mnist run base.
  */
 public class MnistTests {
-  private static final int timeoutMinutes = 10;
   /**
    * The constant fwd_linear_1.
    */
@@ -227,8 +226,9 @@ public class MnistTests {
   }
   
   private abstract static class AllTests {
-    
-    
+  
+    protected int timeoutMinutes = 10;
+  
     /**
      * The Rev factory.
      */

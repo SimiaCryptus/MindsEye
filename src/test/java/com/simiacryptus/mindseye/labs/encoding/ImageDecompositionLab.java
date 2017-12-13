@@ -80,11 +80,10 @@ public class ImageDecompositionLab {
    *
    * @throws Exception the exception
    */
-  @Test
-  @Category(TestCategories.Report.class)
-  public void test() throws Exception {
-    try (NotebookOutput log = report()) {
-      run(log);
+  public static void main(String... args) throws Exception {
+    ImageDecompositionLab lab = new ImageDecompositionLab();
+    try (NotebookOutput log = lab.report()) {
+      lab.run(log);
     }
   }
   
@@ -114,8 +113,8 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    int pretrainMinutes = 1;
-    int timeoutMinutes = 1;
+    int pretrainMinutes = 20;
+    int timeoutMinutes = 40;
     int size = 256;
     
     Tensor[][] trainingImages = TestUtil.getImages(log, size, 10, "kangaroo");

@@ -42,6 +42,14 @@ public class SumInputsLayerTest {
         {3}, {3}
       };
     }
+  
+    @Override
+    public int[][] getPerfDims() {
+      return new int[][]{
+        {100}, {100}
+      };
+    }
+  
   }
   
   /**
@@ -60,5 +68,13 @@ public class SumInputsLayerTest {
         {3}, {1}
       };
     }
+  
+    @Override
+    public int[][] getPerfDims() {
+      return new int[][]{
+        {100}, {1}
+      };
+    }
+  
   }
 }
