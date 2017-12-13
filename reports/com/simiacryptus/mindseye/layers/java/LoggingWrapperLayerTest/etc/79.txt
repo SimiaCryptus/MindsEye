@@ -1,0 +1,48 @@
+Inputs: [ -1.024, -0.98, -0.164 ]
+Inputs Statistics: {meanExponent=-0.26121003987333175, negative=3, min=-0.164, max=-0.164, mean=-0.7226666666666667, count=3.0, positive=0, stdDev=0.3954451781080263, zeros=0}
+Output: [ -1.024, -0.98, -0.164 ]
+Outputs Statistics: {meanExponent=-0.26121003987333175, negative=3, min=-0.164, max=-0.164, mean=-0.7226666666666667, count=3.0, positive=0, stdDev=0.3954451781080263, zeros=0}
+Input 0 for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ -1.024, -0.98, -0.164 ]
+Output for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ -1.024, -0.98, -0.164 ]
+Feedback Input for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ 1.0, 0.0, 0.0 ]
+Feedback Output 0 for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ 1.0, 0.0, 0.0 ]
+Input 0 for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ -1.024, -0.98, -0.164 ]
+Output for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ -1.024, -0.98, -0.164 ]
+Feedback Input for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ 0.0, 1.0, 0.0 ]
+Feedback Output 0 for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ 0.0, 1.0, 0.0 ]
+Input 0 for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ -1.024, -0.98, -0.164 ]
+Output for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ -1.024, -0.98, -0.164 ]
+Feedback Input for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ 0.0, 0.0, 1.0 ]
+Feedback Output 0 for layer LinearActivationLayer/7690ee1d-c341-4baf-868c-a5e094494f91: 
+	[ 0.0, 0.0, 1.0 ]
+Feedback for input 0
+Inputs Values: [ -1.024, -0.98, -0.164 ]
+Value Statistics: {meanExponent=-0.26121003987333175, negative=3, min=-0.164, max=-0.164, mean=-0.7226666666666667, count=3.0, positive=0, stdDev=0.3954451781080263, zeros=0}
+Implemented Feedback: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=0.3333333333333333, count=9.0, positive=3, stdDev=0.4714045207910317, zeros=6}
+Measured Feedback: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.3333333333332966, count=9.0, positive=3, stdDev=0.4714045207909798, zeros=6}
+Feedback Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+Error Statistics: {meanExponent=-12.958078098036827, negative=3, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=-3.671137468093851E-14, count=9.0, positive=0, stdDev=5.1917723967143496E-14, zeros=6}
+Learning Gradient for weight set 0
+Weights: [ 1.0, 0.0 ]
+Implemented Gradient: [ [ -1.024, -0.98, -0.164 ], [ 1.0, 1.0, 1.0 ] ]
+Implemented Statistics: {meanExponent=-0.13060501993666587, negative=3, min=1.0, max=1.0, mean=0.13866666666666666, count=6.0, positive=3, stdDev=0.9055846484760856, zeros=0}
+Measured Gradient: [ [ -1.02400000000058, -0.980000000000425, -0.16399999999999748 ], [ 0.9999999999998899, 0.9999999999998899, 0.9999999999998899 ] ]
+Measured Statistics: {meanExponent=-0.13060501993661852, negative=3, min=0.9999999999998899, max=0.9999999999998899, mean=0.13866666666644453, count=6.0, positive=3, stdDev=0.9055846484762446, zeros=0}
+Gradient Error: [ [ -5.799805080641818E-13, -4.249933738265099E-13, 2.525757381022231E-15 ], [ -1.1013412404281553E-13, -1.1013412404281553E-13, -1.1013412404281553E-13 ] ]
+Error Statistics: {meanExponent=-13.013341184386421, negative=5, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=-2.22141749439686E-13, count=6.0, positive=1, stdDev=2.0708692689804732E-13, zeros=0}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 1.1122e-13 +- 1.6416e-13 [0.0000e+00 - 5.7998e-13] (15#)
+relativeTol: 9.3126e-14 +- 8.6550e-14 [7.7005e-15 - 2.8319e-13] (9#)

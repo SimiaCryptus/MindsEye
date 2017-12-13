@@ -1,0 +1,24 @@
+Inputs: [ -0.092, -1.44, 1.348 ]
+Inputs Statistics: {meanExponent=-0.24938659611996464, negative=2, min=1.348, max=1.348, mean=-0.061333333333333316, count=3.0, positive=1, stdDev=1.1384027797264415, zeros=0}
+Output: [ -0.092, -1.44, 1.348 ]
+Outputs Statistics: {meanExponent=-0.24938659611996464, negative=2, min=1.348, max=1.348, mean=-0.061333333333333316, count=3.0, positive=1, stdDev=1.1384027797264415, zeros=0}
+Feedback for input 0
+Inputs Values: [ -0.092, -1.44, 1.348 ]
+Value Statistics: {meanExponent=-0.24938659611996464, negative=2, min=1.348, max=1.348, mean=-0.061333333333333316, count=3.0, positive=1, stdDev=1.1384027797264415, zeros=0}
+Implemented Feedback: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=0.3333333333333333, count=9.0, positive=3, stdDev=0.4714045207910317, zeros=6}
+Measured Feedback: [ [ 1.0000000000000286, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+Measured Statistics: {meanExponent=-2.7740486787851373E-14, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.333333333333312, count=9.0, positive=3, stdDev=0.4714045207910016, zeros=6}
+Feedback Error: [ [ 2.864375403532904E-14, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+Error Statistics: {meanExponent=-13.153042086767142, negative=2, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=-2.1291610450033557E-14, count=9.0, positive=1, stdDev=4.8304038389477654E-14, zeros=6}
+Learning Gradient for weight set 0
+Weights: [ 0.0 ]
+Implemented Gradient: [ [ 1.0, 1.0, 1.0 ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=1.0, count=3.0, positive=3, stdDev=0.0, zeros=0}
+Measured Gradient: [ [ 1.0000000000000286, 0.9999999999998899, 0.9999999999998899 ] ]
+Measured Statistics: {meanExponent=-2.7740486787851373E-14, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.999999999999936, count=3.0, positive=3, stdDev=1.0536712127723509E-8, zeros=0}
+Gradient Error: [ [ 2.864375403532904E-14, -1.1013412404281553E-13, -1.1013412404281553E-13 ] ]
+Error Statistics: {meanExponent=-13.153042086767142, negative=2, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=-6.387483135010068E-14, count=3.0, positive=1, stdDev=6.542051911182395E-14, zeros=0}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 4.1485e-14 +- 4.9587e-14 [0.0000e+00 - 1.1013e-13] (12#)
+relativeTol: 4.1485e-14 +- 1.9207e-14 [1.4322e-14 - 5.5067e-14] (6#)

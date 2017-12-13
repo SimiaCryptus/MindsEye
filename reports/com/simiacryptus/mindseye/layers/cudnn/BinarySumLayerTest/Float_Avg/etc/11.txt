@@ -1,0 +1,42 @@
+Inputs: [
+	[ [ 1.444 ], [ 1.64 ] ],
+	[ [ 1.352 ], [ -1.628 ] ]
+],
+[
+	[ [ 0.656 ], [ -0.804 ] ],
+	[ [ -0.528 ], [ -1.312 ] ]
+]
+Inputs Statistics: {meanExponent=0.17926053336002942, negative=1, min=-1.628, max=-1.628, mean=0.702, count=4.0, positive=3, stdDev=1.3492412682689483, zeros=0},
+{meanExponent=-0.10931808857560865, negative=3, min=-1.312, max=-1.312, mean=-0.497, count=4.0, positive=1, stdDev=0.722641681609911, zeros=0}
+Output: [
+	[ [ 0.0 ], [ 0.0 ] ],
+	[ [ 0.0 ], [ 0.0 ] ]
+]
+Outputs Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=4.0, positive=0, stdDev=0.0, zeros=4}
+Feedback for input 0
+Inputs Values: [
+	[ [ 1.444 ], [ 1.64 ] ],
+	[ [ 1.352 ], [ -1.628 ] ]
+]
+Value Statistics: {meanExponent=0.17926053336002942, negative=1, min=-1.628, max=-1.628, mean=0.702, count=4.0, positive=3, stdDev=1.3492412682689483, zeros=0}
+Implemented Feedback: [ [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ] ]
+Implemented Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=16.0, positive=0, stdDev=0.0, zeros=16}
+Measured Feedback: [ [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ] ]
+Measured Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=16.0, positive=0, stdDev=0.0, zeros=16}
+Feedback Error: [ [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ] ]
+Error Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=16.0, positive=0, stdDev=0.0, zeros=16}
+Feedback for input 1
+Inputs Values: [
+	[ [ 0.656 ], [ -0.804 ] ],
+	[ [ -0.528 ], [ -1.312 ] ]
+]
+Value Statistics: {meanExponent=-0.10931808857560865, negative=3, min=-1.312, max=-1.312, mean=-0.497, count=4.0, positive=1, stdDev=0.722641681609911, zeros=0}
+Implemented Feedback: [ [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ] ]
+Implemented Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=16.0, positive=0, stdDev=0.0, zeros=16}
+Measured Feedback: [ [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ] ]
+Measured Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=16.0, positive=0, stdDev=0.0, zeros=16}
+Feedback Error: [ [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0 ] ]
+Error Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=16.0, positive=0, stdDev=0.0, zeros=16}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (32#)
+relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)

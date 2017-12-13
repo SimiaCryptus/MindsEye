@@ -1,0 +1,30 @@
+Inputs: [
+	[ [ 0.168 ] ]
+]
+Inputs Statistics: {meanExponent=-0.7746907182741372, negative=0, min=0.168, max=0.168, mean=0.168, count=1.0, positive=1, stdDev=0.0, zeros=0}
+Output: [
+	[ [ -0.07795200000000001 ] ]
+]
+Outputs Statistics: {meanExponent=-1.1081727377192563, negative=1, min=-0.07795200000000001, max=-0.07795200000000001, mean=-0.07795200000000001, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Feedback for input 0
+Inputs Values: [
+	[ [ 0.168 ] ]
+]
+Value Statistics: {meanExponent=-0.7746907182741372, negative=0, min=0.168, max=0.168, mean=0.168, count=1.0, positive=1, stdDev=0.0, zeros=0}
+Implemented Feedback: [ [ -0.464 ] ]
+Implemented Statistics: {meanExponent=-0.3334820194451191, negative=1, min=-0.464, max=-0.464, mean=-0.464, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Measured Feedback: [ [ -0.46400000000001995 ] ]
+Measured Statistics: {meanExponent=-0.3334820194451005, negative=1, min=-0.46400000000001995, max=-0.46400000000001995, mean=-0.46400000000001995, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Feedback Error: [ [ -1.992850329202156E-14 ] ]
+Error Statistics: {meanExponent=-13.700525317276666, negative=1, min=-1.992850329202156E-14, max=-1.992850329202156E-14, mean=-1.992850329202156E-14, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Learning Gradient for weight set 0
+Weights: [ -0.464 ]
+Implemented Gradient: [ [ 0.168 ] ]
+Implemented Statistics: {meanExponent=-0.7746907182741372, negative=0, min=0.168, max=0.168, mean=0.168, count=1.0, positive=1, stdDev=0.0, zeros=0}
+Measured Gradient: [ [ 0.16799999999997373 ] ]
+Measured Statistics: {meanExponent=-0.7746907182742051, negative=0, min=0.16799999999997373, max=0.16799999999997373, mean=0.16799999999997373, count=1.0, positive=1, stdDev=0.0, zeros=0}
+Gradient Error: [ [ -2.628453010800058E-14 ] ]
+Error Statistics: {meanExponent=-13.580299782515691, negative=1, min=-2.628453010800058E-14, max=-2.628453010800058E-14, mean=-2.628453010800058E-14, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 2.3107e-14 +- 3.1780e-15 [1.9929e-14 - 2.6285e-14] (2#)
+relativeTol: 4.9851e-14 +- 2.8377e-14 [2.1475e-14 - 7.8228e-14] (2#)

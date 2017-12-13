@@ -1,0 +1,24 @@
+Inputs: [
+	[ [ 0.288, -1.352, 0.012 ], [ 0.856, 0.356, 0.788 ] ],
+	[ [ -0.084, -0.812, 0.916 ], [ -0.688, -1.512, -0.124 ] ]
+]
+Inputs Statistics: {meanExponent=-0.4203089075761753, negative=6, min=-0.124, max=-0.124, mean=-0.11299999999999999, count=12.0, positive=6, stdDev=0.7915438501224469, zeros=0}
+Output: [
+	[ [ 0.856, 0.356, 0.916 ] ]
+]
+Outputs Statistics: {meanExponent=-0.18472692122737375, negative=0, min=0.916, max=0.916, mean=0.7093333333333334, count=3.0, positive=3, stdDev=0.251042271783503, zeros=0}
+Feedback for input 0
+Inputs Values: [
+	[ [ 0.288, -1.352, 0.012 ], [ 0.856, 0.356, 0.788 ] ],
+	[ [ -0.084, -0.812, 0.916 ], [ -0.688, -1.512, -0.124 ] ]
+]
+Value Statistics: {meanExponent=-0.4203089075761753, negative=6, min=-0.124, max=-0.124, mean=-0.11299999999999999, count=12.0, positive=6, stdDev=0.7915438501224469, zeros=0}
+Implemented Feedback: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 1.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 0.0 ], ... ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=0.0, max=0.0, mean=0.08333333333333333, count=36.0, positive=3, stdDev=0.2763853991962833, zeros=33}
+Measured Feedback: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.0 ], ... ]
+Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=0, min=0.0, max=0.0, mean=0.08333333333332416, count=36.0, positive=3, stdDev=0.2763853991962529, zeros=33}
+Feedback Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, -1.1013412404281553E-13, 0.0 ], [ 0.0, 0.0, 0.0 ], ... ]
+Error Statistics: {meanExponent=-12.958078098036827, negative=3, min=0.0, max=0.0, mean=-9.177843670234628E-15, count=36.0, positive=0, stdDev=3.0439463838706555E-14, zeros=33}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 9.1778e-15 +- 3.0439e-14 [0.0000e+00 - 1.1013e-13] (36#)
+relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (3#)
