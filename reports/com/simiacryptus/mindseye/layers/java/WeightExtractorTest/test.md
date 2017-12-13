@@ -1,13 +1,13 @@
 # WeightExtractor
 ## WeightExtractorTest
 ### Json Serialization
-Code from [LayerTestBase.java:121](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:69](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
+    if ((echo == null)) throw new AssertionError("Failed to deserialize");
+    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
+    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
     return new GsonBuilder().setPrettyPrinting().create().toJson(json);
 ```
 
@@ -16,10 +16,10 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.WeightExtractor",
-      "id": "e2a3bda5-e7e7-4c05-aeb3-4ede0000369b",
+      "id": "1f042bc3-57ce-4349-85e2-622de93a4c1a",
       "isFrozen": false,
-      "name": "WeightExtractor/e2a3bda5-e7e7-4c05-aeb3-4ede0000369b",
-      "innerId": "e2a3bda5-e7e7-4c05-aeb3-4ede0000369a",
+      "name": "WeightExtractor/1f042bc3-57ce-4349-85e2-622de93a4c1a",
+      "innerId": "cc3f22dd-4eec-4efa-8940-d1a96a50bf43",
       "index": 0
     }
 ```
@@ -27,12 +27,13 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:159](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L159) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:153](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
       Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-      eval.getOutput().prettyPrint());
+      eval.getOutput().prettyPrint(),
+      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
 ```
 
 Returns: 
@@ -43,20 +44,23 @@ Returns:
     [[  ]]
     --------------------
     Output: 
-    [ 0.2768048117735981, -0.9102150198432373, -0.1662372788527983, -0.727717491111909, 0.5653129481228371, 0.3318441077637774, 0.7545355055068854, 0.39345657138778384, -0.0074336805964254115 ]
+    [ 0.09271630446520222, -0.09006385044726407, -0.5094230460745771, 0.0102773574506938, -0.8180370638876456, -0.3507616323525955, -0.8559885535020723, -0.34849976607860444, -0.7455292402903565 ]
+    --------------------
+    Derivative: 
+    [  ]
 ```
 
 
 
 ### Performance
-Code from [LayerTestBase.java:192](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L192) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:120](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L120) executed in 0.00 seconds: 
 ```java
-    getPerformanceTester().test(layer, inputPrototype);
+    getPerformanceTester().test(layer, permPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.1274 +- 0.0144 [0.1083 - 0.2166]
-    Learning performance: 0.0116 +- 0.0077 [0.0057 - 0.0656]
+    Evaluation performance: 0.000031s +- 0.000012s [0.000021s - 0.000054s]
+    Learning performance: 0.000005s +- 0.000002s [0.000002s - 0.000009s]
     
 ```
 

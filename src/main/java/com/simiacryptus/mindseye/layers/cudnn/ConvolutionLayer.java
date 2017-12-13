@@ -258,31 +258,6 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return Arrays.asList(this.kernel.getData());
   }
   
-  
-  /**
-   * Sets weights log.
-   *
-   * @param w the w
-   * @return the weights log
-   */
-  public ConvolutionLayer setWeightsLog(double w) {
-    setWeights(() -> Math.exp(w) * (Math.random() - 0.5));
-    return this;
-  }
-  
-  /**
-   * Sets stride xy.
-   *
-   * @param x the x
-   * @param y the y
-   * @return the stride xy
-   */
-  public ConvolutionLayer setStrideXY(int x, int y) {
-    strideX = x;
-    strideY = y;
-    return this;
-  }
-  
   public Precision getPrecision() {
     return precision;
   }

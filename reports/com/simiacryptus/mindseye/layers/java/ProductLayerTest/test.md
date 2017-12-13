@@ -1,13 +1,13 @@
 # ProductLayer
 ## ProductLayerTest
 ### Json Serialization
-Code from [LayerTestBase.java:121](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L121) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:69](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
-    assert (echo != null) : "Failed to deserialize";
-    assert (layer != echo) : "Serialization did not copy";
-    Assert.assertEquals("Serialization not equal", layer, echo);
+    if ((echo == null)) throw new AssertionError("Failed to deserialize");
+    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
+    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
     return new GsonBuilder().setPrettyPrinting().create().toJson(json);
 ```
 
@@ -16,21 +16,22 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.ProductLayer",
-      "id": "e2a3bda5-e7e7-4c05-aeb3-4ede00001f3d",
+      "id": "af13bc7e-bf51-4857-99fb-dd0a319d78da",
       "isFrozen": false,
-      "name": "ProductLayer/e2a3bda5-e7e7-4c05-aeb3-4ede00001f3d"
+      "name": "ProductLayer/af13bc7e-bf51-4857-99fb-dd0a319d78da"
     }
 ```
 
 
 
 ### Example Input/Output Pair
-Code from [LayerTestBase.java:159](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L159) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:153](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
       Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-      eval.getOutput().prettyPrint());
+      eval.getOutput().prettyPrint(),
+      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
 ```
 
 Returns: 
@@ -38,72 +39,57 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -0.848, 1.096, -0.68 ]]
+    [[ 0.16, 0.592, 0.804 ]]
     --------------------
     Output: 
-    [ 0.63199744 ]
+    [ 0.07615488000000001 ]
+    --------------------
+    Derivative: 
+    [ 0.47596800000000006, 0.12864000000000003, 0.09472 ]
 ```
 
 
 
 ### Batch Execution
-Code from [LayerTestBase.java:178](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L178) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:102](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L102) executed in 0.00 seconds: 
 ```java
-    BatchingTester batchingTester = getBatchingTester();
-    return batchingTester == null ? null : batchingTester.test(layer, inputPrototype);
+    return getBatchingTester().test(layer, inputPrototype);
 ```
 
 Returns: 
 
 ```
-    ToleranceStatistics{absoluteTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (40#), relativeTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (40#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=NaN +- NaN [NaN - NaN] (30#), relativeTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (27#)}
+    	at com.simiacryptus.mindseye.test.BatchingTester.test(BatchingTester.java:86)
+    	at com.simiacryptus.mindseye.test.StandardLayerTests.lambda$test$12(StandardLayerTests.java:103)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:138)
+    	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:138)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:136)
+    	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
+    	at com.simiacryptus.mindseye.test.StandardLayerTests.test(StandardLayerTests.java:102)
+    	at com.simiacryptus.mindseye.layers.LayerTestBase.test(LayerTestBase.jav
 ```
-
-
-
-### Differential Validation
-Code from [LayerTestBase.java:186](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L186) executed in 0.00 seconds: 
-```java
-    return getDerivativeTester().test(layer, inputPrototype);
+...[skipping 1139 bytes](etc/97.txt)...
 ```
-Logging: 
-```
-    Inputs: [ -0.848, 1.096, -0.68 ]
-    Inputs Statistics: {meanExponent=-0.06642822696289982, negative=2, min=-0.68, max=-0.68, mean=-0.144, count=3.0, positive=1, stdDev=0.8794907617479562, zeros=0}
-    Output: [ 0.63199744 ]
-    Outputs Statistics: {meanExponent=-0.1992846808886995, negative=0, min=0.63199744, max=0.63199744, mean=0.63199744, count=1.0, positive=1, stdDev=0.0, zeros=0}
-    Feedback for input 0
-    Inputs Values: [ -0.848, 1.096, -0.68 ]
-    Value Statistics: {meanExponent=-0.06642822696289982, negative=2, min=-0.68, max=-0.68, mean=-0.144, count=3.0, positive=1, stdDev=0.8794907617479562, zeros=0}
-    Implemented Feedback: [ [ -0.74528 ], [ 0.5766399999999999 ], [ -0.929408 ] ]
-    Implemented Statistics: {meanExponent=-0.13285645392579967, negative=2, min=-0.929408, max=-0.929408, mean=-0.36601600000000006, count=3.0, positive=1, stdDev=0.6707836366757913, zeros=0}
-    Measured Feedback: [ [ -0.7452799999996262 ], [ 0.5766400000006833 ], [ -0.9294079999999649 ] ]
-    Measured Statistics: {meanExponent=-0.1328564539257062, negative=2, min=-0.9294079999999649, max=-0.9294079999999649, mean=-0.36601599999963597, count=3.0, positive=1, stdDev=0.6707836366760311, zeros=0}
-    Feedback Error: [ [ 3.738120923912902E-13 ], [ 6.833422716567839E-13 ], [ 3.5083047578154947E-14 ] ]
-    Error Statistics: {meanExponent=-12.682537018099728, negative=0, min=3.5083047578154947E-14, max=3.5083047578154947E-14, mean=3.64079137208743E-13, count=3.0, positive=3, stdDev=2.6474019114746644E-13, zeros=0}
-    Finite-Difference Derivative Accuracy:
-    absoluteTol: 3.6408e-13 +- 2.6474e-13 [3.5083e-14 - 6.8334e-13] (3#)
-    relativeTol: 2.8739e-13 +- 2.3562e-13 [1.8874e-14 - 5.9252e-13] (3#)
+    unner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runners.Suite.runChild(Suite.java:128)
+    	at org.junit.runners.Suite.runChild(Suite.java:27)
+    	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+    	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:68)
+    	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
+    	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
+    	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
     
 ```
 
-Returns: 
 
-```
-    ToleranceStatistics{absoluteTol=3.6408e-13 +- 2.6474e-13 [3.5083e-14 - 6.8334e-13] (3#), relativeTol=2.8739e-13 +- 2.3562e-13 [1.8874e-14 - 5.9252e-13] (3#)}
-```
-
-
-
-### Performance
-Code from [LayerTestBase.java:192](../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/LayerTestBase.java#L192) executed in 0.00 seconds: 
-```java
-    getPerformanceTester().test(layer, inputPrototype);
-```
-Logging: 
-```
-    Evaluation performance: 0.1388 +- 0.0374 [0.0997 - 0.3733]
-    Learning performance: 0.0027 +- 0.0038 [0.0000 - 0.0371]
-    
-```
 
