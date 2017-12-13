@@ -161,7 +161,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
    */
   protected class Delegate extends DoubleBufferSet<K, T> {
     private final DoubleBufferSet<K, T> parent;
-  
+    
     /**
      * Instantiates a new Delegate.
      *
@@ -172,7 +172,7 @@ public abstract class DoubleBufferSet<K, T extends DoubleBuffer> {
       super(newMap);
       this.parent = parent;
     }
-  
+    
     /**
      * Instantiates a new Delegate.
      *

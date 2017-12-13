@@ -71,11 +71,13 @@ public class MeanSqLossLayer extends NNLayer {
     if (2 != inObj.length) throw new IllegalArgumentException();
     int leftLength = inObj[0].getData().length();
     int rightLength = inObj[1].getData().length();
-    if (leftLength != rightLength && leftLength != 1 && rightLength != 1) throw new IllegalArgumentException(leftLength +" != "+ rightLength);
+    if (leftLength != rightLength && leftLength != 1 && rightLength != 1) {
+      throw new IllegalArgumentException(leftLength + " != " + rightLength);
+    }
     Tensor diffs[] = new Tensor[leftLength];
     Tensor[] outputA = IntStream.range(0, leftLength).parallel().mapToObj(dataIndex -> {
-      final Tensor a = inObj[0].getData().get(1==leftLength?0:dataIndex);
-      final Tensor b = inObj[1].getData().get(1==rightLength?0:dataIndex);
+      final Tensor a = inObj[0].getData().get(1 == leftLength ? 0 : dataIndex);
+      final Tensor b = inObj[1].getData().get(1 == rightLength ? 0 : dataIndex);
       if (a.dim() != b.dim()) {
         throw new IllegalArgumentException(String.format("%s != %s", Arrays.toString(a.getDimensions()), Arrays.toString(b.getDimensions())));
       }
@@ -91,8 +93,8 @@ public class MeanSqLossLayer extends NNLayer {
             Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
               return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
             });
-            if(1 == leftLength){
-              tensorStream = Stream.of(tensorStream.reduce((a,b)->a.add(b)).get());
+            if (1 == leftLength) {
+              tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
             }
             inObj[0].accumulate(buffer, new TensorArray(tensorStream.toArray(i -> new Tensor[i])));
           }
@@ -100,8 +102,8 @@ public class MeanSqLossLayer extends NNLayer {
             Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
               return diffs[dataIndex].scale(data.get(dataIndex).get(0) * 2.0 / diffs[dataIndex].dim());
             });
-            if(1 == rightLength){
-              tensorStream = Stream.of(tensorStream.reduce((a,b)->a.add(b)).get());
+            if (1 == rightLength) {
+              tensorStream = Stream.of(tensorStream.reduce((a, b) -> a.add(b)).get());
             }
             inObj[1].accumulate(buffer, new TensorArray(tensorStream.map(x -> x.scale(-1)).toArray(i -> new Tensor[i])));
           }

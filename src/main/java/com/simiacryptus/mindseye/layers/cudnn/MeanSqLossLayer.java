@@ -17,53 +17,54 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The type Normalization meta layer.
+ * The type Mean sq loss layer.
  */
-@SuppressWarnings("serial")
-public class NormalizationMetaLayer extends PipelineNetwork {
+public class MeanSqLossLayer extends PipelineNetwork {
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(NormalizationMetaLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
   
   /**
-   * Instantiates a new Normalization meta layer.
+   * Instantiates a new Mean sq loss layer.
    *
-   * @param json the json
+   * @param id the id
    */
-  protected NormalizationMetaLayer(JsonObject json) {
-    super(json);
+  protected MeanSqLossLayer(JsonObject id) {
+    super(id);
   }
   
   /**
-   * Instantiates a new Normalization meta layer.
+   * Instantiates a new Mean sq loss layer.
    */
-  public NormalizationMetaLayer() {
-    super(1);
-    DAGNode input = getInput(0);
-    add(new SqActivationLayer());
+  public MeanSqLossLayer() {
+    super(2);
+    add(new BinarySumLayer(1.0, -1.0), getInput(0), getInput(1));
+    add(new ProductLayer(), getHead(), getHead());
+    add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
     add(new AvgReducerLayer());
-    add(new AvgMetaLayer());
-    add(new NthPowerActivationLayer().setPower(-0.5));
-    add(new ProductInputsLayer(), getHead(), getInput(0));
   }
   
   /**
-   * From json normalization meta layer.
+   * From json mean sq loss layer.
    *
    * @param json the json
-   * @return the normalization meta layer
+   * @return the mean sq loss layer
    */
-  public static NormalizationMetaLayer fromJson(JsonObject json) {
-    return new NormalizationMetaLayer(json);
+  public static MeanSqLossLayer fromJson(JsonObject json) {
+    return new MeanSqLossLayer(json);
+  }
+  
+  public JsonObject getJson() {
+    return super.getJson();
   }
   
 }

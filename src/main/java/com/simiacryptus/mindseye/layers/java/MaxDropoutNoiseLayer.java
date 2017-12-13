@@ -118,7 +118,7 @@ public class MaxDropoutNoiseLayer extends NNLayer {
       int cellId = 0;
       int max = 0;
       for (int dim = 0; dim < dims.size(); dim++) {
-        int pos = c.coords[dim] / kernelSize[dim];
+        int pos = c.getCoords()[dim] / kernelSize[dim];
         cellId = cellId * max + pos;
         max = dims.get(dim) / kernelSize[dim];
       }

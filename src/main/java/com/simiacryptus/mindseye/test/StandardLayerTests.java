@@ -22,9 +22,7 @@ package com.simiacryptus.mindseye.test;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
@@ -35,7 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * The type Layer test base.
@@ -46,7 +45,13 @@ public abstract class StandardLayerTests {
    */
   protected static final PrintStream originalOut = System.out;
   private static final Logger log = LoggerFactory.getLogger(StandardLayerTests.class);
+  /**
+   * The Validate batch execution.
+   */
   protected boolean validateBatchExecution = true;
+  /**
+   * The Validate differentials.
+   */
   protected boolean validateDifferentials = true;
   
   /**
@@ -77,37 +82,12 @@ public abstract class StandardLayerTests {
       });
     }
     
-    Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random()))
-      .toArray(i -> new Tensor[i]);
-    Tensor outputPrototype = GpuController.INSTANCE.distribute(Arrays.<Tensor[]>asList(inputPrototype),
-      (data, exe) -> layer.eval(exe, NNResult.batchResultArray(data.toArray(new Tensor[][]{}))).getData().get(0),
-      (a, b) -> a.add(b));
     
-    HashMap<Tensor[], Tensor> referenceIO = getReferenceIO();
-    if (!referenceIO.isEmpty()) {
-      log.h3("Reference Input/Output Pairs");
-      referenceIO.forEach((input, output) -> {
-        log.code(() -> {
-          SimpleEval eval = SimpleEval.run(layer, input);
-          DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
-          return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s",
-            Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-            eval.getOutput().prettyPrint(), error);
-        });
-      });
-    }
-    else {
-      log.h3("Example Input/Output Pair");
-      log.code(() -> {
-        SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-        return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s",
-          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-          eval.getOutput().prettyPrint());
-      });
-    }
+    testReferenceIO(log, layer, Arrays.stream(getReferenceInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]));
     
     NNLayer referenceLayer = getReferenceLayer();
     if (null != referenceLayer) {
+      Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
       log.h3("Reference Implementation");
       log.code(() -> {
         System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
@@ -115,15 +95,16 @@ public abstract class StandardLayerTests {
       });
     }
     
-    if(validateBatchExecution) {
+    if (validateBatchExecution) {
+      Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
       log.h3("Batch Execution");
       log.code(() -> {
-        BatchingTester batchingTester = getBatchingTester();
-        return batchingTester == null ? null : batchingTester.test(layer, inputPrototype);
+        return getBatchingTester().test(layer, inputPrototype);
       });
     }
-
-    if(validateDifferentials) {
+    
+    if (validateDifferentials) {
+      Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
       log.h3("Differential Validation");
       log.code(() -> {
         return getDerivativeTester().test(layer, inputPrototype);
@@ -131,10 +112,51 @@ public abstract class StandardLayerTests {
     }
     
     log.h3("Performance");
+    if (layer instanceof DAGNetwork) {
+      TestUtil.instrumentPerformance(log, (DAGNetwork) layer);
+    }
+    Tensor[] permPrototype = Arrays.stream(getPerfDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
     log.code(() -> {
-      getPerformanceTester().test(layer, inputPrototype);
+      getPerformanceTester().test(layer, permPrototype);
     });
+    if (layer instanceof DAGNetwork) {
+      TestUtil.extractPerformance(log, (DAGNetwork) layer);
+    }
     
+  }
+  
+  /**
+   * Test reference io.
+   *
+   * @param log            the log
+   * @param layer          the layer
+   * @param inputPrototype the input prototype
+   */
+  public void testReferenceIO(NotebookOutput log, NNLayer layer, Tensor[] inputPrototype) {
+    HashMap<Tensor[], Tensor> referenceIO = getReferenceIO();
+    if (!referenceIO.isEmpty()) {
+      log.h3("Reference Input/Output Pairs");
+      referenceIO.forEach((input, output) -> {
+        log.code(() -> {
+          SimpleEval eval = SimpleEval.run(layer, input);
+          DoubleStatistics error = new DoubleStatistics().accept(eval.getOutput().add(output.scale(-1)).getData());
+          return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
+            Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+            eval.getOutput().prettyPrint(), error,
+            Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+        });
+      });
+    }
+    else {
+      log.h3("Example Input/Output Pair");
+      log.code(() -> {
+        SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+        return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+          eval.getOutput().prettyPrint(),
+          Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+      });
+    }
   }
   
   /**
@@ -193,7 +215,7 @@ public abstract class StandardLayerTests {
    * @return the derivative tester
    */
   public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-3, 1e-4);
+    return new SingleDerivativeTester(1e-3, 1e-4);
   }
   
   /**
@@ -218,5 +240,23 @@ public abstract class StandardLayerTests {
    * @return the int [ ] [ ]
    */
   public abstract int[][] getInputDims();
+  
+  /**
+   * Get perf dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
+  public int[][] getPerfDims() {
+    return getInputDims();
+  }
+  
+  /**
+   * Get reference input dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
+  public int[][] getReferenceInputDims() {
+    return getInputDims();
+  }
   
 }

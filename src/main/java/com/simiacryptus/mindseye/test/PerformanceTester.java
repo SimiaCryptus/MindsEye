@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * The type Performance tester.
@@ -34,7 +35,8 @@ import java.util.stream.IntStream;
 public class PerformanceTester {
   
   private static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
-  private final int samples = 10;
+  private int samples = 5;
+  private int batches = 100;
   private boolean testLearning = true;
   private boolean testEvaluation = true;
   
@@ -57,16 +59,16 @@ public class PerformanceTester {
       DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
         return testEvaluationPerformance(component, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).get();
-      System.out.println(String.format("Evaluation performance: %.4f +- %.4f [%.4f - %.4f]",
-        statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
+      System.out.println(String.format("Evaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
+        statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
       DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {
         return testLearningPerformance(component, outputPrototype, inputPrototype);
       }).reduce((a, b) -> a.combine(b)).orElseGet(() -> null);
       if (null != statistics) {
-        System.out.println(String.format("Learning performance: %.4f +- %.4f [%.4f - %.4f]",
-          statistics.getAverage() * 1e4, statistics.getStandardDeviation() * 1e4, statistics.getMin() * 1e4, statistics.getMax() * 1e4));
+        System.out.println(String.format("Learning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
+          statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }
   }
@@ -80,11 +82,13 @@ public class PerformanceTester {
    * @return the double statistics
    */
   protected DoubleStatistics testEvaluationPerformance(final NNLayer component, final Tensor... inputPrototype) {
-    return new DoubleStatistics().accept(IntStream.range(0, samples).mapToLong(l ->
-      TimedResult.time(() -> GpuController.call(exe -> {
-        return component.eval(exe, inputPrototype);
-      })).timeNanos
-    ).mapToDouble(x -> x / 1e9).toArray());
+    DoubleStatistics statistics = new DoubleStatistics();
+    statistics.accept(TimedResult.time(() -> GpuController.call(exe -> {
+      Stream<Tensor[]> stream = IntStream.range(0, batches).mapToObj(x -> inputPrototype);
+      Tensor[][] array = stream.toArray(i -> new Tensor[i][]);
+      return component.eval(exe, NNResult.batchResultArray(array));
+    })).timeNanos / 1e9);
+    return statistics;
   }
   
   /**
@@ -96,15 +100,19 @@ public class PerformanceTester {
    * @return the double statistics
    */
   protected DoubleStatistics testLearningPerformance(final NNLayer component, final Tensor outputPrototype, final Tensor... inputPrototype) {
-    return new DoubleStatistics().accept(IntStream.range(0, samples).mapToLong(l ->
-      GpuController.call(exe -> {
-        NNResult eval = component.eval(exe, inputPrototype);
-        return TimedResult.time(() -> {
-          DeltaSet buffer = new DeltaSet();
-          eval.accumulate(buffer, new TensorArray(outputPrototype));
-          return buffer;
-        });
-      }).timeNanos).mapToDouble(x -> x / 1e9).toArray());
+    DoubleStatistics statistics = new DoubleStatistics();
+    TimedResult<DeltaSet> time = GpuController.call(exe -> {
+      Tensor[][] data = IntStream.range(0, batches).mapToObj(x -> x).flatMap(x -> Stream.<Tensor[]>of(inputPrototype)).toArray(i -> new Tensor[i][]);
+      NNResult result = component.eval(exe, NNResult.batchResultArray(data));
+      DeltaSet buffer = new DeltaSet();
+      return TimedResult.time(() -> {
+        Tensor[] delta = result.getData().stream().map(x -> x.map(v -> 1.0)).toArray(i -> new Tensor[i]);
+        result.accumulate(buffer, new TensorArray(delta));
+        return buffer;
+      });
+    });
+    statistics.accept(time.timeNanos / 1e9);
+    return statistics;
   }
   
   /**
@@ -144,6 +152,46 @@ public class PerformanceTester {
    */
   public PerformanceTester setTestEvaluation(boolean testEvaluation) {
     this.testEvaluation = testEvaluation;
+    return this;
+  }
+  
+  /**
+   * Gets samples.
+   *
+   * @return the samples
+   */
+  public int getSamples() {
+    return samples;
+  }
+  
+  /**
+   * Sets samples.
+   *
+   * @param samples the samples
+   * @return the samples
+   */
+  public PerformanceTester setSamples(int samples) {
+    this.samples = samples;
+    return this;
+  }
+  
+  /**
+   * Gets batches.
+   *
+   * @return the batches
+   */
+  public int getBatches() {
+    return batches;
+  }
+  
+  /**
+   * Sets batches.
+   *
+   * @param batches the batches
+   * @return the batches
+   */
+  public PerformanceTester setBatches(int batches) {
+    this.batches = batches;
     return this;
   }
 }

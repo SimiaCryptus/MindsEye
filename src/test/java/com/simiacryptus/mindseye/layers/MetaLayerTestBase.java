@@ -17,33 +17,41 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.test.BatchDerivativeTester;
+import com.simiacryptus.mindseye.test.DerivativeTester;
 import com.simiacryptus.mindseye.test.StandardLayerTests;
+import com.simiacryptus.util.io.MarkdownNotebookOutput;
+import com.simiacryptus.util.io.NotebookOutput;
+import org.junit.Test;
 
 /**
- * The type Scale meta layer test.
+ * The type Meta layer test base.
  */
-public class ScaleMetaLayerTest extends StandardLayerTests {
+public abstract class MetaLayerTestBase extends StandardLayerTests {
   
   /**
-   * Instantiates a new Scale meta layer test.
+   * Instantiates a new Meta layer test base.
    */
-  public ScaleMetaLayerTest() {
+  public MetaLayerTestBase() {
     validateBatchExecution = false;
   }
   
-  @Override
-  public NNLayer getLayer() {
-    return new ScaleMetaLayer();
+  /**
+   * Test.
+   *
+   * @throws Throwable the throwable
+   */
+  @Test
+  public void test() throws Throwable {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      test(log);
+    }
   }
   
   @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {3}, {3}
-    };
+  public DerivativeTester getDerivativeTester() {
+    return new BatchDerivativeTester(1e-3, 1e-4);
   }
-  
 }

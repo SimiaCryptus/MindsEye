@@ -20,23 +20,19 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.UUID;
 
 /**
  * The type Std dev meta layer.
  */
 @SuppressWarnings("serial")
-public class StdDevMetaLayer extends DAGNetwork {
+public class StdDevMetaLayer extends PipelineNetwork {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);
-  private final DAGNode head;
   
   /**
    * Instantiates a new Std dev meta layer.
@@ -45,7 +41,6 @@ public class StdDevMetaLayer extends DAGNetwork {
    */
   protected StdDevMetaLayer(JsonObject json) {
     super(json);
-    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
   
   /**
@@ -57,32 +52,30 @@ public class StdDevMetaLayer extends DAGNetwork {
   
   /**
    * Instantiates a new Std dev meta layer.
-   * @param minBatchCount
+   *
+   * @param minBatchCount the min batch count
    */
   public StdDevMetaLayer(int minBatchCount) {
     super(1);
-    this.head = add(new NthPowerActivationLayer().setPower(0.5),
-      add(new SumInputsLayer(),
-        add(new AvgMetaLayer().setMinBatchCount(minBatchCount), add(new SqActivationLayer(), getInput(0))),
-        add(new LinearActivationLayer().setScale(-1).freeze(),
-          add(new SqActivationLayer(),
-            add(new AvgMetaLayer(),
-              getInput(0))))
-      ));
+    add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
+    add(new AvgReducerLayer());
+    add(new SqActivationLayer());
+    DAGNode a = add(new LinearActivationLayer().setScale(-1).freeze());
+    add(new SqActivationLayer(), getInput(0));
+    add(new AvgMetaLayer().setMinBatchCount(minBatchCount));
+    add(new AvgReducerLayer());
+    add(new SumInputsLayer(), getHead(), a);
+    add(new NthPowerActivationLayer().setPower(0.5));
   }
   
   /**
-   * From json nn layer.
+   * From json std dev meta layer.
    *
-   * @param inner the inner
-   * @return the nn layer
+   * @param json the json
+   * @return the std dev meta layer
    */
-  public static NNLayer fromJson(JsonObject inner) {
-    return new StdDevMetaLayer(inner);
+  public static StdDevMetaLayer fromJson(JsonObject json) {
+    return new StdDevMetaLayer(json);
   }
   
-  @Override
-  public DAGNode getHead() {
-    return head;
-  }
 }

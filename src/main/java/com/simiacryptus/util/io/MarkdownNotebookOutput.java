@@ -42,7 +42,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   
   private static int imageNumber = 0;
   private static int excerptNumber = 0;
-
+  
   private final List<PrintStream> outs = new ArrayList<>();
   private final File fileName;
   private final String name;
@@ -74,7 +74,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       String className = null == source ? callingFrame.getClassName() : source.getClass().getCanonicalName();
       String methodName = callingFrame.getMethodName();
       String fileName = methodName + ".md";
-      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.","/").replaceAll("\\$","/"), fileName));
+      File path = new File(Util.mkString(File.separator, "reports", className.replaceAll("\\.", "/").replaceAll("\\$", "/"), fileName));
       path.getParentFile().mkdirs();
       return new MarkdownNotebookOutput(path, methodName);
     } catch (FileNotFoundException e) {
@@ -186,7 +186,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           escape = true;
         }
         if (escape) out("```");
-        out(escape ? ("    " + summarize(str,maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "")) : str);
+        out(escape ? ("    " + summarize(str, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", "")) : str);
         if (escape) out("```");
         out("\n\n");
         if (eval instanceof Throwable) {
@@ -210,7 +210,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     if (logSrc.length() > maxLog * 2) {
       String prefix = logSrc.substring(0, maxLog);
       logSrc = prefix + String.format(
-        (prefix.endsWith("\n")?"":"\n") + "~```\n~..." + file(logSrc, "skipping %s bytes") + "...\n~```\n",
+        (prefix.endsWith("\n") ? "" : "\n") + "~```\n~..." + file(logSrc, "skipping %s bytes") + "...\n~```\n",
         logSrc.length() - 2 * maxLog) + logSrc.substring(logSrc.length() - maxLog);
     }
     else if (logSrc.length() > 0) {
@@ -227,16 +227,18 @@ public class MarkdownNotebookOutput implements NotebookOutput {
   @Override
   public String file(String data, String fileName, String caption) {
     try {
-      if(null != data) IOUtils.write(data , new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
+      if (null != data) {
+        IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return "["+caption+"](etc/" + fileName + ")";
+    return "[" + caption + "](etc/" + fileName + ")";
   }
   
   @Override
   public String image(BufferedImage rawImage, String caption) throws IOException {
-    if(null == rawImage) return "";
+    if (null == rawImage) return "";
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     int thisImage = ++imageNumber;
     String fileName = this.name + "." + thisImage + ".png";

@@ -44,25 +44,41 @@ public class TensorTest {
   @Category(TestCategories.UnitTest.class)
   public void testCoordStream() throws Exception {
     List<String> coordinates = new Tensor(2, 2, 2).coordStream()
-      .map(c -> String.format("%s - %s", c.index, Arrays.toString(c.coords))).collect(Collectors.toList());
+      .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
     for (String c : coordinates) {
       System.out.println(c);
     }
   }
 
+  /**
+   * Test to json.
+   *
+   * @throws Exception the exception
+   */
   @Test
   @Category(TestCategories.UnitTest.class)
   public void testToJson() throws Exception {
-    test(new Tensor(3, 3, 1).map(v->Math.random()));
-    test(new Tensor(1, 3, 3).map(v->Math.random()));
+    test(new Tensor(3, 3, 1).map(v -> Math.random()));
+    test(new Tensor(1, 3, 3).map(v -> Math.random()));
   }
   
+  /**
+   * Test.
+   *
+   * @param t the t
+   */
   public void test(Tensor t) {
     JsonElement json = t.toJson();
     Assert.assertEquals(Tensor.fromJson(json), t);
     parse(json.toString());
   }
   
+  /**
+   * Parse tensor.
+   *
+   * @param str the str
+   * @return the tensor
+   */
   public Tensor parse(String str) {
     JsonElement json = new GsonBuilder().create().fromJson(str, JsonElement.class);
     Tensor tensor = Tensor.fromJson(json);

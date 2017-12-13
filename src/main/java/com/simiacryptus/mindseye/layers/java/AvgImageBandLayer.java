@@ -79,7 +79,7 @@ public class AvgImageBandLayer extends NNLayer {
     
     Tensor[] results = inData.stream().map(data -> {
       DoubleStream doubleStream = IntStream.range(0, inputDims[2]).parallel().mapToDouble(band -> {
-        return data.coordStream().filter(e -> e.coords[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
+        return data.coordStream().filter(e -> e.getCoords()[2] == band).mapToDouble(c -> data.get(c)).average().getAsDouble();
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
     }).toArray(i -> new Tensor[i]);
@@ -92,8 +92,8 @@ public class AvgImageBandLayer extends NNLayer {
             Tensor tensor = inData.get(dataIndex);
             int[] inputDim = tensor.getDimensions();
             Tensor backprop = data.get(dataIndex);
-            return new Tensor(inputDim).mapCoords((v, c) -> {
-              return backprop.get(0, 0, c.coords[2]) / (inputDim[0] * inputDim[1]);
+            return new Tensor(inputDim).mapCoords((c) -> {
+              return backprop.get(0, 0, c.getCoords()[2]) / (inputDim[0] * inputDim[1]);
             });
           }).toArray(i -> new Tensor[i])));
         }
@@ -123,7 +123,7 @@ public class AvgImageBandLayer extends NNLayer {
      * The Output.
      */
     int[] output;
-  
+    
     /**
      * Instantiates a new Index map key.
      *
@@ -135,7 +135,7 @@ public class AvgImageBandLayer extends NNLayer {
       this.kernel = kernel;
       this.output = output;
     }
-  
+    
     /**
      * Instantiates a new Index map key.
      *

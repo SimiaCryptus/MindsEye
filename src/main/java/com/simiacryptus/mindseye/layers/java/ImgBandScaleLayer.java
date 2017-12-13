@@ -161,7 +161,7 @@ public class ImgBandScaleLayer extends NNLayer {
         }
         if (input.isAlive()) {
           input.accumulate(buffer, new TensorArray(data.stream().map(
-            t -> t.mapCoords((v, c) -> v * bias[c.coords[2]])
+            t -> t.mapCoords((c) -> t.get(c) * bias[c.getCoords()[2]])
           ).toArray(i -> new Tensor[i])));
         }
       }

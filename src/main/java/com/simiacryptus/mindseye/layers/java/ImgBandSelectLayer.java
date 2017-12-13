@@ -84,7 +84,7 @@ public class ImgBandSelectLayer extends NNLayer {
     assert (3 == inputDims.length);
     Tensor outputDims = new Tensor(inputDims[0], inputDims[1], bands.length);
     return new NNResult(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> outputDims.mapCoords((v, c) -> batch.get(dataIndex).get(c.coords[0], c.coords[1], bands[c.coords[2]])))
+      .mapToObj(dataIndex -> outputDims.mapCoords((c) -> batch.get(dataIndex).get(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]])))
       .toArray(i -> new Tensor[i])) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList error) {
@@ -94,7 +94,7 @@ public class ImgBandSelectLayer extends NNLayer {
               Tensor passback = new Tensor(inputDims);
               Tensor err = error.get(dataIndex);
               err.coordStream().forEach(c -> {
-                passback.set(c.coords[0], c.coords[1], bands[c.coords[2]], err.get(c));
+                passback.set(c.getCoords()[0], c.getCoords()[1], bands[c.getCoords()[2]], err.get(c));
               });
               return passback;
             }).toArray(i -> new Tensor[i]);

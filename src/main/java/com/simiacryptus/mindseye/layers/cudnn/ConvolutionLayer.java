@@ -116,6 +116,18 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return new ConvolutionLayer(json);
   }
   
+  /**
+   * Add.
+   *
+   * @param f    the f
+   * @param data the data
+   */
+  public static void add(final DoubleSupplier f, final double[] data) {
+    for (int i = 0; i < data.length; i++) {
+      data[i] += f.getAsDouble();
+    }
+  }
+  
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.add("filter", kernel.toJson());
@@ -135,12 +147,6 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return this;
   }
   
-  public static void add(final DoubleSupplier f, final double[] data) {
-    for (int i = 0; i < data.length; i++) {
-      data[i] += f.getAsDouble();
-    }
-  }
-  
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     PipelineNetwork network = new PipelineNetwork();
@@ -156,8 +162,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
       int _offset = offset;
       batchKernel.fillByCoord(batchCoord -> {
         int filterBandT = getFilterBand(inputBands, outputBands, _offset, batchCoord);
-        if (_offset + batchCoord.coords[2] < filterDimensions[2]) {
-          return kernel.get(batchCoord.coords[0], batchCoord.coords[1], filterBandT);
+        if (_offset + batchCoord.getCoords()[2] < filterDimensions[2]) {
+          return kernel.get(batchCoord.getCoords()[0], batchCoord.getCoords()[1], filterBandT);
         }
         else {
           return 0;
@@ -187,9 +193,9 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
             Tensor batchDelta = new Tensor(null == subnetDelta ? null : subnetDelta.getDelta(), batchDimensions);
             int offset = batchNumber * inputBandsSq;
             batchDelta.coordStream().forEach(batchCoord -> {
-              if (offset + batchCoord.coords[2] < filterDimensions[2]) {
+              if (offset + batchCoord.getCoords()[2] < filterDimensions[2]) {
                 int bandT = getFilterBand(inputBands, outputBands, offset, batchCoord);
-                filterDelta.set(batchCoord.coords[0], batchCoord.coords[1], bandT, batchDelta.get(batchCoord));
+                filterDelta.set(batchCoord.getCoords()[0], batchCoord.getCoords()[1], bandT, batchDelta.get(batchCoord));
               }
             });
           }
@@ -214,7 +220,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @return the filter band
    */
   public int getFilterBand(int inputBands, int outputBands, int offset, Coordinate coord) {
-    int filterBand = offset + coord.coords[2];
+    int filterBand = offset + coord.getCoords()[2];
     int filterBandX = filterBand % inputBands;
     int filterBandY = (filterBand - filterBandX) / inputBands;
     assert filterBand == filterBandY * inputBands + filterBandX;

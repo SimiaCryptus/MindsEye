@@ -309,7 +309,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     private final LineSearchPoint initialPoint;
     private double thisX;
     private LineSearchPoint thisPoint;
-  
+    
     /**
      * Instantiates a new Locate initial right point.
      *
@@ -325,7 +325,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       thisPoint = cursor.step(thisX, monitor);
       monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
     }
-  
+    
     /**
      * Gets right x.
      *
@@ -334,7 +334,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     public double getRightX() {
       return thisX;
     }
-  
+    
     /**
      * Gets right point.
      *
@@ -343,7 +343,7 @@ public class QuadraticSearch implements LineSearchStrategy {
     public LineSearchPoint getRightPoint() {
       return thisPoint;
     }
-  
+    
     /**
      * Apply locate initial right point.
      *

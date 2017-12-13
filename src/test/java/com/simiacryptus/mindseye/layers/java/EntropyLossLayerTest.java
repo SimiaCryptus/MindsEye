@@ -20,9 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.DerivativeTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 import com.simiacryptus.util.Util;
 
 /**
@@ -43,8 +43,8 @@ public class EntropyLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-4, 1e-8);
+  public SingleDerivativeTester getDerivativeTester() {
+    return new SingleDerivativeTester(1e-4, 1e-8);
   }
   
   @Override
@@ -74,8 +74,8 @@ public class EntropyLossLayerTest extends LayerTestBase {
     }
     
     @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-4, 1e-8);
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-4, 1e-8);
     }
     
     @Override

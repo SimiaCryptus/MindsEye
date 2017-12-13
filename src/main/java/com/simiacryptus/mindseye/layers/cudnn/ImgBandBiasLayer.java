@@ -98,12 +98,12 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
         precision.code, CUDNN_TENSOR_NCHW, length, inputSize[2], inputSize[1], inputSize[0]);
       CudaResource<cudnnTensorDescriptor> filterDescriptor = CuDNN.newTensorDescriptor(
         precision.code, CUDNN_TENSOR_NCHW, 1, inputSize[2], 1, 1);
-      CudaPtr alpha = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 1.0);
-      CudaPtr beta = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 1.0);
+      CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+      CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
       
       assert (0 < this.bias.length);
-      CudaPtr filterPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, this.bias);
-      CudaPtr inputData = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), batch, precision);
+      CudaPtr filterPtr = new CudaPtr(this.bias.length * precision.size, ((CudaExecutionContext) nncontext).getDeviceNumber()).write(precision, this.bias);
+      CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       try {
         CuDNN.handle(cudnnAddTensor(cudnnHandle, alpha.getPtr(),
@@ -113,14 +113,14 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
       } catch (Throwable e) {
         throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
       }
-      TensorList output = CudaPtr.fromDevice(inputData, length, outputSize, cudnnHandle, precision);
+      TensorList output = new GpuTensorList(inputData, length, outputSize, cudnnHandle, precision);
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet<NNLayer> buffer, final TensorList error) {
           ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-          CudaPtr errorPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), error, precision);
+          CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           if (!isFrozen()) {
             CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), ImgBandBiasLayer.this.bias.length * 1l * precision.size);
             try {
@@ -131,7 +131,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
             } catch (Throwable e) {
               throw new ComponentException("Error with " + Arrays.toString(inputSize), e);
             }
-            final Tensor weightGradient = CudaPtr.fromDevice(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
+            final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, new int[]{1, 1, inputSize[2]});
             //assert Arrays.stream(weightGradient.getData()).allMatch(Double::isFinite);
             Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, ImgBandBiasLayer.this.bias);
             deltaBuffer.addInPlace(weightGradient.getData());

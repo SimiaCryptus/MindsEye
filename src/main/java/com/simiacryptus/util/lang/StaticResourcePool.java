@@ -96,7 +96,9 @@ public class StaticResourcePool<T> {
    *
    * @return the int
    */
-  public int size() { return getAll().size(); }
+  public int size() {
+    return getAll().size();
+  }
   
   /**
    * Gets all.

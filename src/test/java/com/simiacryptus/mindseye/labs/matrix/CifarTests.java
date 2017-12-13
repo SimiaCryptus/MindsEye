@@ -215,7 +215,7 @@ public class CifarTests {
     private final OptimizationStrategy optimizationStrategy;
     private final FwdNetworkFactory fwdFactory;
     private final CIFARProblemData data = new CIFARProblemData();
-  
+    
     /**
      * Instantiates a new All tests.
      *
@@ -228,7 +228,7 @@ public class CifarTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-  
+    
     /**
      * Encoding test.
      *
@@ -244,14 +244,14 @@ public class CifarTests {
         new EncodingProblem(revFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-  
+    
     /**
      * Intro.
      *
      * @param log the log
      */
     protected abstract void intro(NotebookOutput log);
-  
+    
     /**
      * Classification test.
      *
@@ -267,7 +267,7 @@ public class CifarTests {
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-  
+    
     /**
      * Autoencoder test.
      *

@@ -115,9 +115,9 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
       assert (inputSize[2] == outputSize[1]);
       CudaResource<cudnnTensorDescriptor> outputDescriptor = CuDNN.newTensorDescriptor(
         precision.code, CUDNN_TENSOR_NCHW, outputSize[0], outputSize[1], outputSize[2], outputSize[3]);
-      CudaPtr alpha = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 1.0);
-      CudaPtr beta = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 0.0);
-      CudaPtr inputData = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), batch, precision);
+      CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+      CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
+      CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
       CudaPtr outputData = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), precision.size * 1l * Tensor.dim(outputSize));
       final cudnnHandle cudnnHandle = ((CuDNN) nncontext).cudnnHandle;
       CuDNN.handle(cudnnPoolingForward(cudnnHandle, poolingDesc.getPtr(),
@@ -125,14 +125,14 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
         inputDescriptor.getPtr(), inputData.getPtr(),
         beta.getPtr(),
         outputDescriptor.getPtr(), outputData.getPtr()));
-      TensorList output = CudaPtr.fromDevice(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle, precision);
+      TensorList output = new GpuTensorList(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, cudnnHandle, precision);
       return new NNResult(output) {
         @Override
         public void accumulate(final DeltaSet buffer, final TensorList error) {
           ((CudaExecutionContext) nncontext).initThread();
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          CudaPtr errorPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), error, precision);
+          CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           if (input.isAlive()) {
             CudaPtr passbackBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), inputDims * 1l * precision.size * length);
             CuDNN.handle(cudnnPoolingBackward(cudnnHandle, poolingDesc.getPtr(),
@@ -142,7 +142,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
               inputDescriptor.getPtr(), inputData.getPtr(),
               beta.getPtr(),
               inputDescriptor.getPtr(), passbackBuffer.getPtr()));
-            input.accumulate(buffer, CudaPtr.fromDevice(passbackBuffer, length, inputSize, cudnnHandle, precision));
+            input.accumulate(buffer, new GpuTensorList(passbackBuffer, length, inputSize, cudnnHandle, precision));
           }
         }
         
@@ -195,6 +195,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * Sets window x.
    *
    * @param windowX the window x
+   * @return the window x
    */
   public PoolingLayer setWindowX(int windowX) {
     this.windowX = windowX;
@@ -214,6 +215,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * Sets window y.
    *
    * @param windowY the window y
+   * @return the window y
    */
   public PoolingLayer setWindowY(int windowY) {
     this.windowY = windowY;
@@ -233,6 +235,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * Sets padding x.
    *
    * @param paddingX the padding x
+   * @return the padding x
    */
   public PoolingLayer setPaddingX(int paddingX) {
     this.paddingX = paddingX;
@@ -252,6 +255,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * Sets padding y.
    *
    * @param paddingY the padding y
+   * @return the padding y
    */
   public PoolingLayer setPaddingY(int paddingY) {
     this.paddingY = paddingY;
@@ -271,6 +275,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * Sets stride x.
    *
    * @param strideX the stride x
+   * @return the stride x
    */
   public PoolingLayer setStrideX(int strideX) {
     this.strideX = strideX;
@@ -290,6 +295,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
    * Sets stride y.
    *
    * @param strideY the stride y
+   * @return the stride y
    */
   public PoolingLayer setStrideY(int strideY) {
     this.strideY = strideY;

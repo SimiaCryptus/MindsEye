@@ -43,20 +43,44 @@ import java.util.UUID;
  */
 public class HtmlNotebookOutput implements NotebookOutput {
   
-  private final List<PrintStream> outs = new ArrayList<>();
-  /**
-   * The Working dir.
-   */
-  public final File workingDir;
-  private final OutputStream primaryOut;
   /**
    * The constant DEFAULT_ROOT.
    */
   public static String DEFAULT_ROOT = "https://github.com/SimiaCryptus/utilities/tree/master/";
   /**
+   * The Working dir.
+   */
+  public final File workingDir;
+  private final List<PrintStream> outs = new ArrayList<>();
+  private final OutputStream primaryOut;
+  /**
    * The Source root.
    */
   public String sourceRoot = DEFAULT_ROOT;
+  /**
+   * The Excerpt number.
+   */
+  int excerptNumber = 0;
+  
+  /**
+   * Instantiates a new Html notebook output.
+   *
+   * @param parentDirectory the parent directory
+   * @param out             the out
+   * @throws FileNotFoundException the file not found exception
+   */
+  public HtmlNotebookOutput(File parentDirectory, OutputStream out) throws FileNotFoundException {
+    this.primaryOut = out;
+    outs.add(new PrintStream(out));
+    this.workingDir = parentDirectory;
+    out("<html><head><style>\n" +
+      "pre {\n" +
+      "    background-color: lightyellow;\n" +
+      "    margin-left: 20pt;\n" +
+      "    font-family: monospace;\n" +
+      "}\n" +
+      "</style></head><body>");
+  }
   
   /**
    * Create html notebook output.
@@ -74,27 +98,6 @@ public class HtmlNotebookOutput implements NotebookOutput {
       }
     };
   }
-  
-  /**
-   * Instantiates a new Html notebook output.
-   *
-   * @param parentDirectory the parent directory
-   * @param out             the out
-   * @throws FileNotFoundException the file not found exception
-   */
-  public HtmlNotebookOutput(File parentDirectory, OutputStream out) throws FileNotFoundException {
-    this.primaryOut = out;
-    outs.add(new PrintStream(out));
-    this.workingDir = parentDirectory;
-    out("<html><head><style>\n" +
-          "pre {\n" +
-          "    background-color: lightyellow;\n" +
-          "    margin-left: 20pt;\n" +
-          "    font-family: monospace;\n" +
-          "}\n" +
-          "</style></head><body>");
-  }
-  
   
   @Override
   public OutputStream file(String name) {
@@ -234,15 +237,12 @@ public class HtmlNotebookOutput implements NotebookOutput {
       String right = string.substring(string.length() - maxLog);
       String link = String.format(file(string, "\n...skipping %s bytes...\n"), string.length() - 2 * maxLog);
       return left + link + right;
-    } else {
+    }
+    else {
       return string;
     }
   }
   
-  /**
-   * The Excerpt number.
-   */
-  int excerptNumber = 0;
   @Override
   public String file(String data, String caption) {
     return file(data, excerptNumber++ + ".txt", caption);
@@ -251,11 +251,11 @@ public class HtmlNotebookOutput implements NotebookOutput {
   @Override
   public String file(String data, String fileName, String caption) {
     try {
-      IOUtils.write(data , new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
+      IOUtils.write(data, new FileOutputStream(new File(getResourceDir(), fileName)), Charset.forName("UTF-8"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return "<a href='etc/" + fileName + "'>"+caption+"</a>";
+    return "<a href='etc/" + fileName + "'>" + caption + "</a>";
   }
   
   @Override

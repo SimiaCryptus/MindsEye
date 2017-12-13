@@ -58,7 +58,8 @@ public abstract class ResourcePool<T> {
     T prior = currentValue.get();
     if (null != prior) {
       f.accept(prior);
-    } else {
+    }
+    else {
       T poll = get();
       try {
         currentValue.set(poll);
@@ -100,5 +101,7 @@ public abstract class ResourcePool<T> {
    *
    * @return the int
    */
-  public int size() { return all.size(); }
+  public int size() {
+    return all.size();
+  }
 }

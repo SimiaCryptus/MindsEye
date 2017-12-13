@@ -44,11 +44,11 @@ public class CodeUtil {
       "src/main/java", "src/test/java", "src/main/scala", "src/test/scala"
     );
     List<File> codeLocation = folders.stream().map(name -> new File(projectRoot, name))
-                                .filter(file -> file.exists() && file.isDirectory()).collect(Collectors.toList());
-    if(codeLocation.isEmpty()) {
-      codeLocation = Arrays.stream(projectRoot.listFiles()).filter(x->x.isDirectory()).flatMap(childRoot->
+      .filter(file -> file.exists() && file.isDirectory()).collect(Collectors.toList());
+    if (codeLocation.isEmpty()) {
+      codeLocation = Arrays.stream(projectRoot.listFiles()).filter(x -> x.isDirectory()).flatMap(childRoot ->
         folders.stream().map(name -> new File(childRoot, name)).filter(file -> file.exists() && file.isDirectory()))
-       .collect(Collectors.toList());
+        .collect(Collectors.toList());
     }
     return codeLocation;
   }

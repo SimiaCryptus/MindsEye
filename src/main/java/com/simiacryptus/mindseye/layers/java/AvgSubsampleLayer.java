@@ -51,9 +51,9 @@ public class AvgSubsampleLayer extends NNLayer {
         final int[] ksize = key.kernel;
         final Map<Coordinate, List<int[]>> coordMap = new Tensor(key.output).coordStream().collect(Collectors.toMap(o -> o, o -> {
           return new Tensor(ksize).coordStream().map(kernelCoord -> {
-            final int[] r = new int[o.coords.length];
-            for (int i = 0; i < o.coords.length; i++) {
-              r[i] = o.coords[i] * ksize[i] + kernelCoord.coords[i];
+            final int[] r = new int[o.getCoords().length];
+            for (int i = 0; i < o.getCoords().length; i++) {
+              r[i] = o.getCoords()[i] * ksize[i] + kernelCoord.getCoords()[i];
             }
             return r;
           }).collect(Collectors.toList());
@@ -188,7 +188,7 @@ public class AvgSubsampleLayer extends NNLayer {
      * The Output.
      */
     int[] output;
-  
+    
     /**
      * Instantiates a new Index map key.
      *
@@ -200,7 +200,7 @@ public class AvgSubsampleLayer extends NNLayer {
       this.kernel = kernel;
       this.output = output;
     }
-  
+    
     /**
      * Instantiates a new Index map key.
      *

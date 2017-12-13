@@ -38,8 +38,6 @@ import java.util.function.Function;
  */
 public abstract class OptimizerComparison {
   
-  private int timeoutMinutes = 1;
-  
   /**
    * The constant quadratic_quasi_newton.
    */
@@ -56,78 +54,10 @@ public abstract class OptimizerComparison {
       return trainer;
     });
   };
-  
-  /**
-   * The type Compare qqn.
-   */
-  public static class CompareQQN extends OptimizerComparison {
-  
-    /**
-     * Instantiates a new Compare qqn.
-     */
-    public CompareQQN() {
-      super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new MnistProblemData());
-    }
-    
-    @Override
-    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
-      log.h1("QQN-LBFGS Comparison");
-      log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(TextbookOptimizers.limited_memory_bfgs));
-      log.h2("QQN");
-      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton));
-      log.h2("Comparison");
-      log.code(()->{
-        return TestUtil.compare(lbfgs, qqn);
-      });
-      log.code(()->{
-        return TestUtil.compareTime(lbfgs, qqn);
-      });
-    }
-    
-  }
-  
-  /**
-   * The type Compare textbook.
-   */
-  public static class CompareTextbook extends OptimizerComparison {
-  
-    /**
-     * Instantiates a new Compare textbook.
-     */
-    public CompareTextbook() {
-      super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
-    }
-    
-    @Override
-    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
-      log.h1("Textbook Optimizer Comparison");
-      log.h2("GD");
-      ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(TextbookOptimizers.simple_gradient_descent));
-      log.h2("SGD");
-      ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent));
-      log.h2("CGD");
-      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.conjugate_gradient_descent));
-      log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs));
-      log.h2("OWL-QN");
-      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.orthantwise_quasi_newton));
-      log.h2("Comparison");
-      log.code(()->{
-        return TestUtil.compare(gd, sgd, cgd, lbfgs, owlqn);
-      });
-      log.code(()->{
-        return TestUtil.compareTime(gd, sgd, cgd, lbfgs, owlqn);
-      });
-    }
-    
-  }
-  
-  
   private final FwdNetworkFactory fwdFactory;
   private final RevNetworkFactory revFactory;
   private final ImageProblemData data;
-  
+  private int timeoutMinutes = 1;
   /**
    * Instantiates a new Optimizer comparison.
    *
@@ -140,7 +70,7 @@ public abstract class OptimizerComparison {
     this.revFactory = revFactory;
     this.data = data;
   }
-  
+
   /**
    * Classification comparison.
    *
@@ -201,5 +131,71 @@ public abstract class OptimizerComparison {
   public OptimizerComparison setTimeoutMinutes(int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
+  }
+  
+  /**
+   * The type Compare qqn.
+   */
+  public static class CompareQQN extends OptimizerComparison {
+    
+    /**
+     * Instantiates a new Compare qqn.
+     */
+    public CompareQQN() {
+      super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new MnistProblemData());
+    }
+    
+    @Override
+    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
+      log.h1("QQN-LBFGS Comparison");
+      log.h2("L-BFGS");
+      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(TextbookOptimizers.limited_memory_bfgs));
+      log.h2("QQN");
+      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton));
+      log.h2("Comparison");
+      log.code(() -> {
+        return TestUtil.compare(lbfgs, qqn);
+      });
+      log.code(() -> {
+        return TestUtil.compareTime(lbfgs, qqn);
+      });
+    }
+    
+  }
+  
+  /**
+   * The type Compare textbook.
+   */
+  public static class CompareTextbook extends OptimizerComparison {
+    
+    /**
+     * Instantiates a new Compare textbook.
+     */
+    public CompareTextbook() {
+      super(MnistTests.fwd_linear_1, MnistTests.rev_linear_1, new MnistProblemData());
+    }
+    
+    @Override
+    public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
+      log.h1("Textbook Optimizer Comparison");
+      log.h2("GD");
+      ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(TextbookOptimizers.simple_gradient_descent));
+      log.h2("SGD");
+      ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent));
+      log.h2("CGD");
+      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.conjugate_gradient_descent));
+      log.h2("L-BFGS");
+      ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs));
+      log.h2("OWL-QN");
+      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.orthantwise_quasi_newton));
+      log.h2("Comparison");
+      log.code(() -> {
+        return TestUtil.compare(gd, sgd, cgd, lbfgs, owlqn);
+      });
+      log.code(() -> {
+        return TestUtil.compareTime(gd, sgd, cgd, lbfgs, owlqn);
+      });
+    }
+    
   }
 }

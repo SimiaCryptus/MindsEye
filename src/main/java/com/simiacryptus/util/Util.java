@@ -141,7 +141,7 @@ public class Util {
     final File outDir = new File("reports");
     outDir.mkdirs();
     final StackTraceElement caller = getLast(Arrays.stream(Thread.currentThread().getStackTrace())//
-                                               .filter(x -> x.getClassName().contains("simiacryptus")));
+      .filter(x -> x.getClassName().contains("simiacryptus")));
     final File report = new File(outDir, caller.getClassName() + "_" + caller.getLineNumber() + ".html");
     final PrintStream out = new PrintStream(new FileOutputStream(report));
     out.println("<html><head></head><body>");
@@ -298,7 +298,7 @@ public class Util {
    * @return the buffered image
    */
   public static BufferedImage resize(BufferedImage image) {
-    if(null==image) return image;
+    if (null == image) return image;
     int width = image.getWidth();
     if (width < 800) return image;
     int height = image.getHeight() * width / image.getWidth();
@@ -403,11 +403,11 @@ public class Util {
           }
           
           public void checkClientTrusted(
-                                          X509Certificate[] certs, String authType) {
+            X509Certificate[] certs, String authType) {
           }
           
           public void checkServerTrusted(
-                                          X509Certificate[] certs, String authType) {
+            X509Certificate[] certs, String authType) {
           }
         }
       };

@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.test.DerivativeTester;
+import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 
 /**
  * The type Product layer test.
@@ -49,7 +49,7 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2,2,1}, {2,2,1}
+      {2, 2, 1}, {2, 2, 1}
     };
   }
   
@@ -75,11 +75,11 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
     public Double3() {
       super(Precision.Double);
     }
-  
+    
     @Override
     public int[][] getInputDims() {
       return new int[][]{
-        {2,2,1}, {2,2,1}, {2,2,1}
+        {2, 2, 1}, {2, 2, 1}, {2, 2, 1}
       };
     }
   }
@@ -96,8 +96,8 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-2, 1e-3);
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-3);
     }
     
   }

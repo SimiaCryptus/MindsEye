@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.Pointer;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
@@ -92,14 +91,14 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
       CudaResource<cudnnTensorDescriptor> viewDescriptor = CuDNN.newTensorDescriptor(
         precision.code, length, bands, dimensions[1], dimensions[0],
         dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
-      CudaPtr cudaPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), data, precision);
+      CudaPtr cudaPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, data);
       cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
-        Pointer.to(new double[]{1.0}), inputDescriptor.getPtr(), cudaPtr.getPtr(),
-        Pointer.to(new double[]{0.0}), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * precision.size)
+        precision.getPointer(1.0), inputDescriptor.getPtr(), cudaPtr.getPtr(),
+        precision.getPointer(0.0), viewDescriptor.getPtr(), outputBuffer.getPtr().withByteOffset(dimensions[1] * dimensions[0] * bandOffset * precision.size)
       );
       bandOffset += bands;
     }
-    TensorList outputData = CudaPtr.fromDevice(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle, precision);
+    TensorList outputData = new GpuTensorList(outputBuffer, length, dimOut, ((CuDNN) nncontext).cudnnHandle, precision);
     //assert outputData.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
     return new NNResult(outputData) {
       @Override
@@ -111,7 +110,7 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
         ((CudaExecutionContext) nncontext).initThread();
         assert (error.length() == inObj[0].getData().length());
         //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-        CudaPtr errorPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), error, precision);
+        CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
         int bandOffset = 0;
         for (int i = 0; i < inObj.length; i++) {
           NNResult input = inObj[i];
@@ -127,10 +126,10 @@ public class ImgConcatLayer extends NNLayer implements LayerPrecision<ImgConcatL
               precision.code, length, bands, dimensions[1], dimensions[0],
               dimOut[2] * dimOut[1] * dimOut[0], dimOut[1] * dimOut[0], dimOut[0], 1);
             cudnnTransformTensor(((CuDNN) nncontext).cudnnHandle,
-              Pointer.to(new double[]{1.0}), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * precision.size),
-              Pointer.to(new double[]{0.0}), inputDescriptor.getPtr(), passbackBuffer.getPtr()
+              precision.getPointer(1.0), viewDescriptor.getPtr(), errorPtr.getPtr().withByteOffset(dimensions[1] * dimensions[0] * _bandOffset * precision.size),
+              precision.getPointer(0.0), inputDescriptor.getPtr(), passbackBuffer.getPtr()
             );
-            TensorList passbackTensorList = CudaPtr.fromDevice(passbackBuffer, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
+            TensorList passbackTensorList = new GpuTensorList(passbackBuffer, length, dimensions, ((CuDNN) nncontext).cudnnHandle, precision);
             //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
             input.accumulate(buffer, passbackTensorList);
             passbackBuffer.finalize();

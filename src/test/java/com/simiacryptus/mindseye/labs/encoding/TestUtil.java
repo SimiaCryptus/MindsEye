@@ -23,17 +23,17 @@ import com.simiacryptus.mindseye.data.Caltech101;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -46,10 +46,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.ToDoubleBiFunction;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -58,6 +60,14 @@ import java.util.stream.Stream;
  * The type Image encoding util.
  */
 class TestUtil {
+  /**
+   * The constant svgNumber.
+   */
+  public static int svgNumber = 0;
+  /**
+   * The constant imageNumber.
+   */
+  public static int imageNumber = 0;
   /**
    * The constant out.
    */
@@ -134,7 +144,7 @@ class TestUtil {
     String modelName = "model" + modelNo + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   }
-  
+
   /**
    * Validation report.
    *
@@ -157,15 +167,6 @@ class TestUtil {
       return table;
     });
   }
-  
-  /**
-   * The constant svgNumber.
-   */
-  public static int svgNumber = 0;
-  /**
-   * The constant imageNumber.
-   */
-  public static int imageNumber = 0;
   
   /**
    * Render layer.
@@ -240,7 +241,7 @@ class TestUtil {
     String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       double fPos = componentStats.get(i).getMax() / 0xFF;
       double fNeg = componentStats.get(i).getMin() / 0xFF;
-      return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fNeg + "\" k4=\""+ fNeg+"\"/>\n" +
+      return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fNeg + "\" k4=\"" + fNeg + "\"/>\n" +
         "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fPos + "\" k4=\"" + 0.0 + "\"/>\n";
     }).reduce((a, b) -> a + "\n" + b).get();
     
@@ -340,13 +341,13 @@ class TestUtil {
     Tensor[] featureSpaceVectors = featureSpace.getVectors();
     for (Tensor t : featureSpaceVectors) System.out.println(String.format("Feature Vector %s%n", t.prettyPrint()));
     convolutionLayer.kernel.fillByCoord(c -> {
-      int kband = c.coords[2];
+      int kband = c.getCoords()[2];
       int outband = kband % outputBands;
       int inband = (kband - outband) / outputBands;
       assert outband < outputBands;
       assert inband < inputBands;
-      int x = c.coords[0];
-      int y = c.coords[1];
+      int x = c.getCoords()[0];
+      int y = c.getCoords()[1];
       x = filterDimensions[0] - (x + 1);
       y = filterDimensions[1] - (y + 1);
       double v = featureSpaceVectors[inband].get(x, y, outband);
@@ -365,14 +366,17 @@ class TestUtil {
    */
   public static Stream<Tensor[]> convolutionFeatures(Stream<Tensor[]> tensors, int radius) {
     int column = 1;
+    ThreadLocal<ConvolutionExtractor> extractors = ThreadLocal.withInitial(() -> new ConvolutionExtractor());
     return tensors.parallel().flatMap(image -> {
-      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).flatMap(x -> {
+      Tensor region = new Tensor(radius, radius, image[column].getDimensions()[2]);
+      return IntStream.range(0, image[column].getDimensions()[0] - (radius - 1)).mapToObj(x -> x).parallel().flatMap(x -> {
         return IntStream.range(0, image[column].getDimensions()[column] - (radius - 1)).mapToObj(y -> {
-          Tensor region = new Tensor(radius, radius, image[column].getDimensions()[2]);
-          final ToDoubleBiFunction<Double, Coordinate> f = (v, c) -> {
-            return image[column].get(c.coords[0] + x, c.coords[column] + y, c.coords[2]);
-          };
-          return new Tensor[]{image[0], region.mapCoords(f)};
+          ConvolutionExtractor extractor = extractors.get();
+          extractor.x = x;
+          extractor.y = y;
+          extractor.column = column;
+          extractor.image = image;
+          return new Tensor[]{image[0], region.mapCoords(extractor)};
         });
       });
     });
@@ -488,7 +492,7 @@ class TestUtil {
         return IntStream.range(0, dimensions[2]).mapToObj(x -> x).flatMap(b -> {
           return Arrays.stream(data).map(r -> r[_col]).map(tensor -> {
             ScalarStatistics scalarStatistics = new ScalarStatistics();
-            scalarStatistics.add(new Tensor(dimensions[0], dimensions[1]).fillByCoord(coord -> tensor.get(coord.coords[0], coord.coords[1], b)).getData());
+            scalarStatistics.add(new Tensor(dimensions[0], dimensions[1]).fillByCoord(coord -> tensor.get(coord.getCoords()[0], coord.getCoords()[1], b)).getData());
             return scalarStatistics;
           });
         }).map(x -> x.getMetrics().toString()).reduce((a, b) -> a + "\n" + b).get();
@@ -543,7 +547,7 @@ class TestUtil {
   public static Stream<BufferedImage> renderToImages(Tensor tensor, boolean normalize) {
     DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
       return new DoubleStatistics().accept(tensor.coordStream()
-        .filter(x -> x.coords[2] == band)
+        .filter(x -> x.getCoords()[2] == band)
         .mapToDouble(c -> tensor.get(c)).toArray());
     }).toArray(i -> new DoubleStatistics[i]);
     BiFunction<Double, DoubleStatistics, Double> transform = (value, stats) -> {
@@ -571,8 +575,8 @@ class TestUtil {
       }
       return (0xFF * unitValue);
     };
-    tensor.coordStream().collect(Collectors.groupingBy(x -> x.coords[2], Collectors.toList()));
-    Tensor normal = tensor.mapCoords((v, c) -> transform.apply(v, statistics[c.coords[2]]))
+    tensor.coordStream().collect(Collectors.groupingBy(x -> x.getCoords()[2], Collectors.toList()));
+    Tensor normal = tensor.mapCoords((c) -> transform.apply(tensor.get(c), statistics[c.getCoords()[2]]))
       .map(v -> Math.min(0xFF, Math.max(0, v)));
     return (normalize ? normal : tensor).toImages().stream();
   }
@@ -616,6 +620,32 @@ class TestUtil {
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+  
+  private static class ConvolutionExtractor implements ToDoubleFunction<Coordinate> {
+    
+    /**
+     * The X.
+     */
+    public int x;
+    /**
+     * The Y.
+     */
+    public int y;
+    /**
+     * The Column.
+     */
+    public int column;
+    /**
+     * The Image.
+     */
+    public Tensor[] image;
+    
+    @Override
+    public double applyAsDouble(Coordinate c) {
+      int[] coords = c.getCoords();
+      return image[column].get(coords[0] + x, coords[column] + y, coords[2]);
     }
   }
   

@@ -58,6 +58,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
    * Add.
    *
    * @param values the values
+   * @return the scalar statistics
    */
   public ScalarStatistics add(double... values) {
     double v1 = 0;
@@ -134,7 +135,7 @@ public class ScalarStatistics implements MonitoredItem, Serializable {
     sum.sum2 -= right.sum2;
     return sum;
   }
-
+  
   /**
    * Add.
    *

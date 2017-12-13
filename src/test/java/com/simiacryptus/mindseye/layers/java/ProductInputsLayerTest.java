@@ -30,12 +30,12 @@ public class ProductInputsLayerTest {
    * The type Nn test.
    */
   public static class NNTest extends LayerTestBase {
-  
+    
     @Override
     public NNLayer getLayer() {
       return new ProductInputsLayer();
     }
-  
+    
     @Override
     public int[][] getInputDims() {
       return new int[][]{
@@ -43,6 +43,10 @@ public class ProductInputsLayerTest {
       };
     }
   }
+  
+  /**
+   * The type Nnn test.
+   */
   public static class NNNTest extends LayerTestBase {
     
     @Override

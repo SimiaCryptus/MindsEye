@@ -20,19 +20,12 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.test.BatchingTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
-import org.junit.Ignore;
+import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
 /**
  * The type Normalization meta layer test.
  */
-@Ignore
-public class NormalizationMetaLayerTest extends LayerTestBase {
-  
-  public NormalizationMetaLayerTest() {
-    this.validateBatchExecution = false;
-  }
+public class NormalizationMetaLayerTest extends MetaLayerTestBase {
   
   @Override
   public NNLayer getLayer() {
@@ -42,13 +35,22 @@ public class NormalizationMetaLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
+      {3}, {3}, {3}
+    };
+  }
+  
+  @Override
+  public int[][] getReferenceInputDims() {
+    return new int[][]{
       {3}
     };
   }
   
   @Override
-  public BatchingTester getBatchingTester() {
-    return null;
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {10}
+    };
   }
   
 }

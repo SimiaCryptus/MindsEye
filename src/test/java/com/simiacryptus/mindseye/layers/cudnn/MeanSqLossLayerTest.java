@@ -17,31 +17,39 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import org.junit.Ignore;
 
 /**
- * The type Cum std dev meta layer test.
+ * The type Mean sq loss layer test.
  */
-@Ignore
-public class CumStdDevMetaLayerTest extends LayerTestBase {
-  
-  public CumStdDevMetaLayerTest() {
-    this.validateBatchExecution = false;
-  }
+public class MeanSqLossLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new CumStdDevMetaLayer();
+    return new MeanSqLossLayer();
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}
+      {3, 3, 1}, {3, 3, 1}
     };
   }
+  
+  /**
+   * The type Asymetric.
+   */
+  public class Asymetric extends MeanSqLossLayerTest {
+    
+    @Override
+    public int[][] getInputDims() {
+      return new int[][]{
+        {2, 3, 1}, {2, 3, 1}
+      };
+    }
+  }
+  
 }

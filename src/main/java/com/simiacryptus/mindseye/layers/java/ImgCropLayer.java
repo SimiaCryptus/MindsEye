@@ -87,7 +87,7 @@ public class ImgCropLayer extends NNLayer {
     int paddingX = (inDim[0] - outDim[0]) / 2;
     int paddingY = (inDim[0] - outDim[0]) / 2;
     outputData.coordStream().forEach((c) ->
-      outputData.set(c, inputData.get(c.coords[0] + paddingX, c.coords[1] + paddingY, c.coords[2])));
+      outputData.set(c, inputData.get(c.getCoords()[0] + paddingX, c.getCoords()[1] + paddingY, c.getCoords()[2])));
     return outputData;
   }
   
@@ -109,7 +109,7 @@ public class ImgCropLayer extends NNLayer {
     int paddingX = (outDim[0] - inDim[0]) / 2;
     int paddingY = (outDim[0] - inDim[0]) / 2;
     inputData.coordStream().forEach(c -> {
-      outputData.set(c.coords[0] + paddingX, c.coords[1] + paddingY, c.coords[2], inputData.get(c));
+      outputData.set(c.getCoords()[0] + paddingX, c.getCoords()[1] + paddingY, c.getCoords()[2], inputData.get(c));
     });
     return outputData;
   }

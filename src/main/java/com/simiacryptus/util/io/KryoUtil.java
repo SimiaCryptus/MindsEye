@@ -33,13 +33,13 @@ import java.util.EnumSet;
  * The type Kryo util.
  */
 public class KryoUtil {
-
+  
   private static final ThreadLocal<Kryo> threadKryo = new ThreadLocal<Kryo>() {
-
+    
     @Override
     protected Kryo initialValue() {
       final Kryo kryo = new KryoReflectionFactorySupport() {
-
+        
         @Override
         public Serializer<?> getDefaultSerializer(@SuppressWarnings("rawtypes") final Class clazz) {
           if (EnumSet.class.isAssignableFrom(clazz)) {
@@ -49,17 +49,16 @@ public class KryoUtil {
             return new EnumMapSerializer();
           }
           Serializer<?> serializer = super.getDefaultSerializer(clazz);
-          if(serializer instanceof FieldSerializer)
-          {
-            ((FieldSerializer)serializer).setCopyTransient(false);
+          if (serializer instanceof FieldSerializer) {
+            ((FieldSerializer) serializer).setCopyTransient(false);
           }
           return serializer;
         }
-
+        
       };
       return kryo;
     }
-
+    
   };
   
   /**

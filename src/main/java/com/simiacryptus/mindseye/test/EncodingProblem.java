@@ -49,13 +49,12 @@ import java.util.concurrent.TimeUnit;
 public class EncodingProblem implements Problem {
   
   private static int modelNo = 0;
-  
-  private int batchSize = 10000;
-  private int trainingSize = 15000;
   private final RevNetworkFactory revFactory;
   private final OptimizationStrategy optimizer;
   private final List<StepRecord> history = new ArrayList<>();
   private final ImageProblemData data;
+  private int batchSize = 10000;
+  private int trainingSize = 15000;
   private int features;
   private int timeoutMinutes = 1;
   
@@ -65,7 +64,7 @@ public class EncodingProblem implements Problem {
    * @param revFactory the rev factory
    * @param optimizer  the optimizer
    * @param data       the data
-   * @param features
+   * @param features   the features
    */
   public EncodingProblem(RevNetworkFactory revFactory, OptimizationStrategy optimizer, ImageProblemData data, int features) {
     this.revFactory = revFactory;
@@ -93,7 +92,7 @@ public class EncodingProblem implements Problem {
       return Graphviz.fromGraph(TestUtil.toGraph(imageNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
-  
+    
     PipelineNetwork trainingNetwork = new PipelineNetwork(2);
     DAGNode image = trainingNetwork.add(imageNetwork, trainingNetwork.getInput(0));
     DAGNode softmax = trainingNetwork.add(new SoftmaxActivationLayer(), trainingNetwork.getInput(0));
@@ -233,21 +232,43 @@ public class EncodingProblem implements Problem {
     return history;
   }
   
+  /**
+   * Gets training size.
+   *
+   * @return the training size
+   */
   public int getTrainingSize() {
     return trainingSize;
   }
   
+  /**
+   * Sets training size.
+   *
+   * @param trainingSize the training size
+   * @return the training size
+   */
+  public EncodingProblem setTrainingSize(int trainingSize) {
+    this.trainingSize = trainingSize;
+    return this;
+  }
+  
+  /**
+   * Gets batch size.
+   *
+   * @return the batch size
+   */
   public int getBatchSize() {
     return batchSize;
   }
   
+  /**
+   * Sets batch size.
+   *
+   * @param batchSize the batch size
+   * @return the batch size
+   */
   public EncodingProblem setBatchSize(int batchSize) {
     this.batchSize = batchSize;
-    return this;
-  }
-  
-  public EncodingProblem setTrainingSize(int trainingSize) {
-    this.trainingSize = trainingSize;
     return this;
   }
 }

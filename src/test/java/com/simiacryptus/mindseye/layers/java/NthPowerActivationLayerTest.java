@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.test.DerivativeTester;
+import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 
 /**
  * The type Nth power activation layer test.
@@ -72,17 +72,17 @@ public class NthPowerActivationLayerTest {
     public InvPowerTest() {
       super(new NthPowerActivationLayer().setPower(-1));
     }
-  
+    
     @Override
     public double random() {
       double v = super.random();
-      if(Math.abs(v)<0.2) return random();
+      if (Math.abs(v) < 0.2) return random();
       return v;
     }
-  
+    
     @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-2, 1e-4);
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-4);
     }
   }
   
@@ -96,17 +96,17 @@ public class NthPowerActivationLayerTest {
     public InvSqrtPowerTest() {
       super(new NthPowerActivationLayer().setPower(-0.5));
     }
-  
+    
     @Override
     public double random() {
       double v = super.random();
-      if(Math.abs(v)<0.2) return random();
+      if (Math.abs(v) < 0.2) return random();
       return v;
     }
-  
+    
     @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-2, 1e-4);
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-4);
     }
   }
   

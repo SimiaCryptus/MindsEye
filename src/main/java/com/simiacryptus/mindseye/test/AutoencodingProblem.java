@@ -66,8 +66,8 @@ public class AutoencodingProblem implements Problem {
    * @param optimizer  the optimizer
    * @param revFactory the rev factory
    * @param data       the data
-   * @param features
-   * @param dropout
+   * @param features   the features
+   * @param dropout    the dropout
    */
   public AutoencodingProblem(FwdNetworkFactory fwdFactory, OptimizationStrategy optimizer, RevNetworkFactory revFactory, ImageProblemData data, int features, double dropout) {
     this.fwdFactory = fwdFactory;
@@ -95,7 +95,7 @@ public class AutoencodingProblem implements Problem {
     supervisedNetwork.add(new MeanSqLossLayer(),
       supervisedNetwork.getHead(),
       supervisedNetwork.getInput(0));
-
+    
     log.h3("Network Diagrams");
     log.code(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
@@ -126,7 +126,7 @@ public class AutoencodingProblem implements Problem {
     };
     
     Tensor[][] trainingData = getTrainingData(log);
-
+    
     //MonitoredObject monitoringRoot = new MonitoredObject();
     //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
     
@@ -152,10 +152,10 @@ public class AutoencodingProblem implements Problem {
       String modelName = "encoder_model" + modelNo++ + ".json";
       log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
     }
-  
+    
     String modelName = "decoder_model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
-  
+
 //    log.h3("Metrics");
 //    log.code(() -> {
 //      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());

@@ -20,18 +20,19 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.test.BatchingTester;
-import com.simiacryptus.mindseye.test.DerivativeTester;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
 /**
  * The type Std dev meta layer test.
  */
-public class StdDevMetaLayerTest extends LayerTestBase {
+public class StdDevMetaLayerTest extends MetaLayerTestBase {
   
+  /**
+   * Instantiates a new Std dev meta layer test.
+   */
   public StdDevMetaLayerTest() {
+    super();
     this.validateDifferentials = false;
-    this.validateBatchExecution = false;
   }
   
   @Override
@@ -42,18 +43,22 @@ public class StdDevMetaLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
+      {3}, {3}, {3}
+    };
+  }
+  
+  @Override
+  public int[][] getReferenceInputDims() {
+    return new int[][]{
       {3}
     };
   }
   
   @Override
-  public DerivativeTester getDerivativeTester() {
-    return super.getDerivativeTester().setTestLearning(false);
-  }
-  
-  @Override
-  public BatchingTester getBatchingTester() {
-    return null;
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {10}
+    };
   }
   
 }

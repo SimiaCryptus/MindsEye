@@ -35,7 +35,7 @@ public class BinaryEntropyActivationLayerTest extends ActivationLayerTestBase {
   
   @Override
   public double random() {
-    return 0.2*Math.random() + 0.1;
+    return 0.2 * Math.random() + 0.1;
   }
   
   @Override

@@ -110,6 +110,11 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     
   }
   
+  /**
+   * Scan double stream.
+   *
+   * @return the double stream
+   */
   public DoubleStream scan() {
     return IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
   }

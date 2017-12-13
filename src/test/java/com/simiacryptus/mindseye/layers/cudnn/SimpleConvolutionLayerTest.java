@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
-import com.simiacryptus.mindseye.test.DerivativeTester;
+import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 
 /**
  * The type Simple convolution layer test.
@@ -67,12 +67,12 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     ConvolutionLayer convolutionLayer = new ConvolutionLayer(radius, radius, bands, bands, true);
     Tensor tensor = new Tensor(layer.kernel.getDimensions());
     tensor.fillByCoord(c -> {
-      int band = c.coords[2];
+      int band = c.getCoords()[2];
       int bandX = band % bands;
       int bandY = (band - bandX) / bands;
       assert band == bandX + bandY * bands;
       int bandT = bandY + bandX * bands;
-      return layer.kernel.get(c.coords[0], c.coords[1], bandT);
+      return layer.kernel.get(c.getCoords()[0], c.getCoords()[1], bandT);
     });
     convolutionLayer.kernel.set(tensor);
     return convolutionLayer;
@@ -133,8 +133,8 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-2, 1e-3);
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-3);
     }
     
   }

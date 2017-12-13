@@ -152,13 +152,13 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
         new int[]{paddingX, paddingY},
         new int[]{strideY, strideX},
         new int[]{1, 1});
-      CudaPtr alpha = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 1.0);
-      CudaPtr beta = CudaPtr.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, 0.0);
+      CudaPtr alpha = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 1.0);
+      CudaPtr beta = precision.javaPtr(((CudaExecutionContext) nncontext).getDeviceNumber(), 0.0);
       
       final double[] filterData = this.kernel.getData();
-      CudaPtr filterPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, filterData);
+      CudaPtr filterPtr = new CudaPtr(filterData.length * precision.size, ((CudaExecutionContext) nncontext).getDeviceNumber()).write(precision, filterData);
       assert (0 < filterData.length);
-      CudaPtr inputData = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), batch, precision);
+      CudaPtr inputData = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, batch);
       assert kernelSize[0] * kernelSize[1] * kernelSize[2] == filterData.length;
       
       CudaPtr outputBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), Tensor.dim(outputSize) * 1l * length * precision.size);
@@ -178,7 +178,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
       } catch (Throwable e) {
         throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
       }
-      TensorList output = CudaPtr.fromDevice(outputBuffer, length, outputSize, cudnnHandle, precision);
+      TensorList output = new GpuTensorList(outputBuffer, length, outputSize, cudnnHandle, precision);
       
       return new NNResult(output) {
         @Override
@@ -187,7 +187,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
           assert (error.length() == batch.length());
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
           int length = error.length();
-          CudaPtr errorPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), error, precision);
+          CudaPtr errorPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, error);
           if (!isFrozen()) {
             CudaPtr filterBuffer = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), filterData.length * 1l * precision.size);
             try {
@@ -204,7 +204,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
             } catch (Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
-            final Tensor weightGradient = CudaPtr.fromDevice(filterBuffer, precision, SimpleConvolutionLayer.this.kernel.getDimensions());
+            final Tensor weightGradient = CudaPtr.read(filterBuffer, precision, SimpleConvolutionLayer.this.kernel.getDimensions());
             buffer.get(SimpleConvolutionLayer.this, SimpleConvolutionLayer.this.kernel.getData()).addInPlace(weightGradient.getData());
           }
           if (input.isAlive()) {
@@ -222,7 +222,7 @@ public class SimpleConvolutionLayer extends NNLayer implements LayerPrecision<Si
             } catch (Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
             }
-            TensorList inputBufferTensors = CudaPtr.fromDevice(inputBuffer, length, inputSize, cudnnHandle, precision);
+            TensorList inputBufferTensors = new GpuTensorList(inputBuffer, length, inputSize, cudnnHandle, precision);
             input.accumulate(buffer, inputBufferTensors);
           }
         }

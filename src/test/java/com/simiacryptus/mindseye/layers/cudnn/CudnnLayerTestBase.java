@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -36,10 +38,10 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public void test(NotebookOutput log) {
+  public void testReferenceIO(NotebookOutput log, NNLayer layer, Tensor[] inputPrototype) {
     try {
       CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
-      super.test(log);
+      super.testReferenceIO(log, layer, inputPrototype);
     } finally {
       log.p(log.file(null, "cuda.log", "GPU Log"));
       CuDNN.apiLog.close();

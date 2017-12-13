@@ -33,7 +33,7 @@ public class PercentileStatistics extends ScalarStatistics {
   
   @Override
   public synchronized ScalarStatistics add(double... values) {
-    if(null != this.values) this.values.add(Arrays.copyOf(values,values.length));
+    if (null != this.values) this.values.add(Arrays.copyOf(values, values.length));
     super.add(values);
     return null;
   }
@@ -60,8 +60,8 @@ public class PercentileStatistics extends ScalarStatistics {
    * @return the percentile
    */
   public synchronized Double getPercentile(double percentile) {
-    if(null == values) return Double.NaN;
-    return values.parallelStream().flatMapToDouble(x-> Arrays.stream(x)).sorted().skip((int)(percentile * values.size())).findFirst().orElse(Double.NaN);
+    if (null == values) return Double.NaN;
+    return values.parallelStream().flatMapToDouble(x -> Arrays.stream(x)).sorted().skip((int) (percentile * values.size())).findFirst().orElse(Double.NaN);
   }
   
 }

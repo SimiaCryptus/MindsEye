@@ -237,7 +237,7 @@ public class FullyConnectedLayer extends NNLayer {
   public FullyConnectedLayer setWeights(final ToDoubleBiFunction<Coordinate, Coordinate> f) {
     new Tensor(inputDims).coordStream().parallel().forEach(in -> {
       new Tensor(outputDims).coordStream().parallel().forEach(out -> {
-        weights.set(new int[]{in.index, out.index}, f.applyAsDouble(in, out));
+        weights.set(new int[]{in.getIndex(), out.getIndex()}, f.applyAsDouble(in, out));
       });
     });
     return this;
@@ -290,9 +290,9 @@ public class FullyConnectedLayer extends NNLayer {
    */
   public void initSpacial(double radius, double stiffness, double peak) {
     setWeights((Coordinate in, Coordinate out) -> {
-      double[] doubleCoords = IntStream.range(0, in.coords.length).mapToDouble(d -> {
-        double from = in.coords[d] * 1.0 / FullyConnectedLayer.this.inputDims[d];
-        double to = out.coords[d] * 1.0 / FullyConnectedLayer.this.outputDims[d];
+      double[] doubleCoords = IntStream.range(0, in.getCoords().length).mapToDouble(d -> {
+        double from = in.getCoords()[d] * 1.0 / FullyConnectedLayer.this.inputDims[d];
+        double to = out.getCoords()[d] * 1.0 / FullyConnectedLayer.this.outputDims[d];
         return from - to;
       }).toArray();
       double dist = Math.sqrt(Arrays.stream(doubleCoords).map(x -> x * x).sum());

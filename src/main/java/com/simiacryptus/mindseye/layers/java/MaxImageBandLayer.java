@@ -83,13 +83,13 @@ public class MaxImageBandLayer extends NNLayer {
     
     Coordinate[][] maxCoords = in.getData().stream().map(data -> {
       return IntStream.range(0, inputDims[2]).mapToObj(band -> {
-        return data.coordStream().filter(e -> e.coords[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
+        return data.coordStream().filter(e -> e.getCoords()[2] == band).max(Comparator.comparing(c -> data.get(c))).get();
       }).toArray(i -> new Coordinate[i]);
     }).toArray(i -> new Coordinate[i][]);
     
     Tensor[] results = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
       DoubleStream doubleStream = IntStream.range(0, inputDims[2]).mapToDouble(band -> {
-        int[] maxCoord = maxCoords[dataIndex][band].coords;
+        int[] maxCoord = maxCoords[dataIndex][band].getCoords();
         return in.getData().get(dataIndex).get(maxCoord[0], maxCoord[1], band);
       });
       return new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
@@ -102,7 +102,7 @@ public class MaxImageBandLayer extends NNLayer {
           final Tensor[] data1 = IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
             Tensor passback = new Tensor(in.getData().get(dataIndex).getDimensions());
             IntStream.range(0, inputDims[2]).forEach(b -> {
-              int[] maxCoord = maxCoords[dataIndex][b].coords;
+              int[] maxCoord = maxCoords[dataIndex][b].getCoords();
               passback.set(new int[]{maxCoord[0], maxCoord[1], b}, data.get(dataIndex).get(0, 0, b));
             });
             return passback;
@@ -135,7 +135,7 @@ public class MaxImageBandLayer extends NNLayer {
      * The Kernel dims.
      */
     public int[] kernelDims;
-  
+    
     /**
      * Instantiates a new Calc regions parameter.
      *

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.ToDoubleBiFunction;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
@@ -85,7 +85,7 @@ public class AvgMetaLayer extends NNLayer {
     Tensor thisResult;
     boolean passback;
     if (null == lastResult || input.getData().length() > minBatchCount) {
-      final ToDoubleBiFunction<Double, Coordinate> f = (v, c) ->
+      final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
           .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
           .sum() / itemCnt;
@@ -128,11 +128,19 @@ public class AvgMetaLayer extends NNLayer {
   
   /**
    * The Min batch count.
+   *
+   * @return the min batch count
    */
   public int getMinBatchCount() {
     return minBatchCount;
   }
   
+  /**
+   * Sets min batch count.
+   *
+   * @param minBatchCount the min batch count
+   * @return the min batch count
+   */
   public AvgMetaLayer setMinBatchCount(int minBatchCount) {
     this.minBatchCount = minBatchCount;
     return this;

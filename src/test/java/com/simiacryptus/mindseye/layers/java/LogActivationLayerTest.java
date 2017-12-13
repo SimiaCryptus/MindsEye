@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.test.DerivativeTester;
+import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 
 /**
  * The type Log activation layer test.
@@ -33,7 +33,7 @@ public class LogActivationLayerTest extends ActivationLayerTestBase {
   }
   
   @Override
-  public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-2, 1e-8);
+  public SingleDerivativeTester getDerivativeTester() {
+    return new SingleDerivativeTester(1e-2, 1e-8);
   }
 }

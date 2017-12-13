@@ -27,6 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class CrossDotMetaLayerTest extends LayerTestBase {
   
+  /**
+   * Instantiates a new Cross dot meta layer test.
+   */
   public CrossDotMetaLayerTest() {
     validateBatchExecution = false;
   }

@@ -103,7 +103,7 @@ public class TestUtil {
   public static PlotCanvas plotTime(List<StepRecord> history) {
     LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
     PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-      (step.epochTime-timeStats.getMin())/1000.0, java.lang.Math.log10(step.fitness)}).toArray(i -> new double[i][]));
+      (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)}).toArray(i -> new double[i][]));
     plot.setTitle("Convergence Plot");
     plot.setAxisLabels("Time", "log10(Fitness)");
     plot.setSize(600, 400);
@@ -147,22 +147,22 @@ public class TestUtil {
    */
   public static PlotCanvas compareTime(ProblemRun... trials) {
     DoubleSummaryStatistics[] xStatistics = Arrays.stream(trials)
-      .map(x -> x.history.stream().mapToDouble(step -> step.epochTime).summaryStatistics()).toArray(i->new DoubleSummaryStatistics[i]);
+      .map(x -> x.history.stream().mapToDouble(step -> step.epochTime).summaryStatistics()).toArray(i -> new DoubleSummaryStatistics[i]);
     double totalTime = Arrays.stream(xStatistics).mapToDouble(x -> x.getMax() - x.getMin()).max().getAsDouble();
     DoubleSummaryStatistics yStatistics = Arrays.stream(trials)
       .flatMapToDouble(x -> x.history.stream().mapToDouble(step -> java.lang.Math.log10(step.fitness)))
       .summaryStatistics();
     double[] lowerBound = {0, yStatistics.getMin()};
-    double[] upperBound = {(totalTime)/1000.0, yStatistics.getMax()};
+    double[] upperBound = {(totalTime) / 1000.0, yStatistics.getMax()};
     PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
     canvas.setTitle("Convergence Plot");
     canvas.setAxisLabels("Time", "log10(Fitness)");
     canvas.setSize(600, 400);
-    for (int t=0;t<trials.length;t++) {
+    for (int t = 0; t < trials.length; t++) {
       ProblemRun trial = trials[t];
       DoubleSummaryStatistics trialStats = xStatistics[t];
       ScatterPlot plot = new ScatterPlot(trial.history.stream().map(step -> {
-        return new double[]{ (step.epochTime - trialStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)};
+        return new double[]{(step.epochTime - trialStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)};
       }).toArray(i -> new double[i][]));
       plot.setID(trial.name);
       plot.setColor(trial.color);
@@ -232,11 +232,11 @@ public class TestUtil {
       });
       System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
         PercentileStatistics performance = e.getValue().getForwardPerformance();
-        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+        return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
       }).reduce((a, b) -> a + "\n\t" + b));
       System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
         PercentileStatistics performance = e.getValue().getBackwardPerformance();
-        return String.format("%s -> %.4f +- %.4f (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+        return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
       }).reduce((a, b) -> a + "\n\t" + b));
     });
     log.p("Removing performance wrappers");

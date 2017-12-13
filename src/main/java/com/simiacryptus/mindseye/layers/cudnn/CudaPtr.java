@@ -26,7 +26,6 @@ import com.simiacryptus.mindseye.lang.DoubleArrays;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import jcuda.Pointer;
-import jcuda.jcudnn.cudnnHandle;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -107,20 +106,6 @@ public class CudaPtr extends CudaResource<Pointer> {
     this.deviceId = deviceId;
   }
   
-  /**
-   * Free.
-   *
-   * @param data the data
-   */
-  public static void free(TensorList data) {
-    if (data instanceof FloatTensorList) {
-      ((FloatTensorList) data).ptr.finalize();
-    }
-    else if (data instanceof DoubleTensorList) {
-      ((DoubleTensorList) data).ptr.finalize();
-    }
-  }
-  
   private static Object getPciBusLock() {
     return lockPci ? pciBusLock : new Object();
   }
@@ -146,67 +131,6 @@ public class CudaPtr extends CudaResource<Pointer> {
   }
   
   /**
-   * Java ptr cuda ptr.
-   *
-   * @param deviceId  the device id
-   * @param precision the precision
-   * @param data      the data  @return the cuda ptr
-   * @return the cuda ptr
-   */
-  public static CudaPtr javaPtr(int deviceId, Precision precision, double... data) {
-    Pointer ptr;
-    switch (precision) {
-      case Float:
-        ptr = Pointer.to(Precision.getFloats(data));
-        break;
-      case Double:
-        ptr = Pointer.to(data);
-        break;
-      default:
-        throw new IllegalStateException();
-    }
-    return new CudaPtr(ptr, data.length * precision.size, deviceId);
-  }
-  
-  /**
-   * Write cuda ptr.
-   *
-   * @param deviceId  the device id
-   * @param precision the precision
-   * @param data      the data  @return the cuda ptr
-   * @return the cuda ptr
-   */
-  public static CudaPtr write(int deviceId, Precision precision, double... data) {
-    switch (precision) {
-      case Float:
-        return new CudaPtr(data.length * precision.size, deviceId).write(precision, Precision.getFloats(data));
-      case Double:
-        return new CudaPtr(data.length * precision.size, deviceId).write(precision, data);
-      default:
-        throw new IllegalStateException();
-    }
-  }
-  
-  /**
-   * Write cuda ptr.
-   *
-   * @param deviceId  the device id
-   * @param precision the precision
-   * @param data      the data  @return the cuda ptr
-   * @return the cuda ptr
-   */
-  public static CudaPtr write(int deviceId, Precision precision, float... data) {
-    switch (precision) {
-      case Float:
-        return new CudaPtr(data.length * precision.size, deviceId).write(precision, data);
-      case Double:
-        return new CudaPtr(data.length * precision.size, deviceId).write(precision, Precision.getDoubles(data));
-      default:
-        throw new IllegalStateException();
-    }
-  }
-  
-  /**
    * From device double tensor.
    *
    * @param ptr        the filter data
@@ -214,21 +138,19 @@ public class CudaPtr extends CudaResource<Pointer> {
    * @param dimensions the dimensions  @return the tensor
    * @return the tensor
    */
-  public static Tensor fromDevice(CudaPtr ptr, Precision precision, int[] dimensions) {
+  public static Tensor read(CudaPtr ptr, Precision precision, int[] dimensions) {
     final Tensor tensor = new Tensor(dimensions);
     switch (precision) {
-      case Float: {
+      case Float:
         int length = tensor.dim();
         float[] data = new float[length];
         ptr.read(precision, data);
         double[] doubles = tensor.getData();
         for (int i = 0; i < length; i++) doubles[i] = data[i];
         break;
-      }
-      case Double: {
+      case Double:
         ptr.read(precision, tensor.getData());
         break;
-      }
       default:
         throw new IllegalStateException();
     }
@@ -236,43 +158,16 @@ public class CudaPtr extends CudaResource<Pointer> {
   }
   
   /**
-   * From device double tensor list.
-   *
-   * @param ptr         the ptr
-   * @param length      the length
-   * @param dimensions  the dimensions
-   * @param cudnnHandle the cudnn handle
-   * @param precision   the precision
-   * @return the tensor list
-   */
-  public static TensorList fromDevice(CudaPtr ptr, int length, int[] dimensions, cudnnHandle cudnnHandle, Precision precision) {
-    switch (precision) {
-      case Double:
-        return new DoubleTensorList(ptr, length, dimensions, cudnnHandle);
-      case Float:
-        return new FloatTensorList(ptr, length, dimensions, cudnnHandle);
-      default:
-        throw new IllegalArgumentException(precision.toString());
-    }
-  }
-  
-  /**
    * To device as double cuda ptr.
    *
    * @param deviceId  the device id
-   * @param data      the data
    * @param precision the precision
+   * @param data      the data
    * @return the cuda ptr
    */
-  public static CudaPtr toDevice(int deviceId, TensorList data, Precision precision) {
-    if (data instanceof DoubleTensorList && precision == Precision.Double) {
-      CudaPtr ptr = ((DoubleTensorList) data).ptr;
-      assert null != ptr;
-      assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
-      return ptr;
-    }
-    else if (data instanceof FloatTensorList && precision == Precision.Float) {
-      CudaPtr ptr = ((FloatTensorList) data).ptr;
+  public static CudaPtr write(int deviceId, Precision precision, TensorList data) {
+    if (data instanceof GpuTensorList && precision == ((GpuTensorList) data).getPrecision()) {
+      CudaPtr ptr = ((GpuTensorList) data).ptr;
       assert null != ptr;
       assert null != ptr.getPtr() : null == ptr.finalizedBy ? "" : Arrays.stream(ptr.finalizedBy).map(x -> x.toString()).reduce((a, b) -> a + "; " + b).get();
       return ptr;
@@ -286,7 +181,7 @@ public class CudaPtr extends CudaResource<Pointer> {
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
       }
-      CudaPtr ptr = write(deviceId, precision, inputBuffer);
+      CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId).write(precision, inputBuffer);
       DoubleArrays.recycle(inputBuffer);
       return ptr;
     }
@@ -321,7 +216,7 @@ public class CudaPtr extends CudaResource<Pointer> {
   public CudaPtr write(Precision precision, float[] data) {
     synchronized (getPciBusLock()) {
       if (this.size != data.length * precision.size) throw new IllegalArgumentException();
-      Pointer src = Precision.getPointer(precision, data);
+      Pointer src = precision.getPointer(data);
       CuDNN.handle(CuDNN.cudaMemcpy(getPtr(), src, size, cudaMemcpyHostToDevice));
       getGpuStats(deviceId).memoryWrites.addAndGet(size);
       return this;
@@ -338,7 +233,7 @@ public class CudaPtr extends CudaResource<Pointer> {
   public CudaPtr write(Precision precision, double[] data) {
     synchronized (getPciBusLock()) {
       if (this.size != data.length * precision.size) throw new IllegalArgumentException();
-      Pointer src = Precision.getPointer(precision, data);
+      Pointer src = precision.getPointer(data);
       CuDNN.handle(CuDNN.cudaMemcpy(getPtr(), src, size, cudaMemcpyHostToDevice));
       getGpuStats(deviceId).memoryWrites.addAndGet(size);
       return this;
@@ -357,7 +252,7 @@ public class CudaPtr extends CudaResource<Pointer> {
       if (this.size != data.length * precision.size) {
         throw new IllegalArgumentException(this.size + " != " + data.length * precision.size);
       }
-      Pointer dst = Precision.getPointer(precision, data);
+      Pointer dst = precision.getPointer(data);
       CuDNN.handle(CuDNN.cudaMemcpy(dst, getPtr(), size, cudaMemcpyDeviceToHost));
       getGpuStats(deviceId).memoryReads.addAndGet(size);
       return this;
@@ -376,7 +271,7 @@ public class CudaPtr extends CudaResource<Pointer> {
       if (this.size != data.length * 1l * precision.size) {
         throw new IllegalArgumentException(this.size + " != " + (data.length * 1l * precision.size));
       }
-      Pointer dst = Precision.getPointer(precision, data);
+      Pointer dst = precision.getPointer(data);
       CuDNN.handle(CuDNN.cudaMemcpy(dst, getPtr(), size, cudaMemcpyDeviceToHost));
       getGpuStats(deviceId).memoryReads.addAndGet(size);
       return this;

@@ -59,7 +59,7 @@ public abstract class NNResult {
    * @return the nn result [ ]
    */
   public static NNResult[] singleResultArray(Tensor[][] input) {
-    return Arrays.stream(input).map((Tensor[] x) -> new NNConstant(x)).toArray(i -> new NNResult[i]);
+    return Arrays.stream(input).map((Tensor[] x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
   }
   
   /**
@@ -69,7 +69,7 @@ public abstract class NNResult {
    * @return the nn result [ ]
    */
   public static NNResult[] singleResultArray(Tensor[] input) {
-    return Arrays.stream(input).map((Tensor x) -> new NNConstant(x)).toArray(i -> new NNResult[i]);
+    return Arrays.stream(input).map((Tensor x) -> new NNConstant(new TensorArray(x))).toArray(i -> new NNResult[i]);
   }
   
   /**
@@ -80,9 +80,9 @@ public abstract class NNResult {
    */
   public static NNResult[] batchResultArray(Tensor[][] batchData) {
     return IntStream.range(0, batchData[0].length).mapToObj(inputIndex ->
-      new NNConstant(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
+      new NNConstant(new TensorArray(IntStream.range(0, batchData.length).mapToObj(trainingExampleId ->
         batchData[trainingExampleId][inputIndex]
-      ).toArray(i -> new Tensor[i]))).toArray(x -> new NNResult[x]);
+      ).toArray(i -> new Tensor[i])))).toArray(x -> new NNResult[x]);
   }
   
   /**

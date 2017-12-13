@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
-import jcuda.Pointer;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
@@ -89,15 +88,15 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
     CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
       precision.code, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
     TensorList result = Arrays.stream(inObj).map(x -> x.getData()).reduce((l, r) -> {
-      CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, this.precision);
-      CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, this.precision);
+      CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), this.precision, l);
+      CudaPtr rPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), this.precision, r);
       assert lPtr.size == rPtr.size;
       CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
       CuDNN.handle(cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
-        precision.getPointer(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
-        precision.getPointer(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
-        precision.getPointer(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-      return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, this.precision);
+        precision.getPointer(1.0f), sizeDescriptor.getPtr(), lPtr.getPtr(),
+        precision.getPointer(1.0f), sizeDescriptor.getPtr(), rPtr.getPtr(),
+        precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+      return new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, this.precision);
     }).get();
     
     return new NNResult(result) {
@@ -110,15 +109,15 @@ public class ProductLayer extends NNLayer implements LayerPrecision<ProductLayer
           if (input.isAlive()) {
             int _index = index;
             input.accumulate(buffer, IntStream.range(0, inObj.length).mapToObj(i -> i == _index ? delta : inObj[i].getData()).reduce((l, r) -> {
-              CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), l, ProductLayer.this.precision);
-              CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), r, ProductLayer.this.precision);
+              CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), ProductLayer.this.precision, l);
+              CudaPtr rPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), ProductLayer.this.precision, r);
               assert lPtr.size == rPtr.size;
               CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
               CuDNN.handle(cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
-                precision.getPointer(new float[]{1.0f}), sizeDescriptor.getPtr(), lPtr.getPtr(),
-                precision.getPointer(new float[]{1.0f}), sizeDescriptor.getPtr(), rPtr.getPtr(),
-                precision.getPointer(new float[]{0.0f}), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-              return CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, ProductLayer.this.precision);
+                precision.getPointer(1.0f), sizeDescriptor.getPtr(), lPtr.getPtr(),
+                precision.getPointer(1.0f), sizeDescriptor.getPtr(), rPtr.getPtr(),
+                precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+              return new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, ProductLayer.this.precision);
             }).get());
           }
         }

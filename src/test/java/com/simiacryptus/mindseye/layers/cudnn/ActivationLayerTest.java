@@ -24,8 +24,8 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
-import com.simiacryptus.mindseye.test.DerivativeTester;
 import com.simiacryptus.mindseye.test.SimpleEval;
+import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import java.util.List;
@@ -41,7 +41,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
    * The Mode.
    */
   final ActivationLayer.Mode mode;
-  private Precision precision;
+  private final Precision precision;
   
   /**
    * Instantiates a new Activation layer test.
@@ -65,8 +65,8 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public DerivativeTester getDerivativeTester() {
-    return new DerivativeTester(1e-2, 1e-4);
+  public SingleDerivativeTester getDerivativeTester() {
+    return new SingleDerivativeTester(1e-2, 1e-4);
   }
   
   @Override
@@ -76,7 +76,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     log.h3("Function Plots");
     NNLayer layer = getLayer();
     List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
-      SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, new int[]{1, 1, 1}));
+      SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};
     }).collect(Collectors.toList());
     

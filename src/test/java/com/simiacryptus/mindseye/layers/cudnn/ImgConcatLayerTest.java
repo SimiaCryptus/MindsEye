@@ -80,7 +80,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
    * The type Band limit test.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
-  
+    
     /**
      * Instantiates a new Band limit test.
      */

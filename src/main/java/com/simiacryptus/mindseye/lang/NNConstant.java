@@ -33,6 +33,15 @@ public final class NNConstant extends NNResult {
     super(data);
   }
   
+  /**
+   * Instantiates a new Nn constant.
+   *
+   * @param tensorArray the tensor array
+   */
+  public NNConstant(TensorArray tensorArray) {
+    super(tensorArray);
+  }
+  
   @Override
   public void accumulate(final DeltaSet buffer, final TensorList data) {
     // Do Nothing

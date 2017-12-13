@@ -130,27 +130,27 @@ public class MnistTests {
     public SGD() {
       super(TextbookOptimizers.stochastic_gradient_descent, MnistTests.rev_linear_1, MnistTests.fwd_linear_1);
     }
-  
+    
     @Override
     @Ignore
     @Test
     public void encoding_test() throws IOException {
       super.encoding_test();
     }
-  
+    
     @Override
     @Ignore
     @Test
     public void classification_test() throws IOException {
       super.classification_test();
     }
-  
+    
     @Override
     @Test
     public void autoencoder_test() throws IOException {
       super.autoencoder_test();
     }
-  
+    
     @Override
     protected void intro(NotebookOutput log) {
       log.p("");
@@ -227,8 +227,8 @@ public class MnistTests {
   }
   
   private abstract static class AllTests {
-  
-  
+    
+    
     /**
      * The Rev factory.
      */
@@ -245,7 +245,7 @@ public class MnistTests {
      * The Data.
      */
     protected final MnistProblemData data = new MnistProblemData();
-  
+    
     /**
      * Instantiates a new All tests.
      *
@@ -258,7 +258,7 @@ public class MnistTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-  
+    
     /**
      * Encoding test.
      *
@@ -274,14 +274,14 @@ public class MnistTests {
         new EncodingProblem(revFactory, optimizationStrategy, data, 20).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-  
+    
     /**
      * Intro.
      *
      * @param log the log
      */
     protected abstract void intro(NotebookOutput log);
-  
+    
     /**
      * Classification test.
      *
@@ -297,7 +297,7 @@ public class MnistTests {
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-  
+    
     /**
      * Autoencoder test.
      *
@@ -311,7 +311,7 @@ public class MnistTests {
         if (null != TestUtil.originalOut) log.addCopy(TestUtil.originalOut);
         log.h1("MNIST Denoising Autoencoder");
         intro(log);
-        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.2).setTimeoutMinutes(5*timeoutMinutes).run(log);
+        new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, data, 100, 0.2).setTimeoutMinutes(5 * timeoutMinutes).run(log);
       }
     }
     

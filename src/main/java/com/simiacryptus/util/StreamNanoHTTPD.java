@@ -39,53 +39,48 @@ import java.util.function.Function;
  * The type Stream nano httpd.
  */
 public class StreamNanoHTTPD extends NanoHTTPD {
-  private final String mimeType;
   /**
    * The Data reciever.
    */
   public final TeeOutputStream dataReciever;
-  private final URI gatewayUri;
-  private final File file;
   /**
    * The Custom handlers.
    */
   public final Map<String, Function<IHTTPSession, Response>> customHandlers = new HashMap<>();
+  private final String mimeType;
+  private final URI gatewayUri;
+  private final File file;
   private final ExecutorService pool = Executors.newCachedThreadPool();
   
   
   /**
-   * Add sync handler.
+   * Instantiates a new Stream nano httpd.
    *
-   * @param path     the path
+   * @param port     the port
    * @param mimeType the mime type
-   * @param logic    the logic
-   * @param async    the async
+   * @param file     the file
+   * @throws IOException the io exception
    */
-  public void addSyncHandler(String path, String mimeType, Consumer<OutputStream> logic, boolean async) {
-    addSessionHandler(path, syncHandler(pool, mimeType, logic, async));
-  }
-  
-  /**
-   * Add async handler.
-   *
-   * @param path     the path
-   * @param mimeType the mime type
-   * @param logic    the logic
-   * @param async    the async
-   */
-  public void addAsyncHandler(String path, String mimeType, Consumer<OutputStream> logic, boolean async) {
-    addSessionHandler(path, asyncHandler(pool, mimeType, logic, async));
-  }
-  
-  /**
-   * Add session handler function.
-   *
-   * @param path  the path
-   * @param value the value
-   * @return the function
-   */
-  public Function<IHTTPSession, Response> addSessionHandler(String path, Function<IHTTPSession, Response> value) {
-    return customHandlers.put(path, value);
+  public StreamNanoHTTPD(int port, String mimeType, File file) throws IOException {
+    super(port);
+    this.file = file;
+    this.mimeType = mimeType;
+    try {
+      this.gatewayUri = new URI(String.format("http://localhost:%s/%s", port, file.getName()));
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+    this.dataReciever = new TeeOutputStream(new FileOutputStream(file), true) {
+      @Override
+      public void close() throws IOException {
+        try {
+          Thread.sleep(100);
+          StreamNanoHTTPD.this.stop();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    };
   }
   
   /**
@@ -148,33 +143,51 @@ public class StreamNanoHTTPD extends NanoHTTPD {
   }
   
   /**
-   * Instantiates a new Stream nano httpd.
+   * Create output stream.
    *
    * @param port     the port
+   * @param path     the path
    * @param mimeType the mime type
-   * @param file     the file
+   * @return the output stream
    * @throws IOException the io exception
    */
-  public StreamNanoHTTPD(int port, String mimeType, File file) throws IOException {
-    super(port);
-    this.file = file;
-    this.mimeType = mimeType;
-    try {
-      this.gatewayUri = new URI(String.format("http://localhost:%s/%s", port, file.getName()));
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-    this.dataReciever = new TeeOutputStream(new FileOutputStream(file), true) {
-      @Override
-      public void close() throws IOException {
-        try {
-          Thread.sleep(100);
-          StreamNanoHTTPD.this.stop();
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    };
+  public static OutputStream create(int port, File path, String mimeType) throws IOException {
+    return new StreamNanoHTTPD(port, mimeType, path).init().dataReciever;
+  }
+  
+  /**
+   * Add sync handler.
+   *
+   * @param path     the path
+   * @param mimeType the mime type
+   * @param logic    the logic
+   * @param async    the async
+   */
+  public void addSyncHandler(String path, String mimeType, Consumer<OutputStream> logic, boolean async) {
+    addSessionHandler(path, syncHandler(pool, mimeType, logic, async));
+  }
+  
+  /**
+   * Add async handler.
+   *
+   * @param path     the path
+   * @param mimeType the mime type
+   * @param logic    the logic
+   * @param async    the async
+   */
+  public void addAsyncHandler(String path, String mimeType, Consumer<OutputStream> logic, boolean async) {
+    addSessionHandler(path, asyncHandler(pool, mimeType, logic, async));
+  }
+  
+  /**
+   * Add session handler function.
+   *
+   * @param path  the path
+   * @param value the value
+   * @return the function
+   */
+  public Function<IHTTPSession, Response> addSessionHandler(String path, Function<IHTTPSession, Response> value) {
+    return customHandlers.put(path, value);
   }
   
   /**
@@ -194,19 +207,6 @@ public class StreamNanoHTTPD extends NanoHTTPD {
       }
     }).start();
     return this;
-  }
-  
-  /**
-   * Create output stream.
-   *
-   * @param port     the port
-   * @param path     the path
-   * @param mimeType the mime type
-   * @return the output stream
-   * @throws IOException the io exception
-   */
-  public static OutputStream create(int port, File path, String mimeType) throws IOException {
-    return new StreamNanoHTTPD(port, mimeType, path).init().dataReciever;
   }
   
   @Override

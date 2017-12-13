@@ -28,6 +28,9 @@ import com.simiacryptus.mindseye.opt.orient.MomentumStrategy;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
 import com.simiacryptus.mindseye.test.OptimizationStrategy;
 
+/**
+ * The type Textbook optimizers.
+ */
 public class TextbookOptimizers {
   
   /**

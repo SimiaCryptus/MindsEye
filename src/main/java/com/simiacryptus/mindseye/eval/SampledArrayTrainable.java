@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
  * Between each epoch, a "reset" method is called to re-sample the training data
  * and pass it to the inner Trainable implementation.
  */
-public class SampledArrayTrainable extends CachedTrainable<ArrayTrainable> implements SampledTrainable, TrainableDataMask {
+public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> implements SampledTrainable, TrainableDataMask {
   
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private int trainingSize;
@@ -152,10 +152,21 @@ public class SampledArrayTrainable extends CachedTrainable<ArrayTrainable> imple
     return new SampledCachedTrainable<>(this);
   }
   
+  /**
+   * Gets min samples.
+   *
+   * @return the min samples
+   */
   public int getMinSamples() {
     return minSamples;
   }
   
+  /**
+   * Sets min samples.
+   *
+   * @param minSamples the min samples
+   * @return the min samples
+   */
   public SampledArrayTrainable setMinSamples(int minSamples) {
     this.minSamples = minSamples;
     return this;

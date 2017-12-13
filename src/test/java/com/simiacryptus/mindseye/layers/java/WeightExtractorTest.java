@@ -27,6 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class WeightExtractorTest extends LayerTestBase {
   
+  /**
+   * Instantiates a new Weight extractor test.
+   */
   public WeightExtractorTest() {
     this.validateDifferentials = false;
     this.validateBatchExecution = false;

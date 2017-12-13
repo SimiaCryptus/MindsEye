@@ -20,9 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.network.DAGNode;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 /**
  * The type Convolution layer test.
@@ -61,7 +58,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
     convolutionLayer = new ConvolutionLayer(radius, radius, inputBands, outputBands).setPrecision(precision);
     convolutionLayer.kernel.fill(() -> random());
   }
-
+  
   @Override
   public NNLayer getLayer() {
     return convolutionLayer;
@@ -109,7 +106,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The type Asymmetric test.
    */
   public static class AsymmetricTest extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Asymmetric test.
      */
@@ -123,7 +120,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The type Irregular test float.
    */
   public static class IrregularTest_Float extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Irregular test float.
      */
@@ -136,44 +133,13 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
    * The type Irregular test.
    */
   public static class IrregularTest extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Irregular test.
      */
     public IrregularTest() {
       super(3, 7, 5, Precision.Double);
     }
-  }
-  
-  /**
-   * The type Asymmetric exploded test.
-   */
-  public static class AsymmetricExplodedTest extends LayerTestBase {
-    
-    private Precision precision = Precision.Double;
-  
-    /**
-     * Instantiates a new Asymmetric exploded test.
-     */
-    public AsymmetricExplodedTest() {
-      super();
-    }
-    
-    @Override
-    public NNLayer getLayer() {
-      PipelineNetwork network = new PipelineNetwork();
-      DAGNode input = network.getInput(0);
-      network.add(new ImgConcatLayer().setMaxBands(3).setPrecision(precision),
-        network.add(new SimpleConvolutionLayer(1, 1, 4).setWeights(this::random).setPrecision(precision), input),
-        network.add(new SimpleConvolutionLayer(1, 1, 4).setWeights(this::random).setPrecision(precision), input));
-      return network;
-    }
-    
-    @Override
-    public int[][] getInputDims() {
-      return new int[][]{{1, 1, 2}};
-    }
-    
   }
   
 }

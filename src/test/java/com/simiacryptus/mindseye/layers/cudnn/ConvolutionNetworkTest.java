@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.DerivativeTester;
+import com.simiacryptus.mindseye.test.SingleDerivativeTester;
 
 /**
  * The type Convolution network test.
@@ -56,7 +56,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {1,1,1}
+      {1, 1, 1}
     };
   }
   
@@ -84,8 +84,8 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public DerivativeTester getDerivativeTester() {
-      return new DerivativeTester(1e-2, 1e-3);
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-3);
     }
     
   }

@@ -55,7 +55,7 @@ public class JsonUtil {
    */
   public static void writeJson(OutputStream out, Object obj) throws IOException {
     ObjectMapper mapper = new ObjectMapper().enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL)
-                            .enable(SerializationFeature.INDENT_OUTPUT);
+      .enable(SerializationFeature.INDENT_OUTPUT);
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     mapper.writeValue(buffer, obj);
     out.write(buffer.toByteArray());

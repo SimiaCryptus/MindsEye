@@ -48,7 +48,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
     DoubleStatistics::combine,
     d -> d
   );
-
+  
   private double sumOfSquare = 0.0d;
   private double sumOfSquareCompensation; // Low order bits of sum
   private double simpleSumOfSquare; // Used to compute right sum for non-finite inputs
@@ -85,7 +85,7 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
     sumOfSquareWithCompensation(other.sumOfSquareCompensation);
     return this;
   }
-
+  
   private void sumOfSquareWithCompensation(double value) {
     double tmp = value - sumOfSquareCompensation;
     double velvel = sumOfSquare + tmp; // Little wolf of rounding error
@@ -127,6 +127,6 @@ public class DoubleStatistics extends DoubleSummaryStatistics {
    * @return the string
    */
   public String toString(double scale) {
-    return String.format("%.4e +- %.4e [%.4e - %.4e] (%d#)",getAverage() * scale, getStandardDeviation() * scale, getMin() * scale, getMax() * scale, getCount());
+    return String.format("%.4e +- %.4e [%.4e - %.4e] (%d#)", getAverage() * scale, getStandardDeviation() * scale, getMin() * scale, getMax() * scale, getCount());
   }
 }

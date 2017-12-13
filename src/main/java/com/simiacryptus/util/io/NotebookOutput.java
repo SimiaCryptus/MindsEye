@@ -130,7 +130,7 @@ public interface NotebookOutput extends Closeable {
    * @return the t
    */
   default <T> T code(UncheckedSupplier<T> fn) {
-    return code(fn,1024, 3);
+    return code(fn, 1024, 3);
   }
   
   /**

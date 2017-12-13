@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * The type Product inputs layer.
@@ -72,13 +71,12 @@ public class ProductInputsLayer extends NNLayer {
       }
     }
     TensorList result = Arrays.stream(inObj).parallel().map(x -> x.getData()).reduce((l, r) -> {
-      Stream<Tensor> tensorStream = IntStream.range(0, Math.max(l.length(), r.length())).parallel()
-        .mapToObj(i -> {
-          Tensor left = l.get(Math.min(i, l.length() - 1));
-          Tensor right = r.get(Math.min(i, r.length() - 1));
+      return new TensorArray(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
+        .mapToObj(i1 -> {
+          Tensor left = l.get(1 == l.length() ? 0 : i1);
+          Tensor right = r.get(1 == r.length() ? 0 : i1);
           return Tensor.product(left, right);
-        });
-      return new TensorArray(tensorStream.toArray(i -> new Tensor[i]));
+        }).toArray(i -> new Tensor[i]));
     }).get();
     return new NNResult(result) {
       @Override
@@ -86,32 +84,23 @@ public class ProductInputsLayer extends NNLayer {
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
         for (final NNResult input : inObj) {
           if (input.isAlive()) {
-            int inputBatches = input.getData().length();
-            int deltaBatches = delta.length();
-            Tensor[] data = IntStream.range(0, deltaBatches).parallel().mapToObj(i -> {
-              Tensor deltaTensor = delta.get(i);
-              Tensor inputTensor = input.getData().get(Math.min(i, inputBatches - 1));
-              Tensor passbackTensor = inputTensor.mapIndex((v, c) -> {
-                Tensor resultTensor = result.get(i);
-                if (1 == inputTensor.dim() && 1 < deltaTensor.dim()) {
-                  double sum = 0;
-                  for (int j = 0; j < deltaTensor.dim(); j++) {
-                    double r = deltaTensor.get(j) * resultTensor.get(j) / v;
-                    sum += Double.isFinite(r) ? r : 0.0;
-                  }
-                  return sum;
-                }
-                else {
-                  double r = deltaTensor.get(c) * resultTensor.get(c) / v;
-                  return Double.isFinite(r) ? r : 0.0;
-                }
-              });
-              return passbackTensor;
-            }).toArray(i -> new Tensor[i]);
-            if (1 == inputBatches && 1 < deltaBatches) {
-              data = new Tensor[]{Arrays.stream(data).reduce((a, b) -> a.add(b)).get()};
+            TensorList passback = Arrays.stream(inObj).parallel().map(x -> x == input ? delta : x.getData()).reduce((l, r) -> {
+              return new TensorArray(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
+                .mapToObj(j -> {
+                  Tensor left = l.get(1 == l.length() ? 0 : j);
+                  Tensor right = r.get(1 == r.length() ? 0 : j);
+                  return Tensor.product(left, right);
+                }).toArray(j -> new Tensor[j]));
+            }).get();
+            TensorList inputData = input.getData();
+            if (1 == inputData.length() && 1 < passback.length()) {
+              passback = new TensorArray(passback.stream().reduce((a, b) -> a.add(b)).get());
             }
-            input.accumulate(buffer, new TensorArray(data));
+            if (1 == Tensor.dim(inputData.getDimensions()) && 1 < Tensor.dim(passback.getDimensions())) {
+              passback = new TensorArray(passback.stream()
+                .map((a) -> new Tensor(a.sum())).toArray(i -> new Tensor[i]));
+            }
+            input.accumulate(buffer, passback);
           }
         }
       }

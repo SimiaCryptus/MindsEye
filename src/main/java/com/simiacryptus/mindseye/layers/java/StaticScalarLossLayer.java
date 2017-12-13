@@ -70,7 +70,7 @@ public class StaticScalarLossLayer extends NNLayer {
   @Override
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     if (1 != inObj.length) throw new IllegalArgumentException();
-    if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
+    //if (inObj[0].getData().length() != 1) throw new IllegalArgumentException();
     assert Arrays.stream(inObj).flatMapToDouble(input -> input.getData().stream().flatMapToDouble(x -> Arrays.stream(x.getData()))).allMatch(v -> Double.isFinite(v));
     Tensor[] outputA = IntStream.range(0, inObj[0].getData().length()).parallel().mapToObj(dataIndex -> {
       final Tensor a = inObj[0].getData().get(dataIndex);

@@ -74,7 +74,7 @@ public class ClassifyProblem implements Problem {
   public ClassifyProblem run(NotebookOutput log) {
     TrainingMonitor monitor = TestUtil.getMonitor(history);
     Tensor[][] trainingData = getTrainingData(log);
-  
+    
     DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
     log.code(() -> {

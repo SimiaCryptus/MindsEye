@@ -27,6 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class Sparse01MetaLayerTest extends LayerTestBase {
   
+  /**
+   * Instantiates a new Sparse 01 meta layer test.
+   */
   public Sparse01MetaLayerTest() {
     this.validateBatchExecution = false;
   }

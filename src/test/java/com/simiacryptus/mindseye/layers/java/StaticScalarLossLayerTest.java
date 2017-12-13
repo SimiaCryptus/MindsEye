@@ -27,6 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class StaticScalarLossLayerTest extends LayerTestBase {
   
+  /**
+   * Instantiates a new Static scalar loss layer test.
+   */
   public StaticScalarLossLayerTest() {
     this.validateBatchExecution = false;
   }

@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * The type Lbfgs run.
  */
 public class LBFGSTest extends MnistTestBase {
-
+  
   @Override
   public void train(NotebookOutput log, NNLayer network, Tensor[][] trainingData, TrainingMonitor monitor) {
     log.code(() -> {

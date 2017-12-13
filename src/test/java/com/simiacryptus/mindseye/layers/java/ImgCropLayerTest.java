@@ -28,6 +28,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class ImgCropLayerTest extends LayerTestBase {
   
+  /**
+   * Instantiates a new Img crop layer test.
+   */
   public ImgCropLayerTest() {
     this.validateBatchExecution = false;
   }

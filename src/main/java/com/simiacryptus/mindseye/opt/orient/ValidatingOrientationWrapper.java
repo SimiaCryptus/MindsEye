@@ -58,7 +58,7 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
   
   private static class ValidatingLineSearchCursor implements LineSearchCursor {
     private final LineSearchCursor cursor;
-  
+
     /**
      * Instantiates a new Validating line search cursor.
      *
@@ -82,7 +82,7 @@ public class ValidatingOrientationWrapper implements OrientationStrategy<LineSea
       test(monitor, primaryPoint, 1e-6);
       return primaryPoint;
     }
-  
+
     /**
      * Test.
      *

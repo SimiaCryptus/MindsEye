@@ -27,6 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class LoggingWrapperLayerTest extends LayerTestBase {
   
+  /**
+   * Instantiates a new Logging wrapper layer test.
+   */
   public LoggingWrapperLayerTest() {
     this.validateBatchExecution = false;
   }

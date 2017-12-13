@@ -29,13 +29,13 @@ public class AssertDimensionsLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new AssertDimensionsLayer(2,2);
+    return new AssertDimensionsLayer(2, 2);
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2,2}
+      {2, 2}
     };
   }
 }

@@ -39,16 +39,6 @@ public class SysOutInterceptor extends PrintStream {
       return getInner();
     }
   };
-  
-  /**
-   * Gets inner.
-   *
-   * @return the inner
-   */
-  public PrintStream getInner() {
-    return (PrintStream) out;
-  }
-  
   private final ThreadLocal<Boolean> isMonitoring = new ThreadLocal<Boolean>() {
     @Override
     protected Boolean initialValue() {
@@ -100,7 +90,7 @@ public class SysOutInterceptor extends PrintStream {
     try {
       ByteArrayOutputStream buff = new ByteArrayOutputStream();
       try (PrintStream ps = new PrintStream(buff)) {
-        if(INSTANCE.isMonitoring.get()) throw new IllegalStateException();
+        if (INSTANCE.isMonitoring.get()) throw new IllegalStateException();
         INSTANCE.threadHandler.set(ps);
         INSTANCE.isMonitoring.set(true);
         fn.run();
@@ -121,6 +111,15 @@ public class SysOutInterceptor extends PrintStream {
       return out;
     }
     return (SysOutInterceptor) System.out;
+  }
+  
+  /**
+   * Gets inner.
+   *
+   * @return the inner
+   */
+  public PrintStream getInner() {
+    return (PrintStream) out;
   }
   
   @Override
@@ -166,7 +165,7 @@ public class SysOutInterceptor extends PrintStream {
      * The Log.
      */
     public final String log;
-  
+
     /**
      * Instantiates a new Logged result.
      *

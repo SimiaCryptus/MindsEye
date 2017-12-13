@@ -52,13 +52,13 @@ public class WeakCachedSupplier<T> implements Supplier<T> {
   
   @Override
   public T get() {
-    T obj = null==cached?null:cached.get();
-    if(null == obj) {
+    T obj = null == cached ? null : cached.get();
+    if (null == obj) {
       synchronized (this) {
-        obj = null==cached?null:cached.get();
-        if(null == obj) {
+        obj = null == cached ? null : cached.get();
+        if (null == obj) {
           obj = fn.get();
-          if(null != obj) cached = new WeakReference<T>(obj);
+          if (null != obj) cached = new WeakReference<T>(obj);
         }
       }
     }

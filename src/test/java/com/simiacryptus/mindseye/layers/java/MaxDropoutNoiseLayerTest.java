@@ -27,7 +27,7 @@ public class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
    * Instantiates a new Max dropout noise layer test.
    */
   public MaxDropoutNoiseLayerTest() {
-    super(new MaxDropoutNoiseLayer(2,2,1));
+    super(new MaxDropoutNoiseLayer(2, 2, 1));
   }
   
   @Override

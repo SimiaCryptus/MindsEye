@@ -251,7 +251,7 @@ public class SparkTrainable implements Trainable {
      * The Count.
      */
     public final int count;
-  
+    
     /**
      * Instantiates a new Reducable result.
      *
@@ -264,7 +264,7 @@ public class SparkTrainable implements Trainable {
       this.count = count;
       this.sum = sum;
     }
-  
+    
     /**
      * Accumulate.
      *
@@ -276,7 +276,7 @@ public class SparkTrainable implements Trainable {
       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).addInPlace(v));
     }
-  
+    
     /**
      * Add spark trainable . reducable result.
      *
@@ -322,7 +322,7 @@ public class SparkTrainable implements Trainable {
      * The Verbose.
      */
     boolean verbose = true;
-  
+    
     /**
      * Instantiates a new Partition task.
      *

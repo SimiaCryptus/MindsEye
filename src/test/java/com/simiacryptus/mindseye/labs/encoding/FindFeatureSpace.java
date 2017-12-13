@@ -83,6 +83,8 @@ public abstract class FindFeatureSpace {
   
   /**
    * The Features.
+   *
+   * @return the features
    */
   public abstract Stream<Tensor[]> getFeatures();
 }

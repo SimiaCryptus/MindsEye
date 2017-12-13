@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.layers.cudnn.FloatTensorList;
 
 /**
  * A result type for evaluating the backpropigation phase of an Acyclic Directed Graph.
@@ -88,7 +87,6 @@ class CountingNNResult extends NNResult {
   
   @Override
   public void accumulate(DeltaSet buffer, TensorList data) {
-    assert !(data instanceof FloatTensorList) || null != ((FloatTensorList) data).ptr.getPtr();
     if (null == passbackBuffer) {
       if (1 == getCount()) {
         passbackBuffer = data;

@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
+import jcuda.jcudnn.cudnnOpTensorOp;
 import jcuda.jcudnn.cudnnTensorDescriptor;
 
 import java.util.Arrays;
@@ -29,7 +30,6 @@ import java.util.List;
 
 import static jcuda.jcudnn.JCudnn.cudnnAddTensor;
 import static jcuda.jcudnn.JCudnn.cudnnOpTensor;
-import jcuda.jcudnn.cudnnOpTensorOp;
 import static jcuda.jcudnn.cudnnTensorFormat.CUDNN_TENSOR_NCHW;
 
 /**
@@ -58,6 +58,12 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
   public BinarySumLayer() {
   }
   
+  /**
+   * Instantiates a new Binary sum layer.
+   *
+   * @param leftFactor  the left factor
+   * @param rightFactor the right factor
+   */
   public BinarySumLayer(double leftFactor, double rightFactor) {
     this.leftFactor = leftFactor;
     this.rightFactor = rightFactor;
@@ -103,42 +109,42 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     final CudaResource<cudnnOpTensorDescriptor> opDescriptor = CuDNN.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision.code);
     CudaResource<cudnnTensorDescriptor> sizeDescriptor = CuDNN.newTensorDescriptor(
       precision.code, CUDNN_TENSOR_NCHW, length, dimensions[2], dimensions[1], dimensions[0]);
-    CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), leftData, precision);
-    CudaPtr rPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), rightData, precision);
+    CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, leftData);
+    CudaPtr rPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), precision, rightData);
     assert lPtr.size == rPtr.size;
     CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
     CuDNN.handle(cudnnOpTensor(((CuDNN) nncontext).cudnnHandle, opDescriptor.getPtr(),
       precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
       precision.getPointer(rightFactor), sizeDescriptor.getPtr(), rPtr.getPtr(),
-      precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-    TensorList result = CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, this.precision);
+      precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+    TensorList result = new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, this.precision);
     
     return new NNResult(result) {
       @Override
       public void accumulate(final DeltaSet buffer, final TensorList delta) {
         ((CudaExecutionContext) nncontext).initThread();
         assert delta.stream().flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-  
+        
         if (inObj[0].isAlive()) {
-          CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), delta, BinarySumLayer.this.precision);
+          CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), BinarySumLayer.this.precision, delta);
           CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
           CuDNN.handle(cudnnAddTensor(((CuDNN) nncontext).cudnnHandle,
             precision.getPointer(leftFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-            precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-          TensorList data = CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, BinarySumLayer.this.precision);
+            precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+          TensorList data = new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, BinarySumLayer.this.precision);
           inObj[0].accumulate(buffer, data);
         }
-  
+        
         if (inObj[1].isAlive()) {
-          CudaPtr lPtr = CudaPtr.toDevice(((CudaExecutionContext) nncontext).getDeviceNumber(), delta, BinarySumLayer.this.precision);
+          CudaPtr lPtr = CudaPtr.write(((CudaExecutionContext) nncontext).getDeviceNumber(), BinarySumLayer.this.precision, delta);
           CudaPtr outputPtr = CuDNN.alloc(((CudaExecutionContext) nncontext).getDeviceNumber(), lPtr.size);
           CuDNN.handle(cudnnAddTensor(((CuDNN) nncontext).cudnnHandle,
             precision.getPointer(rightFactor), sizeDescriptor.getPtr(), lPtr.getPtr(),
-            precision.getPointer(0.0f), sizeDescriptor.getPtr(), outputPtr.getPtr()));
-          TensorList data = CudaPtr.fromDevice(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, BinarySumLayer.this.precision);
+            precision.getPointer(0.0), sizeDescriptor.getPtr(), outputPtr.getPtr()));
+          TensorList data = new GpuTensorList(outputPtr, length, dimensions, ((CuDNN) nncontext).cudnnHandle, BinarySumLayer.this.precision);
           inObj[1].accumulate(buffer, data);
         }
-  
+        
       }
       
       @Override
@@ -167,19 +173,41 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     return this;
   }
   
+  /**
+   * Gets left factor.
+   *
+   * @return the left factor
+   */
   public double getLeftFactor() {
     return leftFactor;
   }
   
+  /**
+   * Sets left factor.
+   *
+   * @param leftFactor the left factor
+   * @return the left factor
+   */
   public BinarySumLayer setLeftFactor(double leftFactor) {
     this.leftFactor = leftFactor;
     return this;
   }
   
+  /**
+   * Gets right factor.
+   *
+   * @return the right factor
+   */
   public double getRightFactor() {
     return rightFactor;
   }
   
+  /**
+   * Sets right factor.
+   *
+   * @param rightFactor the right factor
+   * @return the right factor
+   */
   public BinarySumLayer setRightFactor(double rightFactor) {
     this.rightFactor = rightFactor;
     return this;

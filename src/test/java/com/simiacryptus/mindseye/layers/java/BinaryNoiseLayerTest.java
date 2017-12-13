@@ -27,6 +27,9 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
  */
 public class BinaryNoiseLayerTest extends LayerTestBase {
   
+  /**
+   * Instantiates a new Binary noise layer test.
+   */
   public BinaryNoiseLayerTest() {
     validateBatchExecution = false;
   }

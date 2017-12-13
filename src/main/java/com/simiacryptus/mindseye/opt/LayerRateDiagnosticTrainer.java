@@ -390,7 +390,7 @@ public class LayerRateDiagnosticTrainer {
      * The Delta.
      */
     public final double delta;
-  
+
     /**
      * Instantiates a new Layer stats.
      *

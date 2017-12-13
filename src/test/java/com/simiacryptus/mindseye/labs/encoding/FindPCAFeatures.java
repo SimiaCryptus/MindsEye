@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.labs.encoding;
 
+import com.simiacryptus.mindseye.lang.DoubleArrays;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -26,7 +27,6 @@ import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
@@ -50,6 +50,35 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
   }
   
   /**
+   * Forked from Apache Commons Math
+   *
+   * @param stream the stream
+   * @return covariance
+   */
+  public static RealMatrix getCovariance(Supplier<Stream<double[]>> stream) {
+    int dimension = stream.get().findAny().get().length;
+    List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
+      .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
+    stream.get().forEach(array -> {
+      for (int i = 0; i < dimension; i++) {
+        for (int j = 0; j <= i; j++) {
+          statList.get(i * dimension + j).accept(array[i] * array[j]);
+        }
+      }
+      DoubleArrays.recycle(array);
+    });
+    RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
+    for (int i = 0; i < dimension; i++) {
+      for (int j = 0; j <= i; j++) {
+        double v = statList.get(i * dimension + j).getAverage();
+        covariance.setEntry(i, j, v);
+        covariance.setEntry(j, i, v);
+      }
+    }
+    return covariance;
+  }
+  
+  /**
    * Invoke find feature space.
    *
    * @return the find feature space
@@ -58,7 +87,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
   public FindFeatureSpace invoke() {
     averages = findBandBias();
     vectors = findFeatureSpace(log, () -> getFeatures().map(tensor -> {
-      return new Tensor[]{tensor[0], tensor[1].mapCoords((v, c) -> v - averages[c.coords[2]])};
+      return new Tensor[]{tensor[0], tensor[1].mapCoords((c) -> tensor[1].get(c) - averages[c.getCoords()[2]])};
     }), inputBands);
     return this;
   }
@@ -72,7 +101,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
     int outputBands = getFeatures().findAny().get()[1].getDimensions()[2];
     return IntStream.range(0, outputBands).parallel().mapToDouble(b -> {
       return getFeatures().mapToDouble(tensor -> {
-        return Arrays.stream(tensor[1].mapCoords((v, c) -> c.coords[2] == b ? v : Double.NaN).getData()).filter(Double::isFinite).average().getAsDouble();
+        return (tensor[1].coordStream().mapToDouble((c) -> c.getCoords()[2] == b ? tensor[1].get(c) : Double.NaN)).filter(Double::isFinite).average().getAsDouble();
       }).average().getAsDouble();
     }).toArray();
   }
@@ -104,34 +133,6 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
           }
         ).toArray(i -> new Tensor[i]);
     });
-  }
-  
-  /**
-   * Forked from Apache Commons Math
-   *
-   * @param stream
-   * @return
-   */
-  public static RealMatrix getCovariance(Supplier<Stream<double[]>> stream) {
-    int dimension = stream.get().findAny().get().length;
-    List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
-      .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
-    stream.get().forEach(array -> {
-      for (int i = 0; i < dimension; i++) {
-        for (int j = 0; j <= i; j++) {
-          statList.get(i * dimension + j).accept(array[i] * array[j]);
-        }
-      }
-    });
-    RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
-    for (int i = 0; i < dimension; i++) {
-      for (int j = 0; j <= i; j++) {
-        double v = statList.get(i * dimension + j).getAverage();
-        covariance.setEntry(i, j, v);
-        covariance.setEntry(j, i, v);
-      }
-    }
-    return covariance;
   }
   
 }

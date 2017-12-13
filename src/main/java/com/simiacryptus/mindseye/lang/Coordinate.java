@@ -26,14 +26,15 @@ import java.util.Arrays;
  * It contains both the physical (1-d) and logical (N-d) indicies of the element.
  */
 public final class Coordinate {
+  private int[] coords;
+  private int index;
+  
   /**
-   * The Coords.
+   * Instantiates a new Coordinate.
    */
-  public final int[] coords;
-  /**
-   * The Index.
-   */
-  public final int index;
+  public Coordinate() {
+    this(-1, null);
+  }
   
   /**
    * Instantiates a new Coordinate.
@@ -90,4 +91,43 @@ public final class Coordinate {
     return Arrays.toString(this.coords) + "<" + this.index + ">";
   }
   
+  /**
+   * The Coords.
+   *
+   * @return the int [ ]
+   */
+  public int[] getCoords() {
+    return coords;
+  }
+  
+  /**
+   * Sets coords.
+   *
+   * @param coords the coords
+   * @return the coords
+   */
+  Coordinate setCoords(int[] coords) {
+    this.coords = coords;
+    return this;
+  }
+  
+  /**
+   * The Index.
+   *
+   * @return the index
+   */
+  public int getIndex() {
+    return index;
+  }
+  
+  /**
+   * Sets index.
+   *
+   * @param index the index
+   * @return the index
+   */
+  Coordinate setIndex(int index) {
+    this.index = index;
+    return this;
+  }
 }

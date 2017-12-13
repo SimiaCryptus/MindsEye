@@ -24,6 +24,9 @@ import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
+/**
+ * The type Layer test base.
+ */
 public abstract class LayerTestBase extends StandardLayerTests {
   
   /**

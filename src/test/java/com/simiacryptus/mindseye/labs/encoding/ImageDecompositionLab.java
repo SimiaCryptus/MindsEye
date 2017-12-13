@@ -36,9 +36,7 @@ import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
-import com.simiacryptus.mindseye.opt.orient.OwlQn;
-import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.HtmlNotebookOutput;
@@ -116,11 +114,11 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    int pretrainMinutes = 30;
-    int timeoutMinutes = 45;
+    int pretrainMinutes = 1;
+    int timeoutMinutes = 1;
     int size = 256;
     
-    Tensor[][] trainingImages = TestUtil.getImages(log, size, 100, "kangaroo");
+    Tensor[][] trainingImages = TestUtil.getImages(log, size, 10, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
@@ -141,20 +139,76 @@ public class ImageDecompositionLab {
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
         step1.band2, 48, 5, 1);
     }).invoke(); // 276
-  
+    
     log.h1("Fourth Layer");
     AddLayerStep step3 = log.code(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
         4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
         step2.band2, 48, 5, 4);
     }).invoke(); // 278
-  
+    
     log.h1("Transcoding Different Category");
     TranscodeStep step4 = log.code(() -> {
       return new TranscodeStep(log, "yin_yang",
-        100, size, timeoutMinutes*5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
+        100, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
     }).invoke();
   }
+  
+  /**
+   * Initialize.
+   *
+   * @param log              the log
+   * @param features         the features
+   * @param convolutionLayer the convolution layer
+   * @param biasLayer        the bias layer
+   */
+  protected void initialize(NotebookOutput log, Supplier<Stream<Tensor[]>> features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
+    Tensor prototype = features.get().findAny().get()[1];
+    int[] dimensions = prototype.getDimensions();
+    int[] filterDimensions = convolutionLayer.kernel.getDimensions();
+    assert filterDimensions[0] == dimensions[0];
+    assert filterDimensions[1] == dimensions[1];
+    int outputBands = dimensions[2];
+    assert outputBands == biasLayer.getBias().length;
+    int inputBands = filterDimensions[2] / outputBands;
+    FindFeatureSpace findFeatureSpace = new FindPCAFeatures(log, inputBands) {
+      @Override
+      public Stream<Tensor[]> getFeatures() {
+        return features.get();
+      }
+    }.invoke();
+    TestUtil.setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
+  }
+  
+  /**
+   * Train.
+   *
+   * @param log            the log
+   * @param monitor        the monitor
+   * @param network        the network
+   * @param data           the data
+   * @param timeoutMinutes the timeout minutes
+   * @param mask           the mask
+   */
+  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, int timeoutMinutes, boolean... mask) {
+    log.out("Training for %s minutes, mask=%s", timeoutMinutes, Arrays.toString(mask));
+    log.code(() -> {
+      SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
+      trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
+      ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
+        .setMaxTrainingSize(data.length)
+        .setMinTrainingSize(1)
+        .setMonitor(monitor)
+        .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
+        .setMaxIterations(1000);
+      validatingTrainer.getRegimen().get(0)
+        .setOrientation(new GradientDescent())
+        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
+      validatingTrainer
+        .run();
+    });
+  }
+  
   /**
    * The type Transcode runStep.
    */
@@ -195,7 +249,7 @@ public class ImageDecompositionLab {
      * The History.
      */
     public final List<Step> history = new ArrayList<>();
-  
+    
     /**
      * Instantiates a new Transcode runStep.
      *
@@ -226,7 +280,7 @@ public class ImageDecompositionLab {
         ", trainMinutes=" + trainMinutes +
         '}';
     }
-  
+    
     /**
      * Invoke transcode runStep.
      *
@@ -235,7 +289,7 @@ public class ImageDecompositionLab {
     public TranscodeStep invoke() {
       log.h3("Training");
       DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
-      train(log, monitor, trainingModel0, trainingData, new QQN(), trainMinutes, false, false, true);
+      train(log, monitor, trainingModel0, trainingData, trainMinutes, false, false, true);
       TestUtil.printHistory(log, history);
       log.h3("Results");
       TestUtil.validationReport(log, trainingData, Arrays.asList(this.model), imageCount);
@@ -305,7 +359,7 @@ public class ImageDecompositionLab {
      * The Band 1.
      */
     public final int band1;
-  
+    
     /**
      * Instantiates a new Initialization runStep.
      *
@@ -346,7 +400,7 @@ public class ImageDecompositionLab {
         ", band1=" + band1 +
         '}';
     }
-  
+    
     /**
      * Build model pipeline network.
      *
@@ -363,7 +417,7 @@ public class ImageDecompositionLab {
         return network;
       });
     }
-  
+    
     /**
      * Invoke initialization runStep.
      *
@@ -372,14 +426,14 @@ public class ImageDecompositionLab {
     public InitializationStep invoke() {
       dataPipeline.add(model);
       log.code(() -> {
-        initialize(log, ()->TestUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
+        initialize(log, () -> TestUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
       });
       
       {
         log.h2("Initialization");
         log.h3("Training");
         DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, false, false, true);
+        train(log, monitor, trainingModel0, trainingData, pretrainMinutes, false, false, true);
         TestUtil.printHistory(log, history);
         log.h3("Results");
         TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
@@ -391,7 +445,7 @@ public class ImageDecompositionLab {
       log.h2("Tuning");
       log.h3("Training");
       DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model, 1, 2);
-      train(log, monitor, trainingModel0, trainingData, new OwlQn(), timeoutMinutes, false, false, true);
+      train(log, monitor, trainingModel0, trainingData, timeoutMinutes, false, false, true);
       TestUtil.printHistory(log, history);
       log.h3("Results");
       TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
@@ -477,7 +531,7 @@ public class ImageDecompositionLab {
      */
     public final int band2;
     private final int fromSize;
-  
+    
     /**
      * Instantiates a new Add layer runStep.
      *
@@ -533,7 +587,7 @@ public class ImageDecompositionLab {
         ", band2=" + band2 +
         '}';
     }
-  
+    
     /**
      * Invoke add layer runStep.
      *
@@ -553,7 +607,7 @@ public class ImageDecompositionLab {
         log.h2("Initialization");
         log.h3("Training");
         DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
-        train(log, monitor, trainingModel0, trainingData, new QQN(), pretrainMinutes, mask);
+        train(log, monitor, trainingModel0, trainingData, pretrainMinutes, mask);
         TestUtil.printHistory(log, history);
         log.h3("Results");
         TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
@@ -565,7 +619,7 @@ public class ImageDecompositionLab {
       log.h2("Tuning");
       log.h3("Training");
       DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
-      train(log, monitor, trainingModel0, trainingData, new QQN(), timeoutMinutes, mask);
+      train(log, monitor, trainingModel0, trainingData, timeoutMinutes, mask);
       TestUtil.printHistory(log, history);
       log.h3("Results");
       TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
@@ -576,7 +630,7 @@ public class ImageDecompositionLab {
       log.h2("Integration Training");
       log.h3("Training");
       DAGNetwork trainingModel1 = TestUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);
-      train(log, monitor, trainingModel1, trainingData, new QQN(), timeoutMinutes, mask);
+      train(log, monitor, trainingModel1, trainingData, timeoutMinutes, mask);
       TestUtil.printHistory(log, history);
       log.h3("Results");
       TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
@@ -585,7 +639,7 @@ public class ImageDecompositionLab {
       history.clear();
       return this;
     }
-  
+    
     /**
      * Get training mask boolean [ ].
      *
@@ -596,7 +650,7 @@ public class ImageDecompositionLab {
       mask[layerNumber + 1] = true;
       return mask;
     }
-  
+    
     /**
      * Build network pipeline network.
      *
@@ -614,7 +668,7 @@ public class ImageDecompositionLab {
         );
       });
     }
-  
+    
     /**
      * Gets integration model.
      *
@@ -623,62 +677,6 @@ public class ImageDecompositionLab {
     public PipelineNetwork getIntegrationModel() {
       return integrationModel;
     }
-  }
-  
-  /**
-   * Initialize.
-   *
-   * @param log              the log
-   * @param features         the features
-   * @param convolutionLayer the convolution layer
-   * @param biasLayer        the bias layer
-   */
-  protected void initialize(NotebookOutput log, Supplier<Stream<Tensor[]>> features, ConvolutionLayer convolutionLayer, ImgBandBiasLayer biasLayer) {
-    Tensor prototype = features.get().findAny().get()[1];
-    int[] dimensions = prototype.getDimensions();
-    int[] filterDimensions = convolutionLayer.kernel.getDimensions();
-    assert filterDimensions[0] == dimensions[0];
-    assert filterDimensions[1] == dimensions[1];
-    int outputBands = dimensions[2];
-    assert outputBands == biasLayer.getBias().length;
-    int inputBands = filterDimensions[2] / outputBands;
-    FindFeatureSpace findFeatureSpace = new FindPCAFeatures(log, inputBands) {
-      @Override
-      public Stream<Tensor[]> getFeatures() {
-        return features.get();
-      }
-    }.invoke();
-    TestUtil.setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
-  }
-  
-  /**
-   * Train.
-   *
-   * @param log            the log
-   * @param monitor        the monitor
-   * @param network        the network
-   * @param data           the data
-   * @param orientation    the orientation
-   * @param timeoutMinutes the timeout minutes
-   * @param mask           the mask
-   */
-  protected void train(NotebookOutput log, TrainingMonitor monitor, NNLayer network, Tensor[][] data, OrientationStrategy orientation, int timeoutMinutes, boolean... mask) {
-    log.out("Training for %s minutes, mask=%s", timeoutMinutes, Arrays.toString(mask));
-    log.code(() -> {
-      SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
-      trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
-      ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
-        .setMaxTrainingSize(data.length)
-        .setMinTrainingSize(1)
-        .setMonitor(monitor)
-        .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
-        .setMaxIterations(1000);
-      validatingTrainer.getRegimen().get(0)
-        .setOrientation(orientation)
-        .setLineSearchFactory(name -> new QuadraticSearch().setCurrentRate(1.0));
-      validatingTrainer
-        .run();
-    });
   }
   
 }

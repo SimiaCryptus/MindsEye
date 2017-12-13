@@ -20,13 +20,12 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.test.BatchingTester;
+import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
 /**
  * The type Max meta layer test.
  */
-public class MaxMetaLayerTest extends LayerTestBase {
+public class MaxMetaLayerTest extends MetaLayerTestBase {
   
   @Override
   public NNLayer getLayer() {
@@ -36,13 +35,21 @@ public class MaxMetaLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
+      {3}, {3}, {3}
+    };
+  }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
       {3}
     };
   }
   
   @Override
-  public BatchingTester getBatchingTester() {
-    return null;
+  public int[][] getReferenceInputDims() {
+    return new int[][]{
+      {3}
+    };
   }
-  
 }

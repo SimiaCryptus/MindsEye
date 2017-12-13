@@ -51,26 +51,6 @@ public enum Precision {
   }
   
   /**
-   * Gets pointer.
-   *
-   * @param precision the precision
-   * @param data      the data
-   * @return the pointer
-   */
-  public static Pointer getPointer(Precision precision, float[] data) {
-    switch (precision) {
-      case Float: {
-        return Pointer.to(data);
-      }
-      case Double: {
-        return Pointer.to(getDoubles(data));
-      }
-      default:
-        throw new IllegalStateException();
-    }
-  }
-  
-  /**
    * Get floats float [ ].
    *
    * @param data the data
@@ -95,54 +75,50 @@ public enum Precision {
   }
   
   
-  public Pointer getPointer(float... data) {
-    return getPointer(this, data);
-  }
-  
-  public Pointer getPointer(double... data) {
-    return getPointer(this, data);
-  }
   /**
    * Gets pointer.
    *
-   * @param precision the precision
-   * @param data      the data
+   * @param data the data
    * @return the pointer
    */
-  public static Pointer getPointer(Precision precision, double[] data) {
-    switch (precision) {
-      case Float: {
-        return Pointer.to(getFloats(data));
-      }
-      case Double: {
+  public Pointer getPointer(float... data) {
+    switch (this) {
+      case Float:
         return Pointer.to(data);
-      }
+      case Double:
+        return Pointer.to(getDoubles(data));
       default:
         throw new IllegalStateException();
     }
   }
   
   /**
-   * Is nontrivial boolean.
+   * Gets pointer.
    *
    * @param data the data
-   * @return the boolean
+   * @return the pointer
    */
-  public static boolean isNontrivial(float[] data) {
-    for (int i = 0; i < data.length; i++) if (!java.lang.Double.isFinite(data[i])) return false;
-    for (int i = 0; i < data.length; i++) if (data[i] != 0) return true;
-    return false;
+  public Pointer getPointer(double... data) {
+    switch (this) {
+      case Float:
+        return Pointer.to(getFloats(data));
+      case Double:
+        return Pointer.to(data);
+      default:
+        throw new IllegalStateException();
+    }
   }
   
+  
   /**
-   * Is nontrivial boolean.
+   * Java ptr cuda ptr.
    *
-   * @param data the data
-   * @return the boolean
+   * @param deviceNumber the device number
+   * @param data         the data
+   * @return the cuda ptr
    */
-  public static boolean isNontrivial(double[] data) {
-    for (int i = 0; i < data.length; i++) if (!java.lang.Double.isFinite(data[i])) return false;
-    for (int i = 0; i < data.length; i++) if (data[i] != 0) return true;
-    return false;
+  public CudaPtr javaPtr(int deviceNumber, double... data) {
+    return new CudaPtr(getPointer(data), data.length * size, deviceNumber);
   }
+  
 }

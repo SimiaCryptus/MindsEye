@@ -20,13 +20,19 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.test.BatchingTester;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.test.BatchingTester;
 
 /**
  * The type Bias meta layer test.
  */
 public class BiasMetaLayerTest extends LayerTestBase {
+  /**
+   * Instantiates a new Bias meta layer test.
+   */
+  public BiasMetaLayerTest() {
+    validateBatchExecution = false;
+  }
   
   @Override
   public NNLayer getLayer() {

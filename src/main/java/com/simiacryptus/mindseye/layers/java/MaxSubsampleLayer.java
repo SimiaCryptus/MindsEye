@@ -94,17 +94,17 @@ public class MaxSubsampleLayer extends NNLayer {
     
     return output.coordStream().map(o -> {
       final int[] inCoords = new Tensor(p.kernelDims).coordStream().mapToInt(kernelCoord -> {
-        final int[] result = new int[o.coords.length];
-        for (int index = 0; index < o.coords.length; index++) {
-          int outputCoordinate = o.coords[index];
+        final int[] result = new int[o.getCoords().length];
+        for (int index = 0; index < o.getCoords().length; index++) {
+          int outputCoordinate = o.getCoords()[index];
           int kernelSize = p.kernelDims[index];
           int baseCoordinate = Math.min(outputCoordinate * kernelSize, p.inputDims[index] - kernelSize);
-          int kernelCoordinate = kernelCoord.coords[index];
+          int kernelCoordinate = kernelCoord.getCoords()[index];
           result[index] = baseCoordinate + kernelCoordinate;
         }
         return input.index(result);
       }).toArray();
-      return new Tuple2<>(o.index, inCoords);
+      return new Tuple2<>(o.getIndex(), inCoords);
     }).collect(Collectors.toList());
   }
   
@@ -194,7 +194,7 @@ public class MaxSubsampleLayer extends NNLayer {
      * The Kernel dims.
      */
     public int[] kernelDims;
-  
+    
     /**
      * Instantiates a new Calc regions parameter.
      *

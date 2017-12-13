@@ -20,14 +20,18 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
-import com.simiacryptus.mindseye.layers.LayerTestBase;
+import com.simiacryptus.mindseye.layers.MetaLayerTestBase;
 
 /**
  * The type Sum meta layer test.
  */
-public class SumMetaLayerTest extends LayerTestBase {
+public class SumMetaLayerTest extends MetaLayerTestBase {
   
+  /**
+   * Instantiates a new Sum meta layer test.
+   */
   public SumMetaLayerTest() {
+    super();
     this.validateBatchExecution = false;
   }
   
@@ -39,7 +43,22 @@ public class SumMetaLayerTest extends LayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
+      {3}, {3}, {3}
+    };
+  }
+  
+  @Override
+  public int[][] getReferenceInputDims() {
+    return new int[][]{
       {3}
     };
   }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {10}
+    };
+  }
+  
 }

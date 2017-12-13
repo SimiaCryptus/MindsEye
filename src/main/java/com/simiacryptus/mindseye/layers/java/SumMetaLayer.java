@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.ToDoubleBiFunction;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
@@ -70,8 +70,8 @@ public class SumMetaLayer extends NNLayer {
   
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
-    if(null!=lastResult) json.add("lastResult", lastResult.toJson());
-    json.addProperty("minBatches",minBatches);
+    if (null != lastResult) json.add("lastResult", lastResult.toJson());
+    json.addProperty("minBatches", minBatches);
     return json;
   }
   
@@ -79,8 +79,8 @@ public class SumMetaLayer extends NNLayer {
   public NNResult eval(NNExecutionContext nncontext, final NNResult... inObj) {
     NNResult input = inObj[0];
     int itemCnt = input.getData().length();
-    if (null==lastResult||minBatches < itemCnt) {
-      final ToDoubleBiFunction<Double, Coordinate> f = (v, c) ->
+    if (null == lastResult || minBatches < itemCnt) {
+      final ToDoubleFunction<Coordinate> f = (c) ->
         IntStream.range(0, itemCnt)
           .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
           .sum();
@@ -93,9 +93,9 @@ public class SumMetaLayer extends NNLayer {
           Tensor delta = data.get(0);
           Tensor feedback[] = new Tensor[itemCnt];
           Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-          final ToDoubleBiFunction<Double, Coordinate> f = (rho, inputCoord) -> {
+          final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
             for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
-              feedback[inputItem].add(inputCoord, rho);
+              feedback[inputItem].add(inputCoord, delta.get(inputCoord));
             }
             return 0;
           };
@@ -117,10 +117,21 @@ public class SumMetaLayer extends NNLayer {
     return Arrays.asList();
   }
   
+  /**
+   * Gets min batches.
+   *
+   * @return the min batches
+   */
   public int getMinBatches() {
     return minBatches;
   }
   
+  /**
+   * Sets min batches.
+   *
+   * @param minBatches the min batches
+   * @return the min batches
+   */
   public SumMetaLayer setMinBatches(int minBatches) {
     this.minBatches = minBatches;
     return this;

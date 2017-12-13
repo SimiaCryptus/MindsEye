@@ -23,13 +23,12 @@ package com.simiacryptus.util;
  * The type Fast random.
  */
 public class FastRandom {
+  private static final long mask = 0xABADC0DE;
   private static volatile double randomA = seed();
   
   private static double seed() {
     return Math.random();
   }
-  
-  private static final long mask = 0xABADC0DE;
   
   /**
    * Random double.
@@ -37,13 +36,13 @@ public class FastRandom {
    * @return the double
    */
   public static double random() {
-    int i=0;
-    while(true) {
+    int i = 0;
+    while (true) {
       double prev = FastRandom.randomA;
-      assert(Double.isFinite(prev));
+      assert (Double.isFinite(prev));
       double next = 4 * prev * (1 - prev);
-      if(!Double.isFinite(next)) next = seed();
-      if(i++<3) {
+      if (!Double.isFinite(next)) next = seed();
+      if (i++ < 3) {
         FastRandom.randomA = next;
         //System.err.println(next);
         return next;

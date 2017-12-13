@@ -160,7 +160,7 @@ public class ValidatingTrainer {
       }).collect(Collectors.toList());
       EpochResult primaryPhase = epochResults.get(0);
       iterationNumber += primaryPhase.iterations;
-      double trainingDelta = (primaryPhase.currentPoint.getMean() / primaryPhase.priorPoint.getMean());
+      double trainingDelta = (primaryPhase.currentPoint.getMean() / primaryPhase.priorMean);
       PointSample currentValidation = validationSubject.measure(true, monitor);
       double overtraining = (Math.log((trainingDelta)) / Math.log((currentValidation.getMean() / epochParams.validation.getMean())));
       double validationDelta = (currentValidation.getMean() / epochParams.validation.getMean());
@@ -232,12 +232,12 @@ public class ValidatingTrainer {
     phase.trainingSubject.setTrainingSize(epochParams.trainingSize);
     monitor.log(String.format("resetAndMeasure; trainingSize=%s", epochParams.trainingSize));
     PointSample currentPoint = reset(phase, seed).measure(phase);
-    PointSample priorPoint = currentPoint.copyDelta();
+    double pointMean = currentPoint.getMean();
     assert (0 < currentPoint.delta.getMap().size()) : "Nothing to optimize";
     int step = 1;
     for (; step <= epochParams.iterations || epochParams.iterations <= 0; step++) {
       if (shouldHalt(monitor, epochParams.timeoutMs)) {
-        return new EpochResult(false, priorPoint, currentPoint, step);
+        return new EpochResult(false, pointMean, currentPoint, step);
       }
       long startTime = System.nanoTime();
       long prevGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
@@ -255,14 +255,14 @@ public class ValidatingTrainer {
       if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
         monitor.log(String.format("Iteration %s failed, aborting. Error: %s (%s)",
           currentIteration.get(), epoch.currentPoint.getMean(), performance));
-        return new EpochResult(false, priorPoint, currentPoint, step);
+        return new EpochResult(false, pointMean, currentPoint, step);
       }
       else {
         monitor.log(String.format("Iteration %s complete. Error: %s (%s)", currentIteration.get(), epoch.currentPoint.getMean(), performance));
       }
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
-    return new EpochResult(true, priorPoint, currentPoint, step);
+    return new EpochResult(true, pointMean, currentPoint, step);
   }
   
   /**
@@ -787,7 +787,7 @@ public class ValidatingTrainer {
   }
   
   private static class EpochResult {
-  
+    
     /**
      * The Continue training.
      */
@@ -795,7 +795,7 @@ public class ValidatingTrainer {
     /**
      * The Prior point.
      */
-    PointSample priorPoint;
+    double priorMean;
     /**
      * The Current point.
      */
@@ -804,17 +804,17 @@ public class ValidatingTrainer {
      * The Iterations.
      */
     int iterations;
-  
+    
     /**
      * Instantiates a new Epoch result.
      *
      * @param continueTraining the continue training
-     * @param priorPoint       the prior point
+     * @param priorMean        the prior point
      * @param currentPoint     the current point
      * @param iterations       the iterations
      */
-    public EpochResult(boolean continueTraining, PointSample priorPoint, PointSample currentPoint, int iterations) {
-      this.priorPoint = priorPoint;
+    public EpochResult(boolean continueTraining, double priorMean, PointSample currentPoint, int iterations) {
+      this.priorMean = priorMean;
       this.currentPoint = currentPoint;
       this.continueTraining = continueTraining;
       this.iterations = iterations;
@@ -830,7 +830,7 @@ public class ValidatingTrainer {
     private OrientationStrategy orientation = new QQN();
     private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
     private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
-  
+    
     /**
      * Instantiates a new Training phase.
      *
@@ -839,8 +839,8 @@ public class ValidatingTrainer {
     public TrainingPhase(SampledTrainable trainingSubject) {
       this.setTrainingSubject(trainingSubject);
     }
-  
-  
+    
+    
     /**
      * Gets training subject.
      *
@@ -849,7 +849,7 @@ public class ValidatingTrainer {
     public SampledTrainable getTrainingSubject() {
       return trainingSubject;
     }
-  
+    
     /**
      * Sets training subject.
      *
@@ -860,7 +860,7 @@ public class ValidatingTrainer {
       this.trainingSubject = trainingSubject;
       return this;
     }
-  
+    
     /**
      * Gets orientation.
      *
@@ -869,7 +869,7 @@ public class ValidatingTrainer {
     public OrientationStrategy getOrientation() {
       return orientation;
     }
-  
+    
     /**
      * Sets orientation.
      *
@@ -880,7 +880,7 @@ public class ValidatingTrainer {
       this.orientation = orientation;
       return this;
     }
-  
+    
     /**
      * Gets line search factory.
      *
@@ -889,7 +889,7 @@ public class ValidatingTrainer {
     public Function<String, LineSearchStrategy> getLineSearchFactory() {
       return lineSearchFactory;
     }
-  
+    
     /**
      * Sets line search factory.
      *
@@ -900,7 +900,7 @@ public class ValidatingTrainer {
       this.lineSearchFactory = lineSearchFactory;
       return this;
     }
-  
+    
     /**
      * Gets line search strategy map.
      *
@@ -909,7 +909,7 @@ public class ValidatingTrainer {
     public Map<String, LineSearchStrategy> getLineSearchStrategyMap() {
       return lineSearchStrategyMap;
     }
-  
+    
     /**
      * Sets line search strategy map.
      *
@@ -943,7 +943,7 @@ public class ValidatingTrainer {
      * The Previous.
      */
     final PointSample previous;
-  
+    
     /**
      * Instantiates a new Step result.
      *
@@ -960,7 +960,7 @@ public class ValidatingTrainer {
   }
   
   private class PerformanceWrapper extends TrainableWrapper<SampledTrainable> implements SampledTrainable {
-  
+    
     /**
      * Instantiates a new Performance wrapper.
      *

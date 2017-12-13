@@ -20,9 +20,8 @@
 package com.simiacryptus.mindseye.lang;
 
 import java.util.Arrays;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DoubleArrays {
   
-  private static final ConcurrentHashMap<Integer, BlockingQueue<double[]>> recycling = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<Integer, ConcurrentLinkedDeque<double[]>> recycling = new ConcurrentHashMap<>();
   
   static {
     java.util.concurrent.Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
@@ -58,13 +57,18 @@ public class DoubleArrays {
     if (null == data) return;
     //if(null != data) return;
     if (data.length < 256) return;
-    BlockingQueue<double[]> bin = recycling.get(data.length);
+    ConcurrentLinkedDeque<double[]> bin = recycling.get(data.length);
     if (null == bin) {
       //System.err.println("New Recycle Bin: " + data.length);
-      bin = new ArrayBlockingQueue<double[]>(Math.max(1, (int) (1e8 / data.length)));
+      
+      bin = new ConcurrentLinkedDeque<double[]>();
       recycling.put(data.length, bin);
     }
-    bin.offer(data);
+    if (bin.size() < Math.max(1, (int) (1e8 / data.length))) {
+      synchronized (bin) {
+        if (!bin.contains(data)) bin.add(data);
+      }
+    }
   }
   
   /**
@@ -74,7 +78,7 @@ public class DoubleArrays {
    * @return the double [ ]
    */
   public static double[] obtain(int length) {
-    BlockingQueue<double[]> bin = recycling.get(length);
+    ConcurrentLinkedDeque<double[]> bin = recycling.get(length);
     if (null != bin) {
       double[] data = bin.poll();
       if (null != data) {
