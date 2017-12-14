@@ -1,0 +1,27 @@
+Inputs: [ 1.136, -1.976, 1.928 ],
+[ -1.66 ]
+Inputs Statistics: {meanExponent=0.21209076706447375, negative=1, min=1.928, max=1.928, mean=0.36266666666666664, count=3.0, positive=2, stdDev=1.6849999670293434, zeros=0},
+{meanExponent=0.22010808804005508, negative=1, min=-1.66, max=-1.66, mean=-1.66, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Output: [ -0.524, -3.636, 0.268 ]
+Outputs Statistics: {meanExponent=-0.09730334814585152, negative=2, min=0.268, max=0.268, mean=-1.2973333333333334, count=3.0, positive=1, stdDev=1.6849999670293436, zeros=0}
+Feedback for input 0
+Inputs Values: [ 1.136, -1.976, 1.928 ]
+Value Statistics: {meanExponent=0.21209076706447375, negative=1, min=1.928, max=1.928, mean=0.36266666666666664, count=3.0, positive=2, stdDev=1.6849999670293434, zeros=0}
+Implemented Feedback: [ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=0.3333333333333333, count=9.0, positive=3, stdDev=0.4714045207910317, zeros=6}
+Measured Feedback: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 1.0000000000021103, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+Measured Statistics: {meanExponent=2.7361184650972856E-13, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.3333333333335433, count=9.0, positive=3, stdDev=0.4714045207913287, zeros=6}
+Feedback Error: [ [ -1.1013412404281553E-13, 0.0, 0.0 ], [ 0.0, 2.1103119252074976E-12, 0.0 ], [ 0.0, 0.0, -1.1013412404281553E-13 ] ]
+Error Statistics: {meanExponent=-12.530603180987853, negative=2, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=2.1000485301354073E-13, count=9.0, positive=1, stdDev=6.733627986644662E-13, zeros=6}
+Feedback for input 1
+Inputs Values: [ -1.66 ]
+Value Statistics: {meanExponent=0.22010808804005508, negative=1, min=-1.66, max=-1.66, mean=-1.66, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Implemented Feedback: [ [ 1.0, 1.0, 1.0 ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=1.0, count=3.0, positive=3, stdDev=0.0, zeros=0}
+Measured Feedback: [ [ 0.9999999999998899, 1.0000000000021103, 0.9999999999998899 ] ]
+Measured Statistics: {meanExponent=2.7361184650972856E-13, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=1.00000000000063, count=3.0, positive=3, stdDev=1.4901161193847656E-8, zeros=0}
+Feedback Error: [ [ -1.1013412404281553E-13, 2.1103119252074976E-12, -1.1013412404281553E-13 ] ]
+Error Statistics: {meanExponent=-12.530603180987853, negative=2, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=6.300145590406222E-13, count=3.0, positive=1, stdDev=1.0467283057891834E-12, zeros=0}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 3.8843e-13 +- 7.7162e-13 [0.0000e+00 - 2.1103e-12] (12#)
+relativeTol: 3.8843e-13 +- 4.7145e-13 [5.5067e-14 - 1.0552e-12] (6#)

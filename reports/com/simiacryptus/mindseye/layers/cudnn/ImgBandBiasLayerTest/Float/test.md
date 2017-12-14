@@ -1,7 +1,7 @@
 # ImgBandBiasLayer
 ## Float
 ### Json Serialization
-Code from [StandardLayerTests.java:69](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:68](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer",
-      "id": "b245221b-9b1d-4413-a6c0-2d546fd613dd",
+      "id": "66e03de3-15b4-42d9-bcb2-695d41e82f87",
       "isFrozen": false,
-      "name": "ImgBandBiasLayer/b245221b-9b1d-4413-a6c0-2d546fd613dd",
+      "name": "ImgBandBiasLayer/66e03de3-15b4-42d9-bcb2-695d41e82f87",
       "bias": [
         0.0,
         0.0
@@ -29,7 +29,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [StandardLayerTests.java:153](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:152](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
@@ -44,9 +44,9 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ 1.24, -0.852 ], [ -0.5, 1.396 ], [ -1.304, 0.66 ] ],
-    	[ [ 1.164, -0.308 ], [ 0.352, -0.32 ], [ 1.92, -1.528 ] ],
-    	[ [ -1.356, -0.76 ], [ 0.204, 1.82 ], [ -0.564, -1.444 ] ]
+    	[ [ 0.976, -1.588 ], [ 1.724, -1.516 ], [ 1.908, -0.32 ] ],
+    	[ [ -1.328, 0.348 ], [ 1.36, -0.904 ], [ -1.584, 0.448 ] ],
+    	[ [ -1.248, 0.484 ], [ -0.708, -0.08 ], [ 0.852, 0.296 ] ]
     ]]
     --------------------
     Output: 
@@ -69,7 +69,7 @@ Returns:
 [GPU Log](etc/cuda.log)
 
 ### Batch Execution
-Code from [StandardLayerTests.java:102](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L102) executed in 0.01 seconds: 
+Code from [StandardLayerTests.java:101](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L101) executed in 0.01 seconds: 
 ```java
     return getBatchingTester().test(layer, inputPrototype);
 ```
@@ -83,18 +83,18 @@ Returns:
 
 
 ### Differential Validation
-Code from [StandardLayerTests.java:110](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L110) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:109](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L109) executed in 0.00 seconds: 
 ```java
     return getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
     Inputs: [
-    	[ [ -1.88, -0.72 ], [ 0.016, -1.708 ], [ 0.476, -1.292 ] ],
-    	[ [ 1.164, 0.052 ], [ -0.228, 1.852 ], [ -1.932, 0.384 ] ],
-    	[ [ 1.208, 1.516 ], [ 0.14, -1.28 ], [ -1.04, 0.468 ] ]
+    	[ [ 0.116, -1.984 ], [ 0.728, -1.688 ], [ 1.328, 1.556 ] ],
+    	[ [ -1.028, 0.568 ], [ -0.54, -1.864 ], [ 0.276, 1.188 ] ],
+    	[ [ 1.44, -1.584 ], [ -0.444, 1.312 ], [ 0.8, 1.992 ] ]
     ]
-    Inputs Statistics: {meanExponent=-0.23120991699413226, negative=8, min=0.468, max=0.468, mean=-0.15577777777777777, count=18.0, positive=10, stdDev=1.1514500787922233, zeros=0}
+    Inputs Statistics: {meanExponent=-0.034587134286798396, negative=7, min=1.992, max=1.992, mean=0.1206666666666667, count=18.0, positive=11, stdDev=1.269161928203017, zeros=0}
     Output: [
     	[ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ],
     	[ [ 0.0, 0.0 ], [ 0.0, 0.0 ], [ 0.0, 0.0 ] ],
@@ -103,13 +103,13 @@ Logging:
     Outputs Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=18.0, positive=0, stdDev=0.0, zeros=18}
     Feedback for input 0
     Inputs Values: [
-    	[ [ -1.88, -0.72 ], [ 0.016, -1.708 ], [ 0.476, -1.292 ] ],
-    	[ [ 1.164, 0.052 ], [ -0.228, 1.852 ], [ -1.932, 0.384 ] ],
-    	[ [ 1.208, 1.516 ], [ 0.14, -1.28 ], [ -1.04, 0.468 ] ]
+    	[ [ 0.116, -1.984 ], [ 0.728, -1.688 ], [ 1.328, 1.556 ] ],
+    	[ [ -1.028, 0.568 ], [ -0.54, -1.864 ], [ 0.276, 1.188 ] ],
+    	[ [ 1.44, -1.584 ], [ -0.444, 1.312 ], [ 0.8, 1.992 ] ]
     ]
-    Value Statistics: {meanExponent=-0.23120991699413226, negative=8, min=0.468, max=0.468, mean=-0.15577777777777777, count=18.0, positive=10, stdDev=1.15145
+    Value Statistics: {meanExponent=-0.034587134286798396, negative=7, min=1.992, max=1.992, mean=0.1206666666666667, count=18.0, positive=11, stdDev=1.26916192
 ```
-...[skipping 712 bytes](etc/32.txt)...
+...[skipping 708 bytes](etc/69.txt)...
 ```
      ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ... ], ... ]
     Measured Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=324.0, positive=0, stdDev=0.0, zeros=324}
@@ -134,7 +134,7 @@ Returns:
     	at com.simiacryptus.mindseye.test.SingleDerivativeTester.test(SingleDerivativeTester.java:121)
     	at com.simiacryptus.mi
 ```
-...[skipping 1901 bytes](etc/33.txt)...
+...[skipping 1902 bytes](etc/70.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

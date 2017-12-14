@@ -1,7 +1,7 @@
 # NthPowerActivationLayer
 ## SquarePowerTest
 ### Json Serialization
-Code from [StandardLayerTests.java:69](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:68](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer",
-      "id": "604c0480-f6fa-4534-b1af-d0ab917b11aa",
+      "id": "287ad88f-da76-4db8-9510-d6b6af098314",
       "isFrozen": false,
-      "name": "NthPowerActivationLayer/604c0480-f6fa-4534-b1af-d0ab917b11aa",
+      "name": "NthPowerActivationLayer/287ad88f-da76-4db8-9510-d6b6af098314",
       "power": 2.0
     }
 ```
@@ -26,7 +26,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [StandardLayerTests.java:153](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:152](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
@@ -41,27 +41,27 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ 1.776 ], [ -1.356 ], [ -1.832 ] ],
-    	[ [ -1.676 ], [ 0.308 ], [ -0.66 ] ]
+    	[ [ -0.62 ], [ 0.232 ], [ -0.864 ] ],
+    	[ [ -1.304 ], [ 1.9 ], [ -1.44 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ 3.154176 ], [ 1.8387360000000001 ], [ 3.356224 ] ],
-    	[ [ 2.808976 ], [ 0.094864 ], [ 0.43560000000000004 ] ]
+    	[ [ 0.3844 ], [ 0.053824000000000004 ], [ 0.7464959999999999 ] ],
+    	[ [ 1.7004160000000001 ], [ 3.61 ], [ 2.0736 ] ]
     ]
     --------------------
     Derivative: 
     [
-    	[ [ 3.552 ], [ -2.712 ], [ -3.664 ] ],
-    	[ [ -3.352 ], [ 0.616 ], [ -1.32 ] ]
+    	[ [ -1.24 ], [ 0.464 ], [ -1.728 ] ],
+    	[ [ -2.608 ], [ 3.8 ], [ -2.88 ] ]
     ]
 ```
 
 
 
 ### Batch Execution
-Code from [StandardLayerTests.java:102](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L102) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:101](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L101) executed in 0.00 seconds: 
 ```java
     return getBatchingTester().test(layer, inputPrototype);
 ```
@@ -69,88 +69,92 @@ Code from [StandardLayerTests.java:102](../../../../../../../../src/main/java/co
 Returns: 
 
 ```
-    ToleranceStatistics{absoluteTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (120#), relativeTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (120#)}
+    ToleranceStatistics{absoluteTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (120#), relativeTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (118#)}
 ```
 
 
 
 ### Differential Validation
-Code from [StandardLayerTests.java:110](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L110) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:109](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L109) executed in 0.00 seconds: 
 ```java
     return getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
     Inputs: [
-    	[ [ 1.88 ], [ -0.392 ], [ -0.284 ] ],
-    	[ [ -0.18 ], [ -1.408 ], [ -1.932 ] ]
+    	[ [ 0.316 ], [ 1.828 ], [ 1.696 ] ],
+    	[ [ 1.536 ], [ -0.86 ], [ 1.316 ] ]
     ]
-    Inputs Statistics: {meanExponent=-0.16489257694665857, negative=5, min=-1.932, max=-1.932, mean=-0.38599999999999995, count=6.0, positive=1, stdDev=1.1987654760905766, zeros=0}
+    Inputs Statistics: {meanExponent=0.038539113025651515, negative=1, min=1.316, max=1.316, mean=0.972, count=6.0, positive=5, stdDev=0.9556763747908251, zeros=0}
     Output: [
-    	[ [ 3.5343999999999998 ], [ 0.15366400000000002 ], [ 0.08065599999999999 ] ],
-    	[ [ 0.0324 ], [ 1.9824639999999998 ], [ 3.732624 ] ]
+    	[ [ 0.099856 ], [ 3.341584 ], [ 2.876416 ] ],
+    	[ [ 2.359296 ], [ 0.7395999999999999 ], [ 1.731856 ] ]
     ]
-    Outputs Statistics: {meanExponent=-0.3297851538933171, negative=0, min=3.732624, max=3.732624, mean=1.5860346666666667, count=6.0, positive=6, stdDev=1.5964941167389943, zeros=0}
+    Outputs Statistics: {meanExponent=0.077078226051303, negative=0, min=1.731856, max=1.731856, mean=1.8581013333333336, count=6.0, positive=6, stdDev=1.1436266469430578, zeros=0}
     Feedback for input 0
     Inputs Values: [
-    	[ [ 1.88 ], [ -0.392 ], [ -0.284 ] ],
-    	[ [ -0.18 ], [ -1.408 ], [ -1.932 ] ]
+    	[ [ 0.316 ], [ 1.828 ], [ 1.696 ] ],
+    	[ [ 1.536 ], [ -0.86 ], [ 1.316 ] ]
     ]
-    Value Statistics: {meanExponent=-0.16489257694665857, negative=5, min=-1.932, max=-1.932, mean=-0.38599999999999995, count=6.0, positive=1, stdDev=1.1987654760905766, zeros=0}
-    Implemented Feedback: [ [ 3.76, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, -0.36, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, -0.784, 0.0, 0.0, 0.0 ], 
+    Value Statistics: {meanExponent=0.038539113025651515, negative=1, min=1.316, max=1.316, mean=0.972, count=6.0, positive=5, stdDev=0.9556763747908251, zeros=0}
+    Implemented Feedback: [ [ 0.632, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 3.072, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 3.656, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, -1.72, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 3.392, 0.0 ], 
 ```
-...[skipping 518 bytes](etc/93.txt)...
+...[skipping 405 bytes](etc/135.txt)...
 ```
-     0.0, 0.0, 0.0, 0.0, -0.5679000000000101, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, -3.8639000000006973 ] ]
-    Measured Statistics: {meanExponent=0.1360928134736643, negative=5, min=-3.8639000000006973, max=-3.8639000000006973, mean=-0.1286500000001043, count=36.0, positive=1, stdDev=1.0201862037280662, zeros=30}
-    Feedback Error: [ [ 9.999999649146218E-5, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 1.0000000000365272E-4, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 9.999999988496988E-5, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 1.0000000057264202E-4, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 9.999999998988596E-5, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 9.999999930254688E-5 ] ]
-    Error Statistics: {meanExponent=-4.000000002717845, negative=0, min=9.999999930254688E-5, max=9.999999930254688E-5, mean=1.6666666562365544E-5, count=36.0, positive=6, stdDev=3.7267799391772104E-5, zeros=30}
+    2, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 3.392099999999232, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 2.632099999999582 ] ]
+    Measured Statistics: {meanExponent=0.33958557217669777, negative=1, min=2.632099999999582, max=2.632099999999582, mean=0.3240166666666959, count=36.0, positive=5, stdDev=1.0648061906333408, zeros=30}
+    Feedback Error: [ [ 9.999999994103614E-5, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 9.999999891174838E-5, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 1.0000000238230555E-4, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 1.0000000100274242E-4, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 9.99999992319367E-5, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 9.9999999581879E-5 ] ]
+    Error Statistics: {meanExponent=-3.999999999238792, negative=0, min=9.9999999581879E-5, max=9.9999999581879E-5, mean=1.6666666695879116E-5, count=36.0, positive=6, stdDev=3.726779969031753E-5, zeros=30}
     Finite-Difference Derivative Accuracy:
     absoluteTol: 1.6667e-05 +- 3.7268e-05 [0.0000e+00 - 1.0000e-04] (36#)
-    relativeTol: 5.5786e-05 +- 4.6727e-05 [1.2940e-05 - 1.3891e-04] (6#)
+    relativeTol: 2.8644e-05 +- 2.3131e-05 [1.3676e-05 - 7.9108e-05] (6#)
     
 ```
 
 Returns: 
 
 ```
-    ToleranceStatistics{absoluteTol=1.6667e-05 +- 3.7268e-05 [0.0000e+00 - 1.0000e-04] (36#), relativeTol=5.5786e-05 +- 4.6727e-05 [1.2940e-05 - 1.3891e-04] (6#)}
+    ToleranceStatistics{absoluteTol=1.6667e-05 +- 3.7268e-05 [0.0000e+00 - 1.0000e-04] (36#), relativeTol=2.8644e-05 +- 2.3131e-05 [1.3676e-05 - 7.9108e-05] (6#)}
 ```
 
 
 
 ### Performance
-Code from [StandardLayerTests.java:120](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L120) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:119](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L119) executed in 0.10 seconds: 
 ```java
     getPerformanceTester().test(layer, permPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.000171s +- 0.000013s [0.000147s - 0.000183s]
-    Learning performance: 0.000043s +- 0.000002s [0.000041s - 0.000046s]
+    100 batches
+    Input Dimensions:
+    	[100, 100, 1]
+    Performance:
+    	Evaluation performance: 0.006145s +- 0.005949s [0.003002s - 0.018041s]
+    	Learning performance: 0.010497s +- 0.000729s [0.009687s - 0.011418s]
     
 ```
 
 ### Function Plots
-Code from [ActivationLayerTestBase.java:103](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L103) executed in 0.00 seconds: 
+Code from [ActivationLayerTestBase.java:110](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L110) executed in 0.00 seconds: 
 ```java
     return plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
 ```
 
 Returns: 
 
-![Result](etc/test.38.png)
+![Result](etc/test.671.png)
 
 
 
-Code from [ActivationLayerTestBase.java:107](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L107) executed in 0.00 seconds: 
+Code from [ActivationLayerTestBase.java:114](../../../../../../../../src/test/java/com/simiacryptus/mindseye/layers/java/ActivationLayerTestBase.java#L114) executed in 0.00 seconds: 
 ```java
     return plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
 ```
 
 Returns: 
 
-![Result](etc/test.39.png)
+![Result](etc/test.672.png)
 
 
 

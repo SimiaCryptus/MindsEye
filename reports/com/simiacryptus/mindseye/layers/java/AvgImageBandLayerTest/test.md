@@ -1,7 +1,7 @@
 # AvgImageBandLayer
 ## AvgImageBandLayerTest
 ### Json Serialization
-Code from [StandardLayerTests.java:69](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,16 +16,16 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.AvgImageBandLayer",
-      "id": "87271164-ffc2-4d7d-b8cd-fab7511dc311",
+      "id": "eaf57d6a-f8a7-4fc7-b280-d3db56d1c1bc",
       "isFrozen": false,
-      "name": "AvgImageBandLayer/87271164-ffc2-4d7d-b8cd-fab7511dc311"
+      "name": "AvgImageBandLayer/eaf57d6a-f8a7-4fc7-b280-d3db56d1c1bc"
     }
 ```
 
 
 
 ### Example Input/Output Pair
-Code from [StandardLayerTests.java:153](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.01 seconds: 
+Code from [StandardLayerTests.java:152](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
@@ -40,13 +40,13 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ -0.444, -0.9, -1.804 ], [ 0.876, 0.284, -1.616 ] ],
-    	[ [ 0.276, -0.152, -0.524 ], [ -1.128, 0.756, 1.408 ] ]
+    	[ [ 1.736, 0.688, 0.156 ], [ 0.2, 0.108, -1.18 ] ],
+    	[ [ 1.148, -0.136, -0.756 ], [ 0.388, 0.856, -1.68 ] ]
     ]]
     --------------------
     Output: 
     [
-    	[ [ -0.6340000000000001, -0.0030000000000000027, -0.10499999999999993 ] ]
+    	[ [ 0.379, -0.865, 0.868 ] ]
     ]
     --------------------
     Derivative: 
@@ -59,7 +59,7 @@ Returns:
 
 
 ### Batch Execution
-Code from [StandardLayerTests.java:102](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L102) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:101](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L101) executed in 0.00 seconds: 
 ```java
     return getBatchingTester().test(layer, inputPrototype);
 ```
@@ -67,19 +67,19 @@ Code from [StandardLayerTests.java:102](../../../../../../../src/main/java/com/s
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=2.3687e-01 +- 3.4492e-01 [0.0000e+00 - 1.1880e+00] (30#), relativeTol=4.2198e-01 +- 4.6906e-01 [0.0000e+00 - 1.0000e+00] (28#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.5213e-01 +- 4.5136e-01 [0.0000e+00 - 1.3550e+00] (30#), relativeTol=3.7739e-01 +- 4.5520e-01 [0.0000e+00 - 1.0000e+00] (30#)}
     	at com.simiacryptus.mindseye.test.BatchingTester.test(BatchingTester.java:77)
-    	at com.simiacryptus.mindseye.test.StandardLayerTests.lambda$test$12(StandardLayerTests.java:103)
+    	at com.simiacryptus.mindseye.test.StandardLayerTests.lambda$test$12(StandardLayerTests.java:102)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:138)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:138)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:72)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
-    	at com.simiacryptus.mindseye.test.StandardLayerTests.test(StandardLayerTests.java:102)
+    	at com.simiacryptus.mindseye.test.StandardLayerTests.test(StandardLayerTests.java:101)
     	at com.simiacryptus.mindseye.layers.LayerTes
 ```
-...[skipping 1167 bytes](etc/54.txt)...
+...[skipping 1168 bytes](etc/94.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

@@ -1,0 +1,24 @@
+Inputs: [ 1.26, 1.352, 1.536 ]
+Inputs Statistics: {meanExponent=0.1392461508062244, negative=0, min=1.536, max=1.536, mean=1.3826666666666665, count=3.0, positive=3, stdDev=0.11474415986107127, zeros=0}
+Output: [ 1.6466666666666667 ]
+Outputs Statistics: {meanExponent=0.2166056942039845, negative=0, min=1.6466666666666667, max=1.6466666666666667, mean=1.6466666666666667, count=1.0, positive=1, stdDev=0.0, zeros=0}
+Feedback for input 0
+Inputs Values: [ 1.26, 1.352, 1.536 ]
+Value Statistics: {meanExponent=0.1392461508062244, negative=0, min=1.536, max=1.536, mean=1.3826666666666665, count=3.0, positive=3, stdDev=0.11474415986107127, zeros=0}
+Implemented Feedback: [ [ 0.84 ], [ 0.8346666666666667 ], [ 0.8906666666666667 ] ]
+Implemented Statistics: {meanExponent=-0.06816414834518103, negative=0, min=0.8906666666666667, max=0.8906666666666667, mean=0.855111111111111, count=3.0, positive=3, stdDev=0.025235679229475727, zeros=0}
+Measured Feedback: [ [ 0.8400333333336008 ], [ 0.8347000000030746 ], [ 0.8907000000002441 ] ]
+Measured Statistics: {meanExponent=-0.0681472048510778, negative=0, min=0.8907000000002441, max=0.8907000000002441, mean=0.8551444444456399, count=3.0, positive=3, stdDev=0.02523567922870583, zeros=0}
+Feedback Error: [ [ 3.333333360078239E-5 ], [ 3.3333336407981307E-5 ], [ 3.333333357735668E-5 ] ]
+Error Statistics: {meanExponent=-4.47712123914534, negative=0, min=3.333333357735668E-5, max=3.333333357735668E-5, mean=3.333333452870679E-5, count=3.0, positive=3, stdDev=1.3642420526593924E-12, zeros=0}
+Learning Gradient for weight set 0
+Weights: [ 0.0, 0.1, 0.2 ]
+Implemented Gradient: [ [ -0.84 ], [ -0.8346666666666667 ], [ -0.8906666666666667 ] ]
+Implemented Statistics: {meanExponent=-0.06816414834518103, negative=3, min=-0.8906666666666667, max=-0.8906666666666667, mean=-0.855111111111111, count=3.0, positive=0, stdDev=0.025235679229475727, zeros=0}
+Measured Gradient: [ [ -0.839966666665859 ], [ -0.8346333333353328 ], [ -0.8906333333325023 ] ]
+Measured Statistics: {meanExponent=-0.06818109250020245, negative=3, min=-0.8906333333325023, max=-0.8906333333325023, mean=-0.8550777777778981, count=3.0, positive=0, stdDev=0.02523567922870363, zeros=0}
+Gradient Error: [ [ 3.333333414101691E-5 ], [ 3.3333331333817995E-5 ], [ 3.333333416444262E-5 ] ]
+Error Statistics: {meanExponent=-4.477121256286261, negative=0, min=3.333333416444262E-5, max=3.333333416444262E-5, mean=3.333333321309251E-5, count=3.0, positive=3, stdDev=1.3642420526593924E-12, zeros=0}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 3.3333e-05 +- 1.4380e-12 [3.3333e-05 - 3.3333e-05] (6#)
+relativeTol: 1.9507e-05 +- 5.6433e-07 [1.8712e-05 - 1.9968e-05] (6#)

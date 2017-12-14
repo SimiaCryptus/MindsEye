@@ -228,10 +228,10 @@ inheritance external dependencies:
 0 items
 class names:
 31 items
-L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestCIFAR.java -> com.simiacryptus.mindseye.data.TestCIFAR
-L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestCIFAR.java -> com.simiacryptus.mindseye.data.TestCIFAR$1
-L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestMNIST.java -> com.simiacryptus.mindseye.data.TestMNIST
-L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestMNIST.java -> com.simiacryptus.mindseye.data.TestMNIST$1
+L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestCIFAR.java -> com.simiacryptus.mindseye.test.data.TestCIFAR
+L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestCIFAR.java -> com.simiacryptus.mindseye.test.data.TestCIFAR$1
+L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestMNIST.java -> com.simiacryptus.mindseye.test.data.TestMNIST
+L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\data\TestMNIST.java -> com.simiacryptus.mindseye.test.data.TestMNIST$1
 L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\test\demo\MonteCarloClassificationSoftmaxNetworkTests.java -> com.simiacryptus.mindseye.test.demo.MonteCarloClassificationSoftmaxNetworkTests
 L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\test\demo\MonteCarloClassificationSoftmaxNetworkTests.java -> com.simiacryptus.mindseye.test.demo.MonteCarloClassificationSoftmaxNetworkTests$1
 L:\code\Research\mindseye\src\test\java\com\simiacryptus\mindseye\test\demo\MonteCarloClassificationSoftmaxNetworkTests.java -> com.simiacryptus.mindseye.test.demo.MonteCarloClassificationSoftmaxNetworkTests$GaussianDistribution

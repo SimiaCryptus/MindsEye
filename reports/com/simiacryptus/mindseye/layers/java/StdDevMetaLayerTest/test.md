@@ -1,7 +1,7 @@
 # StdDevMetaLayer
 ## StdDevMetaLayerTest
 ### Json Serialization
-Code from [StandardLayerTests.java:69](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,67 +16,67 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StdDevMetaLayer",
-      "id": "2bcdceca-8a5f-488d-8c78-ecc503b5f9cc",
+      "id": "84164851-f1ab-4937-8c87-c067c2ad76f4",
       "isFrozen": false,
-      "name": "StdDevMetaLayer/2bcdceca-8a5f-488d-8c78-ecc503b5f9cc",
+      "name": "StdDevMetaLayer/84164851-f1ab-4937-8c87-c067c2ad76f4",
       "inputs": [
-        "60f1e178-9419-4637-9d80-520ab0234c80"
+        "3157a4d1-3408-42e9-9a2a-e06e21dd4e58"
       ],
       "nodes": {
-        "03063e5c-0c16-4f36-af7a-4ba98edc623e": "50820c39-5703-4e45-82b7-8241b64d9640",
-        "8e0f81f8-7012-45c6-a75e-b698537b46e9": "9d190c1c-73de-4596-b787-a368f451ee77",
-        "9dd77a9f-4f72-4801-b11e-f39cb0462d02": "76136e10-79ce-494a-986b-5aff9a3ad4cd",
-        "aca28014-d997-4bb2-8e85-2546a33be14c": "e5527d96-9a12-4a2a-9fea-854ef7cc638b",
-        "50e05c32-05e7-4066-b3d2-b7159d99408f": "381e02ac-db1e-4bde-bc3d-7f13d127c4ce",
-        "96684a5b-9b72-4afa-922a-f944e751f23c": "800354a7-9987-40c7-b04b-b38ebf964868",
-        "4ea2f6d1-85d9-4c3c-962b-a245fb95cd54": "8a59d0a9-32c1-4115-a5b1-c952888df08d",
-        "4604a2e7-6ebd-4dba-a444-28682fc7705b": "c454d569-702f-4e03-ba19-872ab0e09344",
-        "ae209a90-7129-451d-bfc9-6848a81c3438": "e44b1862-4c20-4ac6-a3c8-890
+        "c057dd23-3826-40f2-ad33-91fa00bb9efd": "be798b87-b60a-4bf0-994a-0fec6866ec01",
+        "675bf37c-dd09-43f1-a1f9-41984ef507c5": "f94fe535-3131-41a4-a162-bf52881151ea",
+        "1c92c4f7-52ce-4952-9ba4-40c1401cf2e2": "44d84b3b-0628-4bf0-9766-d28563591db7",
+        "6671753a-22fd-4eaa-9fdb-9fd00730c2c2": "f63d8818-802d-4df9-8390-3f70f0f18e92",
+        "a3e45f95-6d9b-4cf2-960c-27186f7b2c57": "9b8d7562-ddaf-47ec-8c63-de72c17c0f55",
+        "6e24904d-45d4-4480-be06-dd9f24df2f8b": "231312ed-e2ff-412a-9e38-433c4bf1680f",
+        "713ce921-6576-426e-8b20-94348ceb24a5": "67f76e52-d65c-44a9-b236-165b6ea40cc6",
+        "5d2be6a0-c0f3-4b61-a48f-107a14125828": "98dfd332-01ad-4bbd-8ca0-e83ec1e37ab4",
+        "438a1d23-5278-4da2-bb62-3d7272ec1722": "731feb82-00e2-45c2-9aff-da1
 ```
-...[skipping 2605 bytes](etc/107.txt)...
+...[skipping 2605 bytes](etc/148.txt)...
 ```
     5
         }
       },
       "links": {
-        "03063e5c-0c16-4f36-af7a-4ba98edc623e": [
-          "60f1e178-9419-4637-9d80-520ab0234c80"
+        "c057dd23-3826-40f2-ad33-91fa00bb9efd": [
+          "3157a4d1-3408-42e9-9a2a-e06e21dd4e58"
         ],
-        "8e0f81f8-7012-45c6-a75e-b698537b46e9": [
-          "03063e5c-0c16-4f36-af7a-4ba98edc623e"
+        "675bf37c-dd09-43f1-a1f9-41984ef507c5": [
+          "c057dd23-3826-40f2-ad33-91fa00bb9efd"
         ],
-        "9dd77a9f-4f72-4801-b11e-f39cb0462d02": [
-          "8e0f81f8-7012-45c6-a75e-b698537b46e9"
+        "1c92c4f7-52ce-4952-9ba4-40c1401cf2e2": [
+          "675bf37c-dd09-43f1-a1f9-41984ef507c5"
         ],
-        "aca28014-d997-4bb2-8e85-2546a33be14c": [
-          "9dd77a9f-4f72-4801-b11e-f39cb0462d02"
+        "6671753a-22fd-4eaa-9fdb-9fd00730c2c2": [
+          "1c92c4f7-52ce-4952-9ba4-40c1401cf2e2"
         ],
-        "50e05c32-05e7-4066-b3d2-b7159d99408f": [
-          "60f1e178-9419-4637-9d80-520ab0234c80"
+        "a3e45f95-6d9b-4cf2-960c-27186f7b2c57": [
+          "3157a4d1-3408-42e9-9a2a-e06e21dd4e58"
         ],
-        "96684a5b-9b72-4afa-922a-f944e751f23c": [
-          "50e05c32-05e7-4066-b3d2-b7159d99408f"
+        "6e24904d-45d4-4480-be06-dd9f24df2f8b": [
+          "a3e45f95-6d9b-4cf2-960c-27186f7b2c57"
         ],
-        "4ea2f6d1-85d9-4c3c-962b-a245fb95cd54": [
-          "96684a5b-9b72-4afa-922a-f944e751f23c"
+        "713ce921-6576-426e-8b20-94348ceb24a5": [
+          "6e24904d-45d4-4480-be06-dd9f24df2f8b"
         ],
-        "4604a2e7-6ebd-4dba-a444-28682fc7705b": [
-          "4ea2f6d1-85d9-4c3c-962b-a245fb95cd54",
-          "aca28014-d997-4bb2-8e85-2546a33be14c"
+        "5d2be6a0-c0f3-4b61-a48f-107a14125828": [
+          "713ce921-6576-426e-8b20-94348ceb24a5",
+          "6671753a-22fd-4eaa-9fdb-9fd00730c2c2"
         ],
-        "ae209a90-7129-451d-bfc9-6848a81c3438": [
-          "4604a2e7-6ebd-4dba-a444-28682fc7705b"
+        "438a1d23-5278-4da2-bb62-3d7272ec1722": [
+          "5d2be6a0-c0f3-4b61-a48f-107a14125828"
         ]
       },
       "labels": {},
-      "head": "ae209a90-7129-451d-bfc9-6848a81c3438"
+      "head": "438a1d23-5278-4da2-bb62-3d7272ec1722"
     }
 ```
 
 
 
 ### Network Diagram
-Code from [StandardLayerTests.java:80](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L80) executed in 0.20 seconds: 
+Code from [StandardLayerTests.java:79](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L79) executed in 0.16 seconds: 
 ```java
     return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
       .height(400).width(600).render(Format.PNG).toImage();
@@ -84,12 +84,12 @@ Code from [StandardLayerTests.java:80](../../../../../../../src/main/java/com/si
 
 Returns: 
 
-![Result](etc/test.51.png)
+![Result](etc/test.684.png)
 
 
 
 ### Example Input/Output Pair
-Code from [StandardLayerTests.java:153](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:152](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
@@ -103,13 +103,13 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.756, 1.62, -0.128 ]]
+    [[ 1.028, 1.344, -1.228 ]]
     --------------------
     Output: 
-    [ 0.7136335816712165 ]
+    [ 1.1452596018176646 ]
     --------------------
     Derivative: 
-    [ 0.003113954106557182, 0.40668240631637304, -0.4097963604229303 ]
+    [ 0.18821545369577608, 0.28018877849144397, -0.46840423218721994 ]
 ```
 
 
@@ -117,7 +117,7 @@ Returns:
 ### Performance
 Adding performance wrappers
 
-Code from [TestUtil.java:260](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L260) executed in 0.00 seconds: 
+Code from [TestUtil.java:269](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L269) executed in 0.00 seconds: 
 ```java
     network.visitNodes(node -> {
       if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
@@ -129,20 +129,24 @@ Code from [TestUtil.java:260](../../../../../../../src/main/java/com/simiacryptu
     });
 ```
 
-Code from [StandardLayerTests.java:120](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L120) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:119](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L119) executed in 0.01 seconds: 
 ```java
     getPerformanceTester().test(layer, permPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.000298s +- 0.000033s [0.000269s - 0.000363s]
-    Learning performance: 0.000011s +- 0.000005s [0.000006s - 0.000018s]
+    100 batches
+    Input Dimensions:
+    	[100]
+    Performance:
+    	Evaluation performance: 0.000720s +- 0.000098s [0.000651s - 0.000915s]
+    	Learning performance: 0.000012s +- 0.000005s [0.000005s - 0.000017s]
     
 ```
 
 Per-layer Performance Metrics:
 
-Code from [TestUtil.java:225](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L225) executed in 0.00 seconds: 
+Code from [TestUtil.java:234](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L234) executed in 0.00 seconds: 
 ```java
     Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
     network.visitNodes(node -> {
@@ -163,31 +167,31 @@ Code from [TestUtil.java:225](../../../../../../../src/main/java/com/simiacryptu
 Logging: 
 ```
     Forward Performance: 
-    	Optional[NthPowerActivationLayer/e44b1862-4c20-4ac6-a3c8-8905c7b85ceb -> 0.000003s +- 0.000001s (11.0)
-    	AvgReducerLayer/9d190c1c-73de-4596-b787-a368f451ee77 -> 0.000003s +- 0.000001s (11.0)
-    	SqActivationLayer/76136e10-79ce-494a-986b-5aff9a3ad4cd -> 0.000002s +- 0.000000s (11.0)
-    	SqActivationLayer/381e02ac-db1e-4bde-bc3d-7f13d127c4ce -> 0.000115s +- 0.000034s (11.0)
-    	AvgMetaLayer/50820c39-5703-4e45-82b7-8241b64d9640 -> 0.000029s +- 0.000010s (11.0)
-    	SumInputsLayer/c454d569-702f-4e03-ba19-872ab0e09344 -> 0.000016s +- 0.000010s (11.0)
-    	AvgReducerLayer/8a59d0a9-32c1-4115-a5b1-c952888df08d -> 0.000007s +- 0.000004s (11.0)
-    	LinearActivationLayer/e5527d96-9a12-4a2a-9fea-854ef7cc638b -> 0.000003s +- 0.000002s (11.0)
-    	AvgMetaLayer/800354a7-9987-40c7-b04b-b38ebf964868 -> 0.000042s +- 0.000010s (11.0)]
+    	Optional[AvgMetaLayer/231312ed-e2ff-412a-9e38-433c4bf1680f -> 0.000255s +- 0.000066s (11.0)
+    	NthPowerActivationLayer/731feb82-00e2-45c2-9aff-da1e2efcb4f1 -> 0.000002s +- 0.000001s (11.0)
+    	LinearActivationLayer/f63d8818-802d-4df9-8390-3f70f0f18e92 -> 0.000002s +- 0.000001s (11.0)
+    	AvgReducerLayer/f94fe535-3131-41a4-a162-bf52881151ea -> 0.000004s +- 0.000006s (11.0)
+    	SqActivationLayer/9b8d7562-ddaf-47ec-8c63-de72c17c0f55 -> 0.000135s +- 0.000059s (11.0)
+    	SumInputsLayer/98dfd332-01ad-4bbd-8ca0-e83ec1e37ab4 -> 0.000008s +- 0.000005s (11.0)
+    	AvgMetaLayer/be798b87-b60a-4bf0-994a-0fec6866ec01 -> 0.000193s +- 0.000044s (11.0)
+    	SqActivationLayer/44d84b3b-0628-4bf0-9766-d28563591db7 -> 0.000002s +- 0.000001s (11.0)
+    	AvgReducerLayer/67f76e52-d65c-44a9-b236-165b6ea40cc6 -> 0.000006s +- 0.000003s (11.0)]
     Backward Performance: 
-    	Optional[NthPowerActivationLayer/e44b1862-4c20-4ac6-a3c8-8905c7b85ceb -> 0.000006s +- 0.000002s (6.0)
-    	AvgReducerLayer/9d190c1c-73de-4596-b787-a368f451ee77 -> 0.000003s +- 0.000000s (1.0)
-    	SqActivationLayer/76136e10-79ce-494a-986b-5aff9a3ad4cd -> 0.000001s +- 0.000000s (1.0)
-    	SqActivationLayer/381e02ac-db1e-4bde-bc3d-7f13d127c4ce -> 0.000003s +- 0.000000s (1.0)
-    	AvgMetaLayer/50820c39-5703-4e45-82b7-8241b64d9640 -> 0.000005s +- 0.000000s (1.0)
-    	SumInputsLayer/c454d569-702f-4e03-ba19-872ab0e09344 -> 0.000008s +- 0.000000s (1.0)
-    	AvgReducerLayer/8a59d0a9-32c1-4115-a5b1-c952888df08d -> 0.000005s +- 0.000000s (1.0)
-    	LinearActivationLayer/e5527d96-9a12-4a2a-9fea-854ef7cc638b -> 0.000004s +- 0.000000s (1.0)
-    	AvgMetaLayer/800354a7-9987-40c7-b04b-b38ebf964868 -> 0.000013s +- 0.000000s (1.0)]
+    	Optional[AvgMetaLayer/231312ed-e2ff-412a-9e38-433c4bf1680f -> 0.000027s +- 0.000000s (1.0)
+    	NthPowerActivationLayer/731feb82-00e2-45c2-9aff-da1e2efcb4f1 -> 0.000008s +- 0.000004s (6.0)
+    	LinearActivationLayer/f63d8818-802d-4df9-8390-3f70f0f18e92 -> 0.000005s +- 0.000000s (1.0)
+    	AvgReducerLayer/f94fe535-3131-41a4-a162-bf52881151ea -> 0.000008s +- 0.000000s (1.0)
+    	SqActivationLayer/9b8d7562-ddaf-47ec-8c63-de72c17c0f55 -> 0.000006s +- 0.000000s (1.0)
+    	SumInputsLayer/98dfd332-01ad-4bbd-8ca0-e83ec1e37ab4 -> 0.000013s +- 0.000000s (1.0)
+    	AvgMetaLayer/be798b87-b60a-4bf0-994a-0fec6866ec01 -> 0.000030s +- 0.000000s (1.0)
+    	SqActivationLayer/44d84b3b-0628-4bf0-9766-d28563591db7 -> 0.000001s +- 0.000000s (1.0)
+    	AvgReducerLayer/67f76e52-d65c-44a9-b236-165b6ea40cc6 -> 0.000015s +- 0.000000s (1.0)]
     
 ```
 
 Removing performance wrappers
 
-Code from [TestUtil.java:243](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L243) executed in 0.00 seconds: 
+Code from [TestUtil.java:252](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L252) executed in 0.00 seconds: 
 ```java
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {

@@ -1,0 +1,115 @@
+{
+  "class": "com.simiacryptus.mindseye.layers.java.StdDevMetaLayer",
+  "id": "84164851-f1ab-4937-8c87-c067c2ad76f4",
+  "isFrozen": false,
+  "name": "StdDevMetaLayer/84164851-f1ab-4937-8c87-c067c2ad76f4",
+  "inputs": [
+    "3157a4d1-3408-42e9-9a2a-e06e21dd4e58"
+  ],
+  "nodes": {
+    "c057dd23-3826-40f2-ad33-91fa00bb9efd": "be798b87-b60a-4bf0-994a-0fec6866ec01",
+    "675bf37c-dd09-43f1-a1f9-41984ef507c5": "f94fe535-3131-41a4-a162-bf52881151ea",
+    "1c92c4f7-52ce-4952-9ba4-40c1401cf2e2": "44d84b3b-0628-4bf0-9766-d28563591db7",
+    "6671753a-22fd-4eaa-9fdb-9fd00730c2c2": "f63d8818-802d-4df9-8390-3f70f0f18e92",
+    "a3e45f95-6d9b-4cf2-960c-27186f7b2c57": "9b8d7562-ddaf-47ec-8c63-de72c17c0f55",
+    "6e24904d-45d4-4480-be06-dd9f24df2f8b": "231312ed-e2ff-412a-9e38-433c4bf1680f",
+    "713ce921-6576-426e-8b20-94348ceb24a5": "67f76e52-d65c-44a9-b236-165b6ea40cc6",
+    "5d2be6a0-c0f3-4b61-a48f-107a14125828": "98dfd332-01ad-4bbd-8ca0-e83ec1e37ab4",
+    "438a1d23-5278-4da2-bb62-3d7272ec1722": "731feb82-00e2-45c2-9aff-da1e2efcb4f1"
+  },
+  "layers": {
+    "be798b87-b60a-4bf0-994a-0fec6866ec01": {
+      "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
+      "id": "be798b87-b60a-4bf0-994a-0fec6866ec01",
+      "isFrozen": false,
+      "name": "AvgMetaLayer/be798b87-b60a-4bf0-994a-0fec6866ec01",
+      "minBatchCount": 0
+    },
+    "f94fe535-3131-41a4-a162-bf52881151ea": {
+      "class": "com.simiacryptus.mindseye.layers.java.AvgReducerLayer",
+      "id": "f94fe535-3131-41a4-a162-bf52881151ea",
+      "isFrozen": false,
+      "name": "AvgReducerLayer/f94fe535-3131-41a4-a162-bf52881151ea"
+    },
+    "44d84b3b-0628-4bf0-9766-d28563591db7": {
+      "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
+      "id": "44d84b3b-0628-4bf0-9766-d28563591db7",
+      "isFrozen": true,
+      "name": "SqActivationLayer/44d84b3b-0628-4bf0-9766-d28563591db7"
+    },
+    "f63d8818-802d-4df9-8390-3f70f0f18e92": {
+      "class": "com.simiacryptus.mindseye.layers.java.LinearActivationLayer",
+      "id": "f63d8818-802d-4df9-8390-3f70f0f18e92",
+      "isFrozen": true,
+      "name": "LinearActivationLayer/f63d8818-802d-4df9-8390-3f70f0f18e92",
+      "weights": [
+        -1.0,
+        0.0
+      ]
+    },
+    "9b8d7562-ddaf-47ec-8c63-de72c17c0f55": {
+      "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
+      "id": "9b8d7562-ddaf-47ec-8c63-de72c17c0f55",
+      "isFrozen": true,
+      "name": "SqActivationLayer/9b8d7562-ddaf-47ec-8c63-de72c17c0f55"
+    },
+    "231312ed-e2ff-412a-9e38-433c4bf1680f": {
+      "class": "com.simiacryptus.mindseye.layers.java.AvgMetaLayer",
+      "id": "231312ed-e2ff-412a-9e38-433c4bf1680f",
+      "isFrozen": false,
+      "name": "AvgMetaLayer/231312ed-e2ff-412a-9e38-433c4bf1680f",
+      "minBatchCount": 0
+    },
+    "67f76e52-d65c-44a9-b236-165b6ea40cc6": {
+      "class": "com.simiacryptus.mindseye.layers.java.AvgReducerLayer",
+      "id": "67f76e52-d65c-44a9-b236-165b6ea40cc6",
+      "isFrozen": false,
+      "name": "AvgReducerLayer/67f76e52-d65c-44a9-b236-165b6ea40cc6"
+    },
+    "98dfd332-01ad-4bbd-8ca0-e83ec1e37ab4": {
+      "class": "com.simiacryptus.mindseye.layers.java.SumInputsLayer",
+      "id": "98dfd332-01ad-4bbd-8ca0-e83ec1e37ab4",
+      "isFrozen": false,
+      "name": "SumInputsLayer/98dfd332-01ad-4bbd-8ca0-e83ec1e37ab4"
+    },
+    "731feb82-00e2-45c2-9aff-da1e2efcb4f1": {
+      "class": "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer",
+      "id": "731feb82-00e2-45c2-9aff-da1e2efcb4f1",
+      "isFrozen": false,
+      "name": "NthPowerActivationLayer/731feb82-00e2-45c2-9aff-da1e2efcb4f1",
+      "power": 0.5
+    }
+  },
+  "links": {
+    "c057dd23-3826-40f2-ad33-91fa00bb9efd": [
+      "3157a4d1-3408-42e9-9a2a-e06e21dd4e58"
+    ],
+    "675bf37c-dd09-43f1-a1f9-41984ef507c5": [
+      "c057dd23-3826-40f2-ad33-91fa00bb9efd"
+    ],
+    "1c92c4f7-52ce-4952-9ba4-40c1401cf2e2": [
+      "675bf37c-dd09-43f1-a1f9-41984ef507c5"
+    ],
+    "6671753a-22fd-4eaa-9fdb-9fd00730c2c2": [
+      "1c92c4f7-52ce-4952-9ba4-40c1401cf2e2"
+    ],
+    "a3e45f95-6d9b-4cf2-960c-27186f7b2c57": [
+      "3157a4d1-3408-42e9-9a2a-e06e21dd4e58"
+    ],
+    "6e24904d-45d4-4480-be06-dd9f24df2f8b": [
+      "a3e45f95-6d9b-4cf2-960c-27186f7b2c57"
+    ],
+    "713ce921-6576-426e-8b20-94348ceb24a5": [
+      "6e24904d-45d4-4480-be06-dd9f24df2f8b"
+    ],
+    "5d2be6a0-c0f3-4b61-a48f-107a14125828": [
+      "713ce921-6576-426e-8b20-94348ceb24a5",
+      "6671753a-22fd-4eaa-9fdb-9fd00730c2c2"
+    ],
+    "438a1d23-5278-4da2-bb62-3d7272ec1722": [
+      "5d2be6a0-c0f3-4b61-a48f-107a14125828"
+    ]
+  },
+  "labels": {},
+  "head": "438a1d23-5278-4da2-bb62-3d7272ec1722"
+}

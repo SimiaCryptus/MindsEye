@@ -1,7 +1,7 @@
 # SimpleConvolutionLayer
 ## Image_Float
 ### Json Serialization
-Code from [StandardLayerTests.java:69](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:68](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,163 +16,162 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer",
-      "id": "3bce09d4-ed5e-404d-8004-92e7bc43c73e",
+      "id": "61a5c877-3874-40e2-a96b-4aabb173009d",
       "isFrozen": false,
-      "name": "SimpleConvolutionLayer/3bce09d4-ed5e-404d-8004-92e7bc43c73e",
+      "name": "SimpleConvolutionLayer/61a5c877-3874-40e2-a96b-4aabb173009d",
       "filter": [
         [
           [
-            -1.232,
+            -0.496,
+            -0.94,
+            0.564
+          ],
+          [
+            -1.108,
+            0.176,
+            -1.12
+          ],
+          [
+            -1.528,
+            0.404,
+            -1.412
+          ]
+        ],
+        [
+          [
+            0.94,
+            1.644,
+            -1.772
+          ],
+          [
+            -1.128,
+            -1.032,
+            0.58
+          ],
+          [
+            -1.528,
+            -0.828,
+            -1.772
+          ]
+        ],
+        [
+          [
+            -0.72,
+            -1.516,
+            -0.26
+          ],
+          [
+            -0.732,
+            -0.944,
+            0.408
+          ],
+          [
+            1.716,
+            -0.856,
+            -0.74
+          ]
+        ],
+        [
+          [
+            0.02,
+            0.948,
+            1.432
+          ],
+          [
+            1.252,
+            -1.492,
+            -0.464
+          ],
+          [
             0.592,
-            -1.212
-          ],
-          [
-            -0.192,
-            -1.076,
-            1.516
-          ],
-          [
-            -0.76,
-            -0.712,
-            1.332
+            -0.88,
+            0.74
           ]
-        ],
-        [
-          [
-            -1.884,
-            0.04,
-            1.408
-          ],
-          [
-            0.308,
-            0.82,
-            0.4
-          ],
-          [
-            -1.076,
-            1.632,
-            -0.044
-          ]
-        ],
-        [
-          [
-            -1.984,
-            1.58,
-            0.156
-          ],
-          [
-            -1.872,
-            -1.64,
-            0.188
-          ],
-          [
-            0.108,
-            -1.872,
-            1.528
-          ]
-        ],
-        [
-          [
-            -0.64,
-            0.856,
-            1.192
-          ],
-          [
-            0.3,
-            -1.92,
-            -0.384
-          ],
-          [
-            -0.324,
-            0.524,
-            -0.272
-          ]
-        ],
-       
+        ]
 ```
-...[skipping 14 bytes](etc/48.txt)...
+...[skipping 19 bytes](etc/86.txt)...
 ```
-         0.232,
+         -0.384,
+            -1.392,
+            1.024
+          ],
+          [
+            1.808,
+            1.36,
+            -1.448
+          ],
+          [
+            1.06,
+            1.208,
+            0.248
+          ]
+        ],
+        [
+          [
+            -0.672,
+            -0.272,
+            0.656
+          ],
+          [
+            0.5,
+            1.568,
+            -0.176
+          ],
+          [
+            -1.816,
             -1.588,
-            1.688
-          ],
-          [
-            -0.656,
-            1.492,
-            1.284
-          ],
-          [
-            -1.024,
-            1.148,
-            -0.912
+            -0.356
           ]
         ],
         [
           [
-            0.836,
-            1.108,
+            0.944,
+            -0.26,
             -1.852
           ],
           [
-            -1.66,
-            0.724,
-            -0.128
+            1.54,
+            0.404,
+            -1.832
           ],
           [
-            1.452,
-            0.216,
-            -0.628
+            -1.024,
+            -1.868,
+            1.036
           ]
         ],
         [
           [
-            1.736,
-            -1.008,
-            -0.108
+            -0.276,
+            1.396,
+            0.18
           ],
           [
-            1.78,
-            0.092,
-            0.992
+            -0.764,
+            0.056,
+            -1.388
           ],
           [
-            -1.548,
-            -1.4,
-            0.552
+            0.392,
+            1.064,
+            -0.792
           ]
         ],
         [
           [
-            -0.932,
-            1.16,
-            -1.1
+            0.14,
+            1.56,
+            -0.24
           ],
           [
-            1.436,
-            1.232,
-            0.256
+            1.684,
+            -1.244,
+            -1.116
           ],
           [
-            -1.432,
-            -0.972,
-            -0.028
-          ]
-        ],
-        [
-          [
-            -0.26,
-            1.28,
-            1.612
-          ],
-          [
-            -0.448,
-            -0.104,
-            0.772
-          ],
-          [
-            -1.4,
-            1.296,
-            -1.088
+            1.66,
+            1.304,
+            -0.588
           ]
         ]
       ],
@@ -185,7 +184,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [StandardLayerTests.java:153](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:152](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
@@ -200,9 +199,9 @@ Returns:
     --------------------
     Input: 
     [[
-    	[ [ 1.644, 0.904, 1.272 ], [ -1.96, -0.328, 0.632 ], [ 1.228, -0.892, 0.044 ] ],
-    	[ [ -1.552, 0.588, -0.084 ], [ 0.88, 1.264, 0.2 ], [ -1.752, 0.24, -1.404 ] ],
-    	[ [ 0.608, 1.54, 1.56 ], [ -0.104, 0.476, -0.544 ], [ -1.092, -0.148, -1.38 ] ]
+    	[ [ -1.408, -0.228, 1.452 ], [ 0.588, 1.616, 0.476 ], [ 0.932, 0.484, 1.792 ] ],
+    	[ [ -1.308, -1.232, 1.984 ], [ 0.108, 1.432, 0.928 ], [ -1.228, -1.364, 0.54 ] ],
+    	[ [ 1.232, 0.428, -0.832 ], [ 0.332, -0.44, -1.144 ], [ 0.372, 1.784, -1.252 ] ]
     ]]
     --------------------
     Output: 
@@ -225,7 +224,7 @@ Returns:
 [GPU Log](etc/cuda.log)
 
 ### Reference Implementation
-Code from [StandardLayerTests.java:93](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L93) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:92](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L92) executed in 0.00 seconds: 
 ```java
     System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
     getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
@@ -234,94 +233,94 @@ Logging:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer",
-      "id": "497ca662-cb10-4ecc-be90-c89c1a87ea94",
+      "id": "47e7d9ca-6f34-450b-b465-3d69e3d0693f",
       "isFrozen": false,
-      "name": "ConvolutionLayer/497ca662-cb10-4ecc-be90-c89c1a87ea94",
+      "name": "ConvolutionLayer/47e7d9ca-6f34-450b-b465-3d69e3d0693f",
       "filter": [
         [
           [
-            -1.232,
+            -0.496,
+            -0.94,
+            0.564
+          ],
+          [
+            -1.108,
+            0.176,
+            -1.12
+          ],
+          [
+            -1.528,
+            0.404,
+            -1.412
+          ]
+        ],
+        [
+          [
+            0.02,
+            0.948,
+            1.432
+          ],
+          [
+            1.252,
+            -1.492,
+            -0.464
+          ],
+          [
             0.592,
-            -1.212
-          ],
-          [
-            -0.192,
-            -1.076,
-            1.516
-          ],
-          [
-            -0.76,
-            -0.712,
-            1.332
+            -0.88,
+            0.74
           ]
         ],
         [
           [
-            -0.64,
-            0.856,
-            1.192
+            0.944,
+            -0.26,
+            -1.852
           ],
           [
-            0.3,
-            -1.92,
-            -0.384
+            1.54,
+            0.404,
+            -1.832
           ],
           [
-            -0.324,
-            0.524,
-            -0.272
+            -1.024,
+            -1.868,
+            1.036
           ]
         ],
         [
           [
-            1.736,
-            -1.008,
-            -0.108
+            0.94,
+            1.644,
+            -1.772
           ],
           [
-            1.78,
-            0.092,
-            0.992
+            -1.128,
+            -1.032,
+            0.58
           ],
           [
-            -1.548,
-            -1.4,
-            0.552
+            -1.528,
+            -0.828,
+            -1.772
           ]
         ],
         [
-          [
-            -1.884,
-            0.04,
-            1.408
-          ],
-          [
-            0.308,
-            0.82,
-            0.4
-          ],
-          [
-            -1.076,
-            1.632,
-            -0.044
-          ]
-        ],
-        [
-          [
+       
 ```
-...[skipping 1469 bytes](etc/49.txt)...
+...[skipping 1460 bytes](etc/87.txt)...
 ```
-    0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+    0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     ]
     Reference Output: [
-    	[ [ -10.176928, -5.282384, -1.646944 ], [ -6.092143999999999, -0.5336319999999991, -6.163647999999999 ], [ 6.52216, 3.1574399999999994, -0.10966399999999951 ] ],
-    	[ [ -4.95672, -2.9472480000000005, 10.2972 ], [ -7.171088, 9.553136000000002, -2.969487999999999 ], [ -6.107792, -6.635184000000002, -9.339407999999999 ] ],
-    	[ [ 5.158176, -3.639072, 6.101775999999999 ], [ -3.8859839999999983, 9.924752, -2.8731999999999998 ], [ -1.097504, -0.48736000000000035, -6.944000000000001 ] ]
+    	[ [ 7.637487999999999, -0.5958400000000003, -7.221184 ], [ -0.4134399999999997, 3.3377280000000007, -9.147616 ], [ 1.2112800000000004, 1.3404480000000008, -3.3076159999999994 ] ],
+    	[ [ 4.832832, -3.6918720000000005, 6.4054079999999995 ], [ 6.334831999999999, 3.340256, 0.727424 ], [ -3.001472, 3.272480000000001, 6.393295999999999 ] ],
+    	[ [ -9.814128, 5.586864, 4.946512 ], [ -0.5749759999999997, -4.0918719999999995, 11.27496 ], [ -2.557296, 1.313296, -5.5996 ] ]
     ]
     Error: [
-    	[ [ 10.176928, 5.282384, 1.646944 ], [ 6.092143999999999, 0.5336319999999991, 6.163647999999999 ], [ -6.52216, -3.1574399999999994, 0.10966399999999951 ] ],
-    	[ [ 4.95672, 2.9472480000000005, -10.2972 ], [ 7.171088, -9.553136000000002, 2.969487999999999 ], [ 6.107792, 6.635184000000002, 9.339407999999999 ] ],
-    	[ [ -5.158176, 3.639072, -6.101775999999999 ], [ 3.8859839999999983, -9.924752, 2.8731999999999998 ], [ 1.097504, 0.48736000000000035, 6.944000000000001 ] ]
+    	[ [ -7.637487999999999, 0.5958400000000003, 7.221184 ], [ 0.4134399999999997, -3.3377280000000007, 9.147616 ], [ -1.2112800000000004, -1.3404480000000008, 3.3076159999999994 ] ],
+    	[ [ -4.832832, 3.6918720000000005, -6.4054079999999995 ], [ -6.334831999999999, -3.340256, -0.727424 ], [ 3.001472, -3.272480000000001, -6.393295999999999 ] ],
+    	[ [ 9.814128, -5.586864, -4.946512 ], [ 0.5749759999999997, 4.0918719999999995, -11.27496 ], [ 2.557296, -1.313296, 5.5996 ] ]
     ]
     
 ```
@@ -329,19 +328,19 @@ Logging:
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=5.1768e+00 +- 3.0213e+00 [1.0966e-01 - 1.0297e+01] (27#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (27#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=4.3693e+00 +- 2.9238e+00 [4.1344e-01 - 1.1275e+01] (27#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (27#)}
     	at com.simiacryptus.mindseye.test.EquivalencyTester.test(EquivalencyTester.java:66)
-    	at com.simiacryptus.mindseye.test.StandardLayerTests.lambda$test$8(StandardLayerTests.java:95)
+    	at com.simiacryptus.mindseye.test.StandardLayerTests.lambda$test$8(StandardLayerTests.java:94)
     	at com.simiacryptus.util.io.NotebookOutput.lambda$code$1(NotebookOutput.java:157)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:138)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:138)
-    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:82)
+    	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:72)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:156)
     	at com.simiacryptus.mindseye.test.StandardLay
 ```
-...[skipping 1254 bytes](etc/50.txt)...
+...[skipping 1255 bytes](etc/88.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

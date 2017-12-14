@@ -1,0 +1,89 @@
+Epoch parameters: 15000, 1
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@7eb03525}}}, orientation=com.simiacryptus.mindseye.opt.orient.OwlQn@d0dac13}
+resetAndMeasure; trainingSize=15000
+LBFGS Accumulation History: 1 points
+Constructing line search parameters: OWL/QN
+th(0)=135.85187201297776;dx=-0.001039525165185287
+New Minimum: 135.85187201297776 > 135.85187193380864
+END: th(2.154434690031884)=135.85187193380864; dx=-7.349573577905641E-8 delta=7.916912636574125E-8
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9996e-01 +- 5.4606e-06 [9.9995e-01 - 1.0000e+00] (9999#)}
+Iteration 1 complete. Error: 135.85187193380864 (15000 in 13.005 seconds; 0.188 in orientation, 1.935 in gc, 12.798 in line search; 19.334 eval time)
+Epoch 1 result with 2 iterations, 15000/2147483647 samples: {validation *= 2^-0.00000; training *= 2^-0.000; Overtraining = 1.00}, {itr*=24739.52, len*=0.71} 0 since improvement; 14.1578 validation time
+Epoch parameters: 15000, 20
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@7eb03525}}}, orientation=com.simiacryptus.mindseye.opt.orient.OwlQn@d0dac13}
+resetAndMeasure; trainingSize=15000
+LBFGS Accumulation History: 1 points
+th(0)=135.85187193380864;dx=-0.0010214909529885836
+New Minimum: 135.85187193380864 > 135.85187176322438
+END: th(4.641588833612779)=135.85187176322438; dx=-7.350604981049436E-8 delta=1.705842578303418E-7
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9992e-01 +- 1.1763e-05 [9.9989e-01 - 9.9999e-01] (9999#)}
+Iteration 2 complete. Error: 135.85187176322438 (15000 in 14.332 seconds; 0.159 in orientation, 2.197 in gc, 14.144 in line search; 20.205 eval time)
+LBFGS Accumulation History: 2 points
+th(0)=135.85187176322438;dx=-0.001026153429974351
+New Minimum: 135.85187176322438 > 135.85187139562098
+END: th(10.000000000000002)=135.85187139562098; dx=-7.352827482210617E-8 delta=3.6760340549335524E-7
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9982e-01 +- 2.5335e-05 [9.9976e-01 - 9.9998e-01] (9999#)}
+Iteration 3 complete. Error: 135.85187139562098 (15000 in 13.955 seconds; 0.241 in orientation, 2.267 in gc, 13.693 in line search; 13.508 eval time)
+LBFGS Accumulation History: 3 points
+th(0)=135.85187139562098;dx=-0.0010354877054172202
+New Minimum: 135.85187139562098 > 135.85187060322187
+END: th(21.544346900318843)=135.85187060322187; dx=-7.357613812294266E-8 delta=7.923991063307767E-7
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9961e-01 +- 5.4548e-05 [9.9949e-01 - 9.9997e-01] (9999#)}
+Iteration 4 complete. Error: 135.85187060322187 (15000 in 15.219 seconds; 0.186 in orientation, 2.469 in gc, 15.008 in line search; 14.808 eval time)
+Orientation vanished. Popping history element from 135.85187193380864, 135.85187176322438, 135.85187139562098, 135.85187060322187
+LBFGS Accumulation History: 3 points
+th(0)=135.85187060322187;dx=-0.001036492491760054
+New Minimum: 135.85187060322187 > 135.85186889409582
+END: th(46.4158883361278)=135.85186889409582; dx=-7.367926748318019E-8 delta=1.7091260531287844E-6
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9916e-01 +- 1.1736e-04 [9.9890e-01 - 9.9993e-01] (9999#)}
+Iteration 5 complete. Error: 135.85186889409582 (15000 in 14.256 seconds; 0.603 in orientation, 2.069 in gc, 13.633 in line search; 13.465 eval time)
+Orientation vanished. Popping history element from 135.85187176322438, 135.85187139562098, 135.85187060322187, 135.85186889409582
+LBFGS Accumulation History: 3 points
+th(0)=135.85186889409582;dx=-0.0010514609661304844
+New Minimum: 135.85186889409582 > 135.8518652027982
+END: th(100.00000000000003)=135.8518652027982; dx=-7.390187026448649E-8 delta=3.691297621344347E-6
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9819e-01 +- 2.5212e-04 [9.9762e-01 - 9.9984e-01] (9999#)}
+Iteration 6 complete. Error: 135.8518652027982 (15000 in 15.184 seconds; 0.623 in orientation, 2.573 in gc, 14.529 in line search; 14.352 eval time)
+Orientation vanished. Popping history element from 135.85187139562098, 135.85187060322187, 135.85186889409582, 135.8518652027982
+LBFGS Accumulation History: 3 points
+th(0)=135.8518652027982;dx=-0.0010507405849031932
+New Minimum: 135.8518652027982 > 135.8518572077879
+END: th(215.44346900318845)=135.8518572077879; dx=-7.438364285226085E-8 delta=7.99501029291605E-6
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9610e-01 +- 5.3978e-04 [9.9489e-01 - 9.9965e-01] (9999#)}
+Iteration 7 complete. Error: 135.8518572077879 (15000 in 15.956 seconds; 1.046 in orientation, 2.563 in gc, 14.889 in line search; 14.666 eval time)
+Orientation vanished. Popping history element from 135.85187060322187, 135.85186889409582, 135.8518652027982, 135.8518572077879
+LBFGS Accumulation History: 3 points
+th(0)=135.8518572077879;dx=-0.0010380726019903772
+New Minimum: 135.8518572077879 > 135.8518397852057
+END: th(464.1588833612781)=135.8518397852057; dx=-7.542892719271434E-8 delta=1.7422582203607817E-5
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.9163e-01 +- 1.1474e-03 [9.8904e-01 - 9.9925e-01] (9999#)}
+Iteration 8 complete. Error: 135.8518397852057 (15000 in 13.952 seconds; 0.659 in orientation, 2.228 in gc, 13.266 in line search; 13.052 eval time)
+Orientation vanished. Popping history element from 135.85186889409582, 135.8518652027982, 135.8518572077879, 135.8518397852057
+LBFGS Accumulation History: 3 points
+th(0)=135.8518397852057;dx=-0.0010212138441086536
+New Minimum: 135.8518397852057 > 135.8518013161024
+END: th(1000.0000000000005)=135.8518013161024; dx=-7.772346351928995E-8 delta=3.846910328775266E-5
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.8210e-01 +- 2.4014e-03 [9.7659e-01 - 9.9834e-01] (9999#)}
+Iteration 9 complete. Error: 135.8518013161024 (15000 in 14.157 seconds; 0.664 in orientation, 2.151 in gc, 13.468 in line search; 13.276 eval time)
+Orientation vanished. Popping history element from 135.8518652027982, 135.8518572077879, 135.8518397852057, 135.8518013161024
+LBFGS Accumulation History: 3 points
+th(0)=135.8518013161024;dx=-0.001050803546891765
+New Minimum: 135.8518013161024 > 135.85171395499114
+END: th(2154.4346900318847)=135.85171395499114; dx=-8.286618286238786E-8 delta=8.736111126950163E-5
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.6210e-01 +- 4.8628e-03 [9.5050e-01 - 9.9627e-01] (9999#)}
+Iteration 10 complete. Error: 135.85171395499114 (15000 in 14.093 seconds; 0.674 in orientation, 2.275 in gc, 13.394 in line search; 13.218 eval time)
+Orientation vanished. Popping history element from 135.8518572077879, 135.8518397852057, 135.8518013161024, 135.85171395499114
+LBFGS Accumulation History: 3 points
+th(0)=135.85171395499114;dx=-0.001070041281809942
+New Minimum: 135.85171395499114 > 135.85150333930125
+END: th(4641.588833612781)=135.85150333930125; dx=-9.493399537485295E-8 delta=2.106156898946665E-4
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=9.2128e-01 +- 9.1838e-03 [8.9744e-01 - 9.9118e-01] (9999#)}
+Iteration 11 complete. Error: 135.85150333930125 (15000 in 13.494 seconds; 0.571 in orientation, 2.086 in gc, 12.904 in line search; 12.741 eval time)
+Orientation vanished. Popping history element from 135.8518397852057, 135.8518013161024, 135.85171395499114, 135.85150333930125
+LBFGS Accumulation History: 3 points
+th(0)=135.85150333930125;dx=-0.0011464532566211115
+MAX ALPHA: th(0)=135.85150333930125;th'(0)=-0.0011464532566211115;
+Overall network state change: {FullyConnectedLayer=1.0, BiasLayer=0.0, ConvolutionLayer=1.0, PlaceholderLayer=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (9999#)}
+Iteration 12 failed, aborting. Error: 135.85150333930125 (15000 in 13.815 seconds; 0.643 in orientation, 2.281 in gc, 13.148 in line search; 13.015 eval time)
+Epoch 2 result with 11 iterations, 15000/2147483647 samples: {validation *= 2^-0.00000; training *= 2^-0.000; Overtraining = 1.00}, {itr*=362.57, len*=0.71} 0 since improvement; 6.1334 validation time
+Training 2 runPhase halted

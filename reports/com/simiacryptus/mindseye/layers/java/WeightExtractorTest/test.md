@@ -1,7 +1,7 @@
 # WeightExtractor
 ## WeightExtractorTest
 ### Json Serialization
-Code from [StandardLayerTests.java:69](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,10 +16,10 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.WeightExtractor",
-      "id": "1f042bc3-57ce-4349-85e2-622de93a4c1a",
+      "id": "dd42ee8b-0bc0-4d59-8401-3a59bcfdacbb",
       "isFrozen": false,
-      "name": "WeightExtractor/1f042bc3-57ce-4349-85e2-622de93a4c1a",
-      "innerId": "cc3f22dd-4eec-4efa-8940-d1a96a50bf43",
+      "name": "WeightExtractor/dd42ee8b-0bc0-4d59-8401-3a59bcfdacbb",
+      "innerId": "6f3582a9-d5b2-446a-a1b1-43d1f240b02b",
       "index": 0
     }
 ```
@@ -27,7 +27,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [StandardLayerTests.java:153](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:152](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
@@ -44,7 +44,7 @@ Returns:
     [[  ]]
     --------------------
     Output: 
-    [ 0.09271630446520222, -0.09006385044726407, -0.5094230460745771, 0.0102773574506938, -0.8180370638876456, -0.3507616323525955, -0.8559885535020723, -0.34849976607860444, -0.7455292402903565 ]
+    [ -0.6572861405986538, 0.1640098995032478, -0.29574910960558043, 0.2460078376634364, 0.5740674565273136, 0.5002539364494496, 0.1947868942782986, -0.76381992262552, 0.7687883767713144 ]
     --------------------
     Derivative: 
     [  ]
@@ -53,14 +53,18 @@ Returns:
 
 
 ### Performance
-Code from [StandardLayerTests.java:120](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L120) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:119](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L119) executed in 0.00 seconds: 
 ```java
     getPerformanceTester().test(layer, permPrototype);
 ```
 Logging: 
 ```
-    Evaluation performance: 0.000031s +- 0.000012s [0.000021s - 0.000054s]
-    Learning performance: 0.000005s +- 0.000002s [0.000002s - 0.000009s]
+    100 batches
+    Input Dimensions:
+    	[0]
+    Performance:
+    	Evaluation performance: 0.000021s +- 0.000008s [0.000014s - 0.000036s]
+    	Learning performance: 0.000006s +- 0.000003s [0.000003s - 0.000009s]
     
 ```
 

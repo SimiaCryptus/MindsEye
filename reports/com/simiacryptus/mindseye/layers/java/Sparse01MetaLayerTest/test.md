@@ -1,7 +1,7 @@
 # Sparse01MetaLayer
 ## Sparse01MetaLayerTest
 ### Json Serialization
-Code from [StandardLayerTests.java:69](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L69) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
 ```java
     JsonObject json = layer.getJson();
     NNLayer echo = NNLayer.fromJson(json);
@@ -16,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.Sparse01MetaLayer",
-      "id": "4b34286a-ebe1-4245-9734-0aaabc47d5f0",
+      "id": "d8dc1fac-7c12-412e-99c0-bc97ca34b863",
       "isFrozen": false,
-      "name": "Sparse01MetaLayer/4b34286a-ebe1-4245-9734-0aaabc47d5f0",
+      "name": "Sparse01MetaLayer/d8dc1fac-7c12-412e-99c0-bc97ca34b863",
       "sparsity": 0.05
     }
 ```
@@ -26,7 +26,7 @@ Returns:
 
 
 ### Example Input/Output Pair
-Code from [StandardLayerTests.java:153](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L153) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:152](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
 ```java
     SimpleEval eval = SimpleEval.run(layer, inputPrototype);
     return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
@@ -40,44 +40,44 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.476, -0.792, -0.58 ]]
+    [[ 1.616, 0.632, -1.116 ]]
     --------------------
     Output: 
-    [ 0.0, 0.0, 0.0 ]
+    [ 0.0, 0.7741167746684372, 0.0 ]
     --------------------
     Derivative: 
-    [ 0.417558699011869, 0.5932652417027416, 0.6874727193365342 ]
+    [ -1.5731483862671978, 2.5024078150798017, 0.4937631698409794 ]
 ```
 
 
 
 ### Differential Validation
-Code from [StandardLayerTests.java:110](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L110) executed in 0.00 seconds: 
+Code from [StandardLayerTests.java:109](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L109) executed in 0.00 seconds: 
 ```java
     return getDerivativeTester().test(layer, inputPrototype);
 ```
 Logging: 
 ```
-    Inputs: [ -0.692, 1.796, 1.784 ]
-    Inputs Statistics: {meanExponent=0.1152690922760492, negative=1, min=1.784, max=1.784, mean=0.9626666666666667, count=3.0, positive=2, stdDev=1.17003627674055, zeros=0}
+    Inputs: [ 1.508, -0.336, 1.272 ]
+    Inputs Statistics: {meanExponent=-0.06359075658800185, negative=1, min=1.272, max=1.272, mean=0.8146666666666667, count=3.0, positive=2, stdDev=0.8193287225256757, zeros=0}
     Output: [ 0.0, 0.0, 0.0 ]
     Outputs Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=3.0, positive=0, stdDev=0.0, zeros=3}
     Feedback for input 0
-    Inputs Values: [ -0.692, 1.796, 1.784 ]
-    Value Statistics: {meanExponent=0.1152690922760492, negative=1, min=1.784, max=1.784, mean=0.9626666666666667, count=3.0, positive=2, stdDev=1.17003627674055, zeros=0}
-    Implemented Feedback: [ [ 0.6337200563003047, 0.0, 0.0 ], [ 0.0, -1.2213069803359782, 0.0 ], [ 0.0, 0.0, -1.2397615997071472 ] ]
-    Implemented Statistics: {meanExponent=-0.005979842721496843, negative=2, min=-1.2397615997071472, max=-1.2397615997071472, mean=-0.2030387248603134, count=9.0, positive=1, stdDev=0.5830168817783498, zeros=6}
+    Inputs Values: [ 1.508, -0.336, 1.272 ]
+    Value Statistics: {meanExponent=-0.06359075658800185, negative=1, min=1.272, max=1.272, mean=0.8146666666666667, count=3.0, positive=2, stdDev=0.8193287225256757, zeros=0}
+    Implemented Feedback: [ [ -1.9032352388312201, 0.0, 0.0 ], [ 0.0, 0.859887368120901, 0.0 ], [ 0.0, 0.0, -3.531955234924158 ] ]
+    Implemented Statistics: {meanExponent=0.25398307662220226, negative=2, min=-3.531955234924158, max=-3.531955234924158, mean=-0.5083670117371641, count=9.0, positive=1, stdDev=1.269754362688041, zeros=6}
     Measured: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
     Measured Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
-    Feedback Error: [ [ -0.6337200563003047, 0.0, 0.0 ], [ 0.0, 1.2213069803359782, 0.0 ], [ 0.0, 0.0, 1.2397615997071472 ] ]
-    Error Statistics: {meanExponent=-0.005979842721496843, negative=1, min=1.2397615997071472, max=1.2397615997071472, mean=0.2030387248603134, count=9.0, positive=2, stdDev=0.5830168817783498, zeros=6}
+    Feedback Error: [ [ 1.9032352388312201, 0.0, 0.0 ], [ 0.0, -0.859887368120901, 0.0 ], [ 0.0, 0.0, 3.531955234924158 ] ]
+    Error Statistics: {meanExponent=0.25398307662220226, negative=1, min=3.531955234924158, max=3.531955234924158, mean=0.5083670117371641, count=9.0, positive=2, stdDev=1.269754362688041, zeros=6}
     
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.4387e-01 +- 5.1273e-01 [0.0000e+00 - 1.2398e+00] (9#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (3#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=6.9945e-01 +- 1.1754e+00 [0.0000e+00 - 3.5320e+00] (9#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (3#)}
     	at com.simiacryptus.mindseye.test.SingleDerivativeTester.lambda$test$6(SingleDerivativeTester.java:90)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
@@ -90,7 +90,7 @@ Returns:
     	at com.simiacryptus.mindseye.test.SingleDerivativeTester.test(SingleDerivativeTester.java:121)
     	at com.simiacryptus.minds
 ```
-...[skipping 1898 bytes](etc/105.txt)...
+...[skipping 1899 bytes](etc/146.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

@@ -1,0 +1,659 @@
+Epoch parameters: 30000, 1
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@76de1039}}}, orientation=com.simiacryptus.mindseye.opt.orient.GradientDescent@fc3f506}
+resetAndMeasure; trainingSize=30000
+Constructing line search parameters: GD
+F(0.0) = LineSearchPoint{point=PointSample{avg=2.3993829706746888}, derivative=-3180222.743127955}
+New Minimum: 2.3993829706746888 > 2.3993299352923385
+F(1.0E-10) = LineSearchPoint{point=PointSample{avg=2.3993299352923385}, derivative=-3180050.0607935204}, delta = -5.303538235024163E-5
+New Minimum: 2.3993299352923385 > 2.399011783445316
+F(7.000000000000001E-10) = LineSearchPoint{point=PointSample{avg=2.399011783445316}, derivative=-3179014.037508885}, delta = -3.711872293727936E-4
+New Minimum: 2.399011783445316 > 2.3967876210513794
+F(4.900000000000001E-9) = LineSearchPoint{point=PointSample{avg=2.3967876210513794}, derivative=-3171765.2791188713}, delta = -0.0025953496233093176
+New Minimum: 2.3967876210513794 > 2.381360289430587
+F(3.430000000000001E-8) = LineSearchPoint{point=PointSample{avg=2.381360289430587}, derivative=-3121194.1645612456}, delta = -0.01802268124410178
+New Minimum: 2.381360289430587 > 2.2801963922240884
+F(2.4010000000000004E-7) = LineSearchPoint{point=PointSample{avg=2.2801963922240884}, derivative=-2776602.8837870294}, delta = -0.11918657845060032
+New Minimum: 2.2801963922240884 > 1.8512245786346517
+F(1.6807000000000003E-6) = LineSearchPoint{point=PointSample{avg=1.8512245786346517}, derivative=-976067.2266537037}, delta = -0.548158392040037
+F(1.1764900000000001E-5) = LineSearchPoint{point=PointSample{avg=3.1529542644479065}, derivative=1389810.0174066876}, delta = 0.7535712937732177
+F(9.049923076923078E-7) = LineSearchPoint{point=PointSample{avg=2.0282033498162533}, derivative=-1807924.405359063}, delta = -0.3711796208584355
+F(6.334946153846155E-6) = LineSearchPoint{point=PointSample{avg=2.044383163418107}, derivative=953052.8103187174}, delta = -0.35499980725658187
+2.044383163418107 <= 2.3993829706746888
+New Minimum: 1.8512245786346517 > 1.8470120470943343
+F(4.8742310001936915E-6) = LineSearchPoint{point=PointSample{avg=1.8470120470943343}, derivative=645418.9997393686}, delta = -0.5523709235803544
+Right bracket at 4.8742310001936915E-6
+New Minimum: 1.8470120470943343 > 1.775367809204691
+F(4.0519058824512865E-6) = LineSearchPoint{point=PointSample{avg=1.775367809204691}, derivative=389987.062786928}, delta = -0.6240151614699978
+Right bracket at 4.0519058824512865E-6
+New Minimum: 1.775367809204691 > 1.7528584534316503
+F(3.6093013970879057E-6) = LineSearchPoint{point=PointSample{avg=1.7528584534316503}, derivative=218056.5947506022}, delta = -0.6465245172430385
+Right bracket at 3.6093013970879057E-6
+New Minimum: 1.7528584534316503 > 1.7464197743271939
+F(3.377704199263403E-6) = LineSearchPoint{point=PointSample{avg=1.7464197743271939}, derivative=116489.28232026893}, delta = -0.6529631963474949
+Right bracket at 3.377704199263403E-6
+New Minimum: 1.7464197743271939 > 1.7446770353600938
+F(3.2583530593928053E-6) = LineSearchPoint{point=PointSample{avg=1.7446770353600938}, derivative=60698.50050686414}, delta = -0.654705935314595
+Right bracket at 3.2583530593928053E-6
+New Minimum: 1.7446770353600938 > 1.7442211681039195
+F(3.1973280822460973E-6) = LineSearchPoint{point=PointSample{avg=1.7442211681039195}, derivative=31214.756925564114}, delta = -0.6551618025707693
+Right bracket at 3.1973280822460973E-6
+New Minimum: 1.7442211681039195 > 1.7441051414483917
+F(3.166250467035797E-6) = LineSearchPoint{point=PointSample{avg=1.7441051414483917}, derivative=15943.571708398595}, delta = -0.6552778292262971
+Right bracket at 3.166250467035797E-6
+New Minimum: 1.7441051414483917 > 1.7440766093322637
+F(3.1504561258171925E-6) = LineSearchPoint{point=PointSample{avg=1.7440766093322637}, derivative=8115.1353177344945}, delta = -0.655306361342425
+Right bracket at 3.1504561258171925E-6
+New Minimum: 1.7440766093322637 > 1.744070027022005
+F(3.142437409248152E-6) = LineSearchPoint{point=PointSample{avg=1.744070027022005}, derivative=4123.1871856545595}, delta = -0.6553129436526837
+Right bracket at 3.142437409248152E-6
+New Minimum: 1.744070027022005 > 1.7440687296456552
+F(3.1383684864799976E-6) = LineSearchPoint{point=PointSample{avg=1.7440687296456552}, derivative=2093.038747220019}, delta = -0.6553142410290336
+Right bracket at 3.1383684864799976E-6
+New Minimum: 1.7440687296456552 > 1.7440685981787822
+F(3.1363043522785244E-6) = LineSearchPoint{point=PointSample{avg=1.7440685981787822}, derivative=1061.9934832647164}, delta = -0.6553143724959065
+Right bracket at 3.1363043522785244E-6
+F(3.135257374387698E-6) = LineSearchPoint{point=PointSample{avg=1.7440686671303471}, derivative=538.7225034391022}, delta = -0.6553143035443416
+Loops = 12
+Overall network state change: {FullyConnectedLayer=0.9842252736735015, BiasLayer=0.0}
+Iteration 1 complete. Error: 1.7440685981787822 (30000 in 77.641 seconds; 0.000 in orientation, 13.246 in gc, 77.640 in line search; 79.647 eval time)
+Epoch 1 result with 2 iterations, 30000/2147483647 samples: {validation *= 2^-0.46136; training *= 2^-0.460; Overtraining = 1.00}, {itr*=1.06, len*=0.71} 0 since improvement; 9.9412 validation time
+Epoch parameters: 30000, 1
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@76de1039}}}, orientation=com.simiacryptus.mindseye.opt.orient.GradientDescent@fc3f506}
+resetAndMeasure; trainingSize=30000
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.7341124800367742}, derivative=-4248057.275339244}
+F(3.135257374387698E-6) = LineSearchPoint{point=PointSample{avg=2.0135947255733844}, derivative=3596289.075020438}, delta = 0.27948224553661016
+New Minimum: 1.7341124800367742 > 1.5796262992850565
+F(2.4117364418366905E-7) = LineSearchPoint{point=PointSample{avg=1.5796262992850565}, derivative=-3422512.5543178623}, delta = -0.15448618075171772
+New Minimum: 1.5796262992850565 > 1.3739733580096878
+F(1.6882155092856835E-6) = LineSearchPoint{point=PointSample{avg=1.3739733580096878}, derivative=1365463.620513575}, delta = -0.3601391220270864
+1.3739733580096878 <= 1.7341124800367742
+New Minimum: 1.3739733580096878 > 1.3167649462254076
+F(1.277564706646035E-6) = LineSearchPoint{point=PointSample{avg=1.3167649462254076}, derivative=263302.14532214525}, delta = -0.4173475338113666
+Right bracket at 1.277564706646035E-6
+New Minimum: 1.3167649462254076 > 1.3149094493567228
+F(1.2030005904492275E-6) = LineSearchPoint{point=PointSample{avg=1.3149094493567228}, derivative=34624.5453572757}, delta = -0.4192030306800514
+Right bracket at 1.2030005904492275E-6
+New Minimum: 1.3149094493567228 > 1.314878609376995
+F(1.1932745939235121E-6) = LineSearchPoint{point=PointSample{avg=1.314878609376995}, derivative=4152.7482712577585}, delta = -0.41923387065977913
+Right bracket at 1.1932745939235121E-6
+New Minimum: 1.314878609376995 > 1.31487823100179
+F(1.1921092307407115E-6) = LineSearchPoint{point=PointSample{avg=1.31487823100179}, derivative=491.7586805023445}, delta = -0.4192342490349843
+Right bracket at 1.1921092307407115E-6
+F(1.1919712471473414E-6) = LineSearchPoint{point=PointSample{avg=1.3148782332834317}, derivative=58.14332879860133}, delta = -0.41923424675334253
+1.3148782332834317 > 1.31487823100179
+Overall network state change: {FullyConnectedLayer=0.9955957366058239, BiasLayer=1.2462731092808628}
+Iteration 2 complete. Error: 1.31487823100179 (30000 in 30.590 seconds; 0.000 in orientation, 5.510 in gc, 30.589 in line search; 32.826 eval time)
+Epoch 2 result with 2 iterations, 30000/2147483647 samples: {validation *= 2^-0.40076; training *= 2^-0.399; Overtraining = 1.00}, {itr*=1.13, len*=0.71} 0 since improvement; 5.5743 validation time
+Epoch parameters: 30000, 2
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@76de1039}}}, orientation=com.simiacryptus.mindseye.opt.orient.GradientDescent@fc3f506}
+resetAndMeasure; trainingSize=30000
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.3214318595601073}, derivative=-1859021.7379829648}
+New Minimum: 1.3214318595601073 > 1.1425531117870384
+F(1.1921092307407115E-6) = LineSearchPoint{point=PointSample{avg=1.1425531117870384}, derivative=54623.75042854756}, delta = -0.1788787477730689
+1.1425531117870384 <= 1.3214318595601073
+New Minimum: 1.1425531117870384 > 1.1423923078089444
+F(1.1580812576924739E-6) = LineSearchPoint{point=PointSample{avg=1.1423923078089444}, derivative=2622.1919033992567}, delta = -0.17903955175116293
+Right bracket at 1.1580812576924739E-6
+New Minimum: 1.1423923078089444 > 1.1423920171867716
+F(1.1564500589177515E-6) = LineSearchPoint{point=PointSample{avg=1.1423920171867716}, derivative=119.53306509153671}, delta = -0.1790398423733357
+Right bracket at 1.1564500589177515E-6
+F(1.1563757052242909E-6) = LineSearchPoint{point=PointSample{avg=1.1423920201541946}, derivative=5.435049006647355}, delta = -0.17903983940591273
+1.1423920201541946 > 1.1423920171867716
+Overall network state change: {FullyConnectedLayer=0.9937524783252555, BiasLayer=0.8957257845943739}
+Iteration 3 complete. Error: 1.1423920171867716 (30000 in 17.633 seconds; 0.000 in orientation, 3.029 in gc, 17.633 in line search; 19.994 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.1423920171867716}, derivative=-751050.4810438058}
+New Minimum: 1.1423920171867716 > 1.0490780760285552
+F(1.1564500589177515E-6) = LineSearchPoint{point=PointSample{avg=1.0490780760285552}, derivative=-213196.83066381508}, delta = -0.09331394115821645
+F(8.09515041242426E-6) = LineSearchPoint{point=PointSample{avg=2.166357051793272}, derivative=1692942.6430312968}, delta = 1.0239650346065003
+F(6.227038778787892E-7) = LineSearchPoint{point=PointSample{avg=1.0792057630356118}, derivative=-464609.2979359781}, delta = -0.06318625415115986
+F(4.3589271451515244E-6) = LineSearchPoint{point=PointSample{avg=1.2920584399964492}, derivative=1014095.3750590831}, delta = 0.14966642280967757
+F(3.353020880885788E-7) = LineSearchPoint{point=PointSample{avg=1.1046684102841458}, derivative=-598627.0920419035}, delta = -0.037723606902625884
+F(2.3471146166200514E-6) = LineSearchPoint{point=PointSample{avg=1.0606561861882213}, derivative=318739.3193205691}, delta = -0.08173583099855031
+1.0606561861882213 <= 1.1423920171867716
+New Minimum: 1.0490780760285552 > 1.040988631805064
+F(1.6478018030056184E-6) = LineSearchPoint{point=PointSample{avg=1.040988631805064}, derivative=14035.337523705604}, delta = -0.10140338538170757
+Right bracket at 1.6478018030056184E-6
+New Minimum: 1.040988631805064 > 1.0409517834917
+F(1.6175732274444394E-6) = LineSearchPoint{point=PointSample{avg=1.0409517834917}, derivative=300.98883587857557}, delta = -0.10144023369507171
+Right bracket at 1.6175732274444394E-6
+New Minimum: 1.0409517834917 > 1.0409517513686553
+F(1.6169252331272727E-6) = LineSearchPoint{point=PointSample{avg=1.0409517513686553}, derivative=6.148879305000649}, delta = -0.10144026581811638
+Right bracket at 1.6169252331272727E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9909996758758918, BiasLayer=0.9899813806784616}
+Iteration 4 complete. Error: 1.0409517513686553 (30000 in 29.509 seconds; 0.000 in orientation, 5.015 in gc, 29.509 in line search; 29.430 eval time)
+Epoch 3 result with 3 iterations, 30000/2147483647 samples: {validation *= 2^-0.34837; training *= 2^-0.344; Overtraining = 0.99}, {itr*=1.22, len*=0.70} 0 since improvement; 4.1526 validation time
+Epoch parameters: 30000, 3
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@76de1039}}}, orientation=com.simiacryptus.mindseye.opt.orient.GradientDescent@fc3f506}
+resetAndMeasure; trainingSize=30000
+F(0.0) = LineSearchPoint{point=PointSample{avg=1.0373593187879484}, derivative=-836667.3427155184}
+New Minimum: 1.0373593187879484 > 0.9728445813449237
+F(1.6169252331272727E-6) = LineSearchPoint{point=PointSample{avg=0.9728445813449237}, derivative=264879.63621284004}, delta = -0.06451473744302472
+0.9728445813449237 <= 1.0373593187879484
+New Minimum: 0.9728445813449237 > 0.9624491795174329
+F(1.2281169700872555E-6) = LineSearchPoint{point=PointSample{avg=0.9624491795174329}, derivative=51725.006420522026}, delta = -0.07491013927051549
+Right bracket at 1.2281169700872555E-6
+New Minimum: 0.9624491795174329 > 0.9620922728757632
+F(1.1566121240305637E-6) = LineSearchPoint{point=PointSample{avg=0.9620922728757632}, derivative=9020.47407123073}, delta = -0.07526704591218525
+Right bracket at 1.1566121240305637E-6
+New Minimum: 0.9620922728757632 > 0.9620824735862379
+F(1.144275196067086E-6) = LineSearchPoint{point=PointSample{avg=0.9620824735862379}, derivative=1539.6032266197083}, delta = -0.07527684520171052
+Right bracket at 1.144275196067086E-6
+New Minimum: 0.9620824735862379 > 0.9620823391172748
+F(1.1421734122623413E-6) = LineSearchPoint{point=PointSample{avg=0.9620823391172748}, derivative=261.7979256914449}, delta = -0.0752769796706736
+Right bracket at 1.1421734122623413E-6
+F(1.141816131561276E-6) = LineSearchPoint{point=PointSample{avg=0.9620823607775546}, derivative=44.48842052634089}, delta = -0.0752769580103938
+0.9620823607775546 > 0.9620823391172748
+Overall network state change: {FullyConnectedLayer=0.9939302244023386, BiasLayer=0.8311480525722211}
+Iteration 5 complete. Error: 0.9620823391172748 (30000 in 27.615 seconds; 0.000 in orientation, 4.443 in gc, 27.614 in line search; 29.668 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.9620823391172748}, derivative=-443695.66433818813}
+New Minimum: 0.9620823391172748 > 0.9046720819309665
+F(1.1421734122623413E-6) = LineSearchPoint{point=PointSample{avg=0.9046720819309665}, derivative=-150702.79935808052}, delta = -0.05741025718630832
+F(7.995213885836389E-6) = LineSearchPoint{point=PointSample{avg=1.8473393372409432}, derivative=1650079.7047162838}, delta = 0.8852569981236684
+F(6.150164527566453E-7) = LineSearchPoint{point=PointSample{avg=0.9242076295202099}, derivative=-292987.5275793762}, delta = -0.03787470959706496
+F(4.305115169296517E-6) = LineSearchPoint{point=PointSample{avg=1.0731353714299157}, derivative=793254.2509828766}, delta = 0.11105303231264085
+F(3.311627053305013E-7) = LineSearchPoint{point=PointSample{avg=0.9397647847998188}, derivative=-364823.60010272847}, delta = -0.022317554317455968
+F(2.3181389373135093E-6) = LineSearchPoint{point=PointSample{avg=0.9085863023386079}, derivative=194605.62697618554}, delta = -0.05349603677866688
+0.9085863023386079 <= 0.9620823391172748
+New Minimum: 0.9046720819309665 > 0.8981266981600475
+F(1.6113835422478606E-6) = LineSearchPoint{point=PointSample{avg=0.8981266981600475}, derivative=-16431.119781377947}, delta = -0.06395564095722728
+Left bracket at 1.6113835422478606E-6
+New Minimum: 0.8981266981600475 > 0.8980532299698384
+F(1.6664108430894502E-6) = LineSearchPoint{point=PointSample{avg=0.8980532299698384}, derivative=-318.41944424174073}, delta = -0.06402910914743642
+Left bracket at 1.6664108430894502E-6
+F(1.6674754777580327E-6) = LineSearchPoint{point=PointSample{avg=0.8980532667797935}, derivative=-6.027741259970386}, delta = -0.06402907233748134
+0.8980532667797935 > 0.8980532299698384
+Overall network state change: {FullyConnectedLayer=0.9915006327805906, BiasLayer=1.0062162979578166}
+Iteration 6 complete. Error: 0.8980532299698384 (30000 in 29.355 seconds; 0.000 in orientation, 5.157 in gc, 29.355 in line search; 29.288 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.8980532299698384}, derivative=-516322.3888049827}
+New Minimum: 0.8980532299698384 > 0.8579353791240637
+F(1.6664108430894502E-6) = LineSearchPoint{point=PointSample{avg=0.8579353791240637}, derivative=157273.83872748868}, delta = -0.04011785084577468
+0.8579353791240637 <= 0.8980532299698384
+New Minimum: 0.8579353791240637 > 0.851556348116334
+F(1.2773308282712933E-6) = LineSearchPoint{point=PointSample{avg=0.851556348116334}, derivative=37108.59739799713}, delta = -0.046496881853504424
+Right bracket at 1.2773308282712933E-6
+New Minimum: 0.851556348116334 > 0.8512410632807589
+F(1.1916833733364426E-6) = LineSearchPoint{point=PointSample{avg=0.8512410632807589}, derivative=7886.18973508397}, delta = -0.046812166689079504
+Right bracket at 1.1916833733364426E-6
+New Minimum: 0.8512410632807589 > 0.8512283102751462
+F(1.1737556980350402E-6) = LineSearchPoint{point=PointSample{avg=0.8512283102751462}, derivative=1637.1562184277084}, delta = -0.04682491969469216
+Right bracket at 1.1737556980350402E-6
+New Minimum: 0.8512283102751462 > 0.8512280070647344
+F(1.1700457143916918E-6) = LineSearchPoint{point=PointSample{avg=0.8512280070647344}, derivative=338.2034001416442}, delta = -0.046825222905103936
+Right bracket at 1.1700457143916918E-6
+F(1.169279808408347E-6) = LineSearchPoint{point=PointSample{avg=0.851228044529277}, derivative=69.79490549049203}, delta = -0.04682518544056136
+0.851228044529277 > 0.8512280070647344
+Overall network state change: {FullyConnectedLayer=0.9943311140401596, BiasLayer=0.8650416847962127}
+Iteration 7 complete. Error: 0.8512280070647344 (30000 in 27.002 seconds; 0.000 in orientation, 4.657 in gc, 27.001 in line search; 26.997 eval time)
+Epoch 4 result with 4 iterations, 30000/2147483647 samples: {validation *= 2^-0.28187; training *= 2^-0.285; Overtraining = 1.01}, {itr*=1.35, len*=0.71} 0 since improvement; 5.3508 validation time
+Epoch parameters: 30000, 5
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@76de1039}}}, orientation=com.simiacryptus.mindseye.opt.orient.GradientDescent@fc3f506}
+resetAndMeasure; trainingSize=30000
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.8539483776424573}, derivative=-316068.61929844395}
+New Minimum: 0.8539483776424573 > 0.8136167331190887
+F(1.1700457143916918E-6) = LineSearchPoint{point=PointSample{avg=0.8136167331190887}, derivative=-88347.03390634709}, delta = -0.04033164452336868
+F(8.190320000741843E-6) = LineSearchPoint{point=PointSample{avg=1.7119101427708898}, derivative=1567687.233721369}, delta = 0.8579617651284325
+F(6.300246154416803E-7) = LineSearchPoint{point=PointSample{avg=0.8266857995710022}, derivative=-199879.23050473267}, delta = -0.027262578071455157
+F(4.410172308091762E-6) = LineSearchPoint{point=PointSample{avg=0.9761195965354057}, derivative=714883.1549103034}, delta = 0.12217121889294835
+F(3.392440236993663E-7) = LineSearchPoint{point=PointSample{avg=0.8377483758505885}, derivative=-255516.01506291088}, delta = -0.016200001791868868
+F(2.374708165895564E-6) = LineSearchPoint{point=PointSample{avg=0.8232850847198198}, derivative=191116.4650484286}, delta = -0.030663292922637586
+0.8232850847198198 <= 0.8539483776424573
+New Minimum: 0.8136167331190887 > 0.810793124691914
+F(1.4798754032719599E-6) = LineSearchPoint{point=PointSample{avg=0.810793124691914}, derivative=-20101.884579341287}, delta = -0.043155252950543344
+Left bracket at 1.4798754032719599E-6
+New Minimum: 0.810793124691914 > 0.8106412913845
+F(1.565037629677822E-6) = LineSearchPoint{point=PointSample{avg=0.8106412913845}, derivative=-856.7858088246135}, delta = -0.04330708625795732
+Left bracket at 1.565037629677822E-6
+New Minimum: 0.8106412913845 > 0.8106409036634946
+F(1.5686512280419533E-6) = LineSearchPoint{point=PointSample{avg=0.8106409036634946}, derivative=-35.759334555644934}, delta = -0.04330747397896273
+Left bracket at 1.5686512280419533E-6
+New Minimum: 0.8106409036634946 > 0.8106408982365778
+F(1.5688020191708801E-6) = LineSearchPoint{point=PointSample{avg=0.8106408982365778}, derivative=-1.4911495626964337}, delta = -0.043307479405879534
+Left bracket at 1.5688020191708801E-6
+Converged to left
+Overall network state change: {FullyConnectedLayer=0.9927506930352356, BiasLayer=1.008569984254578}
+Iteration 8 complete. Error: 0.8106408982365778 (30000 in 34.382 seconds; 0.000 in orientation, 5.827 in gc, 34.382 in line search; 36.542 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.8106408982365778}, derivative=-326557.31551156804}
+New Minimum: 0.8106408982365778 > 0.7794079252163799
+F(1.5688020191708801E-6) = LineSearchPoint{point=PointSample{avg=0.7794079252163799}, derivative=55211.57647850961}, delta = -0.031232973020197896
+0.7794079252163799 <= 0.8106408982365778
+New Minimum: 0.7794079252163799 > 0.7781256424909566
+F(1.3419212164695837E-6) = LineSearchPoint{point=PointSample{avg=0.7781256424909566}, derivative=11503.600568812422}, delta = -0.0325152557456212
+Right bracket at 1.3419212164695837E-6
+New Minimum: 0.7781256424909566 > 0.7780712331695612
+F(1.2962580683953754E-6) = LineSearchPoint{point=PointSample{avg=0.7780712331695612}, derivative=2273.225406337649}, delta = -0.03256966506701664
+Right bracket at 1.2962580683953754E-6
+New Minimum: 0.7780712331695612 > 0.7780688345663936
+F(1.2872969580130457E-6) = LineSearchPoint{point=PointSample{avg=0.7780688345663936}, derivative=444.4464193092023}, delta = -0.03257206367018417
+Right bracket at 1.2872969580130457E-6
+New Minimum: 0.7780688345663936 > 0.7780686852810993
+F(1.2855473205792957E-6) = LineSearchPoint{point=PointSample{avg=0.7780686852810993}, derivative=86.7136109260943}, delta = -0.03257221295547852
+Right bracket at 1.2855473205792957E-6
+New Minimum: 0.7780686852810993 > 0.7780686683262826
+F(1.2852060486127353E-6) = LineSearchPoint{point=PointSample{avg=0.7780686683262826}, derivative=16.91132500085681}, delta = -0.03257222991029518
+Right bracket at 1.2852060486127353E-6
+New Minimum: 0.7780686683262826 > 0.778068665482628
+F(1.2851394954820988E-6) = LineSearchPoint{point=PointSample{avg=0.778068665482628}, derivative=3.2978688862353183}, delta = -0.032572232753949826
+Right bracket at 1.2851394954820988E-6
+New Minimum: 0.778068665482628 > 0.7780686649456943
+F(1.2851265171210136E-6) = LineSearchPoint{point=PointSample{avg=0.7780686649456943}, derivative=0.6431057618001195}, delta = -0.032572233290883545
+Right bracket at 1.2851265171210136E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9943252691095574, BiasLayer=0.8831397861049959}
+Iteration 9 complete. Error: 0.7780686649456943 (30000 in 35.531 seconds; 0.000 in orientation, 5.995 in gc, 35.530 in line search; 35.434 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.7780686649456943}, derivative=-225957.58421847716}
+New Minimum: 0.7780686649456943 > 0.7476166280042656
+F(1.2851265171210136E-6) = LineSearchPoint{point=PointSample{avg=0.7476166280042656}, derivative=-52309.566375999646}, delta = -0.030452036941428617
+F(8.995885619847095E-6) = LineSearchPoint{point=PointSample{avg=1.524527707351315}, derivative=1247342.3610813366}, delta = 0.7464590424056208
+F(6.919912015266997E-7) = LineSearchPoint{point=PointSample{avg=0.7570298745431296}, derivative=-136680.7665036016}, delta = -0.021038790402564622
+F(4.843938410686898E-6) = LineSearchPoint{point=PointSample{avg=0.8901689385167494}, derivative=554647.5230204149}, delta = 0.11210027357105512
+F(3.726106469759152E-7) = LineSearchPoint{point=PointSample{avg=0.7654574775864441}, derivative=-179203.27500876787}, delta = -0.012611187359250153
+F(2.6082745288314065E-6) = LineSearchPoint{point=PointSample{avg=0.7586614380949488}, derivative=157117.2354705153}, delta = -0.019407226850745474
+0.7586614380949488 <= 0.7780686649456943
+New Minimum: 0.7476166280042656 > 0.746199785753327
+F(1.5384968711642689E-6) = LineSearchPoint{point=PointSample{avg=0.746199785753327}, derivative=-14322.984225771796}, delta = -0.03186887919236725
+Left bracket at 1.5384968711642689E-6
+New Minimum: 0.746199785753327 > 0.7460859970809078
+F(1.6278715146580401E-6) = LineSearchPoint{point=PointSample{avg=0.7460859970809078}, derivative=-665.645646564487}, delta = -0.03198266786478643
+Left bracket at 1.6278715146580401E-6
+New Minimum: 0.7460859970809078 > 0.7460856668543743
+F(1.632007584386536E-6) = LineSearchPoint{point=PointSample{avg=0.7460856668543743}, derivative=-30.444119980990088}, delta = -0.03198299809131999
+Left bracket at 1.632007584386536E-6
+New Minimum: 0.7460856668543743 > 0.7460856622279891
+F(1.6321967159605284E-6) = LineSearchPoint{point=PointSample{avg=0.7460856622279891}, derivative=-1.3913735371744769}, delta = -0.031983002717705156
+Left bracket at 1.6321967159605284E-6
+Converged to left
+Overall network state change: {FullyConnectedLayer=0.9931043104783169, BiasLayer=1.003831932631845}
+Iteration 10 complete. Error: 0.7460856622279891 (30000 in 33.353 seconds; 0.000 in orientation, 5.730 in gc, 33.353 in line search; 33.348 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.7460856622279891}, derivative=-238722.55109438262}
+New Minimum: 0.7460856622279891 > 0.7220059821218867
+F(1.6321967159605284E-6) = LineSearchPoint{point=PointSample{avg=0.7220059821218867}, derivative=41201.124304588855}, delta = -0.024079680106102397
+0.7220059821218867 <= 0.7460856622279891
+New Minimum: 0.7220059821218867 > 0.7210188522751061
+F(1.3919585878779956E-6) = LineSearchPoint{point=PointSample{avg=0.7210188522751061}, derivative=7406.820467386997}, delta = -0.025066809952883018
+Right bracket at 1.3919585878779956E-6
+New Minimum: 0.7210188522751061 > 0.7209875059081113
+F(1.3500700993443854E-6) = LineSearchPoint{point=PointSample{avg=0.7209875059081113}, derivative=1270.3968111417923}, delta = -0.025098156319877774
+Right bracket at 1.3500700993443854E-6
+New Minimum: 0.7209875059081113 > 0.720986448957231
+F(1.3429235362307887E-6) = LineSearchPoint{point=PointSample{avg=0.720986448957231}, derivative=216.12406426329918}, delta = -0.025099213270758147
+Right bracket at 1.3429235362307887E-6
+New Minimum: 0.720986448957231 > 0.7209863942670468
+F(1.341708839227667E-6) = LineSearchPoint{point=PointSample{avg=0.7209863942670468}, derivative=36.71661979113079}, delta = -0.025099267960942306
+Right bracket at 1.341708839227667E-6
+New Minimum: 0.7209863942670468 > 0.7209863885876411
+F(1.3415025100083157E-6) = LineSearchPoint{point=PointSample{avg=0.7209863885876411}, derivative=6.236193468249078}, delta = -0.02509927364034803
+Right bracket at 1.3415025100083157E-6
+New Minimum: 0.7209863885876411 > 0.7209863877272067
+F(1.3414674666049392E-6) = LineSearchPoint{point=PointSample{avg=0.7209863877272067}, derivative=1.0591538023674865}, delta = -0.02509927450078242
+Right bracket at 1.3414674666049392E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9946131107600223, BiasLayer=0.8985405107903959}
+Iteration 11 complete. Error: 0.7209863877272067 (30000 in 32.839 seconds; 0.000 in orientation, 5.270 in gc, 32.838 in line search; 32.833 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.7209863877272067}, derivative=-168505.28483913757}
+New Minimum: 0.7209863877272067 > 0.6974851173344024
+F(1.3414674666049392E-6) = LineSearchPoint{point=PointSample{avg=0.6974851173344024}, derivative=-38090.29084214708}, delta = -0.023501270392804252
+F(9.390272266234575E-6) = LineSearchPoint{point=PointSample{avg=1.3004244127335303}, derivative=949561.422562804}, delta = 0.5794380250063236
+F(7.223286358641981E-7) = LineSearchPoint{point=PointSample{avg=0.7046963802812073}, derivative=-100795.84631241186}, delta = -0.0162900074459994
+F(5.056300451049387E-6) = LineSearchPoint{point=PointSample{avg=0.8062375553009206}, derivative=405631.7820911953}, delta = 0.08525116757371387
+F(3.889461885422606E-7) = LineSearchPoint{point=PointSample{avg=0.7111998773841016}, derivative=-132824.27044481444}, delta = -0.00978651034310507
+F(2.7226233197958243E-6) = LineSearchPoint{point=PointSample{avg=0.7059982038330718}, derivative=115027.27661346663}, delta = -0.014988183894134921
+0.7059982038330718 <= 0.7209863877272067
+New Minimum: 0.6974851173344024 > 0.6963970215550207
+F(1.6180731259275968E-6) = LineSearchPoint{point=PointSample{avg=0.6963970215550207}, derivative=-8821.015298345397}, delta = -0.02458936617218599
+Left bracket at 1.6180731259275968E-6
+New Minimum: 0.6963970215550207 > 0.6963357406772513
+F(1.6967440063046942E-6) = LineSearchPoint{point=PointSample{avg=0.6963357406772513}, derivative=-362.26362036972347}, delta = -0.024650647049955343
+Left bracket at 1.6967440063046942E-6
+New Minimum: 0.6963357406772513 > 0.6963355989842723
+F(1.6999647380401233E-6) = LineSearchPoint{point=PointSample{avg=0.6963355989842723}, derivative=-14.725285773704373}, delta = -0.02465078874293436
+Left bracket at 1.6999647380401233E-6
+New Minimum: 0.6963355989842723 > 0.6963355971723514
+F(1.7000956375343662E-6) = LineSearchPoint{point=PointSample{avg=0.6963355971723514}, derivative=-0.5983023147012487}, delta = -0.024650790554855306
+Left bracket at 1.7000956375343662E-6
+Converged to left
+Overall network state change: {FullyConnectedLayer=0.9934267166986867, BiasLayer=1.0025931926718323}
+Iteration 12 complete. Error: 0.6963355971723514 (30000 in 34.475 seconds; 0.000 in orientation, 5.842 in gc, 34.475 in line search; 34.469 eval time)
+Epoch 5 result with 6 iterations, 30000/2147483647 samples: {validation *= 2^-0.29294; training *= 2^-0.294; Overtraining = 1.00}, {itr*=1.33, len*=0.71} 0 since improvement; 4.0033 validation time
+Epoch parameters: 30000, 7
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@76de1039}}}, orientation=com.simiacryptus.mindseye.opt.orient.GradientDescent@fc3f506}
+resetAndMeasure; trainingSize=30000
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6965072759585755}, derivative=-184531.02863259328}
+New Minimum: 0.6965072759585755 > 0.6768863973257125
+F(1.7000956375343662E-6) = LineSearchPoint{point=PointSample{avg=0.6768863973257125}, derivative=33100.535479927334}, delta = -0.019620878632862992
+0.6768863973257125 <= 0.6965072759585755
+New Minimum: 0.6768863973257125 > 0.6760605812605016
+F(1.4415206638215415E-6) = LineSearchPoint{point=PointSample{avg=0.6760605812605016}, derivative=4849.641617791011}, delta = -0.02044669469807392
+Right bracket at 1.4415206638215415E-6
+New Minimum: 0.6760605812605016 > 0.6760432415777647
+F(1.4046063441344694E-6) = LineSearchPoint{point=PointSample{avg=0.6760432415777647}, derivative=682.9443326025148}, delta = -0.02046403438081079
+Right bracket at 1.4046063441344694E-6
+New Minimum: 0.6760432415777647 > 0.6760428632818849
+F(1.399427102380153E-6) = LineSearchPoint{point=PointSample{avg=0.6760428632818849}, derivative=95.6386530388662}, delta = -0.020464412676690635
+Right bracket at 1.399427102380153E-6
+New Minimum: 0.6760428632818849 > 0.6760428507942713
+F(1.398702183683058E-6) = LineSearchPoint{point=PointSample{avg=0.6760428507942713}, derivative=13.38263159187948}, delta = -0.020464425164304245
+Right bracket at 1.398702183683058E-6
+New Minimum: 0.6760428507942713 > 0.6760428498397172
+F(1.3986007538109596E-6) = LineSearchPoint{point=PointSample{avg=0.6760428498397172}, derivative=1.8724146006489089}, delta = -0.020464426118858348
+Right bracket at 1.3986007538109596E-6
+New Minimum: 0.6760428498397172 > 0.6760428497216822
+F(1.3985865625179323E-6) = LineSearchPoint{point=PointSample{avg=0.6760428497216822}, derivative=0.26197259844368326}, delta = -0.020464426236893374
+Right bracket at 1.3985865625179323E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9948828667083162, BiasLayer=0.9086854505589342}
+Iteration 13 complete. Error: 0.6760428497216822 (30000 in 33.420 seconds; 0.000 in orientation, 5.534 in gc, 33.420 in line search; 35.535 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6760428497216822}, derivative=-130770.8990680867}
+New Minimum: 0.6760428497216822 > 0.6571656771533907
+F(1.3985865625179323E-6) = LineSearchPoint{point=PointSample{avg=0.6571656771533907}, derivative=-29409.98373821016}, delta = -0.018877172568291467
+F(9.790105937625527E-6) = LineSearchPoint{point=PointSample{avg=1.121669532245196}, derivative=710614.9351960901}, delta = 0.4456266825235138
+F(7.530850721250405E-7) = LineSearchPoint{point=PointSample{avg=0.6629358645840174}, derivative=-77509.70158828107}, delta = -0.013106985137664728
+F(5.2715955048752835E-6) = LineSearchPoint{point=PointSample{avg=0.7405175071377293}, derivative=297527.68646772316}, delta = 0.06447465741604719
+F(4.0550734652886793E-7) = LineSearchPoint{point=PointSample{avg=0.668153555171093}, derivative=-102502.13384316454}, delta = -0.007889294550589177
+F(2.8385514257020756E-6) = LineSearchPoint{point=PointSample{avg=0.6636506951470258}, derivative=84967.12458563055}, delta = -0.012392154574656367
+0.6636506951470258 <= 0.6760428497216822
+New Minimum: 0.6571656771533907 > 0.6562499495341969
+F(1.720604999079233E-6) = LineSearchPoint{point=PointSample{avg=0.6562499495341969}, derivative=-4653.366812215842}, delta = -0.01979290018748525
+Left bracket at 1.720604999079233E-6
+New Minimum: 0.6562499495341969 > 0.6562268958023695
+F(1.7786521568033319E-6) = LineSearchPoint{point=PointSample{avg=0.6562268958023695}, derivative=-139.04486882880926}, delta = -0.01981595391931268
+Left bracket at 1.7786521568033319E-6
+New Minimum: 0.6562268958023695 > 0.6562268795552403
+F(1.7803838004169554E-6) = LineSearchPoint{point=PointSample{avg=0.6562268795552403}, derivative=-4.135458018879346}, delta = -0.019815970166441876
+Left bracket at 1.7803838004169554E-6
+F(1.7804353002745431E-6) = LineSearchPoint{point=PointSample{avg=0.6562268796684437}, derivative=-0.12297938711227124}, delta = -0.01981597005323843
+0.6562268796684437 > 0.6562268795552403
+Overall network state change: {FullyConnectedLayer=0.9936813465262723, BiasLayer=1.002603302875598}
+Iteration 14 complete. Error: 0.6562268795552403 (30000 in 35.630 seconds; 0.000 in orientation, 5.737 in gc, 35.630 in line search; 35.534 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6562268795552403}, derivative=-143106.88311724347}
+New Minimum: 0.6562268795552403 > 0.6403010030573304
+F(1.7803838004169554E-6) = LineSearchPoint{point=PointSample{avg=0.6403010030573304}, derivative=27790.22242600921}, delta = -0.015925876497909885
+0.6403010030573304 <= 0.6562268795552403
+New Minimum: 0.6403010030573304 > 0.6395479214967348
+F(1.4908688805476515E-6) = LineSearchPoint{point=PointSample{avg=0.6395479214967348}, derivative=3162.7147635723018}, delta = -0.0166789580585055
+Right bracket at 1.4908688805476515E-6
+New Minimum: 0.6395479214967348 > 0.639538309228943
+F(1.458632564270221E-6) = LineSearchPoint{point=PointSample{avg=0.639538309228943}, derivative=348.6781144015921}, delta = -0.016688570326297336
+Right bracket at 1.458632564270221E-6
+New Minimum: 0.639538309228943 > 0.6395381760295522
+F(1.4550872625213871E-6) = LineSearchPoint{point=PointSample{avg=0.6395381760295522}, derivative=38.306918848144825}, delta = -0.016688703525688076
+Right bracket at 1.4550872625213871E-6
+New Minimum: 0.6395381760295522 > 0.639538172580512
+F(1.4546978683009575E-6) = LineSearchPoint{point=PointSample{avg=0.639538172580512}, derivative=4.206914920425241}, delta = -0.01668870697472824
+Right bracket at 1.4546978683009575E-6
+New Minimum: 0.639538172580512 > 0.6395381723366315
+F(1.454655105785729E-6) = LineSearchPoint{point=PointSample{avg=0.6395381723366315}, derivative=0.46198941086872797}, delta = -0.016688707218608823
+Right bracket at 1.454655105785729E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9951172941622535, BiasLayer=0.9204595453753104}
+Iteration 15 complete. Error: 0.6395381723366315 (30000 in 27.530 seconds; 0.000 in orientation, 4.714 in gc, 27.529 in line search; 27.525 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6395381723366315}, derivative=-102798.8480680687}
+New Minimum: 0.6395381723366315 > 0.6242249685562772
+F(1.454655105785729E-6) = LineSearchPoint{point=PointSample{avg=0.6242249685562772}, derivative=-22606.445646037122}, delta = -0.015313203780354279
+F(1.0182585740500103E-5) = LineSearchPoint{point=PointSample{avg=0.9891855033495786}, derivative=537632.4716691878}, delta = 0.3496473310129471
+F(7.832758261923156E-7) = LineSearchPoint{point=PointSample{avg=0.6288731615807691}, derivative=-60296.203784482335}, delta = -0.010665010755862347
+F(5.4829307833462095E-6) = LineSearchPoint{point=PointSample{avg=0.6901940958928191}, derivative=224904.718271856}, delta = 0.05065592355618764
+F(4.217639064112469E-7) = LineSearchPoint{point=PointSample{avg=0.6331054252093629}, derivative=-80122.94250472558}, delta = -0.006432747127268601
+F(2.9523473448787284E-6) = LineSearchPoint{point=PointSample{avg=0.6294449358846027}, derivative=65242.654130358416}, delta = -0.010093236452028753
+0.6294449358846027 <= 0.6395381723366315
+New Minimum: 0.6242249685562772 > 0.6234902581497739
+F(1.8060889850411918E-6) = LineSearchPoint{point=PointSample{avg=0.6234902581497739}, derivative=-2452.967958819763}, delta = -0.01604791418685758
+Left bracket at 1.8060889850411918E-6
+New Minimum: 0.6234902581497739 > 0.6234816758146525
+F(1.8476239461278447E-6) = LineSearchPoint{point=PointSample{avg=0.6234816758146525}, derivative=-52.2964273967457}, delta = -0.016056496521978936
+Left bracket at 1.8476239461278447E-6
+New Minimum: 0.6234816758146525 > 0.6234816738764081
+F(1.8485087478854502E-6) = LineSearchPoint{point=PointSample{avg=0.6234816738764081}, derivative=-1.1129518268357002}, delta = -0.01605649846022339
+Left bracket at 1.8485087478854502E-6
+F(1.84852757756433E-6) = LineSearchPoint{point=PointSample{avg=0.6234816739172087}, derivative=-0.023684484066916738}, delta = -0.016056498419422804
+0.6234816739172087 > 0.6234816738764081
+Overall network state change: {FullyConnectedLayer=0.9939567576852667, BiasLayer=0.999863803158752}
+Iteration 16 complete. Error: 0.6234816738764081 (30000 in 34.683 seconds; 0.000 in orientation, 5.620 in gc, 34.682 in line search; 34.677 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6234816738764081}, derivative=-114033.14622409524}
+New Minimum: 0.6234816738764081 > 0.6102276019225851
+F(1.8485087478854502E-6) = LineSearchPoint{point=PointSample{avg=0.6102276019225851}, derivative=23029.846952997814}, delta = -0.013254071953822999
+0.6102276019225851 <= 0.6234816738764081
+New Minimum: 0.6102276019225851 > 0.6095746367680417
+F(1.5379152567592524E-6) = LineSearchPoint{point=PointSample{avg=0.6095746367680417}, derivative=2019.783876763754}, delta = -0.013907037108366382
+Right bracket at 1.5379152567592524E-6
+New Minimum: 0.6095746367680417 > 0.6095696397825952
+F(1.511149397105974E-6) = LineSearchPoint{point=PointSample{avg=0.6095696397825952}, derivative=173.08122082779207}, delta = -0.01391203409381292
+Right bracket at 1.511149397105974E-6
+New Minimum: 0.6095696397825952 > 0.6095695951178016
+F(1.5088592279238212E-6) = LineSearchPoint{point=PointSample{avg=0.6095695951178016}, derivative=14.802895664582367}, delta = -0.01391207875860645
+Right bracket at 1.5088592279238212E-6
+New Minimum: 0.6095695951178016 > 0.6095695941029681
+F(1.5086633849832344E-6) = LineSearchPoint{point=PointSample{avg=0.6095695941029681}, derivative=1.2658170644487838}, delta = -0.01391207977344
+Right bracket at 1.5086633849832344E-6
+New Minimum: 0.6095695941029681 > 0.6095695940366999
+F(1.5086466383554136E-6) = LineSearchPoint{point=PointSample{avg=0.6095695940366999}, derivative=0.10824030819972244}, delta = -0.013912079839708213
+Right bracket at 1.5086466383554136E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9953323638486659, BiasLayer=0.9271698588671902}
+Iteration 17 complete. Error: 0.6095695940366999 (30000 in 27.513 seconds; 0.000 in orientation, 4.638 in gc, 27.512 in line search; 27.508 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.6095695940366999}, derivative=-82622.60953756855}
+New Minimum: 0.6095695940366999 > 0.596878198449179
+F(1.5086466383554136E-6) = LineSearchPoint{point=PointSample{avg=0.596878198449179}, derivative=-17885.133843093343}, delta = -0.01269139558752086
+F(1.0560526468487895E-5) = LineSearchPoint{point=PointSample{avg=0.8897402648413247}, derivative=414874.7956698638}, delta = 0.2801706708046249
+F(8.123481898836842E-7) = LineSearchPoint{point=PointSample{avg=0.6007111881029457}, derivative=-48089.35966205654}, delta = -0.008858405933754199
+F(5.6864373291857896E-6) = LineSearchPoint{point=PointSample{avg=0.6503262528566724}, derivative=174609.1569857882}, delta = 0.04075665881997259
+F(4.374182560912146E-7) = LineSearchPoint{point=PointSample{avg=0.604218367000808}, derivative=-64128.27882264515}, delta = -0.005351227035891859
+F(3.061927792638502E-6) = LineSearchPoint{point=PointSample{avg=0.60116124929799}, derivative=51380.46087462516}, delta = -0.008408344738709883
+0.60116124929799 <= 0.6095695940366999
+New Minimum: 0.596878198449179 > 0.5962742923844219
+F(1.8879005060497453E-6) = LineSearchPoint{point=PointSample{avg=0.5962742923844219}, derivative=-1214.5215399762872}, delta = -0.013295301652277991
+Left bracket at 1.8879005060497453E-6
+New Minimum: 0.5962742923844219 > 0.5962715598036364
+F(1.9150111041072152E-6) = LineSearchPoint{point=PointSample{avg=0.5962715598036364}, derivative=-16.959225206735816}, delta = -0.013298034233063416
+Left bracket at 1.9150111041072152E-6
+F(1.915389543693801E-6) = LineSearchPoint{point=PointSample{avg=0.5962715599690792}, derivative=-0.23676428811620856}, delta = -0.013298034067620645
+0.5962715599690792 > 0.5962715598036364
+Overall network state change: {FullyConnectedLayer=0.9942155165746477, BiasLayer=0.9968335684810791}
+Iteration 18 complete. Error: 0.5962715598036364 (30000 in 28.899 seconds; 0.000 in orientation, 4.833 in gc, 28.899 in line search; 28.889 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5962715598036364}, derivative=-92715.61953850367}
+New Minimum: 0.5962715598036364 > 0.5850646773969068
+F(1.9150111041072152E-6) = LineSearchPoint{point=PointSample{avg=0.5850646773969068}, derivative=19333.194442484393}, delta = -0.011206882406729624
+0.5850646773969068 <= 0.5962715598036364
+New Minimum: 0.5850646773969068 > 0.5844928460237926
+F(1.584590096335518E-6) = LineSearchPoint{point=PointSample{avg=0.5844928460237926}, derivative=1311.8678601243587}, delta = -0.011778713779843852
+Right bracket at 1.584590096335518E-6
+New Minimum: 0.5844928460237926 > 0.5844902051230926
+F(1.5624819567226727E-6) = LineSearchPoint{point=PointSample{avg=0.5844902051230926}, derivative=87.61431942376444}, delta = -0.011781354680543865
+Right bracket at 1.5624819567226727E-6
+New Minimum: 0.5844902051230926 > 0.5844901895331184
+F(1.5610068379411467E-6) = LineSearchPoint{point=PointSample{avg=0.5844901895331184}, derivative=5.845384330439348}, delta = -0.011781370270518066
+Right bracket at 1.5610068379411467E-6
+New Minimum: 0.5844901895331184 > 0.5844901892085045
+F(1.5609084283127202E-6) = LineSearchPoint{point=PointSample{avg=0.5844901892085045}, derivative=0.3899610631919027}, delta = -0.011781370595131957
+Right bracket at 1.5609084283127202E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9955297912426337, BiasLayer=0.9347966812613013}
+Iteration 19 complete. Error: 0.5844901892085045 (30000 in 21.943 seconds; 0.000 in orientation, 3.753 in gc, 21.943 in line search; 21.939 eval time)
+Epoch 6 result with 8 iterations, 30000/2147483647 samples: {validation *= 2^-0.25081; training *= 2^-0.253; Overtraining = 1.01}, {itr*=1.43, len*=0.71} 0 since improvement; 5.6270 validation time
+Epoch parameters: 30000, 11
+Phase 0: TrainingPhase{trainingSubject=PerformanceWrapper{inner=SampledArrayTrainable{inner=ArrayTrainable{inner=com.simiacryptus.mindseye.eval.GpuTrainable@76de1039}}}, orientation=com.simiacryptus.mindseye.opt.orient.GradientDescent@fc3f506}
+resetAndMeasure; trainingSize=30000
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5881574482252424}, derivative=-69997.96967873181}
+New Minimum: 0.5881574482252424 > 0.5773308428721079
+F(1.5609084283127202E-6) = LineSearchPoint{point=PointSample{avg=0.5773308428721079}, derivative=-12864.42823536832}, delta = -0.01082660535313451
+F(1.092635899818904E-5) = LineSearchPoint{point=PointSample{avg=0.8392323388598513}, derivative=352730.71457096806}, delta = 0.25107489063460886
+F(8.404891537068493E-7) = LineSearchPoint{point=PointSample{avg=0.5804804043451838}, derivative=-39395.80227799942}, delta = -0.007677043880058632
+F(5.883424075947945E-6) = LineSearchPoint{point=PointSample{avg=0.6268639292899216}, derivative=152387.29498532793}, delta = 0.03870648106467922
+F(4.525710827652265E-7) = LineSearchPoint{point=PointSample{avg=0.5834909626099002}, derivative=-53569.62145631929}, delta = -0.00466648561534222
+F(3.1679975793565854E-6) = LineSearchPoint{point=PointSample{avg=0.5818883449393198}, derivative=47299.238100865434}, delta = -0.0062691032859225615
+0.5818883449393198 <= 0.5881574482252424
+New Minimum: 0.5773308428721079 > 0.5769552277763819
+F(1.8905258079013708E-6) = LineSearchPoint{point=PointSample{avg=0.5769552277763819}, derivative=-637.0757766199357}, delta = -0.011202220448860545
+Left bracket at 1.8905258079013708E-6
+New Minimum: 0.5769552277763819 > 0.576954083705268
+F(1.907503465444875E-6) = LineSearchPoint{point=PointSample{avg=0.576954083705268}, derivative=-5.766527973777854}, delta = -0.01120336451997439
+Left bracket at 1.907503465444875E-6
+New Minimum: 0.576954083705268 > 0.5769540815068276
+F(1.907657120953963E-6) = LineSearchPoint{point=PointSample{avg=0.5769540815068276}, derivative=-0.052210939985162734}, delta = -0.01120336671841482
+Left bracket at 1.907657120953963E-6
+Converged to left
+Overall network state change: {FullyConnectedLayer=0.9946753800485251, BiasLayer=0.994833415721544}
+Iteration 20 complete. Error: 0.5769540815068276 (30000 in 29.111 seconds; 0.000 in orientation, 4.785 in gc, 29.111 in line search; 31.536 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5769540815068276}, derivative=-74684.23865214636}
+New Minimum: 0.5769540815068276 > 0.5671731614762509
+F(1.907657120953963E-6) = LineSearchPoint{point=PointSample{avg=0.5671731614762509}, derivative=11153.435759262033}, delta = -0.009780920030576734
+0.5671731614762509 <= 0.5769540815068276
+New Minimum: 0.5671731614762509 > 0.566926231614203
+F(1.6597830808526278E-6) = LineSearchPoint{point=PointSample{avg=0.566926231614203}, derivative=605.9017025983466}, delta = -0.010027849892624618
+Right bracket at 1.6597830808526278E-6
+New Minimum: 0.566926231614203 > 0.5669253334794421
+F(1.6464258817573127E-6) = LineSearchPoint{point=PointSample{avg=0.5669253334794421}, derivative=32.62931114261394}, delta = -0.010028748027385515
+Right bracket at 1.6464258817573127E-6
+New Minimum: 0.5669253334794421 > 0.5669253213311485
+F(1.6457068775507188E-6) = LineSearchPoint{point=PointSample{avg=0.5669253213311485}, derivative=1.756360339264653}, delta = -0.010028760175679108
+Right bracket at 1.6457068775507188E-6
+New Minimum: 0.5669253213311485 > 0.5669253207821606
+F(1.645668176127657E-6) = LineSearchPoint{point=PointSample{avg=0.5669253207821606}, derivative=0.09453848959780857}, delta = -0.010028760724666963
+Right bracket at 1.645668176127657E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9956242380861106, BiasLayer=0.9411408437416683}
+Iteration 21 complete. Error: 0.5669253207821606 (30000 in 20.980 seconds; 0.000 in orientation, 3.784 in gc, 20.979 in line search; 20.976 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5669253207821606}, derivative=-58285.31777690316}
+New Minimum: 0.5669253207821606 > 0.5576000716494071
+F(1.645668176127657E-6) = LineSearchPoint{point=PointSample{avg=0.5576000716494071}, derivative=-9469.804382166623}, delta = -0.009325249132753566
+F(1.1519677232893599E-5) = LineSearchPoint{point=PointSample{avg=0.7915537308694377}, derivative=296755.8261547298}, delta = 0.22462841008727708
+F(8.861290179148922E-7) = LineSearchPoint{point=PointSample{avg=0.5602401945366072}, derivative=-32075.764369044588}, delta = -0.006685126245553397
+F(6.202903125404245E-6) = LineSearchPoint{point=PointSample{avg=0.6027065630818501}, derivative=129493.07145411175}, delta = 0.035781242299689486
+F(4.77146394261865E-7) = LineSearchPoint{point=PointSample{avg=0.5628446621731981}, derivative=-44195.75335307904}, delta = -0.004080658608962562
+F(3.340024759833055E-6) = LineSearchPoint{point=PointSample{avg=0.5620762259754682}, derivative=41448.74995979548}, delta = -0.004849094806692378
+0.5620762259754682 <= 0.5669253207821606
+New Minimum: 0.5576000716494071 > 0.5573463518017946
+F(1.9519348696730325E-6) = LineSearchPoint{point=PointSample{avg=0.5573463518017946}, derivative=-318.5979302818342}, delta = -0.009578968980366032
+Left bracket at 1.9519348696730325E-6
+New Minimum: 0.5573463518017946 > 0.5573459363355716
+F(1.9625231063792273E-6) = LineSearchPoint{point=PointSample{avg=0.5573459363355716}, derivative=-1.8409473685608815}, delta = -0.009579384446589012
+Left bracket at 1.9625231063792273E-6
+New Minimum: 0.5573459363355716 > 0.5573459355590515
+F(1.962584285435752E-6) = LineSearchPoint{point=PointSample{avg=0.5573459355590515}, derivative=-0.01064344393736729}, delta = -0.009579385223109083
+Left bracket at 1.962584285435752E-6
+Converged to left
+Overall network state change: {FullyConnectedLayer=0.994901635215962, BiasLayer=0.9932424345947335}
+Iteration 22 complete. Error: 0.5573459355590515 (30000 in 30.629 seconds; 0.000 in orientation, 4.997 in gc, 30.628 in line search; 30.624 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5573459355590515}, derivative=-62862.218206893915}
+New Minimum: 0.5573459355590515 > 0.5488692509164935
+F(1.962584285435752E-6) = LineSearchPoint{point=PointSample{avg=0.5488692509164935}, derivative=9662.822726407374}, delta = -0.008476684642558019
+0.5488692509164935 <= 0.5573459355590515
+New Minimum: 0.5488692509164935 > 0.5486459957937984
+F(1.7011007510350038E-6) = LineSearchPoint{point=PointSample{avg=0.5486459957937984}, derivative=409.5631722850908}, delta = -0.008699939765253184
+Right bracket at 1.7011007510350038E-6
+New Minimum: 0.5486459957937984 > 0.5486454620296344
+F(1.6900893932893578E-6) = LineSearchPoint{point=PointSample{avg=0.5486454620296344}, derivative=17.25793660518394}, delta = -0.008700473529417163
+Right bracket at 1.6900893932893578E-6
+New Minimum: 0.5486454620296344 > 0.5486454553468484
+F(1.6896255303980716E-6) = LineSearchPoint{point=PointSample{avg=0.5486454553468484}, derivative=0.7270306708552119}, delta = -0.008700480212203154
+Right bracket at 1.6896255303980716E-6
+New Minimum: 0.5486454553468484 > 0.5486454550933726
+F(1.6896059893221926E-6) = LineSearchPoint{point=PointSample{avg=0.5486454550933726}, derivative=0.030627566681110385}, delta = -0.00870048046567895
+Right bracket at 1.6896059893221926E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9958028084226276, BiasLayer=0.9466491800037832}
+Iteration 23 complete. Error: 0.5486454550933726 (30000 in 23.082 seconds; 0.000 in orientation, 3.699 in gc, 23.082 in line search; 22.989 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5486454550933726}, derivative=-49313.372908055084}
+New Minimum: 0.5486454550933726 > 0.5405592043616286
+F(1.6896059893221926E-6) = LineSearchPoint{point=PointSample{avg=0.5405592043616286}, derivative=-7983.465569714125}, delta = -0.00808625073174396
+F(1.1827241925255349E-5) = LineSearchPoint{point=PointSample{avg=0.7382720858199555}, derivative=242791.31736238062}, delta = 0.18962663072658292
+F(9.097878404042576E-7) = LineSearchPoint{point=PointSample{avg=0.5428452841638658}, derivative=-27057.888133140532}, delta = -0.005800170929506798
+F(6.368514882829803E-6) = LineSearchPoint{point=PointSample{avg=0.5790291817259531}, derivative=107122.58246197028}, delta = 0.030383726632580488
+F(4.898857602176772E-7) = LineSearchPoint{point=PointSample{avg=0.5451030064988897}, derivative=-37329.78986938784}, delta = -0.0035424485944829387
+F(3.4292003215237403E-6) = LineSearchPoint{point=PointSample{avg=0.5443944886233681}, derivative=34602.48256801377}, delta = -0.004250966470004447
+0.5443944886233681 <= 0.5486454550933726
+New Minimum: 0.5405592043616286 > 0.5403382445476772
+F(2.0151785770681695E-6) = LineSearchPoint{point=PointSample{avg=0.5403382445476772}, derivative=-19.67396414384353}, delta = -0.008307210545695387
+Left bracket at 2.0151785770681695E-6
+New Minimum: 0.5403382445476772 > 0.5403382337323341
+F(2.015982091808021E-6) = LineSearchPoint{point=PointSample{avg=0.5403382337323341}, derivative=-0.017952239114037438}, delta = -0.008307221361038453
+Left bracket at 2.015982091808021E-6
+Converged to left
+Overall network state change: {FullyConnectedLayer=0.9951033280726223, BiasLayer=0.992234357139714}
+Iteration 24 complete. Error: 0.5403382337323341 (30000 in 24.817 seconds; 0.000 in orientation, 4.394 in gc, 24.817 in line search; 24.813 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5403382337323341}, derivative=-53614.17981846138}
+New Minimum: 0.5403382337323341 > 0.5329089572712118
+F(2.015982091808021E-6) = LineSearchPoint{point=PointSample{avg=0.5329089572712118}, derivative=8417.616034553728}, delta = -0.007429276461122347
+0.5329089572712118 <= 0.5403382337323341
+New Minimum: 0.5329089572712118 > 0.5327070320760527
+F(1.7424165284058851E-6) = LineSearchPoint{point=PointSample{avg=0.5327070320760527}, derivative=284.65974910056264}, delta = -0.0076312016562813945
+Right bracket at 1.7424165284058851E-6
+New Minimum: 0.5327070320760527 > 0.5327066972618295
+F(1.7332141809011126E-6) = LineSearchPoint{point=PointSample{avg=0.5327066972618295}, derivative=9.591672498799461}, delta = -0.00763153647050463
+Right bracket at 1.7332141809011126E-6
+New Minimum: 0.5327066972618295 > 0.5327066933273007
+F(1.7329041612525267E-6) = LineSearchPoint{point=PointSample{avg=0.5327066933273007}, derivative=0.3231560947391228}, delta = -0.0076315404050334434
+Right bracket at 1.7329041612525267E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9959655295059036, BiasLayer=0.9532315928100987}
+Iteration 25 complete. Error: 0.5327066933273007 (30000 in 18.591 seconds; 0.000 in orientation, 3.061 in gc, 18.591 in line search; 18.587 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5327066933273007}, derivative=-42231.26547500253}
+New Minimum: 0.5327066933273007 > 0.5256112457076314
+F(1.7329041612525267E-6) = LineSearchPoint{point=PointSample{avg=0.5256112457076314}, derivative=-6820.980426154225}, delta = -0.007095447619669293
+F(1.2130329128767687E-5) = LineSearchPoint{point=PointSample{avg=0.6963765981651063}, derivative=203674.13834323626}, delta = 0.16366990483780564
+F(9.331022406744375E-7) = LineSearchPoint{point=PointSample{avg=0.5276155381139677}, derivative=-23130.425914905016}, delta = -0.005091155213333032
+F(6.5317156847210624E-6) = LineSearchPoint{point=PointSample{avg=0.5590309387693241}, derivative=90501.93374298718}, delta = 0.026324245442023386
+F(5.024396680554663E-7) = LineSearchPoint{point=PointSample{avg=0.5295962514670565}, derivative=-31936.346612060603}, delta = -0.0031104418602442285
+F(3.5170776763882643E-6) = LineSearchPoint{point=PointSample{avg=0.5289524472729727}, derivative=29400.294699326932}, delta = -0.0037542460543279477
+0.5289524472729727 <= 0.5327066933273007
+New Minimum: 0.5256112457076314 > 0.5254170055644226
+F(2.0735363111773554E-6) = LineSearchPoint{point=PointSample{avg=0.5254170055644226}, derivative=109.06107468744466}, delta = -0.007289687762878083
+Right bracket at 2.0735363111773554E-6
+F(2.068195254153739E-6) = LineSearchPoint{point=PointSample{avg=0.5254170160657748}, derivative=0.4658182641179}, delta = -0.007289677261525851
+0.5254170160657748 > 0.5254170055644226
+Overall network state change: {FullyConnectedLayer=0.9952768878282924, BiasLayer=0.9905763612658883}
+Iteration 26 complete. Error: 0.5254170055644226 (30000 in 25.628 seconds; 0.000 in orientation, 4.254 in gc, 25.627 in line search; 25.525 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5254170055644226}, derivative=-46473.377758584415}
+New Minimum: 0.5254170055644226 > 0.5188625502361203
+F(2.0735363111773554E-6) = LineSearchPoint{point=PointSample{avg=0.5188625502361203}, derivative=7799.155488627686}, delta = -0.006554455328302344
+0.5188625502361203 <= 0.5254170055644226
+New Minimum: 0.5188625502361203 > 0.518659919132812
+F(1.7755617900964106E-6) = LineSearchPoint{point=PointSample{avg=0.518659919132812}, derivative=218.82972339608045}, delta = -0.006757086431610659
+Right bracket at 1.7755617900964106E-6
+New Minimum: 0.518659919132812 > 0.5186596716614057
+F(1.7672403652516033E-6) = LineSearchPoint{point=PointSample{avg=0.5186596716614057}, derivative=6.1284506435676365}, delta = -0.0067573339030169155
+Right bracket at 1.7672403652516033E-6
+New Minimum: 0.5186596716614057 > 0.5186596689771606
+F(1.7670073497521482E-6) = LineSearchPoint{point=PointSample{avg=0.5186596689771606}, derivative=0.17162257387707724}, delta = -0.006757336587261964
+Right bracket at 1.7670073497521482E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.996133424411543, BiasLayer=0.9561415420544539}
+Iteration 27 complete. Error: 0.5186596689771606 (30000 in 18.734 seconds; 0.000 in orientation, 2.978 in gc, 18.733 in line search; 18.673 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5186596689771606}, derivative=-36381.84214236574}
+New Minimum: 0.5186596689771606 > 0.5123857372393487
+F(1.7670073497521482E-6) = LineSearchPoint{point=PointSample{avg=0.5123857372393487}, derivative=-6164.864600037541}, delta = -0.0062739317378119885
+F(1.2369051448265037E-5) = LineSearchPoint{point=PointSample{avg=0.658956323312996}, derivative=171516.33890853683}, delta = 0.14029665433583538
+F(9.514654960203875E-7) = LineSearchPoint{point=PointSample{avg=0.5141759347873086}, derivative=-20067.125262830854}, delta = -0.00448373418985204
+F(6.660258472142712E-6) = LineSearchPoint{point=PointSample{avg=0.5409936925782551}, derivative=76281.72753039823}, delta = 0.022334023601094488
+F(5.123275747802086E-7) = LineSearchPoint{point=PointSample{avg=0.5159239356273361}, derivative=-27583.93443690988}, delta = -0.002735733349824576
+F(3.5862930234614607E-6) = LineSearchPoint{point=PointSample{avg=0.5151716546297149}, derivative=24622.208803958838}, delta = -0.0034880143474457226
+0.5151716546297149 <= 0.5186596689771606
+New Minimum: 0.5123857372393487 > 0.5121956209950945
+F(2.1388079091771107E-6) = LineSearchPoint{point=PointSample{avg=0.5121956209950945}, derivative=149.97483570502047}, delta = -0.006464047982066123
+Right bracket at 2.1388079091771107E-6
+New Minimum: 0.5121956209950945 > 0.5121956013290568
+F(2.130027416135224E-6) = LineSearchPoint{point=PointSample{avg=0.5121956013290568}, derivative=0.9976824080233487}, delta = -0.006464067648103811
+Right bracket at 2.130027416135224E-6
+F(2.1299690069815705E-6) = LineSearchPoint{point=PointSample{avg=0.5121956019281243}, derivative=0.006639674455180765}, delta = -0.006464067049036348
+0.5121956019281243 > 0.5121956013290568
+Overall network state change: {FullyConnectedLayer=0.9954374846733122, BiasLayer=0.98951705842587}
+Iteration 28 complete. Error: 0.5121956013290568 (30000 in 30.559 seconds; 0.000 in orientation, 5.108 in gc, 30.558 in line search; 30.553 eval time)
+F(0.0) = LineSearchPoint{point=PointSample{avg=0.5121956013290568}, derivative=-40456.25602736753}
+New Minimum: 0.5121956013290568 > 0.5063641772135954
+F(2.130027416135224E-6) = LineSearchPoint{point=PointSample{avg=0.5063641772135954}, derivative=7017.968620165868}, delta = -0.005831424115461448
+0.5063641772135954 <= 0.5121956013290568
+New Minimum: 0.5063641772135954 > 0.5061721553744202
+F(1.8151520142194887E-6) = LineSearchPoint{point=PointSample{avg=0.5061721553744202}, derivative=169.88724657200393}, delta = -0.006023445954636664
+Right bracket at 1.8151520142194887E-6
+New Minimum: 0.5061721553744202 > 0.5061719682097631
+F(1.8075615526852483E-6) = LineSearchPoint{point=PointSample{avg=0.5061719682097631}, derivative=4.11175504930836}, delta = -0.00602363311929377
+Right bracket at 1.8075615526852483E-6
+New Minimum: 0.5061719682097631 > 0.5061719662790533
+F(1.8073778605749552E-6) = LineSearchPoint{point=PointSample{avg=0.5061719662790533}, derivative=0.09951609970983061}, delta = -0.006023635050003584
+Right bracket at 1.8073778605749552E-6
+Converged to right
+Overall network state change: {FullyConnectedLayer=0.9962724785753341, BiasLayer=0.9596607644466666}
+Iteration 29 complete. Error: 0.5061719662790533 (30000 in 17.173 seconds; 0.000 in orientation, 2.923 in gc, 17.172 in line search; 17.169 eval time)
+Training timeout
+Epoch 7 result with 11 iterations, 30000/2147483647 samples: {validation *= 2^-0.21488; training *= 2^-0.217; Overtraining = 1.01}, {itr*=1.55, len*=0.71} 0 since improvement; 4.1926 validation time
+Training 7 runPhase halted
