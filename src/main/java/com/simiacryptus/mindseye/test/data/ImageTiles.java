@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.data;
+package com.simiacryptus.mindseye.test.data;
 
 
 import com.simiacryptus.mindseye.lang.Tensor;

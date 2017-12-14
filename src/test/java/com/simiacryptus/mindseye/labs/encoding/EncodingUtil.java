@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.labs.encoding;
 
-import com.simiacryptus.mindseye.data.Caltech101;
+import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;

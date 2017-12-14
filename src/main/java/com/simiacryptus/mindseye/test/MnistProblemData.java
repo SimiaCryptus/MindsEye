@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.data.MNIST;
+import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.LabeledObject;
 

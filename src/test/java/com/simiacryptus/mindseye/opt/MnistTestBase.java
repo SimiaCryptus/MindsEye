@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.data.MNIST;
+import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;

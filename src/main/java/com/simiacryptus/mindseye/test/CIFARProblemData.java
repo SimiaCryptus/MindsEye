@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.data.CIFAR10;
+import com.simiacryptus.mindseye.test.data.CIFAR10;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.test.LabeledObject;
 
