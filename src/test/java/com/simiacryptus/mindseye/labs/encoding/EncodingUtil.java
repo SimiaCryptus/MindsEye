@@ -32,25 +32,19 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
-import smile.plot.PlotCanvas;
-import smile.plot.ScatterPlot;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -59,7 +53,7 @@ import java.util.stream.Stream;
 /**
  * The type Image encoding util.
  */
-class TestUtil {
+class EncodingUtil {
   /**
    * The constant svgNumber.
    */
@@ -72,59 +66,6 @@ class TestUtil {
    * The constant out.
    */
   protected static PrintStream rawOut = SysOutInterceptor.INSTANCE.getInner();
-  
-  /**
-   * Add monitoring.
-   *
-   * @param network        the network
-   * @param monitoringRoot the monitoring root
-   */
-  public static void addMonitoring(DAGNetwork network, MonitoredObject monitoringRoot) {
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).addTo(monitoringRoot));
-      }
-    });
-  }
-  
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
-  public static void removeMonitoring(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        node.setLayer(((MonitoringWrapperLayer) node.getLayer()).getInner());
-      }
-    });
-  }
-  
-  /**
-   * Add logging.
-   *
-   * @param network the network
-   */
-  public static void addLogging(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof LoggingWrapperLayer)) {
-        node.setLayer(new LoggingWrapperLayer(node.getLayer()));
-      }
-    });
-  }
-  
-  /**
-   * Remove monitoring.
-   *
-   * @param network the network
-   */
-  public static void removeLogging(DAGNetwork network) {
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof LoggingWrapperLayer) {
-        node.setLayer(((LoggingWrapperLayer) node.getLayer()).getInner());
-      }
-    });
-  }
   
   /**
    * Print model.
@@ -178,7 +119,7 @@ class TestUtil {
    * @param tensor       the tensor
    */
   public static void renderLayer(NotebookOutput log, List<NNLayer> dataPipeline, LinkedHashMap<String, Object> row, int col, Tensor tensor) {
-    row.put("Data_" + col, render(log, tensor, 0 < col));
+    row.put("Data_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, tensor, 0 < col));
     if (dataPipeline.size() >= col - 1 && 1 < col) {
       PipelineNetwork decoder = new PipelineNetwork();
       for (int i = col - 2; i >= 0; i--) {
@@ -187,7 +128,7 @@ class TestUtil {
       Tensor decoded = GpuController.call(ctx -> {
         return decoder.eval(ctx, tensor);
       }).getData().get(0);
-      row.put("Decode_" + col, render(log, decoded, false));
+      row.put("Decode_" + col, com.simiacryptus.mindseye.test.TestUtil.render(log, decoded, false));
       
       List<Tensor> rawComponents = IntStream.range(0, tensor.getDimensions()[2])
         .mapToObj(band -> findUnitComponent(decoder, band, tensor))
@@ -200,7 +141,7 @@ class TestUtil {
       row.put("SVG_" + col, log.file(decompositionSvg(log, baseline, signedComponents), "svg" + svgNumber++ + ".svg", "SVG Composite Image"));
       
       String render = signedComponents.stream()
-        .map(signedContribution -> render(log, signedContribution, true))
+        .map(signedContribution -> com.simiacryptus.mindseye.test.TestUtil.render(log, signedContribution, true))
         .reduce((a, b) -> a + "" + b).get();
       row.put("Band_Decode_" + col, render);
     }
@@ -453,7 +394,7 @@ class TestUtil {
       @Override
       public void log(String msg) {
         System.out.println(msg); // Logged MnistProblemData
-        TestUtil.rawOut.println(msg); // Realtime MnistProblemData
+        EncodingUtil.rawOut.println(msg); // Realtime MnistProblemData
       }
       
       @Override
@@ -466,134 +407,6 @@ class TestUtil {
         super.clear();
       }
     };
-  }
-  
-  /**
-   * Print data statistics.
-   *
-   * @param log  the log
-   * @param data the data
-   */
-  public static void printDataStatistics(NotebookOutput log, Tensor[][] data) {
-    for (int col = 1; col < data[0].length; col++) {
-      int c = col;
-      log.out("Learned Representation Statistics for Column " + col + " (all bands)");
-      log.code(() -> {
-        ScalarStatistics scalarStatistics = new ScalarStatistics();
-        Arrays.stream(data)
-          .flatMapToDouble(row -> Arrays.stream(row[c].getData()))
-          .forEach(v -> scalarStatistics.add(v));
-        return scalarStatistics.getMetrics();
-      });
-      int _col = col;
-      log.out("Learned Representation Statistics for Column " + col + " (by band)");
-      log.code(() -> {
-        int[] dimensions = data[0][_col].getDimensions();
-        return IntStream.range(0, dimensions[2]).mapToObj(x -> x).flatMap(b -> {
-          return Arrays.stream(data).map(r -> r[_col]).map(tensor -> {
-            ScalarStatistics scalarStatistics = new ScalarStatistics();
-            scalarStatistics.add(new Tensor(dimensions[0], dimensions[1]).fillByCoord(coord -> tensor.get(coord.getCoords()[0], coord.getCoords()[1], b)).getData());
-            return scalarStatistics;
-          });
-        }).map(x -> x.getMetrics().toString()).reduce((a, b) -> a + "\n" + b).get();
-      });
-    }
-  }
-  
-  /**
-   * Print history.
-   *
-   * @param log     the log
-   * @param history the history
-   */
-  public static void printHistory(NotebookOutput log, List<Step> history) {
-    if (!history.isEmpty()) {
-      log.out("Convergence Plot: ");
-      log.code(() -> {
-        PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
-        plot.setTitle("Convergence Plot");
-        plot.setAxisLabels("Iteration", "log10(Fitness)");
-        plot.setSize(600, 400);
-        return plot;
-      });
-    }
-  }
-  
-  /**
-   * Render string.
-   *
-   * @param log       the log
-   * @param tensor    the tensor
-   * @param normalize the normalize
-   * @return the string
-   */
-  public static String render(NotebookOutput log, Tensor tensor, boolean normalize) {
-    return renderToImages(tensor, normalize).map(image -> {
-      try {
-        return log.image(image, "");
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }).reduce((a, b) -> a + b).get();
-  }
-  
-  /**
-   * Render to images stream.
-   *
-   * @param tensor    the tensor
-   * @param normalize the normalize
-   * @return the stream
-   */
-  public static Stream<BufferedImage> renderToImages(Tensor tensor, boolean normalize) {
-    DoubleStatistics[] statistics = IntStream.range(0, tensor.getDimensions()[2]).mapToObj(band -> {
-      return new DoubleStatistics().accept(tensor.coordStream()
-        .filter(x -> x.getCoords()[2] == band)
-        .mapToDouble(c -> tensor.get(c)).toArray());
-    }).toArray(i -> new DoubleStatistics[i]);
-    BiFunction<Double, DoubleStatistics, Double> transform = (value, stats) -> {
-      double width = Math.sqrt(2) * stats.getStandardDeviation();
-      double centered = value - stats.getAverage();
-      double distance = Math.abs(value - stats.getAverage());
-      double positiveMax = stats.getMax() - stats.getAverage();
-      double negativeMax = stats.getAverage() - stats.getMin();
-      final double unitValue;
-      if (value < centered) {
-        if (distance > width) {
-          unitValue = 0.25 - 0.25 * ((distance - width) / (negativeMax - width));
-        }
-        else {
-          unitValue = 0.5 - 0.25 * ((distance) / (width));
-        }
-      }
-      else {
-        if (distance > width) {
-          unitValue = 0.75 + 0.25 * ((distance - width) / (positiveMax - width));
-        }
-        else {
-          unitValue = 0.5 + 0.25 * ((distance) / (width));
-        }
-      }
-      return (0xFF * unitValue);
-    };
-    tensor.coordStream().collect(Collectors.groupingBy(x -> x.getCoords()[2], Collectors.toList()));
-    Tensor normal = tensor.mapCoords((c) -> transform.apply(tensor.get(c), statistics[c.getCoords()[2]]))
-      .map(v -> Math.min(0xFF, Math.max(0, v)));
-    return (normalize ? normal : tensor).toImages().stream();
-  }
-  
-  /**
-   * Resize buffered image.
-   *
-   * @param source the source
-   * @param size   the size
-   * @return the buffered image
-   */
-  public static BufferedImage resize(BufferedImage source, int size) {
-    BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D graphics = (Graphics2D) image.getGraphics();
-    graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
-    graphics.drawImage(source, 0, 0, size, size, null);
-    return image;
   }
   
   /**
@@ -616,7 +429,7 @@ class TestUtil {
         return Arrays.asList(categories).contains(x.label);
       }).map(labeledObj -> new Tensor[]{
         new Tensor(categories.length).set(Arrays.asList(categories).indexOf(labeledObj.label), 1.0),
-        Tensor.fromRGB(resize(labeledObj.data.get(), size))
+        Tensor.fromRGB(com.simiacryptus.mindseye.test.TestUtil.resize(labeledObj.data.get(), size))
       }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
     } catch (IOException e) {
       throw new RuntimeException(e);

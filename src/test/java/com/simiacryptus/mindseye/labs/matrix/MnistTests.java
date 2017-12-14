@@ -103,23 +103,6 @@ public class MnistTests {
   };
   
   /**
-   * The type Gd.
-   */
-  public static class GD extends AllTests {
-    /**
-     * Instantiates a new Gd.
-     */
-    public GD() {
-      super(TextbookOptimizers.simple_gradient_descent, MnistTests.rev_linear_1, MnistTests.fwd_linear_1);
-    }
-    
-    @Override
-    protected void intro(NotebookOutput log) {
-      log.p("");
-    }
-  }
-  
-  /**
    * The type Sgd.
    */
   public static class SGD extends AllTests {
@@ -128,60 +111,6 @@ public class MnistTests {
      */
     public SGD() {
       super(TextbookOptimizers.stochastic_gradient_descent, MnistTests.rev_linear_1, MnistTests.fwd_linear_1);
-    }
-    
-    @Override
-    @Ignore
-    @Test
-    public void encoding_test() throws IOException {
-      super.encoding_test();
-    }
-    
-    @Override
-    @Ignore
-    @Test
-    public void classification_test() throws IOException {
-      super.classification_test();
-    }
-    
-    @Override
-    @Test
-    public void autoencoder_test() throws IOException {
-      super.autoencoder_test();
-    }
-    
-    @Override
-    protected void intro(NotebookOutput log) {
-      log.p("");
-    }
-  }
-  
-  /**
-   * The type Cj gd.
-   */
-  public static class CjGD extends AllTests {
-    /**
-     * Instantiates a new Cj gd.
-     */
-    public CjGD() {
-      super(TextbookOptimizers.conjugate_gradient_descent, MnistTests.rev_linear_1, MnistTests.fwd_linear_1);
-    }
-    
-    @Override
-    protected void intro(NotebookOutput log) {
-      log.p("");
-    }
-  }
-  
-  /**
-   * The type Lbfgs.
-   */
-  public static class LBFGS extends AllTests {
-    /**
-     * Instantiates a new Lbfgs.
-     */
-    public LBFGS() {
-      super(TextbookOptimizers.limited_memory_bfgs, MnistTests.rev_conv_1, MnistTests.fwd_conv_1);
     }
     
     @Override

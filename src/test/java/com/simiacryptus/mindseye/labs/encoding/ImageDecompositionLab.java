@@ -41,9 +41,6 @@ import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.test.TestCategories;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,7 +97,7 @@ public class ImageDecompositionLab {
       File logFile = new File(path, "index.html");
       StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
       HtmlNotebookOutput log = new HtmlNotebookOutput(path, server.dataReciever);
-      log.addCopy(TestUtil.rawOut);
+      log.addCopy(EncodingUtil.rawOut);
       return log;
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -117,7 +114,7 @@ public class ImageDecompositionLab {
     int timeoutMinutes = 40;
     int size = 256;
     
-    Tensor[][] trainingImages = TestUtil.getImages(log, size, 10, "kangaroo");
+    Tensor[][] trainingImages = EncodingUtil.getImages(log, size, 10, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
@@ -176,7 +173,7 @@ public class ImageDecompositionLab {
         return features.get();
       }
     }.invoke();
-    TestUtil.setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
+    EncodingUtil.setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
   }
   
   /**
@@ -266,8 +263,8 @@ public class ImageDecompositionLab {
       this.log = log;
       this.size = size;
       this.model = model;
-      this.trainingData = TestUtil.addColumn(TestUtil.getImages(log, size, imageCount, category), representationDims);
-      this.monitor = TestUtil.getMonitor(history);
+      this.trainingData = EncodingUtil.addColumn(EncodingUtil.getImages(log, size, imageCount, category), representationDims);
+      this.monitor = EncodingUtil.getMonitor(history);
       this.trainMinutes = trainMinutes;
     }
     
@@ -287,12 +284,12 @@ public class ImageDecompositionLab {
      */
     public TranscodeStep invoke() {
       log.h3("Training");
-      DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
+      DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
       train(log, monitor, trainingModel0, trainingData, trainMinutes, false, false, true);
-      TestUtil.printHistory(log, history);
+      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
       log.h3("Results");
-      TestUtil.validationReport(log, trainingData, Arrays.asList(this.model), imageCount);
-      TestUtil.printDataStatistics(log, trainingData);
+      EncodingUtil.validationReport(log, trainingData, Arrays.asList(this.model), imageCount);
+      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       return this;
     }
@@ -375,12 +372,12 @@ public class ImageDecompositionLab {
       this.band1 = band1;
       this.band0 = band0;
       this.log = log;
-      this.monitor = TestUtil.getMonitor(history);
+      this.monitor = EncodingUtil.getMonitor(history);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
       this.fromSize = fromSize;
       this.toSize = (fromSize + (radius - 1));
-      this.trainingData = TestUtil.addColumn(originalTrainingData, toSize, toSize, band1);
+      this.trainingData = EncodingUtil.addColumn(originalTrainingData, toSize, toSize, band1);
       this.radius = radius;
       this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0).setWeights(() -> 0.1 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band0);
@@ -425,31 +422,31 @@ public class ImageDecompositionLab {
     public InitializationStep invoke() {
       dataPipeline.add(model);
       log.code(() -> {
-        initialize(log, () -> TestUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
+        initialize(log, () -> EncodingUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius), convolutionLayer, biasLayer);
       });
       
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
+        DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model.copy().freeze(), 1, 2);
         train(log, monitor, trainingModel0, trainingData, pretrainMinutes, false, false, true);
-        TestUtil.printHistory(log, history);
+        com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
         log.h3("Results");
-        TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
-        TestUtil.printModel(log, model, modelNo++);
-        TestUtil.printDataStatistics(log, trainingData);
+        EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+        EncodingUtil.printModel(log, model, modelNo++);
+        com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
       
       log.h2("Tuning");
       log.h3("Training");
-      DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(model, 1, 2);
+      DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model, 1, 2);
       train(log, monitor, trainingModel0, trainingData, timeoutMinutes, false, false, true);
-      TestUtil.printHistory(log, history);
+      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
       log.h3("Results");
-      TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
-      TestUtil.printModel(log, model, modelNo++);
-      TestUtil.printDataStatistics(log, trainingData);
+      EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+      EncodingUtil.printModel(log, model, modelNo++);
+      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       
       return this;
@@ -547,7 +544,7 @@ public class ImageDecompositionLab {
      * @param scale           the scale
      */
     public AddLayerStep(NotebookOutput log, Tensor[][] trainingData, DAGNetwork priorModel, int layerNumber, int fromSize, int pretrainMinutes, int timeoutMinutes, int band1, int band2, int radius, int scale) {
-      this.originalOut = TestUtil.rawOut;
+      this.originalOut = EncodingUtil.rawOut;
       this.log = log;
       this.band1 = band1;
       this.band2 = band2;
@@ -556,12 +553,12 @@ public class ImageDecompositionLab {
       if (0 != fromSize % scale) throw new IllegalArgumentException(fromSize + " % " + scale);
       this.fromSize = fromSize;
       this.toSize = (fromSize / scale + (radius - 1)) * scale; // 70
-      this.trainingData = TestUtil.addColumn(trainingData, toSize, toSize, band2);
+      this.trainingData = EncodingUtil.addColumn(trainingData, toSize, toSize, band2);
       this.pretrainMinutes = pretrainMinutes;
       this.timeoutMinutes = timeoutMinutes;
       this.radius = radius;
       this.history = new ArrayList<>();
-      this.monitor = TestUtil.getMonitor(history);
+      this.monitor = EncodingUtil.getMonitor(history);
       this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1).setWeights(() -> 0.01 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band1);
       this.innerModel = buildNetwork();
@@ -596,8 +593,8 @@ public class ImageDecompositionLab {
       dataPipeline.add(innerModel);
       log.code(() -> {
         initialize(log, () -> {
-          Stream<Tensor[]> tensors = TestUtil.downExplodeTensors(Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]}), scale);
-          return TestUtil.convolutionFeatures(tensors, radius);
+          Stream<Tensor[]> tensors = EncodingUtil.downExplodeTensors(Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]}), scale);
+          return EncodingUtil.convolutionFeatures(tensors, radius);
         }, convolutionLayer, biasLayer);
       });
       final boolean[] mask = getTrainingMask();
@@ -605,36 +602,36 @@ public class ImageDecompositionLab {
       {
         log.h2("Initialization");
         log.h3("Training");
-        DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
+        DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel.copy().freeze(), layerNumber, layerNumber + 1);
         train(log, monitor, trainingModel0, trainingData, pretrainMinutes, mask);
-        TestUtil.printHistory(log, history);
+        com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
         log.h3("Results");
-        TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
-        TestUtil.printModel(log, innerModel, modelNo++);
-        TestUtil.printDataStatistics(log, trainingData);
+        EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+        EncodingUtil.printModel(log, innerModel, modelNo++);
+        com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
       
       log.h2("Tuning");
       log.h3("Training");
-      DAGNetwork trainingModel0 = TestUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
+      DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
       train(log, monitor, trainingModel0, trainingData, timeoutMinutes, mask);
-      TestUtil.printHistory(log, history);
+      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
       log.h3("Results");
-      TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
-      TestUtil.printModel(log, innerModel, modelNo++);
-      TestUtil.printDataStatistics(log, trainingData);
+      EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+      EncodingUtil.printModel(log, innerModel, modelNo++);
+      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       
       log.h2("Integration Training");
       log.h3("Training");
-      DAGNetwork trainingModel1 = TestUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);
+      DAGNetwork trainingModel1 = EncodingUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);
       train(log, monitor, trainingModel1, trainingData, timeoutMinutes, mask);
-      TestUtil.printHistory(log, history);
+      com.simiacryptus.mindseye.test.TestUtil.printHistory(log, history);
       log.h3("Results");
-      TestUtil.validationReport(log, trainingData, dataPipeline, displayImage);
-      TestUtil.printModel(log, innerModel, modelNo++);
-      TestUtil.printDataStatistics(log, trainingData);
+      EncodingUtil.validationReport(log, trainingData, dataPipeline, displayImage);
+      EncodingUtil.printModel(log, innerModel, modelNo++);
+      com.simiacryptus.mindseye.test.TestUtil.printDataStatistics(log, trainingData);
       history.clear();
       return this;
     }

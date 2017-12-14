@@ -80,7 +80,7 @@ public class EncodingProblem implements Problem {
     Tensor[][] trainingData;
     try {
       trainingData = data.trainingData().map(labeledObject -> {
-        return new Tensor[]{new Tensor(features).fill(() -> 0.5 * (Math.random() - 0.5)), labeledObject.data};
+        return new Tensor[]{new Tensor(features).fill(this::random), labeledObject.data};
       }).toArray(i -> new Tensor[i][]);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -174,16 +174,22 @@ public class EncodingProblem implements Problem {
     
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
-      try {
-        Tensor input = new Tensor(features).set(featureNumber, 1);
-        Tensor tensor = GpuController.call(ctx -> imageNetwork.eval(ctx, input)).getData().get(0);
-        log.out(log.image(tensor.toImage(), ""));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      Tensor input = new Tensor(features).set(featureNumber, 1);
+      Tensor tensor = GpuController.call(ctx -> imageNetwork.eval(ctx, input)).getData().get(0);
+      TestUtil.renderToImages(tensor, true).forEach(img->{
+        try {
+          log.out(log.image(img, ""));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
     }
     
     return this;
+  }
+  
+  public double random() {
+    return 0.1 * (Math.random() - 0.5);
   }
   
   

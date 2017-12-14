@@ -105,23 +105,6 @@ public class CifarTests {
   };
   
   /**
-   * The type Gd.
-   */
-  public static class GD extends AllTests {
-    /**
-     * Instantiates a new Gd.
-     */
-    public GD() {
-      super(TextbookOptimizers.simple_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
-    }
-    
-    @Override
-    protected void intro(NotebookOutput log) {
-      log.p("");
-    }
-  }
-  
-  /**
    * The type Sgd.
    */
   public static class SGD extends AllTests {
@@ -130,40 +113,6 @@ public class CifarTests {
      */
     public SGD() {
       super(TextbookOptimizers.stochastic_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
-    }
-    
-    @Override
-    protected void intro(NotebookOutput log) {
-      log.p("");
-    }
-  }
-  
-  /**
-   * The type Cj gd.
-   */
-  public static class CjGD extends AllTests {
-    /**
-     * Instantiates a new Cj gd.
-     */
-    public CjGD() {
-      super(TextbookOptimizers.conjugate_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
-    }
-    
-    @Override
-    protected void intro(NotebookOutput log) {
-      log.p("");
-    }
-  }
-  
-  /**
-   * The type Lbfgs.
-   */
-  public static class LBFGS extends AllTests {
-    /**
-     * Instantiates a new Lbfgs.
-     */
-    public LBFGS() {
-      super(TextbookOptimizers.limited_memory_bfgs, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
     }
     
     @Override
