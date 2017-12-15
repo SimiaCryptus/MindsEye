@@ -54,6 +54,8 @@ public abstract class StandardLayerTests {
    */
   protected boolean validateDifferentials = true;
   
+  private boolean demonstrateLearning = true;
+  
   /**
    * Test.
    *
@@ -83,7 +85,7 @@ public abstract class StandardLayerTests {
     }
     
     
-    testReferenceIO(log, layer, Arrays.stream(getReferenceInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]));
+    testReferenceIO(log, layer.copy(), Arrays.stream(getReferenceInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]));
     
     NNLayer referenceLayer = getReferenceLayer();
     if (null != referenceLayer) {
@@ -91,7 +93,7 @@ public abstract class StandardLayerTests {
       log.h3("Reference Implementation");
       log.code(() -> {
         System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(referenceLayer.getJson()));
-        getEquivalencyTester().test(referenceLayer, layer, inputPrototype);
+        getEquivalencyTester().test(referenceLayer, layer.copy(), inputPrototype);
       });
     }
     
@@ -99,28 +101,34 @@ public abstract class StandardLayerTests {
       Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
       log.h3("Batch Execution");
       log.code(() -> {
-        return getBatchingTester().test(layer, inputPrototype);
+        return getBatchingTester().test(layer.copy(), inputPrototype);
       });
     }
-    
+  
     if (validateDifferentials) {
       Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
       log.h3("Differential Validation");
       log.code(() -> {
-        return getDerivativeTester().test(layer, inputPrototype);
+        return getDerivativeTester().test(layer.copy(), inputPrototype);
       });
     }
-    
-    log.h3("Performance");
-    if (layer instanceof DAGNetwork) {
-      TestUtil.instrumentPerformance(log, (DAGNetwork) layer);
+  
+    if (demonstrateLearning) {
+      Tensor[] permPrototype = Arrays.stream(getPerfDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
+      getLearningTester().test(log, layer.copy(), permPrototype);
+    }
+  
+    NNLayer cpy = layer.copy();
+    if (cpy instanceof DAGNetwork) {
+      log.h3("Performance");
+      TestUtil.instrumentPerformance(log, (DAGNetwork) cpy);
     }
     Tensor[] permPrototype = Arrays.stream(getPerfDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
     log.code(() -> {
-      getPerformanceTester().test(layer, permPrototype);
+      getPerformanceTester().test(cpy, permPrototype);
     });
-    if (layer instanceof DAGNetwork) {
-      TestUtil.extractPerformance(log, (DAGNetwork) layer);
+    if (cpy instanceof DAGNetwork) {
+      TestUtil.extractPerformance(log, (DAGNetwork) cpy);
     }
     
   }
@@ -179,7 +187,7 @@ public abstract class StandardLayerTests {
    * @return the double
    */
   public double random() {
-    return Math.round(1000 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
+    return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
   }
   
   /**
@@ -259,4 +267,16 @@ public abstract class StandardLayerTests {
     return getInputDims();
   }
   
+  public boolean isDemonstrateLearning() {
+    return demonstrateLearning;
+  }
+  
+  public StandardLayerTests setDemonstrateLearning(boolean demonstrateLearning) {
+    this.demonstrateLearning = demonstrateLearning;
+    return this;
+  }
+  
+  public LearningTester getLearningTester() {
+    return new LearningTester();
+  }
 }

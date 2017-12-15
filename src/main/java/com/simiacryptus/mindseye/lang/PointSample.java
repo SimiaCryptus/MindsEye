@@ -158,6 +158,17 @@ public final class PointSample {
     return add(this, right);
   }
   
+  public PointSample addInPlace(PointSample right) {
+    assert (delta.getMap().size() == weights.getMap().size());
+    assert (right.delta.getMap().size() == right.weights.getMap().size());
+    assert rate == right.rate;
+    return new PointSample(delta.addInPlace(right.delta),
+      StateSet.union(weights, right.weights),
+      sum + right.sum,
+      rate,
+      count + right.count);
+  }
+  
   /**
    * Normalize point sample.
    *
@@ -171,4 +182,5 @@ public final class PointSample {
       return new PointSample(delta.scale(1.0 / count), weights, sum / count, rate, 1);
     }
   }
+
 }

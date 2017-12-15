@@ -23,8 +23,6 @@ import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.lang.TimedResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
@@ -35,7 +33,6 @@ import java.util.stream.Stream;
  */
 public class PerformanceTester {
   
-  private static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
   private int samples = 5;
   private int batches = 100;
   private boolean testLearning = true;
@@ -50,8 +47,7 @@ public class PerformanceTester {
   
   /**
    * Test.
-   *
-   * @param component      the component
+   *  @param component      the component
    * @param inputPrototype the input prototype
    */
   public void test(final NNLayer component, final Tensor... inputPrototype) {

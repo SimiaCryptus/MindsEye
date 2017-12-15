@@ -222,7 +222,7 @@ public class ConvolutionLayer extends NNLayer {
    * @return the weights
    */
   public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
-    this.kernel.coordStream().parallel().forEach(c -> {
+    this.kernel.coordStream().forEach(c -> {
       this.kernel.set(c, f.applyAsDouble(c));
     });
     return this;
@@ -235,7 +235,7 @@ public class ConvolutionLayer extends NNLayer {
    * @return the weights
    */
   public ConvolutionLayer setWeights(final DoubleSupplier f) {
-    this.kernel.coordStream().parallel().forEach(c -> {
+    this.kernel.coordStream().forEach(c -> {
       this.kernel.set(c, f.getAsDouble());
     });
     return this;

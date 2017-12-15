@@ -110,11 +110,11 @@ public class ImageDecompositionLab {
    * @param log the log
    */
   public void run(NotebookOutput log) {
-    int pretrainMinutes = 20;
-    int timeoutMinutes = 40;
+    int pretrainMinutes = 60;
+    int timeoutMinutes = 60;
     int size = 256;
     
-    Tensor[][] trainingImages = EncodingUtil.getImages(log, size, 10, "kangaroo");
+    Tensor[][] trainingImages = EncodingUtil.getImages(log, size, 5, "kangaroo");
     
     log.h1("First Layer");
     InitializationStep step0 = log.code(() -> {
@@ -253,7 +253,7 @@ public class ImageDecompositionLab {
      * @param category           the category
      * @param imageCount         the image count
      * @param size               the size
-     * @param trainMinutes       the train minutes
+     * @param trainMinutes       the trainCjGD minutes
      * @param model              the model
      * @param representationDims the representation dims
      */

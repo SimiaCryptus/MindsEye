@@ -139,7 +139,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       
       TimedResult<PointSample> timedResult = TimedResult.time(() -> GpuController.INSTANCE.distribute(data,
         (list, dev) -> eval(list, dev, isStatic, monitor),
-        (a, b) -> a.add(b)
+        (a, b) -> a.addInPlace(b)
       ));
       //          System.out.println(String.format("Evaluated to %s delta arrays", deltaSet.run.size()));
       if (null != monitor && verbosity() > 1) {
