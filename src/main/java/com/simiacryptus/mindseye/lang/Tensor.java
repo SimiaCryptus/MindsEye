@@ -1264,6 +1264,12 @@ public class Tensor implements Serializable {
     System.arraycopy(getData(), 0, bufferArray, 0, dim());
   }
   
+  /**
+   * Set tensor.
+   *
+   * @param f the f
+   * @return the tensor
+   */
   public Tensor set(IntToDoubleFunction f) {
     Arrays.parallelSetAll(getData(), f);
     return this;

@@ -218,7 +218,7 @@ public class ValidatingTrainer {
       }
       return epochParams.validation.getMean();
     } catch (Throwable e) {
-      RecycleBin.DOUBLES.printProfiling(System.err);
+      RecycleBin.DOUBLES.printNetProfiling(System.err);
       throw new RuntimeException(e);
     }
   }

@@ -24,39 +24,168 @@ import com.simiacryptus.util.data.DoubleStatistics;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+/**
+ * The type Stack counter.
+ */
 public class StackCounter {
   
-  ConcurrentHashMap<StackTraceElement, DoubleStatistics> stats = new ConcurrentHashMap<>();
+  /**
+   * The Stats.
+   */
+  ConcurrentHashMap<StackFrame, DoubleStatistics> stats = new ConcurrentHashMap<>();
   
+  /**
+   * To string string.
+   *
+   * @param left  the left
+   * @param right the right
+   * @param fn    the fn
+   * @return the string
+   */
+  public static String toString(StackCounter left, StackCounter right, BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
+    Comparator<StackFrame> comparing = Comparator.comparing(key -> {
+      return -fn.apply(left.stats.get(key), right.stats.get(key)).doubleValue();
+    });
+    comparing = comparing.thenComparing(Comparator.comparing(key -> key.toString()));
+    return Stream.concat(left.stats.keySet().stream(), right.stats.keySet().stream())
+      .distinct()
+      .filter(k -> left.stats.containsKey(k) && right.stats.containsKey(k))
+      .sorted(comparing)
+      .map(key -> String.format("%s - %s", key.toString(), fn.apply(left.stats.get(key), right.stats.get(key))))
+      .limit(100)
+      .reduce((a, b) -> a + "\n" + b)
+      .orElse("");
+  }
+  
+  /**
+   * Increment.
+   *
+   * @param length the length
+   */
   public void increment(int length) {
     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
     for (StackTraceElement frame : stackTrace) {
-      stats.computeIfAbsent(frame, f -> new DoubleStatistics()).accept(length);
+      stats.computeIfAbsent(new StackFrame(frame), f -> new DoubleStatistics()).accept(length);
     }
   }
   
   @Override
   public String toString() {
-    Comparator<Map.Entry<StackTraceElement, DoubleStatistics>> comparing = Comparator.comparing(e -> -summaryStat(e.getValue()).doubleValue());
+    return toString(this::summaryStat);
+  }
+  
+  /**
+   * To string string.
+   *
+   * @param fn the fn
+   * @return the string
+   */
+  public String toString(Function<DoubleStatistics, Number> fn) {
+    Comparator<Map.Entry<StackFrame, DoubleStatistics>> comparing = Comparator.comparing(e -> -fn.apply(e.getValue()).doubleValue());
     comparing = comparing.thenComparing(Comparator.comparing(e -> e.getKey().toString()));
     return stats.entrySet().stream()
       .sorted(comparing)
-      .map(e -> String.format("%s - %s", toString(e.getKey()), summaryStat(e.getValue())))
+      .map(e -> String.format("%s - %s", e.getKey().toString(), fn.apply(e.getValue())))
       .limit(100).reduce((a, b) -> a + "\n" + b).orElse(super.toString());
   }
   
-  protected String toString(StackTraceElement frame) {
-    return String.format(
-      "%s.%s(%s:%s)",
-      frame.getClassName(),
-      frame.getMethodName(),
-      frame.getFileName(),
-      frame.getLineNumber()
-    );
+  /**
+   * To string string.
+   *
+   * @param other the other
+   * @param fn    the fn
+   * @return the string
+   */
+  public String toString(StackCounter other, BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
+    return toString(this, other, fn);
   }
   
+  /**
+   * Summary stat number.
+   *
+   * @param value the value
+   * @return the number
+   */
   protected Number summaryStat(DoubleStatistics value) {
     return (int) value.getSum();
+  }
+  
+  /**
+   * The type Stack frame.
+   */
+  public static class StackFrame {
+    /**
+     * The Declaring class.
+     */
+    public final String declaringClass;
+    /**
+     * The Method name.
+     */
+    public final String methodName;
+    /**
+     * The File name.
+     */
+    public final String fileName;
+    /**
+     * The Line number.
+     */
+    public final int lineNumber;
+    
+    /**
+     * Instantiates a new Stack frame.
+     *
+     * @param frame the frame
+     */
+    public StackFrame(StackTraceElement frame) {
+      this(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber());
+    }
+    
+    /**
+     * Instantiates a new Stack frame.
+     *
+     * @param declaringClass the declaring class
+     * @param methodName     the method name
+     * @param fileName       the file name
+     * @param lineNumber     the line number
+     */
+    public StackFrame(String declaringClass, String methodName, String fileName, int lineNumber) {
+      this.declaringClass = declaringClass;
+      this.methodName = methodName;
+      this.fileName = fileName;
+      this.lineNumber = lineNumber;
+    }
+    
+    @Override
+    public String toString() {
+      return String.format("%s.%s(%s:%s)", declaringClass, methodName, fileName, lineNumber);
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof StackFrame)) return false;
+      
+      StackFrame that = (StackFrame) o;
+      
+      if (lineNumber != that.lineNumber) return false;
+      if (declaringClass != null ? !declaringClass.equals(that.declaringClass) : that.declaringClass != null) {
+        return false;
+      }
+      if (methodName != null ? !methodName.equals(that.methodName) : that.methodName != null) return false;
+      return fileName != null ? fileName.equals(that.fileName) : that.fileName == null;
+    }
+    
+    @Override
+    public int hashCode() {
+      int result = declaringClass != null ? declaringClass.hashCode() : 0;
+      result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
+      result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
+      result = 31 * result + lineNumber;
+      return result;
+    }
   }
 }
