@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.labs.matrix;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.test.*;
+import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;

@@ -1,85 +1,27 @@
 # AvgImageBandLayer
 ## AvgImageBandLayerTest
-### Json Serialization
-Code from [StandardLayerTests.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L68) executed in 0.00 seconds: 
-```java
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    if ((echo == null)) throw new AssertionError("Failed to deserialize");
-    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
-    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
-```
-
-Returns: 
-
-```
-    {
-      "class": "com.simiacryptus.mindseye.layers.java.AvgImageBandLayer",
-      "id": "eaf57d6a-f8a7-4fc7-b280-d3db56d1c1bc",
-      "isFrozen": false,
-      "name": "AvgImageBandLayer/eaf57d6a-f8a7-4fc7-b280-d3db56d1c1bc"
-    }
-```
-
-
-
-### Example Input/Output Pair
-Code from [StandardLayerTests.java:152](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L152) executed in 0.00 seconds: 
-```java
-    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
-      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-      eval.getOutput().prettyPrint(),
-      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
-```
-
-Returns: 
-
-```
-    --------------------
-    Input: 
-    [[
-    	[ [ 1.736, 0.688, 0.156 ], [ 0.2, 0.108, -1.18 ] ],
-    	[ [ 1.148, -0.136, -0.756 ], [ 0.388, 0.856, -1.68 ] ]
-    ]]
-    --------------------
-    Output: 
-    [
-    	[ [ 0.379, -0.865, 0.868 ] ]
-    ]
-    --------------------
-    Derivative: 
-    [
-    	[ [ 0.25, 0.25, 0.25 ], [ 0.25, 0.25, 0.25 ] ],
-    	[ [ 0.25, 0.25, 0.25 ], [ 0.25, 0.25, 0.25 ] ]
-    ]
-```
-
-
-
 ### Batch Execution
-Code from [StandardLayerTests.java:101](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/StandardLayerTests.java#L101) executed in 0.00 seconds: 
+Code from [BatchingTester.java:66](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/BatchingTester.java#L66) executed in 0.00 seconds: 
 ```java
-    return getBatchingTester().test(layer, inputPrototype);
+    return test(reference, inputPrototype);
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.5213e-01 +- 4.5136e-01 [0.0000e+00 - 1.3550e+00] (30#), relativeTol=3.7739e-01 +- 4.5520e-01 [0.0000e+00 - 1.0000e+00] (30#)}
-    	at com.simiacryptus.mindseye.test.BatchingTester.test(BatchingTester.java:77)
-    	at com.simiacryptus.mindseye.test.StandardLayerTests.lambda$test$12(StandardLayerTests.java:102)
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=2.8343e-01 +- 4.0181e-01 [0.0000e+00 - 1.2010e+00] (30#), relativeTol=2.9632e-01 +- 4.0675e-01 [0.0000e+00 - 1.0000e+00] (30#)}
+    	at com.simiacryptus.mindseye.test.unit.BatchingTester.test(BatchingTester.java:96)
+    	at com.simiacryptus.mindseye.test.unit.BatchingTester.lambda$test$0(BatchingTester.java:67)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:138)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$code$2(MarkdownNotebookOutput.java:138)
     	at com.simiacryptus.util.test.SysOutInterceptor.withOutput(SysOutInterceptor.java:72)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
-    	at com.simiacryptus.mindseye.test.StandardLayerTests.test(StandardLayerTests.java:101)
-    	at com.simiacryptus.mindseye.layers.LayerTes
+    	at com.simiacryptus.mindseye.test.unit.BatchingTester.test(BatchingTester.java:66)
+    	at com.simiacryptus.mindseye.test.unit.StandardL
 ```
-...[skipping 1168 bytes](etc/94.txt)...
+...[skipping 2079 bytes](etc/188.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.test.StandardLayerTests;
+import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;

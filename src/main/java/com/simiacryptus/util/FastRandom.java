@@ -20,7 +20,7 @@
 package com.simiacryptus.util;
 
 /**
- * The type Fast random.
+ * The type Fast randomize.
  */
 public class FastRandom {
   private static final long mask = 0xABADC0DE;

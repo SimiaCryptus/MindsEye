@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.*;
+import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;

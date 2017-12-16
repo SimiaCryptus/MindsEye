@@ -35,13 +35,6 @@ public class AvgMetaLayerTest extends MetaLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {3}, {3}, {3}
-    };
-  }
-  
-  @Override
-  public int[][] getReferenceInputDims() {
-    return new int[][]{
       {3}
     };
   }

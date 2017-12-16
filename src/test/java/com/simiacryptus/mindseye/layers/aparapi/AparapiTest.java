@@ -42,7 +42,7 @@ public class AparapiTest {
   
   
   /**
-   * The constant random.
+   * The constant randomize.
    */
   public static final Random random = new Random();
   /**

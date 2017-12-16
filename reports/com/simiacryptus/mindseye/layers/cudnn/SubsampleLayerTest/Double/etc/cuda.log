@@ -1,42 +1,42 @@
-20111.726435: cudaSetDevice(0) = 0
-20111.726549: cudaMalloc(Pointer[nativePointer=0x131e200400,byteOffset=0], 64) = 0
-20111.726573: cudaMemset(Pointer[nativePointer=0x131e200400,byteOffset=0], 0, 64) = 0
-20111.726589: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a74d0]) = 0
-20111.726598: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a74d0], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
-20111.726604: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a7310]) = 0
-20111.726609: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a7310], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
-20111.726636: cudaMalloc(Pointer[nativePointer=0x131e200600,byteOffset=0], 32) = 0
-20111.726643: cudaMemset(Pointer[nativePointer=0x131e200600,byteOffset=0], 0, 32) = 0
-20111.726759: cudaMemcpy(Pointer[nativePointer=0x131e200600,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], 32, 1) = 0
-20111.726835: cudnnTransformTensor(cudnnHandle[nativePointer=0x454c0b10], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a74d0], Pointer[nativePointer=0x131e200600,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a7310], Pointer[nativePointer=0x131e200400,byteOffset=0]) = 0
-20111.726844: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a7700]) = 0
-20111.726850: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a7700], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
-20111.726854: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a7150]) = 0
-20111.726859: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a7150], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
-20111.726884: cudaMalloc(Pointer[nativePointer=0x131e200800,byteOffset=0], 32) = 0
-20111.726893: cudaMemset(Pointer[nativePointer=0x131e200800,byteOffset=0], 0, 32) = 0
-20111.727026: cudaMemcpy(Pointer[nativePointer=0x131e200800,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], 32, 1) = 0
-20111.727058: cudnnTransformTensor(cudnnHandle[nativePointer=0x454c0b10], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a7700], Pointer[nativePointer=0x131e200800,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a7150], Pointer[nativePointer=0x131e200400,byteOffset=32]) = 0
-20111.727352: cudaMemcpy(Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=8 cap=8],byteOffset=0], Pointer[nativePointer=0x131e200400,byteOffset=0], 64, 2) = 0
-20111.727395: cudaSetDevice(0) = 0
-20111.727434: cudaMalloc(Pointer[nativePointer=0x131e200a00,byteOffset=0], 64) = 0
-20111.727446: cudaMemset(Pointer[nativePointer=0x131e200a00,byteOffset=0], 0, 64) = 0
-20111.727503: cudaMemcpy(Pointer[nativePointer=0x131e200a00,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=8 cap=8],byteOffset=0], 64, 1) = 0
-20111.727538: cudaMalloc(Pointer[nativePointer=0x131e200c00,byteOffset=0], 32) = 0
-20111.727550: cudaMemset(Pointer[nativePointer=0x131e200c00,byteOffset=0], 0, 32) = 0
-20111.727557: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a75b0]) = 0
-20111.727563: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a75b0], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
-20111.727567: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a7620]) = 0
-20111.727571: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a7620], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
-20111.727634: cudnnTransformTensor(cudnnHandle[nativePointer=0x454c0b10], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a7620], Pointer[nativePointer=0x131e200a00,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a75b0], Pointer[nativePointer=0x131e200c00,byteOffset=0]) = 0
-20111.727838: cudaMemcpy(Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], Pointer[nativePointer=0x131e200c00,byteOffset=0], 32, 2) = 0
-20111.727876: cudaFree(Pointer[nativePointer=0x131e200c00,byteOffset=0]) = 0
-20111.727899: cudaMalloc(Pointer[nativePointer=0x131e200c00,byteOffset=0], 32) = 0
-20111.727911: cudaMemset(Pointer[nativePointer=0x131e200c00,byteOffset=0], 0, 32) = 0
-20111.727918: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a7460]) = 0
-20111.727925: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a7460], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
-20111.727931: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x3a7770]) = 0
-20111.727940: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x3a7770], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
-20111.728009: cudnnTransformTensor(cudnnHandle[nativePointer=0x454c0b10], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a7770], Pointer[nativePointer=0x131e200a00,byteOffset=32], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x3a7460], Pointer[nativePointer=0x131e200c00,byteOffset=0]) = 0
-20111.728203: cudaMemcpy(Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], Pointer[nativePointer=0x131e200c00,byteOffset=0], 32, 2) = 0
-20111.728231: cudaFree(Pointer[nativePointer=0x131e200c00,byteOffset=0]) = 0
+302.374087: cudaSetDevice(1) = 0
+302.374226: cudaMalloc(Pointer[nativePointer=0x210da06400,byteOffset=0], 64) = 0
+302.374258: cudaMemset(Pointer[nativePointer=0x210da06400,byteOffset=0], 0, 64) = 0
+302.374274: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d14a0]) = 0
+302.374281: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d14a0], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
+302.374285: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d10b0]) = 0
+302.374290: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d10b0], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
+302.374312: cudaMalloc(Pointer[nativePointer=0x210da06600,byteOffset=0], 32) = 0
+302.374319: cudaMemset(Pointer[nativePointer=0x210da06600,byteOffset=0], 0, 32) = 0
+302.374472: cudaMemcpy(Pointer[nativePointer=0x210da06600,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], 32, 1) = 0
+302.374532: cudnnTransformTensor(cudnnHandle[nativePointer=0x537bbdb0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d14a0], Pointer[nativePointer=0x210da06600,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d10b0], Pointer[nativePointer=0x210da06400,byteOffset=0]) = 0
+302.374540: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d1120]) = 0
+302.374545: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d1120], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
+302.374549: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d1190]) = 0
+302.374553: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d1190], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
+302.374574: cudaMalloc(Pointer[nativePointer=0x210da06800,byteOffset=0], 32) = 0
+302.374582: cudaMemset(Pointer[nativePointer=0x210da06800,byteOffset=0], 0, 32) = 0
+302.374709: cudaMemcpy(Pointer[nativePointer=0x210da06800,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], 32, 1) = 0
+302.374739: cudnnTransformTensor(cudnnHandle[nativePointer=0x537bbdb0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d1120], Pointer[nativePointer=0x210da06800,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d1190], Pointer[nativePointer=0x210da06400,byteOffset=32]) = 0
+302.374882: cudaMemcpy(Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=8 cap=8],byteOffset=0], Pointer[nativePointer=0x210da06400,byteOffset=0], 64, 2) = 0
+302.374905: cudaSetDevice(1) = 0
+302.374927: cudaMalloc(Pointer[nativePointer=0x210da06a00,byteOffset=0], 64) = 0
+302.374935: cudaMemset(Pointer[nativePointer=0x210da06a00,byteOffset=0], 0, 64) = 0
+302.375011: cudaMemcpy(Pointer[nativePointer=0x210da06a00,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=8 cap=8],byteOffset=0], 64, 1) = 0
+302.375035: cudaMalloc(Pointer[nativePointer=0x210da06c00,byteOffset=0], 32) = 0
+302.375044: cudaMemset(Pointer[nativePointer=0x210da06c00,byteOffset=0], 0, 32) = 0
+302.375048: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d1350]) = 0
+302.375053: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d1350], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
+302.375056: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d13c0]) = 0
+302.375060: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d13c0], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
+302.375136: cudnnTransformTensor(cudnnHandle[nativePointer=0x537bbdb0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d13c0], Pointer[nativePointer=0x210da06a00,byteOffset=0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d1350], Pointer[nativePointer=0x210da06c00,byteOffset=0]) = 0
+302.375343: cudaMemcpy(Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], Pointer[nativePointer=0x210da06c00,byteOffset=0], 32, 2) = 0
+302.375375: cudaFree(Pointer[nativePointer=0x210da06c00,byteOffset=0]) = 0
+302.375396: cudaMalloc(Pointer[nativePointer=0x210da06c00,byteOffset=0], 32) = 0
+302.375405: cudaMemset(Pointer[nativePointer=0x210da06c00,byteOffset=0], 0, 32) = 0
+302.375414: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d2450]) = 0
+302.375419: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d2450], 1, 1, 1, 2, 2, 4, 4, 2, 1) = 0
+302.375423: cudnnCreateTensorDescriptor(cudnnTensorDescriptor[nativePointer=0x8951d2220]) = 0
+302.375427: cudnnSetTensor4dDescriptorEx(cudnnTensorDescriptor[nativePointer=0x8951d2220], 1, 1, 1, 2, 2, 8, 4, 2, 1) = 0
+302.375452: cudnnTransformTensor(cudnnHandle[nativePointer=0x537bbdb0], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d2220], Pointer[nativePointer=0x210da06a00,byteOffset=32], Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=1 cap=1],byteOffset=0], cudnnTensorDescriptor[nativePointer=0x8951d2450], Pointer[nativePointer=0x210da06c00,byteOffset=0]) = 0
+302.375654: cudaMemcpy(Pointer[buffer=java.nio.HeapDoubleBuffer[pos=0 lim=4 cap=4],byteOffset=0], Pointer[nativePointer=0x210da06c00,byteOffset=0], 32, 2) = 0
+302.375685: cudaFree(Pointer[nativePointer=0x210da06c00,byteOffset=0]) = 0

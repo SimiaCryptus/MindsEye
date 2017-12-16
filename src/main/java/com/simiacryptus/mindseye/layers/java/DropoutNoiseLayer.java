@@ -36,7 +36,7 @@ public class DropoutNoiseLayer extends NNLayer implements StochasticComponent {
   
   
   /**
-   * The constant random.
+   * The constant randomize.
    */
   public static final ThreadLocal<Random> random = new ThreadLocal<Random>() {
     @Override

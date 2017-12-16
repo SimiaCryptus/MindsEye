@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.SingleDerivativeTester;
+import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
  * The type Convolution network test.

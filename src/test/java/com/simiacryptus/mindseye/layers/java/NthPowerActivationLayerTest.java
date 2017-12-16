@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.test.SingleDerivativeTester;
+import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
  * The type Nth power activation layer test.

@@ -36,7 +36,7 @@ public class GaussianNoiseLayer extends NNLayer {
   
   
   /**
-   * The constant random.
+   * The constant randomize.
    */
   public static final ThreadLocal<Random> random = new ThreadLocal<Random>() {
     @Override

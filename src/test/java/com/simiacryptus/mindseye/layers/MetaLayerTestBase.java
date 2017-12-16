@@ -19,9 +19,9 @@
 
 package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.test.BatchDerivativeTester;
-import com.simiacryptus.mindseye.test.DerivativeTester;
-import com.simiacryptus.mindseye.test.StandardLayerTests;
+import com.simiacryptus.mindseye.test.unit.BatchDerivativeTester;
+import com.simiacryptus.mindseye.test.unit.ComponentTest;
+import com.simiacryptus.mindseye.test.unit.StandardLayerTests;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public abstract class MetaLayerTestBase extends StandardLayerTests {
   }
   
   @Override
-  public DerivativeTester getDerivativeTester() {
-    return new BatchDerivativeTester(1e-3, 1e-4);
+  public ComponentTest getDerivativeTester() {
+    return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }
 }

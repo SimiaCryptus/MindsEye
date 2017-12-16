@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.opt.line.StaticLearningRate;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.MomentumStrategy;
 import com.simiacryptus.mindseye.opt.orient.OwlQn;
-import com.simiacryptus.mindseye.test.OptimizationStrategy;
+import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
 
 /**
  * The type Textbook optimizers.

@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.SingleDerivativeTester;
+import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 import com.simiacryptus.util.Util;
 
 /**
