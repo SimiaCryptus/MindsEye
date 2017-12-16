@@ -27,7 +27,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 /**
  * The interface Derivative tester.
  */
-public interface ComponentTest {
+public interface ComponentTest<T> {
   /**
    * Test tolerance statistics.
    *
@@ -36,6 +36,6 @@ public interface ComponentTest {
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
-  ToleranceStatistics test(NotebookOutput log, NNLayer component, Tensor... inputPrototype);
+  T test(NotebookOutput log, NNLayer component, Tensor... inputPrototype);
   
 }

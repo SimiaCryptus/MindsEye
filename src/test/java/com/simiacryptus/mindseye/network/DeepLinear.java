@@ -19,29 +19,35 @@
 
 package com.simiacryptus.mindseye.network;
 
+import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import com.simiacryptus.util.Util;
 
 /**
  * The type Convolution network test.
  */
-public abstract class LinearDepth extends NLayerTest {
+public abstract class DeepLinear extends NLayerTest {
   
   /**
    * Instantiates a new Linear depth.
    *
    * @param dimList the dim list
    */
-  public LinearDepth(int[]... dimList) {
+  public DeepLinear(int[]... dimList) {
     super(dimList);
   }
   
   public void addLayer(PipelineNetwork network, int[] in, int[] dims) {
     network.add(new FullyConnectedLayer(in, dims).setWeights(this::random));
     network.add(new BiasLayer(dims));
-    network.add(new ReLuActivationLayer());
+    network.add(getActivation());
+  }
+  
+  public NNLayer getActivation() {
+    return new ReLuActivationLayer();
   }
   
   @Override
@@ -50,62 +56,45 @@ public abstract class LinearDepth extends NLayerTest {
   }
   
   @Override
-  public int[][] getInputDims() {
-    return new int[][]{
-      {5, 5, 3}
-    };
-  }
-  
-  @Override
-  public int[][] getPerfDims() {
-    return new int[][]{
-      {100, 100, 3}
-    };
+  public int[] getInputDims() {
+    return new int[]{5, 5, 3};
   }
   
   /**
-   * The type One layer.
+   * The type Four layer.
    */
-  public static class OneLayer extends LinearDepth {
+  public static class SigmoidPipeline extends DeepLinear {
     /**
-     * Instantiates a new One layer.
+     * Instantiates a new Four layer.
      */
-    public OneLayer() {
+    public SigmoidPipeline() {
       super(
-        new int[]{5}
+        new int[]{10},
+        new int[]{10},
+        new int[]{10},
+        new int[]{10}
       );
     }
-    
-  }
   
-  /**
-   * The type Two layer.
-   */
-  public static class TwoLayer extends LinearDepth {
-    /**
-     * Instantiates a new Two layer.
-     */
-    public TwoLayer() {
-      super(
-        new int[]{5},
-        new int[]{5}
-      );
+    public NNLayer getActivation() {
+      return new SigmoidActivationLayer();
     }
-    
+  
   }
   
   /**
-   * The type Three layer.
+   * The type Four layer.
    */
-  public static class ThreeLayer extends LinearDepth {
+  public static class UniformPipeline extends DeepLinear {
     /**
-     * Instantiates a new Three layer.
+     * Instantiates a new Four layer.
      */
-    public ThreeLayer() {
+    public UniformPipeline() {
       super(
-        new int[]{5},
-        new int[]{5},
-        new int[]{5}
+        new int[]{10},
+        new int[]{10},
+        new int[]{10},
+        new int[]{10}
       );
     }
     
@@ -114,16 +103,16 @@ public abstract class LinearDepth extends NLayerTest {
   /**
    * The type Four layer.
    */
-  public static class FourLayer extends LinearDepth {
+  public static class NarrowingPipeline extends DeepLinear {
     /**
      * Instantiates a new Four layer.
      */
-    public FourLayer() {
+    public NarrowingPipeline() {
       super(
-        new int[]{5},
-        new int[]{5},
-        new int[]{5},
-        new int[]{5}
+        new int[]{4,4,2},
+        new int[]{3,3,1},
+        new int[]{2,2,1},
+        new int[]{2,2,1}
       );
     }
     

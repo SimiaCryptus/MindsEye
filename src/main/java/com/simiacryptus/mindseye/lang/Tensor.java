@@ -1264,6 +1264,11 @@ public class Tensor implements Serializable {
     System.arraycopy(getData(), 0, bufferArray, 0, dim());
   }
   
+  public Tensor set(IntToDoubleFunction f) {
+    Arrays.parallelSetAll(getData(), f);
+    return this;
+  }
+  
   /**
    * The interface Tuple operator.
    */

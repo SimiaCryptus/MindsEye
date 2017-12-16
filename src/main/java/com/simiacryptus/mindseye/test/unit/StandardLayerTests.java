@@ -43,9 +43,10 @@ public abstract class StandardLayerTests {
   /**
    * The constant originalOut.
    */
-  protected static final PrintStream originalOut = System.out;
+  public static final PrintStream originalOut = System.out;
   private static final Logger log = LoggerFactory.getLogger(StandardLayerTests.class);
   private ArrayList<ComponentTest> bigTests;
+  private ArrayList<ComponentTest> littleTests;
   /**
    * The Validate batch execution.
    */
@@ -54,7 +55,6 @@ public abstract class StandardLayerTests {
    * The Validate differentials.
    */
   protected boolean validateDifferentials = true;
-  private ArrayList<ComponentTest> littleTests;
   
   /**
    * Test.

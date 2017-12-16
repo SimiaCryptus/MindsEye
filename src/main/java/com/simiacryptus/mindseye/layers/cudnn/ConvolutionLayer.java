@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleFunction;
 
 /**
@@ -230,16 +231,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return filterBandX * outputBands + filterBandY;
   }
   
-  /**
-   * Sets weights.
-   *
-   * @param f the f
-   * @return the weights
-   */
-  public ConvolutionLayer setWeights(final ToDoubleFunction<Coordinate> f) {
-    this.kernel.coordStream().parallel().forEach(c -> {
-      this.kernel.set(c, f.applyAsDouble(c));
-    });
+  public ConvolutionLayer set(final IntToDoubleFunction f) {
+    this.kernel.set(f);
     return this;
   }
   
@@ -249,11 +242,8 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
    * @param f the f
    * @return the weights
    */
-  public ConvolutionLayer setWeights(final DoubleSupplier f) {
-    this.kernel.coordStream().parallel().forEach(c -> {
-      this.kernel.set(c, f.getAsDouble());
-    });
-    return this;
+  public ConvolutionLayer set(final DoubleSupplier f) {
+    return set(i->f.getAsDouble());
   }
   
   @Override

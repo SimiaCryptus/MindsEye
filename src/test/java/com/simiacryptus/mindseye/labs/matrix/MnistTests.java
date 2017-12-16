@@ -62,7 +62,7 @@ public class MnistTests {
     log.p("The image-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       PipelineNetwork network = new PipelineNetwork();
-      network.add(new ConvolutionLayer(3, 3, 1, 5).setWeights(i -> 1e-8 * (Math.random() - 0.5)));
+      network.add(new ConvolutionLayer(3, 3, 1, 5).set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ReLuActivationLayer());
       network.add(new BiasLayer(14, 14, 5));
@@ -96,7 +96,7 @@ public class MnistTests {
         .setWeights(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new ReLuActivationLayer());
       network.add(new ConvolutionLayer(3, 3, 5, 1)
-        .setWeights(i -> 1e-8 * (Math.random() - 0.5)));
+        .set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new BiasLayer(28, 28, 1));
       network.add(new ReLuActivationLayer());
       return network;

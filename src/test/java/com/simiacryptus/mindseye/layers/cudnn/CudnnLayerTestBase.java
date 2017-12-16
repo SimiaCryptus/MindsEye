@@ -44,7 +44,7 @@ public abstract class CudnnLayerTestBase extends LayerTestBase {
     ComponentTest inner = super.getReferenceIOTester();
     return new ComponentTest() {
       @Override
-      public ToleranceStatistics test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
+      public Object test(NotebookOutput log, NNLayer component, Tensor... inputPrototype) {
         try {
           CuDNN.apiLog = new PrintStream(log.file("cuda.log"));
           return inner.test(log, component, inputPrototype);

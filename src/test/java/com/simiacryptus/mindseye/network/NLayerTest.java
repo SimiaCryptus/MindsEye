@@ -20,16 +20,107 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
+import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.test.unit.JsonTest;
+import com.simiacryptus.mindseye.test.unit.LearningTester;
+import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.MarkdownNotebookOutput;
+import com.simiacryptus.util.io.NotebookOutput;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
+import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+
 
 /**
  * The type N layer test.
  */
-public abstract class NLayerTest extends LayerTestBase {
+public abstract class NLayerTest {
+  
+  /**
+   * Test.
+   *
+   * @throws Throwable the throwable
+   */
+  @Test
+  public void test() throws Throwable {
+    try (NotebookOutput log = MarkdownNotebookOutput.get(this)) {
+      test(log);
+    }
+  }
+  
+  
+  /**
+   * Test.
+   *
+   * @param log the log
+   */
+  public void test(NotebookOutput log) {
+    if (null != LayerTestBase.originalOut) log.addCopy(LayerTestBase.originalOut);
+    log.h1("%s", getClass().getSimpleName());
+    int[] inputDims = getInputDims();
+    ArrayList<int[]> workingSpec = new ArrayList<>();
+    for(int[] l : this.dimList) {
+      workingSpec.add(l);
+      NNLayer layer = buildNetwork(concat(inputDims, workingSpec));
+      graphviz(log, layer);
+      double test = test(log, layer, inputDims);
+    }
+  }
+  
+  public double test(NotebookOutput log, NNLayer layer, int[]... inputDims) {
+    NNLayer component = layer.copy();
+    Tensor[] randomize = randomize(inputDims);
+    new JsonTest().test(log, component, randomize);
+    return new LearningTester().test(log, component, randomize);
+  }
+  
+  public void graphviz(NotebookOutput log, NNLayer layer) {
+    if (layer instanceof DAGNetwork) {
+      log.p("This is a network with the following layout:");
+      log.code(() -> {
+        return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
+          .height(400).width(600).render(Format.PNG).toImage();
+      });
+    }
+  }
+  
+  public int[][] concat(int[] a, List<int[]> b) {
+    return Stream.concat(Stream.of(a), b.stream()).toArray(i -> new int[i][]);
+  }
+  
+  /**
+   * Random tensor [ ].
+   *
+   * @param inputDims the input dims
+   * @return the tensor [ ]
+   */
+  public Tensor[] randomize(int[][] inputDims) {
+    return Arrays.stream(inputDims).map(dim -> new Tensor(dim).fill(this::random)).toArray(i -> new Tensor[i]);
+  }
+  
+  /**
+   * Get input dims int [ ] [ ].
+   *
+   * @return the int [ ] [ ]
+   */
+  public abstract int[] getInputDims();
+  
+  /**
+   * Random double.
+   *
+   * @return the double
+   */
+  public double random() {
+    return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
+  }
+  
   
   /**
    * The Dim list.
@@ -45,12 +136,11 @@ public abstract class NLayerTest extends LayerTestBase {
     this.dimList = Arrays.asList(dimList);
   }
   
-  @Override
-  public NNLayer getLayer(int[][] inputSize) {
+  public NNLayer buildNetwork(int[]... dimList) {
     PipelineNetwork network = new PipelineNetwork(1);
-    int[] last = inputSize[0];
+    int[] last = null;
     for (int[] dims : dimList) {
-      addLayer(network, last, dims);
+      if(null != last) addLayer(network, last, dims);
       last = dims;
     }
     return network;

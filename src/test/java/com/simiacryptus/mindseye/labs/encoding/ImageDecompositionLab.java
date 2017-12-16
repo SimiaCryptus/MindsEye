@@ -380,7 +380,7 @@ public class ImageDecompositionLab {
       this.toSize = (fromSize + (radius - 1));
       this.trainingData = EncodingUtil.addColumn(originalTrainingData, toSize, toSize, band1);
       this.radius = radius;
-      this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0).setWeights(() -> 0.1 * (Math.random() - 0.5));
+      this.convolutionLayer = new ConvolutionLayer(radius, radius, band1, band0).set(i -> 0.1 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band0);
       this.model = buildModel();
     }
@@ -560,7 +560,7 @@ public class ImageDecompositionLab {
       this.radius = radius;
       this.history = new ArrayList<>();
       this.monitor = EncodingUtil.getMonitor(history);
-      this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1).setWeights(() -> 0.01 * (Math.random() - 0.5));
+      this.convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1).set(i -> 0.01 * (Math.random() - 0.5));
       this.biasLayer = new ImgBandBiasLayer(band1);
       this.innerModel = buildNetwork();
       this.integrationModel = log.code(() -> {

@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 /**
  * The type Derivative tester.
  */
-public class LearningTester implements ComponentTest {
+public class LearningTester implements ComponentTest<Double> {
   
   private boolean verbose = true;
   private RandomizationMode randomizationMode = RandomizationMode.Permute;
@@ -115,13 +115,12 @@ public class LearningTester implements ComponentTest {
   
   /**
    * Test input learning.
-   *
-   * @param log            the log
+   *  @param log            the log
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
    */
-  public void testInputLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
+  public double testInputLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer shuffleCopy = shuffle(random, component.copy()).freeze();
     final Tensor[] input_target = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
     log.p("In this test, we use a network to learn this target input, given it's pre-evaluated output:");
@@ -160,17 +159,17 @@ public class LearningTester implements ComponentTest {
       log.p("Training Converged");
     }
     plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
+    return Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x->x.fitness).min().orElse(Double.NaN);
   }
   
   /**
    * Test model learning.
-   *
-   * @param log            the log
+   *  @param log            the log
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
    */
-  public void testModelLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
+  public double testModelLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer network_target = shuffle(random, component.copy()).freeze();
     Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
     log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -210,9 +209,10 @@ public class LearningTester implements ComponentTest {
     }
     
     plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
+    return Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x->x.fitness).min().orElse(Double.NaN);
   }
   
-  public void testCompleteLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
+  public double testCompleteLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer network_target = shuffle(random, component.copy()).freeze();
     Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
     log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -283,6 +283,7 @@ public class LearningTester implements ComponentTest {
     }
     
     plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
+    return Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x->x.fitness).min().orElse(Double.NaN);
   }
   
   /**
@@ -389,7 +390,7 @@ public class LearningTester implements ComponentTest {
    * @param component      the component
    * @param inputPrototype the input prototype
    */
-  public ToleranceStatistics test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
+  public Double test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
     boolean testModel = !component.state().isEmpty();
     if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
       throw new AssertionError("Weights are all zero?");
@@ -399,19 +400,22 @@ public class LearningTester implements ComponentTest {
     }
     Random random = new Random();
     boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0);
+    double inputLearning = Double.NaN;
     if (testInput) {
       log.h3("Input Learning");
-      testInputLearning(log, component, random, inputPrototype);
+      inputLearning = testInputLearning(log, component, random, inputPrototype);
     }
+    double modelLearning = Double.NaN;
     if (testModel) {
       log.h3("Model Learning");
-      testModelLearning(log, component, random, inputPrototype);
+      modelLearning = testModelLearning(log, component, random, inputPrototype);
     }
+    double completeLearning = Double.NaN;
     if (testInput && testModel) {
       log.h3("Composite Learning");
-      testCompleteLearning(log, component, random, inputPrototype);
+      completeLearning = testCompleteLearning(log, component, random, inputPrototype);
     }
-    return null;
+    return DoubleStream.of(inputLearning, modelLearning, completeLearning).filter(Double::isFinite).min().orElse(Double.NaN);
   }
   
   /**
