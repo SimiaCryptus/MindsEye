@@ -42,7 +42,7 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param delta  the delta
    */
   public Delta(final K layer, final double[] target, final double[] delta) {
-    this(layer, target, delta, DoubleArrays.obtain(delta.length));
+    this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
   }
   
   /**
@@ -52,7 +52,7 @@ public class Delta<K> extends DoubleBuffer<K> {
    * @param target the target
    */
   public Delta(final K layer, final double[] target) {
-    this(layer, target, null == target ? null : DoubleArrays.obtain(target.length));
+    this(layer, target, null == target ? null : RecycleBin.DOUBLES.obtain(target.length));
   }
   
   /**
@@ -144,11 +144,11 @@ public class Delta<K> extends DoubleBuffer<K> {
   @Override
   protected void finalize() throws Throwable {
     if (null != delta) {
-      DoubleArrays.recycle(delta);
+      RecycleBin.DOUBLES.recycle(delta);
       delta = null;
     }
     if (null != deltaCompensation) {
-      DoubleArrays.recycle(deltaCompensation);
+      RecycleBin.DOUBLES.recycle(deltaCompensation);
       deltaCompensation = null;
     }
     super.finalize();
@@ -162,7 +162,7 @@ public class Delta<K> extends DoubleBuffer<K> {
   
   @Override
   public Delta<K> copy() {
-    return new Delta(layer, target, DoubleArrays.copyOf(delta), DoubleArrays.copyOf(deltaCompensation));
+    return new Delta(layer, target, RecycleBin.DOUBLES.copyOf(delta), RecycleBin.DOUBLES.copyOf(deltaCompensation));
   }
   
   /**

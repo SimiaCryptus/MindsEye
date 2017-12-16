@@ -154,6 +154,7 @@ public class GpuTrainable implements DataTrainable, TrainableDataMask {
       }
       return timedResult.result;
     } catch (Exception e) {
+      RecycleBin.DOUBLES.printProfiling(System.err);
       if (retries > 0) {
         lastGc = System.currentTimeMillis();
         GpuController.INSTANCE.cleanMemory();

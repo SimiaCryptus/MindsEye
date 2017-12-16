@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.simiacryptus.mindseye.lang.DoubleArrays;
+import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import jcuda.Pointer;
@@ -175,14 +175,14 @@ public class CudaPtr extends CudaResource<Pointer> {
     else {
       int listLength = data.length();
       int elementLength = data.get(0).dim();
-      final double[] inputBuffer = DoubleArrays.obtain(elementLength * listLength);
+      final double[] inputBuffer = RecycleBin.DOUBLES.obtain(elementLength * listLength);
       for (int i = 0; i < listLength; i++) {
         double[] doubles = data.get(i).getData();
         assert elementLength == doubles.length;
         System.arraycopy(doubles, 0, inputBuffer, i * elementLength, elementLength);
       }
       CudaPtr ptr = new CudaPtr(inputBuffer.length * precision.size, deviceId).write(precision, inputBuffer);
-      DoubleArrays.recycle(inputBuffer);
+      RecycleBin.DOUBLES.recycle(inputBuffer);
       return ptr;
     }
   }

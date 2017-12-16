@@ -140,82 +140,87 @@ public class ValidatingTrainer {
    * @return the double
    */
   public double run() {
-    long timeoutAt = System.currentTimeMillis() + timeout.toMillis();
-    EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(true, monitor));
-    int epochNumber = 0;
-    int iterationNumber = 0;
-    int lastImprovement = 0;
-    double lowestValidation = Double.POSITIVE_INFINITY;
-    while (true) {
-      if (shouldHalt(monitor, timeoutAt)) {
-        monitor.log("Training halted");
-        break;
-      }
-      monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
-      List<TrainingPhase> regimen = getRegimen();
-      long seed = System.nanoTime();
-      List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i -> {
-        TrainingPhase phase = getRegimen().get(i);
-        return runPhase(epochParams, phase, i, seed);
-      }).collect(Collectors.toList());
-      EpochResult primaryPhase = epochResults.get(0);
-      iterationNumber += primaryPhase.iterations;
-      double trainingDelta = (primaryPhase.currentPoint.getMean() / primaryPhase.priorMean);
-      PointSample currentValidation = validationSubject.measure(true, monitor);
-      double overtraining = (Math.log((trainingDelta)) / Math.log((currentValidation.getMean() / epochParams.validation.getMean())));
-      double validationDelta = (currentValidation.getMean() / epochParams.validation.getMean());
-      double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(validationDelta), adjustmentFactor);
-      double adj2 = Math.pow(overtraining / getOvertrainingTarget(), adjustmentFactor);
-      double validationMean = currentValidation.getMean();
-      if (validationMean < lowestValidation) {
-        lowestValidation = validationMean;
-        lastImprovement = iterationNumber;
-      }
-      monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement; %.4f validation time",
-        ++epochNumber, primaryPhase.iterations, epochParams.trainingSize, getMaxTrainingSize(),
-        Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
-        overtraining, adj1, adj2, (iterationNumber - lastImprovement),
-        validatingMeasurementTime.getAndSet(0) / 1e9));
-      if (!primaryPhase.continueTraining) {
-        monitor.log(String.format("Training %d runPhase halted", epochNumber));
-        break;
-      }
-      if (epochParams.trainingSize >= getMaxTrainingSize()) {
-        double roll = FastRandom.random();
-        if (roll > Math.pow((2 - validationDelta), pessimism)) {
-          monitor.log(String.format("Training randomly converged: %3f", roll));
+    try {
+      long timeoutAt = System.currentTimeMillis() + timeout.toMillis();
+      EpochParams epochParams = new EpochParams(timeoutAt, epochIterations, getTrainingSize(), validationSubject.measure(true, monitor));
+      int epochNumber = 0;
+      int iterationNumber = 0;
+      int lastImprovement = 0;
+      double lowestValidation = Double.POSITIVE_INFINITY;
+      while (true) {
+        if (shouldHalt(monitor, timeoutAt)) {
+          monitor.log("Training halted");
           break;
         }
-        else {
-          if ((iterationNumber - lastImprovement) > improvmentStaleThreshold) {
-            if (disappointments.incrementAndGet() > getDisappointmentThreshold()) {
-              monitor.log(String.format("Training converged after %s iterations", (iterationNumber - lastImprovement)));
-              break;
-            }
-            else {
-              monitor.log(String.format("Training failed to converged on %s attempt after %s iterations", disappointments.get(), (iterationNumber - lastImprovement)));
-            }
+        monitor.log(String.format("Epoch parameters: %s, %s", epochParams.trainingSize, epochParams.iterations));
+        List<TrainingPhase> regimen = getRegimen();
+        long seed = System.nanoTime();
+        List<EpochResult> epochResults = IntStream.range(0, regimen.size()).mapToObj(i -> {
+          TrainingPhase phase = getRegimen().get(i);
+          return runPhase(epochParams, phase, i, seed);
+        }).collect(Collectors.toList());
+        EpochResult primaryPhase = epochResults.get(0);
+        iterationNumber += primaryPhase.iterations;
+        double trainingDelta = (primaryPhase.currentPoint.getMean() / primaryPhase.priorMean);
+        PointSample currentValidation = validationSubject.measure(true, monitor);
+        double overtraining = (Math.log((trainingDelta)) / Math.log((currentValidation.getMean() / epochParams.validation.getMean())));
+        double validationDelta = (currentValidation.getMean() / epochParams.validation.getMean());
+        double adj1 = Math.pow(Math.log(getTrainingTarget()) / Math.log(validationDelta), adjustmentFactor);
+        double adj2 = Math.pow(overtraining / getOvertrainingTarget(), adjustmentFactor);
+        double validationMean = currentValidation.getMean();
+        if (validationMean < lowestValidation) {
+          lowestValidation = validationMean;
+          lastImprovement = iterationNumber;
+        }
+        monitor.log(String.format("Epoch %d result with %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement; %.4f validation time",
+          ++epochNumber, primaryPhase.iterations, epochParams.trainingSize, getMaxTrainingSize(),
+          Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
+          overtraining, adj1, adj2, (iterationNumber - lastImprovement),
+          validatingMeasurementTime.getAndSet(0) / 1e9));
+        if (!primaryPhase.continueTraining) {
+          monitor.log(String.format("Training %d runPhase halted", epochNumber));
+          break;
+        }
+        if (epochParams.trainingSize >= getMaxTrainingSize()) {
+          double roll = FastRandom.random();
+          if (roll > Math.pow((2 - validationDelta), pessimism)) {
+            monitor.log(String.format("Training randomly converged: %3f", roll));
+            break;
           }
           else {
-            disappointments.set(0);
+            if ((iterationNumber - lastImprovement) > improvmentStaleThreshold) {
+              if (disappointments.incrementAndGet() > getDisappointmentThreshold()) {
+                monitor.log(String.format("Training converged after %s iterations", (iterationNumber - lastImprovement)));
+                break;
+              }
+              else {
+                monitor.log(String.format("Training failed to converged on %s attempt after %s iterations", disappointments.get(), (iterationNumber - lastImprovement)));
+              }
+            }
+            else {
+              disappointments.set(0);
+            }
           }
         }
-      }
-      if (validationDelta < 1.0 && trainingDelta < 1.0) {
-        if (adj1 < (1 - adjustmentTolerance) || adj1 > (1 + adjustmentTolerance)) {
-          epochParams.iterations = Math.max(getMinEpochIterations(), Math.min(getMaxEpochIterations(), (int) (primaryPhase.iterations * adj1)));
+        if (validationDelta < 1.0 && trainingDelta < 1.0) {
+          if (adj1 < (1 - adjustmentTolerance) || adj1 > (1 + adjustmentTolerance)) {
+            epochParams.iterations = Math.max(getMinEpochIterations(), Math.min(getMaxEpochIterations(), (int) (primaryPhase.iterations * adj1)));
+          }
+          if (adj2 < (1 + adjustmentTolerance) || adj2 > (1 - adjustmentTolerance)) {
+            epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2))), epochParams.trainingSize));
+          }
         }
-        if (adj2 < (1 + adjustmentTolerance) || adj2 > (1 - adjustmentTolerance)) {
-          epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2))), epochParams.trainingSize));
+        else {
+          epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 5)), epochParams.trainingSize));
+          epochParams.iterations = 1;
         }
+        epochParams.validation = currentValidation;
       }
-      else {
-        epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 5)), epochParams.trainingSize));
-        epochParams.iterations = 1;
-      }
-      epochParams.validation = currentValidation;
+      return epochParams.validation.getMean();
+    } catch (Throwable e) {
+      RecycleBin.DOUBLES.printProfiling(System.err);
+      throw new RuntimeException(e);
     }
-    return epochParams.validation.getMean();
   }
   
   /**

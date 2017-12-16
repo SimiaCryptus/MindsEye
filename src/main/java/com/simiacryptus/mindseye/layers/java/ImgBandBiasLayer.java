@@ -151,7 +151,7 @@ public class ImgBandBiasLayer extends NNLayer {
         if (!isFrozen()) {
           Delta<NNLayer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
           data.stream().parallel().forEach(d -> {
-            final double[] array = DoubleArrays.obtain(bias.length);
+            final double[] array = RecycleBin.DOUBLES.obtain(bias.length);
             double[] signal = d.getData();
             int size = signal.length / bias.length;
             for (int i = 0; i < signal.length; i++) {
@@ -160,7 +160,7 @@ public class ImgBandBiasLayer extends NNLayer {
             }
             assert Arrays.stream(array).allMatch(v -> Double.isFinite(v));
             deltaBuffer.addInPlace(array);
-            DoubleArrays.recycle(array);
+            RecycleBin.DOUBLES.recycle(array);
           });
         }
         if (input.isAlive()) {

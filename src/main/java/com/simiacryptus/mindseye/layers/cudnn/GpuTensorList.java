@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.simiacryptus.mindseye.lang.DoubleArrays;
+import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -89,7 +89,7 @@ public class GpuTensorList implements TensorList {
       synchronized (this) {
         if (null == _inner) {
           int itemLength = Tensor.dim(dimensions);
-          final double[] outputBuffer = DoubleArrays.obtain(itemLength * length);
+          final double[] outputBuffer = RecycleBin.DOUBLES.obtain(itemLength * length);
           assert (0 < outputBuffer.length);
           Tensor[] output = IntStream.range(0, length)
             .mapToObj(dataIndex -> new Tensor(dimensions))
@@ -102,7 +102,7 @@ public class GpuTensorList implements TensorList {
             System.arraycopy(outputBuffer, i * itemLength, outputBuffers[0 + i], 0, itemLength);
           }
           //assert Arrays.stream(output).flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
-          DoubleArrays.recycle(outputBuffer);
+          RecycleBin.DOUBLES.recycle(outputBuffer);
           _inner = new TensorArray(output);
         }
       }

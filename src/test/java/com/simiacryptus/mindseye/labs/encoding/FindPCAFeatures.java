@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.labs.encoding;
 
-import com.simiacryptus.mindseye.lang.DoubleArrays;
+import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -65,7 +65,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
           statList.get(i * dimension + j).accept(array[i] * array[j]);
         }
       }
-      DoubleArrays.recycle(array);
+      RecycleBin.DOUBLES.recycle(array);
     });
     RealMatrix covariance = new BlockRealMatrix(dimension, dimension);
     for (int i = 0; i < dimension; i++) {

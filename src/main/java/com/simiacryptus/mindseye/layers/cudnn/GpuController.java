@@ -23,8 +23,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.simiacryptus.mindseye.lang.DoubleArrays;
 import com.simiacryptus.mindseye.lang.GpuError;
+import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.util.test.SysOutInterceptor;
 
 import java.io.PrintStream;
@@ -207,7 +207,7 @@ public final class GpuController {
   public void cleanMemory() {
     
     singleThreadExecutor.submit(() -> {
-      DoubleArrays.clear();
+      RecycleBin.DOUBLES.clear();
       System.gc();
       System.runFinalization();
     });
