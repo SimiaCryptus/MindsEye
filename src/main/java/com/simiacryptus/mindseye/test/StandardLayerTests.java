@@ -104,7 +104,7 @@ public abstract class StandardLayerTests {
         return getBatchingTester().test(layer.copy(), inputPrototype);
       });
     }
-  
+    
     if (validateDifferentials) {
       Tensor[] inputPrototype = Arrays.stream(getInputDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
       log.h3("Differential Validation");
@@ -112,12 +112,12 @@ public abstract class StandardLayerTests {
         return getDerivativeTester().test(layer.copy(), inputPrototype);
       });
     }
-  
+    
     if (demonstrateLearning) {
       Tensor[] permPrototype = Arrays.stream(getPerfDims()).map(dim -> new Tensor(dim).fill(() -> random())).toArray(i -> new Tensor[i]);
       getLearningTester().test(log, layer.copy(), permPrototype);
     }
-  
+    
     NNLayer cpy = layer.copy();
     if (cpy instanceof DAGNetwork) {
       log.h3("Performance");
@@ -267,15 +267,31 @@ public abstract class StandardLayerTests {
     return getInputDims();
   }
   
+  /**
+   * Is demonstrate learning boolean.
+   *
+   * @return the boolean
+   */
   public boolean isDemonstrateLearning() {
     return demonstrateLearning;
   }
   
+  /**
+   * Sets demonstrate learning.
+   *
+   * @param demonstrateLearning the demonstrate learning
+   * @return the demonstrate learning
+   */
   public StandardLayerTests setDemonstrateLearning(boolean demonstrateLearning) {
     this.demonstrateLearning = demonstrateLearning;
     return this;
   }
   
+  /**
+   * Gets learning tester.
+   *
+   * @return the learning tester
+   */
   public LearningTester getLearningTester() {
     return new LearningTester();
   }

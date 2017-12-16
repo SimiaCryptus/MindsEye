@@ -29,7 +29,7 @@ public class ImgBandScaleLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ImgBandScaleLayer(0.0, 0.0, 0.0);
+    return new ImgBandScaleLayer(0.0, 0.0, 0.0).addWeights(this::random);
   }
   
   @Override

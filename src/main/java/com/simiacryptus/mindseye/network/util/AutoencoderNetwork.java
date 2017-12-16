@@ -285,7 +285,7 @@ public class AutoencoderNetwork {
     private final List<TensorList> representations = new ArrayList<>();
     private final List<int[]> dimensions = new ArrayList<>();
     private final List<AutoencoderNetwork> layers = new ArrayList<>();
-
+  
     /**
      * Instantiates a new Recursive builder.
      *
@@ -295,21 +295,21 @@ public class AutoencoderNetwork {
       representations.add(data);
       dimensions.add(data.get(0).getDimensions());
     }
-
+  
     /**
      * Training mode.
      */
     public void trainingMode() {
       layers.forEach(x -> x.trainingMode());
     }
-
+  
     /**
      * Run mode.
      */
     public void runMode() {
       layers.forEach(x -> x.runMode());
     }
-
+  
     /**
      * Grow layer autoencoder network.
      *
@@ -319,7 +319,7 @@ public class AutoencoderNetwork {
     public AutoencoderNetwork growLayer(int... dims) {
       return growLayer(layers.isEmpty() ? 100 : 0, 1, 10, dims);
     }
-
+  
     /**
      * Grow layer autoencoder network.
      *
@@ -351,7 +351,7 @@ public class AutoencoderNetwork {
       representations.add(newLayer.encode(data));
       return newLayer;
     }
-
+  
     /**
      * Tune.
      */
@@ -385,7 +385,7 @@ public class AutoencoderNetwork {
         }
       }).run(representations.get(0));
     }
-
+  
     /**
      * Configure autoencoder network . training parameters.
      *
@@ -395,7 +395,7 @@ public class AutoencoderNetwork {
     protected AutoencoderNetwork.TrainingParameters configure(AutoencoderNetwork.TrainingParameters trainingParameters) {
       return trainingParameters;
     }
-
+  
     /**
      * Configure autoencoder network . builder.
      *
@@ -405,7 +405,7 @@ public class AutoencoderNetwork {
     protected AutoencoderNetwork.Builder configure(AutoencoderNetwork.Builder builder) {
       return builder;
     }
-
+  
     /**
      * Echo nn layer.
      *
@@ -417,7 +417,7 @@ public class AutoencoderNetwork {
       network.add(getDecoder());
       return network;
     }
-
+  
     /**
      * Gets encoder.
      *
@@ -430,7 +430,7 @@ public class AutoencoderNetwork {
       }
       return network;
     }
-
+  
     /**
      * Gets decoder.
      *
@@ -443,7 +443,7 @@ public class AutoencoderNetwork {
       }
       return network;
     }
-
+  
     /**
      * Gets layers.
      *
@@ -467,7 +467,7 @@ public class AutoencoderNetwork {
     private int timeoutMinutes = 10;
     private double endFitness = Double.NEGATIVE_INFINITY;
     private int maxIterations = Integer.MAX_VALUE;
-
+  
     /**
      * Run.
      *
@@ -487,7 +487,7 @@ public class AutoencoderNetwork {
       trainer.setMaxIterations(maxIterations);
       trainer.run();
     }
-
+  
     /**
      * Wrap training monitor.
      *
@@ -495,14 +495,14 @@ public class AutoencoderNetwork {
      * @return the training monitor
      */
     protected abstract TrainingMonitor wrap(TrainingMonitor monitor);
-
+  
     /**
      * Gets training network.
      *
      * @return the training network
      */
     public abstract SimpleLossNetwork getTrainingNetwork();
-
+  
     /**
      * Gets sample size.
      *
@@ -511,7 +511,7 @@ public class AutoencoderNetwork {
     public int getSampleSize() {
       return sampleSize;
     }
-
+  
     /**
      * Sets sample size.
      *
@@ -522,7 +522,7 @@ public class AutoencoderNetwork {
       this.sampleSize = sampleSize;
       return this;
     }
-
+  
     /**
      * Gets l 1 normalization.
      *
@@ -531,7 +531,7 @@ public class AutoencoderNetwork {
     public double getL1normalization() {
       return l1normalization;
     }
-
+  
     /**
      * Sets l 1 normalization.
      *
@@ -542,7 +542,7 @@ public class AutoencoderNetwork {
       this.l1normalization = l1normalization;
       return this;
     }
-
+  
     /**
      * Gets l 2 normalization.
      *
@@ -551,7 +551,7 @@ public class AutoencoderNetwork {
     public double getL2normalization() {
       return l2normalization;
     }
-
+  
     /**
      * Sets l 2 normalization.
      *
@@ -562,7 +562,7 @@ public class AutoencoderNetwork {
       this.l2normalization = l2normalization;
       return this;
     }
-
+  
     /**
      * Gets orient.
      *
@@ -571,7 +571,7 @@ public class AutoencoderNetwork {
     public OrientationStrategy getOrient() {
       return orient;
     }
-
+  
     /**
      * Sets orient.
      *
@@ -582,7 +582,7 @@ public class AutoencoderNetwork {
       this.orient = orient;
       return this;
     }
-
+  
     /**
      * Gets runStep.
      *
@@ -591,7 +591,7 @@ public class AutoencoderNetwork {
     public LineSearchStrategy getStep() {
       return step;
     }
-
+  
     /**
      * Sets runStep.
      *
@@ -602,7 +602,7 @@ public class AutoencoderNetwork {
       this.step = step;
       return this;
     }
-
+  
     /**
      * Gets monitor.
      *
@@ -611,7 +611,7 @@ public class AutoencoderNetwork {
     public TrainingMonitor getMonitor() {
       return monitor;
     }
-
+  
     /**
      * Sets monitor.
      *
@@ -622,7 +622,7 @@ public class AutoencoderNetwork {
       this.monitor = monitor;
       return this;
     }
-
+  
     /**
      * Gets timeout minutes.
      *
@@ -631,7 +631,7 @@ public class AutoencoderNetwork {
     public int getTimeoutMinutes() {
       return timeoutMinutes;
     }
-
+  
     /**
      * Sets timeout minutes.
      *
@@ -642,7 +642,7 @@ public class AutoencoderNetwork {
       this.timeoutMinutes = timeoutMinutes;
       return this;
     }
-
+  
     /**
      * Gets end fitness.
      *
@@ -651,7 +651,7 @@ public class AutoencoderNetwork {
     public double getEndFitness() {
       return endFitness;
     }
-
+  
     /**
      * Sets end fitness.
      *
@@ -662,7 +662,7 @@ public class AutoencoderNetwork {
       this.endFitness = endFitness;
       return this;
     }
-
+  
     /**
      * Gets max iterations.
      *
@@ -671,7 +671,7 @@ public class AutoencoderNetwork {
     public int getMaxIterations() {
       return maxIterations;
     }
-
+  
     /**
      * Sets max iterations.
      *
@@ -701,7 +701,7 @@ public class AutoencoderNetwork {
       this.outerSize = outerSize;
       this.innerSize = innerSize;
     }
-
+  
     /**
      * Get outer size int [ ].
      *
@@ -710,7 +710,7 @@ public class AutoencoderNetwork {
     public int[] getOuterSize() {
       return outerSize;
     }
-
+  
     /**
      * Get inner size int [ ].
      *
@@ -719,7 +719,7 @@ public class AutoencoderNetwork {
     public int[] getInnerSize() {
       return innerSize;
     }
-
+  
     /**
      * Gets noise.
      *
@@ -728,7 +728,7 @@ public class AutoencoderNetwork {
     public double getNoise() {
       return noise;
     }
-
+  
     /**
      * Sets noise.
      *
@@ -739,7 +739,7 @@ public class AutoencoderNetwork {
       this.noise = noise;
       return this;
     }
-
+  
     /**
      * Gets init radius.
      *
@@ -748,7 +748,7 @@ public class AutoencoderNetwork {
     public double getInitRadius() {
       return initRadius;
     }
-
+  
     /**
      * Sets init radius.
      *
@@ -759,7 +759,7 @@ public class AutoencoderNetwork {
       this.initRadius = initRadius;
       return this;
     }
-
+  
     /**
      * Gets init stiffness.
      *
@@ -768,7 +768,7 @@ public class AutoencoderNetwork {
     public int getInitStiffness() {
       return initStiffness;
     }
-
+  
     /**
      * Sets init stiffness.
      *
@@ -779,7 +779,7 @@ public class AutoencoderNetwork {
       this.initStiffness = initStiffness;
       return this;
     }
-
+  
     /**
      * Gets init peak.
      *
@@ -788,7 +788,7 @@ public class AutoencoderNetwork {
     public double getInitPeak() {
       return initPeak;
     }
-
+  
     /**
      * Sets init peak.
      *
@@ -799,7 +799,7 @@ public class AutoencoderNetwork {
       this.initPeak = initPeak;
       return this;
     }
-
+  
     /**
      * Gets dropout.
      *
@@ -808,7 +808,7 @@ public class AutoencoderNetwork {
     public double getDropout() {
       return dropout;
     }
-
+  
     /**
      * Sets dropout.
      *
@@ -819,7 +819,7 @@ public class AutoencoderNetwork {
       this.dropout = dropout;
       return this;
     }
-
+  
     /**
      * Build autoencoder network.
      *

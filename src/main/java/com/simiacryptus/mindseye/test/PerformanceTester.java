@@ -47,14 +47,15 @@ public class PerformanceTester {
   
   /**
    * Test.
-   *  @param component      the component
+   *
+   * @param component      the component
    * @param inputPrototype the input prototype
    */
   public void test(final NNLayer component, final Tensor... inputPrototype) {
     System.out.println(String.format("%s batches", batches));
     System.out.println("Input Dimensions:");
     Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutput();
-    Arrays.stream(inputPrototype).map(t->"\t"+Arrays.toString(t.getDimensions())).forEach(System.out::println);
+    Arrays.stream(inputPrototype).map(t -> "\t" + Arrays.toString(t.getDimensions())).forEach(System.out::println);
     System.out.println("Performance:");
     if (isTestEvaluation()) {
       DoubleStatistics statistics = IntStream.range(0, samples).mapToObj(i -> {

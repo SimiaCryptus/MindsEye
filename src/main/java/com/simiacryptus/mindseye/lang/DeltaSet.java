@@ -86,6 +86,12 @@ public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
     return this.copy().addInPlace(right);
   }
   
+  /**
+   * Add in place delta set.
+   *
+   * @param right the right
+   * @return the delta set
+   */
   public DeltaSet<K> addInPlace(DeltaSet<K> right) {
     right.map.forEach(100, (layer, buffer) -> {
       get(layer, buffer.target).addInPlace(buffer);

@@ -75,6 +75,7 @@ public class ImageDecompositionLab {
   /**
    * Test.
    *
+   * @param args the input arguments
    * @throws Exception the exception
    */
   public static void main(String... args) throws Exception {
@@ -245,7 +246,7 @@ public class ImageDecompositionLab {
      * The History.
      */
     public final List<Step> history = new ArrayList<>();
-    
+  
     /**
      * Instantiates a new Transcode runStep.
      *
@@ -276,7 +277,7 @@ public class ImageDecompositionLab {
         ", trainMinutes=" + trainMinutes +
         '}';
     }
-    
+  
     /**
      * Invoke transcode runStep.
      *
@@ -355,7 +356,7 @@ public class ImageDecompositionLab {
      * The Band 1.
      */
     public final int band1;
-    
+  
     /**
      * Instantiates a new Initialization runStep.
      *
@@ -396,7 +397,7 @@ public class ImageDecompositionLab {
         ", band1=" + band1 +
         '}';
     }
-    
+  
     /**
      * Build model pipeline network.
      *
@@ -413,7 +414,7 @@ public class ImageDecompositionLab {
         return network;
       });
     }
-    
+  
     /**
      * Invoke initialization runStep.
      *
@@ -527,7 +528,7 @@ public class ImageDecompositionLab {
      */
     public final int band2;
     private final int fromSize;
-    
+  
     /**
      * Instantiates a new Add layer runStep.
      *
@@ -583,7 +584,7 @@ public class ImageDecompositionLab {
         ", band2=" + band2 +
         '}';
     }
-    
+  
     /**
      * Invoke add layer runStep.
      *
@@ -635,7 +636,7 @@ public class ImageDecompositionLab {
       history.clear();
       return this;
     }
-    
+  
     /**
      * Get training mask boolean [ ].
      *
@@ -646,7 +647,7 @@ public class ImageDecompositionLab {
       mask[layerNumber + 1] = true;
       return mask;
     }
-    
+  
     /**
      * Build network pipeline network.
      *
@@ -664,7 +665,7 @@ public class ImageDecompositionLab {
         );
       });
     }
-    
+  
     /**
      * Gets integration model.
      *

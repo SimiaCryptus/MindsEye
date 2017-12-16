@@ -176,7 +176,7 @@ public class EncodingProblem implements Problem {
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       Tensor input = new Tensor(features).set(featureNumber, 1);
       Tensor tensor = GpuController.call(ctx -> imageNetwork.eval(ctx, input)).getData().get(0);
-      TestUtil.renderToImages(tensor, true).forEach(img->{
+      TestUtil.renderToImages(tensor, true).forEach(img -> {
         try {
           log.out(log.image(img, ""));
         } catch (IOException e) {
@@ -188,6 +188,11 @@ public class EncodingProblem implements Problem {
     return this;
   }
   
+  /**
+   * Random double.
+   *
+   * @return the double
+   */
   public double random() {
     return 0.1 * (Math.random() - 0.5);
   }

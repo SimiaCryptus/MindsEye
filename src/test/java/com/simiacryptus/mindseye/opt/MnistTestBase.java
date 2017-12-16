@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
@@ -29,6 +28,7 @@ import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.data.MNIST;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.JsonUtil;

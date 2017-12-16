@@ -19,18 +19,21 @@
 
 package com.simiacryptus.mindseye.labs.encoding;
 
-import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.java.*;
+import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
+import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
+import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
+import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
@@ -85,7 +88,7 @@ class EncodingUtil {
     String modelName = "model" + modelNo + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   }
-
+  
   /**
    * Validation report.
    *
@@ -437,7 +440,7 @@ class EncodingUtil {
   }
   
   private static class ConvolutionExtractor implements ToDoubleFunction<Coordinate> {
-    
+
     /**
      * The X.
      */

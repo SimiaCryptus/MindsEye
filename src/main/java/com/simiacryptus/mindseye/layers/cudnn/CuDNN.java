@@ -541,6 +541,23 @@ public class CuDNN {
     
     return new CudaResource<>(opDesc, CuDNN::cudnnDestroyOpTensorDescriptor);
   }
+  
+  /**
+   * Cudnn op tensor int.
+   *
+   * @param handle       the handle
+   * @param opTensorDesc the op tensor desc
+   * @param alpha1       the alpha 1
+   * @param aDesc        the a desc
+   * @param A            the a
+   * @param alpha2       the alpha 2
+   * @param bDesc        the b desc
+   * @param B            the b
+   * @param beta         the beta
+   * @param cDesc        the c desc
+   * @param C            the c
+   * @return the int
+   */
   public static int cudnnOpTensor(
     cudnnHandle handle,
     cudnnOpTensorDescriptor opTensorDesc,
@@ -552,8 +569,7 @@ public class CuDNN {
     Pointer B,
     Pointer beta,
     cudnnTensorDescriptor cDesc,
-    Pointer C)
-  {
+    Pointer C) {
     int result = JCudnn.cudnnOpTensor(handle, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C);
     log("cudnnOpTensor", result, handle, opTensorDesc, alpha1, aDesc, A, alpha2, bDesc, B, beta, cDesc, C);
     return result;

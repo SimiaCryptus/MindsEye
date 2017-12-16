@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.lang.NNResult;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -52,85 +54,137 @@ public class LearningTester {
   
   private boolean verbose = true;
   
+  /**
+   * Instantiates a new Learning tester.
+   */
   public LearningTester() {
   }
   
-  public void test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
-    if (!component.state().isEmpty() && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
-      throw new AssertionError("Weights are all zero?");
-    }
-    if (isZero(Arrays.stream(inputPrototype).flatMapToDouble(x -> Arrays.stream(x.getData())))) {
-      throw new AssertionError("Inputs are all zero?");
-    }
-    Random random = new Random();
-    if(Arrays.stream(inputPrototype).anyMatch(x->x.dim()>0)) {
-      log.h3("Input Learning");
-      testInputLearning(log, component, random, inputPrototype);
-    }
-    if(!component.state().isEmpty()) {
-      log.h3("Model Learning");
-      testModelLearning(log, component, random, inputPrototype);
-    }
-  }
-  
+  /**
+   * Is zero boolean.
+   *
+   * @param stream the stream
+   * @return the boolean
+   */
   public static boolean isZero(DoubleStream stream) {
     double[] array = stream.toArray();
-    if(array.length==0) return false;
-    return Arrays.stream(array).map(x->Math.abs(x)).sum() < 1e-6;
+    if (array.length == 0) return false;
+    return Arrays.stream(array).map(x -> Math.abs(x)).sum() < 1e-6;
   }
   
+  /**
+   * Test input learning.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param random         the random
+   * @param inputPrototype the input prototype
+   */
   public static void testInputLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer shuffleCopy = shuffle(random, component.copy()).freeze();
+    final Tensor[] randomInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
+    log.p("In this test, we use a network to learn this target input, given it's pre-evaluated output:");
+    log.code(() -> {
+      return Arrays.stream(randomInput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+    });
     Tensor targetOutput = GpuController.call(ctx -> {
-      final Tensor[] randomInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
       return shuffleCopy.eval(ctx, NNResult.singleResultArray(randomInput)).getData().get(0);
     });
     PipelineNetwork network = new PipelineNetwork(inputPrototype.length);
-    ;
     network.add(new MeanSqLossLayer(),
-      network.add(shuffleCopy, IntStream.range(0,inputPrototype.length).mapToObj(i->network.getInput(0)).toArray(i->new DAGNode[i])),
+      network.add(shuffleCopy, IntStream.range(0, inputPrototype.length).mapToObj(i -> network.getInput(0)).toArray(i -> new DAGNode[i])),
       network.constValue(targetOutput));
-
     Tensor[] controlInput1 = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
     Tensor[] controlInput2 = Arrays.stream(controlInput1).map(t -> t.copy()).toArray(i -> new Tensor[i]);
-
-    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(new Tensor[][]{controlInput1}, network).setMask(true));
+    boolean[] mask = new boolean[controlInput1.length];
+    for (int i = 0; i < mask.length; i++) mask[i] = true;
+    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(new Tensor[][]{controlInput1}, network).setMask(mask));
+    if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+      log.p("This training run resulted in the following regressed input:");
+      log.code(() -> {
+        return Arrays.stream(controlInput1).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+    }
+    else {
+      log.p("Training Converged");
+    }
     List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(new Tensor[][]{controlInput2}, network).setMask(true));
-  
-    assert !gd.isEmpty();
-    assert !lbfgs.isEmpty();
-    
+    if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+      log.p("This training run resulted in the following regressed input:");
+      log.code(() -> {
+        return Arrays.stream(controlInput2).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+    }
+    else {
+      log.p("Training Converged");
+    }
     plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
   }
   
+  /**
+   * Test model learning.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param random         the random
+   * @param inputPrototype the input prototype
+   */
   public static void testModelLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer targetConfig = shuffle(random, component.copy()).freeze();
     Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
+    log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
+    log.code(() -> {
+      return targetConfig.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+    });
     Tensor targetOutput = GpuController.call(ctx -> {
       return targetConfig.eval(ctx, NNResult.singleResultArray(testInput)).getData().get(0);
     });
-
     PipelineNetwork network1 = new PipelineNetwork(1);
     network1.add(new MeanSqLossLayer(),
       network1.add(shuffle(random, component.copy()), network1.getInput(0)),
       network1.constValue(targetOutput));
     List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(new Tensor[][]{testInput}, network1));
-
+    if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+      log.p("This training run resulted in the following configuration:");
+      log.code(() -> {
+        return network1.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+    }
+    else {
+      log.p("Training Converged");
+    }
     PipelineNetwork network2 = new PipelineNetwork(1);
     network2.add(new MeanSqLossLayer(),
       network2.add(shuffle(random, component.copy()), network2.getInput(0)),
       network2.constValue(targetOutput));
     List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(new Tensor[][]{testInput}, network2));
-
+    if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+      log.p("This training run resulted in the following configuration:");
+      log.code(() -> {
+        return network2.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+    }
+    else {
+      log.p("Training Converged");
+    }
+    
     plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
   }
   
+  /**
+   * Train cj gd list.
+   *
+   * @param log       the log
+   * @param trainable the trainable
+   * @return the list
+   */
   public static List<StepRecord> trainCjGD(NotebookOutput log, Trainable trainable) {
+    log.p("First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.");
     List<StepRecord> history = new ArrayList<>();
     TrainingMonitor monitor = getMonitor(history);
-    log.code(()->{
+    log.code(() -> {
       return new IterativeTrainer(trainable)
-        .setLineSearchFactory(label->new QuadraticSearch())
+        .setLineSearchFactory(label -> new QuadraticSearch())
         .setOrientation(new GradientDescent())
         .setMonitor(monitor)
         .setTimeout(30, TimeUnit.SECONDS)
@@ -141,12 +195,20 @@ public class LearningTester {
     return history;
   }
   
+  /**
+   * Train lbfgs list.
+   *
+   * @param log       the log
+   * @param trainable the trainable
+   * @return the list
+   */
   public static List<StepRecord> trainLBFGS(NotebookOutput log, Trainable trainable) {
+    log.p("Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
     List<StepRecord> history = new ArrayList<>();
     TrainingMonitor monitor = getMonitor(history);
-    log.code(()->{
+    log.code(() -> {
       return new IterativeTrainer(trainable)
-        .setLineSearchFactory(label->new ArmijoWolfeSearch())
+        .setLineSearchFactory(label -> new ArmijoWolfeSearch())
         .setOrientation(new LBFGS())
         .setMonitor(monitor)
         .setTimeout(30, TimeUnit.SECONDS)
@@ -157,13 +219,19 @@ public class LearningTester {
     return history;
   }
   
+  /**
+   * Gets monitor.
+   *
+   * @param history the history
+   * @return the monitor
+   */
   public static TrainingMonitor getMonitor(List<StepRecord> history) {
     return new TrainingMonitor() {
-        @Override
-        public void onStepComplete(Step currentPoint) {
-          history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
-        }
-  
+      @Override
+      public void onStepComplete(Step currentPoint) {
+        history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
+      }
+      
       @Override
       public void log(String msg) {
         System.out.println(msg);
@@ -171,32 +239,58 @@ public class LearningTester {
     };
   }
   
+  /**
+   * Plot.
+   *
+   * @param log  the log
+   * @param runs the runs
+   */
   public static void plot(NotebookOutput log, ProblemRun... runs) {
-    log.code(()->{
+    log.code(() -> {
       return TestUtil.compare(runs);
     });
-    log.code(()->{
+    log.code(() -> {
       return TestUtil.compareTime(runs);
     });
   }
   
+  /**
+   * Shuffle tensor [ ].
+   *
+   * @param random the random
+   * @param copy   the copy
+   * @return the tensor [ ]
+   */
   public static Tensor[] shuffle(Random random, Stream<Tensor> copy) {
     return copy
-        .map(tensor -> {
-          shuffle(random, tensor.getData());
-          return tensor;
-        }).toArray(i -> new Tensor[i]);
+      .map(tensor -> {
+        shuffle(random, tensor.getData());
+        return tensor;
+      }).toArray(i -> new Tensor[i]);
   }
   
+  /**
+   * Shuffle nn layer.
+   *
+   * @param random        the random
+   * @param testComponent the test component
+   * @return the nn layer
+   */
   public static NNLayer shuffle(Random random, NNLayer testComponent) {
-    testComponent.state().forEach(buffer->{
+    testComponent.state().forEach(buffer -> {
       shuffle(random, buffer);
     });
     return testComponent;
   }
   
+  /**
+   * Shuffle.
+   *
+   * @param random the random
+   * @param buffer the buffer
+   */
   public static void shuffle(Random random, double[] buffer) {
-    for(int i=0;i<buffer.length;i++) {
+    for (int i = 0; i < buffer.length; i++) {
       int j = random.nextInt(buffer.length);
       double v = buffer[i];
       buffer[i] = buffer[j];
@@ -204,6 +298,30 @@ public class LearningTester {
     }
   }
   
+  /**
+   * Test.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   */
+  public void test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
+    if (!component.state().isEmpty() && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
+      throw new AssertionError("Weights are all zero?");
+    }
+    if (isZero(Arrays.stream(inputPrototype).flatMapToDouble(x -> Arrays.stream(x.getData())))) {
+      throw new AssertionError("Inputs are all zero?");
+    }
+    Random random = new Random();
+    if (Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0)) {
+      log.h3("Input Learning");
+      testInputLearning(log, component, random, inputPrototype);
+    }
+    if (!component.state().isEmpty()) {
+      log.h3("Model Learning");
+      testModelLearning(log, component, random, inputPrototype);
+    }
+  }
   
   /**
    * Is verbose boolean.

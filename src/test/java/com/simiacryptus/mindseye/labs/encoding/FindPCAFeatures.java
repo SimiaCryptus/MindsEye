@@ -53,7 +53,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
    * Forked from Apache Commons Math
    *
    * @param stream the stream
-   * @return covariance
+   * @return covariance covariance
    */
   public static RealMatrix getCovariance(Supplier<Stream<double[]>> stream) {
     int dimension = stream.get().findAny().get().length;

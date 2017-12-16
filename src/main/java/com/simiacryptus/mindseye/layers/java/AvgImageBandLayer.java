@@ -123,7 +123,7 @@ public class AvgImageBandLayer extends NNLayer {
      * The Output.
      */
     int[] output;
-    
+
     /**
      * Instantiates a new Index map key.
      *
@@ -135,7 +135,7 @@ public class AvgImageBandLayer extends NNLayer {
       this.kernel = kernel;
       this.output = output;
     }
-    
+
     /**
      * Instantiates a new Index map key.
      *

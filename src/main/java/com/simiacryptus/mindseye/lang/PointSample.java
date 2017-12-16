@@ -158,6 +158,12 @@ public final class PointSample {
     return add(this, right);
   }
   
+  /**
+   * Add in place point sample.
+   *
+   * @param right the right
+   * @return the point sample
+   */
   public PointSample addInPlace(PointSample right) {
     assert (delta.getMap().size() == weights.getMap().size());
     assert (right.delta.getMap().size() == right.weights.getMap().size());
@@ -182,5 +188,5 @@ public final class PointSample {
       return new PointSample(delta.scale(1.0 / count), weights, sum / count, rate, 1);
     }
   }
-
+  
 }

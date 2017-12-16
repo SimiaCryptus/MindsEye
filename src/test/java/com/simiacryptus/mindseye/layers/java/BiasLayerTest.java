@@ -36,7 +36,7 @@ public class BiasLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new BiasLayer(3);
+    return new BiasLayer(3).addWeights(this::random);
   }
   
   /**
@@ -46,7 +46,7 @@ public class BiasLayerTest extends LayerTestBase {
     
     @Override
     public NNLayer getLayer() {
-      return new BiasLayer(1);
+      return new BiasLayer(1).addWeights(this::random);
     }
     
   }

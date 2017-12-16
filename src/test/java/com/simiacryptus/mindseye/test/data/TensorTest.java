@@ -49,7 +49,7 @@ public class TensorTest {
       System.out.println(c);
     }
   }
-
+  
   /**
    * Test to json.
    *

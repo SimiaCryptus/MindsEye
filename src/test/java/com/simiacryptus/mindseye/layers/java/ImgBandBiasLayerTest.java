@@ -29,7 +29,7 @@ public class ImgBandBiasLayerTest extends LayerTestBase {
   
   @Override
   public NNLayer getLayer() {
-    return new ImgBandBiasLayer(3);
+    return new ImgBandBiasLayer(3).addWeights(this::random);
   }
   
   @Override

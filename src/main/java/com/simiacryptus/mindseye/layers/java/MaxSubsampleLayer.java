@@ -194,7 +194,7 @@ public class MaxSubsampleLayer extends NNLayer {
      * The Kernel dims.
      */
     public int[] kernelDims;
-    
+
     /**
      * Instantiates a new Calc regions parameter.
      *

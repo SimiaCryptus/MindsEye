@@ -46,7 +46,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   public NNLayer getLayer() {
     PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ImgConcatLayer().setPrecision(precision));
-    network.add(new ImgBandBiasLayer(1).setPrecision(precision));
+    network.add(new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random));
     network.add(new ActivationLayer(ActivationLayer.Mode.RELU).setPrecision(precision));
     return network;
     
@@ -56,7 +56,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {1, 1, 1}
+      {1, 1, 3}
     };
   }
   

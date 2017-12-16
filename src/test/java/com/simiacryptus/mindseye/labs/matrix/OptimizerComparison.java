@@ -60,6 +60,7 @@ public abstract class OptimizerComparison {
   private final RevNetworkFactory revFactory;
   private final ImageProblemData data;
   private int timeoutMinutes = 15;
+  
   /**
    * Instantiates a new Optimizer comparison.
    *
@@ -72,7 +73,7 @@ public abstract class OptimizerComparison {
     this.revFactory = revFactory;
     this.data = data;
   }
-
+  
   /**
    * Classification comparison.
    *
@@ -139,7 +140,7 @@ public abstract class OptimizerComparison {
    * The type Compare qqn.
    */
   public static class CompareQQN extends OptimizerComparison {
-    
+  
     /**
      * Instantiates a new Compare qqn.
      */
@@ -169,7 +170,7 @@ public abstract class OptimizerComparison {
    * The type Compare textbook.
    */
   public static class CompareTextbook extends OptimizerComparison {
-    
+  
     /**
      * Instantiates a new Compare textbook.
      */

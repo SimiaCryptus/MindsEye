@@ -787,7 +787,7 @@ public class ValidatingTrainer {
   }
   
   private static class EpochResult {
-    
+
     /**
      * The Continue training.
      */
@@ -804,7 +804,7 @@ public class ValidatingTrainer {
      * The Iterations.
      */
     int iterations;
-    
+
     /**
      * Instantiates a new Epoch result.
      *
@@ -830,7 +830,7 @@ public class ValidatingTrainer {
     private OrientationStrategy orientation = new QQN();
     private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
     private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
-    
+
     /**
      * Instantiates a new Training phase.
      *
@@ -839,8 +839,8 @@ public class ValidatingTrainer {
     public TrainingPhase(SampledTrainable trainingSubject) {
       this.setTrainingSubject(trainingSubject);
     }
-    
-    
+
+
     /**
      * Gets training subject.
      *
@@ -849,7 +849,7 @@ public class ValidatingTrainer {
     public SampledTrainable getTrainingSubject() {
       return trainingSubject;
     }
-    
+
     /**
      * Sets training subject.
      *
@@ -860,7 +860,7 @@ public class ValidatingTrainer {
       this.trainingSubject = trainingSubject;
       return this;
     }
-    
+
     /**
      * Gets orientation.
      *
@@ -869,7 +869,7 @@ public class ValidatingTrainer {
     public OrientationStrategy getOrientation() {
       return orientation;
     }
-    
+
     /**
      * Sets orientation.
      *
@@ -880,7 +880,7 @@ public class ValidatingTrainer {
       this.orientation = orientation;
       return this;
     }
-    
+
     /**
      * Gets line search factory.
      *
@@ -889,7 +889,7 @@ public class ValidatingTrainer {
     public Function<String, LineSearchStrategy> getLineSearchFactory() {
       return lineSearchFactory;
     }
-    
+
     /**
      * Sets line search factory.
      *
@@ -900,7 +900,7 @@ public class ValidatingTrainer {
       this.lineSearchFactory = lineSearchFactory;
       return this;
     }
-    
+
     /**
      * Gets line search strategy map.
      *
@@ -909,7 +909,7 @@ public class ValidatingTrainer {
     public Map<String, LineSearchStrategy> getLineSearchStrategyMap() {
       return lineSearchStrategyMap;
     }
-    
+
     /**
      * Sets line search strategy map.
      *
@@ -943,7 +943,7 @@ public class ValidatingTrainer {
      * The Previous.
      */
     final PointSample previous;
-    
+
     /**
      * Instantiates a new Step result.
      *
@@ -960,7 +960,7 @@ public class ValidatingTrainer {
   }
   
   private class PerformanceWrapper extends TrainableWrapper<SampledTrainable> implements SampledTrainable {
-    
+
     /**
      * Instantiates a new Performance wrapper.
      *
