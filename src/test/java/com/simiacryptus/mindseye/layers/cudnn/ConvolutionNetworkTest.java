@@ -43,7 +43,7 @@ public abstract class ConvolutionNetworkTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     PipelineNetwork network = new PipelineNetwork(1);
     network.add(new ImgConcatLayer().setPrecision(precision));
     network.add(new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random));

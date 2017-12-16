@@ -60,7 +60,7 @@ public abstract class ConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return convolutionLayer;
   }
   

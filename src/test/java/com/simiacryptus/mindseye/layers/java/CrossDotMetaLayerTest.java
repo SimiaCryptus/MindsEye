@@ -35,7 +35,7 @@ public class CrossDotMetaLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new CrossDotMetaLayer();
   }
   

@@ -61,6 +61,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
     paddingY = json.get("paddingY").getAsInt();
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
+    precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
   /**
@@ -89,6 +90,7 @@ public class PoolingLayer extends NNLayer implements LayerPrecision<PoolingLayer
     json.addProperty("paddingY", paddingY);
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
+    json.addProperty("precision",precision.name());
     return json;
   }
   

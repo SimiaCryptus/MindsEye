@@ -42,7 +42,7 @@ public abstract class BandReducerLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new BandReducerLayer().setPrecision(precision);
   }
   

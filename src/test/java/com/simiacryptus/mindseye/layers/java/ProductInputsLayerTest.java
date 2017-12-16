@@ -32,7 +32,7 @@ public class ProductInputsLayerTest {
   public static class NNTest extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new ProductInputsLayer();
     }
     
@@ -50,7 +50,7 @@ public class ProductInputsLayerTest {
   public static class NNNTest extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new ProductInputsLayer();
     }
     
@@ -68,7 +68,7 @@ public class ProductInputsLayerTest {
   public static class N1Test extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new ProductInputsLayer();
     }
     

@@ -55,7 +55,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ActivationLayer(mode).setPrecision(precision);
   }
   
@@ -81,7 +81,7 @@ public abstract class ActivationLayerTest extends CudnnLayerTestBase {
     super.test(log);
     
     log.h3("Function Plots");
-    NNLayer layer = getLayer();
+    NNLayer layer = getLayer(new int[][]{{1,1,1}});
     List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
       SimpleEval eval = SimpleEval.run(layer, new Tensor(new double[]{x}, 1, 1, 1));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};

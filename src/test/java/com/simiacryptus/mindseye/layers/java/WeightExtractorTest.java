@@ -36,7 +36,7 @@ public class WeightExtractorTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new WeightExtractor(0, new FullyConnectedLayer(new int[]{3}, new int[]{3}));
   }
   

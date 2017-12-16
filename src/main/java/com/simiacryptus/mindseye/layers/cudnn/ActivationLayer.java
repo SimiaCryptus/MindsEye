@@ -54,6 +54,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
   protected ActivationLayer(JsonObject json) {
     super(json);
     mode = json.getAsJsonPrimitive("mode").getAsInt();
+    precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
   /**
@@ -87,6 +88,7 @@ public class ActivationLayer extends NNLayer implements LayerPrecision<Activatio
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode);
+    json.addProperty("precision",precision.name());
     return json;
   }
   

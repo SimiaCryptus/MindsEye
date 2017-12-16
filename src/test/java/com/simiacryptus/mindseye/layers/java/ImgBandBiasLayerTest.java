@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class ImgBandBiasLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ImgBandBiasLayer(3).addWeights(this::random);
   }
   

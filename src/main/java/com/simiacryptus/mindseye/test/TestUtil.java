@@ -95,14 +95,19 @@ public class TestUtil {
    * @return the plot canvas
    */
   public static PlotCanvas plot(List<StepRecord> history) {
-    PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-      step.iteraton, java.lang.Math.log10(step.fitness)})
-      .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-      .toArray(i -> new double[i][]));
-    plot.setTitle("Convergence Plot");
-    plot.setAxisLabels("Iteration", "log10(Fitness)");
-    plot.setSize(600, 400);
-    return plot;
+    try {
+      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
+        step.iteraton, java.lang.Math.log10(step.fitness)})
+        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+        .toArray(i -> new double[i][]));
+      plot.setTitle("Convergence Plot");
+      plot.setAxisLabels("Iteration", "log10(Fitness)");
+      plot.setSize(600, 400);
+      return plot;
+    } catch (Exception e) {
+      e.printStackTrace(System.out);
+      return null;
+    }
   }
   
   /**
@@ -112,15 +117,20 @@ public class TestUtil {
    * @return the plot canvas
    */
   public static PlotCanvas plotTime(List<StepRecord> history) {
-    LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
-    PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
-      (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)})
-      .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-      .toArray(i -> new double[i][]));
-    plot.setTitle("Convergence Plot");
-    plot.setAxisLabels("Time", "log10(Fitness)");
-    plot.setSize(600, 400);
-    return plot;
+    try {
+      LongSummaryStatistics timeStats = history.stream().mapToLong(x -> x.epochTime).summaryStatistics();
+      PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{
+        (step.epochTime - timeStats.getMin()) / 1000.0, java.lang.Math.log10(step.fitness)})
+        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+        .toArray(i -> new double[i][]));
+      plot.setTitle("Convergence Plot");
+      plot.setAxisLabels("Time", "log10(Fitness)");
+      plot.setSize(600, 400);
+      return plot;
+    } catch (Exception e) {
+      e.printStackTrace(System.out);
+      return null;
+    }
   }
   
   /**
@@ -141,22 +151,27 @@ public class TestUtil {
     if (xStatistics.getCount() == 0) return null;
     double[] lowerBound = {xStatistics.getMin(), yStatistics.getMin()};
     double[] upperBound = {xStatistics.getMax(), yStatistics.getMax()};
-    PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
-    canvas.setTitle("Convergence Plot");
-    canvas.setAxisLabels("Iteration", "log10(Fitness)");
-    canvas.setSize(600, 400);
-    List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
-    if (filtered.isEmpty()) return null;
-    for (ProblemRun trial : filtered) {
-      ScatterPlot plot = new ScatterPlot(trial.history.stream().map(step -> new double[]{
-        step.iteraton, Math.log10(step.fitness)})
-        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-        .toArray(i -> new double[i][]));
-      plot.setID(trial.name);
-      plot.setColor(trial.color);
-      canvas.add(plot);
+    try {
+      PlotCanvas canvas = new PlotCanvas(lowerBound, upperBound);
+      canvas.setTitle("Convergence Plot");
+      canvas.setAxisLabels("Iteration", "log10(Fitness)");
+      canvas.setSize(600, 400);
+      List<ProblemRun> filtered = Arrays.stream(trials).filter(x -> !x.history.isEmpty()).collect(Collectors.toList());
+      if (filtered.isEmpty()) return null;
+      for (ProblemRun trial : filtered) {
+        ScatterPlot plot = new ScatterPlot(trial.history.stream().map(step -> new double[]{
+          step.iteraton, Math.log10(step.fitness)})
+          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+          .toArray(i -> new double[i][]));
+        plot.setID(trial.name);
+        plot.setColor(trial.color);
+        canvas.add(plot);
+      }
+      return canvas;
+    } catch (Exception e) {
+      e.printStackTrace(System.out);
+      return null;
     }
-    return canvas;
   }
   
   /**

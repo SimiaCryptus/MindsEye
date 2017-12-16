@@ -42,7 +42,7 @@ public abstract class ProductLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ProductLayer().setPrecision(precision);
   }
   

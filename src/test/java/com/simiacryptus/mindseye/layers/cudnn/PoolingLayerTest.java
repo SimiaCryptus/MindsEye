@@ -42,7 +42,7 @@ public abstract class PoolingLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new PoolingLayer().setPrecision(precision);
   }
   

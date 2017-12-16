@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class AvgSubsampleLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new AvgSubsampleLayer(2, 2, 1);
   }
   

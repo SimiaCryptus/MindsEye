@@ -78,7 +78,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return layer;
   }
   
@@ -101,7 +101,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     super.test(log);
     
     log.h3("Function Plots");
-    NNLayer layer = getLayer();
+    NNLayer layer = getLayer(new int[][]{{1}});
     List<double[]> plotData = scan().mapToObj(x -> {
       SimpleEval eval = SimpleEval.run(layer, new Tensor(x));
       return new double[]{x, eval.getOutput().get(0), eval.getDerivative()[0].get(0)};

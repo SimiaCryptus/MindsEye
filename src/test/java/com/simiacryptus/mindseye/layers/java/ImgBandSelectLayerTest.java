@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class ImgBandSelectLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ImgBandSelectLayer(0, 2);
   }
   

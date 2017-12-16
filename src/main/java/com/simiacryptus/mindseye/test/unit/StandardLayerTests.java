@@ -63,7 +63,7 @@ public abstract class StandardLayerTests {
    */
   public void test(NotebookOutput log) {
     if (null != originalOut) log.addCopy(originalOut);
-    NNLayer layer = getLayer();
+    NNLayer layer = getLayer(getInputDims());
     log.h1("%s", layer.getClass().getSimpleName());
     log.h2("%s", getClass().getSimpleName());
     if (layer instanceof DAGNetwork) {
@@ -77,8 +77,9 @@ public abstract class StandardLayerTests {
     getLittleTests().stream().filter(x -> null != x).forEach(test -> {
       test.test(log, layer.copy(), randomize(getInputDims()));
     });
+    NNLayer perfLayer = getLayer(getPerfDims());
     getBigTests().stream().filter(x -> null != x).forEach(test -> {
-      test.test(log, layer.copy(), randomize(getPerfDims()));
+      test.test(log, perfLayer.copy(), randomize(getPerfDims()));
     });
   }
   
@@ -177,8 +178,9 @@ public abstract class StandardLayerTests {
    * Gets layer.
    *
    * @return the layer
+   * @param inputSize
    */
-  public abstract NNLayer getLayer();
+  public abstract NNLayer getLayer(int[][] inputSize);
   
   /**
    * Gets reference layer.
@@ -224,7 +226,7 @@ public abstract class StandardLayerTests {
       synchronized (this) {
         if(null == littleTests) {
           littleTests = new ArrayList<>(Arrays.asList(
-            getBatchingTester(), getDerivativeTester(), getEquivalencyTester(), getJsonTester(), getReferenceIOTester()
+            getJsonTester(), getReferenceIOTester(), getBatchingTester(), getDerivativeTester(), getEquivalencyTester()
           ));
         }
       }
@@ -264,7 +266,7 @@ public abstract class StandardLayerTests {
       synchronized (this) {
         if(null == bigTests) {
           bigTests = new ArrayList<>(Arrays.asList(
-            getLearningTester(), getPerformanceTester()
+            getPerformanceTester(), getLearningTester()
           ));
         }
       }

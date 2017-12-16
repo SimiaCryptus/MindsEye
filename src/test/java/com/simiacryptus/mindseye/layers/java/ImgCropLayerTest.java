@@ -36,7 +36,7 @@ public class ImgCropLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ImgCropLayer(1, 1);
   }
   

@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class MaxSubsampleLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new MaxSubsampleLayer(2, 2, 1);
   }
   

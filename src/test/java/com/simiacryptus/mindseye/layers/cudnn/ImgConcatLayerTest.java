@@ -41,7 +41,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ImgConcatLayer();
   }
   
@@ -96,7 +96,7 @@ public abstract class ImgConcatLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new ImgConcatLayer().setMaxBands(3);
     }
     

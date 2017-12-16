@@ -50,6 +50,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     super(json);
     rightFactor = json.get("rightFactor").getAsDouble();
     leftFactor = json.get("leftFactor").getAsDouble();
+    precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
   /**
@@ -83,6 +84,7 @@ public class BinarySumLayer extends NNLayer implements LayerPrecision<BinarySumL
     JsonObject json = super.getJsonStub();
     json.addProperty("rightFactor", rightFactor);
     json.addProperty("leftFactor", leftFactor);
+    json.addProperty("precision",precision.name());
     return json;
   }
   

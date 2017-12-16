@@ -36,7 +36,7 @@ public class StdDevMetaLayerTest extends MetaLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new StdDevMetaLayer(0);
   }
   

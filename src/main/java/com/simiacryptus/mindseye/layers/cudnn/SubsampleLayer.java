@@ -44,6 +44,7 @@ public class SubsampleLayer extends NNLayer implements LayerPrecision<SubsampleL
   protected SubsampleLayer(JsonObject json) {
     super(json);
     maxBands = json.get("maxBands").getAsInt();
+    precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
   /**
@@ -65,6 +66,7 @@ public class SubsampleLayer extends NNLayer implements LayerPrecision<SubsampleL
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
+    json.addProperty("precision",precision.name());
     return json;
   }
   

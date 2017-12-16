@@ -32,7 +32,7 @@ public class TargetValueLayerTest {
   public static class Normal extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new TargetValueLayer(0.0, 0.1, 0.2);
     }
     

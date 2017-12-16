@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.NNResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.GpuController;
 import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
@@ -211,6 +212,79 @@ public class LearningTester implements ComponentTest {
     plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
   }
   
+  public void testCompleteLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
+    NNLayer network_target = shuffle(random, component.copy()).freeze();
+    Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
+    log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
+    log.code(() -> {
+      return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+    });
+    log.p("We simultaneously regress this target input:");
+    log.code(() -> {
+      return Arrays.stream(testInput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+    });
+    log.p("Which produces the following output:");
+    Tensor targetOutput = GpuController.call(ctx -> {
+      return network_target.eval(ctx, NNResult.singleResultArray(testInput)).getData().get(0);
+    });
+    log.code(() -> {
+      return Stream.of(targetOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+    });
+    Tensor[] input_gd = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
+    Tensor[] input_lbgfs = Arrays.stream(input_gd).map(t -> t.copy()).toArray(i -> new Tensor[i]);
+    boolean[] mask = new boolean[input_gd.length];
+    for (int i = 0; i < mask.length; i++) mask[i] = true;
+    PipelineNetwork network_gd = new PipelineNetwork(1);
+    network_gd.add(new MeanSqLossLayer(),
+      network_gd.add(shuffle(random, component.copy()), network_gd.getInput(0)),
+      network_gd.constValue(targetOutput));
+    DAGNetwork network_lbfgs = network_gd.copy();
+    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(new Tensor[][]{input_gd}, network_gd).setMask(mask));
+    if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+      log.p("This training run resulted in the following configuration:");
+      log.code(() -> {
+        return network_gd.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+      log.p("And regressed input:");
+      log.code(() -> {
+        return Arrays.stream(input_gd).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+      log.p("Which produces the following output:");
+      Tensor regressedOutput = GpuController.call(ctx -> {
+        return network_gd.eval(ctx, NNResult.singleResultArray(input_gd)).getData().get(0);
+      });
+      log.code(() -> {
+        return Stream.of(regressedOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+    }
+    else {
+      log.p("Training Converged");
+    }
+    List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(new Tensor[][]{input_lbgfs}, network_lbfgs).setMask(mask));
+    if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
+      log.p("This training run resulted in the following configuration:");
+      log.code(() -> {
+        return network_lbfgs.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+      log.p("And regressed input:");
+      log.code(() -> {
+        return Arrays.stream(input_lbgfs).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+      log.p("Which produces the following output:");
+      Tensor regressedOutput = GpuController.call(ctx -> {
+        return network_lbfgs.eval(ctx, NNResult.singleResultArray(input_lbgfs)).getData().get(0);
+      });
+      log.code(() -> {
+        return Stream.of(regressedOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+      });
+    }
+    else {
+      log.p("Training Converged");
+    }
+    
+    plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
+  }
+  
   /**
    * Train cj gd list.
    *
@@ -316,20 +390,26 @@ public class LearningTester implements ComponentTest {
    * @param inputPrototype the input prototype
    */
   public ToleranceStatistics test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
-    if (!component.state().isEmpty() && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
+    boolean testModel = !component.state().isEmpty();
+    if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
       throw new AssertionError("Weights are all zero?");
     }
     if (isZero(Arrays.stream(inputPrototype).flatMapToDouble(x -> Arrays.stream(x.getData())))) {
       throw new AssertionError("Inputs are all zero?");
     }
     Random random = new Random();
-    if (Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0)) {
+    boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0);
+    if (testInput) {
       log.h3("Input Learning");
       testInputLearning(log, component, random, inputPrototype);
     }
-    if (!component.state().isEmpty()) {
+    if (testModel) {
       log.h3("Model Learning");
       testModelLearning(log, component, random, inputPrototype);
+    }
+    if (testInput && testModel) {
+      log.h3("Composite Learning");
+      testCompleteLearning(log, component, random, inputPrototype);
     }
     return null;
   }

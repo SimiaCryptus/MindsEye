@@ -203,17 +203,17 @@ public class BatchDerivativeTester implements ComponentTest {
     AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     NNLayer frozen = component.copy().freeze();
     GpuController.run(exe -> {
-      NNResult eval = frozen.eval(exe, Arrays.stream(inputPrototype).map((Tensor x) -> new NNResult(x) {
+      NNResult eval = frozen.eval(exe, new NNResult(new TensorArray(inputPrototype)) {
         @Override
         public void accumulate(DeltaSet buffer, TensorList data) {
           reachedInputFeedback.set(true);
         }
-        
+  
         @Override
         public boolean isAlive() {
           return true;
         }
-      }).<NNResult>toArray(i -> new NNResult[i]));
+      });
       DeltaSet<NNLayer> buffer = new DeltaSet();
       eval.accumulate(buffer, eval.getData().copy());
       List<Delta> deltas = component.state().stream().map(doubles -> {
@@ -239,17 +239,17 @@ public class BatchDerivativeTester implements ComponentTest {
     AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     NNLayer frozen = component.copy().setFrozen(false);
     GpuController.run(exe -> {
-      NNResult eval = frozen.eval(exe, Arrays.stream(inputPrototype).map((Tensor x) -> new NNResult(x) {
+      NNResult eval = frozen.eval(exe, new NNResult(new TensorArray(inputPrototype)) {
         @Override
         public void accumulate(DeltaSet buffer, TensorList data) {
           reachedInputFeedback.set(true);
         }
-        
+  
         @Override
         public boolean isAlive() {
           return true;
         }
-      }).<NNResult>toArray(i -> new NNResult[i]));
+      });
       DeltaSet<NNLayer> buffer = new DeltaSet();
       eval.accumulate(buffer, eval.getData());
       List<double[]> stateList = frozen.state();
@@ -296,7 +296,7 @@ public class BatchDerivativeTester implements ComponentTest {
           NNResult eval = component.eval(exe, copyInput);
           Tensor tensor = eval.getData().get(0);
           DeltaSet<NNLayer> deltaSet = new DeltaSet();
-          eval.accumulate(deltaSet, new TensorArray(data));
+          eval.accumulate(deltaSet, new TensorArray(eval.getData().stream().map(x->x.map(v->1)).toArray(i->new Tensor[i])));
           Delta<NNLayer> inputDelta = deltaSet.getMap().get(inputKey);
           if (null != inputDelta) result.accum(new Tensor(inputDelta.getDelta(), result.getDimensions()));
           return tensor;

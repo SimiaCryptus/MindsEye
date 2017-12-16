@@ -51,6 +51,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   protected ImgBandBiasLayer(JsonObject json) {
     super(json);
     this.bias = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
+    precision = Precision.valueOf(json.get("precision").getAsString());
     //assert Arrays.stream(this.bias).allMatch(Double::isFinite);
   }
   
@@ -77,6 +78,7 @@ public class ImgBandBiasLayer extends NNLayer implements LayerPrecision<ImgBandB
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(getBias()));
+    json.addProperty("precision",precision.name());
     return json;
   }
   

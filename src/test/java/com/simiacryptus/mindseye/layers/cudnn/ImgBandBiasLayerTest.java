@@ -42,7 +42,7 @@ public abstract class ImgBandBiasLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ImgBandBiasLayer(2).setPrecision(precision).addWeights(this::random);
   }
   

@@ -32,7 +32,7 @@ public class SumInputsLayerTest {
   public static class NNTest extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new SumInputsLayer();
     }
     
@@ -58,7 +58,7 @@ public class SumInputsLayerTest {
   public static class N1Test extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new SumInputsLayer();
     }
     

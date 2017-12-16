@@ -58,7 +58,7 @@ public class SimpleConvolutionLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return layer;
   }
   

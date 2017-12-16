@@ -17,14 +17,16 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
+import com.simiacryptus.mindseye.layers.cudnn.*;
+import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Img concat layer test.
+ * The type Convolution network test.
  */
-public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
+public abstract class Convolutions extends CudnnLayerTestBase {
   
   /**
    * The Precision.
@@ -32,30 +34,41 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Img concat layer test.
+   * Instantiates a new Convolution network test.
    *
    * @param precision the precision
    */
-  public SubsampleLayerTest(Precision precision) {
+  public Convolutions(Precision precision) {
     this.precision = precision;
   }
   
   @Override
   public NNLayer getLayer(int[][] inputSize) {
-    return new SubsampleLayer();
+    PipelineNetwork network = new PipelineNetwork(1);
+    network.add(new ConvolutionLayer(3, 3, 3, 3).setPrecision(precision).addWeights(this::random));
+    network.add(new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random));
+    network.add(new ActivationLayer(ActivationLayer.Mode.RELU).setPrecision(precision));
+    return network;
   }
   
   @Override
   public int[][] getInputDims() {
     return new int[][]{
-      {2, 2, 1}, {2, 2, 1}
+      {5, 5, 3}
+    };
+  }
+  
+  @Override
+  public int[][] getPerfDims() {
+    return new int[][]{
+      {100, 100, 3}
     };
   }
   
   /**
    * The type Double.
    */
-  public static class Double extends SubsampleLayerTest {
+  public static class Double extends Convolutions {
     /**
      * Instantiates a new Double.
      */
@@ -67,13 +80,19 @@ public abstract class SubsampleLayerTest extends CudnnLayerTestBase {
   /**
    * The type Float.
    */
-  public static class Float extends SubsampleLayerTest {
+  public static class Float extends Convolutions {
     /**
      * Instantiates a new Float.
      */
     public Float() {
       super(Precision.Float);
     }
+    
+    @Override
+    public SingleDerivativeTester getDerivativeTester() {
+      return new SingleDerivativeTester(1e-2, 1e-3);
+    }
+    
   }
   
   

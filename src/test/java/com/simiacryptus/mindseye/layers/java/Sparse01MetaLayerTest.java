@@ -35,7 +35,7 @@ public class Sparse01MetaLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new Sparse01MetaLayer();
   }
   

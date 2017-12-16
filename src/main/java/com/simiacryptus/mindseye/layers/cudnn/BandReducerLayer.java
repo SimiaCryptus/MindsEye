@@ -45,6 +45,7 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
   protected BandReducerLayer(JsonObject json) {
     super(json);
     mode = Arrays.stream(PoolingLayer.PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
+    precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
   /**
@@ -67,6 +68,7 @@ public class BandReducerLayer extends NNLayer implements LayerPrecision<BandRedu
   public JsonObject getJson() {
     JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
+    json.addProperty("precision",precision.name());
     return json;
   }
   

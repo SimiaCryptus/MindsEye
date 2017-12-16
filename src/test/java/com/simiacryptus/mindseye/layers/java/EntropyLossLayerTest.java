@@ -31,7 +31,7 @@ import com.simiacryptus.util.Util;
 public class EntropyLossLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new EntropyLossLayer();
   }
   
@@ -58,7 +58,7 @@ public class EntropyLossLayerTest extends LayerTestBase {
   public class ProbabilityTest extends LayerTestBase {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       PipelineNetwork network = new PipelineNetwork(2);
       network.add(new EntropyLossLayer(),
         network.add(new SoftmaxActivationLayer(), network.getInput(0)),

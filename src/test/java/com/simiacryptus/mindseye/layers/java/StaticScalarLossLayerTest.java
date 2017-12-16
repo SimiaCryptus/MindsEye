@@ -35,7 +35,7 @@ public class StaticScalarLossLayerTest extends LayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new StaticScalarLossLayer();
   }
   

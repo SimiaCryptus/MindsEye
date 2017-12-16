@@ -42,7 +42,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
   }
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new BinarySumLayer().setPrecision(precision);
   }
   
@@ -84,7 +84,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
     }
     
@@ -107,7 +107,7 @@ public abstract class BinarySumLayerTest extends CudnnLayerTestBase {
     }
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
     }
     

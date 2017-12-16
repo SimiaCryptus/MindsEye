@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 public class ConvolutionLayerTest extends LayerTestBase {
   
   @Override
-  public NNLayer getLayer() {
+  public NNLayer getLayer(int[][] inputSize) {
     return new ConvolutionLayer(3, 3, 2, 2, true).setWeights(this::random);
   }
   
@@ -52,7 +52,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   public static class UpsizeTest extends ConvolutionLayerTest {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new ConvolutionLayer(3, 3, 2, 3, false).setWeights(this::random);
     }
     
@@ -71,7 +71,7 @@ public class ConvolutionLayerTest extends LayerTestBase {
   public static class DownsizeTest extends ConvolutionLayerTest {
     
     @Override
-    public NNLayer getLayer() {
+    public NNLayer getLayer(int[][] inputSize) {
       return new ConvolutionLayer(3, 3, 7, 3, false).setWeights(this::random);
     }
     

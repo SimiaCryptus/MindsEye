@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -60,6 +61,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     this.kernel = Tensor.fromJson(json.get("filter"));
     this.strideX = json.get("strideX").getAsInt();
     this.strideY = json.get("strideY").getAsInt();
+    this.precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
   /**
@@ -133,6 +135,7 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     json.add("filter", kernel.toJson());
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
+    json.addProperty("precision",precision.name());
     return json;
   }
   
