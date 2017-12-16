@@ -1,38 +1,5 @@
 # StaticScalarLossLayer
 ## StaticScalarLossLayerTest
-Code from [SingleDerivativeTester.java:77](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/SingleDerivativeTester.java#L77) executed in 0.00 seconds: 
-```java
-    return test(component, inputPrototype);
-```
-Logging: 
-```
-    Inputs: [ 0.272 ]
-    Inputs Statistics: {meanExponent=-0.5654310959658012, negative=0, min=0.272, max=0.272, mean=0.272, count=1.0, positive=1, stdDev=0.0, zeros=0}
-    Output: [ 0.272 ]
-    Outputs Statistics: {meanExponent=-0.5654310959658012, negative=0, min=0.272, max=0.272, mean=0.272, count=1.0, positive=1, stdDev=0.0, zeros=0}
-    Feedback for input 0
-    Inputs Values: [ 0.272 ]
-    Value Statistics: {meanExponent=-0.5654310959658012, negative=0, min=0.272, max=0.272, mean=0.272, count=1.0, positive=1, stdDev=0.0, zeros=0}
-    Implemented Feedback: [ [ 1.0 ] ]
-    Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=1.0, count=1.0, positive=1, stdDev=0.0, zeros=0}
-    Measured Feedback: [ [ 0.9999999999998899 ] ]
-    Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.9999999999998899, count=1.0, positive=1, stdDev=0.0, zeros=0}
-    Feedback Error: [ [ -1.1013412404281553E-13 ] ]
-    Error Statistics: {meanExponent=-12.958078098036825, negative=1, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=-1.1013412404281553E-13, count=1.0, positive=0, stdDev=0.0, zeros=0}
-    Finite-Difference Derivative Accuracy:
-    absoluteTol: 1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (1#)
-    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)
-    
-```
-
-Returns: 
-
-```
-    ToleranceStatistics{absoluteTol=1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (1#), relativeTol=5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)}
-```
-
-
-
 ### Json Serialization
 Code from [JsonTest.java:36](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
 ```java
@@ -49,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer",
-      "id": "42d676a6-d0ce-461f-9ca2-1a75a5c5ed12",
+      "id": "d066ed51-0887-47b8-b62d-3d33712d24d5",
       "isFrozen": false,
-      "name": "StaticScalarLossLayer/42d676a6-d0ce-461f-9ca2-1a75a5c5ed12"
+      "name": "StaticScalarLossLayer/d066ed51-0887-47b8-b62d-3d33712d24d5"
     }
 ```
 
@@ -72,16 +39,67 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ 0.352 ]]
+    [[ 0.328 ]]
     --------------------
     Output: 
-    [ 0.352 ]
+    [ 0.328 ]
     --------------------
     Derivative: 
     [ 1.0 ]
 ```
 
 
+
+Code from [SingleDerivativeTester.java:77](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/SingleDerivativeTester.java#L77) executed in 0.00 seconds: 
+```java
+    return test(component, inputPrototype);
+```
+Logging: 
+```
+    Inputs: [ -0.688 ]
+    Inputs Statistics: {meanExponent=-0.16241156176448873, negative=1, min=-0.688, max=-0.688, mean=-0.688, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Output: [ 0.688 ]
+    Outputs Statistics: {meanExponent=-0.16241156176448873, negative=0, min=0.688, max=0.688, mean=0.688, count=1.0, positive=1, stdDev=0.0, zeros=0}
+    Feedback for input 0
+    Inputs Values: [ -0.688 ]
+    Value Statistics: {meanExponent=-0.16241156176448873, negative=1, min=-0.688, max=-0.688, mean=-0.688, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Implemented Feedback: [ [ -1.0 ] ]
+    Implemented Statistics: {meanExponent=0.0, negative=1, min=-1.0, max=-1.0, mean=-1.0, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Measured Feedback: [ [ -0.9999999999998899 ] ]
+    Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=1, min=-0.9999999999998899, max=-0.9999999999998899, mean=-0.9999999999998899, count=1.0, positive=0, stdDev=0.0, zeros=0}
+    Feedback Error: [ [ 1.1013412404281553E-13 ] ]
+    Error Statistics: {meanExponent=-12.958078098036825, negative=0, min=1.1013412404281553E-13, max=1.1013412404281553E-13, mean=1.1013412404281553E-13, count=1.0, positive=1, stdDev=0.0, zeros=0}
+    Finite-Difference Derivative Accuracy:
+    absoluteTol: 1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (1#)
+    relativeTol: 5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)
+    
+```
+
+Returns: 
+
+```
+    ToleranceStatistics{absoluteTol=1.1013e-13 +- 0.0000e+00 [1.1013e-13 - 1.1013e-13] (1#), relativeTol=5.5067e-14 +- 0.0000e+00 [5.5067e-14 - 5.5067e-14] (1#)}
+```
+
+
+
+### Performance
+Now we execute larger-scale runs to benchmark performance:
+
+Code from [PerformanceTester.java:66](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/PerformanceTester.java#L66) executed in 0.00 seconds: 
+```java
+    test(component, inputPrototype);
+```
+Logging: 
+```
+    100 batches
+    Input Dimensions:
+    	[1]
+    Performance:
+    	Evaluation performance: 0.000144s +- 0.000019s [0.000117s - 0.000174s]
+    	Learning performance: 0.000053s +- 0.000002s [0.000052s - 0.000055s]
+    
+```
 
 ### Input Learning
 In this test, we use a network to learn this target input, given it's pre-evaluated output:
@@ -94,14 +112,14 @@ Code from [LearningTester.java:127](../../../../../../../src/main/java/com/simia
 Returns: 
 
 ```
-    [ -0.088 ]
+    [ -0.092 ]
 ```
 
 
 
 First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.
 
-Code from [LearningTester.java:225](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L225) executed in 0.00 seconds: 
+Code from [LearningTester.java:300](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L300) executed in 0.00 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new QuadraticSearch())
@@ -131,14 +149,14 @@ Code from [LearningTester.java:144](../../../../../../../src/main/java/com/simia
 Returns: 
 
 ```
-    [ -0.088 ]
+    [ -0.092 ]
 ```
 
 
 
 Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.
 
-Code from [LearningTester.java:249](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L249) executed in 0.00 seconds: 
+Code from [LearningTester.java:324](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L324) executed in 0.00 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new ArmijoWolfeSearch())
@@ -168,36 +186,18 @@ Code from [LearningTester.java:154](../../../../../../../src/main/java/com/simia
 Returns: 
 
 ```
-    [ -0.088 ]
+    [ -0.092 ]
 ```
 
 
 
-Code from [LearningTester.java:95](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L95) executed in 0.00 seconds: 
+Code from [LearningTester.java:96](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L96) executed in 0.00 seconds: 
 ```java
     return TestUtil.compare(runs);
 ```
 
-Code from [LearningTester.java:98](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L98) executed in 0.00 seconds: 
+Code from [LearningTester.java:99](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L99) executed in 0.00 seconds: 
 ```java
     return TestUtil.compareTime(runs);
-```
-
-### Performance
-Now we execute larger-scale runs to benchmark performance:
-
-Code from [PerformanceTester.java:66](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/PerformanceTester.java#L66) executed in 0.00 seconds: 
-```java
-    test(component, inputPrototype);
-```
-Logging: 
-```
-    100 batches
-    Input Dimensions:
-    	[1]
-    Performance:
-    	Evaluation performance: 0.000150s +- 0.000023s [0.000119s - 0.000176s]
-    	Learning performance: 0.000146s +- 0.000023s [0.000105s - 0.000172s]
-    
 ```
 

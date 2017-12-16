@@ -1,0 +1,30 @@
+Inputs: [
+	[ [ -1.252, -1.792, -0.572 ] ]
+]
+Inputs Statistics: {meanExponent=0.03611278766451382, negative=3, min=-0.572, max=-0.572, mean=-1.2053333333333334, count=3.0, positive=0, stdDev=0.4991548412622636, zeros=0}
+Output: [
+	[ [ 0.0, 0.0, 0.0 ] ]
+]
+Outputs Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=3.0, positive=0, stdDev=0.0, zeros=3}
+Feedback for input 0
+Inputs Values: [
+	[ [ -1.252, -1.792, -0.572 ] ]
+]
+Value Statistics: {meanExponent=0.03611278766451382, negative=3, min=-0.572, max=-0.572, mean=-1.2053333333333334, count=3.0, positive=0, stdDev=0.4991548412622636, zeros=0}
+Implemented Feedback: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+Implemented Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+Measured Feedback: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+Measured Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+Feedback Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+Error Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+Learning Gradient for weight set 0
+Weights: [ -0.072, -0.112, -1.78 ]
+Implemented Gradient: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+Implemented Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+Measured Gradient: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+Measured Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+Gradient Error: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
+Error Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (18#)
+relativeTol: 0.0000e+00 +- 0.0000e+00 [Infinity - -Infinity] (0#)

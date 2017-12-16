@@ -1,58 +1,5 @@
 # ProductInputsLayer
 ## NNNTest
-### Batch Execution
-Code from [BatchingTester.java:66](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/BatchingTester.java#L66) executed in 0.00 seconds: 
-```java
-    return test(reference, inputPrototype);
-```
-
-Returns: 
-
-```
-    ToleranceStatistics{absoluteTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (120#), relativeTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (120#)}
-```
-
-
-
-Code from [SingleDerivativeTester.java:77](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/SingleDerivativeTester.java#L77) executed in 0.00 seconds: 
-```java
-    return test(component, inputPrototype);
-```
-Logging: 
-```
-    Inputs: [ -1.132, -1.032, 0.46 ],
-    [ -0.872, -1.108, 1.348 ],
-    [ -0.716, 1.364, -1.268 ]
-    Inputs Statistics: {meanExponent=-0.08990534805832691, negative=2, min=0.46, max=0.46, mean=-0.568, count=3.0, positive=1, stdDev=0.7280512802451943, zeros=0},
-    {meanExponent=0.038248712508093086, negative=2, min=1.348, max=1.348, mean=-0.21066666666666664, count=3.0, positive=1, stdDev=1.1063469417662597, zeros=0},
-    {meanExponent=0.030948882058009858, negative=2, min=-1.268, max=-1.268, mean=-0.20666666666666664, count=3.0, positive=1, stdDev=1.1332611741734069, zeros=0}
-    Output: [ -0.706766464, 1.5596739840000002, -0.7862614400000001 ]
-    Outputs Statistics: {meanExponent=-0.02070775349222397, negative=2, min=-0.7862614400000001, max=-0.7862614400000001, mean=0.022215360000000055, count=3.0, positive=1, stdDev=1.0876317171378342, zeros=0}
-    Feedback for input 0
-    Inputs Values: [ -1.132, -1.032, 0.46 ]
-    Value Statistics: {meanExponent=-0.08990534805832691, negative=2, min=0.46, max=0.46, mean=-0.568, count=3.0, positive=1, std
-```
-...[skipping 2661 bytes](etc/314.txt)...
-```
-    .05165663555023386, negative=0, min=0.6200800000000001, max=0.6200800000000001, mean=0.3056266666666667, count=9.0, positive=3, stdDev=0.45039442007990177, zeros=6}
-    Measured Feedback: [ [ 0.9871040000009046, 0.0, 0.0 ], [ 0.0, 1.1434560000012084, 0.0 ], [ 0.0, 0.0, 0.6200799999989126 ] ]
-    Measured Statistics: {meanExponent=-0.051656635550202064, negative=0, min=0.6200799999989126, max=0.6200799999989126, mean=0.3056266666667806, count=9.0, positive=3, stdDev=0.45039442008021935, zeros=6}
-    Feedback Error: [ [ 9.047207427670401E-13, 0.0, 0.0 ], [ 0.0, 1.2083667400020204E-12, 0.0 ], [ 0.0, 0.0, -1.0874634526203408E-12 ] ]
-    Error Statistics: {meanExponent=-11.97495733977683, negative=1, min=-1.0874634526203408E-12, max=-1.0874634526203408E-12, mean=1.1395822557207995E-13, count=9.0, positive=2, stdDev=6.095871341363553E-13, zeros=6}
-    Finite-Difference Derivative Accuracy:
-    absoluteTol: 3.0100e-13 +- 5.2044e-13 [0.0000e+00 - 1.9595e-12] (27#)
-    relativeTol: 4.8419e-13 +- 2.5716e-13 [4.1138e-14 - 8.7687e-13] (9#)
-    
-```
-
-Returns: 
-
-```
-    ToleranceStatistics{absoluteTol=3.0100e-13 +- 5.2044e-13 [0.0000e+00 - 1.9595e-12] (27#), relativeTol=4.8419e-13 +- 2.5716e-13 [4.1138e-14 - 8.7687e-13] (9#)}
-```
-
-
-
 ### Json Serialization
 Code from [JsonTest.java:36](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
 ```java
@@ -69,9 +16,9 @@ Returns:
 ```
     {
       "class": "com.simiacryptus.mindseye.layers.java.ProductInputsLayer",
-      "id": "d1687387-9ad7-43b4-8c7a-c879e292e9f1",
+      "id": "b02c2d65-c270-4013-8560-86cafcddb4a4",
       "isFrozen": false,
-      "name": "ProductInputsLayer/d1687387-9ad7-43b4-8c7a-c879e292e9f1"
+      "name": "ProductInputsLayer/b02c2d65-c270-4013-8560-86cafcddb4a4"
     }
 ```
 
@@ -92,20 +39,93 @@ Returns:
 ```
     --------------------
     Input: 
-    [[ -1.24, -1.444, -0.416 ],
-    [ 1.88, 0.012, 1.528 ],
-    [ -0.684, -1.1, -0.868 ]]
+    [[ -1.264, 1.512, -1.824 ],
+    [ -0.88, 0.452, 1.4 ],
+    [ 1.728, 1.996, -1.38 ]]
     --------------------
     Output: 
-    [ 1.5945407999999999, 0.019060800000000003, 0.5517424639999999 ]
+    [ 1.92208896, 1.364114304, 3.5239679999999995 ]
     --------------------
     Derivative: 
-    [ -1.28592, -0.013200000000000002, -1.326304 ],
-    [ 0.84816, 1.5884, 0.36108799999999996 ],
-    [ -2.3312, -0.017328, -0.635648 ]
+    [ -1.52064, 0.902192, -1.9319999999999997 ],
+    [ -2.184192, 3.017952, 2.51712 ],
+    [ 1.11232, 0.683424, -2.5536 ]
 ```
 
 
+
+### Batch Execution
+Code from [BatchingTester.java:66](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/BatchingTester.java#L66) executed in 0.00 seconds: 
+```java
+    return test(reference, inputPrototype);
+```
+
+Returns: 
+
+```
+    ToleranceStatistics{absoluteTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (120#), relativeTol=0.0000e+00 +- 0.0000e+00 [0.0000e+00 - 0.0000e+00] (120#)}
+```
+
+
+
+Code from [SingleDerivativeTester.java:77](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/SingleDerivativeTester.java#L77) executed in 0.00 seconds: 
+```java
+    return test(component, inputPrototype);
+```
+Logging: 
+```
+    Inputs: [ -1.384, 1.34, 0.448 ],
+    [ -0.392, -1.324, 1.328 ],
+    [ -1.104, 0.3, 0.284 ]
+    Inputs Statistics: {meanExponent=-0.02682703250543646, negative=1, min=0.448, max=0.448, mean=0.13466666666666674, count=3.0, positive=2, stdDev=1.133924551673915, zeros=0},
+    {meanExponent=-0.05387595761462096, negative=2, min=1.328, max=1.328, mean=-0.12933333333333338, count=3.0, positive=1, stdDev=1.0984902771025735, zeros=0},
+    {meanExponent=-0.34219711061337327, negative=1, min=0.284, max=0.284, mean=-0.17333333333333334, count=3.0, positive=2, stdDev=0.658113127728728, zeros=0}
+    Output: [ -0.5989509120000001, -0.532248, 0.168964096 ]
+    Outputs Statistics: {meanExponent=-0.4229001007334306, negative=2, min=0.168964096, max=0.168964096, mean=-0.3207449386666667, count=3.0, positive=1, stdDev=0.34734567181501763, zeros=0}
+    Feedback for input 0
+    Inputs Values: [ -1.384, 1.34, 0.448 ]
+    Value Statistics: {meanExponent=-0.02682703250543646, negative=1, min=0.448, max=0.448, mean=0.13466666666666674, count=3.0, positive=2, stdDev=1.
+```
+...[skipping 2588 bytes](etc/373.txt)...
+```
+    ics: {meanExponent=-0.08070299012005742, negative=1, min=0.594944, max=0.594944, mean=-0.07074311111111115, count=9.0, positive=2, stdDev=0.6455744564677682, zeros=6}
+    Measured Feedback: [ [ 0.5425280000004307, 0.0, 0.0 ], [ 0.0, -1.774159999999858, 0.0 ], [ 0.0, 0.0, 0.5949439999997086 ] ]
+    Measured Statistics: {meanExponent=-0.08070299012002499, negative=1, min=0.5949439999997086, max=0.5949439999997086, mean=-0.07074311111107986, count=9.0, positive=2, stdDev=0.6455744564677386, zeros=6}
+    Feedback Error: [ [ 4.306555112520982E-13, 0.0, 0.0 ], [ 0.0, 1.4210854715202004E-13, 0.0 ], [ 0.0, 0.0, -2.914335439641036E-13 ] ]
+    Error Statistics: {meanExponent=-12.582903417861038, negative=1, min=-2.914335439641036E-13, max=-2.914335439641036E-13, mean=3.125894604889052E-14, count=9.0, positive=2, stdDev=1.7694896430583032E-13, zeros=6}
+    Finite-Difference Derivative Accuracy:
+    absoluteTol: 1.0070e-13 +- 1.5885e-13 [0.0000e+00 - 4.7184e-13] (27#)
+    relativeTol: 3.6428e-13 +- 2.2328e-13 [4.0050e-14 - 7.4422e-13] (9#)
+    
+```
+
+Returns: 
+
+```
+    ToleranceStatistics{absoluteTol=1.0070e-13 +- 1.5885e-13 [0.0000e+00 - 4.7184e-13] (27#), relativeTol=3.6428e-13 +- 2.2328e-13 [4.0050e-14 - 7.4422e-13] (9#)}
+```
+
+
+
+### Performance
+Now we execute larger-scale runs to benchmark performance:
+
+Code from [PerformanceTester.java:66](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/PerformanceTester.java#L66) executed in 0.00 seconds: 
+```java
+    test(component, inputPrototype);
+```
+Logging: 
+```
+    100 batches
+    Input Dimensions:
+    	[3]
+    	[3]
+    	[3]
+    Performance:
+    	Evaluation performance: 0.000224s +- 0.000024s [0.000198s - 0.000269s]
+    	Learning performance: 0.000048s +- 0.000003s [0.000045s - 0.000052s]
+    
+```
 
 ### Input Learning
 In this test, we use a network to learn this target input, given it's pre-evaluated output:
@@ -118,16 +138,16 @@ Code from [LearningTester.java:127](../../../../../../../../src/main/java/com/si
 Returns: 
 
 ```
-    [ -1.432, -1.0, -1.856 ]
-    [ 0.568, 1.496, -0.116 ]
-    [ -0.324, -1.268, 0.904 ]
+    [ -0.712, -0.772, -1.14 ]
+    [ 0.704, 1.06, -0.296 ]
+    [ 1.0, 0.624, -0.72 ]
 ```
 
 
 
 First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.
 
-Code from [LearningTester.java:225](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L225) executed in 0.09 seconds: 
+Code from [LearningTester.java:300](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L300) executed in 0.05 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new QuadraticSearch())
@@ -141,40 +161,39 @@ Code from [LearningTester.java:225](../../../../../../../../src/main/java/com/si
 Logging: 
 ```
     Constructing line search parameters: GD
-    F(0.0) = LineSearchPoint{point=PointSample{avg=20.678290029217365}, derivative=-65916.4427144095}
-    New Minimum: 20.678290029217365 > 20.678288824848497
-    F(1.0E-10) = LineSearchPoint{point=PointSample{avg=20.678288824848497}, derivative=-65916.43497021617}, delta = -1.2043688677465525E-6
-    New Minimum: 20.678288824848497 > 20.678281598636925
-    F(7.000000000000001E-10) = LineSearchPoint{point=PointSample{avg=20.678281598636925}, derivative=-65916.38850507335}, delta = -8.430580439977575E-6
-    New Minimum: 20.678281598636925 > 20.678231015234573
-    F(4.900000000000001E-9) = LineSearchPoint{point=PointSample{avg=20.678231015234573}, derivative=-65916.06324990839}, delta = -5.90139827920666E-5
-    New Minimum: 20.678231015234573 > 20.677876935272753
-    F(3.430000000000001E-8) = LineSearchPoint{point=PointSample{avg=20.677876935272753}, derivative=-65913.78650464973}, delta = -4.1309394461208626E-4
-    New Minimum: 20.677876935272753 > 20.67539856440844
-    F(2.4010000000000004E-7) = LineSea
+    F(0.0) = LineSearchPoint{point=PointSample{avg=0.3435125424257679}, derivative=-0.7012859519294513}
+    New Minimum: 0.3435125424257679 > 0.34351254221212574
+    F(1.0E-10) = LineSearchPoint{point=PointSample{avg=0.34351254221212574}, derivative=-0.7012859512288783}, delta = -2.1364215951891197E-10
+    New Minimum: 0.34351254221212574 > 0.34351254093027167
+    F(7.000000000000001E-10) = LineSearchPoint{point=PointSample{avg=0.34351254093027167}, derivative=-0.701285947025437}, delta = -1.4954962268554084E-9
+    New Minimum: 0.34351254093027167 > 0.34351253195729387
+    F(4.900000000000001E-9) = LineSearchPoint{point=PointSample{avg=0.34351253195729387}, derivative=-0.7012859176013506}, delta = -1.0468474032077069E-8
+    New Minimum: 0.34351253195729387 > 0.34351246914645706
+    F(3.430000000000001E-8) = LineSearchPoint{point=PointSample{avg=0.34351246914645706}, derivative=-0.7012857116327808}, delta = -7.327931084155637E-8
+    New Minimum: 0.34351246914645706 > 0.34351202947084625
+    F(2.40100000
 ```
-...[skipping 116002 bytes](etc/315.txt)...
+...[skipping 73480 bytes](etc/374.txt)...
 ```
-     0.0
-    Left bracket at 2.0937281861520276E30
-    F(2.3743829836020546E30) = LineSearchPoint{point=PointSample{avg=2.28543686733952E-32}, derivative=-9.644000422344302E-95}, delta = 0.0
-    Left bracket at 2.3743829836020546E30
-    F(2.6506405425043616E30) = LineSearchPoint{point=PointSample{avg=2.28543686733952E-32}, derivative=-9.644000422344302E-95}, delta = 0.0
-    Left bracket at 2.6506405425043616E30
-    F(2.922569757839621E30) = LineSearchPoint{point=PointSample{avg=2.28543686733952E-32}, derivative=-9.644000422344302E-95}, delta = 0.0
-    Left bracket at 2.922569757839621E30
-    F(3.190238445156881E30) = LineSearchPoint{point=PointSample{avg=2.28543686733952E-32}, derivative=-9.644000422344302E-95}, delta = 0.0
-    Left bracket at 3.190238445156881E30
-    F(3.4537133574858535E30) = LineSearchPoint{point=PointSample{avg=2.28543686733952E-32}, derivative=-9.644000422344302E-95}, delta = 0.0
-    Loops = 12
-    Iteration 54 failed, aborting. Error: 2.28543686733952E-32 Total: 239706258095768.7500; Orientation: 0.0000; Line Search: 0.0045
+    3.487401231785014E31) = LineSearchPoint{point=PointSample{avg=4.108650548026103E-33}, derivative=-1.4796409219767935E-96}, delta = 0.0
+    Left bracket at 3.487401231785014E31
+    F(4.06863477041585E31) = LineSearchPoint{point=PointSample{avg=4.108650548026103E-33}, derivative=-1.4796409219767935E-96}, delta = 0.0
+    Left bracket at 4.06863477041585E31
+    F(4.359251539731268E31) = LineSearchPoint{point=PointSample{avg=4.108650548026103E-33}, derivative=-1.4796409219767935E-96}, delta = 0.0
+    Left bracket at 4.359251539731268E31
+    F(4.504559924388977E31) = LineSearchPoint{point=PointSample{avg=4.108650548026103E-33}, derivative=-1.4796409219767935E-96}, delta = 0.0
+    Left bracket at 4.504559924388977E31
+    F(4.57721411671783E31) = LineSearchPoint{point=PointSample{avg=4.108650548026103E-33}, derivative=1.4796409219767935E-96}, delta = 0.0
+    Right bracket at 4.57721411671783E31
+    Converged to left
+    Iteration 33 failed, aborting. Error: 4.108650548026103E-33 Total: 249840089623508.9000; Orientation: 0.0000; Line Search: 0.0015
     
 ```
 
 Returns: 
 
 ```
-    2.28543686733952E-32
+    4.108650548026103E-33
 ```
 
 
@@ -183,7 +202,7 @@ Training Converged
 
 Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.
 
-Code from [LearningTester.java:249](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L249) executed in 0.01 seconds: 
+Code from [LearningTester.java:324](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L324) executed in 0.01 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new ArmijoWolfeSearch())
@@ -198,42 +217,43 @@ Logging:
 ```
     LBFGS Accumulation History: 1 points
     Constructing line search parameters: GD
-    th(0)=20.678290029217365;dx=-65916.4427144095
-    Armijo: th(2.154434690031884)=8.805430128344409E15; dx=9.700035668353932E26 delta=-8.805430128344388E15
-    Armijo: th(1.077217345015942)=1.348010598009383E14; dx=1.8373318418816432E24 delta=-1.3480105980091762E14
-    Armijo: th(0.3590724483386473)=1.7027502345634152E11; dx=8.248493062729486E19 delta=-1.7027502343566324E11
-    Armijo: th(0.08976811208466183)=2.82632822970269E7; dx=1.7639361910551216E14 delta=-2.826326161873687E7
-    Armijo: th(0.017953622416932366)=130.51529600067897; dx=1713116.779208492 delta=-109.83700597146161
-    New Minimum: 20.678290029217365 > 5.639178189886898
-    END: th(0.002992270402822061)=5.639178189886898; dx=-1668.4304390221155 delta=15.039111839330467
-    Iteration 1 complete. Error: 5.639178189886898 Total: 239706266084852.7500; Orientation: 0.0001; Line Search: 0.0014
+    th(0)=0.3435125424257679;dx=-0.7012859519294513
+    New Minimum: 0.3435125424257679 > 0.22787009499235764
+    WOLF (strong): th(2.154434690031884)=0.22787009499235764; dx=0.37265828399944795 delta=0.11564244743341026
+    New Minimum: 0.22787009499235764 > 0.09960598836817885
+    WOLF (strong): th(1.077217345015942)=0.09960598836817885; dx=0.08630839703570262 delta=0.24390655405758904
+    New Minimum: 0.09960598836817885 > 0.024894364532454583
+    END: th(0.3590724483386473)=0.024894364532454583; dx=-6.279721631185651E-4 delta=0.3186181778933133
+    Iteration 1 complete. Error: 0.024894364532454583 Total: 249840093954040.9000; Orientation: 0.0001; Line Search: 0.0007
     LBFGS Accumulation History: 1 points
-    th(0)=5.639178189886898;dx=-629.2135296751978
-    New Minimum: 5.639
+    th(0)=0.024894364532454583;dx=-7.911485609204959E-5
+    New Minimum: 0.024894364532454583 > 0.02293412623841261
+    END: th(0.7735981389354633)=0.02293412623841261; dx=-6.77448537871435E-5 delta=0.001960238294041971
+    Iteration 2 complete. Error: 0.0229341262
 ```
-...[skipping 6620 bytes](etc/316.txt)...
+...[skipping 3845 bytes](etc/375.txt)...
 ```
-     1 points
-    th(0)=7.773783605623918E-5;dx=-1.878436931655977E-12
-    New Minimum: 7.773783605623918E-5 > 3.565428414327586E-5
-    END: th(3223.3255788977654)=3.565428414327586E-5; dx=-5.817905139819706E-13 delta=4.208355191296332E-5
-    Iteration 20 complete. Error: 3.565428414327586E-5 Total: 239706274665551.7200; Orientation: 0.0000; Line Search: 0.0002
+    oints
+    th(0)=6.257276176685273E-5;dx=-6.773326078593263E-13
+    New Minimum: 6.257276176685273E-5 > 2.9166993011727623E-5
+    END: th(3590.7244833864747)=2.9166993011727623E-5; dx=-2.1625342622468812E-13 delta=3.3405768755125106E-5
+    Iteration 13 complete. Error: 2.9166993011727623E-5 Total: 249840098192239.9000; Orientation: 0.0000; Line Search: 0.0002
     LBFGS Accumulation History: 1 points
-    th(0)=3.565428414327586E-5;dx=-1.8019683803988835E-13
-    New Minimum: 3.565428414327586E-5 > 1.6415932481117212E-5
-    END: th(6944.44444444445)=1.6415932481117212E-5; dx=-5.61928779588966E-14 delta=1.9238351662158646E-5
-    Iteration 21 complete. Error: 1.6415932481117212E-5 Total: 239706275089599.7200; Orientation: 0.0000; Line Search: 0.0003
+    th(0)=2.9166993011727623E-5;dx=-6.9047751467508E-14
+    New Minimum: 2.9166993011727623E-5 > 1.3578474047268456E-5
+    END: th(7735.981389354636)=1.3578474047268456E-5; dx=-2.1982663011735557E-14 delta=1.558851896445917E-5
+    Iteration 14 complete. Error: 1.3578474047268456E-5 Total: 249840098498305.9000; Orientation: 0.0000; Line Search: 0.0002
     LBFGS Accumulation History: 1 points
-    th(0)=1.6415932481117212E-5;dx=-1.7523424033351896E-14
-    MAX ALPHA: th(0)=1.6415932481117212E-5;th'(0)=-1.7523424033351896E-14;
-    Iteration 22 failed, aborting. Error: 1.6415932481117212E-5 Total: 239706275466341.7200; Orientation: 0.0000; Line Search: 0.0002
+    th(0)=1.3578474047268456E-5;dx=-6.998791420181917E-15
+    MAX ALPHA: th(0)=1.3578474047268456E-5;th'(0)=-6.998791420181917E-15;
+    Iteration 15 failed, aborting. Error: 1.3578474047268456E-5 Total: 249840098791833.9000; Orientation: 0.0000; Line Search: 0.0002
     
 ```
 
 Returns: 
 
 ```
-    1.6415932481117212E-5
+    1.3578474047268456E-5
 ```
 
 
@@ -248,52 +268,32 @@ Code from [LearningTester.java:154](../../../../../../../../src/main/java/com/si
 Returns: 
 
 ```
-    [ 0.6375077235159358, 1.2373973409020225, 0.5745837964554902 ]
-    [ 1.496, 0.568, -0.116 ]
-    [ 0.904, -1.268, -0.324 ]
+    [ -0.7961321290909312, -0.7975298538297039, -0.6276140647624614 ]
+    [ 1.06, 0.704, -0.296 ]
+    [ -0.72, 1.0, 0.624 ]
 ```
 
 
 
-Code from [LearningTester.java:95](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L95) executed in 0.00 seconds: 
+Code from [LearningTester.java:96](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L96) executed in 0.00 seconds: 
 ```java
     return TestUtil.compare(runs);
 ```
 
 Returns: 
 
-![Result](etc/test.223.png)
+![Result](etc/test.219.png)
 
 
 
-Code from [LearningTester.java:98](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L98) executed in 0.00 seconds: 
+Code from [LearningTester.java:99](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L99) executed in 0.00 seconds: 
 ```java
     return TestUtil.compareTime(runs);
 ```
 
 Returns: 
 
-![Result](etc/test.224.png)
+![Result](etc/test.220.png)
 
 
-
-### Performance
-Now we execute larger-scale runs to benchmark performance:
-
-Code from [PerformanceTester.java:66](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/PerformanceTester.java#L66) executed in 0.01 seconds: 
-```java
-    test(component, inputPrototype);
-```
-Logging: 
-```
-    100 batches
-    Input Dimensions:
-    	[3]
-    	[3]
-    	[3]
-    Performance:
-    	Evaluation performance: 0.000296s +- 0.000078s [0.000195s - 0.000436s]
-    	Learning performance: 0.000133s +- 0.000049s [0.000085s - 0.000217s]
-    
-```
 

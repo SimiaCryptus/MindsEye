@@ -1,0 +1,31 @@
+Inputs: [ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ],
+[ 1.696, 1.188, 0.82 ]
+Inputs Statistics: {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+{meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0}
+Output: [ 1.696, 1.188, 0.82 ]
+Outputs Statistics: {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0}
+Feedback for input 0
+Inputs Values: [ 1.696, 1.188, 0.82 ]
+Value Statistics: {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0}
+Implemented Feedback: [ [ 1.0, 1.0, 1.0 ], [ 1.0, 1.0, 1.0 ], [ 1.0, 1.0, 1.0 ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=1.0, count=9.0, positive=9, stdDev=0.0, zeros=0}
+Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
+Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.3333333333332966, count=9.0, positive=3, stdDev=0.4714045207909798, zeros=6}
+Feedback Error: [ [ -1.1013412404281553E-13, -1.0, -1.0 ], [ -1.0, -1.1013412404281553E-13, -1.0 ], [ -1.0, -1.0, -1.1013412404281553E-13 ] ]
+Error Statistics: {meanExponent=-4.319359366012275, negative=9, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=-0.6666666666667034, count=9.0, positive=0, stdDev=0.4714045207909797, zeros=0}

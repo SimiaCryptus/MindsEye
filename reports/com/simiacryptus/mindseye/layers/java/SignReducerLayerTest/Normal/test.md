@@ -3,7 +3,7 @@
 ### Network Diagram
 This is a network with the following layout:
 
-Code from [StandardLayerTests.java:72](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/StandardLayerTests.java#L72) executed in 0.31 seconds: 
+Code from [StandardLayerTests.java:72](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/StandardLayerTests.java#L72) executed in 0.28 seconds: 
 ```java
     return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
       .height(400).width(600).render(Format.PNG).toImage();
@@ -11,7 +11,105 @@ Code from [StandardLayerTests.java:72](../../../../../../../../src/main/java/com
 
 Returns: 
 
-![Result](etc/test.233.png)
+![Result](etc/test.231.png)
+
+
+
+### Json Serialization
+Code from [JsonTest.java:36](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
+```java
+    JsonObject json = layer.getJson();
+    NNLayer echo = NNLayer.fromJson(json);
+    if ((echo == null)) throw new AssertionError("Failed to deserialize");
+    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
+    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
+    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+```
+
+Returns: 
+
+```
+    {
+      "class": "com.simiacryptus.mindseye.layers.java.SignReducerLayer",
+      "id": "a9c7f698-bd3e-4bbc-ad46-c07081c01ec9",
+      "isFrozen": false,
+      "name": "SignReducerLayer/a9c7f698-bd3e-4bbc-ad46-c07081c01ec9",
+      "inputs": [
+        "d783ffe6-3136-493a-8883-298170c809ef"
+      ],
+      "nodes": {
+        "7b21383b-da8e-4e55-9d91-95e7911fce12": "6734439c-b209-4875-b28b-b12da1866a03",
+        "42aeb826-d8bc-4367-bc57-5b9b94423505": "07b8d50a-5dd7-482e-a5e4-9951937c2ef6",
+        "9201c01d-0d91-400b-a205-70a1fabbdfed": "23fa4ddd-82ea-4279-95d7-508d1613a621",
+        "8803c656-0c42-4569-a812-fa5b0e019bab": "5698449d-e7dd-45d2-89df-a1ea6dd292fa",
+        "821abfec-1642-4779-8337-8d4f29b051d2": "6f0c120b-aa60-46e5-80bd-bc12a5a6ec99",
+        "cac2413c-8be5-43dd-bd02-7fe93a845d17": "f9d7030f-20d6-4055-925f-d882c0a7b376",
+        "2dbc43c4-6194-4efa-b848-8a259cc05d91": "efa02b68-4372-4134-b83a-856b6fa3ab5c",
+        "0dae9749-657e-4fe8-9253-aef300f9e07c": "406032c8-2bcc-4537-b75c-73e9b4db3e0b",
+        "5518b057-b6d2-457f-87bb-3ea9ff7d9806": "a32c510a-a5e9-49e0-ae2c-d
+```
+...[skipping 3148 bytes](etc/391.txt)...
+```
+    367-bc57-5b9b94423505": [
+          "d783ffe6-3136-493a-8883-298170c809ef"
+        ],
+        "9201c01d-0d91-400b-a205-70a1fabbdfed": [
+          "42aeb826-d8bc-4367-bc57-5b9b94423505"
+        ],
+        "8803c656-0c42-4569-a812-fa5b0e019bab": [
+          "7b21383b-da8e-4e55-9d91-95e7911fce12"
+        ],
+        "821abfec-1642-4779-8337-8d4f29b051d2": [
+          "8803c656-0c42-4569-a812-fa5b0e019bab"
+        ],
+        "cac2413c-8be5-43dd-bd02-7fe93a845d17": [
+          "9201c01d-0d91-400b-a205-70a1fabbdfed",
+          "821abfec-1642-4779-8337-8d4f29b051d2"
+        ],
+        "2dbc43c4-6194-4efa-b848-8a259cc05d91": [
+          "cac2413c-8be5-43dd-bd02-7fe93a845d17"
+        ],
+        "0dae9749-657e-4fe8-9253-aef300f9e07c": [
+          "2dbc43c4-6194-4efa-b848-8a259cc05d91"
+        ],
+        "5518b057-b6d2-457f-87bb-3ea9ff7d9806": [
+          "7b21383b-da8e-4e55-9d91-95e7911fce12",
+          "0dae9749-657e-4fe8-9253-aef300f9e07c"
+        ],
+        "332189c8-0486-4dd8-a540-d9069a9b6d84": [
+          "5518b057-b6d2-457f-87bb-3ea9ff7d9806"
+        ]
+      },
+      "labels": {},
+      "head": "332189c8-0486-4dd8-a540-d9069a9b6d84"
+    }
+```
+
+
+
+### Example Input/Output Pair
+Code from [ReferenceIO.java:68](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/ReferenceIO.java#L68) executed in 0.00 seconds: 
+```java
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+      eval.getOutput().prettyPrint(),
+      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+```
+
+Returns: 
+
+```
+    --------------------
+    Input: 
+    [[ -1.236, 1.62, -0.384 ]]
+    --------------------
+    Output: 
+    [ 0.5 ]
+    --------------------
+    Derivative: 
+    [ 0.06960938205632516, 0.06960938205632516, 0.06960938205632516 ]
+```
 
 
 
@@ -35,136 +133,128 @@ Code from [SingleDerivativeTester.java:77](../../../../../../../../src/main/java
 ```
 Logging: 
 ```
-    Inputs: [ 1.704, 0.676, -1.836 ]
-    Inputs Statistics: {meanExponent=0.10842965441251362, negative=1, min=-1.836, max=-1.836, mean=0.18133333333333326, count=3.0, positive=2, stdDev=1.4869255379996524, zeros=0}
-    Output: [ 0.5304502354229002 ]
-    Outputs Statistics: {meanExponent=-0.2753553535062643, negative=0, min=0.5304502354229002, max=0.5304502354229002, mean=0.5304502354229002, count=1.0, positive=1, stdDev=0.0, zeros=0}
+    Inputs: [ 1.792, 0.672, -0.436 ]
+    Inputs Statistics: {meanExponent=-0.09326874411716075, negative=1, min=-0.436, max=-0.436, mean=0.676, count=3.0, positive=2, stdDev=0.909581588790509, zeros=0}
+    Output: [ 0.6776949624585066 ]
+    Outputs Statistics: {meanExponent=-0.1689657426093536, negative=0, min=0.6776949624585066, max=0.6776949624585066, mean=0.6776949624585066, count=1.0, positive=1, stdDev=0.0, zeros=0}
     Feedback for input 0
-    Inputs Values: [ 1.704, 0.676, -1.836 ]
-    Value Statistics: {meanExponent=0.10842965441251362, negative=1, min=-1.836, max=-1.836, mean=0.18133333333333326, count=3.0, positive=2, stdDev=1.4869255379996524, zeros=0}
-    Implemented Feedback: [ [ 0.04886318997256545 ], [ 0.05357088279062453 ], [ 0.06507450570790507 ] ]
-    Implemented Statistics: {meanExponent=-1.2562261676460773, negative=0, min=0.06507450570790507, max=0.06507450570790507, mean=0.05583619282369836, count=3.0, positive=3, stdDev=0.00680932750605986, zeros=0}
-    Measured Feedback: [ [ 0.04886196646292085 ], [ 0.
+    Inputs Values: [ 1.792, 0.672, -0.436 ]
+    Value Statistics: {meanExponent=-0.09326874411716075, negative=1, min=-0.436, max=-0.436, mean=0.676, count=3.0, positive=2, stdDev=0.909581588790509, zeros=0}
+    Implemented Feedback: [ [ 0.007055335245331543 ], [ 0.08030739342036736 ], [ 0.15277460811495636 ] ]
+    Implemented Statistics: {meanExponent=-1.3542252122832348, negative=0, min=0.15277460811495636, max=0.15277460811495636, mean=0.08004577892688508, count=3.0, positive=3, stdDev=0.059489931658057035, zeros=0}
+    Measured Feedback: [ [ 0.0070544748553835745 ], [ 0.08030470150854896 ], [ 0
 ```
-...[skipping 650 bytes](etc/329.txt)...
+...[skipping 602 bytes](etc/392.txt)...
 ```
-    87155995543631E-4 ], [ -0.006869201582771027 ] ]
-    Implemented Statistics: {meanExponent=-2.9046160937039325, negative=2, min=-0.006869201582771027, max=-0.006869201582771027, mean=-0.0035475365713632315, count=2.0, positive=0, stdDev=0.0033216650114077954, zeros=0}
-    Measured Gradient: [ [ -2.2587130943385603E-4 ], [ -0.0068689691501422345 ] ]
-    Measured Statistics: {meanExponent=-2.904623682267488, negative=2, min=-0.0068689691501422345, max=-0.0068689691501422345, mean=-0.0035474202297880453, count=2.0, positive=0, stdDev=0.0033215489203541892, zeros=0}
-    Gradient Error: [ [ 2.505215802872402E-10 ], [ 2.3243262879234922E-7 ] ]
-    Error Statistics: {meanExponent=-8.117428881683622, negative=0, min=2.3243262879234922E-7, max=2.3243262879234922E-7, mean=1.1634157518631823E-7, count=2.0, positive=2, stdDev=1.1609105360603099E-7, zeros=0}
+    ented Gradient: [ [ -0.04483182929008282 ], [ -0.09810543505585155 ] ]
+    Implemented Statistics: {meanExponent=-1.178360236032337, negative=2, min=-0.09810543505585155, max=-0.09810543505585155, mean=-0.07146863217296719, count=2.0, positive=0, stdDev=0.02663680288288435, zeros=0}
+    Measured Gradient: [ [ -0.044830135675910654 ], [ -0.09809732533061499 ] ]
+    Measured Statistics: {meanExponent=-1.1783863902323117, negative=2, min=-0.09809732533061499, max=-0.09809732533061499, mean=-0.07146373050326282, count=2.0, positive=0, stdDev=0.02663359482735218, zeros=0}
+    Gradient Error: [ [ 1.6936141721685116E-6 ], [ 8.109725236557508E-6 ] ]
+    Error Statistics: {meanExponent=-5.431089690275625, negative=0, min=8.109725236557508E-6, max=8.109725236557508E-6, mean=4.90166970436301E-6, count=2.0, positive=2, stdDev=3.2080555321944986E-6, zeros=0}
     Finite-Difference Derivative Accuracy:
-    absoluteTol: 7.9007e-07 +- 6.9763e-07 [2.5052e-10 - 1.9153e-06] (5#)
-    relativeTol: 1.0022e-05 +- 6.1125e-06 [5.5457e-07 - 1.6919e-05] (5#)
+    absoluteTol: 3.5501e-06 +- 2.5660e-06 [8.6039e-07 - 8.1097e-06] (5#)
+    relativeTol: 3.0469e-05 +- 1.8053e-05 [1.4384e-05 - 6.0978e-05] (5#)
     
 ```
 
 Returns: 
 
 ```
-    ToleranceStatistics{absoluteTol=7.9007e-07 +- 6.9763e-07 [2.5052e-10 - 1.9153e-06] (5#), relativeTol=1.0022e-05 +- 6.1125e-06 [5.5457e-07 - 1.6919e-05] (5#)}
+    ToleranceStatistics{absoluteTol=3.5501e-06 +- 2.5660e-06 [8.6039e-07 - 8.1097e-06] (5#), relativeTol=3.0469e-05 +- 1.8053e-05 [1.4384e-05 - 6.0978e-05] (5#)}
 ```
 
 
 
-### Json Serialization
-Code from [JsonTest.java:36](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
+### Performance
+Adding performance wrappers
+
+Code from [TestUtil.java:302](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L302) executed in 0.00 seconds: 
 ```java
-    JsonObject json = layer.getJson();
-    NNLayer echo = NNLayer.fromJson(json);
-    if ((echo == null)) throw new AssertionError("Failed to deserialize");
-    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
-    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
-    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+    network.visitNodes(node -> {
+      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
+        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
+      }
+      else {
+        ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);
+      }
+    });
 ```
 
-Returns: 
+Now we execute larger-scale runs to benchmark performance:
 
-```
-    {
-      "class": "com.simiacryptus.mindseye.layers.java.SignReducerLayer",
-      "id": "8d361cb8-24ba-4638-8a79-56c61763f5ae",
-      "isFrozen": false,
-      "name": "SignReducerLayer/8d361cb8-24ba-4638-8a79-56c61763f5ae",
-      "inputs": [
-        "d1bdf82f-cb20-4669-b9b6-fc5e3de0edbf"
-      ],
-      "nodes": {
-        "d35a5587-9d14-462a-ba20-fd417ee0b4e2": "6d5b8dea-c3df-4fcb-ab3d-600bd2018eea",
-        "0ede591d-a006-452c-832e-fe86a758df4e": "15547356-89ad-407d-8920-de691d39e5d4",
-        "cd378654-2c6d-47f8-a661-e732d3348c94": "28da4fc7-980f-4d70-a19d-a3a34609b027",
-        "8a376e27-ce1c-4ef8-86e2-900591f9e2c7": "8aa0affb-7c73-42bf-ab65-35fdff90931e",
-        "3dbb639a-9d48-4be9-adf3-a9eeba41148b": "4a6f7b81-1d46-4435-8372-613a09bca236",
-        "21aff775-0096-4d8d-845a-672fc398be25": "933dcfbe-6bac-47ed-9ecf-d95f35a49ec6",
-        "f1dbc2b9-62b9-4cd0-95a9-357c145f18bc": "82a83719-f15a-4a47-a3f1-c75151697def",
-        "0e43de7b-6d39-4686-9fe6-dce8a3bba2fb": "1295767c-2bbf-4610-9d9c-1300e22e91b7",
-        "0ba9a7c0-9bfa-47ff-990a-7c9803b37e70": "e9ba4bc4-fc81-4a2e-adb9-e
-```
-...[skipping 3148 bytes](etc/330.txt)...
-```
-    52c-832e-fe86a758df4e": [
-          "d1bdf82f-cb20-4669-b9b6-fc5e3de0edbf"
-        ],
-        "cd378654-2c6d-47f8-a661-e732d3348c94": [
-          "0ede591d-a006-452c-832e-fe86a758df4e"
-        ],
-        "8a376e27-ce1c-4ef8-86e2-900591f9e2c7": [
-          "d35a5587-9d14-462a-ba20-fd417ee0b4e2"
-        ],
-        "3dbb639a-9d48-4be9-adf3-a9eeba41148b": [
-          "8a376e27-ce1c-4ef8-86e2-900591f9e2c7"
-        ],
-        "21aff775-0096-4d8d-845a-672fc398be25": [
-          "cd378654-2c6d-47f8-a661-e732d3348c94",
-          "3dbb639a-9d48-4be9-adf3-a9eeba41148b"
-        ],
-        "f1dbc2b9-62b9-4cd0-95a9-357c145f18bc": [
-          "21aff775-0096-4d8d-845a-672fc398be25"
-        ],
-        "0e43de7b-6d39-4686-9fe6-dce8a3bba2fb": [
-          "f1dbc2b9-62b9-4cd0-95a9-357c145f18bc"
-        ],
-        "0ba9a7c0-9bfa-47ff-990a-7c9803b37e70": [
-          "d35a5587-9d14-462a-ba20-fd417ee0b4e2",
-          "0e43de7b-6d39-4686-9fe6-dce8a3bba2fb"
-        ],
-        "0321af4a-8dd8-4dd6-be40-0264541eb38d": [
-          "0ba9a7c0-9bfa-47ff-990a-7c9803b37e70"
-        ]
-      },
-      "labels": {},
-      "head": "0321af4a-8dd8-4dd6-be40-0264541eb38d"
-    }
-```
-
-
-
-### Example Input/Output Pair
-Code from [ReferenceIO.java:68](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/ReferenceIO.java#L68) executed in 0.00 seconds: 
+Code from [PerformanceTester.java:66](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/PerformanceTester.java#L66) executed in 0.01 seconds: 
 ```java
-    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
-    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
-      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-      eval.getOutput().prettyPrint(),
-      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+    test(component, inputPrototype);
+```
+Logging: 
+```
+    100 batches
+    Input Dimensions:
+    	[3]
+    Performance:
+    	Evaluation performance: 0.001216s +- 0.000188s [0.001037s - 0.001530s]
+    	Learning performance: 0.000513s +- 0.000057s [0.000455s - 0.000613s]
+    
 ```
 
-Returns: 
+Per-layer Performance Metrics:
 
+Code from [TestUtil.java:267](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L267) executed in 0.00 seconds: 
+```java
+    Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
+    network.visitNodes(node -> {
+      if ((node.getLayer() instanceof MonitoringWrapperLayer)) {
+        MonitoringWrapperLayer layer = node.getLayer();
+        metrics.put(layer.getInner(), layer);
+      }
+    });
+    System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+      PercentileStatistics performance = e.getValue().getForwardPerformance();
+      return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+    }).reduce((a, b) -> a + "\n\t" + b));
+    System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
+      PercentileStatistics performance = e.getValue().getBackwardPerformance();
+      return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
+    }).reduce((a, b) -> a + "\n\t" + b));
 ```
-    --------------------
-    Input: 
-    [[ -0.08, 0.824, 0.208 ]]
-    --------------------
-    Output: 
-    [ 0.6987985759516199 ]
-    --------------------
-    Derivative: 
-    [ 0.35107407634102444, -0.024344858415059623, 0.2314715838523605 ]
+Logging: 
+```
+    Forward Performance: 
+    	Optional[SqActivationLayer/a7669a2c-ad63-4fb2-9b78-3f30739a4c69 -> 0.000102s +- 0.000039s (11.0)
+    	SqActivationLayer/cf554490-7c01-48e8-bd26-c69f498fa13f -> 0.000106s +- 0.000040s (11.0)
+    	AvgReducerLayer/15b7da2b-9b04-46a2-ab28-b684da34ee07 -> 0.000077s +- 0.000027s (11.0)
+    	LinearActivationLayer/1a0901b0-0b1b-446a-a0e2-0d970ad5bf7e -> 0.000035s +- 0.000015s (11.0)
+    	ProductInputsLayer/50a3282b-a929-46e7-8d2e-37d4868e9784 -> 0.000082s +- 0.000029s (11.0)
+    	NthPowerActivationLayer/dfae92fd-dd29-476e-97aa-fd8fe267a75e -> 0.000115s +- 0.000040s (11.0)
+    	SigmoidActivationLayer/a1a6d1e8-ac61-4086-8424-37444f3b788e -> 0.000106s +- 0.000037s (11.0)
+    	NthPowerActivationLayer/72e0588c-eeb3-4076-8cd9-1176c9ae6105 -> 0.000114s +- 0.000036s (11.0)
+    	AvgReducerLayer/a2b49c78-c20e-4409-bab2-9d383c44de2b -> 0.000082s +- 0.000031s (11.0)
+    	SumInputsLayer/edb7f4da-08bc-4c35-a5ca-c1c2f998b41b -> 0.000126s +- 0.000052s (11.0)]
+    Backward Performance: 
+    	Optional[SqActivationLayer/a7669a2c-ad63-4fb2-9b78-3f30739a4c69 -> 0.000001s +- 0.000000s (1.0)
+    	SqActivationLayer/cf554490-7c01-48e8-bd26-c69f498fa13f -> 0.000002s +- 0.000000s (1.0)
+    	AvgReducerLayer/15b7da2b-9b04-46a2-ab28-b684da34ee07 -> 0.000006s +- 0.000000s (1.0)
+    	LinearActivationLayer/1a0901b0-0b1b-446a-a0e2-0d970ad5bf7e -> 0.000001s +- 0.000002s (6.0)
+    	ProductInputsLayer/50a3282b-a929-46e7-8d2e-37d4868e9784 -> 0.000009s +- 0.000019s (6.0)
+    	NthPowerActivationLayer/dfae92fd-dd29-476e-97aa-fd8fe267a75e -> 0.000003s +- 0.000005s (6.0)
+    	SigmoidActivationLayer/a1a6d1e8-ac61-4086-8424-37444f3b788e -> 0.000004s +- 0.000007s (6.0)
+    	NthPowerActivationLayer/72e0588c-eeb3-4076-8cd9-1176c9ae6105 -> 0.000003s +- 0.000005s (6.0)
+    	AvgReducerLayer/a2b49c78-c20e-4409-bab2-9d383c44de2b -> 0.000003s +- 0.000000s (1.0)
+    	SumInputsLayer/edb7f4da-08bc-4c35-a5ca-c1c2f998b41b -> 0.000005s +- 0.000011s (6.0)]
+    
 ```
 
+Removing performance wrappers
 
+Code from [TestUtil.java:285](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L285) executed in 0.00 seconds: 
+```java
+    network.visitNodes(node -> {
+      if (node.getLayer() instanceof MonitoringWrapperLayer) {
+        node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
+      }
+    });
+```
 
 ### Input Learning
 In this test, we use a network to learn this target input, given it's pre-evaluated output:
@@ -177,14 +267,14 @@ Code from [LearningTester.java:127](../../../../../../../../src/main/java/com/si
 Returns: 
 
 ```
-    [ 0.412, 0.944, -0.956 ]
+    [ 1.752, 0.644, 0.08 ]
 ```
 
 
 
 First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.
 
-Code from [LearningTester.java:225](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L225) executed in 0.00 seconds: 
+Code from [LearningTester.java:300](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L300) executed in 0.00 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new QuadraticSearch())
@@ -214,14 +304,14 @@ Code from [LearningTester.java:144](../../../../../../../../src/main/java/com/si
 Returns: 
 
 ```
-    [ 0.412, -0.956, 0.944 ]
+    [ 1.752, 0.644, 0.08 ]
 ```
 
 
 
 Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.
 
-Code from [LearningTester.java:249](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L249) executed in 0.00 seconds: 
+Code from [LearningTester.java:324](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L324) executed in 0.00 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new ArmijoWolfeSearch())
@@ -251,17 +341,17 @@ Code from [LearningTester.java:154](../../../../../../../../src/main/java/com/si
 Returns: 
 
 ```
-    [ 0.412, -0.956, 0.944 ]
+    [ 1.752, 0.644, 0.08 ]
 ```
 
 
 
-Code from [LearningTester.java:95](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L95) executed in 0.00 seconds: 
+Code from [LearningTester.java:96](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L96) executed in 0.00 seconds: 
 ```java
     return TestUtil.compare(runs);
 ```
 
-Code from [LearningTester.java:98](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L98) executed in 0.00 seconds: 
+Code from [LearningTester.java:99](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L99) executed in 0.00 seconds: 
 ```java
     return TestUtil.compareTime(runs);
 ```
@@ -277,14 +367,14 @@ Code from [LearningTester.java:176](../../../../../../../../src/main/java/com/si
 Returns: 
 
 ```
-    [-1.0, 0.0]
+    [0.0, -1.0]
 ```
 
 
 
 First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.
 
-Code from [LearningTester.java:225](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L225) executed in 0.00 seconds: 
+Code from [LearningTester.java:300](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L300) executed in 0.00 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new QuadraticSearch())
@@ -295,19 +385,11 @@ Code from [LearningTester.java:225](../../../../../../../../src/main/java/com/si
       .setTerminateThreshold(0)
       .run();
 ```
-Logging: 
-```
-    Zero gradient: 0.0
-    Constructing line search parameters: GD
-    F(0.0) = LineSearchPoint{point=PointSample{avg=0.0017267777721666642}, derivative=0.0}
-    Iteration 1 failed, aborting. Error: 0.0017267777721666642 Total: 239719606631165.4000; Orientation: 0.0000; Line Search: 0.0001
-    
-```
 
 Returns: 
 
 ```
-    0.0017267777721666642
+    0.0
 ```
 
 
@@ -323,14 +405,14 @@ Returns:
 
 ```
     [0.0, -1.0]
-    [0.5415545156651677]
+    [0.8850185733268822]
 ```
 
 
 
 Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.
 
-Code from [LearningTester.java:249](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L249) executed in 0.00 seconds: 
+Code from [LearningTester.java:324](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L324) executed in 0.00 seconds: 
 ```java
     return new IterativeTrainer(trainable)
       .setLineSearchFactory(label -> new ArmijoWolfeSearch())
@@ -360,109 +442,211 @@ Code from [LearningTester.java:203](../../../../../../../../src/main/java/com/si
 Returns: 
 
 ```
-    [-1.0, 0.0]
-    [0.5415545156651677]
+    [0.0, -1.0]
+    [0.8850185733268822]
 ```
 
 
 
-Code from [LearningTester.java:95](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L95) executed in 0.00 seconds: 
+Code from [LearningTester.java:96](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L96) executed in 0.00 seconds: 
 ```java
     return TestUtil.compare(runs);
 ```
 
-Code from [LearningTester.java:98](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L98) executed in 0.00 seconds: 
+Code from [LearningTester.java:99](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L99) executed in 0.00 seconds: 
 ```java
     return TestUtil.compareTime(runs);
 ```
 
-### Performance
-Adding performance wrappers
+### Composite Learning
+In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:
 
-Code from [TestUtil.java:287](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L287) executed in 0.00 seconds: 
+Code from [LearningTester.java:219](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L219) executed in 0.00 seconds: 
 ```java
-    network.visitNodes(node -> {
-      if (!(node.getLayer() instanceof MonitoringWrapperLayer)) {
-        node.setLayer(new MonitoringWrapperLayer(node.getLayer()).shouldRecordSignalMetrics(false));
-      }
-      else {
-        ((MonitoringWrapperLayer) node.getLayer()).shouldRecordSignalMetrics(false);
-      }
-    });
+    return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
 ```
 
-Now we execute larger-scale runs to benchmark performance:
+Returns: 
 
-Code from [PerformanceTester.java:66](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/PerformanceTester.java#L66) executed in 0.02 seconds: 
+```
+    [0.0, -1.0]
+```
+
+
+
+We simultaneously regress this target input:
+
+Code from [LearningTester.java:223](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L223) executed in 0.00 seconds: 
 ```java
-    test(component, inputPrototype);
-```
-Logging: 
-```
-    100 batches
-    Input Dimensions:
-    	[3]
-    Performance:
-    	Evaluation performance: 0.001366s +- 0.000139s [0.001211s - 0.001620s]
-    	Learning performance: 0.000599s +- 0.000070s [0.000536s - 0.000736s]
-    
+    return Arrays.stream(testInput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
 ```
 
-Per-layer Performance Metrics:
+Returns: 
 
-Code from [TestUtil.java:252](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L252) executed in 0.00 seconds: 
+```
+    [ 0.08, 0.644, 1.752 ]
+```
+
+
+
+Which produces the following output:
+
+Code from [LearningTester.java:230](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L230) executed in 0.00 seconds: 
 ```java
-    Map<NNLayer, MonitoringWrapperLayer> metrics = new HashMap<>();
-    network.visitNodes(node -> {
-      if ((node.getLayer() instanceof MonitoringWrapperLayer)) {
-        MonitoringWrapperLayer layer = node.getLayer();
-        metrics.put(layer.getInner(), layer);
-      }
-    });
-    System.out.println("Forward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-      PercentileStatistics performance = e.getValue().getForwardPerformance();
-      return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
-    }).reduce((a, b) -> a + "\n\t" + b));
-    System.out.println("Backward Performance: \n\t" + metrics.entrySet().stream().map(e -> {
-      PercentileStatistics performance = e.getValue().getBackwardPerformance();
-      return String.format("%s -> %.6fs +- %.6fs (%s)", e.getKey(), performance.getMean(), performance.getStdDev(), performance.getCount());
-    }).reduce((a, b) -> a + "\n\t" + b));
-```
-Logging: 
-```
-    Forward Performance: 
-    	Optional[SumInputsLayer/933dcfbe-6bac-47ed-9ecf-d95f35a49ec6 -> 0.000126s +- 0.000058s (11.0)
-    	SqActivationLayer/8aa0affb-7c73-42bf-ab65-35fdff90931e -> 0.000136s +- 0.000062s (11.0)
-    	AvgReducerLayer/28da4fc7-980f-4d70-a19d-a3a34609b027 -> 0.000087s +- 0.000031s (11.0)
-    	NthPowerActivationLayer/1295767c-2bbf-4610-9d9c-1300e22e91b7 -> 0.000119s +- 0.000037s (11.0)
-    	SigmoidActivationLayer/fc3dbe06-5eca-4115-aeb6-64ccd653a17e -> 0.000122s +- 0.000038s (11.0)
-    	ProductInputsLayer/e9ba4bc4-fc81-4a2e-adb9-e2257b1bddf2 -> 0.000086s +- 0.000027s (11.0)
-    	SqActivationLayer/15547356-89ad-407d-8920-de691d39e5d4 -> 0.000128s +- 0.000043s (11.0)
-    	AvgReducerLayer/6d5b8dea-c3df-4fcb-ab3d-600bd2018eea -> 0.000096s +- 0.000026s (11.0)
-    	NthPowerActivationLayer/82a83719-f15a-4a47-a3f1-c75151697def -> 0.000127s +- 0.000040s (11.0)
-    	LinearActivationLayer/4a6f7b81-1d46-4435-8372-613a09bca236 -> 0.000041s +- 0.000015s (11.0)]
-    Backward Performance: 
-    	Optional[SumInputsLayer/933dcfbe-6bac-47ed-9ecf-d95f35a49ec6 -> 0.000005s +- 0.000010s (6.0)
-    	SqActivationLayer/8aa0affb-7c73-42bf-ab65-35fdff90931e -> 0.000001s +- 0.000000s (1.0)
-    	AvgReducerLayer/28da4fc7-980f-4d70-a19d-a3a34609b027 -> 0.000008s +- 0.000000s (1.0)
-    	NthPowerActivationLayer/1295767c-2bbf-4610-9d9c-1300e22e91b7 -> 0.000004s +- 0.000007s (6.0)
-    	SigmoidActivationLayer/fc3dbe06-5eca-4115-aeb6-64ccd653a17e -> 0.000006s +- 0.000011s (6.0)
-    	ProductInputsLayer/e9ba4bc4-fc81-4a2e-adb9-e2257b1bddf2 -> 0.000012s +- 0.000024s (6.0)
-    	SqActivationLayer/15547356-89ad-407d-8920-de691d39e5d4 -> 0.000002s +- 0.000000s (1.0)
-    	AvgReducerLayer/6d5b8dea-c3df-4fcb-ab3d-600bd2018eea -> 0.000003s +- 0.000000s (1.0)
-    	NthPowerActivationLayer/82a83719-f15a-4a47-a3f1-c75151697def -> 0.000003s +- 0.000004s (6.0)
-    	LinearActivationLayer/4a6f7b81-1d46-4435-8372-613a09bca236 -> 0.000003s +- 0.000006s (6.0)]
-    
+    return Stream.of(targetOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
 ```
 
-Removing performance wrappers
+Returns: 
 
-Code from [TestUtil.java:270](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/TestUtil.java#L270) executed in 0.00 seconds: 
+```
+    [ 0.8850185733268822 ]
+```
+
+
+
+First, we use a conjugate gradient descent method, which converges the fastest for purely linear functions.
+
+Code from [LearningTester.java:300](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L300) executed in 0.00 seconds: 
 ```java
-    network.visitNodes(node -> {
-      if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
-      }
-    });
+    return new IterativeTrainer(trainable)
+      .setLineSearchFactory(label -> new QuadraticSearch())
+      .setOrientation(new GradientDescent())
+      .setMonitor(monitor)
+      .setTimeout(30, TimeUnit.SECONDS)
+      .setMaxIterations(250)
+      .setTerminateThreshold(0)
+      .run();
+```
+
+Returns: 
+
+```
+    0.0
+```
+
+
+
+This training run resulted in the following configuration:
+
+Code from [LearningTester.java:245](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L245) executed in 0.00 seconds: 
+```java
+    return network_gd.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+```
+
+Returns: 
+
+```
+    [0.8850185733268822]
+    [0.0, -1.0]
+```
+
+
+
+And regressed input:
+
+Code from [LearningTester.java:249](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L249) executed in 0.00 seconds: 
+```java
+    return Arrays.stream(input_gd).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+```
+
+Returns: 
+
+```
+    [ 0.08, 0.644, 1.752 ]
+```
+
+
+
+Which produces the following output:
+
+Code from [LearningTester.java:256](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L256) executed in 0.00 seconds: 
+```java
+    return Stream.of(regressedOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+```
+
+Returns: 
+
+```
+    [ 0.0 ]
+```
+
+
+
+Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.
+
+Code from [LearningTester.java:324](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L324) executed in 0.00 seconds: 
+```java
+    return new IterativeTrainer(trainable)
+      .setLineSearchFactory(label -> new ArmijoWolfeSearch())
+      .setOrientation(new LBFGS())
+      .setMonitor(monitor)
+      .setTimeout(30, TimeUnit.SECONDS)
+      .setMaxIterations(250)
+      .setTerminateThreshold(0)
+      .run();
+```
+
+Returns: 
+
+```
+    0.0
+```
+
+
+
+This training run resulted in the following configuration:
+
+Code from [LearningTester.java:266](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L266) executed in 0.00 seconds: 
+```java
+    return network_lbfgs.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
+```
+
+Returns: 
+
+```
+    [0.8850185733268822]
+    [0.0, -1.0]
+```
+
+
+
+And regressed input:
+
+Code from [LearningTester.java:270](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L270) executed in 0.00 seconds: 
+```java
+    return Arrays.stream(input_lbgfs).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+```
+
+Returns: 
+
+```
+    [ 0.08, 0.644, 1.752 ]
+```
+
+
+
+Which produces the following output:
+
+Code from [LearningTester.java:277](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L277) executed in 0.00 seconds: 
+```java
+    return Stream.of(regressedOutput).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
+```
+
+Returns: 
+
+```
+    [ 0.0 ]
+```
+
+
+
+Code from [LearningTester.java:96](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L96) executed in 0.00 seconds: 
+```java
+    return TestUtil.compare(runs);
+```
+
+Code from [LearningTester.java:99](../../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/LearningTester.java#L99) executed in 0.00 seconds: 
+```java
+    return TestUtil.compareTime(runs);
 ```
 

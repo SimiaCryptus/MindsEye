@@ -1,0 +1,25 @@
+Inputs: [
+	[ [ 0.08 ], [ -1.16 ], [ -0.428 ] ],
+	[ [ 0.108 ], [ -1.972 ], [ -0.228 ] ]
+]
+Inputs Statistics: {meanExponent=-0.4524571236125617, negative=4, min=-0.228, max=-0.228, mean=-0.6, count=6.0, positive=2, stdDev=0.7447165008690667, zeros=0}
+Output: [
+	[ [ 0.08 ], [ 0.0 ], [ 0.0 ] ],
+	[ [ 0.108 ], [ 0.0 ], [ 0.0 ] ]
+]
+Outputs Statistics: {meanExponent=-1.0317431287605534, negative=0, min=0.0, max=0.0, mean=0.03133333333333333, count=6.0, positive=2, stdDev=0.04504318915095699, zeros=4}
+Feedback for input 0
+Inputs Values: [
+	[ [ 0.08 ], [ -1.16 ], [ -0.428 ] ],
+	[ [ 0.108 ], [ -1.972 ], [ -0.228 ] ]
+]
+Value Statistics: {meanExponent=-0.4524571236125617, negative=4, min=-0.228, max=-0.228, mean=-0.6, count=6.0, positive=2, stdDev=0.7447165008690667, zeros=0}
+Implemented Feedback: [ [ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] ]
+Implemented Statistics: {meanExponent=0.0, negative=0, min=0.0, max=0.0, mean=0.05555555555555555, count=36.0, positive=2, stdDev=0.2290614236454256, zeros=34}
+Measured Feedback: [ [ 1.0000000000000286, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 1.0000000000000286, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] ]
+Measured Statistics: {meanExponent=1.2439824318537225E-14, negative=0, min=0.0, max=0.0, mean=0.05555555555555715, count=36.0, positive=2, stdDev=0.22906142364543217, zeros=34}
+Feedback Error: [ [ 2.864375403532904E-14, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 2.864375403532904E-14, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] ]
+Error Statistics: {meanExponent=-13.542970064227774, negative=0, min=0.0, max=0.0, mean=1.5913196686293911E-15, count=36.0, positive=2, stdDev=6.561179077881874E-15, zeros=34}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 1.5913e-15 +- 6.5612e-15 [0.0000e+00 - 2.8644e-14] (36#)
+relativeTol: 1.4322e-14 +- 0.0000e+00 [1.4322e-14 - 1.4322e-14] (2#)

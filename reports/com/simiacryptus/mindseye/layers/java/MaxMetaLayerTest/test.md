@@ -1,5 +1,55 @@
 # MaxMetaLayer
 ## MaxMetaLayerTest
+### Json Serialization
+Code from [JsonTest.java:36](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
+```java
+    JsonObject json = layer.getJson();
+    NNLayer echo = NNLayer.fromJson(json);
+    if ((echo == null)) throw new AssertionError("Failed to deserialize");
+    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
+    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
+    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+```
+
+Returns: 
+
+```
+    {
+      "class": "com.simiacryptus.mindseye.layers.java.MaxMetaLayer",
+      "id": "05c72a16-11a3-4203-bd58-95d71af1f840",
+      "isFrozen": false,
+      "name": "MaxMetaLayer/05c72a16-11a3-4203-bd58-95d71af1f840"
+    }
+```
+
+
+
+### Example Input/Output Pair
+Code from [ReferenceIO.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/ReferenceIO.java#L68) executed in 0.00 seconds: 
+```java
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+      eval.getOutput().prettyPrint(),
+      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+```
+
+Returns: 
+
+```
+    --------------------
+    Input: 
+    [[ -0.716, -1.084, 0.892 ]]
+    --------------------
+    Output: 
+    [ -0.716, -1.084, 0.892 ]
+    --------------------
+    Derivative: 
+    [ 1.0, 1.0, 1.0 ]
+```
+
+
+
 ### Differential Validation
 Code from [BatchDerivativeTester.java:76](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/BatchDerivativeTester.java#L76) executed in 0.00 seconds: 
 ```java
@@ -7,38 +57,38 @@ Code from [BatchDerivativeTester.java:76](../../../../../../../src/main/java/com
 ```
 Logging: 
 ```
-    Inputs: [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ],
-    [ 1.264, 1.072, -1.332 ]
-    Inputs Statistics: {meanExponent=0.08548202804579992, negative=1, min=-1.332, max=-1.332, mean=0.3346666666666667, count=3.0, positive=2, stdDev=1.1811151039965957, zeros=0},
-    {meanExponent=0.08548202804579992, negative=1, min=-1.332, max=-1.332, mean=0.3346666666666667, count=3.0, positive=2, stdDev=1.1811151039965957, zeros=0},
-    {meanExponent=0.08548202804579992, negative=1, min=-1.332, max=-1.332, mean=0.3346666666666667, count=3.0, positive=2, stdDev=1.1811151039965957, zeros=0},
-    {meanExponent=0.08548202804579992, negative=1, min=-1.332, max=-1.332, mean=0.3346666666666667, count=3.0, positive=2, stdDev=1.1811151039965957, zeros=0},
-    {meanExponent=0.08548202804579992, negative=1, min=-1.332, max=-1.332, mean=0.3346666666666667, count=3.0, positi
+    Inputs: [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ],
+    [ 1.696, 1.188, 0.82 ]
+    Inputs Statistics: {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+    {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+    {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+    {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0},
+    {meanExponent=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0
 ```
-...[skipping 2263 bytes](etc/285.txt)...
+...[skipping 1057 bytes](etc/344.txt)...
 ```
-    Statistics: {meanExponent=0.08548202804579992, negative=1, min=-1.332, max=-1.332, mean=0.3346666666666667, count=3.0, positive=2, stdDev=1.1811151039965957, zeros=0}
-    Implemented Feedback: [ [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ], [ 0.0, 0.0, 0.0 ] ]
-    Implemented Statistics: {meanExponent=NaN, negative=0, min=0.0, max=0.0, mean=0.0, count=9.0, positive=0, stdDev=0.0, zeros=9}
+    nt=0.07268538031652878, negative=0, min=0.82, max=0.82, mean=1.2346666666666666, count=3.0, positive=3, stdDev=0.3591446628990729, zeros=0}
+    Implemented Feedback: [ [ 1.0, 1.0, 1.0 ], [ 1.0, 1.0, 1.0 ], [ 1.0, 1.0, 1.0 ] ]
+    Implemented Statistics: {meanExponent=0.0, negative=0, min=1.0, max=1.0, mean=1.0, count=9.0, positive=9, stdDev=0.0, zeros=0}
     Measured: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
     Measured Statistics: {meanExponent=-4.7830642341045674E-14, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.3333333333332966, count=9.0, positive=3, stdDev=0.4714045207909798, zeros=6}
-    Feedback Error: [ [ 0.9999999999998899, 0.0, 0.0 ], [ 0.0, 0.9999999999998899, 0.0 ], [ 0.0, 0.0, 0.9999999999998899 ] ]
-    Error Statistics: {meanExponent=-4.7830642341045674E-14, negative=0, min=0.9999999999998899, max=0.9999999999998899, mean=0.3333333333332966, count=9.0, positive=3, stdDev=0.4714045207909798, zeros=6}
+    Feedback Error: [ [ -1.1013412404281553E-13, -1.0, -1.0 ], [ -1.0, -1.1013412404281553E-13, -1.0 ], [ -1.0, -1.0, -1.1013412404281553E-13 ] ]
+    Error Statistics: {meanExponent=-4.319359366012275, negative=9, min=-1.1013412404281553E-13, max=-1.1013412404281553E-13, mean=-0.6666666666667034, count=9.0, positive=0, stdDev=0.4714045207909797, zeros=0}
     
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=3.3333e-01 +- 4.7140e-01 [0.0000e+00 - 1.0000e+00] (9#), relativeTol=1.0000e+00 +- 0.0000e+00 [1.0000e+00 - 1.0000e+00] (3#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=6.6667e-01 +- 4.7140e-01 [1.1013e-13 - 1.0000e+00] (9#), relativeTol=6.6667e-01 +- 4.7140e-01 [5.5067e-14 - 1.0000e+00] (9#)}
     	at com.simiacryptus.mindseye.test.unit.BatchDerivativeTester.lambda$test$9(BatchDerivativeTester.java:107)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
@@ -51,7 +101,7 @@ Returns:
     	at com.simiacryptus.mindseye.test.unit.BatchDerivativeTester.test(BatchDerivativeTester.java:138)
     	at com.simiacryptu
 ```
-...[skipping 2930 bytes](etc/286.txt)...
+...[skipping 3029 bytes](etc/345.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

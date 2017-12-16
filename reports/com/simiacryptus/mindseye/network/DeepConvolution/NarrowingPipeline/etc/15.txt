@@ -1,0 +1,294 @@
+{
+  "class": "com.simiacryptus.mindseye.network.PipelineNetwork",
+  "id": "986fdcd7-a1e8-4091-8609-617798541635",
+  "isFrozen": false,
+  "name": "PipelineNetwork/986fdcd7-a1e8-4091-8609-617798541635",
+  "inputs": [
+    "344f2b2d-5462-4776-8d71-cb91797d9ff1"
+  ],
+  "nodes": {
+    "9093c405-de5d-4b70-8ac2-05f2e90ba5e6": "bbceb751-c8ae-4448-9063-b1f7c0942368",
+    "747dd6d0-21fa-484d-a853-46f20f006b48": "98c65109-00ec-49fe-83a0-6ba38b39210b",
+    "aae99f7f-b336-4c1d-8a9b-e718a3533d7b": "71eece5a-71be-4166-bd36-d55e8faef47d",
+    "d79129b3-2148-436b-84da-b67b5f0a95c3": "aeafb58c-148f-4d69-a738-40875c035d64",
+    "2c1ffb0b-8561-477d-b12e-83bce05eff14": "9c1d24db-7cb5-42d1-85bc-b6546c2e5c1a",
+    "467d298d-e22d-45cb-85b5-95f723f8f206": "463d06e4-873e-4b35-b17d-d6ee7133734e",
+    "85c68c1e-4739-4a00-9313-00106f2fd70b": "b4303705-49a4-41c4-8c12-fac68a983848",
+    "00a8732a-7c0c-440f-8b81-706db4316320": "5da674cd-4ebf-4ed7-a287-88d033a8d179",
+    "a18d24ba-fdb4-42ef-80d4-b92e26742a74": "55533167-7f58-4d45-8d23-db1a86da28a3"
+  },
+  "layers": {
+    "bbceb751-c8ae-4448-9063-b1f7c0942368": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer",
+      "id": "bbceb751-c8ae-4448-9063-b1f7c0942368",
+      "isFrozen": false,
+      "name": "ConvolutionLayer/bbceb751-c8ae-4448-9063-b1f7c0942368",
+      "filter": [
+        [
+          [
+            0.0322,
+            -0.051,
+            0.0054
+          ],
+          [
+            -0.0442,
+            -0.047200000000000006,
+            -0.05040000000000001
+          ],
+          [
+            -0.018600000000000002,
+            -0.0826,
+            -0.004
+          ]
+        ],
+        [
+          [
+            -0.076,
+            0.0534,
+            0.0688
+          ],
+          [
+            -0.008,
+            0.0238,
+            0.0078000000000000005
+          ],
+          [
+            0.0534,
+            -0.09480000000000001,
+            -0.0562
+          ]
+        ],
+        [
+          [
+            -0.0922,
+            0.0834,
+            0.018400000000000003
+          ],
+          [
+            0.0664,
+            -0.0572,
+            -0.046200000000000005
+          ],
+          [
+            0.08660000000000001,
+            0.0592,
+            0.052
+          ]
+        ],
+        [
+          [
+            -0.0062,
+            0.0576,
+            -0.08860000000000001
+          ],
+          [
+            -0.09060000000000001,
+            0.011200000000000002,
+            -0.08280000000000001
+          ],
+          [
+            0.082,
+            0.042,
+            -0.013800000000000002
+          ]
+        ],
+        [
+          [
+            -0.0108,
+            -0.004200000000000001,
+            0.09620000000000001
+          ],
+          [
+            0.09580000000000001,
+            0.05,
+            0.0488
+          ],
+          [
+            -0.062200000000000005,
+            0.054200000000000005,
+            -0.075
+          ]
+        ],
+        [
+          [
+            0.008,
+            -0.091,
+            0.030400000000000003
+          ],
+          [
+            -0.026400000000000003,
+            -0.055,
+            -0.0288
+          ],
+          [
+            0.044800000000000006,
+            0.09,
+            0.071
+          ]
+        ]
+      ],
+      "strideX": 1,
+      "strideY": 1,
+      "precision": "Double"
+    },
+    "98c65109-00ec-49fe-83a0-6ba38b39210b": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer",
+      "id": "98c65109-00ec-49fe-83a0-6ba38b39210b",
+      "isFrozen": false,
+      "name": "ImgBandBiasLayer/98c65109-00ec-49fe-83a0-6ba38b39210b",
+      "bias": [
+        0.0,
+        0.0
+      ],
+      "precision": "Double"
+    },
+    "71eece5a-71be-4166-bd36-d55e8faef47d": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ActivationLayer",
+      "id": "71eece5a-71be-4166-bd36-d55e8faef47d",
+      "isFrozen": false,
+      "name": "ActivationLayer/71eece5a-71be-4166-bd36-d55e8faef47d",
+      "mode": 1,
+      "precision": "Double"
+    },
+    "aeafb58c-148f-4d69-a738-40875c035d64": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer",
+      "id": "aeafb58c-148f-4d69-a738-40875c035d64",
+      "isFrozen": false,
+      "name": "ConvolutionLayer/aeafb58c-148f-4d69-a738-40875c035d64",
+      "filter": [
+        [
+          [
+            0.057800000000000004,
+            0.094,
+            0.089
+          ],
+          [
+            4.0E-4,
+            0.0016,
+            0.021200000000000004
+          ],
+          [
+            0.035800000000000005,
+            0.027800000000000002,
+            0.07660000000000002
+          ]
+        ],
+        [
+          [
+            -0.027800000000000002,
+            0.04440000000000001,
+            0.0164
+          ],
+          [
+            -0.011800000000000001,
+            -0.0432,
+            -0.008400000000000001
+          ],
+          [
+            -0.004200000000000001,
+            0.0328,
+            -0.025400000000000002
+          ]
+        ]
+      ],
+      "strideX": 1,
+      "strideY": 1,
+      "precision": "Double"
+    },
+    "9c1d24db-7cb5-42d1-85bc-b6546c2e5c1a": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer",
+      "id": "9c1d24db-7cb5-42d1-85bc-b6546c2e5c1a",
+      "isFrozen": false,
+      "name": "ImgBandBiasLayer/9c1d24db-7cb5-42d1-85bc-b6546c2e5c1a",
+      "bias": [
+        0.0
+      ],
+      "precision": "Double"
+    },
+    "463d06e4-873e-4b35-b17d-d6ee7133734e": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ActivationLayer",
+      "id": "463d06e4-873e-4b35-b17d-d6ee7133734e",
+      "isFrozen": false,
+      "name": "ActivationLayer/463d06e4-873e-4b35-b17d-d6ee7133734e",
+      "mode": 1,
+      "precision": "Double"
+    },
+    "b4303705-49a4-41c4-8c12-fac68a983848": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer",
+      "id": "b4303705-49a4-41c4-8c12-fac68a983848",
+      "isFrozen": false,
+      "name": "ConvolutionLayer/b4303705-49a4-41c4-8c12-fac68a983848",
+      "filter": [
+        [
+          [
+            -0.0068000000000000005,
+            0.07740000000000001,
+            0.08180000000000001
+          ],
+          [
+            -0.08220000000000001,
+            -0.0274,
+            0.0122
+          ],
+          [
+            0.082,
+            -0.041400000000000006,
+            -0.0636
+          ]
+        ]
+      ],
+      "strideX": 1,
+      "strideY": 1,
+      "precision": "Double"
+    },
+    "5da674cd-4ebf-4ed7-a287-88d033a8d179": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer",
+      "id": "5da674cd-4ebf-4ed7-a287-88d033a8d179",
+      "isFrozen": false,
+      "name": "ImgBandBiasLayer/5da674cd-4ebf-4ed7-a287-88d033a8d179",
+      "bias": [
+        0.0
+      ],
+      "precision": "Double"
+    },
+    "55533167-7f58-4d45-8d23-db1a86da28a3": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ActivationLayer",
+      "id": "55533167-7f58-4d45-8d23-db1a86da28a3",
+      "isFrozen": false,
+      "name": "ActivationLayer/55533167-7f58-4d45-8d23-db1a86da28a3",
+      "mode": 1,
+      "precision": "Double"
+    }
+  },
+  "links": {
+    "9093c405-de5d-4b70-8ac2-05f2e90ba5e6": [
+      "344f2b2d-5462-4776-8d71-cb91797d9ff1"
+    ],
+    "747dd6d0-21fa-484d-a853-46f20f006b48": [
+      "9093c405-de5d-4b70-8ac2-05f2e90ba5e6"
+    ],
+    "aae99f7f-b336-4c1d-8a9b-e718a3533d7b": [
+      "747dd6d0-21fa-484d-a853-46f20f006b48"
+    ],
+    "d79129b3-2148-436b-84da-b67b5f0a95c3": [
+      "aae99f7f-b336-4c1d-8a9b-e718a3533d7b"
+    ],
+    "2c1ffb0b-8561-477d-b12e-83bce05eff14": [
+      "d79129b3-2148-436b-84da-b67b5f0a95c3"
+    ],
+    "467d298d-e22d-45cb-85b5-95f723f8f206": [
+      "2c1ffb0b-8561-477d-b12e-83bce05eff14"
+    ],
+    "85c68c1e-4739-4a00-9313-00106f2fd70b": [
+      "467d298d-e22d-45cb-85b5-95f723f8f206"
+    ],
+    "00a8732a-7c0c-440f-8b81-706db4316320": [
+      "85c68c1e-4739-4a00-9313-00106f2fd70b"
+    ],
+    "a18d24ba-fdb4-42ef-80d4-b92e26742a74": [
+      "00a8732a-7c0c-440f-8b81-706db4316320"
+    ]
+  },
+  "labels": {},
+  "head": "a18d24ba-fdb4-42ef-80d4-b92e26742a74"
+}

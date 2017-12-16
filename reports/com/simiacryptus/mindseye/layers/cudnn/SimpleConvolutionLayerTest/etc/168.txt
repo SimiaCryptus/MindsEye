@@ -1,0 +1,30 @@
+Inputs: [
+	[ [ -0.232 ] ]
+]
+Inputs Statistics: {meanExponent=-0.6345120151091003, negative=1, min=-0.232, max=-0.232, mean=-0.232, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Output: [
+	[ [ -0.151264 ] ]
+]
+Outputs Statistics: {meanExponent=-0.8202644193771801, negative=1, min=-0.151264, max=-0.151264, mean=-0.151264, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Feedback for input 0
+Inputs Values: [
+	[ [ -0.232 ] ]
+]
+Value Statistics: {meanExponent=-0.6345120151091003, negative=1, min=-0.232, max=-0.232, mean=-0.232, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Implemented Feedback: [ [ 0.652 ] ]
+Implemented Statistics: {meanExponent=-0.1857524042680798, negative=0, min=0.652, max=0.652, mean=0.652, count=1.0, positive=1, stdDev=0.0, zeros=0}
+Measured Feedback: [ [ 0.6519999999998749 ] ]
+Measured Statistics: {meanExponent=-0.18575240426816314, negative=0, min=0.6519999999998749, max=0.6519999999998749, mean=0.6519999999998749, count=1.0, positive=1, stdDev=0.0, zeros=0}
+Feedback Error: [ [ -1.2512213487525514E-13 ] ]
+Error Statistics: {meanExponent=-12.902665854144896, negative=1, min=-1.2512213487525514E-13, max=-1.2512213487525514E-13, mean=-1.2512213487525514E-13, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Learning Gradient for weight set 0
+Weights: [ 0.652 ]
+Implemented Gradient: [ [ -0.232 ] ]
+Implemented Statistics: {meanExponent=-0.6345120151091003, negative=1, min=-0.232, max=-0.232, mean=-0.232, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Measured Gradient: [ [ -0.23200000000000998 ] ]
+Measured Statistics: {meanExponent=-0.6345120151090816, negative=1, min=-0.23200000000000998, max=-0.23200000000000998, mean=-0.23200000000000998, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Gradient Error: [ [ -9.96425164601078E-15 ] ]
+Error Statistics: {meanExponent=-14.001555312940647, negative=1, min=-9.96425164601078E-15, max=-9.96425164601078E-15, mean=-9.96425164601078E-15, count=1.0, positive=0, stdDev=0.0, zeros=0}
+Finite-Difference Derivative Accuracy:
+absoluteTol: 6.7543e-14 +- 5.7579e-14 [9.9643e-15 - 1.2512e-13] (2#)
+relativeTol: 5.8714e-14 +- 3.7239e-14 [2.1475e-14 - 9.5953e-14] (2#)

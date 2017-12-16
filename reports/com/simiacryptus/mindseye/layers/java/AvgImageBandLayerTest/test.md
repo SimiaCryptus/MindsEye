@@ -1,5 +1,63 @@
 # AvgImageBandLayer
 ## AvgImageBandLayerTest
+### Json Serialization
+Code from [JsonTest.java:36](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
+```java
+    JsonObject json = layer.getJson();
+    NNLayer echo = NNLayer.fromJson(json);
+    if ((echo == null)) throw new AssertionError("Failed to deserialize");
+    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
+    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
+    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+```
+
+Returns: 
+
+```
+    {
+      "class": "com.simiacryptus.mindseye.layers.java.AvgImageBandLayer",
+      "id": "9fa576f7-cad3-49c7-9733-2671f395808f",
+      "isFrozen": false,
+      "name": "AvgImageBandLayer/9fa576f7-cad3-49c7-9733-2671f395808f"
+    }
+```
+
+
+
+### Example Input/Output Pair
+Code from [ReferenceIO.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/ReferenceIO.java#L68) executed in 0.00 seconds: 
+```java
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+      eval.getOutput().prettyPrint(),
+      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+```
+
+Returns: 
+
+```
+    --------------------
+    Input: 
+    [[
+    	[ [ 0.42, -1.688, 1.004 ], [ -0.376, 1.736, -0.14 ] ],
+    	[ [ 1.892, -0.52, 1.476 ], [ 1.556, 1.3, -1.684 ] ]
+    ]]
+    --------------------
+    Output: 
+    [
+    	[ [ 0.873, 0.16400000000000003, 0.20700000000000002 ] ]
+    ]
+    --------------------
+    Derivative: 
+    [
+    	[ [ 0.25, 0.25, 0.25 ], [ 0.25, 0.25, 0.25 ] ],
+    	[ [ 0.25, 0.25, 0.25 ], [ 0.25, 0.25, 0.25 ] ]
+    ]
+```
+
+
+
 ### Batch Execution
 Code from [BatchingTester.java:66](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/BatchingTester.java#L66) executed in 0.00 seconds: 
 ```java
@@ -9,7 +67,7 @@ Code from [BatchingTester.java:66](../../../../../../../src/main/java/com/simiac
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=2.8343e-01 +- 4.0181e-01 [0.0000e+00 - 1.2010e+00] (30#), relativeTol=2.9632e-01 +- 4.0675e-01 [0.0000e+00 - 1.0000e+00] (30#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=2.1310e-01 +- 3.0546e-01 [0.0000e+00 - 1.0090e+00] (30#), relativeTol=3.8656e-01 +- 4.7041e-01 [0.0000e+00 - 1.0000e+00] (30#)}
     	at com.simiacryptus.mindseye.test.unit.BatchingTester.test(BatchingTester.java:96)
     	at com.simiacryptus.mindseye.test.unit.BatchingTester.lambda$test$0(BatchingTester.java:67)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:138)
@@ -19,9 +77,9 @@ Returns:
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
     	at com.simiacryptus.mindseye.test.unit.BatchingTester.test(BatchingTester.java:66)
-    	at com.simiacryptus.mindseye.test.unit.StandardL
+    	at com.simiacryptus.mindseye.test.unit.BatchingT
 ```
-...[skipping 2079 bytes](etc/188.txt)...
+...[skipping 2164 bytes](etc/229.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

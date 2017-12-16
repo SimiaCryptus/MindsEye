@@ -21,14 +21,14 @@ Returns:
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.code(MarkdownNotebookOutput.java:136)
     	at com.simiacryptus.util.io.NotebookOutput.code(NotebookOutput.java:133)
     	at com.simiacryptus.mindseye.test.unit.JsonTest.test(JsonTest.java:36)
+    	at com.simiacryptus.mindseye.test.unit.JsonTest.test(JsonTest.java:32)
     	at com.simiacryptus.mindseye.test.unit.StandardLayerTests.lambda$test$2(StandardLayerTests.java:78)
     	at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
     	at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
     	at java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1374)
-    	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:481)
-    	at java.util.stream.AbstractPipeline.wrapAndCopyI
+    	at java.util.stream.AbstractPipeline.copyInto(Abstr
 ```
-...[skipping 2062 bytes](etc/357.txt)...
+...[skipping 2135 bytes](etc/424.txt)...
 ```
     unit.runners.ParentRunner.access$000(ParentRunner.java:58)
     	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
@@ -43,7 +43,7 @@ Returns:
     	at com.simiacryptus.mindseye.test.unit.JsonTest.lambda$test$0(JsonTest.java:37)
     	at com.simiacryptus.util.io.MarkdownNotebookOutput.lambda$null$1(MarkdownNotebookOutput.java:138)
     	at com.simiacryptus.util.lang.TimedResult.time(TimedResult.java:59)
-    	... 46 more
+    	... 47 more
     
 ```
 

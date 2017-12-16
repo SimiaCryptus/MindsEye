@@ -1,0 +1,409 @@
+{
+  "class": "com.simiacryptus.mindseye.network.PipelineNetwork",
+  "id": "aeb461bd-5f41-43a3-b037-7b4e82b094de",
+  "isFrozen": false,
+  "name": "PipelineNetwork/aeb461bd-5f41-43a3-b037-7b4e82b094de",
+  "inputs": [
+    "f9827d1f-827d-42af-986c-6a944f29cc4f"
+  ],
+  "nodes": {
+    "fdbb226f-52be-4e70-969c-679df15538c9": "8ae45286-96d6-4831-9f15-36e340c3cfce",
+    "068a2575-a640-496c-98b5-9512cb7749f4": "a8b4a8f9-b8bf-4f26-8ab4-7784303eb876",
+    "895b2a87-dd3d-44e2-a968-69b52ecde1bb": "c3003ae1-b4e3-4fc2-8ee0-62dc66cb714a",
+    "28d9d045-f755-4a22-98f8-de07ec6001f3": "54317a9f-51ed-49da-b480-0a18059fef0b",
+    "8f5b6a56-7683-4aaf-954f-34b6581b1604": "63c19eed-fe02-403f-97ba-a5c62a96e981",
+    "2798ef99-7386-4e70-87dd-a608795b1dcc": "6e430a02-50d7-4d03-aece-d3a9e672ec94"
+  },
+  "layers": {
+    "8ae45286-96d6-4831-9f15-36e340c3cfce": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer",
+      "id": "8ae45286-96d6-4831-9f15-36e340c3cfce",
+      "isFrozen": false,
+      "name": "ConvolutionLayer/8ae45286-96d6-4831-9f15-36e340c3cfce",
+      "filter": [
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.09340000000000001
+          ]
+        ]
+      ],
+      "strideX": 1,
+      "strideY": 1,
+      "precision": "Double"
+    },
+    "a8b4a8f9-b8bf-4f26-8ab4-7784303eb876": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer",
+      "id": "a8b4a8f9-b8bf-4f26-8ab4-7784303eb876",
+      "isFrozen": false,
+      "name": "ImgBandBiasLayer/a8b4a8f9-b8bf-4f26-8ab4-7784303eb876",
+      "bias": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "precision": "Double"
+    },
+    "c3003ae1-b4e3-4fc2-8ee0-62dc66cb714a": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ActivationLayer",
+      "id": "c3003ae1-b4e3-4fc2-8ee0-62dc66cb714a",
+      "isFrozen": false,
+      "name": "ActivationLayer/c3003ae1-b4e3-4fc2-8ee0-62dc66cb714a",
+      "mode": 0,
+      "precision": "Double"
+    },
+    "54317a9f-51ed-49da-b480-0a18059fef0b": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer",
+      "id": "54317a9f-51ed-49da-b480-0a18059fef0b",
+      "isFrozen": false,
+      "name": "ConvolutionLayer/54317a9f-51ed-49da-b480-0a18059fef0b",
+      "filter": [
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0496
+          ]
+        ]
+      ],
+      "strideX": 1,
+      "strideY": 1,
+      "precision": "Double"
+    },
+    "63c19eed-fe02-403f-97ba-a5c62a96e981": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer",
+      "id": "63c19eed-fe02-403f-97ba-a5c62a96e981",
+      "isFrozen": false,
+      "name": "ImgBandBiasLayer/63c19eed-fe02-403f-97ba-a5c62a96e981",
+      "bias": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "precision": "Double"
+    },
+    "6e430a02-50d7-4d03-aece-d3a9e672ec94": {
+      "class": "com.simiacryptus.mindseye.layers.cudnn.ActivationLayer",
+      "id": "6e430a02-50d7-4d03-aece-d3a9e672ec94",
+      "isFrozen": false,
+      "name": "ActivationLayer/6e430a02-50d7-4d03-aece-d3a9e672ec94",
+      "mode": 0,
+      "precision": "Double"
+    }
+  },
+  "links": {
+    "fdbb226f-52be-4e70-969c-679df15538c9": [
+      "f9827d1f-827d-42af-986c-6a944f29cc4f"
+    ],
+    "068a2575-a640-496c-98b5-9512cb7749f4": [
+      "fdbb226f-52be-4e70-969c-679df15538c9"
+    ],
+    "895b2a87-dd3d-44e2-a968-69b52ecde1bb": [
+      "068a2575-a640-496c-98b5-9512cb7749f4"
+    ],
+    "28d9d045-f755-4a22-98f8-de07ec6001f3": [
+      "895b2a87-dd3d-44e2-a968-69b52ecde1bb"
+    ],
+    "8f5b6a56-7683-4aaf-954f-34b6581b1604": [
+      "28d9d045-f755-4a22-98f8-de07ec6001f3"
+    ],
+    "2798ef99-7386-4e70-87dd-a608795b1dcc": [
+      "8f5b6a56-7683-4aaf-954f-34b6581b1604"
+    ]
+  },
+  "labels": {},
+  "head": "2798ef99-7386-4e70-87dd-a608795b1dcc"
+}

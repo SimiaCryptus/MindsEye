@@ -3,7 +3,7 @@
 ### Network Diagram
 This is a network with the following layout:
 
-Code from [StandardLayerTests.java:72](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/StandardLayerTests.java#L72) executed in 0.24 seconds: 
+Code from [StandardLayerTests.java:72](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/StandardLayerTests.java#L72) executed in 0.23 seconds: 
 ```java
     return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
       .height(400).width(600).render(Format.PNG).toImage();
@@ -11,7 +11,109 @@ Code from [StandardLayerTests.java:72](../../../../../../../src/main/java/com/si
 
 Returns: 
 
-![Result](etc/test.200.png)
+![Result](etc/test.194.png)
+
+
+
+### Json Serialization
+Code from [JsonTest.java:36](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
+```java
+    JsonObject json = layer.getJson();
+    NNLayer echo = NNLayer.fromJson(json);
+    if ((echo == null)) throw new AssertionError("Failed to deserialize");
+    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
+    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
+    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+```
+
+Returns: 
+
+```
+    {
+      "class": "com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer",
+      "id": "9e335a94-74a9-4ec8-98f1-7ba5b82a6cdb",
+      "isFrozen": false,
+      "name": "NormalizationMetaLayer/9e335a94-74a9-4ec8-98f1-7ba5b82a6cdb",
+      "inputs": [
+        "d719fc48-ebac-4702-be1a-28cdbcb9243a"
+      ],
+      "nodes": {
+        "bb2192cc-ea9f-4223-b40d-ba8bfdffe4b6": "893dfe32-7310-4d27-943c-3fbd3e617f64",
+        "cf39e519-b51f-42e6-a712-b629ae281e5f": "b8350773-453d-46c4-aa1a-76fe46e4dfc7",
+        "d53458fd-d018-4d9b-ad4a-7d90ffaf79b3": "e9d3f11a-c381-47f8-92d5-573d95ba2b82",
+        "65755b2c-b148-426c-93fe-bb2a5039e1ab": "d0ed48d6-4a82-4466-8c5c-e86b3d632fc9",
+        "4337ecb4-ea74-4f87-b472-7d5c63d45c75": "cf2db80c-05dd-4992-813e-d3487ef8cdfa"
+      },
+      "layers": {
+        "893dfe32-7310-4d27-943c-3fbd3e617f64": {
+          "class": "com.simiacryptus.mindseye.layers.java.SqActivationLayer",
+          "id": "893dfe32-7310-4d27-943c-3fbd3e617f64",
+          "isFrozen": true,
+          "name": "SqActivationLayer/893dfe32-7310-4d27-943c-3fbd3e617f64"
+        },
+        "b8350773-453d
+```
+...[skipping 728 bytes](etc/352.txt)...
+```
+    "isFrozen": false,
+          "name": "NthPowerActivationLayer/d0ed48d6-4a82-4466-8c5c-e86b3d632fc9",
+          "power": -0.5
+        },
+        "cf2db80c-05dd-4992-813e-d3487ef8cdfa": {
+          "class": "com.simiacryptus.mindseye.layers.java.ProductInputsLayer",
+          "id": "cf2db80c-05dd-4992-813e-d3487ef8cdfa",
+          "isFrozen": false,
+          "name": "ProductInputsLayer/cf2db80c-05dd-4992-813e-d3487ef8cdfa"
+        }
+      },
+      "links": {
+        "bb2192cc-ea9f-4223-b40d-ba8bfdffe4b6": [
+          "d719fc48-ebac-4702-be1a-28cdbcb9243a"
+        ],
+        "cf39e519-b51f-42e6-a712-b629ae281e5f": [
+          "bb2192cc-ea9f-4223-b40d-ba8bfdffe4b6"
+        ],
+        "d53458fd-d018-4d9b-ad4a-7d90ffaf79b3": [
+          "cf39e519-b51f-42e6-a712-b629ae281e5f"
+        ],
+        "65755b2c-b148-426c-93fe-bb2a5039e1ab": [
+          "d53458fd-d018-4d9b-ad4a-7d90ffaf79b3"
+        ],
+        "4337ecb4-ea74-4f87-b472-7d5c63d45c75": [
+          "65755b2c-b148-426c-93fe-bb2a5039e1ab",
+          "d719fc48-ebac-4702-be1a-28cdbcb9243a"
+        ]
+      },
+      "labels": {},
+      "head": "4337ecb4-ea74-4f87-b472-7d5c63d45c75"
+    }
+```
+
+
+
+### Example Input/Output Pair
+Code from [ReferenceIO.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/ReferenceIO.java#L68) executed in 0.00 seconds: 
+```java
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+      eval.getOutput().prettyPrint(),
+      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+```
+
+Returns: 
+
+```
+    --------------------
+    Input: 
+    [[ 0.916, 1.272, 0.844 ]]
+    --------------------
+    Output: 
+    [ 0.8911877712975576, 1.2375445907101454, 0.8211380774837757 ]
+    --------------------
+    Derivative: 
+    [ 0.1203530072525254, -0.21099104168927463, 0.18736641040929403 ]
+```
 
 
 
@@ -22,36 +124,36 @@ Code from [BatchDerivativeTester.java:76](../../../../../../../src/main/java/com
 ```
 Logging: 
 ```
-    Inputs: [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ],
-    [ -1.648, -1.124, -1.212 ]
-    Inputs Statistics: {meanExponent=0.11707537947480223, negative=3, min=-1.212, max=-1.212, mean=-1.328, count=3.0, positive=0, stdDev=0.22910841683942176, zeros=0},
-    {meanExponent=0.11707537947480223, negative=3, min=-1.212, max=-1.212, mean=-1.328, count=3.0, positive=0, stdDev=0.22910841683942176, zeros=0},
-    {meanExponent=0.11707537947480223, negative=3, min=-1.212, max=-1.212, mean=-1.328, count=3.0, positive=0, stdDev=0.22910841683942176, zeros=0},
-    {meanExponent=0.11707537947480223, negative=3, min=-1.212, max=-1.212, mean=-1.328, count=3.0, positive=0, stdDev=0.22910841683942176, zeros=0},
-    {meanExponent=0.11707537947480223, negative=3, min=-1.212, max=-1.212, mean=-1.328, count=3.0, positive=0, stdDev=0.22910841683942176, ze
+    Inputs: [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ],
+    [ 0.944, 1.056, -1.092 ]
+    Inputs Statistics: {meanExponent=0.012286183621526961, negative=1, min=-1.092, max=-1.092, mean=0.30266666666666664, count=3.0, positive=2, stdDev=0.9872376726109181, zeros=0},
+    {meanExponent=0.012286183621526961, negative=1, min=-1.092, max=-1.092, mean=0.30266666666666664, count=3.0, positive=2, stdDev=0.9872376726109181, zeros=0},
+    {meanExponent=0.012286183621526961, negative=1, min=-1.092, max=-1.092, mean=0.30266666666666664, count=3.0, positive=2, stdDev=0.9872376726109181, zeros=0},
+    {meanExponent=0.012286183621526961, negative=1, min=-1.092, max=-1.092, mean=0.30266666666666664, count=3.0, positive=2, stdDev=0.9872376726109181, zeros=0},
+    {meanExponent=0.012286183621526961, negative=1, min=-1.092, max=-1.092, mean=0.30266666666666664, count=3
 ```
-...[skipping 1493 bytes](etc/295.txt)...
+...[skipping 1594 bytes](etc/353.txt)...
 ```
-    {meanExponent=-0.5254973270962222, negative=6, min=0.541979292891704, max=0.541979292891704, mean=0.007149246698753053, count=9.0, positive=3, stdDev=0.34973264396055903, zeros=0}
-    Measured: [ [ 0.7050624604842959, -0.025228446421943218, -0.027203627280814047 ], [ -0.025228053179837673, 0.7248449854146966, -0.018553641052410086 ], [ -0.027203297707778518, -0.01855370547643176, 0.7220453085188261 ] ]
-    Measured Statistics: {meanExponent=-1.135897821618769, negative=6, min=0.7220453085188261, max=0.7220453085188261, mean=0.22333133147762257, count=9.0, positive=3, stdDev=0.34935055055308095, zeros=0}
-    Feedback Error: [ [ 0.33291954479254743, 0.2270625276101767, 0.24483966500293075 ], [ 0.22706292085228208, 0.15486726082651447, 0.16699044907315375 ], [ 0.24483999457596628, 0.16699038464913216, 0.1800660156271221 ] ]
-    Error Statistics: {meanExponent=-0.67742560136677, negative=0, min=0.1800660156271221, max=0.1800660156271221, mean=0.21618208477886952, count=9.0, positive=9, stdDev=0.053135531500832646, zeros=0}
+    stics: {meanExponent=-0.07158088317487946, negative=0, min=1.2686307826382224, max=1.2686307826382224, mean=0.8852332621702628, count=9.0, positive=9, stdDev=0.271394222603909, zeros=0}
+    Measured: [ [ 0.9414532601059733, -0.030182139520995577, 0.031211076096937518 ], [ -0.030181954125962918, 0.934671060597303, 0.034913870663455526 ], [ 0.031208292011752903, 0.03491097072538807, 0.9323393102822486 ] ]
+    Measured Statistics: {meanExponent=-1.0057702666836614, negative=2, min=0.9323393102822486, max=0.9323393102822486, mean=0.3200381940929, count=9.0, positive=7, stdDev=0.4363470287868067, zeros=0}
+    Feedback Error: [ [ 0.2325242114587398, -0.7391111881682291, -0.677717972550296 ], [ -0.7083219093512952, 0.25653110537197066, -0.6432260845618768 ], [ -1.2374224906264695, -1.2337198119128343, -0.3362914723559738 ] ]
+    Error Statistics: {meanExponent=-0.23950980953401999, negative=7, min=-0.3362914723559738, max=-0.3362914723559738, mean=-0.5651950680773628, count=9.0, positive=2, stdDev=0.5090605948478811, zeros=0}
     
 ```
 
 Returns: 
 
 ```
-    java.lang.AssertionError: ToleranceStatistics{absoluteTol=2.1618e-01 +- 5.3136e-02 [1.5487e-01 - 3.3292e-01] (9#), relativeTol=6.0892e-01 +- 2.9994e-01 [1.1960e-01 - 8.1819e-01] (9#)}
+    java.lang.AssertionError: ToleranceStatistics{absoluteTol=6.7387e-01 +- 3.5282e-01 [2.3252e-01 - 1.2374e+00] (9#), relativeTol=6.8543e-01 +- 3.7923e-01 [1.4089e-01 - 1.0000e+00] (9#)}
     	at com.simiacryptus.mindseye.test.unit.BatchDerivativeTester.lambda$test$9(BatchDerivativeTester.java:107)
     	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
     	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
@@ -64,7 +166,7 @@ Returns:
     	at com.simiacryptus.mindseye.test.unit.BatchDerivativeTester.test(BatchDerivativeTester.java:138)
     	at com.simiacryptu
 ```
-...[skipping 2930 bytes](etc/296.txt)...
+...[skipping 3029 bytes](etc/354.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)

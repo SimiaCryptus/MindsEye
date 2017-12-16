@@ -1,14 +1,65 @@
 # Sparse01MetaLayer
 ## Sparse01MetaLayerTest
+### Json Serialization
+Code from [JsonTest.java:36](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/JsonTest.java#L36) executed in 0.00 seconds: 
+```java
+    JsonObject json = layer.getJson();
+    NNLayer echo = NNLayer.fromJson(json);
+    if ((echo == null)) throw new AssertionError("Failed to deserialize");
+    if ((layer == echo)) throw new AssertionError("Serialization did not copy");
+    if ((!layer.equals(echo))) throw new AssertionError("Serialization not equal");
+    return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+```
+
+Returns: 
+
+```
+    {
+      "class": "com.simiacryptus.mindseye.layers.java.Sparse01MetaLayer",
+      "id": "e498f750-868a-4dc8-9378-1dcb9a139cbe",
+      "isFrozen": false,
+      "name": "Sparse01MetaLayer/e498f750-868a-4dc8-9378-1dcb9a139cbe",
+      "sparsity": 0.0
+    }
+```
+
+
+
+### Example Input/Output Pair
+Code from [ReferenceIO.java:68](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/ReferenceIO.java#L68) executed in 0.00 seconds: 
+```java
+    SimpleEval eval = SimpleEval.run(layer, inputPrototype);
+    return String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
+      Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+      eval.getOutput().prettyPrint(),
+      Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+```
+
+Returns: 
+
+```
+    --------------------
+    Input: 
+    [[ 0.032, 1.084, 1.264 ]]
+    --------------------
+    Output: 
+    [ NaN, 0.0, 0.0 ]
+    --------------------
+    Derivative: 
+    [ 1.0330578512396695, -11.904761904761894, -3.7878787878787876 ]
+```
+
+
+
 Code from [SingleDerivativeTester.java:77](../../../../../../../src/main/java/com/simiacryptus/mindseye/test/unit/SingleDerivativeTester.java#L77) executed in 0.00 seconds: 
 ```java
     return test(component, inputPrototype);
 ```
 Logging: 
 ```
-    Inputs: [ 0.052, 1.228, 0.572 ]
-    Inputs Statistics: {meanExponent=-0.4791340869223426, negative=0, min=0.572, max=0.572, mean=0.6173333333333333, count=3.0, positive=3, stdDev=0.48116894699840673, zeros=0}
-    Output: [ NaN, 0.0, NaN ]
+    Inputs: [ 1.424, 0.092, 0.68 ]
+    Inputs Statistics: {meanExponent=-0.35006442354912354, negative=0, min=0.68, max=0.68, mean=0.7320000000000001, count=3.0, positive=3, stdDev=0.5450284396249426, zeros=0}
+    Output: [ 0.0, NaN, NaN ]
     Outputs Statistics: {meanExponent=NaN, negative=0, min=NaN, max=NaN, mean=NaN, count=3.0, positive=2, stdDev=NaN, zeros=1}
     
 ```
@@ -30,7 +81,7 @@ Returns:
     	at java.util.stream.ReferencePipeline.reduce(ReferencePipeline.java:479)
     	at com.simiacryptus.mindseye.test.unit.SingleDerivativeTester.test(SingleDerivativeTester
 ```
-...[skipping 2875 bytes](etc/337.txt)...
+...[skipping 2976 bytes](etc/399.txt)...
 ```
     unner.java:268)
     	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
