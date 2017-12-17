@@ -22,10 +22,7 @@ package com.simiacryptus.util.io;
 import com.simiacryptus.util.lang.UncheckedSupplier;
 
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 
 /**
  * The interface Notebook output.
@@ -167,4 +164,12 @@ public interface NotebookOutput extends Closeable {
    */
   NotebookOutput addCopy(PrintStream out);
   
+  /**
+   * Link string.
+   *
+   * @param file the file
+   * @param text the text
+   * @return the string
+   */
+  String link(File file, String text);
 }

@@ -45,6 +45,11 @@ public abstract class DeepConvolution extends NLayerTest {
     network.add(getActivation());
   }
   
+  /**
+   * Gets activation.
+   *
+   * @return the activation
+   */
   public NNLayer getActivation() {
     return new ActivationLayer(ActivationLayer.Mode.RELU);
   }

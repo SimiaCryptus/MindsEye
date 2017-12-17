@@ -440,7 +440,7 @@ class EncodingUtil {
   }
   
   private static class ConvolutionExtractor implements ToDoubleFunction<Coordinate> {
-
+  
     /**
      * The X.
      */

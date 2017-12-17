@@ -74,6 +74,14 @@ public abstract class NLayerTest {
     }
   }
   
+  /**
+   * Test double.
+   *
+   * @param log       the log
+   * @param layer     the layer
+   * @param inputDims the input dims
+   * @return the double
+   */
   public double test(NotebookOutput log, NNLayer layer, int[]... inputDims) {
     NNLayer component = layer.copy();
     Tensor[] randomize = randomize(inputDims);
@@ -81,6 +89,12 @@ public abstract class NLayerTest {
     return new LearningTester().test(log, component, randomize);
   }
   
+  /**
+   * Graphviz.
+   *
+   * @param log   the log
+   * @param layer the layer
+   */
   public void graphviz(NotebookOutput log, NNLayer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network with the following layout:");
@@ -91,6 +105,13 @@ public abstract class NLayerTest {
     }
   }
   
+  /**
+   * Concat int [ ] [ ].
+   *
+   * @param a the a
+   * @param b the b
+   * @return the int [ ] [ ]
+   */
   public int[][] concat(int[] a, List<int[]> b) {
     return Stream.concat(Stream.of(a), b.stream()).toArray(i -> new int[i][]);
   }
@@ -136,6 +157,12 @@ public abstract class NLayerTest {
     this.dimList = Arrays.asList(dimList);
   }
   
+  /**
+   * Build network nn layer.
+   *
+   * @param dimList the dim list
+   * @return the nn layer
+   */
   public NNLayer buildNetwork(int[]... dimList) {
     PipelineNetwork network = new PipelineNetwork(1);
     int[] last = null;
@@ -151,7 +178,7 @@ public abstract class NLayerTest {
    *
    * @param network the network
    * @param in      the in
-   * @param out    the dims
+   * @param out     the dims
    */
   public abstract void addLayer(PipelineNetwork network, int[] in, int[] out);
   

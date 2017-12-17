@@ -19,6 +19,10 @@
 
 package com.simiacryptus.mindseye.test;
 
+import smile.plot.LinePlot;
+import smile.plot.Plot;
+import smile.plot.ScatterPlot;
+
 import java.awt.*;
 import java.util.List;
 
@@ -26,6 +30,51 @@ import java.util.List;
  * The type Problem run.
  */
 public class ProblemRun {
+  
+  /**
+   * The Type.
+   */
+  public final PlotType type;
+  
+  /**
+   * Instantiates a new Problem run.
+   *
+   * @param name    the name
+   * @param color   the color
+   * @param history the history
+   * @param type    the type
+   */
+  public ProblemRun(String name, Color color, List<StepRecord> history, PlotType type) {
+    this.history = history;
+    this.name = name;
+    this.color = color;
+    this.type = type;
+  }
+  
+  /**
+   * Plot plot.
+   *
+   * @param pts the pts
+   * @return the plot
+   */
+  public Plot plot(double[][] pts) {
+    Plot plot;
+    switch (type) {
+      case Scatter:
+        plot = new ScatterPlot(pts);
+        plot.setID(name);
+        plot.setColor(color);
+        return plot;
+      case Line:
+        plot = new LinePlot(pts);
+        plot.setID(name);
+        plot.setColor(color);
+        return plot;
+      default:
+        throw new IllegalStateException(type.toString());
+    }
+  }
+  
   /**
    * The History.
    */
@@ -40,15 +89,16 @@ public class ProblemRun {
   public final Color color;
   
   /**
-   * Instantiates a new Problem run.
-   *
-   * @param name    the name
-   * @param color   the color
-   * @param history the history
+   * The enum Plot type.
    */
-  public ProblemRun(String name, Color color, List<StepRecord> history) {
-    this.history = history;
-    this.name = name;
-    this.color = color;
+  public enum PlotType {
+    /**
+     * Scatter plot type.
+     */
+    Scatter,
+    /**
+     * Line plot type.
+     */
+    Line
   }
 }

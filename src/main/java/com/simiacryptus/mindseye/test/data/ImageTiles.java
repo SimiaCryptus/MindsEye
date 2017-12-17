@@ -177,7 +177,7 @@ public class ImageTiles {
    * The type Image tensor loader.
    */
   public static class ImageTensorLoader extends DataLoader<Tensor> {
-
+  
     /**
      * The Parent directiory.
      */
@@ -206,7 +206,7 @@ public class ImageTiles {
      * The Max tile cols.
      */
     public final int maxTileCols;
-
+  
     /**
      * Instantiates a new Image tensor loader.
      *

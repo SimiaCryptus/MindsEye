@@ -316,4 +316,15 @@ public class HtmlNotebookOutput implements NotebookOutput {
     this.sourceRoot = sourceRoot;
     return this;
   }
+  
+  @Override
+  public String link(File file, String text) {
+    String path = null;
+    try {
+      path = this.workingDir.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return String.format("<a href=\"%s\">%s</a>", path, text);
+  }
 }

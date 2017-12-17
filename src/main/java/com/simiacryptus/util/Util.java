@@ -35,7 +35,6 @@ import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -299,8 +298,8 @@ public class Util {
    */
   public static BufferedImage resize(BufferedImage image) {
     if (null == image) return image;
-    int width = image.getWidth();
-    if (width < 800) return image;
+    int width = Math.min(image.getWidth(), 800);
+    if (width == image.getWidth()) return image;
     int height = image.getHeight() * width / image.getWidth();
     BufferedImage rerender = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics gfx = rerender.getGraphics();
@@ -318,9 +317,7 @@ public class Util {
    * @return the string
    */
   public static String pathTo(File from, File to) {
-    Path fromUrl = from.toPath();
-    Path toUrl = to.toPath();
-    return fromUrl.relativize(toUrl).toString().replaceAll("\\\\", "/");
+    return from.toPath().relativize(to.toPath()).toString().replaceAll("\\\\", "/");
   }
   
   /**

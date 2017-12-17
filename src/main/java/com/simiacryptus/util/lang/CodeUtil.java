@@ -19,8 +19,12 @@
 
 package com.simiacryptus.util.lang;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +32,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The type Code util.
@@ -61,19 +66,8 @@ public class CodeUtil {
    * @return the file
    */
   public static File findFile(StackTraceElement callingFrame) {
-    return findFile(callingFrame.getClassName(), callingFrame.getFileName());
-  }
-  
-  /**
-   * Find file file.
-   *
-   * @param className the class name
-   * @param fileName  the file name
-   * @return the file
-   */
-  public static File findFile(String className, String fileName) {
-    String[] packagePath = className.split("\\.");
-    String path = Arrays.stream(packagePath).limit(packagePath.length - 1).collect(Collectors.joining(File.separator)) + File.separator + fileName;
+    String[] packagePath = callingFrame.getClassName().split("\\.");
+    String path = Arrays.stream(packagePath).limit(packagePath.length - 1).collect(Collectors.joining(File.separator)) + File.separator + callingFrame.getFileName();
     return findFile(path);
   }
   
@@ -100,6 +94,41 @@ public class CodeUtil {
       if (file.exists()) return file;
     }
     throw new RuntimeException(String.format("Not Found: %s; Project Root = %s", path, projectRoot.getAbsolutePath()));
+  }
+  
+  /**
+   * Gets javadoc.
+   *
+   * @param clazz the clazz
+   * @return the javadoc
+   */
+  public static String getJavadoc(Class<?> clazz) {
+    try {
+      File source = findFile(clazz);
+      if (null == source) return clazz.getName() + " not found";
+      List<String> lines = IOUtils.readLines(new FileInputStream(source), Charset.forName("UTF-8"));
+      int classDeclarationLine = IntStream.range(0, lines.size())
+        .filter(i -> lines.get(i).contains("class " + clazz.getSimpleName())).findFirst().getAsInt();
+      int firstLine = IntStream.rangeClosed(1, classDeclarationLine).map(i -> classDeclarationLine - i)
+        .filter(i -> !lines.get(i).matches("\\s*[/\\*]{1,4}.*")).findFirst().orElse(-1) + 1;
+      String javadoc = lines.subList(firstLine, classDeclarationLine).stream()
+        .map(s -> s.replaceFirst("^[ \t]*[/\\*]+", "").trim())
+        .filter(x -> !x.isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
+      return javadoc;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Find file file.
+   *
+   * @param clazz the clazz
+   * @return the file
+   */
+  public static File findFile(Class<?> clazz) {
+    String path = clazz.getName().replaceAll("\\.", "/").replaceAll("\\$.*", "");
+    return findFile(path + ".java");
   }
   
   /**

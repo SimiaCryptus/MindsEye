@@ -165,7 +165,7 @@ public class SysOutInterceptor extends PrintStream {
      * The Log.
      */
     public final String log;
-
+  
     /**
      * Instantiates a new Logged result.
      *

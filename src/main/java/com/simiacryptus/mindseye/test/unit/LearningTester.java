@@ -39,9 +39,10 @@ import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.test.ProblemRun;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
+import smile.plot.PlotCanvas;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,21 +88,6 @@ public class LearningTester implements ComponentTest<Double> {
   }
   
   /**
-   * Plot.
-   *
-   * @param log  the log
-   * @param runs the runs
-   */
-  public static void plot(NotebookOutput log, ProblemRun... runs) {
-    log.code(() -> {
-      return TestUtil.compare(runs);
-    });
-    log.code(() -> {
-      return TestUtil.compareTime(runs);
-    });
-  }
-  
-  /**
    * Is zero boolean.
    *
    * @param stream the stream
@@ -115,12 +101,14 @@ public class LearningTester implements ComponentTest<Double> {
   
   /**
    * Test input learning.
-   *  @param log            the log
+   *
+   * @param log            the log
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
+   * @return the test result
    */
-  public double testInputLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
+  public TestResult testInputLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer shuffleCopy = shuffle(random, component.copy()).freeze();
     final Tensor[] input_target = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
     log.p("In this test, we use a network to learn this target input, given it's pre-evaluated output:");
@@ -138,7 +126,7 @@ public class LearningTester implements ComponentTest<Double> {
     Tensor[] input_lbgfs = Arrays.stream(input_gd).map(t -> t.copy()).toArray(i -> new Tensor[i]);
     boolean[] mask = new boolean[input_gd.length];
     for (int i = 0; i < mask.length; i++) mask[i] = true;
-    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(new Tensor[][]{input_gd}, network).setMask(mask));
+    List<StepRecord> gd = trainCjGD(log, getTrainable(network, input_gd).setMask(mask));
     if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following regressed input:");
       log.code(() -> {
@@ -148,7 +136,7 @@ public class LearningTester implements ComponentTest<Double> {
     else {
       log.p("Training Converged");
     }
-    List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(new Tensor[][]{input_lbgfs}, network).setMask(true));
+    List<StepRecord> lbfgs = trainLBFGS(log, getTrainable(network, input_lbgfs).setMask(true));
     if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following regressed input:");
       log.code(() -> {
@@ -158,18 +146,30 @@ public class LearningTester implements ComponentTest<Double> {
     else {
       log.p("Training Converged");
     }
-    plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
-    return Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x->x.fitness).min().orElse(Double.NaN);
+    ProblemRun[] runs = {
+      new ProblemRun("GD", Color.BLUE, gd, ProblemRun.PlotType.Line),
+      new ProblemRun("LBFGS", Color.GREEN, lbfgs, ProblemRun.PlotType.Line)
+    };
+    PlotCanvas iterPlot = log.code(() -> {
+      return TestUtil.compare("Input Convergence vs Iteration", runs);
+    });
+    PlotCanvas timePlot = log.code(() -> {
+      return TestUtil.compareTime("Input Convergence vs Time", runs);
+    });
+    double fitness = Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    return new TestResult(iterPlot, timePlot, fitness);
   }
   
   /**
    * Test model learning.
-   *  @param log            the log
+   *
+   * @param log            the log
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
+   * @return the test result
    */
-  public double testModelLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
+  public TestResult testModelLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer network_target = shuffle(random, component.copy()).freeze();
     Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
     log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -183,7 +183,7 @@ public class LearningTester implements ComponentTest<Double> {
     network_gd.add(new MeanSqLossLayer(),
       network_gd.add(shuffle(random, component.copy()), network_gd.getInput(0)),
       network_gd.constValue(targetOutput));
-    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(new Tensor[][]{testInput}, network_gd));
+    List<StepRecord> gd = trainCjGD(log, getTrainable(network_gd, testInput));
     if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following configuration:");
       log.code(() -> {
@@ -197,7 +197,7 @@ public class LearningTester implements ComponentTest<Double> {
     network_lbfgs.add(new MeanSqLossLayer(),
       network_lbfgs.add(shuffle(random, component.copy()), network_lbfgs.getInput(0)),
       network_lbfgs.constValue(targetOutput));
-    List<StepRecord> lbfgs = trainLBFGS(log, new ArrayTrainable(new Tensor[][]{testInput}, network_lbfgs));
+    List<StepRecord> lbfgs = trainLBFGS(log, getTrainable(network_lbfgs, testInput));
     if (lbfgs.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following configuration:");
       log.code(() -> {
@@ -207,12 +207,42 @@ public class LearningTester implements ComponentTest<Double> {
     else {
       log.p("Training Converged");
     }
-    
-    plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
-    return Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x->x.fitness).min().orElse(Double.NaN);
+  
+    ProblemRun[] runs = {
+      new ProblemRun("GD", Color.BLUE, gd, ProblemRun.PlotType.Line),
+      new ProblemRun("LBFGS", Color.GREEN, lbfgs, ProblemRun.PlotType.Line)
+    };
+    PlotCanvas iterPlot = log.code(() -> {
+      return TestUtil.compare("Model Convergence vs Iteration", runs);
+    });
+    PlotCanvas timePlot = log.code(() -> {
+      return TestUtil.compareTime("Model Convergence vs Time", runs);
+    });
+    double fitness = Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    return new TestResult(iterPlot, timePlot, fitness);
   }
   
-  public double testCompleteLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
+  /**
+   * Gets trainable.
+   *
+   * @param network_gd the network gd
+   * @param testInput  the test input
+   * @return the trainable
+   */
+  public ArrayTrainable getTrainable(PipelineNetwork network_gd, Tensor... testInput) {
+    return new ArrayTrainable(new Tensor[][]{testInput}, network_gd);
+  }
+  
+  /**
+   * Test complete learning test result.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param random         the random
+   * @param inputPrototype the input prototype
+   * @return the test result
+   */
+  public TestResult testCompleteLearning(NotebookOutput log, NNLayer component, Random random, Tensor[] inputPrototype) {
     NNLayer network_target = shuffle(random, component.copy()).freeze();
     Tensor[] testInput = shuffle(random, Arrays.stream(inputPrototype).map(t -> t.copy()));
     log.p("In this test, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
@@ -239,7 +269,7 @@ public class LearningTester implements ComponentTest<Double> {
       network_gd.add(shuffle(random, component.copy()), network_gd.getInput(0)),
       network_gd.constValue(targetOutput));
     DAGNetwork network_lbfgs = network_gd.copy();
-    List<StepRecord> gd = trainCjGD(log, new ArrayTrainable(new Tensor[][]{input_gd}, network_gd).setMask(mask));
+    List<StepRecord> gd = trainCjGD(log, getTrainable(network_gd, input_gd).setMask(mask));
     if (gd.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
       log.p("This training run resulted in the following configuration:");
       log.code(() -> {
@@ -282,8 +312,65 @@ public class LearningTester implements ComponentTest<Double> {
       log.p("Training Converged");
     }
     
-    plot(log, new ProblemRun("GD", Color.BLUE, gd), new ProblemRun("LBFGS", Color.GREEN, lbfgs));
-    return Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x->x.fitness).min().orElse(Double.NaN);
+    ProblemRun[] runs = {
+      new ProblemRun("GD", Color.BLUE, gd, ProblemRun.PlotType.Line),
+      new ProblemRun("LBFGS", Color.GREEN, lbfgs, ProblemRun.PlotType.Line)
+    };
+    PlotCanvas iterPlot = log.code(() -> {
+      return TestUtil.compare("Integrated Convergence vs Iteration", runs);
+    });
+    PlotCanvas timePlot = log.code(() -> {
+      return TestUtil.compareTime("Integrated Convergence vs Time", runs);
+    });
+    double fitness = Stream.concat(gd.stream(), lbfgs.stream()).mapToDouble(x -> x.fitness).min().orElse(Double.NaN);
+    return new TestResult(iterPlot, timePlot, fitness);
+  }
+  
+  /**
+   * Test.
+   *
+   * @param log            the log
+   * @param component      the component
+   * @param inputPrototype the input prototype
+   */
+  public Double test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
+    boolean testModel = !component.state().isEmpty();
+    if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
+      throw new AssertionError("Weights are all zero?");
+    }
+    if (isZero(Arrays.stream(inputPrototype).flatMapToDouble(x -> Arrays.stream(x.getData())))) {
+      throw new AssertionError("Inputs are all zero?");
+    }
+    Random random = new Random();
+    boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0);
+    TestResult inputLearning;
+    if (testInput) {
+      log.h3("Input Learning");
+      inputLearning = testInputLearning(log, component, random, inputPrototype);
+    }
+    else {
+      inputLearning = null;
+    }
+    TestResult modelLearning;
+    if (testModel) {
+      log.h3("Model Learning");
+      modelLearning = testModelLearning(log, component, random, inputPrototype);
+    }
+    else {
+      modelLearning = null;
+    }
+    TestResult completeLearning;
+    if (testInput && testModel) {
+      log.h3("Composite Learning");
+      completeLearning = testCompleteLearning(log, component, random, inputPrototype);
+    }
+    else {
+      completeLearning = null;
+    }
+    log.code(() -> {
+      return grid(inputLearning, modelLearning, completeLearning);
+    });
+    return Stream.of(inputLearning, modelLearning, completeLearning).filter(x -> x != null).mapToDouble(x -> x.value).filter(Double::isFinite).min().orElse(Double.NaN);
   }
   
   /**
@@ -384,38 +471,65 @@ public class LearningTester implements ComponentTest<Double> {
   }
   
   /**
-   * Test.
+   * Grid j panel.
    *
-   * @param log            the log
-   * @param component      the component
-   * @param inputPrototype the input prototype
+   * @param inputLearning    the input learning
+   * @param modelLearning    the model learning
+   * @param completeLearning the complete learning
+   * @return the j panel
    */
-  public Double test(NotebookOutput log, final NNLayer component, final Tensor... inputPrototype) {
-    boolean testModel = !component.state().isEmpty();
-    if (testModel && isZero(component.state().stream().flatMapToDouble(x1 -> Arrays.stream(x1)))) {
-      throw new AssertionError("Weights are all zero?");
+  public JPanel grid(TestResult inputLearning, TestResult modelLearning, TestResult completeLearning) {
+    int rows = 0;
+    if (inputLearning != null) rows++;
+    if (modelLearning != null) rows++;
+    if (completeLearning != null) rows++;
+    GridLayout layout = new GridLayout(rows, 2, 0, 0);
+    JPanel jPanel = new JPanel(layout);
+    jPanel.setSize(1200, 400 * rows);
+    if (inputLearning != null) {
+      jPanel.add(inputLearning.iterPlot == null ? new JPanel() : inputLearning.iterPlot);
+      jPanel.add(inputLearning.timePlot == null ? new JPanel() : inputLearning.timePlot);
     }
-    if (isZero(Arrays.stream(inputPrototype).flatMapToDouble(x -> Arrays.stream(x.getData())))) {
-      throw new AssertionError("Inputs are all zero?");
+    if (modelLearning != null) {
+      jPanel.add(modelLearning.iterPlot == null ? new JPanel() : modelLearning.iterPlot);
+      jPanel.add(modelLearning.timePlot == null ? new JPanel() : modelLearning.timePlot);
     }
-    Random random = new Random();
-    boolean testInput = Arrays.stream(inputPrototype).anyMatch(x -> x.dim() > 0);
-    double inputLearning = Double.NaN;
-    if (testInput) {
-      log.h3("Input Learning");
-      inputLearning = testInputLearning(log, component, random, inputPrototype);
+    if (completeLearning != null) {
+      jPanel.add(completeLearning.iterPlot == null ? new JPanel() : completeLearning.iterPlot);
+      jPanel.add(completeLearning.timePlot == null ? new JPanel() : completeLearning.timePlot);
     }
-    double modelLearning = Double.NaN;
-    if (testModel) {
-      log.h3("Model Learning");
-      modelLearning = testModelLearning(log, component, random, inputPrototype);
+    return jPanel;
+  }
+  
+  /**
+   * The type Test result.
+   */
+  public static class TestResult {
+    /**
+     * The Time plot.
+     */
+    PlotCanvas timePlot;
+    /**
+     * The Iter plot.
+     */
+    PlotCanvas iterPlot;
+    /**
+     * The Value.
+     */
+    double value;
+    
+    /**
+     * Instantiates a new Test result.
+     *
+     * @param iterPlot the iter plot
+     * @param timePlot the time plot
+     * @param value    the value
+     */
+    public TestResult(PlotCanvas iterPlot, PlotCanvas timePlot, double value) {
+      this.timePlot = timePlot;
+      this.iterPlot = iterPlot;
+      this.value = value;
     }
-    double completeLearning = Double.NaN;
-    if (testInput && testModel) {
-      log.h3("Composite Learning");
-      completeLearning = testCompleteLearning(log, component, random, inputPrototype);
-    }
-    return DoubleStream.of(inputLearning, modelLearning, completeLearning).filter(Double::isFinite).min().orElse(Double.NaN);
   }
   
   /**

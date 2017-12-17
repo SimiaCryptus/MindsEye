@@ -102,30 +102,55 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     return this;
   }
   
+  /**
+   * The Anchor.
+   */
+  int anchor = 0;
+  
   @Override
   public void out(String fmt, Object... args) {
     String msg = 0 == args.length ? fmt : String.format(fmt, args);
     outs.forEach(out -> out.println(msg));
   }
   
+  private String absoluteUrl = null;
+  
+  @Override
+  public String link(File file, String text) {
+    try {
+      return "[" + text + "](" + fileName.getCanonicalFile().toPath().relativize(file.getCanonicalFile().toPath()).normalize().toString().replaceAll("\\\\", "/") + ")";
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
+   * Anchor string.
+   *
+   * @return the string
+   */
+  public String anchor() {
+    return String.format("<a name=\"p-%d\"></a>", anchor++);
+  }
+  
   @Override
   public void p(String fmt, Object... args) {
-    this.out(fmt + "\n", args);
+    this.out(anchor() + fmt + "\n", args);
   }
   
   @Override
   public void h1(String fmt, Object... args) {
-    this.out("# " + fmt, args);
+    this.out("# " + anchor() + fmt, args);
   }
   
   @Override
   public void h2(String fmt, Object... args) {
-    this.out("## " + fmt, args);
+    this.out("## " + anchor() + fmt, args);
   }
   
   @Override
   public void h3(String fmt, Object... args) {
-    this.out("### " + fmt, args);
+    this.out("### " + anchor() + fmt, args);
   }
   
   @Override
@@ -140,18 +165,15 @@ public class MarkdownNotebookOutput implements NotebookOutput {
           return new TimedResult(e, 0);
         }
       });
-      File callingFile = CodeUtil.findFile(callingFrame).getCanonicalFile();
-      File contextPath = fileName.getParentFile().getCanonicalFile();
-      String relativePath = Util.pathTo(contextPath, callingFile);
-      out("Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
+      out(anchor() + "Code from [%s:%s](%s#L%s) executed in %.2f seconds: ",
         callingFrame.getFileName(), callingFrame.getLineNumber(),
-        relativePath, callingFrame.getLineNumber(), result.obj.seconds());
+        linkTo(CodeUtil.findFile(callingFrame)), callingFrame.getLineNumber(), result.obj.seconds());
       out("```java");
       out("  " + sourceCode.replaceAll("\n", "\n  "));
       out("```");
       
       if (!result.log.isEmpty()) {
-        out("Logging: ");
+        out(anchor() + "Logging: ");
         out("```");
         out("    " + summarize(result.log, maxLog).replaceAll("\n", "\n    ").replaceAll("    ~", ""));
         out("```");
@@ -160,7 +182,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       
       Object eval = result.obj.result;
       if (null != eval) {
-        out("Returns: \n");
+        out(anchor() + "Returns: \n");
         String str;
         boolean escape;
         if (eval instanceof Throwable) {
@@ -197,6 +219,21 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  /**
+   * Link to string.
+   *
+   * @param file the file
+   * @return the string
+   * @throws IOException the io exception
+   */
+  public String linkTo(File file) throws IOException {
+    String path = Util.pathTo(fileName.getParentFile().getCanonicalFile(), file.getCanonicalFile());
+    if (null != getAbsoluteUrl()) {
+      path = new File(getAbsoluteUrl()).toPath().relativize(new File(path).toPath()).toString();
+    }
+    return path;
   }
   
   /**
@@ -249,7 +286,7 @@ public class MarkdownNotebookOutput implements NotebookOutput {
       ImageIO.write(rawImage, "png", new File(getResourceDir(), rawName));
     }
     ImageIO.write(stdImage, "png", file);
-    return "![" + caption + "](etc/" + file.getName() + ")";
+    return anchor() + "![" + caption + "](etc/" + file.getName() + ")";
   }
   
   /**
@@ -268,4 +305,23 @@ public class MarkdownNotebookOutput implements NotebookOutput {
     if (null != primaryOut) primaryOut.close();
   }
   
+  /**
+   * Gets absolute url.
+   *
+   * @return the absolute url
+   */
+  public String getAbsoluteUrl() {
+    return absoluteUrl;
+  }
+  
+  /**
+   * Sets absolute url.
+   *
+   * @param absoluteUrl the absolute url
+   * @return the absolute url
+   */
+  public MarkdownNotebookOutput setAbsoluteUrl(String absoluteUrl) {
+    this.absoluteUrl = absoluteUrl;
+    return this;
+  }
 }

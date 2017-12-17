@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.*;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -156,7 +156,7 @@ public class MnistTests {
   }
   
   private abstract static class AllTests {
-
+  
     /**
      * The Rev factory.
      */
@@ -177,7 +177,7 @@ public class MnistTests {
      * The Timeout minutes.
      */
     protected int timeoutMinutes = 10;
-
+  
     /**
      * Instantiates a new All tests.
      *
@@ -190,7 +190,7 @@ public class MnistTests {
       this.optimizationStrategy = optimizationStrategy;
       this.fwdFactory = fwdFactory;
     }
-
+  
     /**
      * Encoding test.
      *
@@ -206,14 +206,14 @@ public class MnistTests {
         new EncodingProblem(revFactory, optimizationStrategy, data, 20).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-
+  
     /**
      * Intro.
      *
      * @param log the log
      */
     protected abstract void intro(NotebookOutput log);
-
+  
     /**
      * Classification test.
      *
@@ -229,7 +229,7 @@ public class MnistTests {
         new ClassifyProblem(fwdFactory, optimizationStrategy, data, 10).setTimeoutMinutes(timeoutMinutes).run(log);
       }
     }
-
+  
     /**
      * Autoencoder test.
      *

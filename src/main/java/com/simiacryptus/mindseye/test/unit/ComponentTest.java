@@ -21,11 +21,12 @@ package com.simiacryptus.mindseye.test.unit;
 
 import com.simiacryptus.mindseye.lang.NNLayer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.util.io.NotebookOutput;
 
 /**
  * The interface Derivative tester.
+ *
+ * @param <T> the type parameter
  */
 public interface ComponentTest<T> {
   /**

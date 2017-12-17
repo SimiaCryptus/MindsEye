@@ -134,7 +134,7 @@ public class StackCounter {
      * The Line number.
      */
     public final int lineNumber;
-    
+  
     /**
      * Instantiates a new Stack frame.
      *
@@ -143,7 +143,7 @@ public class StackCounter {
     public StackFrame(StackTraceElement frame) {
       this(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber());
     }
-    
+  
     /**
      * Instantiates a new Stack frame.
      *

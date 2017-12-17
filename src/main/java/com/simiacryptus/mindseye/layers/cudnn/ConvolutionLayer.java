@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.layers.cudnn;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -30,7 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
-import java.util.function.ToDoubleFunction;
 
 /**
  * The type Convolution layer.
@@ -231,6 +229,12 @@ public class ConvolutionLayer extends NNLayer implements LayerPrecision<Convolut
     return filterBandX * outputBands + filterBandY;
   }
   
+  /**
+   * Set convolution layer.
+   *
+   * @param f the f
+   * @return the convolution layer
+   */
   public ConvolutionLayer set(final IntToDoubleFunction f) {
     this.kernel.set(f);
     return this;

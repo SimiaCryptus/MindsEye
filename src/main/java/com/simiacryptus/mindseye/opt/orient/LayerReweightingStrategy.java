@@ -84,7 +84,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
     
     private final HashMap<NNLayer, Double> map = new HashMap<>();
-
+  
     /**
      * Instantiates a new Hash map layer reweighting strategy.
      *
@@ -98,7 +98,7 @@ public abstract class LayerReweightingStrategy implements OrientationStrategy<Si
     public Double getRegionPolicy(NNLayer layer) {
       return getMap().get(layer);
     }
-
+  
     /**
      * Gets map.
      *

@@ -90,6 +90,11 @@ public abstract class RecycleBin<T> {
     }, 10, 10, TimeUnit.SECONDS);
   }
   
+  /**
+   * Gets garbage truck.
+   *
+   * @return the garbage truck
+   */
   public static ScheduledExecutorService getGarbageTruck() {
     if (null == garbageTruck) {
       synchronized (RecycleBin.class) {
@@ -159,21 +164,23 @@ public abstract class RecycleBin<T> {
    */
   public void recycle(T data) {
     if (null == data) return;
-    //if(null != data) return;
     int length = length(data);
     if (length < 256) return;
     ConcurrentLinkedDeque<T> bin = recycling.get(length);
     if (null == bin) {
-      //System.err.println("New Recycle Bin: " + data.length);
       bin = new ConcurrentLinkedDeque<T>();
       recycling.put(length, bin);
     }
+    StackCounter stackCounter = getRecycle_submit(length);
+    if (null != stackCounter) stackCounter.increment(length);
     if (bin.size() < Math.max(1, (int) (1e8 / length))) {
-      StackCounter stackCounter = getRecycle_submit(length);
-      if (null != stackCounter) stackCounter.increment(length);
       synchronized (bin) {
         if (!bin.contains(data)) bin.add(data);
       }
+    }
+    else {
+      stackCounter = getFrees(length);
+      if (null != stackCounter) stackCounter.increment(length);
     }
   }
   
@@ -185,17 +192,17 @@ public abstract class RecycleBin<T> {
    */
   public T obtain(int length) {
     ConcurrentLinkedDeque<T> bin = recycling.get(length);
+    StackCounter stackCounter = getRecycle_get(length);
+    if (null != stackCounter) stackCounter.increment(length);
     if (null != bin) {
       T data = bin.poll();
       if (null != data) {
-        StackCounter stackCounter = getRecycle_get(length);
-        if (null != stackCounter) stackCounter.increment(length(data));
         reset(data);
         return data;
       }
     }
     try {
-      StackCounter stackCounter = getAllocations(length);
+      stackCounter = getAllocations(length);
       if (null != stackCounter) stackCounter.increment(length);
       return create(length);
     } catch (java.lang.OutOfMemoryError e) {

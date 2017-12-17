@@ -21,7 +21,9 @@ package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.test.*;
+import com.simiacryptus.mindseye.test.ProblemRun;
+import com.simiacryptus.mindseye.test.StepRecord;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.*;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -153,15 +155,15 @@ public abstract class OptimizerComparison {
     public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
       log.h1("QQN-LBFGS Comparison");
       log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(TextbookOptimizers.limited_memory_bfgs));
+      ProblemRun lbfgs = new ProblemRun("LBFGS", Color.BLUE, test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Scatter);
       log.h2("QQN");
-      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton));
+      ProblemRun qqn = new ProblemRun("QQN", Color.GREEN, test.apply(quadratic_quasi_newton), ProblemRun.PlotType.Scatter);
       log.h2("Comparison");
       log.code(() -> {
-        return TestUtil.compare(lbfgs, qqn);
+        return TestUtil.compare("Convergence Plot", lbfgs, qqn);
       });
       log.code(() -> {
-        return TestUtil.compareTime(lbfgs, qqn);
+        return TestUtil.compareTime("Convergence Plot", lbfgs, qqn);
       });
     }
     
@@ -183,21 +185,21 @@ public abstract class OptimizerComparison {
     public void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test) {
       log.h1("Textbook Optimizer Comparison");
       log.h2("GD");
-      ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(TextbookOptimizers.simple_gradient_descent));
+      ProblemRun gd = new ProblemRun("GD", Color.BLACK, test.apply(TextbookOptimizers.simple_gradient_descent), ProblemRun.PlotType.Scatter);
       log.h2("SGD");
-      ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent));
+      ProblemRun sgd = new ProblemRun("SGD", Color.GREEN, test.apply(TextbookOptimizers.stochastic_gradient_descent), ProblemRun.PlotType.Scatter);
       log.h2("CGD");
-      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.conjugate_gradient_descent));
+      ProblemRun cgd = new ProblemRun("CjGD", Color.BLUE, test.apply(TextbookOptimizers.conjugate_gradient_descent), ProblemRun.PlotType.Scatter);
       log.h2("L-BFGS");
-      ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs));
+      ProblemRun lbfgs = new ProblemRun("L-BFGS", Color.MAGENTA, test.apply(TextbookOptimizers.limited_memory_bfgs), ProblemRun.PlotType.Scatter);
       log.h2("OWL-QN");
-      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.orthantwise_quasi_newton));
+      ProblemRun owlqn = new ProblemRun("OWL-QN", Color.ORANGE, test.apply(TextbookOptimizers.orthantwise_quasi_newton), ProblemRun.PlotType.Scatter);
       log.h2("Comparison");
       log.code(() -> {
-        return TestUtil.compare(gd, sgd, cgd, lbfgs, owlqn);
+        return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
       });
       log.code(() -> {
-        return TestUtil.compareTime(gd, sgd, cgd, lbfgs, owlqn);
+        return TestUtil.compareTime("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
       });
     }
     

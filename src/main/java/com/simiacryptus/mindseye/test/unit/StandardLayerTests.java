@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.lang.CodeUtil;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.slf4j.Logger;
@@ -65,7 +66,11 @@ public abstract class StandardLayerTests {
     if (null != originalOut) log.addCopy(originalOut);
     NNLayer layer = getLayer(getInputDims());
     log.h1("%s", layer.getClass().getSimpleName());
+    log.p(String.format("Layer Type %s", log.link(CodeUtil.findFile(layer.getClass()), layer.getClass().getCanonicalName())));
+    log.p(CodeUtil.getJavadoc(layer.getClass()));
     log.h2("%s", getClass().getSimpleName());
+    log.p(String.format("Test Type %s", log.link(CodeUtil.findFile(getClass()), getClass().getCanonicalName())));
+    log.p(CodeUtil.getJavadoc(getClass()));
     if (layer instanceof DAGNetwork) {
       log.h3("Network Diagram");
       log.p("This is a network with the following layout:");
@@ -177,8 +182,8 @@ public abstract class StandardLayerTests {
   /**
    * Gets layer.
    *
+   * @param inputSize the input size
    * @return the layer
-   * @param inputSize
    */
   public abstract NNLayer getLayer(int[][] inputSize);
   
